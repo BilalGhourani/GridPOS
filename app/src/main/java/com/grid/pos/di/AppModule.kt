@@ -1,0 +1,83 @@
+package com.grid.pos.di
+
+import android.app.Application
+import androidx.room.Room
+import com.grid.pos.data.AppDatabase
+import com.grid.pos.data.Company.CompanyRepository
+import com.grid.pos.data.Company.CompanyRepositoryImpl
+import com.grid.pos.data.Currency.CurrencyRepository
+import com.grid.pos.data.Currency.CurrencyRepositoryImpl
+import com.grid.pos.data.Family.FamilyRepository
+import com.grid.pos.data.Family.FamilyRepositoryImpl
+import com.grid.pos.data.Item.ItemRepository
+import com.grid.pos.data.Item.ItemRepositoryImpl
+import com.grid.pos.data.PosPrinter.PosPrinterRepository
+import com.grid.pos.data.PosPrinter.PosPrinterRepositoryImpl
+import com.grid.pos.data.ThirdParty.ThirdPartyRepository
+import com.grid.pos.data.ThirdParty.ThirdPartyRepositoryImpl
+import com.grid.pos.data.User.UserRepository
+import com.grid.pos.data.User.UserRepositoryImpl
+import dagger.Module
+import dagger.Provides
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
+import javax.inject.Singleton
+
+@Module
+@InstallIn(SingletonComponent::class)
+object AppModule {
+
+    @Provides
+    @Singleton
+    fun provideGoChatDatabase(app: Application): AppDatabase {
+        return Room.databaseBuilder(
+            app,
+            AppDatabase::class.java,
+            "collections_db"
+        ).build()
+    }
+
+    @Provides
+    @Singleton
+    fun provideFamilyRepository(db: AppDatabase): FamilyRepository {
+        return FamilyRepositoryImpl(db.categoryDao)
+    }
+
+    @Provides
+    @Singleton
+    fun provideItemRepository(db: AppDatabase): ItemRepository {
+        return ItemRepositoryImpl(db.itemDao)
+    }
+
+    @Provides
+    @Singleton
+    fun provideUserRepository(db: AppDatabase): UserRepository {
+        return UserRepositoryImpl(db.userDao)
+    }
+
+    @Provides
+    @Singleton
+    fun provideCompanyRepository(db: AppDatabase): CompanyRepository {
+        return CompanyRepositoryImpl(db.companyDao)
+    }
+
+    @Provides
+    @Singleton
+    fun provideCurrencyRepository(db: AppDatabase): CurrencyRepository {
+        return CurrencyRepositoryImpl(db.currencyDao)
+    }
+
+    @Provides
+    @Singleton
+    fun provideThirdPartyRepository(db: AppDatabase): ThirdPartyRepository {
+        return ThirdPartyRepositoryImpl(db.thirdPartyDao)
+    }
+
+    @Provides
+    @Singleton
+    fun providePosPrinterRepository(db: AppDatabase): PosPrinterRepository {
+        return PosPrinterRepositoryImpl(db.posPrinterDao)
+    }
+
+
+}

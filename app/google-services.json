@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "337880577447",
+    "firebase_url": "https://grids-app-8a2b7-default-rtdb.europe-west1.firebasedatabase.app",
+    "project_id": "grids-app-8a2b7",
+    "storage_bucket": "grids-app-8a2b7.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:337880577447:android:295a236f47063a5233b282",
+        "android_client_info": {
+          "package_name": "com.grid.pos"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "337880577447-ss7p5vr8t3ueo8h6din231vuvjtbcgj4.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBwQvBrUzAwdwaAQIQY6kB77XM4kxf7tdQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "337880577447-ss7p5vr8t3ueo8h6din231vuvjtbcgj4.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
