@@ -35,6 +35,7 @@ import androidx.navigation.NavController
 import com.grid.pos.ui.pos.components.AddInvoiceItemView
 import com.grid.pos.ui.pos.components.EditInvoiceHeaderView
 import com.grid.pos.ui.pos.components.InvoiceBodyDetails
+import com.grid.pos.ui.pos.components.InvoiceCashView
 import com.grid.pos.ui.pos.components.InvoiceFooterView
 import com.grid.pos.ui.pos.components.InvoiceHeaderDetails
 import com.grid.pos.ui.theme.GridPOSTheme
@@ -167,6 +168,25 @@ fun ManagePosView(
                 modifier = Modifier
                     .fillMaxWidth()
                     .fillMaxHeight(0.8f)
+            )
+        }
+    }
+
+    if (isPayBottomSheetVisible) {
+        ModalBottomSheet(
+            onDismissRequest = { isPayBottomSheetVisible = false },
+            sheetState = bottomSheetState,
+            containerColor = Color.White,
+            contentColor = White,
+            shape = RectangleShape,
+            dragHandle = null,
+            scrimColor = Color.Black.copy(alpha = .5f),
+            windowInsets = WindowInsets(0, 0, 0, 0)
+        ) {
+            InvoiceCashView(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(0.4f)
             )
         }
     }
