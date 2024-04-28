@@ -12,9 +12,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Remove
@@ -73,6 +75,7 @@ fun EditInvoiceHeaderView(
     Column(
         modifier = modifier
             .fillMaxSize()
+            .verticalScroll(rememberScrollState())
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
@@ -87,7 +90,7 @@ fun EditInvoiceHeaderView(
                 onValueChange = { price = it },
                 modifier = Modifier.weight(1f),
                 label = { Text("Price") },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number,  imeAction = ImeAction.Next),
                 keyboardActions = KeyboardActions(onNext = { rDiscount1FocusRequester.requestFocus() })
             )
             OutlinedTextField(
@@ -113,7 +116,7 @@ fun EditInvoiceHeaderView(
                     }
                 },
                 textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Center),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number,  imeAction = ImeAction.Next),
                 keyboardActions = KeyboardActions(onNext = { /* Move focus to next field */ }),
                 leadingIcon = {
                     IconButton(onClick = { qty++ }) {
@@ -151,7 +154,7 @@ fun EditInvoiceHeaderView(
                         modifier = Modifier
                             .weight(1f)
                             .focusRequester(rDiscount1FocusRequester),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number,  imeAction = ImeAction.Next),
                         keyboardActions = KeyboardActions(onNext = { rDiscount2FocusRequester.requestFocus() })
                     )
                     OutlinedTextField(
@@ -160,7 +163,7 @@ fun EditInvoiceHeaderView(
                         modifier = Modifier
                             .weight(1f)
                             .focusRequester(rDiscount2FocusRequester),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number,  imeAction = ImeAction.Next),
                         keyboardActions = KeyboardActions(onNext = { discount1FocusRequester.requestFocus() })
                     )
                 }
@@ -176,7 +179,7 @@ fun EditInvoiceHeaderView(
                         modifier = Modifier
                             .weight(1f)
                             .focusRequester(discount1FocusRequester),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number,  imeAction = ImeAction.Next),
                         keyboardActions = KeyboardActions(onNext = { discount2FocusRequester.requestFocus() })
                     )
                     OutlinedTextField(
@@ -185,7 +188,7 @@ fun EditInvoiceHeaderView(
                         modifier = Modifier
                             .weight(1f)
                             .focusRequester(discount2FocusRequester),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number,  imeAction = ImeAction.Next),
                         keyboardActions = KeyboardActions(onNext = { clientExtraNameFocusRequester.requestFocus() })
                     )
                 }

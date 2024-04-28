@@ -3,6 +3,7 @@ package com.grid.pos.ui.pos
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -12,6 +13,7 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -24,15 +26,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.grid.pos.ui.common.UIBottomSheet
 import com.grid.pos.ui.theme.GridPOSTheme
-import com.grid.pos.utils.Utils
+import com.grid.pos.ui.theme.White
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -40,8 +41,9 @@ fun ManagePosView(
     navController: NavController? = null,
     modifier: Modifier = Modifier
 ) {
-    var showEditBottomSheet by remember { mutableStateOf(false) }
-    val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
+    var isEditBottomSheetVisible by remember { mutableStateOf(false) }
+    var isPayBottomSheetVisible by remember { mutableStateOf(false) }
+    val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var showCashBottomSheet by remember { mutableStateOf(false) }
     GridPOSTheme {
         Scaffold(
@@ -88,7 +90,9 @@ fun ManagePosView(
                         navController = navController,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .weight(.1f)
+                            .weight(.1f),
+                        onEdit = { isEditBottomSheetVisible = true },
+                        onPay = { isPayBottomSheetVisible = true }
                     )
 
                     // Border stroke configuration
@@ -112,9 +116,37 @@ fun ManagePosView(
             }
         }
     }
-    if (showEditBottomSheet) {
-        UIBottomSheet(composable = { EditInvoiceHeaderView() }, isBottomSheetVisible = showEditBottomSheet, sheetState =bottomSheetState) {
+    if (isEditBottomSheetVisible) {
+        ModalBottomSheet(
+            onDismissRequest = { isEditBottomSheetVisible = false },
+            sheetState = bottomSheetState,
+            containerColor = Color.White,
+            contentColor = White,
+            shape = RectangleShape,
+            dragHandle = null,
+            scrimColor = Color.Black.copy(alpha = .5f),
+            windowInsets = WindowInsets(0, 0, 0, 0)
+        ) {
+            EditInvoiceHeaderView(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(0.8f)
+            )
+        }
+    }
 
+    if (isPayBottomSheetVisible) {
+        ModalBottomSheet(
+            onDismissRequest = { isPayBottomSheetVisible = false },
+            sheetState = bottomSheetState,
+            containerColor = Color.Transparent,
+            contentColor = White,
+            shape = RectangleShape,
+            dragHandle = null,
+            scrimColor = Color.Black.copy(alpha = .5f),
+            windowInsets = WindowInsets(0, 0, 0, 0)
+        ) {
+            EditInvoiceHeaderView()
         }
     }
 }

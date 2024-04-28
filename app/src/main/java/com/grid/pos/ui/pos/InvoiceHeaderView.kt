@@ -29,7 +29,10 @@ import com.grid.pos.utils.Utils
 @Composable
 fun InvoiceHeaderDetails(
     navController: NavController? = null,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onEdit: () -> Unit = {},
+    onAddCustomer: () -> Unit = {},
+    onPay: () -> Unit = {},
 ) {
     Row(
         modifier = modifier
@@ -43,7 +46,7 @@ fun InvoiceHeaderDetails(
                 .weight(1f)
                 .padding(3.dp, 5.dp, 5.dp, 5.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Blue),
-            onClick = { }
+            onClick = { onEdit.invoke() }
         ) {
             Text("Edit")
         }
@@ -54,7 +57,7 @@ fun InvoiceHeaderDetails(
                 .weight(1f)
                 .padding(3.dp, 5.dp, 5.dp, 5.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Blue),
-            onClick = { }
+            onClick = { onAddCustomer.invoke() }
         ) {
             Text("Add Customer")
         }
@@ -65,7 +68,7 @@ fun InvoiceHeaderDetails(
                 .weight(1f)
                 .padding(3.dp, 5.dp, 5.dp, 5.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Blue),
-            onClick = { }
+            onClick = { onPay.invoke() }
         ) {
             Text("Pay")
         }
