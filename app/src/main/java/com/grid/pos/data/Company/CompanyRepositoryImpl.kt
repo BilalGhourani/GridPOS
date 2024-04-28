@@ -6,7 +6,6 @@ import com.grid.pos.interfaces.OnResult
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
 
 
 class CompanyRepositoryImpl(
