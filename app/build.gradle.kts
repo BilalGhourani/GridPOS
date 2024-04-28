@@ -71,8 +71,8 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
 
 
-    implementation ("androidx.compose.material:material-icons-core:1.0.5")
-    implementation ("androidx.compose.material:material-icons-extended:1.0.5")
+    implementation ("androidx.compose.material:material-icons-core:1.6.6")
+    implementation ("androidx.compose.material:material-icons-extended:1.6.6")
 
 
     //Navigation
@@ -98,7 +98,7 @@ dependencies {
     implementation ("com.google.firebase:firebase-crashlytics-buildtools:2.9.9")
     api ("com.google.firebase:firebase-messaging:23.4.1")
     implementation(platform("com.google.firebase:firebase-bom:32.8.1"))
-    implementation("com.google.firebase:firebase-firestore")
+    implementation("com.google.firebase:firebase-firestore:24.11.1")
     implementation("com.google.firebase:firebase-analytics")
 
 
