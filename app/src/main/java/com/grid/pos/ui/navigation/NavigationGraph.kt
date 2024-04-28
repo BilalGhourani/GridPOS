@@ -6,8 +6,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
 import com.grid.pos.ui.Item.ManageItemsView
 import com.grid.pos.ui.common.UIWebView
 import com.grid.pos.ui.company.ManageCompaniesView
@@ -45,6 +47,12 @@ fun AuthNavGraph(
         composable(route = "ManageItemsView") { ManageItemsView(navController) }
         composable(route = "PosView") { PosView(navController) }
         composable(route = "ManageTablesView") { ManageTablesView(navController) }
-        composable(route = "UIWebView") { UIWebView(navController) }
+        composable(route = "UIWebView/{text}", arguments = listOf(
+            navArgument("text") { type = NavType.StringType }
+        )
+        ) { backStackEntry ->
+            val htmlContent = backStackEntry.arguments?.getString("text") ?: ""
+            UIWebView(navController, htmlContent = htmlContent)
+        }
     }
 }

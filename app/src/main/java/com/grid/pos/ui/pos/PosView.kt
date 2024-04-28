@@ -213,7 +213,9 @@ fun PosView(
             InvoiceCashView(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .fillMaxHeight(0.4f)
+                    .fillMaxHeight(0.4f),
+                onSave = {navController?.navigate("UIWebView")},
+                onFinish = {},
             )
         }
     }
