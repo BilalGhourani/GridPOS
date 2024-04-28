@@ -43,7 +43,7 @@ import com.grid.pos.ui.theme.White
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ManagePosView(
+fun PosView(
     navController: NavController? = null,
     modifier: Modifier = Modifier
 ) {
@@ -194,8 +194,8 @@ fun ManagePosView(
 
 @Preview(showBackground = true)
 @Composable
-fun ManagePosViewPreview() {
+fun PosViewPreview() {
     GridPOSTheme {
-        ManagePosView()
+        PosView()
     }
 }
