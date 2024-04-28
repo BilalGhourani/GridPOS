@@ -13,18 +13,21 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
+import com.grid.pos.data.Item.Item
+import com.grid.pos.data.ThirdParty.ThirdParty
 import com.grid.pos.ui.common.SearchableDropdownMenu
 import com.grid.pos.ui.theme.GridPOSTheme
-import com.grid.pos.utils.Utils
 
 @Composable
 fun InvoiceFooterView(
-    navController: NavController? = null,
-    modifier: Modifier = Modifier
+    items: MutableList<Item> = mutableListOf(),
+    thirdParties: MutableList<ThirdParty> = mutableListOf(),
+    modifier: Modifier = Modifier,
+    onItemSelected: (Item) -> Unit = {},
+    onThirdPartySelected: (ThirdParty) -> Unit = {},
 ) {
     Row(
-        modifier = Modifier.wrapContentWidth()
+        modifier = modifier.wrapContentWidth()
     ) {
         Column(
             modifier = Modifier
@@ -77,11 +80,12 @@ fun InvoiceFooterView(
             }
 
             SearchableDropdownMenu(
-                items = Utils.listOfItems.toMutableList(),
+                items = items.toMutableList(),
                 modifier = Modifier
                     .padding(10.dp, 15.dp, 10.dp, 5.dp),
                 label = "Search Items",
             ) { item ->
+                onItemSelected.invoke(item as Item)
             }
 
         }
@@ -132,11 +136,12 @@ fun InvoiceFooterView(
             }
 
             SearchableDropdownMenu(
-                items = Utils.categories.toMutableList(),
+                items = thirdParties.toMutableList(),
                 modifier = Modifier
                     .padding(10.dp, 15.dp, 10.dp, 5.dp),
                 label = "Customer Search",
-            ) { item ->
+            ) { thirdParty ->
+                onThirdPartySelected.invoke(thirdParty as ThirdParty)
             }
         }
     }

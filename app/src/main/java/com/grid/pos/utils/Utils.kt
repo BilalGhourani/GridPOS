@@ -13,9 +13,11 @@ import androidx.compose.ui.unit.Dp
 import com.grid.pos.App
 import com.grid.pos.data.DataModel
 import com.grid.pos.data.Family.Family
+import com.grid.pos.data.Invoice.Invoice
 import com.grid.pos.data.Item.Item
 import com.grid.pos.data.User.User
 import com.grid.pos.model.HomeSectionModel
+import com.grid.pos.model.InvoiceItemModel
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.util.UUID
@@ -29,7 +31,7 @@ object Utils {
         HomeSectionModel("Third Party", "ManageThirdPartiesView"),
         HomeSectionModel("Family", "ManageFamiliesView"),
         HomeSectionModel("Item", "ManageItemsView"),
-        HomeSectionModel("POS", "ManagePosView"),
+        HomeSectionModel("POS", "PosView"),
         HomeSectionModel("Table", "ManageTablesView"),
     )
 
@@ -131,5 +133,25 @@ object Utils {
 
     fun isTablet(configuration: Configuration): Boolean {
         return configuration.screenWidthDp > 840
+    }
+
+    fun getInvoiceModelFromList(invoices: MutableList<Invoice>): MutableList<InvoiceItemModel> {
+        val invoiceItemModels: MutableList<InvoiceItemModel> = mutableListOf()
+        invoices.forEach {
+            val price = it.invoicePrice ?: 0.0
+            val quantity = it.invoiceQuantity ?: 0.0
+            val model = InvoiceItemModel(
+                it.invoicExtraName ?: "",
+                quantity.toString(),
+                price.toString(),
+                it.invoiceDiscount.toString(),
+                it.invoiceTax.toString(),
+                it.invoiceTax1.toString(),
+                it.invoiceTax2.toString(),
+                (price * quantity).toString()
+            )
+            invoiceItemModels.add(model)
+        }
+        return invoiceItemModels
     }
 }

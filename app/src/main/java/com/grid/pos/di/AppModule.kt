@@ -9,6 +9,10 @@ import com.grid.pos.data.Currency.CurrencyRepository
 import com.grid.pos.data.Currency.CurrencyRepositoryImpl
 import com.grid.pos.data.Family.FamilyRepository
 import com.grid.pos.data.Family.FamilyRepositoryImpl
+import com.grid.pos.data.Invoice.InvoiceRepository
+import com.grid.pos.data.Invoice.InvoiceRepositoryImpl
+import com.grid.pos.data.InvoiceHeader.InvoiceHeaderRepository
+import com.grid.pos.data.InvoiceHeader.InvoiceHeaderRepositoryImpl
 import com.grid.pos.data.Item.ItemRepository
 import com.grid.pos.data.Item.ItemRepositoryImpl
 import com.grid.pos.data.PosPrinter.PosPrinterRepository
@@ -77,6 +81,16 @@ object AppModule {
     @Singleton
     fun providePosPrinterRepository(db: AppDatabase): PosPrinterRepository {
         return PosPrinterRepositoryImpl(db.posPrinterDao)
+    }@Provides
+    @Singleton
+    fun provideInvoiceRepository(db: AppDatabase): InvoiceRepository {
+        return InvoiceRepositoryImpl(db.invoiceDao)
+    }
+
+    @Provides
+    @Singleton
+    fun provideInvoiceHeaderRepository(db: AppDatabase): InvoiceHeaderRepository {
+        return InvoiceHeaderRepositoryImpl(db.invoiceHeaderDao)
     }
 
 

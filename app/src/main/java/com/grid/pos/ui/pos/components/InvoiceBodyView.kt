@@ -10,16 +10,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.grid.pos.data.Family.Family
+import com.grid.pos.data.Invoice.Invoice
 import com.grid.pos.model.InvoiceItemModel
+import com.grid.pos.utils.Utils
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun InvoiceBodyDetails(
-    navController: NavController? = null,
+    invoices: MutableList<InvoiceItemModel> = mutableListOf(),
     modifier: Modifier = Modifier
 ) {
     val header = InvoiceItemModel("Item", "Count", "Price", "Dis%", "Tax", "Tax1", "Tax2", "Amount")
-    val invoiceItems = listOf(
+/*    val invoiceItems = listOf(
         InvoiceItemModel("Chicken", "1", "150.00", "0.0", "0.0", "0.0", "0.0", "150.00"),
         InvoiceItemModel("Salad", "1", "150.00", "0.0", "0.0", "0.0", "0.0", "150.00"),
         InvoiceItemModel("Champo", "1", "150.00", "0.0", "0.0", "0.0", "0.0", "150.00"),
@@ -29,7 +32,7 @@ fun InvoiceBodyDetails(
         InvoiceItemModel("Mozarilla", "1", "150.00", "0.0", "0.0", "0.0", "0.0", "150.00"),
         InvoiceItemModel("Meat", "1", "150.00", "0.0", "0.0", "0.0", "0.0", "150.00"),
         InvoiceItemModel("Kabab", "1", "150.00", "0.0", "0.0", "0.0", "0.0", "150.00"),
-    )
+    )*/
 
     LazyColumn(
         modifier = modifier,
@@ -37,16 +40,20 @@ fun InvoiceBodyDetails(
     ) {
         stickyHeader {
             InvoiceItemCell(
-                modifier = modifier.height(50.dp).background(color = Color.LightGray),
+                modifier = modifier
+                    .height(50.dp)
+                    .background(color = Color.LightGray),
                 item = header,
                 isHeader = true
             )
         }
-        invoiceItems.forEachIndexed { index, invoiceItemModel ->
+        invoices.forEachIndexed { index, invoiceItemModel ->
             item {
                 val color = if (index % 2 == 0) Color.White else Color.LightGray
                 InvoiceItemCell(
-                    modifier = modifier.height(40.dp).background(color = color),
+                    modifier = modifier
+                        .height(40.dp)
+                        .background(color = color),
                     item = invoiceItemModel
                 )
             }

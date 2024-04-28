@@ -16,9 +16,17 @@ interface InvoiceHeaderDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(invoiceHeader: InvoiceHeader)
 
+    // insert list of Invoice Headers
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAll(order: List<InvoiceHeader>)
+
     // Delete an Invoice Header
     @Delete
     suspend fun delete(invoiceHeader: InvoiceHeader)
+
+    // Delete all Invoice Headers
+    @Query("DELETE FROM in_hinvoice")
+    suspend fun deleteAll()
 
     // Update an Invoice Header
     @Update

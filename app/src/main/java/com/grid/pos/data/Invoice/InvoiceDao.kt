@@ -6,6 +6,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
+import com.grid.pos.data.Item.Item
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -16,9 +17,17 @@ interface InvoiceDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(invoice: Invoice)
 
+    // insert list of Invoices
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAll(order: List<Invoice>)
+
     // Delete an Invoice
     @Delete
     suspend fun delete(invoice: Invoice)
+
+    // Delete all Items
+    @Query("DELETE FROM in_invoice")
+    suspend fun deleteAll()
 
     // Update an Invoice
     @Update
@@ -31,5 +40,9 @@ interface InvoiceDao {
     // Get all Invoices as stream.
     @Query("SELECT * FROM `in_invoice`")
     fun getAllInvoices(): Flow<List<Invoice>>
+
+    // Get all Invoices as stream.
+    @Query("SELECT * FROM `in_invoice` WHERE in_hi_id = :id")
+    fun getAllInvoiceItems(id: String): Flow<List<Invoice>>
 
 }

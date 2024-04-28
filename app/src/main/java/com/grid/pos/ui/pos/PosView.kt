@@ -15,11 +15,15 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -31,6 +35,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.grid.pos.ui.pos.components.AddInvoiceItemView
 import com.grid.pos.ui.pos.components.EditInvoiceHeaderView
@@ -40,18 +45,35 @@ import com.grid.pos.ui.pos.components.InvoiceFooterView
 import com.grid.pos.ui.pos.components.InvoiceHeaderDetails
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.ui.theme.White
+import com.grid.pos.ui.thirdParty.ManageThirdPartiesState
+import com.grid.pos.utils.Utils
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PosView(
     navController: NavController? = null,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    viewModel: POSViewModel = hiltViewModel()
 ) {
+    val posState: POSState by viewModel.posState.collectAsState(POSState())
     var isEditBottomSheetVisible by remember { mutableStateOf(false) }
     var isAddItemBottomSheetVisible by remember { mutableStateOf(false) }
     var isPayBottomSheetVisible by remember { mutableStateOf(false) }
+    val snackbarHostState = remember { SnackbarHostState() }
     val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    var showCashBottomSheet by remember { mutableStateOf(false) }
+    LaunchedEffect(posState.warning) {
+        if (!posState.warning.isNullOrEmpty()) {
+            CoroutineScope(Dispatchers.Main).launch {
+                snackbarHostState.showSnackbar(
+                    message = posState.warning!!,
+                    duration = SnackbarDuration.Short,
+                )
+            }
+        }
+    }
     GridPOSTheme {
         Scaffold(
             topBar = {
@@ -117,7 +139,7 @@ fun PosView(
                     val borderStroke = BorderStroke(1.dp, Color.Black)
 
                     InvoiceBodyDetails(
-                        navController = navController,
+                        invoices = Utils.getInvoiceModelFromList(posState.invoices),
                         modifier = Modifier
                             .wrapContentWidth()
                             .weight(.7f)
@@ -125,10 +147,13 @@ fun PosView(
                     )
 
                     InvoiceFooterView(
-                        navController = navController,
+                        items = posState.items,
+                        thirdParties = posState.thirdParties,
                         modifier = Modifier
                             .wrapContentWidth()
-                            .weight(.2f)
+                            .weight(.2f),
+                        onItemSelected = {},
+                        onThirdPartySelected = {},
                     )
                 }
             }
@@ -165,6 +190,8 @@ fun PosView(
             windowInsets = WindowInsets(0, 0, 0, 0)
         ) {
             AddInvoiceItemView(
+                categories = posState.families,
+                items = posState.items,
                 modifier = Modifier
                     .fillMaxWidth()
                     .fillMaxHeight(0.8f)

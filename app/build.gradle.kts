@@ -96,7 +96,7 @@ dependencies {
 
     //firebase
     implementation ("com.google.firebase:firebase-crashlytics-buildtools:2.9.9")
-    api ("com.google.firebase:firebase-messaging:23.4.1")
+//    api ("com.google.firebase:firebase-messaging:23.4.1")
     implementation(platform("com.google.firebase:firebase-bom:32.8.1"))
     implementation("com.google.firebase:firebase-firestore:24.11.1")
     implementation("com.google.firebase:firebase-analytics")
