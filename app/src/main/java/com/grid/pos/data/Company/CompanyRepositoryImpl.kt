@@ -1,11 +1,13 @@
 package com.grid.pos.data.Company
 
 import androidx.lifecycle.asLiveData
-import com.grid.pos.interfaces.OnResult
 import com.google.firebase.firestore.FirebaseFirestore
+import com.grid.pos.interfaces.OnResult
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
+
 
 class CompanyRepositoryImpl(
     private val companyDao: CompanyDao
