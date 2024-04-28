@@ -59,11 +59,16 @@ class ManageCurrenciesViewModel @Inject constructor(
         manageCurrenciesState.value = manageCurrenciesState.value.copy(
             isLoading = true
         )
+        val isInserting = currency.currencyDocumentId.isNullOrEmpty()
         val callback = object : OnResult {
             override fun onSuccess(result: Any) {
                 viewModelScope.launch(Dispatchers.Main) {
+                    val addedModel = result as Currency
+                    val currencies = manageCurrenciesState.value.currencies
+                    if(isInserting) currencies.add(addedModel)
                     manageCurrenciesState.value = manageCurrenciesState.value.copy(
-                        selectedCurrency = result as Currency,
+                        currencies = currencies,
+                        selectedCurrency = addedModel,
                         isLoading = false
                     )
                 }
@@ -79,7 +84,7 @@ class ManageCurrenciesViewModel @Inject constructor(
 
         }
         CoroutineScope(Dispatchers.IO).launch {
-            if (currency.currencyDocumentId.isNullOrEmpty()) {
+            if (isInserting) {
                 currency.currencyId = Utils.generateRandomUuidString()
                 currencyRepository.insert(currency, callback)
             } else {

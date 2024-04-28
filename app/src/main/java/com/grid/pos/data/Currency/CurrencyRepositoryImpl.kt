@@ -18,6 +18,7 @@ class CurrencyRepositoryImpl(
             .addOnSuccessListener {
                 CoroutineScope(Dispatchers.IO).launch {
                     currencyDao.insert(currency)
+                    currency.currencyDocumentId = it.id
                     callback?.onSuccess(currency)
                 }
             }

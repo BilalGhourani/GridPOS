@@ -85,11 +85,18 @@ class ManageFamiliesViewModel @Inject constructor(
         manageFamiliesState.value = manageFamiliesState.value.copy(
             isLoading = true
         )
+        val isInserting = family.familyDocumentId.isNullOrEmpty()
         val callback = object : OnResult {
             override fun onSuccess(result: Any) {
                 viewModelScope.launch(Dispatchers.Main) {
+                    val addedModel = result as Family
+                    val families = manageFamiliesState.value.families
+                    if (isInserting) {
+                        families.add(addedModel)
+                    }
                     manageFamiliesState.value = manageFamiliesState.value.copy(
-                        selectedFamily = result as Family,
+                        families = families,
+                        selectedFamily = addedModel,
                         isLoading = false
                     )
                 }
@@ -106,7 +113,7 @@ class ManageFamiliesViewModel @Inject constructor(
         }
         manageFamiliesState.value.selectedFamily.let {
             CoroutineScope(Dispatchers.IO).launch {
-                if (it.familyDocumentId.isNullOrEmpty()) {
+                if (isInserting) {
                     it.familyId = Utils.generateRandomUuidString()
                     familyRepository.insert(it, callback)
                 } else {

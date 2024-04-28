@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.grid.pos.data.Company.Company
 import com.grid.pos.data.Company.CompanyRepository
+import com.grid.pos.data.Family.Family
 import com.grid.pos.data.User.User
 import com.grid.pos.data.User.UserRepository
 import com.grid.pos.interfaces.OnResult
@@ -84,11 +85,16 @@ class ManageUsersViewModel @Inject constructor(
         manageUsersState.value = manageUsersState.value.copy(
             isLoading = true
         )
+        val isInserting = user.userDocumentId.isNullOrEmpty()
         val callback = object : OnResult {
             override fun onSuccess(result: Any) {
                 viewModelScope.launch(Dispatchers.Main) {
+                    val addedModel = result as User
+                    val users = manageUsersState.value.users
+                    if (isInserting) users.add(addedModel)
                     manageUsersState.value = manageUsersState.value.copy(
-                        selectedUser = result as User,
+                        users = users,
+                        selectedUser = addedModel,
                         isLoading = false
                     )
                 }
@@ -104,9 +110,8 @@ class ManageUsersViewModel @Inject constructor(
 
         }
         CoroutineScope(Dispatchers.IO).launch {
-            if (user.userDocumentId.isNullOrEmpty()) {
+            if (isInserting) {
                 user.userId = Utils.generateRandomUuidString()
-                user.userName = Utils.generateNameFromUsername(user.userUsername!!)
                 userRepository.insert(user, callback)
             } else {
                 userRepository.update(user, callback)

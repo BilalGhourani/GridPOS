@@ -18,6 +18,7 @@ class ItemRepositoryImpl(
             .addOnSuccessListener {
                 CoroutineScope(Dispatchers.IO).launch {
                     itemDao.insert(item)
+                    item.itemDocumentId = it.id
                     callback?.onSuccess(item)
                 }
             }

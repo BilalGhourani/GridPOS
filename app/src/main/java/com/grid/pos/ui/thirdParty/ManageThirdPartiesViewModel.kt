@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.grid.pos.data.Company.Company
 import com.grid.pos.data.Company.CompanyRepository
+import com.grid.pos.data.Family.Family
 import com.grid.pos.data.ThirdParty.ThirdParty
 import com.grid.pos.data.ThirdParty.ThirdPartyRepository
 import com.grid.pos.interfaces.OnResult
@@ -86,11 +87,16 @@ class ManageThirdPartiesViewModel @Inject constructor(
         manageThirdPartiesState.value = manageThirdPartiesState.value.copy(
             isLoading = true
         )
+        val isInserting = thirdParty.thirdPartyDocumentId.isNullOrEmpty()
         val callback = object : OnResult {
             override fun onSuccess(result: Any) {
                 viewModelScope.launch(Dispatchers.Main) {
+                    val addedModel = result as ThirdParty
+                    val thirdParties = manageThirdPartiesState.value.thirdParties
+                   if(isInserting) thirdParties.add(addedModel)
                     manageThirdPartiesState.value = manageThirdPartiesState.value.copy(
-                        selectedThirdParty = result as ThirdParty,
+                        thirdParties = thirdParties,
+                        selectedThirdParty = addedModel,
                         isLoading = false
                     )
                 }
@@ -107,7 +113,7 @@ class ManageThirdPartiesViewModel @Inject constructor(
         }
         manageThirdPartiesState.value.selectedThirdParty.let {
             CoroutineScope(Dispatchers.IO).launch {
-                if (it.thirdPartyDocumentId.isNullOrEmpty()) {
+                if (isInserting) {
                     it.thirdPartyId = Utils.generateRandomUuidString()
                     thirdPartyRepository.insert(it, callback)
                 } else {

@@ -84,11 +84,16 @@ class ManageCompaniesViewModel @Inject constructor(
         manageCompaniesState.value = manageCompaniesState.value.copy(
             isLoading = true
         )
+        val isInserting = company.companyDocumentId.isNullOrEmpty()
         val callback = object : OnResult {
             override fun onSuccess(result: Any) {
                 viewModelScope.launch(Dispatchers.Main) {
+                    val addedModel = result as Company
+                    val companies = manageCompaniesState.value.companies
+                   if(isInserting) companies.add(addedModel)
                     manageCompaniesState.value = manageCompaniesState.value.copy(
-                        selectedCompany = result as Company,
+                        companies = companies,
+                        selectedCompany = addedModel,
                         isLoading = false
                     )
                 }
@@ -104,7 +109,7 @@ class ManageCompaniesViewModel @Inject constructor(
 
         }
         CoroutineScope(Dispatchers.IO).launch {
-            if (company.companyDocumentId.isNullOrEmpty()) {
+            if (isInserting) {
                 company.companyId = Utils.generateRandomUuidString()
                 companyRepository.insert(company, callback)
             } else {

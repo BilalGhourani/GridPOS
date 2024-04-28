@@ -17,6 +17,7 @@ class CompanyRepositoryImpl(
             .addOnSuccessListener {
                 CoroutineScope(Dispatchers.IO).launch {
                     companyDao.insert(company)
+                    company.companyDocumentId = it.id
                     callback?.onSuccess(company)
                 }
             }

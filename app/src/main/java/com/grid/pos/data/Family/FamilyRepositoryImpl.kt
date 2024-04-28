@@ -16,6 +16,7 @@ class FamilyRepositoryImpl(
             .addOnSuccessListener {
                 CoroutineScope(Dispatchers.IO).launch {
                     familyDao.insert(family)
+                    family.familyDocumentId = it.id
                     callback?.onSuccess(family)
                 }
             }

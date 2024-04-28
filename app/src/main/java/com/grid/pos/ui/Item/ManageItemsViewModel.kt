@@ -136,11 +136,16 @@ class ManageItemsViewModel @Inject constructor(
         manageItemsState.value = manageItemsState.value.copy(
             isLoading = true
         )
+        val isInserting = item.itemDocumentId.isNullOrEmpty()
         val callback = object : OnResult {
             override fun onSuccess(result: Any) {
                 viewModelScope.launch(Dispatchers.Main) {
+                    val addedModel = result as Item
+                    val items = manageItemsState.value.items
+                   if(isInserting) items.add(addedModel)
                     manageItemsState.value = manageItemsState.value.copy(
-                        selectedItem = result as Item,
+                        items = items,
+                        selectedItem = addedModel,
                         isLoading = false
                     )
                 }
@@ -157,7 +162,7 @@ class ManageItemsViewModel @Inject constructor(
         }
 
         CoroutineScope(Dispatchers.IO).launch {
-            if (item.itemDocumentId.isNullOrEmpty()) {
+            if (isInserting) {
                 item.itemId = Utils.generateRandomUuidString()
                 itemRepository.insert(item, callback)
             } else {

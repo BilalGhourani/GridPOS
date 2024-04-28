@@ -18,6 +18,7 @@ class ThirdPartyRepositoryImpl(
             .addOnSuccessListener {
                 CoroutineScope(Dispatchers.IO).launch {
                     thirdPartyDao.insert(thirdParty)
+                    thirdParty.thirdPartyDocumentId = it.id
                     callback?.onSuccess(thirdParty)
                 }
             }

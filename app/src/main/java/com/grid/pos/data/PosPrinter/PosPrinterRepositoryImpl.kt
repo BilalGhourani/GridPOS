@@ -16,6 +16,7 @@ class PosPrinterRepositoryImpl(
             .addOnSuccessListener {
                 CoroutineScope(Dispatchers.IO).launch {
                     posPrinterDao.insert(posPrinter)
+                    posPrinter.posPrinterDocumentId = it.id
                     callback?.onSuccess(posPrinter)
                 }
             }

@@ -20,6 +20,7 @@ class UserRepositoryImpl(
             .addOnSuccessListener {
                 CoroutineScope(Dispatchers.IO).launch {
                     userDao.insert(user)
+                    user.userDocumentId = it.id
                     callback?.onSuccess(user)
                 }
             }
