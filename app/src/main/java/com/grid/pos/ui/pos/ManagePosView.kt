@@ -32,6 +32,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.grid.pos.ui.pos.components.AddInvoiceItemView
+import com.grid.pos.ui.pos.components.EditInvoiceHeaderView
+import com.grid.pos.ui.pos.components.InvoiceBodyDetails
+import com.grid.pos.ui.pos.components.InvoiceFooterView
+import com.grid.pos.ui.pos.components.InvoiceHeaderDetails
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.ui.theme.White
 
@@ -42,6 +47,7 @@ fun ManagePosView(
     modifier: Modifier = Modifier
 ) {
     var isEditBottomSheetVisible by remember { mutableStateOf(false) }
+    var isAddItemBottomSheetVisible by remember { mutableStateOf(false) }
     var isPayBottomSheetVisible by remember { mutableStateOf(false) }
     val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var showCashBottomSheet by remember { mutableStateOf(false) }
@@ -65,6 +71,16 @@ fun ManagePosView(
                                 fontSize = 16.sp,
                                 textAlign = TextAlign.Center
                             )
+                        },
+                        actions = {
+                            IconButton(
+                                modifier = Modifier
+                                    .fillMaxHeight()
+                                    .padding(horizontal = 10.dp),
+                                onClick = { navController?.navigateUp() }
+                            ) {
+                                Text(text = "Back")
+                            }
                         })
                 }
             }
@@ -92,6 +108,7 @@ fun ManagePosView(
                             .fillMaxWidth()
                             .weight(.1f),
                         onEdit = { isEditBottomSheetVisible = true },
+                        onAddItem = { isAddItemBottomSheetVisible = true },
                         onPay = { isPayBottomSheetVisible = true }
                     )
 
@@ -135,18 +152,22 @@ fun ManagePosView(
         }
     }
 
-    if (isPayBottomSheetVisible) {
+    if (isAddItemBottomSheetVisible) {
         ModalBottomSheet(
-            onDismissRequest = { isPayBottomSheetVisible = false },
+            onDismissRequest = { isAddItemBottomSheetVisible = false },
             sheetState = bottomSheetState,
-            containerColor = Color.Transparent,
+            containerColor = Color.White,
             contentColor = White,
             shape = RectangleShape,
             dragHandle = null,
             scrimColor = Color.Black.copy(alpha = .5f),
             windowInsets = WindowInsets(0, 0, 0, 0)
         ) {
-            EditInvoiceHeaderView()
+            AddInvoiceItemView(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(0.8f)
+            )
         }
     }
 }

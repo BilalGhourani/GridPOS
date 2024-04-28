@@ -1,4 +1,4 @@
-package com.grid.pos.ui.pos
+package com.grid.pos.ui.pos.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
