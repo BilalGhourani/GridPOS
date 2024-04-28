@@ -68,14 +68,16 @@ class CompanyRepositoryImpl(
                 CoroutineScope(Dispatchers.IO).launch {
                     val companies = mutableListOf<Company>()
                     companyDao.deleteAll()
-                    for (document in result) {
-                        val obj = document.toObject(Company::class.java)
-                        if (!obj.companyId.isNullOrEmpty()) {
-                            obj.companyDocumentId = document.id
-                            companies.add(obj)
+                    if (result.size() > 0) {
+                        for (document in result) {
+                            val obj = document.toObject(Company::class.java)
+                            if (!obj.companyId.isNullOrEmpty()) {
+                                obj.companyDocumentId = document.id
+                                companies.add(obj)
+                            }
                         }
+                        companyDao.insertAll(companies.toList())
                     }
-                    companyDao.insertAll(companies.toList())
                     callback?.onSuccess(companies)
                 }
             }.addOnFailureListener { exception ->

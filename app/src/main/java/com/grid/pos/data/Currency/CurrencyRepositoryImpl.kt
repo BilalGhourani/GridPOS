@@ -70,14 +70,16 @@ class CurrencyRepositoryImpl(
                 CoroutineScope(Dispatchers.IO).launch {
                     val currencies = mutableListOf<Currency>()
                     currencyDao.deleteAll()
-                    for (document in result) {
-                        val obj = document.toObject(Currency::class.java)
-                        if (obj.currencyId.isNotEmpty()) {
-                            obj.currencyDocumentId = document.id
-                            currencies.add(obj)
+                    if (result.size() > 0) {
+                        for (document in result) {
+                            val obj = document.toObject(Currency::class.java)
+                            if (obj.currencyId.isNotEmpty()) {
+                                obj.currencyDocumentId = document.id
+                                currencies.add(obj)
+                            }
                         }
+                        currencyDao.insertAll(currencies.toList())
                     }
-                    currencyDao.insertAll(currencies.toList())
                     callback?.onSuccess(currencies)
                 }
             }.addOnFailureListener { exception ->

@@ -105,14 +105,16 @@ class UserRepositoryImpl(
                 CoroutineScope(Dispatchers.IO).launch {
                     val users = mutableListOf<User>()
                     userDao.deleteAll()
-                    for (document in result) {
-                        val obj = document.toObject(User::class.java)
-                        if (!obj.userId.isNullOrEmpty()) {
-                            obj.userDocumentId = document.id
-                            users.add(obj)
+                    if (result.size() > 0) {
+                        for (document in result) {
+                            val obj = document.toObject(User::class.java)
+                            if (!obj.userId.isNullOrEmpty()) {
+                                obj.userDocumentId = document.id
+                                users.add(obj)
+                            }
                         }
+                        userDao.insertAll(users.toList())
                     }
-                    userDao.insertAll(users.toList())
                     callback?.onSuccess(users)
                 }
             }.addOnFailureListener { exception ->

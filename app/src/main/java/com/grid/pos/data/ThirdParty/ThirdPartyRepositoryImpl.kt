@@ -71,19 +71,21 @@ class ThirdPartyRepositoryImpl(
                 CoroutineScope(Dispatchers.IO).launch {
                     val thirdParties = mutableListOf<ThirdParty>()
                     thirdPartyDao.deleteAll()
-                    for (document in result) {
-                        val obj = document.toObject(ThirdParty::class.java)
-                        if (!obj.thirdPartyId.isNullOrEmpty()) {
-                            obj.thirdPartyDocumentId = document.id
-                            thirdParties.add(obj)
+                    if (result.size() > 0) {
+                        for (document in result) {
+                            val obj = document.toObject(ThirdParty::class.java)
+                            if (!obj.thirdPartyId.isNullOrEmpty()) {
+                                obj.thirdPartyDocumentId = document.id
+                                thirdParties.add(obj)
+                            }
                         }
+                        thirdPartyDao.insertAll(thirdParties.toList())
                     }
-                    thirdPartyDao.insertAll(thirdParties.toList())
                     callback?.onSuccess(thirdParties)
                 }
             }.addOnFailureListener { exception ->
                 callback?.onFailure(
-                    exception.message ?: "Network error! Can't get families from remote."
+                    exception.message ?: "Network error! Can't get Third Parties from remote."
                 )
             }
     }

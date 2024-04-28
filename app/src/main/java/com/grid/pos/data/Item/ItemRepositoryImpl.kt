@@ -70,19 +70,21 @@ class ItemRepositoryImpl(
                 CoroutineScope(Dispatchers.IO).launch {
                     val items = mutableListOf<Item>()
                     itemDao.deleteAll()
-                    for (document in result) {
-                        val obj = document.toObject(Item::class.java)
-                        if (!obj.itemId.isNullOrEmpty()) {
-                            obj.itemDocumentId = document.id
-                            items.add(obj)
+                    if (result.size() > 0) {
+                        for (document in result) {
+                            val obj = document.toObject(Item::class.java)
+                            if (!obj.itemId.isNullOrEmpty()) {
+                                obj.itemDocumentId = document.id
+                                items.add(obj)
+                            }
                         }
+                        itemDao.insertAll(items.toList())
                     }
-                    itemDao.insertAll(items.toList())
                     callback?.onSuccess(items)
                 }
             }.addOnFailureListener { exception ->
                 callback?.onFailure(
-                    exception.message ?: "Network error! Can't get companies from remote."
+                    exception.message ?: "Network error! Can't get items from remote."
                 )
             }
     }

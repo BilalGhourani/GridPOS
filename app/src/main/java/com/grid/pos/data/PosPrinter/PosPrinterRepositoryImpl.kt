@@ -68,14 +68,16 @@ class PosPrinterRepositoryImpl(
                 CoroutineScope(Dispatchers.IO).launch {
                     val printers = mutableListOf<PosPrinter>()
                     posPrinterDao.deleteAll()
-                    for (document in result) {
-                        val obj = document.toObject(PosPrinter::class.java)
-                        if (!obj.posPrinterId.isNullOrEmpty()) {
-                            obj.posPrinterDocumentId = document.id
-                            printers.add(obj)
+                    if (result.size() > 0) {
+                        for (document in result) {
+                            val obj = document.toObject(PosPrinter::class.java)
+                            if (!obj.posPrinterId.isNullOrEmpty()) {
+                                obj.posPrinterDocumentId = document.id
+                                printers.add(obj)
+                            }
                         }
+                        posPrinterDao.insertAll(printers.toList())
                     }
-                    posPrinterDao.insertAll(printers.toList())
                     callback?.onSuccess(printers)
                 }
             }.addOnFailureListener { exception ->

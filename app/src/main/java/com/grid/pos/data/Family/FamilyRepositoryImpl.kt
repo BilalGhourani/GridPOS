@@ -69,14 +69,16 @@ class FamilyRepositoryImpl(
                 CoroutineScope(Dispatchers.IO).launch {
                     val families = mutableListOf<Family>()
                     familyDao.deleteAll()
-                    for (document in result) {
-                        val obj = document.toObject(Family::class.java)
-                        if (!obj.familyId.isNullOrEmpty()) {
-                            obj.familyDocumentId = document.id
-                            families.add(obj)
+                    if (result.size() > 0) {
+                        for (document in result) {
+                            val obj = document.toObject(Family::class.java)
+                            if (!obj.familyId.isNullOrEmpty()) {
+                                obj.familyDocumentId = document.id
+                                families.add(obj)
+                            }
                         }
+                        familyDao.insertAll(families.toList())
                     }
-                    familyDao.insertAll(families.toList())
                     callback?.onSuccess(families)
                 }
             }.addOnFailureListener { exception ->
