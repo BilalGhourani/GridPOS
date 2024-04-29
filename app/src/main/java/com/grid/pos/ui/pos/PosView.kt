@@ -5,11 +5,13 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -75,6 +77,9 @@ fun PosView(
     var orientation by remember { mutableStateOf(Configuration.ORIENTATION_PORTRAIT) }
 
     val configuration = LocalConfiguration.current
+    val isTablet = Utils.isTablet(LocalConfiguration.current)
+    val isLandscape = orientation == Configuration.ORIENTATION_LANDSCAPE
+
     LaunchedEffect(configuration) {
         snapshotFlow { configuration.orientation }
             .collect { orientation = it }
@@ -154,9 +159,11 @@ fun PosView(
                         invoices = Utils.getInvoiceModelFromList(posState.invoices),
                         modifier = Modifier
                             .wrapContentWidth()
-                            .height((height * 0.7).dp)
+                            .wrapContentHeight()
+                            .defaultMinSize(minHeight = 130.dp)
                             .border(borderStroke)
-                            .height(70.dp)
+                            .height(70.dp),
+                        isLandscape=isTablet || isLandscape
                     )
 
                     InvoiceFooterView(

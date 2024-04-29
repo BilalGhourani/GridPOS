@@ -19,20 +19,21 @@ import com.grid.pos.utils.Utils
 @Composable
 fun InvoiceBodyDetails(
     invoices: MutableList<InvoiceItemModel> = mutableListOf(),
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isLandscape: Boolean = false
 ) {
     val header = InvoiceItemModel("Item", "Count", "Price", "Dis%", "Tax", "Tax1", "Tax2", "Amount")
-/*    val invoiceItems = listOf(
-        InvoiceItemModel("Chicken", "1", "150.00", "0.0", "0.0", "0.0", "0.0", "150.00"),
-        InvoiceItemModel("Salad", "1", "150.00", "0.0", "0.0", "0.0", "0.0", "150.00"),
-        InvoiceItemModel("Champo", "1", "150.00", "0.0", "0.0", "0.0", "0.0", "150.00"),
-        InvoiceItemModel("Prince", "1", "150.00", "0.0", "0.0", "0.0", "0.0", "150.00"),
-        InvoiceItemModel("Juice", "1", "150.00", "0.0", "0.0", "0.0", "0.0", "150.00"),
-        InvoiceItemModel("Master chips", "1", "150.00", "0.0", "0.0", "0.0", "0.0", "150.00"),
-        InvoiceItemModel("Mozarilla", "1", "150.00", "0.0", "0.0", "0.0", "0.0", "150.00"),
-        InvoiceItemModel("Meat", "1", "150.00", "0.0", "0.0", "0.0", "0.0", "150.00"),
-        InvoiceItemModel("Kabab", "1", "150.00", "0.0", "0.0", "0.0", "0.0", "150.00"),
-    )*/
+    /*    val invoiceItems = listOf(
+            InvoiceItemModel("Chicken", "1", "150.00", "0.0", "0.0", "0.0", "0.0", "150.00"),
+            InvoiceItemModel("Salad", "1", "150.00", "0.0", "0.0", "0.0", "0.0", "150.00"),
+            InvoiceItemModel("Champo", "1", "150.00", "0.0", "0.0", "0.0", "0.0", "150.00"),
+            InvoiceItemModel("Prince", "1", "150.00", "0.0", "0.0", "0.0", "0.0", "150.00"),
+            InvoiceItemModel("Juice", "1", "150.00", "0.0", "0.0", "0.0", "0.0", "150.00"),
+            InvoiceItemModel("Master chips", "1", "150.00", "0.0", "0.0", "0.0", "0.0", "150.00"),
+            InvoiceItemModel("Mozarilla", "1", "150.00", "0.0", "0.0", "0.0", "0.0", "150.00"),
+            InvoiceItemModel("Meat", "1", "150.00", "0.0", "0.0", "0.0", "0.0", "150.00"),
+            InvoiceItemModel("Kabab", "1", "150.00", "0.0", "0.0", "0.0", "0.0", "150.00"),
+        )*/
 
     LazyColumn(
         modifier = modifier,
@@ -44,7 +45,8 @@ fun InvoiceBodyDetails(
                     .height(50.dp)
                     .background(color = Color.LightGray),
                 item = header,
-                isHeader = true
+                isHeader = true,
+                isLandscape=isLandscape
             )
         }
         invoices.forEachIndexed { index, invoiceItemModel ->
@@ -54,7 +56,8 @@ fun InvoiceBodyDetails(
                     modifier = Modifier
                         .height(40.dp)
                         .background(color = color),
-                    item = invoiceItemModel
+                    item = invoiceItemModel,
+                    isLandscape=isLandscape
                 )
             }
         }

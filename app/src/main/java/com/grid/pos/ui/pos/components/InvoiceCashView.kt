@@ -44,12 +44,12 @@ fun InvoiceCashView(
     val debitPaidFocusRequester = remember { FocusRequester() }
     val debitTotalFocusRequester = remember { FocusRequester() }
 
-    var cashPaid by remember { mutableStateOf("0.0") }
-    var cashTotal by remember { mutableStateOf("0.0") }
-    var creditPaid by remember { mutableStateOf("0.0") }
-    var creditTotal by remember { mutableStateOf("0.0") }
-    var debitPaid by remember { mutableStateOf("0.0") }
-    var debitTotal by remember { mutableStateOf("0.0") }
+    var cashPaid by remember { mutableStateOf("") }
+    var cashTotal by remember { mutableStateOf("") }
+    var creditPaid by remember { mutableStateOf("") }
+    var creditTotal by remember { mutableStateOf("") }
+    var debitPaid by remember { mutableStateOf("") }
+    var debitTotal by remember { mutableStateOf("") }
 
     Column(
         modifier = modifier
@@ -76,6 +76,9 @@ fun InvoiceCashView(
                 label = {
                     Text(text = "")
                 },
+                placeholder = {
+                    Text(text = "0.0")
+                },
                 modifier = Modifier
                     .weight(.4f),
                 keyboardOptions = KeyboardOptions(
@@ -89,6 +92,9 @@ fun InvoiceCashView(
                 onValueChange = { cashTotal = it },
                 label = {
                     Text(text = "Total")
+                },
+                placeholder = {
+                    Text(text = "0.0")
                 },
                 modifier = Modifier
                     .weight(.4f)
@@ -119,6 +125,9 @@ fun InvoiceCashView(
                 label = {
                     Text(text = "")
                 },
+                placeholder = {
+                    Text(text = "0.0")
+                },
                 modifier = Modifier
                     .weight(.4f)
                     .focusRequester(creditPaidFocusRequester),
@@ -133,6 +142,9 @@ fun InvoiceCashView(
                 onValueChange = { creditTotal = it },
                 label = {
                     Text(text = "Paid")
+                },
+                placeholder = {
+                    Text(text = "0.0")
                 },
                 modifier = Modifier
                     .weight(.4f)
@@ -163,6 +175,9 @@ fun InvoiceCashView(
                 label = {
                     Text(text = "")
                 },
+                placeholder = {
+                    Text(text = "0.0")
+                },
                 modifier = Modifier
                     .weight(.4f)
                     .focusRequester(debitPaidFocusRequester),
@@ -177,6 +192,9 @@ fun InvoiceCashView(
                 onValueChange = { debitTotal = it },
                 label = {
                     Text(text = "Change")
+                },
+                placeholder = {
+                    Text(text = "0.0")
                 },
                 modifier = Modifier
                     .weight(.4f)
