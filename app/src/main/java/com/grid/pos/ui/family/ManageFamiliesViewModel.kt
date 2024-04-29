@@ -96,8 +96,9 @@ class ManageFamiliesViewModel @Inject constructor(
                     }
                     manageFamiliesState.value = manageFamiliesState.value.copy(
                         families = families,
-                        selectedFamily = addedModel,
-                        isLoading = false
+                        selectedFamily = Family(),
+                        isLoading = false,
+                        clear = true,
                     )
                 }
             }

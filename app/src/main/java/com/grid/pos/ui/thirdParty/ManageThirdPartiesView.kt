@@ -67,6 +67,14 @@ fun ManageThirdPartiesView(
     val phone1FocusRequester = remember { FocusRequester() }
     val phone2FocusRequester = remember { FocusRequester() }
     val addressFocusRequester = remember { FocusRequester() }
+
+    var nameState by remember { mutableStateOf("") }
+    var fnState by remember { mutableStateOf("") }
+    var companyIdState by remember { mutableStateOf("") }
+    var phone1State by remember { mutableStateOf("") }
+    var phone2State by remember { mutableStateOf("") }
+    var addressState by remember { mutableStateOf("") }
+
     val snackbarHostState = remember { SnackbarHostState() }
     LaunchedEffect(manageThirdPartiesState.warning) {
         if (!manageThirdPartiesState.warning.isNullOrEmpty()) {
@@ -108,13 +116,6 @@ fun ManageThirdPartiesView(
                     .padding(it)
                     .background(color = Color.Transparent)
             ) {
-                var nameState by remember { mutableStateOf("") }
-                var fnState by remember { mutableStateOf("") }
-                var companyIdState by remember { mutableStateOf("") }
-                var phone1State by remember { mutableStateOf("") }
-                var phone2State by remember { mutableStateOf("") }
-                var addressState by remember { mutableStateOf("") }
-
                 Column(
                     modifier = Modifier
                         .fillMaxSize(),
@@ -256,5 +257,16 @@ fun ManageThirdPartiesView(
         LoadingIndicator(
             show = manageThirdPartiesState.isLoading
         )
+        if (manageThirdPartiesState.clear) {
+            manageThirdPartiesState.selectedThirdParty = ThirdParty()
+            manageThirdPartiesState.selectedThirdParty.thirdPartyCompId = ""
+            nameState =  ""
+            fnState =   ""
+            companyIdState =   ""
+            phone1State = ""
+            phone2State =  ""
+            addressState =   ""
+            manageThirdPartiesState.clear = false
+        }
     }
 }

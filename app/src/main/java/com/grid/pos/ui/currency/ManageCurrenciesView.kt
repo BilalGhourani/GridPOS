@@ -11,7 +11,7 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -62,7 +62,7 @@ fun ManageCurrenciesView(
     modifier: Modifier = Modifier,
     viewModel: ManageCurrenciesViewModel = hiltViewModel()
 ) {
-    val manageFamiliesState: ManageCurrenciesState by viewModel.manageCurrenciesState.collectAsState(
+    val manageCurrenciesState: ManageCurrenciesState by viewModel.manageCurrenciesState.collectAsState(
         ManageCurrenciesState()
     )
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -70,12 +70,19 @@ fun ManageCurrenciesView(
     val curCode2FocusRequester = remember { FocusRequester() }
     val curName2FocusRequester = remember { FocusRequester() }
     val rateFocusRequester = remember { FocusRequester() }
+
+    var curCode1State by remember { mutableStateOf("") }
+    var curName1State by remember { mutableStateOf("") }
+    var curCode2State by remember { mutableStateOf("") }
+    var curName2State by remember { mutableStateOf("") }
+    var rateState by remember { mutableStateOf("") }
+
     val snackbarHostState = remember { SnackbarHostState() }
-    LaunchedEffect(manageFamiliesState.warning) {
-        if (!manageFamiliesState.warning.isNullOrEmpty()) {
+    LaunchedEffect(manageCurrenciesState.warning) {
+        if (!manageCurrenciesState.warning.isNullOrEmpty()) {
             CoroutineScope(Dispatchers.Main).launch {
                 snackbarHostState.showSnackbar(
-                    message = manageFamiliesState.warning!!,
+                    message = manageCurrenciesState.warning!!,
                     duration = SnackbarDuration.Short,
                 )
             }
@@ -92,7 +99,7 @@ fun ManageCurrenciesView(
                         navigationIcon = {
                             IconButton(onClick = { navController?.navigateUp() }) {
                                 Icon(
-                                    imageVector = Icons.Filled.ArrowBack,
+                                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                                     contentDescription = "Back"
                                 )
                             }
@@ -114,11 +121,6 @@ fun ManageCurrenciesView(
                     .padding(it)
                     .background(color = Color.Transparent)
             ) {
-                var curCode1State by remember { mutableStateOf("") }
-                var curName1State by remember { mutableStateOf("") }
-                var curCode2State by remember { mutableStateOf("") }
-                var curName2State by remember { mutableStateOf("") }
-                var rateState by remember { mutableStateOf("") }
                 Box(
                     modifier = Modifier
                         .fillMaxSize(),
@@ -131,13 +133,13 @@ fun ManageCurrenciesView(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         SearchableDropdownMenu(
-                            items = manageFamiliesState.currencies.toMutableList(),
+                            items = manageCurrenciesState.currencies.toMutableList(),
                             modifier = Modifier.padding(10.dp),
                             label =
                             curName1State.ifEmpty { "Select Currency" },
                         ) { currency ->
                             currency as Currency
-                            manageFamiliesState.selectedCurrency = currency
+                            manageCurrenciesState.selectedCurrency = currency
                             curCode1State = currency.currencyCode1 ?: ""
                             curName1State = currency.currencyName1 ?: ""
                             curCode2State = currency.currencyCode2 ?: ""
@@ -162,7 +164,7 @@ fun ManageCurrenciesView(
                                 onAction = { curName1FocusRequester.requestFocus() }
                             ) { curCode1 ->
                                 curCode1State = curCode1
-                                manageFamiliesState.selectedCurrency.currencyCode1 = curCode1
+                                manageCurrenciesState.selectedCurrency.currencyCode1 = curCode1
                             }
 
                             UITextField(
@@ -176,7 +178,7 @@ fun ManageCurrenciesView(
                                 onAction = { curCode2FocusRequester.requestFocus() }
                             ) { curName1 ->
                                 curName1State = curName1
-                                manageFamiliesState.selectedCurrency.currencyName1 = curName1
+                                manageCurrenciesState.selectedCurrency.currencyName1 = curName1
                             }
                         }
 
@@ -198,7 +200,7 @@ fun ManageCurrenciesView(
                                 onAction = { curName2FocusRequester.requestFocus() }
                             ) { curCode2 ->
                                 curCode2State = curCode2
-                                manageFamiliesState.selectedCurrency.currencyCode2 = curCode2
+                                manageCurrenciesState.selectedCurrency.currencyCode2 = curCode2
                             }
 
                             UITextField(
@@ -212,7 +214,7 @@ fun ManageCurrenciesView(
                                 onAction = { rateFocusRequester.requestFocus() }
                             ) { curName2 ->
                                 curName2State = curName2
-                                manageFamiliesState.selectedCurrency.currencyName2 = curName2
+                                manageCurrenciesState.selectedCurrency.currencyName2 = curName2
                             }
                         }
 
@@ -227,7 +229,7 @@ fun ManageCurrenciesView(
                             onAction = { keyboardController?.hide() }
                         ) { rateStr ->
                             rateState = rateStr
-                            manageFamiliesState.selectedCurrency.currencyRate = rateState
+                            manageCurrenciesState.selectedCurrency.currencyRate = rateState
                         }
 
 
@@ -243,7 +245,7 @@ fun ManageCurrenciesView(
                                     .weight(.33f)
                                     .padding(3.dp),
                                 colors = ButtonDefaults.buttonColors(containerColor = Blue),
-                                onClick = { viewModel.saveCurrency(manageFamiliesState.selectedCurrency) }
+                                onClick = { viewModel.saveCurrency(manageCurrenciesState.selectedCurrency) }
                             ) {
                                 Text("Save")
                             }
@@ -253,7 +255,7 @@ fun ManageCurrenciesView(
                                     .weight(.33f)
                                     .padding(3.dp),
                                 colors = ButtonDefaults.buttonColors(containerColor = Blue),
-                                onClick = { viewModel.deleteSelectedCurrency(manageFamiliesState.selectedCurrency) }
+                                onClick = { viewModel.deleteSelectedCurrency(manageCurrenciesState.selectedCurrency) }
                             ) {
                                 Text("Delete")
                             }
@@ -275,8 +277,17 @@ fun ManageCurrenciesView(
             }
         }
         LoadingIndicator(
-            show = manageFamiliesState.isLoading
+            show = manageCurrenciesState.isLoading
         )
+        if (manageCurrenciesState.clear) {
+            manageCurrenciesState.selectedCurrency = Currency()
+            curCode1State =  ""
+            curName1State =  ""
+            curCode2State =  ""
+            curName2State = ""
+            rateState =  ""
+            manageCurrenciesState.clear = false
+        }
     }
 }
 

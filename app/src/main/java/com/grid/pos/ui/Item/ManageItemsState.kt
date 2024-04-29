@@ -12,5 +12,6 @@ data class ManageItemsState(
     val printers: MutableList<PosPrinter> = mutableListOf(),
     var selectedItem: Item = Item(),
     val isLoading: Boolean = false,
+    var clear: Boolean = false,
     val warning: String? = null,
 )

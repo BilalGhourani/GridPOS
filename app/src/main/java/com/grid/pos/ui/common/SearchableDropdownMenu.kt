@@ -67,6 +67,8 @@ fun SearchableDropdownMenu(
                     selectedItemState = it.getName()
                 }
             }
+        } else {
+            selectedItemState = label
         }
     }
 

@@ -6,5 +6,6 @@ data class ManageCurrenciesState(
     val currencies: MutableList<Currency> = mutableListOf(),
     var selectedCurrency: Currency = Currency(),
     val isLoading: Boolean = false,
+    var clear: Boolean = false,
     val warning: String? = null,
     )

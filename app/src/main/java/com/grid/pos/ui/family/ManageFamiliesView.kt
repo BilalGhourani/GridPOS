@@ -53,6 +53,8 @@ fun ManageFamiliesView(
     val manageFamiliesState: ManageFamiliesState by viewModel.manageFamiliesState.collectAsState(
         ManageFamiliesState()
     )
+    var nameState by remember { mutableStateOf("") }
+    var companyIdState by remember { mutableStateOf("") }
     GridPOSTheme {
         Scaffold(
             topBar = {
@@ -83,8 +85,6 @@ fun ManageFamiliesView(
                     .padding(it)
                     .background(color = Color.Transparent)
             ) {
-                var nameState by remember { mutableStateOf("") }
-                var companyIdState by remember { mutableStateOf("") }
                 Box(
                     modifier = Modifier
                         .fillMaxSize(),
@@ -176,5 +176,12 @@ fun ManageFamiliesView(
         LoadingIndicator(
             show = manageFamiliesState.isLoading
         )
+        if (manageFamiliesState.clear) {
+            manageFamiliesState.selectedFamily = Family()
+            manageFamiliesState.selectedFamily.familyCompanyId = ""
+            nameState = ""
+            companyIdState = ""
+            manageFamiliesState.clear = false
+        }
     }
 }

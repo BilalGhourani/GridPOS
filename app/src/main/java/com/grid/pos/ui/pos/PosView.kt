@@ -1,13 +1,18 @@
 package com.grid.pos.ui.pos
 
+import android.content.res.Configuration
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -28,9 +33,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -45,7 +53,6 @@ import com.grid.pos.ui.pos.components.InvoiceFooterView
 import com.grid.pos.ui.pos.components.InvoiceHeaderDetails
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.ui.theme.White
-import com.grid.pos.ui.thirdParty.ManageThirdPartiesState
 import com.grid.pos.utils.Utils
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -64,6 +71,20 @@ fun PosView(
     var isPayBottomSheetVisible by remember { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
     val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    var orientation by remember { mutableStateOf(Configuration.ORIENTATION_PORTRAIT) }
+
+    val configuration = LocalConfiguration.current
+
+// If our configuration changes then this will launch a new coroutine scope for it
+    LaunchedEffect(configuration) {
+        // Save any changes to the orientation value on the configuration object
+        snapshotFlow { configuration.orientation }
+            .collect { orientation = it }
+    }
+
+    val isTablet = Utils.isTablet(LocalConfiguration.current)
+    val isPortrait = orientation == Configuration.ORIENTATION_PORTRAIT
     LaunchedEffect(posState.warning) {
         if (!posState.warning.isNullOrEmpty()) {
             CoroutineScope(Dispatchers.Main).launch {
@@ -108,12 +129,6 @@ fun PosView(
                 }
             }
         ) {
-
-            /*if (Utils.isTablet(LocalConfiguration.current)) {
-                // Compose your UI for tablets
-            } else {
-                // Compose your UI for phones or other non-tablet devices
-            }*/
             Surface(
                 modifier = modifier
                     .wrapContentWidth()
@@ -123,13 +138,24 @@ fun PosView(
                 Column(
                     modifier = Modifier
                         .wrapContentWidth()
-                        .padding(horizontal = 10.dp, vertical = 16.dp),
+                        .fillMaxWidth()
+                        .verticalScroll(rememberScrollState())
+                        .padding(horizontal = 10.dp, vertical = 10.dp),
                 ) {
+                    /*  val headerModifier = if (isTablet || isPortrait) {
+                          Modifier
+                              .fillMaxWidth()
+                              .weight(.1f)
+                      } else {
+                          Modifier
+                              .wrapContentWidth()
+                              .height(80.dp)
+                      }*/
+                    val height = configuration.screenHeightDp
                     InvoiceHeaderDetails(
-                        navController = navController,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .weight(.1f),
+                            .height(70.dp),
                         onEdit = { isEditBottomSheetVisible = true },
                         onAddItem = { isAddItemBottomSheetVisible = true },
                         onPay = { isPayBottomSheetVisible = true }
@@ -142,8 +168,9 @@ fun PosView(
                         invoices = Utils.getInvoiceModelFromList(posState.invoices),
                         modifier = Modifier
                             .wrapContentWidth()
-                            .weight(.7f)
+                            .height((height * 0.7).dp)
                             .border(borderStroke)
+                            .height(70.dp)
                     )
 
                     InvoiceFooterView(
@@ -151,7 +178,8 @@ fun PosView(
                         thirdParties = posState.thirdParties,
                         modifier = Modifier
                             .wrapContentWidth()
-                            .weight(.2f),
+                            .height(250.dp)
+                            .height(70.dp),
                         onItemSelected = {},
                         onThirdPartySelected = {},
                     )
@@ -214,7 +242,7 @@ fun PosView(
                 modifier = Modifier
                     .fillMaxWidth()
                     .fillMaxHeight(0.4f),
-                onSave = {navController?.navigate("UIWebView")},
+                onSave = { navController?.navigate("UIWebView") },
                 onFinish = {},
             )
         }

@@ -9,5 +9,6 @@ data class ManageThirdPartiesState(
     val companies: MutableList<Company> = mutableListOf(),
     var selectedThirdParty: ThirdParty = ThirdParty(),
     val isLoading: Boolean = false,
+    var clear: Boolean = false,
     val warning: String? = null,
 )

@@ -65,11 +65,12 @@ class ManageCurrenciesViewModel @Inject constructor(
                 viewModelScope.launch(Dispatchers.Main) {
                     val addedModel = result as Currency
                     val currencies = manageCurrenciesState.value.currencies
-                    if(isInserting) currencies.add(addedModel)
+                    if (isInserting) currencies.add(addedModel)
                     manageCurrenciesState.value = manageCurrenciesState.value.copy(
                         currencies = currencies,
-                        selectedCurrency = addedModel,
-                        isLoading = false
+                        selectedCurrency = Currency(),
+                        isLoading = false,
+                        clear = true
                     )
                 }
             }

@@ -142,11 +142,12 @@ class ManageItemsViewModel @Inject constructor(
                 viewModelScope.launch(Dispatchers.Main) {
                     val addedModel = result as Item
                     val items = manageItemsState.value.items
-                   if(isInserting) items.add(addedModel)
+                    if (isInserting) items.add(addedModel)
                     manageItemsState.value = manageItemsState.value.copy(
                         items = items,
                         selectedItem = addedModel,
-                        isLoading = false
+                        isLoading = false,
+                        clear = true
                     )
                 }
             }

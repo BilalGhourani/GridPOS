@@ -8,5 +8,6 @@ data class ManageFamiliesState(
     val companies: MutableList<Company> = mutableListOf(),
     var selectedFamily: Family = Family(),
     val isLoading: Boolean = false,
+    var clear: Boolean = false,
     val warning: String? = null,
     )

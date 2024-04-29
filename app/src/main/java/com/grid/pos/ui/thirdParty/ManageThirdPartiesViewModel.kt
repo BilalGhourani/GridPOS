@@ -93,11 +93,12 @@ class ManageThirdPartiesViewModel @Inject constructor(
                 viewModelScope.launch(Dispatchers.Main) {
                     val addedModel = result as ThirdParty
                     val thirdParties = manageThirdPartiesState.value.thirdParties
-                   if(isInserting) thirdParties.add(addedModel)
+                    if (isInserting) thirdParties.add(addedModel)
                     manageThirdPartiesState.value = manageThirdPartiesState.value.copy(
                         thirdParties = thirdParties,
                         selectedThirdParty = addedModel,
-                        isLoading = false
+                        isLoading = false,
+                        clear = true
                     )
                 }
             }

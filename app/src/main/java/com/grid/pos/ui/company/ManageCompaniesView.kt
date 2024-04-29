@@ -47,6 +47,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.grid.pos.data.Company.Company
 import com.grid.pos.data.Currency.Currency
+import com.grid.pos.data.Family.Family
 import com.grid.pos.ui.common.LoadingIndicator
 import com.grid.pos.ui.common.SearchableDropdownMenu
 import com.grid.pos.ui.common.UITextField
@@ -79,6 +80,23 @@ fun ManageCompaniesView(
     val tax1RegNoFocusRequester = remember { FocusRequester() }
     val tax2FocusRequester = remember { FocusRequester() }
     val tax2RegNoFocusRequester = remember { FocusRequester() }
+
+    var nameState by remember { mutableStateOf("") }
+    var phoneState by remember { mutableStateOf("") }
+    var addressState by remember { mutableStateOf("") }
+    var taxRegnoState by remember { mutableStateOf("") }
+    var taxState by remember { mutableStateOf("") }
+    var curCodeTaxState by remember { mutableStateOf("") }
+    var curUpWithTaxState by remember { mutableStateOf("") }
+    var emailState by remember { mutableStateOf("") }
+    var webState by remember { mutableStateOf("") }
+    var logoState by remember { mutableStateOf("") }
+    var ssState by remember { mutableStateOf(false) }
+    var tax1State by remember { mutableStateOf("") }
+    var tax1RegnoState by remember { mutableStateOf("") }
+    var tax2State by remember { mutableStateOf("") }
+    var tax2RegnoState by remember { mutableStateOf("") }
+
     val snackbarHostState = remember { SnackbarHostState() }
     LaunchedEffect(manageCompaniesState.warning) {
         if (!manageCompaniesState.warning.isNullOrEmpty()) {
@@ -123,21 +141,6 @@ fun ManageCompaniesView(
                     .padding(it)
                     .background(color = Color.Transparent)
             ) {
-                var nameState by remember { mutableStateOf("") }
-                var phoneState by remember { mutableStateOf("") }
-                var addressState by remember { mutableStateOf("") }
-                var taxRegnoState by remember { mutableStateOf("") }
-                var taxState by remember { mutableStateOf("") }
-                var curCodeTaxState by remember { mutableStateOf("") }
-                var curUpWithTaxState by remember { mutableStateOf("") }
-                var emailState by remember { mutableStateOf("") }
-                var webState by remember { mutableStateOf("") }
-                var logoState by remember { mutableStateOf("") }
-                var ssState by remember { mutableStateOf(false) }
-                var tax1State by remember { mutableStateOf("") }
-                var tax1RegnoState by remember { mutableStateOf("") }
-                var tax2State by remember { mutableStateOf("") }
-                var tax2RegnoState by remember { mutableStateOf("") }
                 Column(
                     modifier = Modifier
                         .fillMaxSize(),
@@ -404,6 +407,26 @@ fun ManageCompaniesView(
         LoadingIndicator(
             show = manageCompaniesState.isLoading
         )
+        if (manageCompaniesState.clear) {
+            manageCompaniesState.selectedCompany = Company()
+            manageCompaniesState.selectedCompany.companyCurCodeTax = ""
+            nameState = ""
+            phoneState = ""
+            addressState = ""
+            taxRegnoState = ""
+            taxState = ""
+            curCodeTaxState = ""
+            curUpWithTaxState = ""
+            emailState = ""
+            webState = ""
+            logoState = ""
+            ssState = false
+            tax1RegnoState = ""
+            tax1State = ""
+            tax2RegnoState = ""
+            tax2State = ""
+            manageCompaniesState.clear = false
+        }
     }
 }
 

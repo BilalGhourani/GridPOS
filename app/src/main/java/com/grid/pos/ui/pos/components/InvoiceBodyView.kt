@@ -40,7 +40,7 @@ fun InvoiceBodyDetails(
     ) {
         stickyHeader {
             InvoiceItemCell(
-                modifier = modifier
+                modifier = Modifier
                     .height(50.dp)
                     .background(color = Color.LightGray),
                 item = header,
@@ -51,7 +51,7 @@ fun InvoiceBodyDetails(
             item {
                 val color = if (index % 2 == 0) Color.White else Color.LightGray
                 InvoiceItemCell(
-                    modifier = modifier
+                    modifier = Modifier
                         .height(40.dp)
                         .background(color = color),
                     item = invoiceItemModel

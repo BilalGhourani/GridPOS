@@ -8,5 +8,6 @@ data class ManageUsersState(
     val companies: MutableList<Company> = mutableListOf(),
     var selectedUser: User = User(),
     val isLoading: Boolean = false,
+    var clear: Boolean = false,
     val warning: String? = null,
     )

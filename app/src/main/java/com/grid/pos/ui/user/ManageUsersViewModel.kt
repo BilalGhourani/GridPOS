@@ -95,7 +95,8 @@ class ManageUsersViewModel @Inject constructor(
                     manageUsersState.value = manageUsersState.value.copy(
                         users = users,
                         selectedUser = addedModel,
-                        isLoading = false
+                        isLoading = false,
+                        clear = true
                     )
                 }
             }

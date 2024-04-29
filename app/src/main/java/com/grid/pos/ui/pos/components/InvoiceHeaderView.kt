@@ -30,7 +30,6 @@ import com.grid.pos.utils.Utils
 
 @Composable
 fun InvoiceHeaderDetails(
-    navController: NavController? = null,
     modifier: Modifier = Modifier,
     onEdit: () -> Unit = {},
     onAddCustomer: () -> Unit = {},
@@ -39,8 +38,7 @@ fun InvoiceHeaderDetails(
 ) {
     Row(
         modifier = modifier
-            .fillMaxWidth()
-            .height(60.dp),
+            .fillMaxWidth(),
         horizontalArrangement = Arrangement.Absolute.Right
     ) {
         ElevatedButton(

@@ -46,6 +46,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.grid.pos.data.Company.Company
+import com.grid.pos.data.Family.Family
 import com.grid.pos.data.User.User
 import com.grid.pos.ui.common.LoadingIndicator
 import com.grid.pos.ui.common.SearchableDropdownMenu
@@ -70,6 +71,14 @@ fun ManageUsersView(
     val keyboardController = LocalSoftwareKeyboardController.current
     val usernameFocusRequester = remember { FocusRequester() }
     val passwordFocusRequester = remember { FocusRequester() }
+
+    var nameState by remember { mutableStateOf("") }
+    var usernameState by remember { mutableStateOf("") }
+    var passwordState by remember { mutableStateOf("") }
+    var companyIdState by remember { mutableStateOf("") }
+    var posModeState by remember { mutableStateOf(true) }
+    var tableModeState by remember { mutableStateOf(false) }
+
     val snackbarHostState = remember { SnackbarHostState() }
     LaunchedEffect(manageUsersState.warning) {
         if (!manageUsersState.warning.isNullOrEmpty()) {
@@ -114,12 +123,6 @@ fun ManageUsersView(
                     .padding(it)
                     .background(color = Color.Transparent)
             ) {
-                var nameState by remember { mutableStateOf("") }
-                var usernameState by remember { mutableStateOf("") }
-                var passwordState by remember { mutableStateOf("") }
-                var companyIdState by remember { mutableStateOf("") }
-                var posModeState by remember { mutableStateOf(true) }
-                var tableModeState by remember { mutableStateOf(false) }
                 Column(
                     modifier = Modifier
                         .fillMaxSize(),
@@ -271,6 +274,18 @@ fun ManageUsersView(
         LoadingIndicator(
             show = manageUsersState.isLoading
         )
+
+        if (manageUsersState.clear) {
+            manageUsersState.selectedUser = User()
+            manageUsersState.selectedUser.userCompanyId = ""
+            nameState = ""
+            usernameState = ""
+            passwordState = ""
+            companyIdState = ""
+            posModeState = true
+            tableModeState = false
+            manageUsersState.clear = false
+        }
     }
 }
 

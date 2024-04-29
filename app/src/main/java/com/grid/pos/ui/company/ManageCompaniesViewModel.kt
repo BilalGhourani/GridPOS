@@ -90,11 +90,12 @@ class ManageCompaniesViewModel @Inject constructor(
                 viewModelScope.launch(Dispatchers.Main) {
                     val addedModel = result as Company
                     val companies = manageCompaniesState.value.companies
-                   if(isInserting) companies.add(addedModel)
+                    if (isInserting) companies.add(addedModel)
                     manageCompaniesState.value = manageCompaniesState.value.copy(
                         companies = companies,
-                        selectedCompany = addedModel,
-                        isLoading = false
+                        selectedCompany = Company(),
+                        isLoading = false,
+                        clear = true
                     )
                 }
             }

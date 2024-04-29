@@ -76,6 +76,20 @@ fun ManageItemsView(
     val openQtyFocusRequester = remember { FocusRequester() }
     val btnColorFocusRequester = remember { FocusRequester() }
     val btnTextColorFocusRequester = remember { FocusRequester() }
+
+    var nameState by remember { mutableStateOf("") }
+    var unitPriceState by remember { mutableStateOf("") }
+    var taxState by remember { mutableStateOf("") }
+    var tax1State by remember { mutableStateOf("") }
+    var tax2State by remember { mutableStateOf("") }
+    var barcodeState by remember { mutableStateOf("") }
+    var openCostState by remember { mutableStateOf("") }
+    var openQtyState by remember { mutableStateOf("") }
+    var familyIdState by remember { mutableStateOf("") }
+    var btnColorState by remember { mutableStateOf("") }
+    var btnTextColorState by remember { mutableStateOf("") }
+    var posPrinterState by remember { mutableStateOf("") }
+
     val snackbarHostState = remember { SnackbarHostState() }
     LaunchedEffect(manageItemsState.warning) {
         if (!manageItemsState.warning.isNullOrEmpty()) {
@@ -120,18 +134,6 @@ fun ManageItemsView(
                     .padding(it)
                     .background(color = Color.Transparent)
             ) {
-                var nameState by remember { mutableStateOf("") }
-                var unitPriceState by remember { mutableStateOf("") }
-                var taxState by remember { mutableStateOf("") }
-                var tax1State by remember { mutableStateOf("") }
-                var tax2State by remember { mutableStateOf("") }
-                var barcodeState by remember { mutableStateOf("") }
-                var openCostState by remember { mutableStateOf("") }
-                var openQtyState by remember { mutableStateOf("") }
-                var familyIdState by remember { mutableStateOf("") }
-                var btnColorState by remember { mutableStateOf("") }
-                var btnTextColorState by remember { mutableStateOf("") }
-                var posPrinterState by remember { mutableStateOf("") }
                 Column(
                     modifier = Modifier
                         .fillMaxSize(),
@@ -300,7 +302,7 @@ fun ManageItemsView(
                         //Button text color
                         UITextField(
                             modifier = Modifier.padding(10.dp),
-                            defaultValue = tax2State,
+                            defaultValue = btnTextColorState,
                             label = "Button Text color",
                             placeHolder = "Enter Button Text color",
                             focusRequester = btnTextColorFocusRequester,
@@ -368,5 +370,24 @@ fun ManageItemsView(
         LoadingIndicator(
             show = manageItemsState.isLoading
         )
+
+        if (manageItemsState.clear) {
+            manageItemsState.selectedItem = Item()
+            manageItemsState.selectedItem.itemCompId = ""
+            manageItemsState.selectedItem.itemFaId = ""
+            nameState = ""
+            unitPriceState = ""
+            taxState = ""
+            tax1State = ""
+            tax2State = ""
+            barcodeState = ""
+            openCostState = ""
+            openQtyState = ""
+            familyIdState = ""
+            btnColorState = ""
+            btnTextColorState = ""
+            posPrinterState = ""
+            manageItemsState.clear = false
+        }
     }
 }

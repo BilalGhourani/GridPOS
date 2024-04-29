@@ -52,7 +52,7 @@ fun AddInvoiceItemView(
         val familyItems =
             items.filter { it.itemFaId.equals(familyState, ignoreCase = true) }
 
-        ItemListCell(items = items, onClick = onSelect)
+        ItemListCell(items = familyItems.toMutableList(), onClick = onSelect)
     }
 }
 
