@@ -2,13 +2,13 @@ package com.grid.pos.ui.pos
 
 import android.content.res.Configuration
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
@@ -75,16 +75,11 @@ fun PosView(
     var orientation by remember { mutableStateOf(Configuration.ORIENTATION_PORTRAIT) }
 
     val configuration = LocalConfiguration.current
-
-// If our configuration changes then this will launch a new coroutine scope for it
     LaunchedEffect(configuration) {
-        // Save any changes to the orientation value on the configuration object
         snapshotFlow { configuration.orientation }
             .collect { orientation = it }
     }
 
-    val isTablet = Utils.isTablet(LocalConfiguration.current)
-    val isPortrait = orientation == Configuration.ORIENTATION_PORTRAIT
     LaunchedEffect(posState.warning) {
         if (!posState.warning.isNullOrEmpty()) {
             CoroutineScope(Dispatchers.Main).launch {
@@ -142,15 +137,6 @@ fun PosView(
                         .verticalScroll(rememberScrollState())
                         .padding(horizontal = 10.dp, vertical = 10.dp),
                 ) {
-                    /*  val headerModifier = if (isTablet || isPortrait) {
-                          Modifier
-                              .fillMaxWidth()
-                              .weight(.1f)
-                      } else {
-                          Modifier
-                              .wrapContentWidth()
-                              .height(80.dp)
-                      }*/
                     val height = configuration.screenHeightDp
                     InvoiceHeaderDetails(
                         modifier = Modifier
@@ -187,6 +173,7 @@ fun PosView(
             }
         }
     }
+    val density = LocalDensity.current
     if (isEditBottomSheetVisible) {
         ModalBottomSheet(
             onDismissRequest = { isEditBottomSheetVisible = false },
@@ -202,6 +189,7 @@ fun PosView(
                 modifier = Modifier
                     .fillMaxWidth()
                     .fillMaxHeight(0.8f)
+                    .padding(bottom = WindowInsets.ime.getBottom(density).dp)
             )
         }
     }
@@ -223,6 +211,7 @@ fun PosView(
                 modifier = Modifier
                     .fillMaxWidth()
                     .fillMaxHeight(0.8f)
+                    .padding(bottom = WindowInsets.ime.getBottom(density).dp)
             )
         }
     }
@@ -241,7 +230,8 @@ fun PosView(
             InvoiceCashView(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .fillMaxHeight(0.4f),
+                    .fillMaxHeight(0.4f)
+                    .padding(bottom = WindowInsets.ime.getBottom(density).dp),
                 onSave = { navController?.navigate("UIWebView") },
                 onFinish = {},
             )
