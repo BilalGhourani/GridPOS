@@ -154,4 +154,17 @@ object Utils {
         }
         return invoiceItemModels
     }
+
+    fun getInvoiceFromItem(item: Item): Invoice {
+        val invoice = Invoice()
+        invoice.invoiceId = generateRandomUuidString()
+        invoice.invoiceQuantity = 1.0
+        invoice.invoiceItemId = item.itemId
+        invoice.invoicCost = item.itemOpenCost?.toDouble() ?: 0.0
+        invoice.invoicRemQty = item.itemOpenQty?.toDouble() ?: 0.0
+        invoice.invoiceTax = item.itemTax?.toDouble() ?: 0.0
+        invoice.invoiceTax1 = item.itemTax1?.toDouble() ?: 0.0
+        invoice.invoiceTax2 = item.itemTax2?.toDouble() ?: 0.0
+        return invoice
+    }
 }

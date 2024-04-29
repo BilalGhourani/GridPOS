@@ -163,7 +163,7 @@ fun PosView(
                             .defaultMinSize(minHeight = 130.dp)
                             .border(borderStroke)
                             .height(70.dp),
-                        isLandscape=isTablet || isLandscape
+                        isLandscape = isTablet || isLandscape
                     )
 
                     InvoiceFooterView(
@@ -219,7 +219,9 @@ fun PosView(
                     .fillMaxWidth()
                     .fillMaxHeight(0.8f)
                     .padding(bottom = WindowInsets.ime.getBottom(density).dp)
-            )
+            ) {
+                posState.invoices.add(Utils.getInvoiceFromItem(it))
+            }
         }
     }
 
