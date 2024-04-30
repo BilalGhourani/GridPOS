@@ -73,13 +73,11 @@ fun InvoiceCashView(
             OutlinedTextField(
                 value = cashPaid,
                 onValueChange = { cashPaid = it },
-                label = {
-                    Text(text = "")
-                },
                 placeholder = {
                     Text(text = "0.0")
                 },
                 modifier = Modifier
+                    .padding(top = 8.dp)
                     .weight(.4f),
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Number,
@@ -122,14 +120,12 @@ fun InvoiceCashView(
             OutlinedTextField(
                 value = creditPaid,
                 onValueChange = { creditPaid = it },
-                label = {
-                    Text(text = "")
-                },
                 placeholder = {
                     Text(text = "0.0")
                 },
                 modifier = Modifier
                     .weight(.4f)
+                    .padding(top = 8.dp)
                     .focusRequester(creditPaidFocusRequester),
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Number,
@@ -172,14 +168,12 @@ fun InvoiceCashView(
             OutlinedTextField(
                 value = debitPaid,
                 onValueChange = { debitPaid = it },
-                label = {
-                    Text(text = "")
-                },
                 placeholder = {
                     Text(text = "0.0")
                 },
                 modifier = Modifier
                     .weight(.4f)
+                    .padding(top = 8.dp)
                     .focusRequester(debitPaidFocusRequester),
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Number,

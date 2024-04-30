@@ -180,7 +180,6 @@ fun PosView(
             }
         }
     }
-    val density = LocalDensity.current
     if (isEditBottomSheetVisible) {
         ModalBottomSheet(
             onDismissRequest = { isEditBottomSheetVisible = false },
@@ -196,7 +195,6 @@ fun PosView(
                 modifier = Modifier
                     .fillMaxWidth()
                     .fillMaxHeight(0.8f)
-                    .padding(bottom = WindowInsets.ime.getBottom(density).dp)
             )
         }
     }
@@ -218,7 +216,6 @@ fun PosView(
                 modifier = Modifier
                     .fillMaxWidth()
                     .fillMaxHeight(0.8f)
-                    .padding(bottom = WindowInsets.ime.getBottom(density).dp)
             ) {
                 posState.invoices.add(Utils.getInvoiceFromItem(it))
             }
@@ -239,8 +236,7 @@ fun PosView(
             InvoiceCashView(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .fillMaxHeight(0.4f)
-                    .padding(bottom = WindowInsets.ime.getBottom(density).dp),
+                    .fillMaxHeight(0.4f),
                 onSave = { navController?.navigate("UIWebView") },
                 onFinish = {},
             )
