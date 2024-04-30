@@ -12,24 +12,61 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableDoubleStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.grid.pos.data.Item.Item
 import com.grid.pos.data.ThirdParty.ThirdParty
+import com.grid.pos.model.InvoiceItemModel
 import com.grid.pos.ui.common.SearchableDropdownMenu
 import com.grid.pos.ui.theme.GridPOSTheme
 
 @Composable
 fun InvoiceFooterView(
+    invoices: MutableList<InvoiceItemModel> = mutableListOf(),
     items: MutableList<Item> = mutableListOf(),
     thirdParties: MutableList<ThirdParty> = mutableListOf(),
     modifier: Modifier = Modifier,
     onItemSelected: (Item) -> Unit = {},
     onThirdPartySelected: (ThirdParty) -> Unit = {},
 ) {
+    var taxState by remember { mutableStateOf("0.0 USD") }
+    var tax1State by remember { mutableStateOf("0.0 USD") }
+    var totalState by remember { mutableStateOf("0.0 USD") }
+    var totalCur2State by remember { mutableStateOf("0.0 USD") }
+    var tax2State by remember { mutableStateOf("0.0 USD") }
+    var totalTaxState by remember { mutableStateOf("0.0 USD") }
+    var tableNoState by remember { mutableStateOf("1") }
+    var clientState by remember { mutableStateOf("Cash") }
+
+    if (invoices.isNotEmpty()) {
+        var tax = 0.0
+        var tax1 = 0.0
+        var tax2 = 0.0
+        var total = 0.0
+        invoices.forEach {
+            tax += it.getTax()
+            tax1 += it.getTax1()
+            tax2 += it.getTax2()
+            total += it.getAmount()
+        }
+        taxState = String.format("%.2f", tax)
+        tax1State = String.format("%.2f", tax1)
+        tax2State = String.format("%.2f", tax2)
+        totalTaxState = String.format("%.2f", tax + tax1 + tax2)
+        totalState = String.format("%.2f", total)
+        totalCur2State = totalState
+    }
     Row(
-        modifier = modifier.fillMaxWidth().fillMaxHeight()
+        modifier = modifier
+            .fillMaxWidth()
+            .fillMaxHeight()
     ) {
         Column(
             modifier = Modifier
@@ -43,7 +80,7 @@ fun InvoiceFooterView(
             ) {
                 Text(text = "Tax:")
                 Spacer(modifier = Modifier.width(5.dp))
-                Text(text = "0")
+                Text(text = taxState)
                 Spacer(modifier = Modifier.width(5.dp))
                 Text(text = "USD")
             }
@@ -52,20 +89,9 @@ fun InvoiceFooterView(
                 modifier = Modifier.wrapContentWidth(),
                 horizontalArrangement = Arrangement.Absolute.Left
             ) {
-                Text(text = "Tax2:")
+                Text(text = "Tax1:")
                 Spacer(modifier = Modifier.width(5.dp))
-                Text(text = "0")
-                Spacer(modifier = Modifier.width(5.dp))
-                Text(text = "USD")
-            }
-
-            Row(
-                modifier = Modifier.wrapContentWidth(),
-                horizontalArrangement = Arrangement.Absolute.Left
-            ) {
-                Text(text = "Total:")
-                Spacer(modifier = Modifier.width(5.dp))
-                Text(text = "150.00")
+                Text(text = tax1State)
                 Spacer(modifier = Modifier.width(5.dp))
                 Text(text = "USD")
             }
@@ -76,7 +102,18 @@ fun InvoiceFooterView(
             ) {
                 Text(text = "Total:")
                 Spacer(modifier = Modifier.width(5.dp))
-                Text(text = "15,000.00")
+                Text(text = totalState)
+                Spacer(modifier = Modifier.width(5.dp))
+                Text(text = "USD")
+            }
+
+            Row(
+                modifier = Modifier.wrapContentWidth(),
+                horizontalArrangement = Arrangement.Absolute.Left
+            ) {
+                Text(text = "Total:")
+                Spacer(modifier = Modifier.width(5.dp))
+                Text(text = totalCur2State)
                 Spacer(modifier = Modifier.width(5.dp))
                 Text(text = "USD")
             }
@@ -103,7 +140,7 @@ fun InvoiceFooterView(
             ) {
                 Text(text = "Tax2:")
                 Spacer(modifier = Modifier.width(5.dp))
-                Text(text = "0")
+                Text(text = tax2State)
                 Spacer(modifier = Modifier.width(5.dp))
                 Text(text = "USD")
             }
@@ -114,7 +151,7 @@ fun InvoiceFooterView(
             ) {
                 Text(text = "Total Tax:")
                 Spacer(modifier = Modifier.width(5.dp))
-                Text(text = "0")
+                Text(text = totalTaxState)
                 Spacer(modifier = Modifier.width(5.dp))
                 Text(text = "USD")
             }
@@ -125,7 +162,7 @@ fun InvoiceFooterView(
             ) {
                 Text(text = "Table Number:")
                 Spacer(modifier = Modifier.width(5.dp))
-                Text(text = "3")
+                Text(text = tableNoState)
             }
 
             Row(
@@ -134,7 +171,7 @@ fun InvoiceFooterView(
             ) {
                 Text(text = "Client:")
                 Spacer(modifier = Modifier.width(5.dp))
-                Text(text = "Cash")
+                Text(text = clientState)
             }
 
             SearchableDropdownMenu(

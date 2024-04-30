@@ -47,6 +47,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.grid.pos.model.InvoiceItemModel
 import com.grid.pos.ui.pos.components.AddInvoiceItemView
 import com.grid.pos.ui.pos.components.EditInvoiceHeaderView
 import com.grid.pos.ui.pos.components.InvoiceBodyDetails
@@ -142,7 +143,6 @@ fun PosView(
                         .verticalScroll(rememberScrollState())
                         .padding(horizontal = 10.dp, vertical = 10.dp),
                 ) {
-                    val height = configuration.screenHeightDp
                     InvoiceHeaderDetails(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -156,23 +156,21 @@ fun PosView(
                     val borderStroke = BorderStroke(1.dp, Color.Black)
 
                     InvoiceBodyDetails(
-                        invoices = Utils.getInvoiceModelFromList(posState.invoices),
+                        invoices = posState.invoices,
                         modifier = Modifier
-                            .wrapContentWidth()
-                            .wrapContentHeight()
-                            .defaultMinSize(minHeight = 130.dp)
-                            .border(borderStroke)
-                            .height(70.dp),
-                        isLandscape = isTablet || isLandscape
+                            .fillMaxWidth()
+                            .height(posState.getBodyHeight(40))
+                            .border(borderStroke),
+                        isLandscape = false/*isTablet || isLandscape*/
                     )
 
                     InvoiceFooterView(
+                        invoices = posState.invoices,
                         items = posState.items,
                         thirdParties = posState.thirdParties,
                         modifier = Modifier
                             .wrapContentWidth()
-                            .height(250.dp)
-                            .height(70.dp),
+                            .height(250.dp),
                         onItemSelected = {},
                         onThirdPartySelected = {},
                     )
@@ -217,7 +215,12 @@ fun PosView(
                     .fillMaxWidth()
                     .fillMaxHeight(0.8f)
             ) {
-                posState.invoices.add(Utils.getInvoiceFromItem(it))
+                val invoiceItemModel = InvoiceItemModel()
+                invoiceItemModel.setItem(it)
+                val invoices = posState.invoices
+                invoices.add(invoiceItemModel)
+                posState.invoices = invoices
+                //isAddItemBottomSheetVisible = false
             }
         }
     }

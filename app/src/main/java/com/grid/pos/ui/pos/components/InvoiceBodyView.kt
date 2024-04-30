@@ -2,9 +2,12 @@ package com.grid.pos.ui.pos.components
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -22,21 +25,11 @@ fun InvoiceBodyDetails(
     modifier: Modifier = Modifier,
     isLandscape: Boolean = false
 ) {
-    val header = InvoiceItemModel("Item", "Count", "Price", "Dis%", "Tax", "Tax1", "Tax2", "Amount")
-    /*    val invoiceItems = listOf(
-            InvoiceItemModel("Chicken", "1", "150.00", "0.0", "0.0", "0.0", "0.0", "150.00"),
-            InvoiceItemModel("Salad", "1", "150.00", "0.0", "0.0", "0.0", "0.0", "150.00"),
-            InvoiceItemModel("Champo", "1", "150.00", "0.0", "0.0", "0.0", "0.0", "150.00"),
-            InvoiceItemModel("Prince", "1", "150.00", "0.0", "0.0", "0.0", "0.0", "150.00"),
-            InvoiceItemModel("Juice", "1", "150.00", "0.0", "0.0", "0.0", "0.0", "150.00"),
-            InvoiceItemModel("Master chips", "1", "150.00", "0.0", "0.0", "0.0", "0.0", "150.00"),
-            InvoiceItemModel("Mozarilla", "1", "150.00", "0.0", "0.0", "0.0", "0.0", "150.00"),
-            InvoiceItemModel("Meat", "1", "150.00", "0.0", "0.0", "0.0", "0.0", "150.00"),
-            InvoiceItemModel("Kabab", "1", "150.00", "0.0", "0.0", "0.0", "0.0", "150.00"),
-        )*/
 
     LazyColumn(
-        modifier = modifier,
+        modifier = modifier
+            .fillMaxWidth()
+            .horizontalScroll(rememberScrollState()),
         contentPadding = PaddingValues(0.dp)
     ) {
         stickyHeader {
@@ -44,9 +37,9 @@ fun InvoiceBodyDetails(
                 modifier = Modifier
                     .height(50.dp)
                     .background(color = Color.LightGray),
-                item = header,
+                invoiceItemModel = InvoiceItemModel(),
                 isHeader = true,
-                isLandscape=isLandscape
+                isLandscape = isLandscape
             )
         }
         invoices.forEachIndexed { index, invoiceItemModel ->
@@ -54,10 +47,10 @@ fun InvoiceBodyDetails(
                 val color = if (index % 2 == 0) Color.White else Color.LightGray
                 InvoiceItemCell(
                     modifier = Modifier
-                        .height(40.dp)
+                        .height(50.dp)
                         .background(color = color),
-                    item = invoiceItemModel,
-                    isLandscape=isLandscape
+                    invoiceItemModel = invoiceItemModel,
+                    isLandscape = isLandscape
                 )
             }
         }

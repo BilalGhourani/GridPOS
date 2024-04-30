@@ -27,14 +27,13 @@ import com.grid.pos.model.InvoiceItemModel
 @Composable
 fun InvoiceItemCell(
     modifier: Modifier = Modifier,
-    item: InvoiceItemModel,
+    invoiceItemModel: InvoiceItemModel,
     isHeader: Boolean = false,
     isLandscape: Boolean = false
 ) {
     Row(
         modifier = modifier
-            .fillMaxWidth()
-            .horizontalScroll(rememberScrollState()),
+            .fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         val modifier = if (isLandscape) {
@@ -42,8 +41,7 @@ fun InvoiceItemCell(
                 .fillMaxHeight()
                 .weight(1f)
                 .wrapContentHeight(align = Alignment.CenterVertically)
-        }
-        else {
+        } else {
 
             Modifier
                 .fillMaxHeight()
@@ -51,11 +49,11 @@ fun InvoiceItemCell(
                 .wrapContentHeight(align = Alignment.CenterVertically)
         }
 
-        val dividerModifier =if (isLandscape) {
+        val dividerModifier = if (isLandscape) {
             Modifier
                 .fillMaxHeight()
                 .weight(.01f)
-        }else{
+        } else {
             Modifier
                 .fillMaxHeight()
                 .width(1.dp)
@@ -65,14 +63,13 @@ fun InvoiceItemCell(
             fontSize = 16.sp
         )
         Text(
-            text = item.name,
+            text = if (isHeader) "Item" else invoiceItemModel.getName(),
             modifier = if (isLandscape) {
                 Modifier
                     .fillMaxHeight()
                     .weight(1.8f)
                     .wrapContentHeight(align = Alignment.CenterVertically)
-            }
-            else {
+            } else {
                 Modifier
                     .fillMaxHeight()
                     .width(180.dp)
@@ -86,7 +83,9 @@ fun InvoiceItemCell(
             modifier = dividerModifier
         )
         Text(
-            text = item.count, modifier = modifier, textAlign = TextAlign.Center,
+            text = if (isHeader) "Count" else invoiceItemModel.getQuantity().toString(),
+            modifier = modifier,
+            textAlign = TextAlign.Center,
             style = textStyle
         )
         Divider(
@@ -94,7 +93,9 @@ fun InvoiceItemCell(
             modifier = dividerModifier
         )
         Text(
-            text = item.price, modifier = modifier, textAlign = TextAlign.Center,
+            text = if (isHeader) "Price" else invoiceItemModel.getPrice().toString(),
+            modifier = modifier,
+            textAlign = TextAlign.Center,
             style = textStyle
         )
         Divider(
@@ -102,7 +103,9 @@ fun InvoiceItemCell(
             modifier = dividerModifier
         )
         Text(
-            text = item.discount, modifier = modifier, textAlign = TextAlign.Center,
+            text = if (isHeader) "Dis%" else invoiceItemModel.getDiscount().toString(),
+            modifier = modifier,
+            textAlign = TextAlign.Center,
             style = textStyle
         )
         Divider(
@@ -110,7 +113,9 @@ fun InvoiceItemCell(
             modifier = dividerModifier
         )
         Text(
-            text = item.tax, modifier = modifier, textAlign = TextAlign.Center,
+            text = if (isHeader) "Tax" else invoiceItemModel.getTax().toString(),
+            modifier = modifier,
+            textAlign = TextAlign.Center,
             style = textStyle
         )
         Divider(
@@ -118,7 +123,9 @@ fun InvoiceItemCell(
             modifier = dividerModifier
         )
         Text(
-            text = item.tax1, modifier = modifier, textAlign = TextAlign.Center,
+            text = if (isHeader) "Tax1" else invoiceItemModel.getTax1().toString(),
+            modifier = modifier,
+            textAlign = TextAlign.Center,
             style = textStyle
         )
         Divider(
@@ -126,7 +133,9 @@ fun InvoiceItemCell(
             modifier = dividerModifier
         )
         Text(
-            text = item.tax2, modifier = modifier, textAlign = TextAlign.Center,
+            text = if (isHeader) "Tax2" else invoiceItemModel.getTax2().toString(),
+            modifier = modifier,
+            textAlign = TextAlign.Center,
             style = textStyle
         )
         Divider(
@@ -134,7 +143,9 @@ fun InvoiceItemCell(
             modifier = dividerModifier
         )
         Text(
-            text = item.amount, modifier = modifier, textAlign = TextAlign.Center,
+            text = if (isHeader) "Amount" else invoiceItemModel.getAmount().toString(),
+            modifier = modifier,
+            textAlign = TextAlign.Center,
             style = textStyle
         )
     }

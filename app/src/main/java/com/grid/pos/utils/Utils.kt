@@ -6,18 +6,12 @@ import android.print.PrintAttributes
 import android.print.PrintAttributes.MediaSize
 import android.print.PrintManager
 import android.webkit.WebView
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.Dp
-import com.grid.pos.App
 import com.grid.pos.data.DataModel
 import com.grid.pos.data.Family.Family
-import com.grid.pos.data.Invoice.Invoice
 import com.grid.pos.data.Item.Item
 import com.grid.pos.data.User.User
 import com.grid.pos.model.HomeSectionModel
-import com.grid.pos.model.InvoiceItemModel
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.util.UUID
@@ -133,38 +127,5 @@ object Utils {
 
     fun isTablet(configuration: Configuration): Boolean {
         return configuration.screenWidthDp > 840
-    }
-
-    fun getInvoiceModelFromList(invoices: MutableList<Invoice>): MutableList<InvoiceItemModel> {
-        val invoiceItemModels: MutableList<InvoiceItemModel> = mutableListOf()
-        invoices.forEach {
-            val price = it.invoicePrice ?: 0.0
-            val quantity = it.invoiceQuantity ?: 0.0
-            val model = InvoiceItemModel(
-                it.invoicExtraName ?: "",
-                quantity.toString(),
-                price.toString(),
-                it.invoiceDiscount.toString(),
-                it.invoiceTax.toString(),
-                it.invoiceTax1.toString(),
-                it.invoiceTax2.toString(),
-                (price * quantity).toString()
-            )
-            invoiceItemModels.add(model)
-        }
-        return invoiceItemModels
-    }
-
-    fun getInvoiceFromItem(item: Item): Invoice {
-        val invoice = Invoice()
-        invoice.invoiceId = generateRandomUuidString()
-        invoice.invoiceQuantity = 1.0
-        invoice.invoiceItemId = item.itemId
-        invoice.invoicCost = item.itemOpenCost?.toDouble() ?: 0.0
-        invoice.invoicRemQty = item.itemOpenQty?.toDouble() ?: 0.0
-        invoice.invoiceTax = item.itemTax?.toDouble() ?: 0.0
-        invoice.invoiceTax1 = item.itemTax1?.toDouble() ?: 0.0
-        invoice.invoiceTax2 = item.itemTax2?.toDouble() ?: 0.0
-        return invoice
     }
 }
