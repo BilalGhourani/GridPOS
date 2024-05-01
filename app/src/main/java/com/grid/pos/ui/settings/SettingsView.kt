@@ -1,4 +1,4 @@
-package com.grid.pos.ui.table
+package com.grid.pos.ui.settings
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -21,7 +21,7 @@ import com.grid.pos.ui.theme.GridPOSTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ManageTablesView(
+fun SettingsView(
     navController: NavController? = null,
     modifier: Modifier = Modifier
 ) {
@@ -40,7 +40,7 @@ fun ManageTablesView(
                         },
                         title = {
                             Text(
-                                text = "Manage Tables",
+                                text = "Settings",
                                 color = Color.Black,
                                 fontSize = 16.sp,
                                 textAlign = TextAlign.Center
