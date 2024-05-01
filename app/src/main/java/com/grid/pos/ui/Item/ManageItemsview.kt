@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
@@ -47,11 +48,14 @@ import androidx.navigation.NavController
 import com.grid.pos.data.Family.Family
 import com.grid.pos.data.Item.Item
 import com.grid.pos.data.PosPrinter.PosPrinter
+import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.LoadingIndicator
 import com.grid.pos.ui.common.SearchableDropdownMenu
 import com.grid.pos.ui.common.UIButton
+import com.grid.pos.ui.common.UISwitch
 import com.grid.pos.ui.common.UITextField
 import com.grid.pos.ui.theme.GridPOSTheme
+import com.grid.pos.utils.DataStoreManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -89,6 +93,7 @@ fun ManageItemsView(
     var btnColorState by remember { mutableStateOf("") }
     var btnTextColorState by remember { mutableStateOf("") }
     var posPrinterState by remember { mutableStateOf("") }
+    var itemPOSState by remember { mutableStateOf(false) }
 
     val snackbarHostState = remember { SnackbarHostState() }
     LaunchedEffect(manageItemsState.warning) {
@@ -164,6 +169,7 @@ fun ManageItemsView(
                             btnColorState = item.itemBtnColor ?: ""
                             btnTextColorState = item.itemBtnTextColor ?: ""
                             posPrinterState = item.itemPosPrinter ?: ""
+                            itemPOSState = item.itemPos
                         }
 
                         //name
@@ -324,6 +330,15 @@ fun ManageItemsView(
                             manageItemsState.selectedItem.itemPosPrinter = posPrinterState
                         }
 
+                        UISwitch(
+                            modifier = Modifier.padding(10.dp),
+                            checked = itemPOSState,
+                            text = "Item POS",
+                        ) {
+                            itemPOSState = it
+                            manageItemsState.selectedItem.itemPos = it
+                        }
+
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -335,7 +350,7 @@ fun ManageItemsView(
                                 modifier = Modifier
                                     .weight(.33f)
                                     .padding(3.dp),
-                                text ="Save"
+                                text = "Save"
                             ) {
                                 viewModel.saveItem(manageItemsState.selectedItem)
                             }
