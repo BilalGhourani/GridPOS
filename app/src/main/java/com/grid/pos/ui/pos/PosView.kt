@@ -228,7 +228,7 @@ fun PosView(
         ) {
             AddInvoiceItemView(
                 categories = posState.families,
-                items = posState.items,
+                items = posState.items.filter { it.itemPos }.toMutableList(),
                 modifier = Modifier
                     .fillMaxWidth()
                     .fillMaxHeight(0.8f)
