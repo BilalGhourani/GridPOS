@@ -107,4 +107,9 @@ dependencies {
 
     //gson
     implementation ("com.google.code.gson:gson:2.10.1")
+
+    //jetPack DataStore
+    implementation ("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.1")
+    implementation ("androidx.datastore:datastore-preferences-rxjava2:1.0.0")
+    implementation ("androidx.datastore:datastore-preferences-rxjava3:1.0.0")
 }

@@ -3,6 +3,7 @@ package com.grid.pos.data.PosPrinter
 import androidx.lifecycle.asLiveData
 import com.grid.pos.interfaces.OnResult
 import com.google.firebase.firestore.FirebaseFirestore
+import com.grid.pos.model.SettingsModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -11,48 +12,54 @@ class PosPrinterRepositoryImpl(
     private val posPrinterDao: PosPrinterDao
 ) : PosPrinterRepository {
     override suspend fun insert(posPrinter: PosPrinter, callback: OnResult?) {
-        FirebaseFirestore.getInstance().collection("pos_printer")
-            .add(posPrinter)
-            .addOnSuccessListener {
-                CoroutineScope(Dispatchers.IO).launch {
-                    posPrinterDao.insert(posPrinter)
+        if (SettingsModel.loadFromRemote) {
+            FirebaseFirestore.getInstance().collection("pos_printer")
+                .add(posPrinter)
+                .addOnSuccessListener {
                     posPrinter.posPrinterDocumentId = it.id
                     callback?.onSuccess(posPrinter)
                 }
-            }
-            .addOnFailureListener { e ->
-                callback?.onFailure(e.message.toString())
-            }
+                .addOnFailureListener { e ->
+                    callback?.onFailure(e.message.toString())
+                }
+        } else {
+            posPrinterDao.insert(posPrinter)
+            callback?.onSuccess(posPrinter)
+        }
     }
 
     override suspend fun delete(posPrinter: PosPrinter, callback: OnResult?) {
-        FirebaseFirestore.getInstance().collection("pos_printer")
-            .document(posPrinter.posPrinterDocumentId!!)
-            .delete()
-            .addOnSuccessListener {
-                CoroutineScope(Dispatchers.IO).launch {
-                    posPrinterDao.delete(posPrinter)
+        if (SettingsModel.loadFromRemote) {
+            FirebaseFirestore.getInstance().collection("pos_printer")
+                .document(posPrinter.posPrinterDocumentId!!)
+                .delete()
+                .addOnSuccessListener {
                     callback?.onSuccess(posPrinter)
                 }
-            }
-            .addOnFailureListener { e ->
-                callback?.onFailure(e.message.toString())
-            }
+                .addOnFailureListener { e ->
+                    callback?.onFailure(e.message.toString())
+                }
+        } else {
+            posPrinterDao.delete(posPrinter)
+            callback?.onSuccess(posPrinter)
+        }
     }
 
     override suspend fun update(posPrinter: PosPrinter, callback: OnResult?) {
-        FirebaseFirestore.getInstance().collection("pos_printer")
-            .document(posPrinter.posPrinterDocumentId!!)
-            .update(posPrinter.getMap())
-            .addOnSuccessListener {
-                CoroutineScope(Dispatchers.IO).launch {
-                    posPrinterDao.update(posPrinter)
+        if (SettingsModel.loadFromRemote) {
+            FirebaseFirestore.getInstance().collection("pos_printer")
+                .document(posPrinter.posPrinterDocumentId!!)
+                .update(posPrinter.getMap())
+                .addOnSuccessListener {
                     callback?.onSuccess(posPrinter)
                 }
-            }
-            .addOnFailureListener { e ->
-                callback?.onFailure(e.message.toString())
-            }
+                .addOnFailureListener { e ->
+                    callback?.onFailure(e.message.toString())
+                }
+        } else {
+            posPrinterDao.update(posPrinter)
+            callback?.onSuccess(posPrinter)
+        }
     }
 
     override suspend fun getPosPrinterById(id: String): PosPrinter {
@@ -60,15 +67,10 @@ class PosPrinterRepositoryImpl(
     }
 
     override suspend fun getAllPosPrinters(callback: OnResult?) {
-        val localPrinters = posPrinterDao.getAllPosPrinters().asLiveData().value
-        if (!localPrinters.isNullOrEmpty()) {
-            callback?.onSuccess(localPrinters)
-        }
-        FirebaseFirestore.getInstance().collection("pos_printer").get()
-            .addOnSuccessListener { result ->
-                CoroutineScope(Dispatchers.IO).launch {
+        if (SettingsModel.loadFromRemote) {
+            FirebaseFirestore.getInstance().collection("pos_printer").get()
+                .addOnSuccessListener { result ->
                     val printers = mutableListOf<PosPrinter>()
-                    posPrinterDao.deleteAll()
                     if (result.size() > 0) {
                         for (document in result) {
                             val obj = document.toObject(PosPrinter::class.java)
@@ -77,15 +79,19 @@ class PosPrinterRepositoryImpl(
                                 printers.add(obj)
                             }
                         }
-                        posPrinterDao.insertAll(printers.toList())
                     }
                     callback?.onSuccess(printers)
+                }.addOnFailureListener { exception ->
+                    callback?.onFailure(
+                        exception.message ?: "Network error! Can't get printers from remote."
+                    )
                 }
-            }.addOnFailureListener { exception ->
-                callback?.onFailure(
-                    exception.message ?: "Network error! Can't get printers from remote."
-                )
+        } else {
+            val localPrinters = posPrinterDao.getAllPosPrinters().asLiveData().value
+            if (!localPrinters.isNullOrEmpty()) {
+                callback?.onSuccess(localPrinters)
             }
+        }
     }
 
 }

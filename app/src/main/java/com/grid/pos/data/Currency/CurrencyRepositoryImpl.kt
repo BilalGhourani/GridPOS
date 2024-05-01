@@ -1,60 +1,62 @@
 package com.grid.pos.data.Currency
 
 import androidx.lifecycle.asLiveData
-import com.grid.pos.data.Company.Company
-import com.grid.pos.interfaces.OnResult
 import com.google.firebase.firestore.FirebaseFirestore
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.launch
+import com.grid.pos.interfaces.OnResult
+import com.grid.pos.model.SettingsModel
 
 class CurrencyRepositoryImpl(
     private val currencyDao: CurrencyDao
 ) : CurrencyRepository {
     override suspend fun insert(currency: Currency, callback: OnResult?) {
-        FirebaseFirestore.getInstance().collection("currency")
-            .add(currency)
-            .addOnSuccessListener {
-                CoroutineScope(Dispatchers.IO).launch {
-                    currencyDao.insert(currency)
+        if (SettingsModel.loadFromRemote) {
+            FirebaseFirestore.getInstance().collection("currency")
+                .add(currency)
+                .addOnSuccessListener {
                     currency.currencyDocumentId = it.id
                     callback?.onSuccess(currency)
                 }
-            }
-            .addOnFailureListener { e ->
-                callback?.onFailure(e.message.toString())
-            }
+                .addOnFailureListener { e ->
+                    callback?.onFailure(e.message.toString())
+                }
+        } else {
+            currencyDao.insert(currency)
+            callback?.onSuccess(currency)
+        }
     }
 
     override suspend fun delete(currency: Currency, callback: OnResult?) {
-        FirebaseFirestore.getInstance().collection("currency")
-            .document(currency.currencyDocumentId!!)
-            .delete()
-            .addOnSuccessListener {
-                CoroutineScope(Dispatchers.IO).launch {
-                    currencyDao.delete(currency)
+        if (SettingsModel.loadFromRemote) {
+            FirebaseFirestore.getInstance().collection("currency")
+                .document(currency.currencyDocumentId!!)
+                .delete()
+                .addOnSuccessListener {
                     callback?.onSuccess(currency)
                 }
-            }
-            .addOnFailureListener { e ->
-                callback?.onFailure(e.message.toString())
-            }
+                .addOnFailureListener { e ->
+                    callback?.onFailure(e.message.toString())
+                }
+        } else {
+            currencyDao.delete(currency)
+            callback?.onSuccess(currency)
+        }
     }
 
     override suspend fun update(currency: Currency, callback: OnResult?) {
-        FirebaseFirestore.getInstance().collection("currency")
-            .document(currency.currencyDocumentId!!)
-            .update(currency.getMap())
-            .addOnSuccessListener {
-                CoroutineScope(Dispatchers.IO).launch {
-                    currencyDao.update(currency)
+        if (SettingsModel.loadFromRemote) {
+            FirebaseFirestore.getInstance().collection("currency")
+                .document(currency.currencyDocumentId!!)
+                .update(currency.getMap())
+                .addOnSuccessListener {
                     callback?.onSuccess(currency)
                 }
-            }
-            .addOnFailureListener { e ->
-                callback?.onFailure(e.message.toString())
-            }
+                .addOnFailureListener { e ->
+                    callback?.onFailure(e.message.toString())
+                }
+        } else {
+            currencyDao.update(currency)
+            callback?.onSuccess(currency)
+        }
     }
 
     override suspend fun getCurrencyById(id: String): Currency {
@@ -62,15 +64,10 @@ class CurrencyRepositoryImpl(
     }
 
     override fun getAllCurrencies(callback: OnResult?) {
-        val localCurrencies = currencyDao.getAllCurrencies().asLiveData().value
-        if (!localCurrencies.isNullOrEmpty()) {
-            callback?.onSuccess(localCurrencies)
-        }
-        FirebaseFirestore.getInstance().collection("currency").get()
-            .addOnSuccessListener { result ->
-                CoroutineScope(Dispatchers.IO).launch {
+        if (SettingsModel.loadFromRemote) {
+            FirebaseFirestore.getInstance().collection("currency").get()
+                .addOnSuccessListener { result ->
                     val currencies = mutableListOf<Currency>()
-                    currencyDao.deleteAll()
                     if (result.size() > 0) {
                         for (document in result) {
                             val obj = document.toObject(Currency::class.java)
@@ -79,14 +76,19 @@ class CurrencyRepositoryImpl(
                                 currencies.add(obj)
                             }
                         }
-                        currencyDao.insertAll(currencies.toList())
                     }
                     callback?.onSuccess(currencies)
+                }.addOnFailureListener { exception ->
+                    callback?.onFailure(
+                        exception.message ?: "Network error! Can't get currencies from remote."
+                    )
                 }
-            }.addOnFailureListener { exception ->
-                callback?.onFailure(
-                    exception.message ?: "Network error! Can't get currencies from remote."
-                )
+        } else {
+            val localCurrencies = currencyDao.getAllCurrencies().asLiveData().value
+            if (!localCurrencies.isNullOrEmpty()) {
+                callback?.onSuccess(localCurrencies)
             }
+        }
+
     }
 }

@@ -1,20 +1,33 @@
 package com.grid.pos.data.PosReceipt
 
+import com.grid.pos.model.SettingsModel
 import kotlinx.coroutines.flow.Flow
 
 class PosReceiptRepositoryImpl(
     private val posReceiptDao: PosReceiptDao
 ) : PosReceiptRepository {
     override suspend fun insert(posReceipt: PosReceipt) {
-        posReceiptDao.insert(posReceipt)
+        if (SettingsModel.loadFromRemote) {
+
+        } else {
+            posReceiptDao.insert(posReceipt)
+        }
     }
 
     override suspend fun delete(posReceipt: PosReceipt) {
-        posReceiptDao.delete(posReceipt)
+        if (SettingsModel.loadFromRemote) {
+
+        } else {
+            posReceiptDao.delete(posReceipt)
+        }
     }
 
     override suspend fun update(posReceipt: PosReceipt) {
-        posReceiptDao.update(posReceipt)
+        if (SettingsModel.loadFromRemote) {
+
+        } else {
+            posReceiptDao.update(posReceipt)
+        }
     }
 
     override suspend fun getPosReceiptById(id: String): PosReceipt {
@@ -22,7 +35,11 @@ class PosReceiptRepositoryImpl(
     }
 
     override fun getAllPosReceipts(): Flow<List<PosReceipt>> {
-        return posReceiptDao.getAllPosReceipts()
+        if (SettingsModel.loadFromRemote) {
+            return posReceiptDao.getAllPosReceipts()
+        } else {
+            return posReceiptDao.getAllPosReceipts()
+        }
     }
 
 

@@ -44,4 +44,7 @@ interface UserDao {
     // Get all users as stream.
     @Query("SELECT * FROM `set_users` WHERE usr_name LIKE '%' || :key || '%'")
     fun searchForUsers(key: String): Flow<List<User>>
+
+    @Query("SELECT * FROM `set_users` WHERE usr_username = :usermame AND usr_password = :password ")
+    fun login(usermame: String, password: String): Flow<List<User>>
 }

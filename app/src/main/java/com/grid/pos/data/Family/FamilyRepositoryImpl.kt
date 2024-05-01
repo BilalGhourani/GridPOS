@@ -1,59 +1,63 @@
 package com.grid.pos.data.Family
 
 import androidx.lifecycle.asLiveData
-import com.grid.pos.interfaces.OnResult
 import com.google.firebase.firestore.FirebaseFirestore
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import com.grid.pos.interfaces.OnResult
+import com.grid.pos.model.SettingsModel
 
 class FamilyRepositoryImpl(
     private val familyDao: FamilyDao
 ) : FamilyRepository {
     override suspend fun insert(family: Family, callback: OnResult?) {
-        FirebaseFirestore.getInstance().collection("family")
-            .add(family)
-            .addOnSuccessListener {
-                CoroutineScope(Dispatchers.IO).launch {
-                    familyDao.insert(family)
+        if (SettingsModel.loadFromRemote) {
+            FirebaseFirestore.getInstance().collection("family")
+                .add(family)
+                .addOnSuccessListener {
                     family.familyDocumentId = it.id
                     callback?.onSuccess(family)
                 }
-            }
-            .addOnFailureListener { e ->
-                callback?.onFailure(e.message.toString())
-            }
+                .addOnFailureListener { e ->
+                    callback?.onFailure(e.message.toString())
+                }
+        } else {
+            familyDao.insert(family)
+            callback?.onSuccess(family)
+        }
 
     }
 
     override suspend fun delete(family: Family, callback: OnResult?) {
-        FirebaseFirestore.getInstance().collection("family")
-            .document(family.familyDocumentId!!)
-            .delete()
-            .addOnSuccessListener {
-                CoroutineScope(Dispatchers.IO).launch {
-                    familyDao.delete(family)
+        if (SettingsModel.loadFromRemote) {
+            FirebaseFirestore.getInstance().collection("family")
+                .document(family.familyDocumentId!!)
+                .delete()
+                .addOnSuccessListener {
                     callback?.onSuccess(family)
                 }
-            }
-            .addOnFailureListener { e ->
-                callback?.onFailure(e.message.toString())
-            }
+                .addOnFailureListener { e ->
+                    callback?.onFailure(e.message.toString())
+                }
+        } else {
+            familyDao.delete(family)
+            callback?.onSuccess(family)
+        }
     }
 
     override suspend fun update(family: Family, callback: OnResult?) {
-        FirebaseFirestore.getInstance().collection("family")
-            .document(family.familyDocumentId!!)
-            .update(family.getMap())
-            .addOnSuccessListener {
-                CoroutineScope(Dispatchers.IO).launch {
-                    familyDao.update(family)
+        if (SettingsModel.loadFromRemote) {
+            FirebaseFirestore.getInstance().collection("family")
+                .document(family.familyDocumentId!!)
+                .update(family.getMap())
+                .addOnSuccessListener {
                     callback?.onSuccess(family)
                 }
-            }
-            .addOnFailureListener { e ->
-                callback?.onFailure(e.message.toString())
-            }
+                .addOnFailureListener { e ->
+                    callback?.onFailure(e.message.toString())
+                }
+        } else {
+            familyDao.update(family)
+            callback?.onSuccess(family)
+        }
     }
 
     override suspend fun getFamilyById(id: String): Family {
@@ -61,15 +65,10 @@ class FamilyRepositoryImpl(
     }
 
     override fun getAllFamilies(callback: OnResult?) {
-        val localFamilies = familyDao.getAllFamilies().asLiveData().value
-        if (!localFamilies.isNullOrEmpty()) {
-            callback?.onSuccess(localFamilies)
-        }
-        FirebaseFirestore.getInstance().collection("family").get()
-            .addOnSuccessListener { result ->
-                CoroutineScope(Dispatchers.IO).launch {
+        if (SettingsModel.loadFromRemote) {
+            FirebaseFirestore.getInstance().collection("family").get()
+                .addOnSuccessListener { result ->
                     val families = mutableListOf<Family>()
-                    familyDao.deleteAll()
                     if (result.size() > 0) {
                         for (document in result) {
                             val obj = document.toObject(Family::class.java)
@@ -78,15 +77,19 @@ class FamilyRepositoryImpl(
                                 families.add(obj)
                             }
                         }
-                        familyDao.insertAll(families.toList())
                     }
                     callback?.onSuccess(families)
+                }.addOnFailureListener { exception ->
+                    callback?.onFailure(
+                        exception.message ?: "Network error! Can't get families from remote."
+                    )
                 }
-            }.addOnFailureListener { exception ->
-                callback?.onFailure(
-                    exception.message ?: "Network error! Can't get families from remote."
-                )
+        } else {
+            val localFamilies = familyDao.getAllFamilies().asLiveData().value
+            if (!localFamilies.isNullOrEmpty()) {
+                callback?.onSuccess(localFamilies)
             }
+        }
     }
 
 }
