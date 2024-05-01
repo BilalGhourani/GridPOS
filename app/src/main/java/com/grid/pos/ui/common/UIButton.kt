@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.theme.Blue
 import com.grid.pos.ui.theme.White
 
@@ -26,8 +27,8 @@ fun UIButton(
     modifier: Modifier = Modifier,
     text: String = "Submit",
     shape: Shape = ButtonDefaults.elevatedShape,
-    buttonColor: Color = Blue,
-    textColor: Color = White,
+    buttonColor: Color = SettingsModel.buttonColor,
+    textColor: Color = SettingsModel.buttonTextColor,
     textAlign: TextAlign = TextAlign.Center,
     textDecoration: TextDecoration = TextDecoration.None,
     fontWeight: FontWeight = FontWeight.Bold,

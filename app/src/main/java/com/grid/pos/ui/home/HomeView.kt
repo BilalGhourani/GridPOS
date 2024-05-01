@@ -31,6 +31,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.theme.Blue
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.utils.Utils
@@ -84,13 +85,13 @@ fun HomeView(
                                 .width(120.dp)
                                 .height(80.dp)
                                 .padding(horizontal = 3.dp, vertical = 5.dp)
-                                .background(color = Blue, shape = RoundedCornerShape(15.dp))
+                                .background(color = SettingsModel.buttonColor, shape = RoundedCornerShape(15.dp))
                                 .clickable { navController?.navigate(item.composable) },
                             contentAlignment = Alignment.Center // Center content within the Box
                         ) {
                             Text(
                                 text = item.title,
-                                color = Color.White,
+                                color = SettingsModel.buttonTextColor,
                                 modifier = Modifier
                                     .padding(16.dp),
                                 textAlign = TextAlign.Center

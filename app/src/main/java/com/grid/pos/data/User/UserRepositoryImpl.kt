@@ -82,11 +82,13 @@ class UserRepositoryImpl(
                 .get()
                 .addOnSuccessListener { result ->
                     if (result.size() > 0) {
-                        for (document in result) {
-                            val obj = document.toObject(User::class.java)
-                            if (!obj.userId.isNullOrEmpty()) {
-                                obj.userDocumentId = document.id
-                                callback?.onSuccess(obj)
+                        CoroutineScope(Dispatchers.IO).launch {
+                            for (document in result) {
+                                val obj = document.toObject(User::class.java)
+                                if (!obj.userId.isNullOrEmpty()) {
+                                    obj.userDocumentId = document.id
+                                    callback?.onSuccess(obj)
+                                }
                             }
                         }
                     } else {

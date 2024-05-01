@@ -2,6 +2,7 @@ package com.grid.pos.utils
 
 import android.content.Context
 import androidx.compose.ui.graphics.Color
+import androidx.core.graphics.toColorInt
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
@@ -114,14 +115,14 @@ object DataStoreManager {
     }
 
     suspend fun initSettingsModel() {
-        val buttonColor = getLong(DataStoreKeys.BUTTON_COLOR.key)
-        val buttonTextColor = getLong(DataStoreKeys.BUTTON_TEXT_COLOR.key)
-        if (buttonColor?.isNullOrZero() == false) {
-            SettingsModel.buttonColor = Color(buttonColor)
+        val buttonColor = getString(DataStoreKeys.BUTTON_COLOR.key)
+        val buttonTextColor = getString(DataStoreKeys.BUTTON_TEXT_COLOR.key)
+        if (buttonColor?.isNullOrEmpty() == false) {
+            SettingsModel.buttonColor = Color(buttonColor.toColorInt())
         }
 
-        if (buttonTextColor?.isNullOrZero() == false) {
-            SettingsModel.buttonTextColor = Color(buttonTextColor)
+        if (buttonTextColor?.isNullOrEmpty() == false) {
+            SettingsModel.buttonTextColor = Color(buttonTextColor.toColorInt())
         }
         SettingsModel.loadFromRemote = getBoolean(DataStoreKeys.LOAD_FROM_REMOTE.key) == true
 
