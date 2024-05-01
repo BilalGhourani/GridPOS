@@ -91,26 +91,6 @@ fun HomeView(
                         ) {
                             navController?.navigate(item.composable)
                         }
-                       /* Box( // Use a Box to achieve content alignment
-                            modifier = Modifier
-                                .width(120.dp)
-                                .height(80.dp)
-                                .padding(horizontal = 3.dp, vertical = 5.dp)
-                                .background(
-                                    color = SettingsModel.buttonColor,
-                                    shape = RoundedCornerShape(15.dp)
-                                )
-                                .clickable { navController?.navigate(item.composable) },
-                            contentAlignment = Alignment.Center // Center content within the Box
-                        ) {
-                            Text(
-                                text = item.title,
-                                color = SettingsModel.buttonTextColor,
-                                modifier = Modifier
-                                    .padding(16.dp),
-                                textAlign = TextAlign.Center
-                            )
-                        }*/
                     }
                 }
             }
