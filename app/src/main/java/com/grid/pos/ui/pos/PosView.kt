@@ -144,7 +144,6 @@ fun PosView(
                             .fillMaxWidth()
                             .height(70.dp),
                         onEdit = { isEditBottomSheetVisible = true },
-                        onAddItem = { isAddItemBottomSheetVisible = true },
                         onPay = { isPayBottomSheetVisible = true }
                     )
 

@@ -33,8 +33,6 @@ import com.grid.pos.utils.Utils
 fun InvoiceHeaderDetails(
     modifier: Modifier = Modifier,
     onEdit: () -> Unit = {},
-    onAddCustomer: () -> Unit = {},
-    onAddItem: () -> Unit = {},
     onPay: () -> Unit = {},
 ) {
     Row(
@@ -45,7 +43,7 @@ fun InvoiceHeaderDetails(
         UIButton(
             modifier = Modifier
                 .fillMaxHeight()
-                .weight(.2f)
+                .weight(1f)
                 .padding(3.dp, 5.dp, 3.dp, 5.dp),
             text = "Edit",
             textAlign = TextAlign.Center,
@@ -62,41 +60,7 @@ fun InvoiceHeaderDetails(
         UIButton(
             modifier = Modifier
                 .fillMaxHeight()
-                .weight(.3f)
-                .padding(3.dp, 5.dp, 3.dp, 5.dp),
-            text = "Add Customer",
-            textAlign = TextAlign.Center,
-            shape = RoundedCornerShape(
-                topStart = 15.dp,
-                topEnd = 15.dp,
-                bottomEnd = 15.dp,
-                bottomStart = 15.dp
-            )
-        ) {
-            onAddCustomer.invoke()
-        }
-
-        UIButton(
-            modifier = Modifier
-                .fillMaxHeight()
-                .weight(.3f)
-                .padding(3.dp, 5.dp, 3.dp, 5.dp),
-            text = "Add Item",
-            textAlign = TextAlign.Center,
-            shape = RoundedCornerShape(
-                topStart = 15.dp,
-                topEnd = 15.dp,
-                bottomEnd = 15.dp,
-                bottomStart = 15.dp
-            )
-        ) {
-            onAddItem.invoke()
-        }
-
-        UIButton(
-            modifier = Modifier
-                .fillMaxHeight()
-                .weight(.2f)
+                .weight(1f)
                 .padding(3.dp, 5.dp, 3.dp, 5.dp),
             text = "Pay",
             textAlign = TextAlign.Center,
