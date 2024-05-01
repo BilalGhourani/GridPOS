@@ -12,18 +12,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
-import com.grid.pos.data.Family.Family
-import com.grid.pos.data.Invoice.Invoice
 import com.grid.pos.model.InvoiceItemModel
-import com.grid.pos.utils.Utils
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun InvoiceBodyDetails(
     invoices: MutableList<InvoiceItemModel> = mutableListOf(),
     modifier: Modifier = Modifier,
-    isLandscape: Boolean = false
+    isLandscape: Boolean = false,
+    onDismiss: (Int) -> Unit = {}
 ) {
 
     LazyColumn(
@@ -39,7 +36,8 @@ fun InvoiceBodyDetails(
                     .background(color = Color.LightGray),
                 invoiceItemModel = InvoiceItemModel(),
                 isHeader = true,
-                isLandscape = isLandscape
+                isLandscape = isLandscape,
+                index = 0
             )
         }
         invoices.forEachIndexed { index, invoiceItemModel ->
@@ -50,7 +48,9 @@ fun InvoiceBodyDetails(
                         .height(50.dp)
                         .background(color = color),
                     invoiceItemModel = invoiceItemModel,
-                    isLandscape = isLandscape
+                    isLandscape = isLandscape,
+                    index = index,
+                    onDismiss = { onDismiss.invoke(it) }
                 )
             }
         }

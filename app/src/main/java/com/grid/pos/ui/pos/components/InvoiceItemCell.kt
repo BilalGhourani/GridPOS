@@ -10,8 +10,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -29,7 +35,9 @@ fun InvoiceItemCell(
     modifier: Modifier = Modifier,
     invoiceItemModel: InvoiceItemModel,
     isHeader: Boolean = false,
-    isLandscape: Boolean = false
+    isLandscape: Boolean = false,
+    index: Int,
+    onDismiss: (Int) -> Unit = {}
 ) {
     Row(
         modifier = modifier
@@ -42,7 +50,6 @@ fun InvoiceItemCell(
                 .weight(1f)
                 .wrapContentHeight(align = Alignment.CenterVertically)
         } else {
-
             Modifier
                 .fillMaxHeight()
                 .width(100.dp)
@@ -57,6 +64,17 @@ fun InvoiceItemCell(
             Modifier
                 .fillMaxHeight()
                 .width(1.dp)
+        }
+        val actionsModifier = if (isLandscape) {
+            Modifier
+                .fillMaxHeight()
+                .weight(0.15f)
+                .wrapContentHeight(align = Alignment.CenterVertically)
+        } else {
+            Modifier
+                .fillMaxHeight()
+                .width(70.dp)
+                .wrapContentHeight(align = Alignment.CenterVertically)
         }
         val textStyle = TextStyle(
             fontWeight = if (isHeader) FontWeight.Bold else FontWeight.Normal,
@@ -78,7 +96,7 @@ fun InvoiceItemCell(
             textAlign = TextAlign.Center,
             style = textStyle
         )
-        Divider(
+        VerticalDivider(
             color = Color.Black,
             modifier = dividerModifier
         )
@@ -88,7 +106,7 @@ fun InvoiceItemCell(
             textAlign = TextAlign.Center,
             style = textStyle
         )
-        Divider(
+        VerticalDivider(
             color = Color.Black,
             modifier = dividerModifier
         )
@@ -98,7 +116,7 @@ fun InvoiceItemCell(
             textAlign = TextAlign.Center,
             style = textStyle
         )
-        Divider(
+        VerticalDivider(
             color = Color.Black,
             modifier = dividerModifier
         )
@@ -108,7 +126,7 @@ fun InvoiceItemCell(
             textAlign = TextAlign.Center,
             style = textStyle
         )
-        Divider(
+        VerticalDivider(
             color = Color.Black,
             modifier = dividerModifier
         )
@@ -118,7 +136,7 @@ fun InvoiceItemCell(
             textAlign = TextAlign.Center,
             style = textStyle
         )
-        Divider(
+        VerticalDivider(
             color = Color.Black,
             modifier = dividerModifier
         )
@@ -128,7 +146,7 @@ fun InvoiceItemCell(
             textAlign = TextAlign.Center,
             style = textStyle
         )
-        Divider(
+        VerticalDivider(
             color = Color.Black,
             modifier = dividerModifier
         )
@@ -138,9 +156,9 @@ fun InvoiceItemCell(
             textAlign = TextAlign.Center,
             style = textStyle
         )
-        Divider(
-            color = Color.Black,
-            modifier = dividerModifier
+        VerticalDivider(
+            modifier = dividerModifier,
+            color = Color.Black
         )
         Text(
             text = if (isHeader) "Amount" else invoiceItemModel.getAmount().toString(),
@@ -148,18 +166,30 @@ fun InvoiceItemCell(
             textAlign = TextAlign.Center,
             style = textStyle
         )
-    }
-}
+        VerticalDivider(
+            modifier = dividerModifier,
+            color = Color.Black
+        )
+        if (isHeader) {
+            Text(
+                text = "Actions",
+                modifier = actionsModifier,
+                textAlign = TextAlign.Center,
+                style = textStyle
+            )
+        } else {
+            IconButton(
+                modifier = actionsModifier,
+                onClick = { onDismiss.invoke(index) }
+            )
+            {
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = "Delete",
+                    tint = Color.Red
+                )
+            }
+        }
 
-@Composable
-fun lineDivider(
-    thickness: Dp = 1.dp,
-    color: Color = Color.Black
-) {
-    Box(
-        modifier = Modifier
-            .fillMaxHeight()
-            .width(thickness)
-            .background(color)
-    )
+    }
 }

@@ -156,7 +156,12 @@ fun PosView(
                             .fillMaxWidth()
                             .height(posState.getBodyHeight(40))
                             .border(borderStroke),
-                        isLandscape = false/*isTablet || isLandscape*/
+                        isLandscape = false,/*isTablet || isLandscape*/
+                        onDismiss = {
+                            val invoices = posState.invoices
+                            invoices.removeAt(it)
+                            posState.invoices = invoices
+                        }
                     )
 
                     InvoiceFooterView(
@@ -166,8 +171,16 @@ fun PosView(
                         modifier = Modifier
                             .wrapContentWidth()
                             .height(250.dp),
-                        onItemSelected = {},
-                        onThirdPartySelected = {},
+                        onItemSelected = {
+                            val invoiceItemModel = InvoiceItemModel()
+                            invoiceItemModel.setItem(it)
+                            val invoices = posState.invoices
+                            invoices.add(invoiceItemModel)
+                            posState.invoices = invoices
+                        },
+                        onThirdPartySelected = {
+                            posState.invoiceHeader.invoiceHeadThirdPartyName = it.thirdPartyId
+                        },
                     )
                 }
             }
@@ -187,7 +200,7 @@ fun PosView(
             EditInvoiceHeaderView(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .fillMaxHeight(0.8f),
+                    .fillMaxHeight(0.9f),
                 onAddCustomer = {
                     isEditBottomSheetVisible = false
                     navController?.navigate("ManageThirdPartiesView")

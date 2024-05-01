@@ -36,12 +36,14 @@ fun InvoiceFooterView(
     onItemSelected: (Item) -> Unit = {},
     onThirdPartySelected: (ThirdParty) -> Unit = {},
 ) {
-    var taxState by remember { mutableStateOf("0.0 USD") }
-    var tax1State by remember { mutableStateOf("0.0 USD") }
-    var totalState by remember { mutableStateOf("0.0 USD") }
-    var totalCur2State by remember { mutableStateOf("0.0 USD") }
-    var tax2State by remember { mutableStateOf("0.0 USD") }
-    var totalTaxState by remember { mutableStateOf("0.0 USD") }
+    var curState by remember { mutableStateOf("USD") }
+    var cur2State by remember { mutableStateOf("L.L.") }
+    var taxState by remember { mutableStateOf("0.0") }
+    var tax1State by remember { mutableStateOf("0.0") }
+    var totalState by remember { mutableStateOf("0.0") }
+    var totalCur2State by remember { mutableStateOf("0.0") }
+    var tax2State by remember { mutableStateOf("0.0") }
+    var totalTaxState by remember { mutableStateOf("0.0") }
     var tableNoState by remember { mutableStateOf("1") }
     var clientState by remember { mutableStateOf("Cash") }
 
@@ -82,7 +84,7 @@ fun InvoiceFooterView(
                 Spacer(modifier = Modifier.width(5.dp))
                 Text(text = taxState)
                 Spacer(modifier = Modifier.width(5.dp))
-                Text(text = "USD")
+                Text(text = curState)
             }
 
             Row(
@@ -93,7 +95,7 @@ fun InvoiceFooterView(
                 Spacer(modifier = Modifier.width(5.dp))
                 Text(text = tax1State)
                 Spacer(modifier = Modifier.width(5.dp))
-                Text(text = "USD")
+                Text(text = curState)
             }
 
             Row(
@@ -104,7 +106,7 @@ fun InvoiceFooterView(
                 Spacer(modifier = Modifier.width(5.dp))
                 Text(text = totalState)
                 Spacer(modifier = Modifier.width(5.dp))
-                Text(text = "USD")
+                Text(text = curState)
             }
 
             Row(
@@ -115,7 +117,7 @@ fun InvoiceFooterView(
                 Spacer(modifier = Modifier.width(5.dp))
                 Text(text = totalCur2State)
                 Spacer(modifier = Modifier.width(5.dp))
-                Text(text = "USD")
+                Text(text = cur2State)
             }
 
             SearchableDropdownMenu(
@@ -142,7 +144,7 @@ fun InvoiceFooterView(
                 Spacer(modifier = Modifier.width(5.dp))
                 Text(text = tax2State)
                 Spacer(modifier = Modifier.width(5.dp))
-                Text(text = "USD")
+                Text(text = curState)
             }
 
             Row(
@@ -153,7 +155,7 @@ fun InvoiceFooterView(
                 Spacer(modifier = Modifier.width(5.dp))
                 Text(text = totalTaxState)
                 Spacer(modifier = Modifier.width(5.dp))
-                Text(text = "USD")
+                Text(text = curState)
             }
 
             Row(

@@ -18,6 +18,7 @@ import com.grid.pos.ui.family.ManageFamiliesView
 import com.grid.pos.ui.home.HomeView
 import com.grid.pos.ui.login.LoginView
 import com.grid.pos.ui.pos.PosView
+import com.grid.pos.ui.settings.SettingsView
 import com.grid.pos.ui.table.ManageTablesView
 import com.grid.pos.ui.theme.White
 import com.grid.pos.ui.thirdParty.ManageThirdPartiesView
@@ -39,6 +40,7 @@ fun AuthNavGraph(
 
         composable(route = "HomeView") { HomeView(navController) }
         composable(route = "LoginView") { LoginView(navController) }
+        composable(route = "SettingsView") { SettingsView(navController) }
         composable(route = "ManageCurrenciesView") { ManageCurrenciesView(navController) }
         composable(route = "ManageCompaniesView") { ManageCompaniesView(navController) }
         composable(route = "ManageUsersView") { ManageUsersView(navController) }
