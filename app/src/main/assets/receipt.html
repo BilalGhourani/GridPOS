@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Receipt</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            border: 1px solid #ccc;
+            padding: 20px;
+            border-radius: 5px;
+        }
+        .receipt-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .receipt-items {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        .receipt-items th, .receipt-items td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        .receipt-items th {
+            background-color: #f2f2f2;
+        }
+        .total {
+            margin-top: 20px;
+            text-align: right;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="receipt-header">
+        <h2>Receipt</h2>
+    </div>
+    <table class="receipt-items">
+        <thead>
+        <tr>
+            <th>Item</th>
+            <th>Quantity</th>
+            <th>Price</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>Item 1</td>
+            <td>2</td>
+            <td>$10.00</td>
+        </tr>
+        <tr>
+            <td>Item 2</td>
+            <td>1</td>
+            <td>$5.00</td>
+        </tr>
+        <!-- Add more items as needed -->
+        </tbody>
+    </table>
+    <div class="total">
+        <strong>Total: $15.00</strong>
+    </div>
+</div>
+</body>
+</html>

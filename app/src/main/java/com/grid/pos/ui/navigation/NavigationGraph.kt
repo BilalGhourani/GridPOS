@@ -5,11 +5,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.grid.pos.ActivityScopedViewModel
 import com.grid.pos.ui.Item.ManageItemsView
 import com.grid.pos.ui.common.UIWebView
 import com.grid.pos.ui.company.ManageCompaniesView
@@ -27,6 +29,7 @@ import com.grid.pos.ui.user.ManageUsersView
 @Composable
 fun AuthNavGraph(
     navController: NavHostController,
+    activityViewModel: ActivityScopedViewModel,
     startDestination: String,
     modifier: Modifier = Modifier
         .background(color = White)
@@ -38,7 +41,7 @@ fun AuthNavGraph(
         modifier = modifier.background(color = White)
     ) {
 
-        composable(route = "HomeView") { HomeView(navController) }
+        composable(route = "HomeView") { HomeView(navController, activityViewModel) }
         composable(route = "LoginView") { LoginView(navController) }
         composable(route = "SettingsView") { SettingsView(navController) }
         composable(route = "ManageCurrenciesView") { ManageCurrenciesView(navController) }
@@ -47,14 +50,8 @@ fun AuthNavGraph(
         composable(route = "ManageFamiliesView") { ManageFamiliesView(navController) }
         composable(route = "ManageThirdPartiesView") { ManageThirdPartiesView(navController) }
         composable(route = "ManageItemsView") { ManageItemsView(navController) }
-        composable(route = "PosView") { PosView(navController) }
+        composable(route = "PosView") { PosView(navController, activityViewModel) }
         composable(route = "ManageTablesView") { ManageTablesView(navController) }
-        composable(route = "UIWebView/{text}", arguments = listOf(
-            navArgument("text") { type = NavType.StringType }
-        )
-        ) { backStackEntry ->
-            val htmlContent = backStackEntry.arguments?.getString("text") ?: ""
-            UIWebView(navController, htmlContent = htmlContent)
-        }
+        composable(route = "UIWebView") { UIWebView(navController, activityViewModel) }
     }
 }

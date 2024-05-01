@@ -45,6 +45,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.grid.pos.ActivityScopedViewModel
 import com.grid.pos.model.InvoiceItemModel
 import com.grid.pos.ui.pos.components.AddInvoiceItemView
 import com.grid.pos.ui.pos.components.EditInvoiceHeaderView
@@ -64,6 +65,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun PosView(
     navController: NavController? = null,
+    activityViewModel: ActivityScopedViewModel = ActivityScopedViewModel(),
     modifier: Modifier = Modifier,
     viewModel: POSViewModel = hiltViewModel()
 ) {
@@ -83,7 +85,12 @@ fun PosView(
 
     LaunchedEffect(configuration) {
         snapshotFlow { configuration.orientation }
-            .collect { orientation = it }
+            .collect {
+                orientation = it
+                isEditBottomSheetVisible = false
+                isAddItemBottomSheetVisible = false
+                isPayBottomSheetVisible = false
+            }
     }
 
     LaunchedEffect(posState.warning) {
@@ -269,8 +276,12 @@ fun PosView(
             InvoiceCashView(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .fillMaxHeight(0.5f),
-                onSave = { navController?.navigate("UIWebView") },
+                    .fillMaxHeight(if (isLandscape) 0.9f else 0.5f),
+                onSave = {
+                   // viewModel.saveInvoiceHeader(posState.invoiceHeader, posState.invoices)
+                    activityViewModel.posState = posState
+                    navController?.navigate("UIWebView")
+                },
                 onFinish = {},
             )
         }

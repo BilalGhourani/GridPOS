@@ -30,6 +30,7 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.ViewModel
 import androidx.navigation.NavController
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.UIButton
@@ -41,6 +42,7 @@ import com.grid.pos.utils.Utils
 @Composable
 fun HomeView(
     navController: NavController? = null,
+    activityViewModel: ViewModel,
     modifier: Modifier = Modifier
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current

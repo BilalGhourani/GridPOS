@@ -14,6 +14,7 @@ import com.grid.pos.data.PosPrinter.PosPrinterRepository
 import com.grid.pos.data.ThirdParty.ThirdParty
 import com.grid.pos.data.ThirdParty.ThirdPartyRepository
 import com.grid.pos.interfaces.OnResult
+import com.grid.pos.model.InvoiceItemModel
 import com.grid.pos.utils.Utils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -105,7 +106,10 @@ class POSViewModel @Inject constructor(
         })
     }
 
-    fun saveInvoiceHeader(invoiceHeader: InvoiceHeader, invoiceItems: MutableList<Invoice>) {
+    fun saveInvoiceHeader(
+        invoiceHeader: InvoiceHeader,
+        invoiceItems: MutableList<InvoiceItemModel>
+    ) {
         if (invoiceItems.isEmpty()) {
             posState.value = posState.value.copy(
                 warning = "invoice doesn't contains any item!",
@@ -142,20 +146,23 @@ class POSViewModel @Inject constructor(
         }
     }
 
-    fun saveInvoiceItems(invoiceHeader: InvoiceHeader, invoiceItems: MutableList<Invoice>) {
-        val itemsToInsert = invoiceItems.filter { it.invoiceId.isNullOrEmpty() }
-        val itemsToUpdate = invoiceItems.filter { !it.invoiceId.isNullOrEmpty() }
+    fun saveInvoiceItems(
+        invoiceHeader: InvoiceHeader,
+        invoiceItems: MutableList<InvoiceItemModel>
+    ) {
+        val itemsToInsert = invoiceItems.filter { it.invoice.invoiceId.isNullOrEmpty() }
+        val itemsToUpdate = invoiceItems.filter { !it.invoice.invoiceId.isNullOrEmpty() }
 
         val size = itemsToInsert.size
-        itemsToInsert.forEachIndexed { index, invoice ->
-            invoice.invoiceHeaderId = invoiceHeader.invoiceHeadId
-            saveInvoiceItem(invoice, true, index == size - 1)
+        itemsToInsert.forEachIndexed { index, invoiceItem ->
+            invoiceItem.invoice.invoiceHeaderId = invoiceHeader.invoiceHeadId
+            saveInvoiceItem(invoiceItem.invoice, true, index == size - 1)
         }
 
         val size2 = itemsToUpdate.size
-        itemsToUpdate.forEachIndexed { index, invoice ->
-            invoice.invoiceHeaderId = invoiceHeader.invoiceHeadId
-            saveInvoiceItem(invoice, false, index == size2 - 1)
+        itemsToUpdate.forEachIndexed { index, invoiceItem ->
+            invoiceItem.invoice.invoiceHeaderId = invoiceHeader.invoiceHeadId
+            saveInvoiceItem(invoiceItem.invoice, false, index == size2 - 1)
         }
     }
 

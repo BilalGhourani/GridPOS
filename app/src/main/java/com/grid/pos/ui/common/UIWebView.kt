@@ -26,7 +26,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.lifecycle.ViewModel
 import androidx.navigation.NavController
+import com.grid.pos.ActivityScopedViewModel
 import com.grid.pos.ui.theme.Blue
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.utils.Utils
@@ -36,6 +38,7 @@ import com.grid.pos.utils.Utils
 @Composable
 fun UIWebView(
     navController: NavController? = null,
+    activityViewModel: ActivityScopedViewModel=ActivityScopedViewModel(),
     modifier: Modifier = Modifier,
     url: String = "file:///android_asset/receipt.html",
     htmlContent: String = ""
