@@ -53,7 +53,8 @@ fun SettingsView(
     var buttonTextColorState by remember { mutableStateOf(SettingsModel.buttonTextColor) }
     var isForText by remember { mutableStateOf(false) }
     var isColorPickerShown by remember { mutableStateOf(false) }
-    var checked by remember { mutableStateOf(SettingsModel.loadFromRemote) }
+    var loadFromRemote by remember { mutableStateOf(SettingsModel.loadFromRemote) }
+    var hideTaxInputs by remember { mutableStateOf(SettingsModel.hideTaxInputs) }
     val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     GridPOSTheme {
@@ -84,13 +85,12 @@ fun SettingsView(
                 modifier = modifier
                     .fillMaxSize()
                     .padding(it),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 UIButton(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(60.dp)
-                        .padding(horizontal = 10.dp),
+                        .padding(10.dp),
                     text = "Button Color",
                     buttonColor = buttonColorState,
                     textColor = buttonTextColorState
@@ -103,7 +103,7 @@ fun SettingsView(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(60.dp)
-                        .padding(horizontal = 10.dp),
+                        .padding(10.dp),
                     text = "Button Text Color",
                     buttonColor = buttonColorState,
                     textColor = buttonTextColorState
@@ -116,15 +116,33 @@ fun SettingsView(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(60.dp)
-                        .padding(horizontal = 10.dp),
-                    checked = checked,
+                        .padding(10.dp),
+                    checked = loadFromRemote,
                     text = "Load From Remote",
                 ) {
-                    checked = it
+                    loadFromRemote = it
                     SettingsModel.loadFromRemote = it
                     CoroutineScope(Dispatchers.IO).launch {
                         DataStoreManager.putBoolean(
                             DataStoreManager.DataStoreKeys.LOAD_FROM_REMOTE.key,
+                            it
+                        )
+                    }
+                }
+
+                UISwitch(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(60.dp)
+                        .padding(10.dp),
+                    checked = hideTaxInputs,
+                    text = "Hide Tax Inputs",
+                ) {
+                    hideTaxInputs = it
+                    SettingsModel.hideTaxInputs = it
+                    CoroutineScope(Dispatchers.IO).launch {
+                        DataStoreManager.putBoolean(
+                            DataStoreManager.DataStoreKeys.HIDE_TAX_INPUTS.key,
                             it
                         )
                     }

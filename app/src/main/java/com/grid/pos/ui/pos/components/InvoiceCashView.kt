@@ -9,7 +9,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -44,11 +46,16 @@ fun InvoiceCashView(
     val debitPaidFocusRequester = remember { FocusRequester() }
     val debitTotalFocusRequester = remember { FocusRequester() }
 
-    var cashPaid by remember { mutableStateOf("") }
+    var curr1State by remember { mutableStateOf("USD") }
+    var curr2State by remember { mutableStateOf("LIRA") }
+    var cashCurr1Paid by remember { mutableStateOf("") }
+    var cashCurr2Paid by remember { mutableStateOf("") }
     var cashTotal by remember { mutableStateOf("") }
-    var creditPaid by remember { mutableStateOf("") }
+    var creditCurr1Paid by remember { mutableStateOf("") }
+    var creditCurr2Paid by remember { mutableStateOf("") }
     var creditTotal by remember { mutableStateOf("") }
-    var debitPaid by remember { mutableStateOf("") }
+    var debitCurr1Paid by remember { mutableStateOf("") }
+    var debitCurr2Paid by remember { mutableStateOf("") }
     var debitTotal by remember { mutableStateOf("") }
 
     Column(
@@ -63,6 +70,41 @@ fun InvoiceCashView(
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Text(
+                "",
+                modifier = Modifier
+                    .weight(.2f)
+            )
+
+            Text(
+                curr1State,
+                modifier = Modifier
+                    .weight(.266f)
+                    .wrapContentHeight(align = Alignment.CenterVertically)
+                    .wrapContentWidth(align = Alignment.CenterHorizontally),
+                color = Color.Black
+            )
+
+            Text(
+                curr2State,
+                modifier = Modifier
+                    .weight(.266f)
+                    .wrapContentHeight(align = Alignment.CenterVertically)
+                    .wrapContentWidth(align = Alignment.CenterHorizontally),
+                color = Color.Black
+            )
+
+            Text(
+                "",
+                modifier = Modifier
+                    .weight(.266f)
+            )
+        }
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text(
                 "Cash",
                 modifier = Modifier
                     .weight(.2f)
@@ -71,14 +113,30 @@ fun InvoiceCashView(
                 color = Color.Black
             )
             OutlinedTextField(
-                value = cashPaid,
-                onValueChange = { cashPaid = it },
+                value = cashCurr1Paid,
+                onValueChange = { cashCurr1Paid = it },
                 placeholder = {
                     Text(text = "0.0")
                 },
                 modifier = Modifier
                     .padding(top = 8.dp)
-                    .weight(.4f),
+                    .weight(.266f),
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Number,
+                    imeAction = ImeAction.Next
+                ),
+                keyboardActions = KeyboardActions(onNext = { cashTotalFocusRequester.requestFocus() })
+            )
+
+            OutlinedTextField(
+                value = cashCurr2Paid,
+                onValueChange = { cashCurr2Paid = it },
+                placeholder = {
+                    Text(text = "0.0")
+                },
+                modifier = Modifier
+                    .padding(top = 8.dp)
+                    .weight(.266f),
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Number,
                     imeAction = ImeAction.Next
@@ -95,7 +153,7 @@ fun InvoiceCashView(
                     Text(text = "0.0")
                 },
                 modifier = Modifier
-                    .weight(.4f)
+                    .weight(.266f)
                     .focusRequester(cashTotalFocusRequester),
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Number,
@@ -118,13 +176,30 @@ fun InvoiceCashView(
                 color = Color.Black
             )
             OutlinedTextField(
-                value = creditPaid,
-                onValueChange = { creditPaid = it },
+                value = creditCurr1Paid,
+                onValueChange = { creditCurr1Paid = it },
                 placeholder = {
                     Text(text = "0.0")
                 },
                 modifier = Modifier
-                    .weight(.4f)
+                    .weight(.266f)
+                    .padding(top = 8.dp)
+                    .focusRequester(creditPaidFocusRequester),
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Number,
+                    imeAction = ImeAction.Next
+                ),
+                keyboardActions = KeyboardActions(onNext = { creditTotalFocusRequester.requestFocus() })
+            )
+
+            OutlinedTextField(
+                value = creditCurr2Paid,
+                onValueChange = { creditCurr2Paid = it },
+                placeholder = {
+                    Text(text = "0.0")
+                },
+                modifier = Modifier
+                    .weight(.266f)
                     .padding(top = 8.dp)
                     .focusRequester(creditPaidFocusRequester),
                 keyboardOptions = KeyboardOptions(
@@ -143,7 +218,7 @@ fun InvoiceCashView(
                     Text(text = "0.0")
                 },
                 modifier = Modifier
-                    .weight(.4f)
+                    .weight(.266f)
                     .focusRequester(creditTotalFocusRequester),
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Number,
@@ -166,13 +241,30 @@ fun InvoiceCashView(
                 color = Color.Black
             )
             OutlinedTextField(
-                value = debitPaid,
-                onValueChange = { debitPaid = it },
+                value = debitCurr1Paid,
+                onValueChange = { debitCurr1Paid = it },
                 placeholder = {
                     Text(text = "0.0")
                 },
                 modifier = Modifier
-                    .weight(.4f)
+                    .weight(.266f)
+                    .padding(top = 8.dp)
+                    .focusRequester(debitPaidFocusRequester),
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Number,
+                    imeAction = ImeAction.Next
+                ),
+                keyboardActions = KeyboardActions(onNext = { debitTotalFocusRequester.requestFocus() })
+            )
+
+            OutlinedTextField(
+                value = debitCurr2Paid,
+                onValueChange = { debitCurr2Paid = it },
+                placeholder = {
+                    Text(text = "0.0")
+                },
+                modifier = Modifier
+                    .weight(.266f)
                     .padding(top = 8.dp)
                     .focusRequester(debitPaidFocusRequester),
                 keyboardOptions = KeyboardOptions(
@@ -191,7 +283,7 @@ fun InvoiceCashView(
                     Text(text = "0.0")
                 },
                 modifier = Modifier
-                    .weight(.4f)
+                    .weight(.266f)
                     .focusRequester(debitTotalFocusRequester),
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Number,
@@ -204,7 +296,7 @@ fun InvoiceCashView(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(60.dp)
+                .height(80.dp)
                 .padding(0.dp, 15.dp, 0.dp, 0.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
@@ -212,7 +304,8 @@ fun InvoiceCashView(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxHeight(),
-                text = "Save & Print Order"
+                text = "Save & Print Order",
+                shape = RoundedCornerShape(15.dp)
             ) {
                 onSave.invoke()
             }
@@ -221,7 +314,8 @@ fun InvoiceCashView(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxHeight(),
-                text = "Finish & Print"
+                text = "Finish & Print",
+                shape = RoundedCornerShape(15.dp)
             ) {
                 onFinish.invoke()
             }

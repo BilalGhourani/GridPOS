@@ -11,8 +11,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.grid.pos.model.InvoiceItemModel
+import com.grid.pos.ui.theme.GridPOSTheme
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -24,14 +26,20 @@ fun InvoiceBodyDetails(
 ) {
 
     LazyColumn(
-        modifier = modifier
-            .fillMaxWidth()
-            .horizontalScroll(rememberScrollState()),
+        modifier = if (isLandscape) {
+            modifier
+                .fillMaxWidth()
+        } else {
+            modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState())
+        },
         contentPadding = PaddingValues(0.dp)
     ) {
         stickyHeader {
             InvoiceItemCell(
                 modifier = Modifier
+                    .fillMaxWidth()
                     .height(50.dp)
                     .background(color = Color.LightGray),
                 invoiceItemModel = InvoiceItemModel(),
@@ -45,6 +53,7 @@ fun InvoiceBodyDetails(
                 val color = if (index % 2 == 0) Color.White else Color.LightGray
                 InvoiceItemCell(
                     modifier = Modifier
+                        .fillMaxWidth()
                         .height(50.dp)
                         .background(color = color),
                     invoiceItemModel = invoiceItemModel,
@@ -54,5 +63,21 @@ fun InvoiceBodyDetails(
                 )
             }
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun InvoiceBodyDetailsCellPreview() {
+    GridPOSTheme {
+        InvoiceBodyDetails(
+            invoices = mutableListOf(
+                InvoiceItemModel(),
+                InvoiceItemModel(),
+                InvoiceItemModel(),
+                InvoiceItemModel(),
+                InvoiceItemModel()
+            ), isLandscape = true
+        )
     }
 }

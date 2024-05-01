@@ -7,6 +7,7 @@ import android.print.PrintAttributes.MediaSize
 import android.print.PrintManager
 import android.webkit.WebView
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import com.grid.pos.data.DataModel
 import com.grid.pos.data.Family.Family
 import com.grid.pos.data.Item.Item
@@ -127,5 +128,12 @@ object Utils {
 
     fun isTablet(configuration: Configuration): Boolean {
         return configuration.screenWidthDp > 840
+    }
+
+    fun getListHeight(listSize: Int = 0, cellHeight: Int, min: Int = 1, max: Int = 8): Dp {
+        var size = listSize
+        if (size < min) size = min
+        else if (size > max) size = max
+        return (size * cellHeight).dp + 50.dp
     }
 }

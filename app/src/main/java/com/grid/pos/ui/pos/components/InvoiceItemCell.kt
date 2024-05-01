@@ -1,19 +1,13 @@
 package com.grid.pos.ui.pos.components
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material3.Divider
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material.icons.filled.RemoveCircle
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -25,10 +19,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.grid.pos.model.InvoiceItemModel
+import com.grid.pos.model.SettingsModel
+import com.grid.pos.ui.theme.GridPOSTheme
 
 @Composable
 fun InvoiceItemCell(
@@ -41,13 +37,13 @@ fun InvoiceItemCell(
 ) {
     Row(
         modifier = modifier
-            .fillMaxWidth(),
+            .fillMaxSize(),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         val modifier = if (isLandscape) {
             Modifier
-                .fillMaxHeight()
                 .weight(1f)
+                .fillMaxHeight()
                 .wrapContentHeight(align = Alignment.CenterVertically)
         } else {
             Modifier
@@ -58,8 +54,8 @@ fun InvoiceItemCell(
 
         val dividerModifier = if (isLandscape) {
             Modifier
+                .weight(.1f)
                 .fillMaxHeight()
-                .weight(.01f)
         } else {
             Modifier
                 .fillMaxHeight()
@@ -67,8 +63,8 @@ fun InvoiceItemCell(
         }
         val actionsModifier = if (isLandscape) {
             Modifier
+                .weight(.7f)
                 .fillMaxHeight()
-                .weight(0.15f)
                 .wrapContentHeight(align = Alignment.CenterVertically)
         } else {
             Modifier
@@ -84,8 +80,8 @@ fun InvoiceItemCell(
             text = if (isHeader) "Item" else invoiceItemModel.getName(),
             modifier = if (isLandscape) {
                 Modifier
-                    .fillMaxHeight()
                     .weight(1.8f)
+                    .fillMaxHeight()
                     .wrapContentHeight(align = Alignment.CenterVertically)
             } else {
                 Modifier
@@ -126,36 +122,38 @@ fun InvoiceItemCell(
             textAlign = TextAlign.Center,
             style = textStyle
         )
-        VerticalDivider(
-            color = Color.Black,
-            modifier = dividerModifier
-        )
-        Text(
-            text = if (isHeader) "Tax" else invoiceItemModel.getTax().toString(),
-            modifier = modifier,
-            textAlign = TextAlign.Center,
-            style = textStyle
-        )
-        VerticalDivider(
-            color = Color.Black,
-            modifier = dividerModifier
-        )
-        Text(
-            text = if (isHeader) "Tax1" else invoiceItemModel.getTax1().toString(),
-            modifier = modifier,
-            textAlign = TextAlign.Center,
-            style = textStyle
-        )
-        VerticalDivider(
-            color = Color.Black,
-            modifier = dividerModifier
-        )
-        Text(
-            text = if (isHeader) "Tax2" else invoiceItemModel.getTax2().toString(),
-            modifier = modifier,
-            textAlign = TextAlign.Center,
-            style = textStyle
-        )
+        if (!SettingsModel.hideTaxInputs) {
+            VerticalDivider(
+                color = Color.Black,
+                modifier = dividerModifier
+            )
+            Text(
+                text = if (isHeader) "Tax" else invoiceItemModel.getTax().toString(),
+                modifier = modifier,
+                textAlign = TextAlign.Center,
+                style = textStyle
+            )
+            VerticalDivider(
+                color = Color.Black,
+                modifier = dividerModifier
+            )
+            Text(
+                text = if (isHeader) "Tax1" else invoiceItemModel.getTax1().toString(),
+                modifier = modifier,
+                textAlign = TextAlign.Center,
+                style = textStyle
+            )
+            VerticalDivider(
+                color = Color.Black,
+                modifier = dividerModifier
+            )
+            Text(
+                text = if (isHeader) "Tax2" else invoiceItemModel.getTax2().toString(),
+                modifier = modifier,
+                textAlign = TextAlign.Center,
+                style = textStyle
+            )
+        }
         VerticalDivider(
             modifier = dividerModifier,
             color = Color.Black
@@ -184,12 +182,20 @@ fun InvoiceItemCell(
             )
             {
                 Icon(
-                    imageVector = Icons.Default.Delete,
+                    imageVector = Icons.Default.RemoveCircle,
                     contentDescription = "Delete",
-                    tint = Color.Red
+                    tint = SettingsModel.buttonColor
                 )
             }
         }
 
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun InvoiceItemCellPreview() {
+    GridPOSTheme {
+        InvoiceItemCell(invoiceItemModel = InvoiceItemModel(), index = 0, isLandscape = true)
     }
 }

@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import com.grid.pos.data.Item.Item
 import com.grid.pos.data.ThirdParty.ThirdParty
 import com.grid.pos.model.InvoiceItemModel
+import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.SearchableDropdownMenu
 import com.grid.pos.ui.theme.GridPOSTheme
 
@@ -64,6 +65,13 @@ fun InvoiceFooterView(
         totalTaxState = String.format("%.2f", tax + tax1 + tax2)
         totalState = String.format("%.2f", total)
         totalCur2State = totalState
+    } else {
+        taxState = "0.0"
+        tax1State = "0.0"
+        tax2State = "0.0"
+        totalTaxState = "0.0"
+        totalState = "0.0"
+        totalCur2State = totalState
     }
     Row(
         modifier = modifier
@@ -76,28 +84,29 @@ fun InvoiceFooterView(
                 .wrapContentHeight()
                 .padding(5.dp)
         ) {
-            Row(
-                modifier = Modifier.wrapContentWidth(),
-                horizontalArrangement = Arrangement.Absolute.Left
-            ) {
-                Text(text = "Tax:")
-                Spacer(modifier = Modifier.width(5.dp))
-                Text(text = taxState)
-                Spacer(modifier = Modifier.width(5.dp))
-                Text(text = curState)
-            }
+            if (!SettingsModel.hideTaxInputs) {
+                Row(
+                    modifier = Modifier.wrapContentWidth(),
+                    horizontalArrangement = Arrangement.Absolute.Left
+                ) {
+                    Text(text = "Tax:")
+                    Spacer(modifier = Modifier.width(5.dp))
+                    Text(text = taxState)
+                    Spacer(modifier = Modifier.width(5.dp))
+                    Text(text = curState)
+                }
 
-            Row(
-                modifier = Modifier.wrapContentWidth(),
-                horizontalArrangement = Arrangement.Absolute.Left
-            ) {
-                Text(text = "Tax1:")
-                Spacer(modifier = Modifier.width(5.dp))
-                Text(text = tax1State)
-                Spacer(modifier = Modifier.width(5.dp))
-                Text(text = curState)
+                Row(
+                    modifier = Modifier.wrapContentWidth(),
+                    horizontalArrangement = Arrangement.Absolute.Left
+                ) {
+                    Text(text = "Tax1:")
+                    Spacer(modifier = Modifier.width(5.dp))
+                    Text(text = tax1State)
+                    Spacer(modifier = Modifier.width(5.dp))
+                    Text(text = curState)
+                }
             }
-
             Row(
                 modifier = Modifier.wrapContentWidth(),
                 horizontalArrangement = Arrangement.Absolute.Left
@@ -136,28 +145,29 @@ fun InvoiceFooterView(
                 .wrapContentHeight()
                 .padding(5.dp)
         ) {
-            Row(
-                modifier = Modifier.wrapContentWidth(),
-                horizontalArrangement = Arrangement.Absolute.Left
-            ) {
-                Text(text = "Tax2:")
-                Spacer(modifier = Modifier.width(5.dp))
-                Text(text = tax2State)
-                Spacer(modifier = Modifier.width(5.dp))
-                Text(text = curState)
-            }
+            if (!SettingsModel.hideTaxInputs) {
+                Row(
+                    modifier = Modifier.wrapContentWidth(),
+                    horizontalArrangement = Arrangement.Absolute.Left
+                ) {
+                    Text(text = "Tax2:")
+                    Spacer(modifier = Modifier.width(5.dp))
+                    Text(text = tax2State)
+                    Spacer(modifier = Modifier.width(5.dp))
+                    Text(text = curState)
+                }
 
-            Row(
-                modifier = Modifier.wrapContentWidth(),
-                horizontalArrangement = Arrangement.Absolute.Left
-            ) {
-                Text(text = "Total Tax:")
-                Spacer(modifier = Modifier.width(5.dp))
-                Text(text = totalTaxState)
-                Spacer(modifier = Modifier.width(5.dp))
-                Text(text = curState)
+                Row(
+                    modifier = Modifier.wrapContentWidth(),
+                    horizontalArrangement = Arrangement.Absolute.Left
+                ) {
+                    Text(text = "Total Tax:")
+                    Spacer(modifier = Modifier.width(5.dp))
+                    Text(text = totalTaxState)
+                    Spacer(modifier = Modifier.width(5.dp))
+                    Text(text = curState)
+                }
             }
-
             Row(
                 modifier = Modifier.wrapContentWidth(),
                 horizontalArrangement = Arrangement.Absolute.Left

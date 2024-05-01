@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.grid.pos.model.SettingsModel
+import com.grid.pos.ui.common.UIButton
 import com.grid.pos.ui.theme.Blue
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.utils.Utils
@@ -80,12 +81,25 @@ fun HomeView(
             ) {
                 Utils.homeSections.forEachIndexed { index, item ->
                     item {
-                        Box( // Use a Box to achieve content alignment
+                        UIButton(
+                            modifier = Modifier
+                                .width(120.dp)
+                                .height(80.dp)
+                                .padding(horizontal = 3.dp, vertical = 5.dp),
+                            text = item.title,
+                            shape = RoundedCornerShape(15.dp)
+                        ) {
+                            navController?.navigate(item.composable)
+                        }
+                       /* Box( // Use a Box to achieve content alignment
                             modifier = Modifier
                                 .width(120.dp)
                                 .height(80.dp)
                                 .padding(horizontal = 3.dp, vertical = 5.dp)
-                                .background(color = SettingsModel.buttonColor, shape = RoundedCornerShape(15.dp))
+                                .background(
+                                    color = SettingsModel.buttonColor,
+                                    shape = RoundedCornerShape(15.dp)
+                                )
                                 .clickable { navController?.navigate(item.composable) },
                             contentAlignment = Alignment.Center // Center content within the Box
                         ) {
@@ -96,7 +110,7 @@ fun HomeView(
                                     .padding(16.dp),
                                 textAlign = TextAlign.Center
                             )
-                        }
+                        }*/
                     }
                 }
             }

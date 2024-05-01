@@ -6,4 +6,5 @@ object SettingsModel {
     var buttonColor: Color = Color.Blue
     var buttonTextColor: Color = Color.White
     var loadFromRemote: Boolean = true
+    var hideTaxInputs: Boolean = false
 }

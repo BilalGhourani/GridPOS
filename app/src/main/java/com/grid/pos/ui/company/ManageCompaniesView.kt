@@ -47,6 +47,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.grid.pos.data.Company.Company
 import com.grid.pos.data.Currency.Currency
+import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.LoadingIndicator
 import com.grid.pos.ui.common.SearchableDropdownMenu
 import com.grid.pos.ui.common.UIButton
@@ -214,112 +215,113 @@ fun ManageCompaniesView(
                             manageCompaniesState.selectedCompany.companyAddress = address
                         }
 
-                        //tax reg no
-                        UITextField(
-                            modifier = Modifier.padding(10.dp),
-                            defaultValue = taxRegnoState,
-                            label = "Tax Reg. No",
-                            focusRequester = taxRegNoFocusRequester,
-                            placeHolder = "Enter Tax Reg. No",
-                            onAction = { taxFocusRequester.requestFocus() }
-                        ) { taxRegno ->
-                            taxRegnoState = taxRegno
-                            manageCompaniesState.selectedCompany.companyTaxRegno = taxRegno
-                        }
+                        if (!SettingsModel.hideTaxInputs) {
+                            //tax reg no
+                            UITextField(
+                                modifier = Modifier.padding(10.dp),
+                                defaultValue = taxRegnoState,
+                                label = "Tax Reg. No",
+                                focusRequester = taxRegNoFocusRequester,
+                                placeHolder = "Enter Tax Reg. No",
+                                onAction = { taxFocusRequester.requestFocus() }
+                            ) { taxRegno ->
+                                taxRegnoState = taxRegno
+                                manageCompaniesState.selectedCompany.companyTaxRegno = taxRegno
+                            }
 
-                        //tax
-                        UITextField(
-                            modifier = Modifier.padding(10.dp),
-                            defaultValue = taxState,
-                            label = "Tax",
-                            focusRequester = taxFocusRequester,
-                            keyboardType = KeyboardType.Decimal,
-                            placeHolder = "Enter Tax",
-                            onAction = { upWithTaxFocusRequester.requestFocus() }
-                        ) { tax ->
-                            taxState = tax
-                            manageCompaniesState.selectedCompany.companyTax = tax
-                        }
+                            //tax
+                            UITextField(
+                                modifier = Modifier.padding(10.dp),
+                                defaultValue = taxState,
+                                label = "Tax",
+                                focusRequester = taxFocusRequester,
+                                keyboardType = KeyboardType.Decimal,
+                                placeHolder = "Enter Tax",
+                                onAction = { upWithTaxFocusRequester.requestFocus() }
+                            ) { tax ->
+                                taxState = tax
+                                manageCompaniesState.selectedCompany.companyTax = tax
+                            }
 
-                        SearchableDropdownMenu(
-                            items = manageCompaniesState.currencies.toMutableList(),
-                            modifier = Modifier.padding(10.dp),
-                            label = "Select Tax Currency",
-                            selectedId = curCodeTaxState
-                        ) { currency ->
-                            currency as Currency
-                            curCodeTaxState = currency.currencyId
-                            manageCompaniesState.selectedCompany.companyCurCodeTax =
-                                currency.currencyId
-                        }
+                            SearchableDropdownMenu(
+                                items = manageCompaniesState.currencies.toMutableList(),
+                                modifier = Modifier.padding(10.dp),
+                                label = "Select Tax Currency",
+                                selectedId = curCodeTaxState
+                            ) { currency ->
+                                currency as Currency
+                                curCodeTaxState = currency.currencyId
+                                manageCompaniesState.selectedCompany.companyCurCodeTax =
+                                    currency.currencyId
+                            }
 
-                        //tax1 reg no
-                        UITextField(
-                            modifier = Modifier.padding(10.dp),
-                            defaultValue = curUpWithTaxState,
-                            label = "Up With Tax",
-                            placeHolder = "Enter Up With Tax",
-                            focusRequester = upWithTaxFocusRequester,
-                            onAction = { tax1RegNoFocusRequester.requestFocus() }
-                        ) { upWithTax ->
-                            curUpWithTaxState = upWithTax
-                            manageCompaniesState.selectedCompany.companyUpWithTax = upWithTax
-                        }
+                            //tax1 reg no
+                            UITextField(
+                                modifier = Modifier.padding(10.dp),
+                                defaultValue = curUpWithTaxState,
+                                label = "Up With Tax",
+                                placeHolder = "Enter Up With Tax",
+                                focusRequester = upWithTaxFocusRequester,
+                                onAction = { tax1RegNoFocusRequester.requestFocus() }
+                            ) { upWithTax ->
+                                curUpWithTaxState = upWithTax
+                                manageCompaniesState.selectedCompany.companyUpWithTax = upWithTax
+                            }
 
-                        //tax1 reg no
-                        UITextField(
-                            modifier = Modifier.padding(10.dp),
-                            defaultValue = tax1RegnoState,
-                            label = "Tax1 Reg. No",
-                            placeHolder = "Enter Tax1 Reg. No",
-                            focusRequester = tax1RegNoFocusRequester,
-                            onAction = { tax1FocusRequester.requestFocus() }
-                        ) { tax1Regno ->
-                            tax1RegnoState = tax1Regno
-                            manageCompaniesState.selectedCompany.companyTax1Regno = tax1Regno
-                        }
+                            //tax1 reg no
+                            UITextField(
+                                modifier = Modifier.padding(10.dp),
+                                defaultValue = tax1RegnoState,
+                                label = "Tax1 Reg. No",
+                                placeHolder = "Enter Tax1 Reg. No",
+                                focusRequester = tax1RegNoFocusRequester,
+                                onAction = { tax1FocusRequester.requestFocus() }
+                            ) { tax1Regno ->
+                                tax1RegnoState = tax1Regno
+                                manageCompaniesState.selectedCompany.companyTax1Regno = tax1Regno
+                            }
 
-                        //tax1
-                        UITextField(
-                            modifier = Modifier.padding(10.dp),
-                            defaultValue = tax1State,
-                            label = "Tax1",
-                            keyboardType = KeyboardType.Decimal,
-                            placeHolder = "Enter Tax1",
-                            focusRequester = tax1FocusRequester,
-                            onAction = { tax2RegNoFocusRequester.requestFocus() }
-                        ) { tax1 ->
-                            tax1State = tax1
-                            manageCompaniesState.selectedCompany.companyTax1 = tax1
-                        }
+                            //tax1
+                            UITextField(
+                                modifier = Modifier.padding(10.dp),
+                                defaultValue = tax1State,
+                                label = "Tax1",
+                                keyboardType = KeyboardType.Decimal,
+                                placeHolder = "Enter Tax1",
+                                focusRequester = tax1FocusRequester,
+                                onAction = { tax2RegNoFocusRequester.requestFocus() }
+                            ) { tax1 ->
+                                tax1State = tax1
+                                manageCompaniesState.selectedCompany.companyTax1 = tax1
+                            }
 
-                        //tax2 reg no
-                        UITextField(
-                            modifier = Modifier.padding(10.dp),
-                            defaultValue = tax2RegnoState,
-                            label = "Tax2 Reg. No",
-                            placeHolder = "Enter Tax2 Reg. No",
-                            focusRequester = tax2RegNoFocusRequester,
-                            onAction = { tax2FocusRequester.requestFocus() }
-                        ) { tax2Regno ->
-                            tax2RegnoState = tax2Regno
-                            manageCompaniesState.selectedCompany.companyTax2Regno = tax2Regno
-                        }
+                            //tax2 reg no
+                            UITextField(
+                                modifier = Modifier.padding(10.dp),
+                                defaultValue = tax2RegnoState,
+                                label = "Tax2 Reg. No",
+                                placeHolder = "Enter Tax2 Reg. No",
+                                focusRequester = tax2RegNoFocusRequester,
+                                onAction = { tax2FocusRequester.requestFocus() }
+                            ) { tax2Regno ->
+                                tax2RegnoState = tax2Regno
+                                manageCompaniesState.selectedCompany.companyTax2Regno = tax2Regno
+                            }
 
-                        //tax2
-                        UITextField(
-                            modifier = Modifier.padding(10.dp),
-                            defaultValue = tax2State,
-                            label = "Tax2",
-                            keyboardType = KeyboardType.Decimal,
-                            placeHolder = "Enter Tax2",
-                            focusRequester = tax2FocusRequester,
-                            onAction = { emailFocusRequester.requestFocus() }
-                        ) { tax2 ->
-                            tax2State = tax2
-                            manageCompaniesState.selectedCompany.companyTax2 = tax2
+                            //tax2
+                            UITextField(
+                                modifier = Modifier.padding(10.dp),
+                                defaultValue = tax2State,
+                                label = "Tax2",
+                                keyboardType = KeyboardType.Decimal,
+                                placeHolder = "Enter Tax2",
+                                focusRequester = tax2FocusRequester,
+                                onAction = { emailFocusRequester.requestFocus() }
+                            ) { tax2 ->
+                                tax2State = tax2
+                                manageCompaniesState.selectedCompany.companyTax2 = tax2
+                            }
                         }
-
                         //email
                         UITextField(
                             modifier = Modifier.padding(10.dp),

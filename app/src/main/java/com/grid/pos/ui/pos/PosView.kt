@@ -1,5 +1,6 @@
 package com.grid.pos.ui.pos
 
+import android.annotation.SuppressLint
 import android.content.res.Configuration
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
@@ -29,6 +30,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -57,6 +59,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
+@SuppressLint("MutableCollectionMutableState")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PosView(
@@ -65,6 +68,7 @@ fun PosView(
     viewModel: POSViewModel = hiltViewModel()
 ) {
     val posState: POSState by viewModel.posState.collectAsState(POSState())
+    var invoicesState = remember { mutableStateListOf<InvoiceItemModel>() }
     var isEditBottomSheetVisible by remember { mutableStateOf(false) }
     var isAddItemBottomSheetVisible by remember { mutableStateOf(false) }
     var isPayBottomSheetVisible by remember { mutableStateOf(false) }
@@ -151,21 +155,23 @@ fun PosView(
                     val borderStroke = BorderStroke(1.dp, Color.Black)
 
                     InvoiceBodyDetails(
-                        invoices = posState.invoices,
+                        invoices = invoicesState,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(posState.getBodyHeight(40))
+                            .height(Utils.getListHeight(invoicesState.size, 50))
                             .border(borderStroke),
-                        isLandscape = false,/*isTablet || isLandscape*/
-                        onDismiss = {
-                            val invoices = posState.invoices
-                            invoices.removeAt(it)
+                        isLandscape = isTablet || isLandscape,
+                        onDismiss = { index ->
+                            val invoices = invoicesState
+                            invoices.removeAt(index)
+                            invoicesState = invoices
                             posState.invoices = invoices
+                            isAddItemBottomSheetVisible = false
                         }
                     )
 
                     InvoiceFooterView(
-                        invoices = posState.invoices,
+                        invoices = invoicesState,
                         items = posState.items,
                         thirdParties = posState.thirdParties,
                         modifier = Modifier
@@ -174,9 +180,11 @@ fun PosView(
                         onItemSelected = {
                             val invoiceItemModel = InvoiceItemModel()
                             invoiceItemModel.setItem(it)
-                            val invoices = posState.invoices
+                            val invoices = invoicesState
                             invoices.add(invoiceItemModel)
+                            invoicesState = invoices
                             posState.invoices = invoices
+                            isAddItemBottomSheetVisible = false
                         },
                         onThirdPartySelected = {
                             posState.invoiceHeader.invoiceHeadThirdPartyName = it.thirdPartyId
@@ -228,17 +236,21 @@ fun PosView(
         ) {
             AddInvoiceItemView(
                 categories = posState.families,
-                items = posState.items.filter { it.itemPos }.toMutableList(),
+                items = posState.items,
                 modifier = Modifier
                     .fillMaxWidth()
                     .fillMaxHeight(0.8f)
-            ) {
-                val invoiceItemModel = InvoiceItemModel()
-                invoiceItemModel.setItem(it)
-                val invoices = posState.invoices
-                invoices.add(invoiceItemModel)
+            ) { itemList ->
+                val invoices = invoicesState
+                itemList.forEach { item ->
+                    val invoiceItemModel = InvoiceItemModel()
+                    invoiceItemModel.setItem(item)
+                    invoices.add(invoiceItemModel)
+                }
+                invoicesState = invoices
                 posState.invoices = invoices
-                //isAddItemBottomSheetVisible = false
+                isAddItemBottomSheetVisible = false
+                isEditBottomSheetVisible = false
             }
         }
     }
@@ -257,7 +269,7 @@ fun PosView(
             InvoiceCashView(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .fillMaxHeight(0.4f),
+                    .fillMaxHeight(0.5f),
                 onSave = { navController?.navigate("UIWebView") },
                 onFinish = {},
             )

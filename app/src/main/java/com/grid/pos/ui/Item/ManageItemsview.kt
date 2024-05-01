@@ -45,6 +45,7 @@ import androidx.navigation.NavController
 import com.grid.pos.data.Family.Family
 import com.grid.pos.data.Item.Item
 import com.grid.pos.data.PosPrinter.PosPrinter
+import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.LoadingIndicator
 import com.grid.pos.ui.common.SearchableDropdownMenu
 import com.grid.pos.ui.common.UIButton
@@ -193,49 +194,50 @@ fun ManageItemsView(
                             manageItemsState.selectedItem.itemUnitPrice = unitPrice
                         }
 
-                        //tax
-                        UITextField(
-                            modifier = Modifier.padding(10.dp),
-                            defaultValue = taxState,
-                            label = "Tax",
-                            maxLines = 3,
-                            focusRequester = taxFocusRequester,
-                            keyboardType = KeyboardType.Decimal,
-                            placeHolder = "Enter Tax",
-                            onAction = { tax1FocusRequester.requestFocus() }
-                        ) { tax ->
-                            taxState = tax
-                            manageItemsState.selectedItem.itemTax = tax
-                        }
+                        if (!SettingsModel.hideTaxInputs) {
+                            //tax
+                            UITextField(
+                                modifier = Modifier.padding(10.dp),
+                                defaultValue = taxState,
+                                label = "Tax",
+                                maxLines = 3,
+                                focusRequester = taxFocusRequester,
+                                keyboardType = KeyboardType.Decimal,
+                                placeHolder = "Enter Tax",
+                                onAction = { tax1FocusRequester.requestFocus() }
+                            ) { tax ->
+                                taxState = tax
+                                manageItemsState.selectedItem.itemTax = tax
+                            }
 
-                        //tax1
-                        UITextField(
-                            modifier = Modifier.padding(10.dp),
-                            defaultValue = tax1State,
-                            label = "Tax1",
-                            focusRequester = tax1FocusRequester,
-                            keyboardType = KeyboardType.Decimal,
-                            placeHolder = "Enter Tax1",
-                            onAction = { tax2FocusRequester.requestFocus() }
-                        ) { tax1 ->
-                            tax1State = tax1
-                            manageItemsState.selectedItem.itemTax1 = tax1
-                        }
+                            //tax1
+                            UITextField(
+                                modifier = Modifier.padding(10.dp),
+                                defaultValue = tax1State,
+                                label = "Tax1",
+                                focusRequester = tax1FocusRequester,
+                                keyboardType = KeyboardType.Decimal,
+                                placeHolder = "Enter Tax1",
+                                onAction = { tax2FocusRequester.requestFocus() }
+                            ) { tax1 ->
+                                tax1State = tax1
+                                manageItemsState.selectedItem.itemTax1 = tax1
+                            }
 
-                        //tax2
-                        UITextField(
-                            modifier = Modifier.padding(10.dp),
-                            defaultValue = tax2State,
-                            label = "Tax2",
-                            focusRequester = tax2FocusRequester,
-                            keyboardType = KeyboardType.Decimal,
-                            placeHolder = "Enter Tax2",
-                            onAction = { barcodeFocusRequester.requestFocus() }
-                        ) { tax2 ->
-                            tax2State = tax2
-                            manageItemsState.selectedItem.itemTax2 = tax2
+                            //tax2
+                            UITextField(
+                                modifier = Modifier.padding(10.dp),
+                                defaultValue = tax2State,
+                                label = "Tax2",
+                                focusRequester = tax2FocusRequester,
+                                keyboardType = KeyboardType.Decimal,
+                                placeHolder = "Enter Tax2",
+                                onAction = { barcodeFocusRequester.requestFocus() }
+                            ) { tax2 ->
+                                tax2State = tax2
+                                manageItemsState.selectedItem.itemTax2 = tax2
+                            }
                         }
-
                         //barcode
                         UITextField(
                             modifier = Modifier.padding(10.dp),

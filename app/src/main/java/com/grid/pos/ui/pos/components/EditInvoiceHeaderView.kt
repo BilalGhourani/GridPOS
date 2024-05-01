@@ -150,121 +150,91 @@ fun EditInvoiceHeaderView(
             color = Color.Black
         )
         Row(
-            verticalAlignment = Alignment.Top,
-            modifier = Modifier
-                .fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(15.dp)
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Column(
+            Text(
+                "R. disc",
                 modifier = Modifier
-                    .weight(.7f),
-                verticalArrangement = Arrangement.spacedBy(2.dp)
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Text(
-                        "R. disc",
-                        modifier = Modifier
-                            .width(60.dp)
-                            .height(60.dp)
-                            .wrapContentHeight(align = Alignment.CenterVertically),
-                        color = Color.Black
-                    )
-                    OutlinedTextField(
-                        value = rDiscount1,
-                        onValueChange = { rDiscount1 = it },
-                        placeholder = {
-                            Text(text = "0.0")
-                        },
-                        modifier = Modifier
-                            .weight(1f)
-                            .focusRequester(rDiscount1FocusRequester),
-                        keyboardOptions = KeyboardOptions(
-                            keyboardType = KeyboardType.Number,
-                            imeAction = ImeAction.Next
-                        ),
-                        keyboardActions = KeyboardActions(onNext = { rDiscount2FocusRequester.requestFocus() })
-                    )
-                    OutlinedTextField(
-                        value = rDiscount2,
-                        onValueChange = { rDiscount2 = it },
-                        placeholder = {
-                            Text(text = "0.0")
-                        },
-                        modifier = Modifier
-                            .weight(1f)
-                            .focusRequester(rDiscount2FocusRequester),
-                        keyboardOptions = KeyboardOptions(
-                            keyboardType = KeyboardType.Number,
-                            imeAction = ImeAction.Next
-                        ),
-                        keyboardActions = KeyboardActions(onNext = { discount1FocusRequester.requestFocus() })
-                    )
-                }
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Text(
-                        "Disc",
-                        modifier = Modifier
-                            .width(60.dp)
-                            .height(60.dp)
-                            .wrapContentHeight(align = Alignment.CenterVertically),
-                        color = Color.Black
-                    )
-                    OutlinedTextField(
-                        value = discount1,
-                        onValueChange = { discount1 = it },
-                        placeholder = {
-                            Text(text = "0.0")
-                        },
-                        modifier = Modifier
-                            .weight(1f)
-                            .focusRequester(discount1FocusRequester),
-                        keyboardOptions = KeyboardOptions(
-                            keyboardType = KeyboardType.Number,
-                            imeAction = ImeAction.Next
-                        ),
-                        keyboardActions = KeyboardActions(onNext = { discount2FocusRequester.requestFocus() })
-                    )
-                    OutlinedTextField(
-                        value = discount2,
-                        onValueChange = { discount2 = it },
-                        placeholder = {
-                            Text(text = "0.0")
-                        },
-                        modifier = Modifier
-                            .weight(1f)
-                            .focusRequester(discount2FocusRequester),
-                        keyboardOptions = KeyboardOptions(
-                            keyboardType = KeyboardType.Number,
-                            imeAction = ImeAction.Next
-                        ),
-                        keyboardActions = KeyboardActions(onNext = { clientExtraNameFocusRequester.requestFocus() })
-                    )
-                }
-            }
-            TextButton(
+                    .width(60.dp)
+                    .height(60.dp)
+                    .wrapContentHeight(align = Alignment.CenterVertically),
+                color = Color.Black
+            )
+            OutlinedTextField(
+                value = rDiscount1,
+                onValueChange = { rDiscount1 = it },
+                placeholder = {
+                    Text(text = "0.0")
+                },
                 modifier = Modifier
-                    .weight(.2f)
-                    .height(110.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Blue),
-                shape = RoundedCornerShape(
-                    topStart = 15.dp,
-                    topEnd = 15.dp,
-                    bottomEnd = 15.dp,
-                    bottomStart = 15.dp
+                    .weight(1f)
+                    .focusRequester(rDiscount1FocusRequester),
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Number,
+                    imeAction = ImeAction.Next
                 ),
-                onClick = {
+                keyboardActions = KeyboardActions(onNext = { rDiscount2FocusRequester.requestFocus() })
+            )
+            OutlinedTextField(
+                value = rDiscount2,
+                onValueChange = { rDiscount2 = it },
+                placeholder = {
+                    Text(text = "0.0")
+                },
+                modifier = Modifier
+                    .weight(1f)
+                    .focusRequester(rDiscount2FocusRequester),
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Number,
+                    imeAction = ImeAction.Next
+                ),
+                keyboardActions = KeyboardActions(onNext = { discount1FocusRequester.requestFocus() })
+            )
+        }
 
-                }
-            ) {
-                Text("Void")
-            }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text(
+                "Disc",
+                modifier = Modifier
+                    .width(60.dp)
+                    .height(60.dp)
+                    .wrapContentHeight(align = Alignment.CenterVertically),
+                color = Color.Black
+            )
+            OutlinedTextField(
+                value = discount1,
+                onValueChange = { discount1 = it },
+                placeholder = {
+                    Text(text = "0.0")
+                },
+                modifier = Modifier
+                    .weight(1f)
+                    .focusRequester(discount1FocusRequester),
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Number,
+                    imeAction = ImeAction.Next
+                ),
+                keyboardActions = KeyboardActions(onNext = { discount2FocusRequester.requestFocus() })
+            )
+            OutlinedTextField(
+                value = discount2,
+                onValueChange = { discount2 = it },
+                placeholder = {
+                    Text(text = "0.0")
+                },
+                modifier = Modifier
+                    .weight(1f)
+                    .focusRequester(discount2FocusRequester),
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Number,
+                    imeAction = ImeAction.Next
+                ),
+                keyboardActions = KeyboardActions(onNext = { clientExtraNameFocusRequester.requestFocus() })
+            )
         }
 
 
@@ -314,7 +284,8 @@ fun EditInvoiceHeaderView(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxHeight(),
-                text = "Add Customer"
+                text = "Add Customer",
+                shape = RoundedCornerShape(15.dp)
             ) {
                 onAddCustomer.invoke()
             }
@@ -324,6 +295,7 @@ fun EditInvoiceHeaderView(
                     .weight(1f)
                     .fillMaxHeight(),
                 text = "Add Item",
+                shape = RoundedCornerShape(15.dp)
             ) {
                 onAddItem.invoke()
             }
@@ -340,7 +312,8 @@ fun EditInvoiceHeaderView(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxHeight(),
-                text = "Clear"
+                text = "Clear",
+                shape = RoundedCornerShape(15.dp)
             ) {
                 price = ""
                 qty = 1
@@ -357,7 +330,8 @@ fun EditInvoiceHeaderView(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxHeight(),
-                text = "Close"
+                text = "Close",
+                shape = RoundedCornerShape(15.dp)
             ) {
                 onClose.invoke()
             }

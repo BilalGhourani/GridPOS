@@ -125,7 +125,7 @@ object DataStoreManager {
             SettingsModel.buttonTextColor = Color(buttonTextColor.toColorInt())
         }
         SettingsModel.loadFromRemote = getBoolean(DataStoreKeys.LOAD_FROM_REMOTE.key) == true
-
+        SettingsModel.hideTaxInputs = getBoolean(DataStoreKeys.HIDE_TAX_INPUTS.key) == true
     }
 
 
@@ -133,5 +133,6 @@ object DataStoreManager {
         BUTTON_COLOR("BUTTON_COLOR"),
         BUTTON_TEXT_COLOR("BUTTON_TEXT_COLOR"),
         LOAD_FROM_REMOTE("LOAD_FROM_REMOTE"),
+        HIDE_TAX_INPUTS("HIDE_TAX_INPUTS"),
     }
 }

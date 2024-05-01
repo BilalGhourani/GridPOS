@@ -26,7 +26,7 @@ import com.grid.pos.ui.theme.White
 fun UIButton(
     modifier: Modifier = Modifier,
     text: String = "Submit",
-    shape: Shape = ButtonDefaults.elevatedShape,
+    shape: Shape = RoundedCornerShape(15.dp),
     buttonColor: Color = SettingsModel.buttonColor,
     textColor: Color = SettingsModel.buttonTextColor,
     textAlign: TextAlign = TextAlign.Center,

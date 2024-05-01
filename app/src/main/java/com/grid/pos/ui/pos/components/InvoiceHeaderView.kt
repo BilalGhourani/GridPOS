@@ -49,12 +49,7 @@ fun InvoiceHeaderDetails(
                 .padding(3.dp, 5.dp, 3.dp, 5.dp),
             text = "Edit",
             textAlign = TextAlign.Center,
-            shape = RoundedCornerShape(
-                topStart = 15.dp,
-                topEnd = 15.dp,
-                bottomEnd = 15.dp,
-                bottomStart = 15.dp
-            )
+            shape = RoundedCornerShape(15.dp)
         ) {
             onEdit.invoke()
         }
@@ -66,12 +61,7 @@ fun InvoiceHeaderDetails(
                 .padding(3.dp, 5.dp, 3.dp, 5.dp),
             text = "Pay",
             textAlign = TextAlign.Center,
-            shape = RoundedCornerShape(
-                topStart = 15.dp,
-                topEnd = 15.dp,
-                bottomEnd = 15.dp,
-                bottomStart = 15.dp
-            )
+            shape = RoundedCornerShape(15.dp)
         ) {
             onPay.invoke()
         }
