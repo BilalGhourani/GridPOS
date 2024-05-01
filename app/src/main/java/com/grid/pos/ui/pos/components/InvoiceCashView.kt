@@ -30,7 +30,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import com.grid.pos.ui.theme.Blue
+import com.grid.pos.ui.common.UIButton
 
 @Composable
 fun InvoiceCashView(
@@ -208,28 +208,22 @@ fun InvoiceCashView(
                 .padding(0.dp, 15.dp, 0.dp, 0.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            ElevatedButton(
+            UIButton(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxHeight(),
-                colors = ButtonDefaults.buttonColors(containerColor = Blue),
-                onClick = {
-                    onSave.invoke()
-                }
+                text = "Save & Print Order"
             ) {
-                Text("Save & Print Order")
+                onSave.invoke()
             }
 
-            ElevatedButton(
+            UIButton(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxHeight(),
-                colors = ButtonDefaults.buttonColors(containerColor = Blue),
-                onClick = {
-                    onFinish.invoke()
-                }
+                text = "Finish & Print"
             ) {
-                Text("Finish & Print")
+                onFinish.invoke()
             }
         }
     }

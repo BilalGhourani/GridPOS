@@ -25,6 +25,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.grid.pos.ui.common.SearchableDropdownMenu
+import com.grid.pos.ui.common.UIButton
 import com.grid.pos.ui.theme.Blue
 import com.grid.pos.utils.Utils
 
@@ -41,72 +42,72 @@ fun InvoiceHeaderDetails(
             .fillMaxWidth(),
         horizontalArrangement = Arrangement.Absolute.Right
     ) {
-        ElevatedButton(
+        UIButton(
             modifier = Modifier
                 .fillMaxHeight()
                 .weight(.2f)
                 .padding(3.dp, 5.dp, 3.dp, 5.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Blue),
+            text = "Edit",
+            textAlign = TextAlign.Center,
             shape = RoundedCornerShape(
                 topStart = 15.dp,
                 topEnd = 15.dp,
                 bottomEnd = 15.dp,
                 bottomStart = 15.dp
-            ),
-            onClick = { onEdit.invoke() }
+            )
         ) {
-            Text("Edit", textAlign = TextAlign.Center)
+            onEdit.invoke()
         }
 
-        ElevatedButton(
+        UIButton(
             modifier = Modifier
                 .fillMaxHeight()
                 .weight(.3f)
                 .padding(3.dp, 5.dp, 3.dp, 5.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Blue),
+            text = "Add Customer",
+            textAlign = TextAlign.Center,
             shape = RoundedCornerShape(
                 topStart = 15.dp,
                 topEnd = 15.dp,
                 bottomEnd = 15.dp,
                 bottomStart = 15.dp
-            ),
-            onClick = { onAddCustomer.invoke() }
+            )
         ) {
-            Text("Add Customer", textAlign = TextAlign.Center)
+            onAddCustomer.invoke()
         }
 
-        ElevatedButton(
+        UIButton(
             modifier = Modifier
                 .fillMaxHeight()
                 .weight(.3f)
                 .padding(3.dp, 5.dp, 3.dp, 5.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Blue),
+            text = "Add Item",
+            textAlign = TextAlign.Center,
             shape = RoundedCornerShape(
                 topStart = 15.dp,
                 topEnd = 15.dp,
                 bottomEnd = 15.dp,
                 bottomStart = 15.dp
-            ),
-            onClick = { onAddItem.invoke() }
+            )
         ) {
-            Text("Add Item", textAlign = TextAlign.Center)
+            onAddItem.invoke()
         }
 
-        ElevatedButton(
+        UIButton(
             modifier = Modifier
                 .fillMaxHeight()
                 .weight(.2f)
                 .padding(3.dp, 5.dp, 3.dp, 5.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Blue),
+            text = "Pay",
+            textAlign = TextAlign.Center,
             shape = RoundedCornerShape(
                 topStart = 15.dp,
                 topEnd = 15.dp,
                 bottomEnd = 15.dp,
                 bottomStart = 15.dp
-            ),
-            onClick = { onPay.invoke() }
+            )
         ) {
-            Text("Pay", textAlign = TextAlign.Center)
+            onPay.invoke()
         }
     }
 }

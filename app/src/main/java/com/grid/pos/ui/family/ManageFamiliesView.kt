@@ -39,8 +39,8 @@ import com.grid.pos.data.Company.Company
 import com.grid.pos.data.Family.Family
 import com.grid.pos.ui.common.LoadingIndicator
 import com.grid.pos.ui.common.SearchableDropdownMenu
+import com.grid.pos.ui.common.UIButton
 import com.grid.pos.ui.common.UITextField
-import com.grid.pos.ui.theme.Blue
 import com.grid.pos.ui.theme.GridPOSTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -137,36 +137,32 @@ fun ManageFamiliesView(
                                 .padding(10.dp),
                             verticalAlignment = Alignment.Bottom
                         ) {
-                            ElevatedButton(
+                            UIButton(
                                 modifier = Modifier
                                     .weight(.33f)
                                     .padding(3.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = Blue),
-                                onClick = { viewModel.saveFamily() }
+                                text = "Save"
                             ) {
-                                Text("Save")
+                                viewModel.saveFamily()
                             }
 
-                            ElevatedButton(
+                            UIButton(
                                 modifier = Modifier
                                     .weight(.33f)
                                     .padding(3.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = Blue),
-                                onClick = { viewModel.deleteSelectedFamily() }
+                                text = "Delete"
                             ) {
-                                Text("Delete")
+                                viewModel.deleteSelectedFamily()
                             }
 
-                            ElevatedButton(
+                            UIButton(
                                 modifier = Modifier
                                     .weight(.33f)
                                     .padding(3.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = Blue),
-                                onClick = { navController?.navigateUp() }
+                                text = "Close"
                             ) {
-                                Text("Close")
+                                navController?.navigateUp()
                             }
-
                         }
 
                     }

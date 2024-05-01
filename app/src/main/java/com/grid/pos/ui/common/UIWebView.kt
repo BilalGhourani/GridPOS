@@ -87,16 +87,13 @@ fun UIWebView(
                 ) {
                 }
 
-                ElevatedButton(
+                UIButton(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(10.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Blue),
-                    onClick = {
-                        Utils.printWebPage(webView, context)
-                    }
+                    text = "Print"
                 ) {
-                    Text("Print")
+                    Utils.printWebPage(webView, context)
                 }
             }
         }

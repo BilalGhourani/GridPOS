@@ -49,8 +49,8 @@ import com.grid.pos.data.Item.Item
 import com.grid.pos.data.PosPrinter.PosPrinter
 import com.grid.pos.ui.common.LoadingIndicator
 import com.grid.pos.ui.common.SearchableDropdownMenu
+import com.grid.pos.ui.common.UIButton
 import com.grid.pos.ui.common.UITextField
-import com.grid.pos.ui.theme.Blue
 import com.grid.pos.ui.theme.GridPOSTheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -331,38 +331,33 @@ fun ManageItemsView(
                                 .padding(10.dp),
                             verticalAlignment = Alignment.Bottom
                         ) {
-                            ElevatedButton(
+                            UIButton(
                                 modifier = Modifier
                                     .weight(.33f)
                                     .padding(3.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = Blue),
-                                onClick = { viewModel.saveItem(manageItemsState.selectedItem) }
+                                text ="Save"
                             ) {
-                                Text("Save")
+                                viewModel.saveItem(manageItemsState.selectedItem)
                             }
 
-                            ElevatedButton(
+                            UIButton(
                                 modifier = Modifier
                                     .weight(.33f)
                                     .padding(3.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = Blue),
-                                onClick = { viewModel.deleteSelectedItem(manageItemsState.selectedItem) }
+                                text = "Delete"
                             ) {
-                                Text("Delete")
+                                viewModel.deleteSelectedItem(manageItemsState.selectedItem)
                             }
 
-                            ElevatedButton(
+                            UIButton(
                                 modifier = Modifier
                                     .weight(.33f)
                                     .padding(3.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = Blue),
-                                onClick = { navController?.navigateUp() }
+                                text = "Close"
                             ) {
-                                Text("Close")
+                                navController?.navigateUp()
                             }
-
                         }
-
                     }
                 }
             }

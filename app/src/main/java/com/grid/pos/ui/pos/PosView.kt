@@ -188,7 +188,17 @@ fun PosView(
             EditInvoiceHeaderView(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .fillMaxHeight(0.8f)
+                    .fillMaxHeight(0.8f),
+                onAddCustomer = {
+                    isEditBottomSheetVisible = false
+                    navController?.navigate("ManageThirdPartiesView")
+                },
+                onAddItem = {
+                    isAddItemBottomSheetVisible = true
+                },
+                onClose = {
+                    isEditBottomSheetVisible = false
+                }
             )
         }
     }

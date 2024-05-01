@@ -44,8 +44,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.grid.pos.R
 import com.grid.pos.ui.common.LoadingIndicator
+import com.grid.pos.ui.common.UIButton
 import com.grid.pos.ui.common.UITextField
-import com.grid.pos.ui.theme.Blue
 import com.grid.pos.ui.theme.GridPOSTheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -157,19 +157,15 @@ fun LoginView(
                         ) {
                             passwordState = it
                         }
-
-                        ElevatedButton(
+                        UIButton(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(80.dp)
                                 .padding(10.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = Blue),
-                            onClick = {
-                                keyboardController?.hide()
-                                viewModel.login(usernameState, passwordState)
-                            }
+                            text = "Log In"
                         ) {
-                            Text("Log In")
+                            keyboardController?.hide()
+                            viewModel.login(usernameState, passwordState)
                         }
                     }
                 }

@@ -48,8 +48,8 @@ import androidx.navigation.NavController
 import com.grid.pos.data.Currency.Currency
 import com.grid.pos.ui.common.LoadingIndicator
 import com.grid.pos.ui.common.SearchableDropdownMenu
+import com.grid.pos.ui.common.UIButton
 import com.grid.pos.ui.common.UITextField
-import com.grid.pos.ui.theme.Blue
 import com.grid.pos.ui.theme.GridPOSTheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -240,38 +240,33 @@ fun ManageCurrenciesView(
                                 .padding(10.dp),
                             verticalAlignment = Alignment.Bottom
                         ) {
-                            ElevatedButton(
+                            UIButton(
                                 modifier = Modifier
                                     .weight(.33f)
                                     .padding(3.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = Blue),
-                                onClick = { viewModel.saveCurrency(manageCurrenciesState.selectedCurrency) }
+                                text = "Save"
                             ) {
-                                Text("Save")
+                                viewModel.saveCurrency(manageCurrenciesState.selectedCurrency)
                             }
 
-                            ElevatedButton(
+                            UIButton(
                                 modifier = Modifier
                                     .weight(.33f)
                                     .padding(3.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = Blue),
-                                onClick = { viewModel.deleteSelectedCurrency(manageCurrenciesState.selectedCurrency) }
+                                text = "Delete"
                             ) {
-                                Text("Delete")
+                                viewModel.deleteSelectedCurrency(manageCurrenciesState.selectedCurrency)
                             }
 
-                            ElevatedButton(
+                            UIButton(
                                 modifier = Modifier
                                     .weight(.33f)
                                     .padding(3.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = Blue),
-                                onClick = { navController?.navigateUp() }
+                                text = "Close"
                             ) {
-                                Text("Close")
+                                navController?.navigateUp()
                             }
-
                         }
-
                     }
                 }
             }

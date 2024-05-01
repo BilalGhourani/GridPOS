@@ -49,6 +49,7 @@ import com.grid.pos.data.Company.Company
 import com.grid.pos.data.User.User
 import com.grid.pos.ui.common.LoadingIndicator
 import com.grid.pos.ui.common.SearchableDropdownMenu
+import com.grid.pos.ui.common.UIButton
 import com.grid.pos.ui.common.UITextField
 import com.grid.pos.ui.common.UiVerticalCheckBox
 import com.grid.pos.ui.theme.Blue
@@ -234,36 +235,32 @@ fun ManageUsersView(
                                 .padding(10.dp),
                             verticalAlignment = Alignment.Bottom
                         ) {
-                            ElevatedButton(
+                            UIButton(
                                 modifier = Modifier
                                     .weight(.33f)
                                     .padding(3.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = Blue),
-                                onClick = { viewModel.saveUser(manageUsersState.selectedUser) }
+                                text = "Save"
                             ) {
-                                Text("Save")
+                                viewModel.saveUser(manageUsersState.selectedUser)
                             }
 
-                            ElevatedButton(
+                            UIButton(
                                 modifier = Modifier
                                     .weight(.33f)
                                     .padding(3.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = Blue),
-                                onClick = { viewModel.deleteSelectedUser(manageUsersState.selectedUser) }
+                                text = "Delete"
                             ) {
-                                Text("Delete")
+                                viewModel.deleteSelectedUser(manageUsersState.selectedUser)
                             }
 
-                            ElevatedButton(
+                            UIButton(
                                 modifier = Modifier
                                     .weight(.33f)
                                     .padding(3.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = Blue),
-                                onClick = { navController?.navigateUp() }
+                                text = "Close"
                             ) {
-                                Text("Close")
+                                navController?.navigateUp()
                             }
-
                         }
 
                     }

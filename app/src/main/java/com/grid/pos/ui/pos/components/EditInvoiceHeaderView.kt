@@ -47,13 +47,17 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.grid.pos.ui.common.UIButton
 import com.grid.pos.ui.common.UITextField
 import com.grid.pos.ui.theme.Blue
 import com.grid.pos.ui.theme.GridPOSTheme
 
 @Composable
 fun EditInvoiceHeaderView(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onAddCustomer: () -> Unit = {},
+    onAddItem: () -> Unit = {},
+    onClose: () -> Unit = {},
 ) {
     val rDiscount1FocusRequester = remember { FocusRequester() }
     val rDiscount2FocusRequester = remember { FocusRequester() }
@@ -306,30 +310,59 @@ fun EditInvoiceHeaderView(
                 .fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            ElevatedButton(
+            UIButton(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxHeight(),
-                colors = ButtonDefaults.buttonColors(containerColor = Blue),
-                onClick = {
-
-                }
+                text = "Add Customer"
             ) {
-                Text("Clear")
+                onAddCustomer.invoke()
             }
 
-            ElevatedButton(
+            UIButton(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxHeight(),
-                colors = ButtonDefaults.buttonColors(containerColor = Blue),
-                onClick = {
-
-                }
+                text = "Add Item",
             ) {
-                Text("Close")
+                onAddItem.invoke()
             }
         }
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(60.dp)
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            UIButton(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight(),
+                text = "Clear"
+            ) {
+                price = ""
+                qty = 1
+                rDiscount1 = ""
+                rDiscount2 = ""
+                discount1 = ""
+                discount2 = ""
+                clientExtraName = ""
+                itemNote = ""
+                invoiceNote = ""
+            }
+
+            UIButton(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight(),
+                text = "Close"
+            ) {
+                onClose.invoke()
+            }
+        }
+
     }
 }
 
