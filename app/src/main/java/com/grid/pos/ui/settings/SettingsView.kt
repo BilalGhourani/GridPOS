@@ -63,7 +63,7 @@ fun SettingsView(
                 Surface(shadowElevation = 3.dp, color = Color.White) {
                     TopAppBar(
                         navigationIcon = {
-                            IconButton(onClick = { navController?.navigateUp() }) {
+                            IconButton(onClick = { navController?.popBackStack() }) {
                                 Icon(
                                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                                     contentDescription = "Back"

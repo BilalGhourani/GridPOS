@@ -18,6 +18,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -65,10 +66,15 @@ fun LoginView(
     LaunchedEffect(loginState.warning, loginState.isLoggedIn) {
         if (!loginState.warning.isNullOrEmpty()) {
             CoroutineScope(Dispatchers.Main).launch {
-                snackbarHostState.showSnackbar(
+                val snackbarResult = snackbarHostState.showSnackbar(
                     message = loginState.warning!!,
                     duration = SnackbarDuration.Short,
+                    actionLabel = loginState.warningAction
                 )
+                when (snackbarResult) {
+                    SnackbarResult.Dismissed -> {}
+                    SnackbarResult.ActionPerformed -> navController?.navigate("ManageUsersView")
+                }
             }
         }
         if (loginState.isLoggedIn) {
@@ -83,14 +89,6 @@ fun LoginView(
             topBar = {
                 Surface(shadowElevation = 3.dp, color = Color.White) {
                     TopAppBar(
-                        /*navigationIcon = {
-                            IconButton(onClick = { navController?.navigateUp() }) {
-                                Icon(
-                                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                    contentDescription = "Back"
-                                )
-                            }
-                        },*/
                         title = {
                             Text(
                                 text = "Login",

@@ -19,6 +19,6 @@ interface CurrencyRepository {
     suspend fun getCurrencyById(id: String): Currency
 
     // Get all Currencies as stream.
-    fun getAllCurrencies(callback: OnResult? = null)
+   suspend fun getAllCurrencies(callback: OnResult? = null)
 
 }

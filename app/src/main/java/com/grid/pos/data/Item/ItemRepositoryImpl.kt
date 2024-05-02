@@ -2,6 +2,7 @@ package com.grid.pos.data.Item
 
 import androidx.lifecycle.asLiveData
 import com.google.firebase.firestore.FirebaseFirestore
+import com.grid.pos.data.InvoiceHeader.InvoiceHeader
 import com.grid.pos.interfaces.OnResult
 import com.grid.pos.model.SettingsModel
 
@@ -84,9 +85,8 @@ class ItemRepositoryImpl(
                     )
                 }
         }else {
-            val localItems = itemDao.getAllItems().asLiveData().value
-            if (!localItems.isNullOrEmpty()) {
-                callback?.onSuccess(localItems)
+            itemDao.getAllItems().collect {
+                callback?.onSuccess(it)
             }
         }
     }

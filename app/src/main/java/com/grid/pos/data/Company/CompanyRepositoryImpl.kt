@@ -2,6 +2,7 @@ package com.grid.pos.data.Company
 
 import androidx.lifecycle.asLiveData
 import com.google.firebase.firestore.FirebaseFirestore
+import com.grid.pos.data.User.User
 import com.grid.pos.interfaces.OnResult
 import com.grid.pos.model.SettingsModel
 
@@ -86,9 +87,8 @@ class CompanyRepositoryImpl(
                     )
                 }
         } else {
-            val localCompanies = companyDao.getAllCompanies().asLiveData().value
-            if (!localCompanies.isNullOrEmpty()) {
-                callback?.onSuccess(localCompanies)
+            companyDao.getAllCompanies().collect {
+                callback?.onSuccess(it)
             }
         }
     }

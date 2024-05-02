@@ -31,7 +31,7 @@ class ManageFamiliesViewModel @Inject constructor(
         }
     }
 
-    private fun fetchFamilies() {
+    private suspend fun fetchFamilies() {
         familyRepository.getAllFamilies(object : OnResult {
             override fun onSuccess(result: Any) {
                 val listOfFamilies = mutableListOf<Family>()
@@ -45,7 +45,7 @@ class ManageFamiliesViewModel @Inject constructor(
                 }
             }
 
-            override fun onFailure(message: String) {
+            override fun onFailure(message: String, errorCode: Int) {
 
             }
 
@@ -66,7 +66,7 @@ class ManageFamiliesViewModel @Inject constructor(
                 }
             }
 
-            override fun onFailure(message: String) {
+            override fun onFailure(message: String, errorCode: Int) {
 
             }
 
@@ -103,7 +103,7 @@ class ManageFamiliesViewModel @Inject constructor(
                 }
             }
 
-            override fun onFailure(message: String) {
+            override fun onFailure(message: String, errorCode: Int) {
                 viewModelScope.launch(Dispatchers.Main) {
                     manageFamiliesState.value = manageFamiliesState.value.copy(
                         isLoading = false
@@ -128,7 +128,7 @@ class ManageFamiliesViewModel @Inject constructor(
         val family = manageFamiliesState.value.selectedFamily
         if (family.familyId.isEmpty()) {
             manageFamiliesState.value = manageFamiliesState.value.copy(
-                warning = "Please select an user to delete",
+                warning = "Please select an family to delete",
                 isLoading = false
             )
             return
@@ -156,12 +156,13 @@ class ManageFamiliesViewModel @Inject constructor(
                         manageFamiliesState.value = manageFamiliesState.value.copy(
                             families = families,
                             selectedFamily = Family(),
-                            isLoading = false
+                            isLoading = false,
+                            clear = true
                         )
                     }
                 }
 
-                override fun onFailure(message: String) {
+                override fun onFailure(message: String, errorCode: Int) {
                     viewModelScope.launch(Dispatchers.Main) {
                         manageFamiliesState.value = manageFamiliesState.value.copy(
                             isLoading = false

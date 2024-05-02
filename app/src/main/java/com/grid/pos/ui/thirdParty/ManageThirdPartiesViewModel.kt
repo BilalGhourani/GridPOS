@@ -47,7 +47,7 @@ class ManageThirdPartiesViewModel @Inject constructor(
                 }
             }
 
-            override fun onFailure(message: String) {
+            override fun onFailure(message: String, errorCode: Int) {
 
             }
 
@@ -68,7 +68,7 @@ class ManageThirdPartiesViewModel @Inject constructor(
                 }
             }
 
-            override fun onFailure(message: String) {
+            override fun onFailure(message: String, errorCode: Int) {
 
             }
 
@@ -103,7 +103,7 @@ class ManageThirdPartiesViewModel @Inject constructor(
                 }
             }
 
-            override fun onFailure(message: String) {
+            override fun onFailure(message: String, errorCode: Int) {
                 viewModelScope.launch(Dispatchers.Main) {
                     manageThirdPartiesState.value = manageThirdPartiesState.value.copy(
                         isLoading = false
@@ -128,7 +128,7 @@ class ManageThirdPartiesViewModel @Inject constructor(
         val thirdParty = manageThirdPartiesState.value.selectedThirdParty
         if (thirdParty.thirdPartyId.isEmpty()) {
             manageThirdPartiesState.value = manageThirdPartiesState.value.copy(
-                warning = "Please select an user to delete",
+                warning = "Please select an third party to delete",
                 isLoading = false
             )
             return
@@ -156,12 +156,13 @@ class ManageThirdPartiesViewModel @Inject constructor(
                         manageThirdPartiesState.value = manageThirdPartiesState.value.copy(
                             thirdParties = thirdParties,
                             selectedThirdParty = ThirdParty(),
-                            isLoading = false
+                            isLoading = false,
+                            clear = true
                         )
                     }
                 }
 
-                override fun onFailure(message: String) {
+                override fun onFailure(message: String, errorCode: Int) {
                     viewModelScope.launch(Dispatchers.Main) {
                         manageThirdPartiesState.value = manageThirdPartiesState.value.copy(
                             isLoading = false

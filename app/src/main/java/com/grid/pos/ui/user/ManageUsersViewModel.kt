@@ -46,7 +46,7 @@ class ManageUsersViewModel @Inject constructor(
                 }
             }
 
-            override fun onFailure(message: String) {
+            override fun onFailure(message: String, errorCode: Int) {
 
             }
 
@@ -67,7 +67,7 @@ class ManageUsersViewModel @Inject constructor(
                 }
             }
 
-            override fun onFailure(message: String) {
+            override fun onFailure(message: String, errorCode: Int) {
 
             }
 
@@ -75,7 +75,7 @@ class ManageUsersViewModel @Inject constructor(
     }
 
     fun saveUser(user: User) {
-        if (user.userName.isNullOrEmpty() || user.userUsername.isNullOrEmpty() || user.userPassword.isNullOrEmpty() || user.userCompanyId.isNullOrEmpty()) {
+        if (user.userName.isNullOrEmpty() || user.userUsername.isNullOrEmpty() || user.userPassword.isNullOrEmpty()) {
             manageUsersState.value = manageUsersState.value.copy(
                 warning = "Please fill all inputs",
                 isLoading = false
@@ -101,7 +101,7 @@ class ManageUsersViewModel @Inject constructor(
                 }
             }
 
-            override fun onFailure(message: String) {
+            override fun onFailure(message: String, errorCode: Int) {
                 viewModelScope.launch(Dispatchers.Main) {
                     manageUsersState.value = manageUsersState.value.copy(
                         isLoading = false
@@ -121,7 +121,7 @@ class ManageUsersViewModel @Inject constructor(
     }
 
     fun deleteSelectedUser(user: User) {
-        if (user.userDocumentId.isNullOrEmpty()) {
+        if (user.userId.isEmpty()) {
             manageUsersState.value = manageUsersState.value.copy(
                 warning = "Please select an user to delete",
                 isLoading = false
@@ -144,13 +144,15 @@ class ManageUsersViewModel @Inject constructor(
                     }
                     viewModelScope.launch(Dispatchers.Main) {
                         manageUsersState.value = manageUsersState.value.copy(
-                            selectedUser = result as User,
-                            isLoading = false
+                            users = users,
+                            selectedUser = User(),
+                            isLoading = false,
+                            clear = true
                         )
                     }
                 }
 
-                override fun onFailure(message: String) {
+                override fun onFailure(message: String, errorCode: Int) {
                     viewModelScope.launch(Dispatchers.Main) {
                         manageUsersState.value = manageUsersState.value.copy(
                             isLoading = false

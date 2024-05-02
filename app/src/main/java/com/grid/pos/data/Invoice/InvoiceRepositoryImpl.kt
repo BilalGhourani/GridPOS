@@ -2,6 +2,7 @@ package com.grid.pos.data.Invoice
 
 import androidx.lifecycle.asLiveData
 import com.google.firebase.firestore.FirebaseFirestore
+import com.grid.pos.data.Family.Family
 import com.grid.pos.interfaces.OnResult
 import com.grid.pos.model.SettingsModel
 
@@ -84,10 +85,8 @@ class InvoiceRepositoryImpl(
                     )
                 }
         } else {
-            val localInvoiceItems =
-                invoiceDao.getAllInvoiceItems(invoiceHeaderId).asLiveData().value
-            if (!localInvoiceItems.isNullOrEmpty()) {
-                callback?.onSuccess(localInvoiceItems)
+            invoiceDao.getAllInvoiceItems(invoiceHeaderId).collect {
+                callback?.onSuccess(it)
             }
         }
     }

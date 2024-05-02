@@ -55,7 +55,7 @@ class ManageItemsViewModel @Inject constructor(
                 }
             }
 
-            override fun onFailure(message: String) {
+            override fun onFailure(message: String, errorCode: Int) {
 
             }
 
@@ -76,7 +76,7 @@ class ManageItemsViewModel @Inject constructor(
                 }
             }
 
-            override fun onFailure(message: String) {
+            override fun onFailure(message: String, errorCode: Int) {
 
             }
 
@@ -97,14 +97,14 @@ class ManageItemsViewModel @Inject constructor(
                 }
             }
 
-            override fun onFailure(message: String) {
+            override fun onFailure(message: String, errorCode: Int) {
 
             }
 
         })
     }
 
-    private fun fetchFamilies() {
+    private suspend fun fetchFamilies() {
         familyRepository.getAllFamilies(object : OnResult {
             override fun onSuccess(result: Any) {
                 val listOfFamilies = mutableListOf<Family>()
@@ -118,7 +118,7 @@ class ManageItemsViewModel @Inject constructor(
                 }
             }
 
-            override fun onFailure(message: String) {
+            override fun onFailure(message: String, errorCode: Int) {
 
             }
 
@@ -152,7 +152,7 @@ class ManageItemsViewModel @Inject constructor(
                 }
             }
 
-            override fun onFailure(message: String) {
+            override fun onFailure(message: String, errorCode: Int) {
                 viewModelScope.launch(Dispatchers.Main) {
                     manageItemsState.value = manageItemsState.value.copy(
                         isLoading = false
@@ -173,7 +173,7 @@ class ManageItemsViewModel @Inject constructor(
     }
 
     fun deleteSelectedItem(item: Item) {
-        if (item.itemDocumentId.isNullOrEmpty()) {
+        if (item.itemId.isEmpty()) {
             manageItemsState.value = manageItemsState.value.copy(
                 warning = "Please select an Item to delete",
                 isLoading = false
@@ -188,11 +188,11 @@ class ManageItemsViewModel @Inject constructor(
         CoroutineScope(Dispatchers.IO).launch {
             itemRepository.delete(item, object : OnResult {
                 override fun onSuccess(result: Any) {
-                    val items = manageItemsState.value.companies
+                    val items = manageItemsState.value.items
                     val position =
                         items.indexOfFirst {
                             item.itemId.equals(
-                                it.companyId,
+                                it.itemId,
                                 ignoreCase = true
                             )
                         }
@@ -201,13 +201,15 @@ class ManageItemsViewModel @Inject constructor(
                     }
                     viewModelScope.launch(Dispatchers.Main) {
                         manageItemsState.value = manageItemsState.value.copy(
-                            selectedItem = result as Item,
-                            isLoading = false
+                            items = items,
+                            selectedItem = Item(),
+                            isLoading = false,
+                            clear = true
                         )
                     }
                 }
 
-                override fun onFailure(message: String) {
+                override fun onFailure(message: String, errorCode: Int) {
                     viewModelScope.launch(Dispatchers.Main) {
                         manageItemsState.value = manageItemsState.value.copy(
                             isLoading = false

@@ -3,6 +3,7 @@ package com.grid.pos.data.PosPrinter
 import androidx.lifecycle.asLiveData
 import com.grid.pos.interfaces.OnResult
 import com.google.firebase.firestore.FirebaseFirestore
+import com.grid.pos.data.Item.Item
 import com.grid.pos.model.SettingsModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -87,9 +88,8 @@ class PosPrinterRepositoryImpl(
                     )
                 }
         } else {
-            val localPrinters = posPrinterDao.getAllPosPrinters().asLiveData().value
-            if (!localPrinters.isNullOrEmpty()) {
-                callback?.onSuccess(localPrinters)
+            posPrinterDao.getAllPosPrinters().collect {
+                callback?.onSuccess(it)
             }
         }
     }

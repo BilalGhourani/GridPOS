@@ -27,7 +27,7 @@ class ManageCurrenciesViewModel @Inject constructor(
         }
     }
 
-    private fun fetchCurrencies() {
+    private suspend fun fetchCurrencies() {
         currencyRepository.getAllCurrencies(object : OnResult {
             override fun onSuccess(result: Any) {
                 val listOfCurrencies = mutableListOf<Currency>()
@@ -41,7 +41,7 @@ class ManageCurrenciesViewModel @Inject constructor(
                 }
             }
 
-            override fun onFailure(message: String) {
+            override fun onFailure(message: String, errorCode: Int) {
 
             }
 
@@ -75,7 +75,7 @@ class ManageCurrenciesViewModel @Inject constructor(
                 }
             }
 
-            override fun onFailure(message: String) {
+            override fun onFailure(message: String, errorCode: Int) {
                 viewModelScope.launch(Dispatchers.Main) {
                     manageCurrenciesState.value = manageCurrenciesState.value.copy(
                         isLoading = false
@@ -95,7 +95,7 @@ class ManageCurrenciesViewModel @Inject constructor(
     }
 
     fun deleteSelectedCurrency(currency: Currency) {
-        if (currency.currencyCode1.isNullOrEmpty() || currency.currencyName1.isNullOrEmpty() || currency.currencyCode2.isNullOrEmpty() || currency.currencyName2.isNullOrEmpty() || currency.currencyRate.isNullOrEmpty()) {
+        if (currency.currencyId.isEmpty()) {
             manageCurrenciesState.value = manageCurrenciesState.value.copy(
                 warning = "Please select an Currency to delete",
                 isLoading = false
@@ -125,12 +125,13 @@ class ManageCurrenciesViewModel @Inject constructor(
                         manageCurrenciesState.value = manageCurrenciesState.value.copy(
                             currencies = currencies,
                             selectedCurrency = Currency(),
-                            isLoading = false
+                            isLoading = false,
+                            clear = true
                         )
                     }
                 }
 
-                override fun onFailure(message: String) {
+                override fun onFailure(message: String, errorCode: Int) {
                     viewModelScope.launch(Dispatchers.Main) {
                         manageCurrenciesState.value = manageCurrenciesState.value.copy(
                             isLoading = false

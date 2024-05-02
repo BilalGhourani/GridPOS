@@ -19,6 +19,6 @@ interface InvoiceHeaderRepository {
     suspend fun getInvoiceHeaderById(id: String): InvoiceHeader
 
     // Get all Invoice Headers logs as stream.
-    fun getAllInvoiceHeaders(callback: OnResult?)
+    suspend fun getAllInvoiceHeaders(callback: OnResult?)
 
 }

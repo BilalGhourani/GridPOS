@@ -93,7 +93,7 @@ class UserRepositoryImpl(
                         }
                     } else {
                         callback?.onFailure(
-                            "Username or Password are incorrect!"
+                            "Username or Password are incorrect!", 1
                         )
                     }
                 }.addOnFailureListener { exception ->
@@ -102,13 +102,15 @@ class UserRepositoryImpl(
                     )
                 }
         } else {
-            val localUsers = userDao.login(username, password).asLiveData().value
-            if (!localUsers.isNullOrEmpty()) {
-                callback?.onSuccess(localUsers)
-            } else {
-                callback?.onFailure(
-                    "no user found!"
-                )
+            userDao.login(username, password).collect {
+                if (it.isNotEmpty()) {
+                    callback?.onSuccess(it[0])
+                } else {
+                    callback?.onFailure(
+                        "no user found!", 1
+                    )
+                }
+                callback?.onSuccess(it)
             }
         }
     }
@@ -134,9 +136,8 @@ class UserRepositoryImpl(
                     )
                 }
         } else {
-            val localUsers = userDao.getAllUsers().asLiveData().value
-            if (!localUsers.isNullOrEmpty()) {
-                callback?.onSuccess(localUsers)
+            userDao.getAllUsers().collect {
+                callback?.onSuccess(it)
             }
         }
     }

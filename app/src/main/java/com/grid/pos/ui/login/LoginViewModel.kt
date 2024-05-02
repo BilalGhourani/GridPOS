@@ -23,38 +23,86 @@ class LoginViewModel @Inject constructor(
         if (username.isNullOrEmpty() || password.isNullOrEmpty()) {
             usersState.value = usersState.value.copy(
                 warning = "Please fill all inputs",
-                isLoading = false
+                isLoading = false,
+                warningAction = "",
             )
             return
         }
         usersState.value = usersState.value.copy(
-            isLoading = true
+            isLoading = true,
+            warning = "",
+            warningAction = ""
         )
         viewModelScope.launch(Dispatchers.IO) {
-            repository.getUserByCredentials(username, password, object : OnResult {
+            repository.getAllUsers(object : OnResult {
                 override fun onSuccess(result: Any) {
-                    if (result is User) {
+                    result as List<User>
+                    val size = result.size
+                    if (size == 0) {
                         viewModelScope.launch(Dispatchers.Main) {
                             usersState.value = usersState.value.copy(
-                                selectedUser = result,
                                 isLoading = false,
-                                isLoggedIn = true
+                                warning = "no user found!",
+                                warningAction = "Register"
                             )
+                        }
+                    } else {
+                        var user: User? = null
+                        result.forEach {
+                            if (username.equals(it.userUsername, ignoreCase = true) &&
+                                password.equals(it.userPassword, ignoreCase = true)
+                            ) {
+                                user = it
+                                return@forEach
+                            }
+                        }
+                        viewModelScope.launch(Dispatchers.Main) {
+                            if (user == null) {
+                                usersState.value = usersState.value.copy(
+                                    isLoading = false,
+                                    warning = "Username or Password are incorrect!",
+                                    warningAction = ""
+                                )
+                            } else {
+                                usersState.value = usersState.value.copy(
+                                    selectedUser = user!!,
+                                    isLoading = false,
+                                    isLoggedIn = true
+                                )
+                            }
                         }
                     }
                 }
 
-                override fun onFailure(message: String) {
-                    viewModelScope.launch(Dispatchers.Main) {
-                        usersState.value = usersState.value.copy(
-                            isLoading = false,
-                            warning = message
-                        )
-                    }
-                }
+                override fun onFailure(message: String, errorCode: Int) {
 
-            })
+                }
+                /*repository.getUserByCredentials(username, password, object : OnResult {
+                    override fun onSuccess(result: Any) {
+                        if (result is User) {
+                            viewModelScope.launch(Dispatchers.Main) {
+                                usersState.value = usersState.value.copy(
+                                    selectedUser = result,
+                                    isLoading = false,
+                                    isLoggedIn = true
+                                )
+                            }
+                        }
+                    }
+
+                    override fun onFailure(message: String, errorCode: Int) {
+                        viewModelScope.launch(Dispatchers.Main) {
+                            usersState.value = usersState.value.copy(
+                                isLoading = false,
+                                warning = message,
+                                warningAction = "Register"
+                            )
+                        }
+                    }
+
+                })*/
+            }
+            )
         }
     }
-
 }

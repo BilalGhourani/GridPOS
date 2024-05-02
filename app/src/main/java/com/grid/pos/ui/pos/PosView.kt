@@ -109,7 +109,7 @@ fun PosView(
                 Surface(shadowElevation = 3.dp, color = Color.White) {
                     TopAppBar(
                         navigationIcon = {
-                            IconButton(onClick = { navController?.navigateUp() }) {
+                            IconButton(onClick = { navController?.popBackStack() }) {
                                 Icon(
                                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                                     contentDescription = "Back"
@@ -129,7 +129,7 @@ fun PosView(
                                 modifier = Modifier
                                     .fillMaxHeight()
                                     .padding(horizontal = 10.dp),
-                                onClick = { navController?.navigateUp() }
+                                onClick = { navController?.popBackStack() }
                             ) {
                                 Text(text = "Back")
                             }

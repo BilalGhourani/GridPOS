@@ -19,6 +19,6 @@ interface FamilyRepository {
     suspend fun getFamilyById(id: String): Family
 
     // Get all Families as stream.
-    fun getAllFamilies(callback: OnResult?)
+   suspend fun getAllFamilies(callback: OnResult?)
 
 }

@@ -4,6 +4,7 @@ import androidx.lifecycle.asLiveData
 import com.grid.pos.data.Family.Family
 import com.grid.pos.interfaces.OnResult
 import com.google.firebase.firestore.FirebaseFirestore
+import com.grid.pos.data.PosPrinter.PosPrinter
 import com.grid.pos.model.SettingsModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -90,9 +91,8 @@ class ThirdPartyRepositoryImpl(
                     )
                 }
         } else {
-            val localThirdParties = thirdPartyDao.getAllThirdParties().asLiveData().value
-            if (!localThirdParties.isNullOrEmpty()) {
-                callback?.onSuccess(localThirdParties)
+            thirdPartyDao.getAllThirdParties().collect {
+                callback?.onSuccess(it)
             }
         }
 

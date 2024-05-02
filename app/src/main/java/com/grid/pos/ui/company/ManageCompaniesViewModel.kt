@@ -45,14 +45,14 @@ class ManageCompaniesViewModel @Inject constructor(
                 }
             }
 
-            override fun onFailure(message: String) {
+            override fun onFailure(message: String, errorCode: Int) {
 
             }
 
         })
     }
 
-    private fun fetchCurrencies() {
+    private suspend fun fetchCurrencies() {
         currencyRepository.getAllCurrencies(object : OnResult {
             override fun onSuccess(result: Any) {
                 val listOfCurrencies = mutableListOf<Currency>()
@@ -66,7 +66,7 @@ class ManageCompaniesViewModel @Inject constructor(
                 }
             }
 
-            override fun onFailure(message: String) {
+            override fun onFailure(message: String, errorCode: Int) {
 
             }
 
@@ -100,7 +100,7 @@ class ManageCompaniesViewModel @Inject constructor(
                 }
             }
 
-            override fun onFailure(message: String) {
+            override fun onFailure(message: String, errorCode: Int) {
                 viewModelScope.launch(Dispatchers.Main) {
                     manageCompaniesState.value = manageCompaniesState.value.copy(
                         isLoading = false
@@ -120,7 +120,7 @@ class ManageCompaniesViewModel @Inject constructor(
     }
 
     fun deleteSelectedCompany(company: Company) {
-        if (company.companyName.isNullOrEmpty() || company.companyAddress.isNullOrEmpty()) {
+        if (company.companyId.isEmpty()) {
             manageCompaniesState.value = manageCompaniesState.value.copy(
                 warning = "Please select an company to delete",
                 isLoading = false
@@ -148,13 +148,15 @@ class ManageCompaniesViewModel @Inject constructor(
                     }
                     viewModelScope.launch(Dispatchers.Main) {
                         manageCompaniesState.value = manageCompaniesState.value.copy(
-                            selectedCompany = result as Company,
-                            isLoading = false
+                            companies = companies,
+                            selectedCompany = Company(),
+                            isLoading = false,
+                            clear = true
                         )
                     }
                 }
 
-                override fun onFailure(message: String) {
+                override fun onFailure(message: String, errorCode: Int) {
                     viewModelScope.launch(Dispatchers.Main) {
                         manageCompaniesState.value = manageCompaniesState.value.copy(
                             isLoading = false

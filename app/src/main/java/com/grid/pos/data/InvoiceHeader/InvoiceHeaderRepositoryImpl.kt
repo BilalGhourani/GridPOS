@@ -2,6 +2,7 @@ package com.grid.pos.data.InvoiceHeader
 
 import androidx.lifecycle.asLiveData
 import com.google.firebase.firestore.FirebaseFirestore
+import com.grid.pos.data.Invoice.Invoice
 import com.grid.pos.interfaces.OnResult
 import com.grid.pos.model.SettingsModel
 
@@ -63,7 +64,7 @@ class InvoiceHeaderRepositoryImpl(
         return invoiceHeaderDao.getInvoiceHeaderById(id)
     }
 
-    override fun getAllInvoiceHeaders(callback: OnResult?) {
+    override suspend fun getAllInvoiceHeaders(callback: OnResult?) {
         if (SettingsModel.loadFromRemote) {
             FirebaseFirestore.getInstance().collection("in_hinvoice").get()
                 .addOnSuccessListener { result ->
@@ -84,9 +85,8 @@ class InvoiceHeaderRepositoryImpl(
                     )
                 }
         }else {
-            val localInvoices = invoiceHeaderDao.getAllInvoiceHeaders().asLiveData().value
-            if (!localInvoices.isNullOrEmpty()) {
-                callback?.onSuccess(localInvoices)
+            invoiceHeaderDao.getAllInvoiceHeaders().collect {
+                callback?.onSuccess(it)
             }
         }
     }

@@ -2,6 +2,7 @@ package com.grid.pos.data.Family
 
 import androidx.lifecycle.asLiveData
 import com.google.firebase.firestore.FirebaseFirestore
+import com.grid.pos.data.Currency.Currency
 import com.grid.pos.interfaces.OnResult
 import com.grid.pos.model.SettingsModel
 
@@ -64,7 +65,7 @@ class FamilyRepositoryImpl(
         return familyDao.getFamilyById(id)
     }
 
-    override fun getAllFamilies(callback: OnResult?) {
+    override suspend fun getAllFamilies(callback: OnResult?) {
         if (SettingsModel.loadFromRemote) {
             FirebaseFirestore.getInstance().collection("family").get()
                 .addOnSuccessListener { result ->
@@ -85,9 +86,8 @@ class FamilyRepositoryImpl(
                     )
                 }
         } else {
-            val localFamilies = familyDao.getAllFamilies().asLiveData().value
-            if (!localFamilies.isNullOrEmpty()) {
-                callback?.onSuccess(localFamilies)
+            familyDao.getAllFamilies().collect {
+                callback?.onSuccess(it)
             }
         }
     }

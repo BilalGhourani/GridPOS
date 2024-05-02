@@ -61,7 +61,7 @@ fun ManageFamiliesView(
                 Surface(shadowElevation = 3.dp, color = Color.White) {
                     TopAppBar(
                         navigationIcon = {
-                            IconButton(onClick = { navController?.navigateUp() }) {
+                            IconButton(onClick = { navController?.popBackStack() }) {
                                 Icon(
                                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                                     contentDescription = "Back"
@@ -161,7 +161,7 @@ fun ManageFamiliesView(
                                     .padding(3.dp),
                                 text = "Close"
                             ) {
-                                navController?.navigateUp()
+                                navController?.popBackStack()
                             }
                         }
 

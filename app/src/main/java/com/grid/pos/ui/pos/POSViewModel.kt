@@ -57,7 +57,7 @@ class POSViewModel @Inject constructor(
                 }
             }
 
-            override fun onFailure(message: String) {
+            override fun onFailure(message: String, errorCode: Int) {
 
             }
 
@@ -78,14 +78,14 @@ class POSViewModel @Inject constructor(
                 }
             }
 
-            override fun onFailure(message: String) {
+            override fun onFailure(message: String, errorCode: Int) {
 
             }
 
         })
     }
 
-    private fun fetchFamilies() {
+    private suspend fun fetchFamilies() {
         familyRepository.getAllFamilies(object : OnResult {
             override fun onSuccess(result: Any) {
                 val listOfFamilies = mutableListOf<Family>()
@@ -99,7 +99,7 @@ class POSViewModel @Inject constructor(
                 }
             }
 
-            override fun onFailure(message: String) {
+            override fun onFailure(message: String, errorCode: Int) {
 
             }
 
@@ -126,7 +126,7 @@ class POSViewModel @Inject constructor(
                 saveInvoiceItems(result as InvoiceHeader, invoiceItems)
             }
 
-            override fun onFailure(message: String) {
+            override fun onFailure(message: String, errorCode: Int) {
                 viewModelScope.launch(Dispatchers.Main) {
                     posState.value = posState.value.copy(
                         isLoading = false
@@ -176,7 +176,7 @@ class POSViewModel @Inject constructor(
                 }
             }
 
-            override fun onFailure(message: String) {
+            override fun onFailure(message: String, errorCode: Int) {
                 viewModelScope.launch(Dispatchers.Main) {
                     posState.value = posState.value.copy(
                         isLoading = false

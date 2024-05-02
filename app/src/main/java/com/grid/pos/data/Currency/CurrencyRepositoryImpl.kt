@@ -2,6 +2,7 @@ package com.grid.pos.data.Currency
 
 import androidx.lifecycle.asLiveData
 import com.google.firebase.firestore.FirebaseFirestore
+import com.grid.pos.data.Company.Company
 import com.grid.pos.interfaces.OnResult
 import com.grid.pos.model.SettingsModel
 
@@ -63,7 +64,7 @@ class CurrencyRepositoryImpl(
         return currencyDao.getCurrencyById(id)
     }
 
-    override fun getAllCurrencies(callback: OnResult?) {
+    override suspend fun getAllCurrencies(callback: OnResult?) {
         if (SettingsModel.loadFromRemote) {
             FirebaseFirestore.getInstance().collection("currency").get()
                 .addOnSuccessListener { result ->
@@ -84,9 +85,8 @@ class CurrencyRepositoryImpl(
                     )
                 }
         } else {
-            val localCurrencies = currencyDao.getAllCurrencies().asLiveData().value
-            if (!localCurrencies.isNullOrEmpty()) {
-                callback?.onSuccess(localCurrencies)
+            currencyDao.getAllCurrencies().collect {
+                callback?.onSuccess(it)
             }
         }
 
