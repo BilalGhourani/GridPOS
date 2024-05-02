@@ -54,42 +54,42 @@ object DataStoreManager {
         }
     }
 
-    suspend fun getString(key: String): String {
+    suspend fun getString(key: String, fallback: String = ""): String {
         return try {
             val preferencesKey = stringPreferencesKey(key)
             val preferences = context.dataStore.data.first()
             var value = preferences[preferencesKey]
-            return value ?: ""
+            return value ?: fallback
         } catch (e: Exception) {
             e.printStackTrace()
-            ""
+            fallback
         }
     }
 
-    suspend fun getInt(key: String): Int? {
+    suspend fun getInt(key: String, fallback: Int = -1): Int {
         return try {
             val preferencesKey = intPreferencesKey(key)
             val preferences = context.dataStore.data.first()
             var value = preferences[preferencesKey]
-            return value ?: -1
+            return value ?: fallback
         } catch (e: Exception) {
             e.printStackTrace()
-            -1
+            fallback
         }
     }
 
-    suspend fun getLong(key: String): Long? {
+    suspend fun getLong(key: String, fallback: Long = -1L): Long {
         return try {
             val preferencesKey = longPreferencesKey(key)
             val preferences = context.dataStore.data.first()
-            return preferences[preferencesKey]
+            return preferences[preferencesKey] ?: fallback
         } catch (e: Exception) {
             e.printStackTrace()
-            null
+            fallback
         }
     }
 
-    suspend fun getBoolean(key: String, fallback: Boolean = false): Boolean? {
+    suspend fun getBoolean(key: String, fallback: Boolean = false): Boolean {
         return try {
             val preferencesKey = booleanPreferencesKey(key)
             val preferences = context.dataStore.data.first()
