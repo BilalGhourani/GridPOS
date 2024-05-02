@@ -1,6 +1,7 @@
 package com.grid.pos.ui.Item
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -9,6 +10,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -17,29 +20,36 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.graphics.toColorInt
 import com.grid.pos.data.Item.Item
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.ui.theme.Red
 
 @Composable
-fun ItemCell(item: Item, modifier: Modifier = Modifier) {
-    Box(
-        modifier = modifier
-            .width(120.dp)
-            .height(120.dp)
-            .padding(2.dp)
-            .background(color = Color.Transparent)
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(color = Red, shape = RoundedCornerShape(15.dp)),
-            contentAlignment = Alignment.Center
+fun ItemCell(
+    item: Item,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit = {}
+) {
+    val color =
+        ElevatedButton(
+            modifier = modifier
+                .width(120.dp)
+                .height(120.dp)
+                .padding(2.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = item.itemBtnColor?.let { Color(it.toColorInt()) }.run { Color.Red }
+            ),
+            shape = RoundedCornerShape(15.dp),
+            onClick = {
+                onClick.invoke()
+            }
         ) {
-            Column( // Use a Box to achieve content alignment
+            Column(
                 modifier = Modifier
                     .wrapContentSize(),
-                horizontalAlignment = Alignment.CenterHorizontally // Center content within the Box
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
             ) {
                 val price = item.itemUnitPrice.toString() ?: "0.0"
                 Text(
@@ -67,7 +77,6 @@ fun ItemCell(item: Item, modifier: Modifier = Modifier) {
                 )
             }
         }
-    }
 }
 
 @Preview(showBackground = true)

@@ -3,15 +3,15 @@ package com.grid.pos.ui.pos.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
-import androidx.compose.material3.Divider
-import androidx.compose.material3.IconButton
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -25,7 +25,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.grid.pos.data.Family.Family
 import com.grid.pos.data.Item.Item
-import com.grid.pos.model.InvoiceItemModel
 import com.grid.pos.ui.Item.ItemListCell
 import com.grid.pos.ui.family.CategoryListCell
 import com.grid.pos.ui.theme.Grey
@@ -50,23 +49,30 @@ fun AddInvoiceItemView(
     Column(
         modifier = modifier
     ) {
-        IconButton(
+        Surface(
             modifier = Modifier
-                .width(150.dp)
-                .height(80.dp)
-                .wrapContentHeight(align = Alignment.CenterVertically)
-                .padding(horizontal = 10.dp)
-                .align(Alignment.End),
-            onClick = { onSelect.invoke(itemsState) }
+                .fillMaxWidth()
+                .height(56.dp),
+            shadowElevation = 3.dp,
+            color = Color.White
         ) {
-            Text(text = "Done", color = Color.Black)
+            TextButton(
+                modifier = Modifier
+                    .wrapContentWidth(align = Alignment.End)
+                    .wrapContentHeight(align = Alignment.CenterVertically)
+                    .padding(horizontal = 10.dp),
+                onClick = { onSelect.invoke(itemsState) }
+            ) {
+                Text(text = "Done", color = Color.Black)
+            }
         }
+        Spacer(modifier = Modifier.height(5.dp))
         CategoryListCell(
             categories = categories,
             onClick = { familyState = it.familyId }
         )
         Spacer(modifier = Modifier.height(3.dp))
-        Divider(
+        HorizontalDivider(
             modifier = Modifier
                 .height(1.dp)
                 .background(color = Grey)

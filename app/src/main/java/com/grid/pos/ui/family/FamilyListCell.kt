@@ -41,12 +41,11 @@ fun CategoryListCell(
             CategoryCell(
                 family = category,
                 selected = selectionState == index,
-                Modifier
-                    .clickable {
-                        selectionState = index
-                        onClick(category)
-                    },
-            )
+                modifier=Modifier
+            ){
+                selectionState = index
+                onClick(category)
+            }
         }
     }
 }

@@ -29,11 +29,10 @@ fun ItemListCell(
             item {
                 ItemCell(
                     item = item,
-                    Modifier
-                        .clickable {
-                            onClick(item)
-                        },
-                )
+                    Modifier,
+                ) {
+                    onClick(item)
+                }
             }
         }
     }

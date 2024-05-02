@@ -69,7 +69,7 @@ fun PosView(
     modifier: Modifier = Modifier,
     viewModel: POSViewModel = hiltViewModel()
 ) {
-    val posState: POSState by viewModel.posState.collectAsState(POSState())
+    val posState: POSState by viewModel.posState.collectAsState(activityViewModel.posState)
     var invoicesState = remember { posState.invoices }
     var isEditBottomSheetVisible by remember { mutableStateOf(false) }
     var isAddItemBottomSheetVisible by remember { mutableStateOf(false) }

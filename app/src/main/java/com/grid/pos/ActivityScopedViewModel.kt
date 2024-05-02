@@ -6,7 +6,7 @@ import com.grid.pos.ui.pos.POSState
 import com.grid.pos.utils.Utils
 
 class ActivityScopedViewModel : ViewModel() {
-    var posState: POSState? = null
+    var posState: POSState = POSState()
 
 
     fun getHtmlContent(

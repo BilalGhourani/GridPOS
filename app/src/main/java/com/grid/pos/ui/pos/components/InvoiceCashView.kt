@@ -50,13 +50,16 @@ fun InvoiceCashView(
     var curr2State by remember { mutableStateOf("LIRA") }
     var cashCurr1Paid by remember { mutableStateOf("") }
     var cashCurr2Paid by remember { mutableStateOf("") }
-    var cashTotal by remember { mutableStateOf("") }
+    var cashCurr1Total by remember { mutableStateOf("") }
+    var cashCurr2Total by remember { mutableStateOf("") }
     var creditCurr1Paid by remember { mutableStateOf("") }
     var creditCurr2Paid by remember { mutableStateOf("") }
-    var creditTotal by remember { mutableStateOf("") }
+    var creditCurr1Total by remember { mutableStateOf("") }
+    var creditCurr2Total by remember { mutableStateOf("") }
     var debitCurr1Paid by remember { mutableStateOf("") }
     var debitCurr2Paid by remember { mutableStateOf("") }
-    var debitTotal by remember { mutableStateOf("") }
+    var debitCurr1Total by remember { mutableStateOf("") }
+    var debitCurr2Total by remember { mutableStateOf("") }
 
     Column(
         modifier = modifier
@@ -78,7 +81,7 @@ fun InvoiceCashView(
             Text(
                 curr1State,
                 modifier = Modifier
-                    .weight(.266f)
+                    .weight(.2f)
                     .wrapContentHeight(align = Alignment.CenterVertically)
                     .wrapContentWidth(align = Alignment.CenterHorizontally),
                 color = Color.Black
@@ -87,7 +90,7 @@ fun InvoiceCashView(
             Text(
                 curr2State,
                 modifier = Modifier
-                    .weight(.266f)
+                    .weight(.2f)
                     .wrapContentHeight(align = Alignment.CenterVertically)
                     .wrapContentWidth(align = Alignment.CenterHorizontally),
                 color = Color.Black
@@ -96,7 +99,7 @@ fun InvoiceCashView(
             Text(
                 "",
                 modifier = Modifier
-                    .weight(.266f)
+                    .weight(.2f)
             )
         }
 
@@ -120,7 +123,7 @@ fun InvoiceCashView(
                 },
                 modifier = Modifier
                     .padding(top = 8.dp)
-                    .weight(.266f),
+                    .weight(.2f),
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Number,
                     imeAction = ImeAction.Next
@@ -136,7 +139,7 @@ fun InvoiceCashView(
                 },
                 modifier = Modifier
                     .padding(top = 8.dp)
-                    .weight(.266f),
+                    .weight(.2f),
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Number,
                     imeAction = ImeAction.Next
@@ -144,8 +147,8 @@ fun InvoiceCashView(
                 keyboardActions = KeyboardActions(onNext = { cashTotalFocusRequester.requestFocus() })
             )
             OutlinedTextField(
-                value = cashTotal,
-                onValueChange = { cashTotal = it },
+                value = cashCurr1Total,
+                onValueChange = { cashCurr1Total = it },
                 label = {
                     Text(text = "Total")
                 },
@@ -153,7 +156,26 @@ fun InvoiceCashView(
                     Text(text = "0.0")
                 },
                 modifier = Modifier
-                    .weight(.266f)
+                    .weight(.2f)
+                    .focusRequester(cashTotalFocusRequester),
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Number,
+                    imeAction = ImeAction.Next
+                ),
+                keyboardActions = KeyboardActions(onNext = { creditPaidFocusRequester.requestFocus() })
+            )
+
+            OutlinedTextField(
+                value = cashCurr2Total,
+                onValueChange = { cashCurr2Total = it },
+                label = {
+                    Text(text = "Total2")
+                },
+                placeholder = {
+                    Text(text = "0.0")
+                },
+                modifier = Modifier
+                    .weight(.2f)
                     .focusRequester(cashTotalFocusRequester),
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Number,
@@ -182,7 +204,7 @@ fun InvoiceCashView(
                     Text(text = "0.0")
                 },
                 modifier = Modifier
-                    .weight(.266f)
+                    .weight(.2f)
                     .padding(top = 8.dp)
                     .focusRequester(creditPaidFocusRequester),
                 keyboardOptions = KeyboardOptions(
@@ -199,7 +221,7 @@ fun InvoiceCashView(
                     Text(text = "0.0")
                 },
                 modifier = Modifier
-                    .weight(.266f)
+                    .weight(.2f)
                     .padding(top = 8.dp)
                     .focusRequester(creditPaidFocusRequester),
                 keyboardOptions = KeyboardOptions(
@@ -209,8 +231,8 @@ fun InvoiceCashView(
                 keyboardActions = KeyboardActions(onNext = { creditTotalFocusRequester.requestFocus() })
             )
             OutlinedTextField(
-                value = creditTotal,
-                onValueChange = { creditTotal = it },
+                value = creditCurr1Total,
+                onValueChange = { creditCurr1Total = it },
                 label = {
                     Text(text = "Paid")
                 },
@@ -218,7 +240,26 @@ fun InvoiceCashView(
                     Text(text = "0.0")
                 },
                 modifier = Modifier
-                    .weight(.266f)
+                    .weight(.2f)
+                    .focusRequester(creditTotalFocusRequester),
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Number,
+                    imeAction = ImeAction.Next
+                ),
+                keyboardActions = KeyboardActions(onNext = { debitPaidFocusRequester.requestFocus() })
+            )
+
+            OutlinedTextField(
+                value = creditCurr2Total,
+                onValueChange = { creditCurr2Total = it },
+                label = {
+                    Text(text = "Paid")
+                },
+                placeholder = {
+                    Text(text = "0.0")
+                },
+                modifier = Modifier
+                    .weight(.2f)
                     .focusRequester(creditTotalFocusRequester),
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Number,
@@ -247,7 +288,7 @@ fun InvoiceCashView(
                     Text(text = "0.0")
                 },
                 modifier = Modifier
-                    .weight(.266f)
+                    .weight(.2f)
                     .padding(top = 8.dp)
                     .focusRequester(debitPaidFocusRequester),
                 keyboardOptions = KeyboardOptions(
@@ -264,7 +305,7 @@ fun InvoiceCashView(
                     Text(text = "0.0")
                 },
                 modifier = Modifier
-                    .weight(.266f)
+                    .weight(.2f)
                     .padding(top = 8.dp)
                     .focusRequester(debitPaidFocusRequester),
                 keyboardOptions = KeyboardOptions(
@@ -274,8 +315,8 @@ fun InvoiceCashView(
                 keyboardActions = KeyboardActions(onNext = { debitTotalFocusRequester.requestFocus() })
             )
             OutlinedTextField(
-                value = debitTotal,
-                onValueChange = { debitTotal = it },
+                value = debitCurr1Total,
+                onValueChange = { debitCurr1Total = it },
                 label = {
                     Text(text = "Change")
                 },
@@ -283,7 +324,26 @@ fun InvoiceCashView(
                     Text(text = "0.0")
                 },
                 modifier = Modifier
-                    .weight(.266f)
+                    .weight(.2f)
+                    .focusRequester(debitTotalFocusRequester),
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Number,
+                    imeAction = ImeAction.Next
+                ),
+                keyboardActions = KeyboardActions(onNext = { creditPaidFocusRequester.requestFocus() })
+            )
+
+            OutlinedTextField(
+                value = debitCurr2Total,
+                onValueChange = { debitCurr2Total = it },
+                label = {
+                    Text(text = "Change")
+                },
+                placeholder = {
+                    Text(text = "0.0")
+                },
+                modifier = Modifier
+                    .weight(.2f)
                     .focusRequester(debitTotalFocusRequester),
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Number,
