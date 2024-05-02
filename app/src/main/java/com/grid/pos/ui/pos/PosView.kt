@@ -70,7 +70,7 @@ fun PosView(
     viewModel: POSViewModel = hiltViewModel()
 ) {
     val posState: POSState by viewModel.posState.collectAsState(POSState())
-    var invoicesState = remember { mutableStateListOf<InvoiceItemModel>() }
+    var invoicesState = remember { posState.invoices }
     var isEditBottomSheetVisible by remember { mutableStateOf(false) }
     var isAddItemBottomSheetVisible by remember { mutableStateOf(false) }
     var isPayBottomSheetVisible by remember { mutableStateOf(false) }
@@ -171,14 +171,16 @@ fun PosView(
                         onDismiss = { index ->
                             val invoices = invoicesState
                             invoices.removeAt(index)
-                            invoicesState = invoices
                             posState.invoices = invoices
+                            posState.refreshValues()
+                            invoicesState = invoices
                             isAddItemBottomSheetVisible = false
                         }
                     )
 
                     InvoiceFooterView(
                         invoices = invoicesState,
+                        invoiceHeader = posState.invoiceHeader,
                         items = posState.items,
                         thirdParties = posState.thirdParties,
                         modifier = Modifier
@@ -189,8 +191,9 @@ fun PosView(
                             invoiceItemModel.setItem(it)
                             val invoices = invoicesState
                             invoices.add(invoiceItemModel)
-                            invoicesState = invoices
                             posState.invoices = invoices
+                            posState.refreshValues()
+                            invoicesState = invoices
                             isAddItemBottomSheetVisible = false
                         },
                         onThirdPartySelected = {
@@ -254,8 +257,9 @@ fun PosView(
                     invoiceItemModel.setItem(item)
                     invoices.add(invoiceItemModel)
                 }
-                invoicesState = invoices
                 posState.invoices = invoices
+                posState.refreshValues()
+                invoicesState = invoices
                 isAddItemBottomSheetVisible = false
                 isEditBottomSheetVisible = false
             }
@@ -278,7 +282,7 @@ fun PosView(
                     .fillMaxWidth()
                     .fillMaxHeight(if (isLandscape) 0.9f else 0.5f),
                 onSave = {
-                   // viewModel.saveInvoiceHeader(posState.invoiceHeader, posState.invoices)
+                    // viewModel.saveInvoiceHeader(posState.invoiceHeader, posState.invoices)
                     activityViewModel.posState = posState
                     navController?.navigate("UIWebView")
                 },

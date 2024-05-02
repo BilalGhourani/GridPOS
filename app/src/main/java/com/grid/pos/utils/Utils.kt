@@ -121,9 +121,71 @@ object Utils {
         }
     }
 
-    fun modifyHtmlContent(htmlContent: String): String {
-        // Modify HTML content here as needed
-        return htmlContent.replace("original_value", "new_value")
+    fun getDefaultReceipt(): String {
+        return "<!DOCTYPE html>\n" +
+                "<html lang=\"en\">\n" +
+                "<head>\n" +
+                "    <meta charset=\"UTF-8\">\n" +
+                "    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n" +
+                "    <title>Receipt</title>\n" +
+                "    <style>\n" +
+                "        body {\n" +
+                "            font-family: Arial, sans-serif;\n" +
+                "            margin: 0;\n" +
+                "            padding: 20px;\n" +
+                "        }\n" +
+                "        .container {\n" +
+                "            max-width: 400px;\n" +
+                "            margin: 0 auto;\n" +
+                "            border: 1px solid #ccc;\n" +
+                "            padding: 20px;\n" +
+                "            border-radius: 5px;\n" +
+                "        }\n" +
+                "        .receipt-header {\n" +
+                "            text-align: center;\n" +
+                "            margin-bottom: 20px;\n" +
+                "        }\n" +
+                "        .receipt-items {\n" +
+                "            border-collapse: collapse;\n" +
+                "            width: 100%;\n" +
+                "        }\n" +
+                "        .receipt-items th, .receipt-items td {\n" +
+                "            border: 1px solid #ddd;\n" +
+                "            padding: 8px;\n" +
+                "            text-align: left;\n" +
+                "        }\n" +
+                "        .receipt-items th {\n" +
+                "            background-color: #f2f2f2;\n" +
+                "        }\n" +
+                "        .total {\n" +
+                "            margin-top: 20px;\n" +
+                "            text-align: right;\n" +
+                "        }\n" +
+                "    </style>\n" +
+                "</head>\n" +
+                "<body>\n" +
+                "<div class=\"container\">\n" +
+                "    <div class=\"receipt-header\">\n" +
+                "        <h2>Receipt</h2>\n" +
+                "    </div>\n" +
+                "    <table class=\"receipt-items\">\n" +
+                "        <thead>\n" +
+                "        <tr>\n" +
+                "            <th>Item</th>\n" +
+                "            <th>Quantity</th>\n" +
+                "            <th>Price</th>\n" +
+                "        </tr>\n" +
+                "        </thead>\n" +
+                "        <tbody>\n" +
+                "        {rows_content}\n" +
+                "        </tbody>\n" +
+                "    </table>\n" +
+                "    <div class=\"total\">\n" +
+                "        <strong>Total: {total}</strong>\n" +
+                "    </div>\n" +
+                "</div>\n" +
+                "</body>\n" +
+                "</html>"
     }
 
     fun isTablet(configuration: Configuration): Boolean {

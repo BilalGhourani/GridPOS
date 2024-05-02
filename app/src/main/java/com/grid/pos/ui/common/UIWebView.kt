@@ -38,19 +38,18 @@ import com.grid.pos.utils.Utils
 @Composable
 fun UIWebView(
     navController: NavController? = null,
-    activityViewModel: ActivityScopedViewModel=ActivityScopedViewModel(),
+    activityViewModel: ActivityScopedViewModel = ActivityScopedViewModel(),
     modifier: Modifier = Modifier,
-    url: String = "file:///android_asset/receipt.html",
-    htmlContent: String = ""
 ) {
     val context = LocalContext.current
     val webView = remember {
         WebView(context).apply {
             webViewClient = WebViewClient()
-            if (htmlContent.isNullOrEmpty()) {
+            val htmlContent = activityViewModel.getHtmlContent(context)
+            if (htmlContent.isNotEmpty()) {
                 loadDataWithBaseURL(null, htmlContent, "text/html", "UTF-8", null)
             } else {
-                loadUrl(url)
+                loadUrl(activityViewModel.getHtmlContent(context, Utils.getDefaultReceipt()))
             }
         }
     }

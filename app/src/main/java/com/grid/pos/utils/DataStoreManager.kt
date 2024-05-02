@@ -89,15 +89,15 @@ object DataStoreManager {
         }
     }
 
-    suspend fun getBoolean(key: String): Boolean? {
+    suspend fun getBoolean(key: String, fallback: Boolean = false): Boolean? {
         return try {
             val preferencesKey = booleanPreferencesKey(key)
             val preferences = context.dataStore.data.first()
             var value = preferences[preferencesKey]
-            return value ?: false
+            return value ?: fallback
         } catch (e: Exception) {
             e.printStackTrace()
-            false
+            fallback
         }
     }
 
@@ -124,7 +124,7 @@ object DataStoreManager {
         if (buttonTextColor?.isNullOrEmpty() == false) {
             SettingsModel.buttonTextColor = Color(buttonTextColor.toColorInt())
         }
-        SettingsModel.loadFromRemote = getBoolean(DataStoreKeys.LOAD_FROM_REMOTE.key) == true
+        SettingsModel.loadFromRemote = getBoolean(DataStoreKeys.LOAD_FROM_REMOTE.key, true) == true
         SettingsModel.hideTaxInputs = getBoolean(DataStoreKeys.HIDE_TAX_INPUTS.key) == true
     }
 

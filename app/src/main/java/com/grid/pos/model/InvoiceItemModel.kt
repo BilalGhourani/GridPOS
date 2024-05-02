@@ -4,7 +4,7 @@ import com.grid.pos.data.Invoice.Invoice
 import com.grid.pos.data.Item.Item
 
 data class InvoiceItemModel(
-    var name: String = "Item",
+    private var name: String = "Item",
     val invoice: Invoice = Invoice(),
 ) {
 
@@ -22,10 +22,7 @@ data class InvoiceItemModel(
         invoice.invoicRemQty = item.itemOpenQty?.toDouble() ?: 0.0
     }
 
-    fun getName(isHeader: Boolean = false): String {
-        if (isHeader) {
-            return "Item"
-        }
+    fun getName(): String {
         return name
     }
 

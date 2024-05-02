@@ -21,6 +21,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.grid.pos.data.InvoiceHeader.InvoiceHeader
 import com.grid.pos.data.Item.Item
 import com.grid.pos.data.ThirdParty.ThirdParty
 import com.grid.pos.model.InvoiceItemModel
@@ -31,6 +32,7 @@ import com.grid.pos.ui.theme.GridPOSTheme
 @Composable
 fun InvoiceFooterView(
     invoices: MutableList<InvoiceItemModel> = mutableListOf(),
+    invoiceHeader: InvoiceHeader,
     items: MutableList<Item> = mutableListOf(),
     thirdParties: MutableList<ThirdParty> = mutableListOf(),
     modifier: Modifier = Modifier,
@@ -48,31 +50,41 @@ fun InvoiceFooterView(
     var tableNoState by remember { mutableStateOf("1") }
     var clientState by remember { mutableStateOf("Cash") }
 
-    if (invoices.isNotEmpty()) {
-        var tax = 0.0
-        var tax1 = 0.0
-        var tax2 = 0.0
-        var total = 0.0
-        invoices.forEach {
-            tax += it.getTax()
-            tax1 += it.getTax1()
-            tax2 += it.getTax2()
-            total += it.getAmount()
-        }
-        taxState = String.format("%.2f", tax)
-        tax1State = String.format("%.2f", tax1)
-        tax2State = String.format("%.2f", tax2)
-        totalTaxState = String.format("%.2f", tax + tax1 + tax2)
-        totalState = String.format("%.2f", total)
-        totalCur2State = totalState
-    } else {
-        taxState = "0.0"
-        tax1State = "0.0"
-        tax2State = "0.0"
-        totalTaxState = "0.0"
-        totalState = "0.0"
-        totalCur2State = totalState
-    }
+    val tax = invoiceHeader.invoicHeadTaxAmt ?: 0.0
+    val tax1 = invoiceHeader.invoicHeadTax1Amt ?: 0.0
+    val tax2 = invoiceHeader.invoicHeadTax2Amt ?: 0.0
+    taxState = String.format("%.2f", tax)
+    tax1State = String.format("%.2f", tax1)
+    tax2State = String.format("%.2f", tax2)
+    totalTaxState = String.format("%.2f", tax + tax1 + tax2)
+    totalState = String.format("%.2f", invoiceHeader.invoicHeadTotal ?: 0.0)
+    totalCur2State = totalState
+
+    /*  if (invoices.isNotEmpty()) {
+          var tax = 0.0
+          var tax1 = 0.0
+          var tax2 = 0.0
+          var total = 0.0
+          invoices.forEach {
+              tax += it.getTax()
+              tax1 += it.getTax1()
+              tax2 += it.getTax2()
+              total += it.getAmount()
+          }
+          taxState = String.format("%.2f", tax)
+          tax1State = String.format("%.2f", tax1)
+          tax2State = String.format("%.2f", tax2)
+          totalTaxState = String.format("%.2f", tax + tax1 + tax2)
+          totalState = String.format("%.2f", total)
+          totalCur2State = totalState
+      } else {
+          taxState = "0.0"
+          tax1State = "0.0"
+          tax2State = "0.0"
+          totalTaxState = "0.0"
+          totalState = "0.0"
+          totalCur2State = totalState
+      }*/
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -202,6 +214,6 @@ fun InvoiceFooterView(
 @Composable
 fun InvoiceFooterViewPreview() {
     GridPOSTheme {
-        InvoiceFooterView()
+        InvoiceFooterView(invoiceHeader = InvoiceHeader())
     }
 }

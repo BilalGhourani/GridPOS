@@ -14,4 +14,23 @@ data class POSState(
     var invoiceHeader: InvoiceHeader = InvoiceHeader(),
     val isLoading: Boolean = false,
     val warning: String? = null,
-)
+) {
+    fun refreshValues() {
+        var tax = 0.0
+        var tax1 = 0.0
+        var tax2 = 0.0
+        var total = 0.0
+        invoices.forEach {
+            tax += it.getTax()
+            tax1 += it.getTax1()
+            tax2 += it.getTax2()
+            total += it.getAmount()
+        }
+        invoiceHeader.invoicHeadTaxAmt = tax
+        invoiceHeader.invoicHeadTax1Amt = tax1
+        invoiceHeader.invoicHeadTax2Amt = tax2
+        invoiceHeader.invoicHeadTotalTax = tax + tax1 + tax2
+        invoiceHeader.invoicHeadTotal = total
+        invoiceHeader.invoicHeadTotal1 = total
+    }
+}
