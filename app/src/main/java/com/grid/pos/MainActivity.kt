@@ -9,6 +9,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.rememberNavController
 import com.grid.pos.ui.login.LoginView
@@ -28,6 +29,7 @@ class MainActivity : ComponentActivity() {
         CoroutineScope(Dispatchers.IO).launch {
             DataStoreManager.initValues()
         }
+        window.setBackgroundDrawableResource(R.drawable.white_background)
         setContent {
             val navController = rememberNavController()
             GridPOSTheme {
