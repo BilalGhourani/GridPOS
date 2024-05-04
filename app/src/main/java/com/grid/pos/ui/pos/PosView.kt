@@ -18,7 +18,6 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
@@ -32,6 +31,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -57,7 +57,6 @@ import com.grid.pos.ui.pos.components.InvoiceCashView
 import com.grid.pos.ui.pos.components.InvoiceFooterView
 import com.grid.pos.ui.pos.components.InvoiceHeaderDetails
 import com.grid.pos.ui.theme.GridPOSTheme
-import com.grid.pos.ui.theme.White
 import com.grid.pos.utils.Utils
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -73,15 +72,14 @@ fun PosView(
     viewModel: POSViewModel = hiltViewModel()
 ) {
     val posState: POSState by viewModel.posState.collectAsState(activityViewModel.posState)
-    var invoicesState = remember { posState.invoices }
+    var invoicesState = remember { mutableStateListOf<InvoiceItemModel>() }
+    var invoiceHeaderState = remember { mutableStateOf(posState.invoiceHeader) }
     var isEditBottomSheetVisible by remember { mutableStateOf(false) }
     var isAddItemBottomSheetVisible by remember { mutableStateOf(false) }
     var isPayBottomSheetVisible by remember { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
     val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-
-    var orientation by remember { mutableStateOf(Configuration.ORIENTATION_PORTRAIT) }
-
+    var orientation by remember { mutableIntStateOf(Configuration.ORIENTATION_PORTRAIT) }
     val configuration = LocalConfiguration.current
     val isTablet = Utils.isTablet(LocalConfiguration.current)
     val isLandscape = orientation == Configuration.ORIENTATION_LANDSCAPE
@@ -108,7 +106,7 @@ fun PosView(
     }
     GridPOSTheme {
         Scaffold(
-            containerColor=SettingsModel.backgroundColor,
+            containerColor = SettingsModel.backgroundColor,
             topBar = {
                 Surface(shadowElevation = 3.dp, color = SettingsModel.backgroundColor) {
                     TopAppBar(
@@ -130,16 +128,17 @@ fun PosView(
                                 textAlign = TextAlign.Center
                             )
                         },
-                       /* actions = {
-                            IconButton(
-                                modifier = Modifier
-                                    .fillMaxHeight()
-                                    .padding(horizontal = 10.dp),
-                                onClick = { navController?.popBackStack() }
-                            ) {
-                                Text(text = "Back", color = SettingsModel.textColor)
-                            }
-                        }*/)
+                        /* actions = {
+                             IconButton(
+                                 modifier = Modifier
+                                     .fillMaxHeight()
+                                     .padding(horizontal = 10.dp),
+                                 onClick = { navController?.popBackStack() }
+                             ) {
+                                 Text(text = "Back", color = SettingsModel.textColor)
+                             }
+                         }*/
+                    )
                 }
             }
         ) {
@@ -176,35 +175,30 @@ fun PosView(
                             .border(borderStroke),
                         isLandscape = isTablet || isLandscape,
                         onDismiss = { index ->
-                            val invoices = invoicesState
-                            invoices.removeAt(index)
-                            posState.invoices = invoices
-                            posState.refreshValues()
-                            invoicesState = invoices
-                            isAddItemBottomSheetVisible = false
+                            invoicesState.removeAt(index)
+                            posState.invoices = invoicesState
+                            invoiceHeaderState.value = posState.refreshValues()
                         }
                     )
 
                     InvoiceFooterView(
-                        invoices = invoicesState,
-                        invoiceHeader = posState.invoiceHeader,
+                        invoiceHeader = invoiceHeaderState.value,
                         items = posState.items,
                         thirdParties = posState.thirdParties,
                         modifier = Modifier
                             .wrapContentWidth()
                             .height(250.dp),
-                        onItemSelected = {
+                        onItemSelected = { item ->
                             val invoiceItemModel = InvoiceItemModel()
-                            invoiceItemModel.setItem(it)
-                            val invoices = invoicesState
-                            invoices.add(invoiceItemModel)
-                            posState.invoices = invoices
-                            posState.refreshValues()
-                            invoicesState = invoices
+                            invoiceItemModel.setItem(item)
+                            invoicesState.add(invoiceItemModel)
+                            posState.invoices = invoicesState
+                            invoiceHeaderState.value = posState.refreshValues()
                             isAddItemBottomSheetVisible = false
                         },
-                        onThirdPartySelected = {
-                            posState.invoiceHeader.invoiceHeadThirdPartyName = it.thirdPartyId
+                        onThirdPartySelected = { thirdParty ->
+                            posState.invoiceHeader.invoiceHeadThirdPartyName =
+                                thirdParty.thirdPartyId
                         },
                     )
                 }
@@ -258,15 +252,15 @@ fun PosView(
                     .fillMaxWidth()
                     .fillMaxHeight(0.8f)
             ) { itemList ->
-                val invoices = invoicesState
+                val invoices = mutableListOf<InvoiceItemModel>()
                 itemList.forEach { item ->
                     val invoiceItemModel = InvoiceItemModel()
                     invoiceItemModel.setItem(item)
                     invoices.add(invoiceItemModel)
                 }
-                posState.invoices = invoices
-                posState.refreshValues()
-                invoicesState = invoices
+                invoicesState.addAll(invoices)
+                posState.invoices = invoicesState
+                invoiceHeaderState.value = posState.refreshValues()
                 isAddItemBottomSheetVisible = false
                 isEditBottomSheetVisible = false
             }

@@ -15,7 +15,7 @@ data class POSState(
     val isLoading: Boolean = false,
     val warning: String? = null,
 ) {
-    fun refreshValues() {
+    fun refreshValues(): InvoiceHeader {
         var tax = 0.0
         var tax1 = 0.0
         var tax2 = 0.0
@@ -32,5 +32,6 @@ data class POSState(
         invoiceHeader.invoicHeadTotalTax = tax + tax1 + tax2
         invoiceHeader.invoicHeadTotal = total
         invoiceHeader.invoicHeadTotal1 = total
+        return invoiceHeader
     }
 }

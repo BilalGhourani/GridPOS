@@ -48,7 +48,7 @@ fun InvoiceBodyDetails(
                 index = 0
             )
         }
-        invoices.forEachIndexed { index, invoiceItemModel ->
+        invoices.toMutableList().forEachIndexed { index, invoiceItemModel ->
             item {
                 val color = if (index % 2 == 0) Color.White else Color.LightGray
                 InvoiceItemCell(
