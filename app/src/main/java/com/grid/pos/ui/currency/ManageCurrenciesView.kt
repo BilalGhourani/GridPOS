@@ -262,6 +262,9 @@ fun ManageCurrenciesView(
                             imeAction = ImeAction.Done,
                             onAction = { keyboardController?.hide() }
                         ) { rateStr ->
+                            /*if (rateStr.isEmpty() || rateStr.matches(pattern)) {
+
+                            }*/
                             rateState = rateStr
                             manageCurrenciesState.selectedCurrency.currencyRate = rateState
                         }
