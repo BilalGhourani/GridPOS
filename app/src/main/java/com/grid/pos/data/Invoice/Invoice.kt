@@ -7,6 +7,7 @@ import androidx.room.PrimaryKey
 import com.grid.pos.data.DataModel
 import com.google.firebase.firestore.Exclude
 import com.google.firebase.firestore.PropertyName
+import com.grid.pos.utils.Utils
 import java.util.Date
 
 @Entity(tableName = "in_invoice")
@@ -155,6 +156,16 @@ data class Invoice(
     @Exclude
     override fun getName(): String {
         return ""
+    }
+
+    @Exclude
+    override fun prepareForInsert() {
+        if (invoiceId.isNullOrEmpty()) {
+            invoiceId = Utils.generateRandomUuidString()
+        }
+        val time = Utils.getDateinFormat()
+        invoicUserStamp = time
+        invoicTimeStamp = time
     }
 
     @Exclude

@@ -7,6 +7,7 @@ import androidx.room.PrimaryKey
 import com.grid.pos.data.DataModel
 import com.google.firebase.firestore.Exclude
 import com.google.firebase.firestore.PropertyName
+import com.grid.pos.utils.Utils
 import java.util.Date
 
 @Entity(tableName = "thirdparty")
@@ -96,9 +97,20 @@ data class ThirdParty(
     override fun getId(): String {
         return thirdPartyId
     }
+
     @Exclude
     override fun getName(): String {
         return thirdPartyName ?: ""
+    }
+
+    @Exclude
+    override fun prepareForInsert() {
+        if (thirdPartyId.isNullOrEmpty()) {
+            thirdPartyId = Utils.generateRandomUuidString()
+        }
+        val time = Utils.getDateinFormat()
+        thirdPartyUserStamp = time
+        thirdPartyTimeStamp = time
     }
 
     @Exclude

@@ -111,7 +111,7 @@ class ManageCompaniesViewModel @Inject constructor(
         }
         CoroutineScope(Dispatchers.IO).launch {
             if (isInserting) {
-                company.companyId = Utils.generateRandomUuidString()
+                company.prepareForInsert()
                 companyRepository.insert(company, callback)
             } else {
                 companyRepository.update(company, callback)

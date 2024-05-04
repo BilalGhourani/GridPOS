@@ -8,6 +8,7 @@ import com.grid.pos.data.DataModel
 import com.google.firebase.firestore.DocumentId
 import com.google.firebase.firestore.Exclude
 import com.google.firebase.firestore.PropertyName
+import com.grid.pos.utils.Utils
 
 @Entity(tableName = "set_users")
 data class User(
@@ -84,6 +85,13 @@ data class User(
     @Exclude
     override fun getName(): String {
         return userName ?: ""
+    }
+
+    @Exclude
+    override fun prepareForInsert() {
+        if (userId.isNullOrEmpty()) {
+            userId = Utils.generateRandomUuidString()
+        }
     }
 
     @Exclude

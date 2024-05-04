@@ -164,7 +164,7 @@ class ManageItemsViewModel @Inject constructor(
 
         CoroutineScope(Dispatchers.IO).launch {
             if (isInserting) {
-                item.itemId = Utils.generateRandomUuidString()
+                item.prepareForInsert()
                 itemRepository.insert(item, callback)
             } else {
                 itemRepository.update(item, callback)

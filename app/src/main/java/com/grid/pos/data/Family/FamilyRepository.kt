@@ -1,5 +1,6 @@
 package com.grid.pos.data.Family
 
+import android.net.Uri
 import com.grid.pos.interfaces.OnResult
 import kotlinx.coroutines.flow.Flow
 
@@ -19,6 +20,9 @@ interface FamilyRepository {
     suspend fun getFamilyById(id: String): Family
 
     // Get all Families as stream.
-   suspend fun getAllFamilies(callback: OnResult?)
+    suspend fun getAllFamilies(callback: OnResult?)
+
+    suspend fun uploadImage(id: String, imageUri: Uri, callback: OnResult?)
+     fun getDownloadUrl(imageUri: String): String
 
 }

@@ -7,6 +7,7 @@ import androidx.room.PrimaryKey
 import com.grid.pos.data.DataModel
 import com.google.firebase.firestore.Exclude
 import com.google.firebase.firestore.PropertyName
+import com.grid.pos.utils.Utils
 import org.jetbrains.annotations.NotNull
 
 @Entity(tableName = "st_family")
@@ -41,6 +42,14 @@ data class Family(
     @get:PropertyName("fa_cmp_id")
     var familyCompanyId: String? = null,
 
+    /**
+     * related Company Id
+     * */
+    @ColumnInfo(name = "fa_image")
+    @set:PropertyName("fa_image")
+    @get:PropertyName("fa_image")
+    var familyImage: String? = null,
+
     ) : DataModel() {
     constructor() : this("")
 
@@ -55,10 +64,18 @@ data class Family(
     }
 
     @Exclude
+    override fun prepareForInsert() {
+        if (familyId.isNullOrEmpty()) {
+            familyId = Utils.generateRandomUuidString()
+        }
+    }
+
+    @Exclude
     fun getMap(): Map<String, Any?> {
         return mapOf(
             "fa_name" to familyName,
-            "fa_cmp_id" to familyCompanyId
+            "fa_cmp_id" to familyCompanyId,
+            "fa_image" to familyImage
         )
     }
 }

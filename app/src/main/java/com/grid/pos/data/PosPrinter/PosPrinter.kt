@@ -7,6 +7,7 @@ import androidx.room.PrimaryKey
 import com.grid.pos.data.DataModel
 import com.google.firebase.firestore.Exclude
 import com.google.firebase.firestore.PropertyName
+import com.grid.pos.utils.Utils
 import java.util.Date
 
 @Entity(tableName = "pos_printer")
@@ -68,6 +69,13 @@ data class PosPrinter(
     @Exclude
     override fun getName(): String {
         return posPrinterName ?: ""
+    }
+
+    @Exclude
+    override fun prepareForInsert() {
+        if (posPrinterId.isNullOrEmpty()) {
+            posPrinterId = Utils.generateRandomUuidString()
+        }
     }
 
     @Exclude

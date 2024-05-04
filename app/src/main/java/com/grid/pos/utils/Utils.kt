@@ -16,6 +16,11 @@ import com.grid.pos.data.User.User
 import com.grid.pos.model.HomeSectionModel
 import java.io.BufferedReader
 import java.io.InputStreamReader
+import java.text.SimpleDateFormat
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import java.util.Date
+import java.util.Locale
 import java.util.UUID
 
 object Utils {
@@ -68,6 +73,12 @@ object Utils {
 
     fun generateRandomUuidString(): String {
         return UUID.randomUUID().toString()
+    }
+
+    fun getDateinFormat(date: Date = Date(), format: String = "dd MMMM yyyy, HH:mm:ss a"): String {
+        val parserFormat =
+            SimpleDateFormat(format, Locale.getDefault())
+        return parserFormat.format(date)
     }
 
     fun floatToColor(hue: Float, saturation: Float = 1f, brightness: Float = 1f): Color {

@@ -86,7 +86,7 @@ class ManageCurrenciesViewModel @Inject constructor(
         }
         CoroutineScope(Dispatchers.IO).launch {
             if (isInserting) {
-                currency.currencyId = Utils.generateRandomUuidString()
+                currency.prepareForInsert()
                 currencyRepository.insert(currency, callback)
             } else {
                 currencyRepository.update(currency, callback)

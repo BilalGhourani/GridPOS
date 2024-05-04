@@ -138,7 +138,7 @@ class POSViewModel @Inject constructor(
 
         CoroutineScope(Dispatchers.IO).launch {
             if (isInserting) {
-                invoiceHeader.invoiceHeadId = Utils.generateRandomUuidString()
+                invoiceHeader.prepareForInsert()
                 invoiceHeaderRepository.insert(invoiceHeader, callback)
             } else {
                 invoiceHeaderRepository.update(invoiceHeader, callback)
@@ -189,7 +189,7 @@ class POSViewModel @Inject constructor(
 
         CoroutineScope(Dispatchers.IO).launch {
             if (isInserting) {
-                invoice.invoiceId = Utils.generateRandomUuidString()
+                invoice.prepareForInsert()
                 invoiceRepository.insert(invoice, callback)
             } else {
                 invoiceRepository.update(invoice, callback)

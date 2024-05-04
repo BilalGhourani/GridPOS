@@ -112,7 +112,7 @@ class ManageUsersViewModel @Inject constructor(
         }
         CoroutineScope(Dispatchers.IO).launch {
             if (isInserting) {
-                user.userId = Utils.generateRandomUuidString()
+                user.prepareForInsert()
                 userRepository.insert(user, callback)
             } else {
                 userRepository.update(user, callback)

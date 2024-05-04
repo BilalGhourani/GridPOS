@@ -12,6 +12,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.grid.pos.ActivityScopedViewModel
+import com.grid.pos.MainActivity
 import com.grid.pos.ui.Item.ManageItemsView
 import com.grid.pos.ui.common.UIWebView
 import com.grid.pos.ui.company.ManageCompaniesView
@@ -29,6 +30,7 @@ import com.grid.pos.ui.user.ManageUsersView
 @Composable
 fun AuthNavGraph(
     navController: NavHostController,
+    mainActivity: MainActivity,
     activityViewModel: ActivityScopedViewModel,
     startDestination: String,
     modifier: Modifier = Modifier
@@ -47,7 +49,12 @@ fun AuthNavGraph(
         composable(route = "ManageCurrenciesView") { ManageCurrenciesView(navController) }
         composable(route = "ManageCompaniesView") { ManageCompaniesView(navController) }
         composable(route = "ManageUsersView") { ManageUsersView(navController) }
-        composable(route = "ManageFamiliesView") { ManageFamiliesView(navController) }
+        composable(route = "ManageFamiliesView") {
+            ManageFamiliesView(
+                navController = navController,
+                mainActivity = mainActivity
+            )
+        }
         composable(route = "ManageThirdPartiesView") { ManageThirdPartiesView(navController) }
         composable(route = "ManageItemsView") { ManageItemsView(navController) }
         composable(route = "PosView") { PosView(navController, activityViewModel) }

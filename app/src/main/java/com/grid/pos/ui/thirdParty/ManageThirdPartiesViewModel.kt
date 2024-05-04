@@ -115,7 +115,7 @@ class ManageThirdPartiesViewModel @Inject constructor(
         manageThirdPartiesState.value.selectedThirdParty.let {
             CoroutineScope(Dispatchers.IO).launch {
                 if (isInserting) {
-                    it.thirdPartyId = Utils.generateRandomUuidString()
+                    it.prepareForInsert()
                     thirdPartyRepository.insert(it, callback)
                 } else {
                     thirdPartyRepository.update(it, callback)
