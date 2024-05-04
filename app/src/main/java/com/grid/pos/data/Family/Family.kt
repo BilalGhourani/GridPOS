@@ -43,7 +43,7 @@ data class Family(
     var familyCompanyId: String? = null,
 
     /**
-     * related Company Id
+     * family image
      * */
     @ColumnInfo(name = "fa_image")
     @set:PropertyName("fa_image")

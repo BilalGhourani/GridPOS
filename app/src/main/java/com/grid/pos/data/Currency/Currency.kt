@@ -67,6 +67,22 @@ data class Currency(
     var currencyName2: String?=null,
 
     /**
+     * Currency Name 1 Decimal
+     * */
+    @ColumnInfo(name = "cur_name1decimal")
+    @set:PropertyName("cur_name1decimal")
+    @get:PropertyName("cur_name1decimal")
+    var currencyName1Dec: String?=null,
+
+    /**
+     * Currency Name 2 Decimal
+     * */
+    @ColumnInfo(name = "cur_name2decimal")
+    @set:PropertyName("cur_name2decimal")
+    @get:PropertyName("cur_name2decimal")
+    var currencyName2Dec: String?=null,
+
+    /**
      * Currency Rate
      * */
     @ColumnInfo(name = "cur_rate")
@@ -101,6 +117,8 @@ data class Currency(
             "cur_name1" to currencyName1,
             "cur_code2" to currencyCode2,
             "cur_name2" to currencyName2,
+            "cur_name1decimal" to currencyName1Dec,
+            "cur_name2decimal" to currencyName2Dec,
             "cur_rate" to currencyRate,
         )
     }

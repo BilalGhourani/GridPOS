@@ -67,14 +67,19 @@ fun ManageCurrenciesView(
     )
     val keyboardController = LocalSoftwareKeyboardController.current
     val curName1FocusRequester = remember { FocusRequester() }
+    val curName1DecFocusRequester = remember { FocusRequester() }
     val curCode2FocusRequester = remember { FocusRequester() }
     val curName2FocusRequester = remember { FocusRequester() }
+    val curName2DecFocusRequester = remember { FocusRequester() }
     val rateFocusRequester = remember { FocusRequester() }
 
+    val pattern = remember { Regex("^\\d*\\.?\\d*\$") }
     var curCode1State by remember { mutableStateOf("") }
     var curName1State by remember { mutableStateOf("") }
+    var curName1DecState by remember { mutableStateOf("") }
     var curCode2State by remember { mutableStateOf("") }
     var curName2State by remember { mutableStateOf("") }
+    var curName2DecState by remember { mutableStateOf("") }
     var rateState by remember { mutableStateOf("") }
 
     val snackbarHostState = remember { SnackbarHostState() }
@@ -90,7 +95,7 @@ fun ManageCurrenciesView(
     }
     GridPOSTheme {
         Scaffold(
-            containerColor=SettingsModel.backgroundColor,
+            containerColor = SettingsModel.backgroundColor,
             snackbarHost = {
                 SnackbarHost(hostState = snackbarHostState)
             },
@@ -172,16 +177,29 @@ fun ManageCurrenciesView(
 
                             UITextField(
                                 modifier = Modifier
-                                    .padding(10.dp)
-                                    .weight(.6f),
+                                    .padding(10.dp, 10.dp, 0.dp, 10.dp)
+                                    .weight(.5f),
                                 defaultValue = curName1State,
                                 label = "Cur1 Name",
                                 placeHolder = "Name",
                                 focusRequester = curName1FocusRequester,
-                                onAction = { curCode2FocusRequester.requestFocus() }
+                                onAction = { curName1DecFocusRequester.requestFocus() }
                             ) { curName1 ->
                                 curName1State = curName1
                                 manageCurrenciesState.selectedCurrency.currencyName1 = curName1
+                            }
+
+                            UITextField(
+                                modifier = Modifier
+                                    .padding(0.dp, 10.dp, 10.dp, 10.dp)
+                                    .weight(.2f),
+                                defaultValue = curName1DecState,
+                                label = "Decimal",
+                                focusRequester = curName1DecFocusRequester,
+                                onAction = { curCode2FocusRequester.requestFocus() }
+                            ) { curName1Dec ->
+                                curName1DecState = curName1Dec
+                                manageCurrenciesState.selectedCurrency.currencyName1Dec = curName1Dec
                             }
                         }
 
@@ -208,16 +226,29 @@ fun ManageCurrenciesView(
 
                             UITextField(
                                 modifier = Modifier
-                                    .padding(10.dp)
+                                    .padding(10.dp, 10.dp, 0.dp, 10.dp)
                                     .weight(.6f),
                                 defaultValue = curName2State,
                                 label = "Cur2 Name",
                                 placeHolder = "Name",
                                 focusRequester = curName2FocusRequester,
-                                onAction = { rateFocusRequester.requestFocus() }
+                                onAction = { curName2DecFocusRequester.requestFocus() }
                             ) { curName2 ->
                                 curName2State = curName2
                                 manageCurrenciesState.selectedCurrency.currencyName2 = curName2
+                            }
+
+                            UITextField(
+                                modifier = Modifier
+                                    .padding(0.dp, 10.dp, 10.dp, 10.dp)
+                                    .weight(.2f),
+                                defaultValue = curName2DecState,
+                                label = "Decimal",
+                                focusRequester = curName2DecFocusRequester,
+                                onAction = { rateFocusRequester.requestFocus() }
+                            ) { curName2Dec ->
+                                curName2DecState = curName2Dec
+                                manageCurrenciesState.selectedCurrency.currencyName2Dec = curName2Dec
                             }
                         }
 
@@ -279,11 +310,11 @@ fun ManageCurrenciesView(
         )
         if (manageCurrenciesState.clear) {
             manageCurrenciesState.selectedCurrency = Currency()
-            curCode1State =  ""
-            curName1State =  ""
-            curCode2State =  ""
+            curCode1State = ""
+            curName1State = ""
+            curCode2State = ""
             curName2State = ""
-            rateState =  ""
+            rateState = ""
             manageCurrenciesState.clear = false
         }
     }

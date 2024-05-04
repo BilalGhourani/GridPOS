@@ -122,6 +122,14 @@ data class Item(
     var itemPos: Boolean = false,
 
     /**
+     * family image
+     * */
+    @ColumnInfo(name = "it_image")
+    @set:PropertyName("it_image")
+    @get:PropertyName("it_image")
+    var itemImage: String? = null,
+
+    /**
      * Item button color
      * */
     @ColumnInfo(name = "it_btncolor")
@@ -191,6 +199,7 @@ data class Item(
             "it_openqty" to itemOpenQty,
             "it_opencost" to itemOpenCost,
             "it_pos" to itemPos,
+            "it_image" to itemImage,
             "it_btncolor" to itemBtnColor,
             "it_btntextcolor" to itemBtnTextColor,
             "it_userstamp" to itemUserStamp,
