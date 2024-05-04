@@ -51,16 +51,19 @@ fun SettingsView(
 ) {
     var buttonColorState by remember { mutableStateOf(SettingsModel.buttonColor) }
     var buttonTextColorState by remember { mutableStateOf(SettingsModel.buttonTextColor) }
-    var isForText by remember { mutableStateOf(false) }
+    var backgroundColorState by remember { mutableStateOf(SettingsModel.buttonTextColor) }
+    var textColorState by remember { mutableStateOf(SettingsModel.buttonTextColor) }
+    var colorPickerType by remember { mutableStateOf(ColorPickerType.BUTTON_COLOR) }
     var isColorPickerShown by remember { mutableStateOf(false) }
     var loadFromRemote by remember { mutableStateOf(SettingsModel.loadFromRemote) }
     var hideTaxInputs by remember { mutableStateOf(SettingsModel.hideTaxInputs) }
+    var showPriceInItemBtn by remember { mutableStateOf(SettingsModel.showPriceInItemBtn) }
     val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     GridPOSTheme {
         Scaffold(
             topBar = {
-                Surface(shadowElevation = 3.dp, color = Color.White) {
+                Surface(shadowElevation = 3.dp, color = backgroundColorState) {
                     TopAppBar(
                         navigationIcon = {
                             IconButton(onClick = { navController?.popBackStack() }) {
@@ -73,7 +76,7 @@ fun SettingsView(
                         title = {
                             Text(
                                 text = "Settings",
-                                color = Color.Black,
+                                color = textColorState,
                                 fontSize = 16.sp,
                                 textAlign = TextAlign.Center
                             )
@@ -89,28 +92,56 @@ fun SettingsView(
                 UIButton(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(60.dp)
+                        .height(70.dp)
                         .padding(10.dp),
                     text = "Button Color",
                     buttonColor = buttonColorState,
                     textColor = buttonTextColorState
                 ) {
-                    isForText = false
+                    colorPickerType = ColorPickerType.BUTTON_COLOR
                     isColorPickerShown = true
                 }
 
                 UIButton(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(60.dp)
+                        .height(70.dp)
                         .padding(10.dp),
                     text = "Button Text Color",
                     buttonColor = buttonColorState,
                     textColor = buttonTextColorState
                 ) {
-                    isForText = true
+                    colorPickerType = ColorPickerType.BUTTON_TEXT_COLOR
                     isColorPickerShown = true
                 }
+
+                UIButton(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(70.dp)
+                        .padding(10.dp),
+                    text = "Background Color",
+                    buttonColor = buttonColorState,
+                    textColor = buttonTextColorState
+                ) {
+                    colorPickerType = ColorPickerType.BACKGROUND_COLOR
+                    isColorPickerShown = true
+                }
+
+                UIButton(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(70.dp)
+                        .padding(10.dp),
+                    text = "Text Color",
+                    buttonColor = buttonColorState,
+                    textColor = buttonTextColorState
+                ) {
+                    colorPickerType = ColorPickerType.TEXT_COLOR
+                    isColorPickerShown = true
+                }
+
+
 
                 UISwitch(
                     modifier = Modifier
@@ -147,6 +178,24 @@ fun SettingsView(
                         )
                     }
                 }
+
+                UISwitch(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(60.dp)
+                        .padding(10.dp),
+                    checked = showPriceInItemBtn,
+                    text = "Show Price in Item Button",
+                ) {
+                    showPriceInItemBtn = it
+                    SettingsModel.showPriceInItemBtn = it
+                    CoroutineScope(Dispatchers.IO).launch {
+                        DataStoreManager.putBoolean(
+                            DataStoreManager.DataStoreKeys.SHOW_PRICE_IN_ITEM_BTN.key,
+                            it
+                        )
+                    }
+                }
             }
         }
         if (isColorPickerShown) {
@@ -164,29 +213,56 @@ fun SettingsView(
                     modifier = Modifier
                         .fillMaxWidth()
                         .fillMaxHeight(0.5f),
-                    defaultColor = if (isForText) {
-                        buttonTextColorState
-                    } else {
-                        buttonColorState
+                    defaultColor = when (colorPickerType) {
+                        ColorPickerType.BUTTON_COLOR -> buttonColorState
+                        ColorPickerType.BUTTON_TEXT_COLOR -> buttonTextColorState
+                        ColorPickerType.BACKGROUND_COLOR -> backgroundColorState
+                        ColorPickerType.TEXT_COLOR -> textColorState
                     }
                 ) {
-                    if (isForText) {
-                        buttonTextColorState = it
-                        SettingsModel.buttonTextColor = it
-                        CoroutineScope(Dispatchers.IO).launch {
-                            DataStoreManager.putString(
-                                DataStoreManager.DataStoreKeys.BUTTON_TEXT_COLOR.key,
-                                it.toHexCode()
-                            )
+                    when (colorPickerType) {
+                        ColorPickerType.BUTTON_COLOR -> {
+                            buttonColorState = it
+                            SettingsModel.buttonColor = it
+                            CoroutineScope(Dispatchers.IO).launch {
+                                DataStoreManager.putString(
+                                    DataStoreManager.DataStoreKeys.BUTTON_COLOR.key,
+                                    it.toHexCode()
+                                )
+                            }
                         }
-                    } else {
-                        buttonColorState = it
-                        SettingsModel.buttonColor = it
-                        CoroutineScope(Dispatchers.IO).launch {
-                            DataStoreManager.putString(
-                                DataStoreManager.DataStoreKeys.BUTTON_COLOR.key,
-                                it.toHexCode()
-                            )
+
+                        ColorPickerType.BUTTON_TEXT_COLOR -> {
+                            buttonTextColorState = it
+                            SettingsModel.buttonTextColor = it
+                            CoroutineScope(Dispatchers.IO).launch {
+                                DataStoreManager.putString(
+                                    DataStoreManager.DataStoreKeys.BUTTON_TEXT_COLOR.key,
+                                    it.toHexCode()
+                                )
+                            }
+                        }
+
+                        ColorPickerType.BACKGROUND_COLOR -> {
+                            backgroundColorState = it
+                            SettingsModel.backgroundColor = it
+                            CoroutineScope(Dispatchers.IO).launch {
+                                DataStoreManager.putString(
+                                    DataStoreManager.DataStoreKeys.BACKGROUND_COLOR.key,
+                                    it.toHexCode()
+                                )
+                            }
+                        }
+
+                        ColorPickerType.TEXT_COLOR -> {
+                            textColorState = it
+                            SettingsModel.textColor = it
+                            CoroutineScope(Dispatchers.IO).launch {
+                                DataStoreManager.putString(
+                                    DataStoreManager.DataStoreKeys.TEXT_COLOR.key,
+                                    it.toHexCode()
+                                )
+                            }
                         }
                     }
                     isColorPickerShown = false
@@ -194,4 +270,11 @@ fun SettingsView(
             }
         }
     }
+}
+
+enum class ColorPickerType(val key: String) {
+    BUTTON_COLOR("BUTTON_COLOR"),
+    BUTTON_TEXT_COLOR("BUTTON_TEXT_COLOR"),
+    BACKGROUND_COLOR("BACKGROUND_COLOR"),
+    TEXT_COLOR("TEXT_COLOR")
 }

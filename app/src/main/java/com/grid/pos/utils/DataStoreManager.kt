@@ -132,7 +132,10 @@ object DataStoreManager {
     enum class DataStoreKeys(val key: String) {
         BUTTON_COLOR("BUTTON_COLOR"),
         BUTTON_TEXT_COLOR("BUTTON_TEXT_COLOR"),
+        BACKGROUND_COLOR("BACKGROUND_COLOR"),
+        TEXT_COLOR("TEXT_COLOR"),
         LOAD_FROM_REMOTE("LOAD_FROM_REMOTE"),
         HIDE_TAX_INPUTS("HIDE_TAX_INPUTS"),
+        SHOW_PRICE_IN_ITEM_BTN("SHOW_PRICE_IN_ITEM_BTN"),
     }
 }

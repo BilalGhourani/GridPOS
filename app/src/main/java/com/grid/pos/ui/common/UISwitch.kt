@@ -24,11 +24,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.grid.pos.model.SettingsModel
 
 @Composable
 fun UISwitch(
     modifier: Modifier = Modifier,
     text: String = "Checked",
+    textColor: Color = SettingsModel.textColor,
     checked: Boolean = false,
     onCheckedChange: ((Boolean) -> Unit)?
 ) {
@@ -47,7 +49,7 @@ fun UISwitch(
                 fontWeight = FontWeight.Bold,
                 fontSize = 16.sp
             ),
-            color = Color.Black
+            color = textColor
         )
 
         Switch(
