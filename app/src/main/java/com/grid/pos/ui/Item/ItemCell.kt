@@ -22,6 +22,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.toColorInt
 import com.grid.pos.data.Item.Item
+import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.ui.theme.Red
 
@@ -54,27 +55,28 @@ fun ItemCell(
                 val price = item.itemUnitPrice.toString() ?: "0.0"
                 Text(
                     text = item.itemName ?: "",
-                    color = Color.White,
+                    color = SettingsModel.textColor,
                     modifier = Modifier
                         .padding(5.dp),
                     textAlign = TextAlign.Center
                 )
+                if (SettingsModel.showPriceInItemBtn) {
+                    Text(
+                        text = "$price US",
+                        color = SettingsModel.textColor,
+                        modifier = Modifier
+                            .padding(5.dp),
+                        textAlign = TextAlign.Center
+                    )
 
-                Text(
-                    text = "$price US",
-                    color = Color.White,
-                    modifier = Modifier
-                        .padding(5.dp),
-                    textAlign = TextAlign.Center
-                )
-
-                Text(
-                    text = "DOLLAR",
-                    color = Color.White,
-                    modifier = Modifier
-                        .padding(5.dp),
-                    textAlign = TextAlign.Center
-                )
+                    Text(
+                        text = "DOLLAR",
+                        color = SettingsModel.textColor,
+                        modifier = Modifier
+                            .padding(5.dp),
+                        textAlign = TextAlign.Center
+                    )
+                }
             }
         }
 }

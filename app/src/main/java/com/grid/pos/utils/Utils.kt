@@ -6,6 +6,7 @@ import android.print.PrintAttributes
 import android.print.PrintAttributes.MediaSize
 import android.print.PrintManager
 import android.webkit.WebView
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.grid.pos.data.DataModel
@@ -67,6 +68,12 @@ object Utils {
 
     fun generateRandomUuidString(): String {
         return UUID.randomUUID().toString()
+    }
+
+    fun floatToColor(hue: Float, saturation: Float = 1f, brightness: Float = 1f): Color {
+        // Convert HSV to RGB
+        val hsv = floatArrayOf(hue, saturation, brightness)
+        return Color(android.graphics.Color.HSVToColor(hsv))
     }
 
     fun generateNameFromUsername(username: String): String {

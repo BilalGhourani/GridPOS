@@ -20,6 +20,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -44,6 +45,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
 import com.grid.pos.data.DataModel
+import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.utils.Utils
 
@@ -110,7 +112,12 @@ fun SearchableDropdownMenu(
                                 onValueChange = {
                                     searchText = it
                                 },
-                                label = { Text("Search for an User") }
+                                label = {
+                                    Text(
+                                        "Search for an User",
+                                        color = SettingsModel.textColor
+                                    )
+                                }
                             )
                         },
                         onClick = {},
@@ -118,7 +125,12 @@ fun SearchableDropdownMenu(
                     filteredItems.forEach { item ->
                         val text = item.getName()
                         DropdownMenuItem(
-                            text = { Text(text = text) },
+                            text = {
+                                Text(
+                                    text = text,
+                                    color = SettingsModel.textColor
+                                )
+                            },
                             onClick = {
                                 onSelectionChange(item)
                                 searchText = text

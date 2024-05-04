@@ -2,6 +2,8 @@ package com.grid.pos.ui.settings
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -17,7 +19,10 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarColors
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -30,8 +35,11 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
 import com.grid.pos.model.SettingsModel
+import com.grid.pos.ui.common.ColorPickerPopup
+import com.grid.pos.ui.common.HueBar
 import com.grid.pos.ui.common.UIButton
 import com.grid.pos.ui.common.UIColorPicker
 import com.grid.pos.ui.common.UISwitch
@@ -51,6 +59,7 @@ fun SettingsView(
 ) {
     var buttonColorState by remember { mutableStateOf(SettingsModel.buttonColor) }
     var buttonTextColorState by remember { mutableStateOf(SettingsModel.buttonTextColor) }
+    var topBarColorState by remember { mutableStateOf(SettingsModel.topBarColor) }
     var backgroundColorState by remember { mutableStateOf(SettingsModel.buttonTextColor) }
     var textColorState by remember { mutableStateOf(SettingsModel.buttonTextColor) }
     var colorPickerType by remember { mutableStateOf(ColorPickerType.BUTTON_COLOR) }
@@ -58,18 +67,21 @@ fun SettingsView(
     var loadFromRemote by remember { mutableStateOf(SettingsModel.loadFromRemote) }
     var hideTaxInputs by remember { mutableStateOf(SettingsModel.hideTaxInputs) }
     var showPriceInItemBtn by remember { mutableStateOf(SettingsModel.showPriceInItemBtn) }
-    val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    //val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     GridPOSTheme {
         Scaffold(
+            containerColor=SettingsModel.backgroundColor,
             topBar = {
                 Surface(shadowElevation = 3.dp, color = backgroundColorState) {
                     TopAppBar(
+                        colors = TopAppBarDefaults.mediumTopAppBarColors(containerColor = SettingsModel.topBarColor),
                         navigationIcon = {
                             IconButton(onClick = { navController?.popBackStack() }) {
                                 Icon(
                                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                    contentDescription = "Back"
+                                    contentDescription = "Back",
+                                    tint = SettingsModel.buttonColor
                                 )
                             }
                         },
@@ -120,6 +132,19 @@ fun SettingsView(
                         .fillMaxWidth()
                         .height(70.dp)
                         .padding(10.dp),
+                    text = "Top Bar Color",
+                    buttonColor = buttonColorState,
+                    textColor = buttonTextColorState
+                ) {
+                    colorPickerType = ColorPickerType.TOP_BAR_COLOR
+                    isColorPickerShown = true
+                }
+
+                UIButton(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(70.dp)
+                        .padding(10.dp),
                     text = "Background Color",
                     buttonColor = buttonColorState,
                     textColor = buttonTextColorState
@@ -150,6 +175,7 @@ fun SettingsView(
                         .padding(10.dp),
                     checked = loadFromRemote,
                     text = "Load From Remote",
+                    textColor=textColorState
                 ) {
                     loadFromRemote = it
                     SettingsModel.loadFromRemote = it
@@ -168,6 +194,7 @@ fun SettingsView(
                         .padding(10.dp),
                     checked = hideTaxInputs,
                     text = "Hide Tax Inputs",
+                    textColor=textColorState
                 ) {
                     hideTaxInputs = it
                     SettingsModel.hideTaxInputs = it
@@ -186,6 +213,7 @@ fun SettingsView(
                         .padding(10.dp),
                     checked = showPriceInItemBtn,
                     text = "Show Price in Item Button",
+                    textColor=textColorState
                 ) {
                     showPriceInItemBtn = it
                     SettingsModel.showPriceInItemBtn = it
@@ -199,10 +227,84 @@ fun SettingsView(
             }
         }
         if (isColorPickerShown) {
-            ModalBottomSheet(
+            Dialog(
+                onDismissRequest = { isColorPickerShown = false },
+            ) {
+                ColorPickerPopup(
+                    defaultColor = when (colorPickerType) {
+                        ColorPickerType.BUTTON_COLOR -> buttonColorState
+                        ColorPickerType.BUTTON_TEXT_COLOR -> buttonTextColorState
+                        ColorPickerType.BACKGROUND_COLOR -> backgroundColorState
+                        ColorPickerType.TOP_BAR_COLOR -> topBarColorState
+                        ColorPickerType.TEXT_COLOR -> textColorState
+                    },
+                    onDismiss = { isColorPickerShown = false },
+                    onSubmit = {
+                        when (colorPickerType) {
+                            ColorPickerType.BUTTON_COLOR -> {
+                                buttonColorState = it
+                                SettingsModel.buttonColor = it
+                                CoroutineScope(Dispatchers.IO).launch {
+                                    DataStoreManager.putString(
+                                        DataStoreManager.DataStoreKeys.BUTTON_COLOR.key,
+                                        it.toHexCode()
+                                    )
+                                }
+                            }
+
+                            ColorPickerType.BUTTON_TEXT_COLOR -> {
+                                buttonTextColorState = it
+                                SettingsModel.buttonTextColor = it
+                                CoroutineScope(Dispatchers.IO).launch {
+                                    DataStoreManager.putString(
+                                        DataStoreManager.DataStoreKeys.BUTTON_TEXT_COLOR.key,
+                                        it.toHexCode()
+                                    )
+                                }
+                            }
+
+                            ColorPickerType.BACKGROUND_COLOR -> {
+                                backgroundColorState = it
+                                SettingsModel.backgroundColor = it
+                                CoroutineScope(Dispatchers.IO).launch {
+                                    DataStoreManager.putString(
+                                        DataStoreManager.DataStoreKeys.BACKGROUND_COLOR.key,
+                                        it.toHexCode()
+                                    )
+                                }
+                            }
+
+                            ColorPickerType.TOP_BAR_COLOR -> {
+                                topBarColorState = it
+                                SettingsModel.topBarColor = it
+                                CoroutineScope(Dispatchers.IO).launch {
+                                    DataStoreManager.putString(
+                                        DataStoreManager.DataStoreKeys.TOP_BAR_COLOR.key,
+                                        it.toHexCode()
+                                    )
+                                }
+                            }
+
+                            ColorPickerType.TEXT_COLOR -> {
+                                textColorState = it
+                                SettingsModel.textColor = it
+                                CoroutineScope(Dispatchers.IO).launch {
+                                    DataStoreManager.putString(
+                                        DataStoreManager.DataStoreKeys.TEXT_COLOR.key,
+                                        it.toHexCode()
+                                    )
+                                }
+                            }
+                        }
+                        isColorPickerShown = false
+                    }
+                )
+
+            }
+            /*ModalBottomSheet(
                 onDismissRequest = { isColorPickerShown = false },
                 sheetState = bottomSheetState,
-                containerColor = Color.White,
+                containerColor = SettingsModel.backgroundColor,
                 contentColor = White,
                 shape = RectangleShape,
                 dragHandle = null,
@@ -267,7 +369,7 @@ fun SettingsView(
                     }
                     isColorPickerShown = false
                 }
-            }
+            }*/
         }
     }
 }
@@ -275,6 +377,7 @@ fun SettingsView(
 enum class ColorPickerType(val key: String) {
     BUTTON_COLOR("BUTTON_COLOR"),
     BUTTON_TEXT_COLOR("BUTTON_TEXT_COLOR"),
+    TOP_BAR_COLOR("TOP_BAR_COLOR"),
     BACKGROUND_COLOR("BACKGROUND_COLOR"),
     TEXT_COLOR("TEXT_COLOR")
 }

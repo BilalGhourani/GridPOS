@@ -90,7 +90,8 @@ fun InvoiceItemCell(
                     .wrapContentHeight(align = Alignment.CenterVertically)
             },
             textAlign = TextAlign.Center,
-            style = textStyle
+            style = textStyle,
+            color = SettingsModel.textColor
         )
         VerticalDivider(
             color = Color.Black,
@@ -100,7 +101,8 @@ fun InvoiceItemCell(
             text = if (isHeader) "Count" else invoiceItemModel.getQuantity().toString(),
             modifier = modifier,
             textAlign = TextAlign.Center,
-            style = textStyle
+            style = textStyle,
+            color = SettingsModel.textColor
         )
         VerticalDivider(
             color = Color.Black,
@@ -110,7 +112,8 @@ fun InvoiceItemCell(
             text = if (isHeader) "Price" else invoiceItemModel.getPrice().toString(),
             modifier = modifier,
             textAlign = TextAlign.Center,
-            style = textStyle
+            style = textStyle,
+            color = SettingsModel.textColor
         )
         VerticalDivider(
             color = Color.Black,
@@ -120,7 +123,8 @@ fun InvoiceItemCell(
             text = if (isHeader) "Dis%" else invoiceItemModel.getDiscount().toString(),
             modifier = modifier,
             textAlign = TextAlign.Center,
-            style = textStyle
+            style = textStyle,
+            color = SettingsModel.textColor
         )
         if (!SettingsModel.hideTaxInputs) {
             VerticalDivider(
@@ -131,7 +135,8 @@ fun InvoiceItemCell(
                 text = if (isHeader) "Tax" else invoiceItemModel.getTax().toString(),
                 modifier = modifier,
                 textAlign = TextAlign.Center,
-                style = textStyle
+                style = textStyle,
+                color = SettingsModel.textColor
             )
             VerticalDivider(
                 color = Color.Black,
@@ -141,7 +146,8 @@ fun InvoiceItemCell(
                 text = if (isHeader) "Tax1" else invoiceItemModel.getTax1().toString(),
                 modifier = modifier,
                 textAlign = TextAlign.Center,
-                style = textStyle
+                style = textStyle,
+                color = SettingsModel.textColor
             )
             VerticalDivider(
                 color = Color.Black,
@@ -151,7 +157,8 @@ fun InvoiceItemCell(
                 text = if (isHeader) "Tax2" else invoiceItemModel.getTax2().toString(),
                 modifier = modifier,
                 textAlign = TextAlign.Center,
-                style = textStyle
+                style = textStyle,
+                color = SettingsModel.textColor
             )
         }
         VerticalDivider(
@@ -162,7 +169,8 @@ fun InvoiceItemCell(
             text = if (isHeader) "Amount" else invoiceItemModel.getAmount().toString(),
             modifier = modifier,
             textAlign = TextAlign.Center,
-            style = textStyle
+            style = textStyle,
+            color = SettingsModel.textColor
         )
         VerticalDivider(
             modifier = dividerModifier,
@@ -173,7 +181,8 @@ fun InvoiceItemCell(
                 text = "Actions",
                 modifier = actionsModifier,
                 textAlign = TextAlign.Center,
-                style = textStyle
+                style = textStyle,
+                color = SettingsModel.textColor
             )
         } else {
             IconButton(

@@ -16,7 +16,10 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import com.grid.pos.model.SettingsModel
 
 @Composable
 fun UITextField(
@@ -30,6 +33,7 @@ fun UITextField(
     keyboardType: KeyboardType = KeyboardType.Text,
     imeAction: ImeAction = ImeAction.Next,
     onAction: KeyboardActionScope.() -> Unit = {},
+    visualTransformation: VisualTransformation = VisualTransformation.None,
     maxLines: Int = 1,
     leadingIcon: @Composable (() -> Unit)? = null,
     trailingIcon: @Composable (() -> Unit)? = null,
@@ -45,7 +49,9 @@ fun UITextField(
             onValueChange = {
                 onValueChange(it)
             },
-            label = { label?.let { Text(text = label) }.run { null } },
+            label = {
+                label?.let { Text(text = label, color = SettingsModel.textColor) }.run { null }
+            },
             placeholder = { placeHolder?.let { Text(text = placeHolder) }.run { null } },
             modifier = Modifier
                 .fillMaxSize()
@@ -68,6 +74,7 @@ fun UITextField(
             singleLine = maxLines == 1,
             leadingIcon = leadingIcon,
             trailingIcon = trailingIcon,
+            visualTransformation = visualTransformation
         )
     }
 }

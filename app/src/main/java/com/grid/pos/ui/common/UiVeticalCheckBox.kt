@@ -13,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.grid.pos.model.SettingsModel
 
 @Composable
 fun UiVerticalCheckBox(
@@ -29,7 +30,8 @@ fun UiVerticalCheckBox(
     ) {
         Text(
             modifier = Modifier,
-            text = label
+            text = label,
+            color = SettingsModel.textColor
         )
 
         Spacer(modifier = Modifier.size(3.dp))

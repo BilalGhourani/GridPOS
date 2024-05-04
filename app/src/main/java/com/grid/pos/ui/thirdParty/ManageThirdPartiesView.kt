@@ -23,6 +23,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -44,6 +45,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.grid.pos.data.Company.Company
 import com.grid.pos.data.ThirdParty.ThirdParty
+import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.LoadingIndicator
 import com.grid.pos.ui.common.SearchableDropdownMenu
 import com.grid.pos.ui.common.UIButton
@@ -89,21 +91,24 @@ fun ManageThirdPartiesView(
     }
     GridPOSTheme {
         Scaffold(
+            containerColor=SettingsModel.backgroundColor,
             topBar = {
-                Surface(shadowElevation = 3.dp, color = Color.White) {
+                Surface(shadowElevation = 3.dp, color = SettingsModel.backgroundColor) {
                     TopAppBar(
+                        colors = TopAppBarDefaults.mediumTopAppBarColors(containerColor = SettingsModel.topBarColor),
                         navigationIcon = {
                             IconButton(onClick = { navController?.popBackStack() }) {
                                 Icon(
                                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                    contentDescription = "Back"
+                                    contentDescription = "Back",
+                                    tint = SettingsModel.buttonColor
                                 )
                             }
                         },
                         title = {
                             Text(
                                 text = "Manage Third Parties",
-                                color = Color.Black,
+                                color = SettingsModel.textColor,
                                 fontSize = 16.sp,
                                 textAlign = TextAlign.Center
                             )

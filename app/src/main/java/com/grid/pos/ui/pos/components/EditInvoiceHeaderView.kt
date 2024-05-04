@@ -24,6 +24,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -47,6 +48,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.UIButton
 import com.grid.pos.ui.common.UITextField
 import com.grid.pos.ui.theme.Blue
@@ -93,7 +95,7 @@ fun EditInvoiceHeaderView(
                 value = price,
                 onValueChange = { price = it },
                 modifier = Modifier.weight(1f),
-                label = { Text("Price") },
+                label = { Text("Price", color = SettingsModel.textColor) },
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Number,
                     imeAction = ImeAction.Next
@@ -117,7 +119,8 @@ fun EditInvoiceHeaderView(
                             Text(
                                 text = "Qty",
                                 modifier = Modifier.fillMaxWidth(),
-                                textAlign = TextAlign.Center
+                                textAlign = TextAlign.Center,
+                                color = SettingsModel.textColor
                             )
                         }
                     }
@@ -130,12 +133,14 @@ fun EditInvoiceHeaderView(
                 keyboardActions = KeyboardActions(onNext = { /* Move focus to next field */ }),
                 leadingIcon = {
                     IconButton(onClick = { qty++ }) {
-                        Icon(Icons.Default.Add, contentDescription = "Increase quantity")
+                        Icon(Icons.Default.Add, contentDescription = "Increase quantity",
+                            tint = SettingsModel.buttonColor)
                     }
                 },
                 trailingIcon = {
                     IconButton(onClick = { if (qty > 1) qty-- }) {
-                        Icon(Icons.Default.Remove, contentDescription = "Decrease quantity")
+                        Icon(Icons.Default.Remove, contentDescription = "Decrease quantity",
+                            tint = SettingsModel.buttonColor)
                     }
                 }
             )
@@ -147,7 +152,7 @@ fun EditInvoiceHeaderView(
                 fontWeight = FontWeight.Bold,
                 fontSize = 16.sp
             ),
-            color = Color.Black
+            color = SettingsModel.textColor
         )
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -159,13 +164,13 @@ fun EditInvoiceHeaderView(
                     .width(60.dp)
                     .height(60.dp)
                     .wrapContentHeight(align = Alignment.CenterVertically),
-                color = Color.Black
+                color = SettingsModel.textColor
             )
             OutlinedTextField(
                 value = rDiscount1,
                 onValueChange = { rDiscount1 = it },
                 placeholder = {
-                    Text(text = "0.0")
+                    Text(text = "0.0",)
                 },
                 modifier = Modifier
                     .weight(1f)
@@ -203,7 +208,7 @@ fun EditInvoiceHeaderView(
                     .width(60.dp)
                     .height(60.dp)
                     .wrapContentHeight(align = Alignment.CenterVertically),
-                color = Color.Black
+                color = SettingsModel.textColor
             )
             OutlinedTextField(
                 value = discount1,

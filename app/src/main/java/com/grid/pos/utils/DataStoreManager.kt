@@ -117,12 +117,27 @@ object DataStoreManager {
     suspend fun initSettingsModel() {
         val buttonColor = getString(DataStoreKeys.BUTTON_COLOR.key)
         val buttonTextColor = getString(DataStoreKeys.BUTTON_TEXT_COLOR.key)
+        val topBarColor = getString(DataStoreKeys.TOP_BAR_COLOR.key)
+        val backgroundColor = getString(DataStoreKeys.BACKGROUND_COLOR.key)
+        val textColor = getString(DataStoreKeys.TEXT_COLOR.key)
         if (buttonColor?.isNullOrEmpty() == false) {
             SettingsModel.buttonColor = Color(buttonColor.toColorInt())
         }
 
         if (buttonTextColor?.isNullOrEmpty() == false) {
             SettingsModel.buttonTextColor = Color(buttonTextColor.toColorInt())
+        }
+
+        if (topBarColor?.isNullOrEmpty() == false) {
+            SettingsModel.topBarColor = Color(topBarColor.toColorInt())
+        }
+
+        if (backgroundColor?.isNullOrEmpty() == false) {
+            SettingsModel.backgroundColor = Color(backgroundColor.toColorInt())
+        }
+
+        if (textColor?.isNullOrEmpty() == false) {
+            SettingsModel.textColor = Color(textColor.toColorInt())
         }
         SettingsModel.loadFromRemote = getBoolean(DataStoreKeys.LOAD_FROM_REMOTE.key, true) == true
         SettingsModel.hideTaxInputs = getBoolean(DataStoreKeys.HIDE_TAX_INPUTS.key) == true
@@ -133,6 +148,7 @@ object DataStoreManager {
         BUTTON_COLOR("BUTTON_COLOR"),
         BUTTON_TEXT_COLOR("BUTTON_TEXT_COLOR"),
         BACKGROUND_COLOR("BACKGROUND_COLOR"),
+        TOP_BAR_COLOR("TOP_BAR_COLOR"),
         TEXT_COLOR("TEXT_COLOR"),
         LOAD_FROM_REMOTE("LOAD_FROM_REMOTE"),
         HIDE_TAX_INPUTS("HIDE_TAX_INPUTS"),

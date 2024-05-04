@@ -25,6 +25,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.grid.pos.data.Family.Family
 import com.grid.pos.data.Item.Item
+import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.Item.ItemListCell
 import com.grid.pos.ui.family.CategoryListCell
 import com.grid.pos.ui.theme.Grey
@@ -63,7 +64,7 @@ fun AddInvoiceItemView(
                     .padding(horizontal = 10.dp),
                 onClick = { onSelect.invoke(itemsState) }
             ) {
-                Text(text = "Done", color = Color.Black)
+                Text(text = "Done", color = SettingsModel.textColor)
             }
         }
         Spacer(modifier = Modifier.height(5.dp))

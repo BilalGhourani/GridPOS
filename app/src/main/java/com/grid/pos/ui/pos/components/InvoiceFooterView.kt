@@ -101,44 +101,44 @@ fun InvoiceFooterView(
                     modifier = Modifier.wrapContentWidth(),
                     horizontalArrangement = Arrangement.Absolute.Left
                 ) {
-                    Text(text = "Tax:")
+                    Text(text = "Tax:", color = SettingsModel.textColor)
                     Spacer(modifier = Modifier.width(5.dp))
-                    Text(text = taxState)
+                    Text(text = taxState, color = SettingsModel.textColor)
                     Spacer(modifier = Modifier.width(5.dp))
-                    Text(text = curState)
+                    Text(text = curState, color = SettingsModel.textColor)
                 }
 
                 Row(
                     modifier = Modifier.wrapContentWidth(),
                     horizontalArrangement = Arrangement.Absolute.Left
                 ) {
-                    Text(text = "Tax1:")
+                    Text(text = "Tax1:", color = SettingsModel.textColor)
                     Spacer(modifier = Modifier.width(5.dp))
-                    Text(text = tax1State)
+                    Text(text = tax1State, color = SettingsModel.textColor)
                     Spacer(modifier = Modifier.width(5.dp))
-                    Text(text = curState)
+                    Text(text = curState, color = SettingsModel.textColor)
                 }
             }
             Row(
                 modifier = Modifier.wrapContentWidth(),
                 horizontalArrangement = Arrangement.Absolute.Left
             ) {
-                Text(text = "Total:")
+                Text(text = "Total:", color = SettingsModel.textColor)
                 Spacer(modifier = Modifier.width(5.dp))
-                Text(text = totalState)
+                Text(text = totalState, color = SettingsModel.textColor)
                 Spacer(modifier = Modifier.width(5.dp))
-                Text(text = curState)
+                Text(text = curState, color = SettingsModel.textColor)
             }
 
             Row(
                 modifier = Modifier.wrapContentWidth(),
                 horizontalArrangement = Arrangement.Absolute.Left
             ) {
-                Text(text = "Total:")
+                Text(text = "Total:", color = SettingsModel.textColor)
                 Spacer(modifier = Modifier.width(5.dp))
-                Text(text = totalCur2State)
+                Text(text = totalCur2State, color = SettingsModel.textColor)
                 Spacer(modifier = Modifier.width(5.dp))
-                Text(text = cur2State)
+                Text(text = cur2State, color = SettingsModel.textColor)
             }
 
             SearchableDropdownMenu(
@@ -162,40 +162,40 @@ fun InvoiceFooterView(
                     modifier = Modifier.wrapContentWidth(),
                     horizontalArrangement = Arrangement.Absolute.Left
                 ) {
-                    Text(text = "Tax2:")
+                    Text(text = "Tax2:", color = SettingsModel.textColor)
                     Spacer(modifier = Modifier.width(5.dp))
-                    Text(text = tax2State)
+                    Text(text = tax2State, color = SettingsModel.textColor)
                     Spacer(modifier = Modifier.width(5.dp))
-                    Text(text = curState)
+                    Text(text = curState, color = SettingsModel.textColor)
                 }
 
                 Row(
                     modifier = Modifier.wrapContentWidth(),
                     horizontalArrangement = Arrangement.Absolute.Left
                 ) {
-                    Text(text = "Total Tax:")
+                    Text(text = "Total Tax:", color = SettingsModel.textColor)
                     Spacer(modifier = Modifier.width(5.dp))
-                    Text(text = totalTaxState)
+                    Text(text = totalTaxState, color = SettingsModel.textColor)
                     Spacer(modifier = Modifier.width(5.dp))
-                    Text(text = curState)
+                    Text(text = curState, color = SettingsModel.textColor)
                 }
             }
             Row(
                 modifier = Modifier.wrapContentWidth(),
                 horizontalArrangement = Arrangement.Absolute.Left
             ) {
-                Text(text = "Table Number:")
+                Text(text = "Table Number:", color = SettingsModel.textColor)
                 Spacer(modifier = Modifier.width(5.dp))
-                Text(text = tableNoState)
+                Text(text = tableNoState, color = SettingsModel.textColor)
             }
 
             Row(
                 modifier = Modifier.wrapContentWidth(),
                 horizontalArrangement = Arrangement.Absolute.Left
             ) {
-                Text(text = "Client:")
+                Text(text = "Client:", color = SettingsModel.textColor)
                 Spacer(modifier = Modifier.width(5.dp))
-                Text(text = clientState)
+                Text(text = clientState, color = SettingsModel.textColor)
             }
 
             SearchableDropdownMenu(

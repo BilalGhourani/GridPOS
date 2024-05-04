@@ -32,6 +32,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.UIButton
 
 @Composable
@@ -84,7 +85,7 @@ fun InvoiceCashView(
                     .weight(.2f)
                     .wrapContentHeight(align = Alignment.CenterVertically)
                     .wrapContentWidth(align = Alignment.CenterHorizontally),
-                color = Color.Black
+                color = SettingsModel.textColor
             )
 
             Text(
@@ -93,7 +94,7 @@ fun InvoiceCashView(
                     .weight(.2f)
                     .wrapContentHeight(align = Alignment.CenterVertically)
                     .wrapContentWidth(align = Alignment.CenterHorizontally),
-                color = Color.Black
+                color = SettingsModel.textColor
             )
 
             Text(
@@ -113,7 +114,7 @@ fun InvoiceCashView(
                     .weight(.2f)
                     .height(60.dp)
                     .wrapContentHeight(align = Alignment.CenterVertically),
-                color = Color.Black
+                color = SettingsModel.textColor
             )
             OutlinedTextField(
                 value = cashCurr1Paid,
@@ -150,7 +151,7 @@ fun InvoiceCashView(
                 value = cashCurr1Total,
                 onValueChange = { cashCurr1Total = it },
                 label = {
-                    Text(text = "Total")
+                    Text(text = "Total", color = SettingsModel.textColor)
                 },
                 placeholder = {
                     Text(text = "0.0")
@@ -169,7 +170,7 @@ fun InvoiceCashView(
                 value = cashCurr2Total,
                 onValueChange = { cashCurr2Total = it },
                 label = {
-                    Text(text = "Total2")
+                    Text(text = "Total2", color = SettingsModel.textColor)
                 },
                 placeholder = {
                     Text(text = "0.0")
@@ -195,7 +196,7 @@ fun InvoiceCashView(
                     .weight(.2f)
                     .height(60.dp)
                     .wrapContentHeight(align = Alignment.CenterVertically),
-                color = Color.Black
+                color = SettingsModel.textColor
             )
             OutlinedTextField(
                 value = creditCurr1Paid,
@@ -234,7 +235,7 @@ fun InvoiceCashView(
                 value = creditCurr1Total,
                 onValueChange = { creditCurr1Total = it },
                 label = {
-                    Text(text = "Paid")
+                    Text(text = "Paid", color = SettingsModel.textColor)
                 },
                 placeholder = {
                     Text(text = "0.0")
@@ -253,7 +254,7 @@ fun InvoiceCashView(
                 value = creditCurr2Total,
                 onValueChange = { creditCurr2Total = it },
                 label = {
-                    Text(text = "Paid")
+                    Text(text = "Paid", color = SettingsModel.textColor)
                 },
                 placeholder = {
                     Text(text = "0.0")
@@ -279,7 +280,7 @@ fun InvoiceCashView(
                     .weight(.2f)
                     .height(60.dp)
                     .wrapContentHeight(align = Alignment.CenterVertically),
-                color = Color.Black
+                color = SettingsModel.textColor
             )
             OutlinedTextField(
                 value = debitCurr1Paid,
@@ -318,7 +319,7 @@ fun InvoiceCashView(
                 value = debitCurr1Total,
                 onValueChange = { debitCurr1Total = it },
                 label = {
-                    Text(text = "Change")
+                    Text(text = "Change", color = SettingsModel.textColor)
                 },
                 placeholder = {
                     Text(text = "0.0")
@@ -337,7 +338,7 @@ fun InvoiceCashView(
                 value = debitCurr2Total,
                 onValueChange = { debitCurr2Total = it },
                 label = {
-                    Text(text = "Change")
+                    Text(text = "Change", color = SettingsModel.textColor)
                 },
                 placeholder = {
                     Text(text = "0.0")

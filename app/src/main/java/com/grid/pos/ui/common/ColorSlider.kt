@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.Extension.toColorInt
 
 /**
@@ -37,7 +38,7 @@ fun ColorSlider(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(6.dp)
     ) {
-        Text(text = label, color = Color.Black)
+        Text(text = label, color = SettingsModel.textColor)
         Slider(
             value = valueState.value,
             onValueChange = valueState.component2(),
@@ -51,7 +52,7 @@ fun ColorSlider(
             modifier = Modifier.width(25.dp),
             textAlign = TextAlign.End,
             style = MaterialTheme.typography.bodySmall,
-            color = Color.Black
+            color = SettingsModel.textColor
         )
     }
 }

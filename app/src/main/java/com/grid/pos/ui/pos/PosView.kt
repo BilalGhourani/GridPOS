@@ -18,6 +18,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
@@ -25,6 +26,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -47,6 +49,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.grid.pos.ActivityScopedViewModel
 import com.grid.pos.model.InvoiceItemModel
+import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.pos.components.AddInvoiceItemView
 import com.grid.pos.ui.pos.components.EditInvoiceHeaderView
 import com.grid.pos.ui.pos.components.InvoiceBodyDetails
@@ -105,35 +108,38 @@ fun PosView(
     }
     GridPOSTheme {
         Scaffold(
+            containerColor=SettingsModel.backgroundColor,
             topBar = {
-                Surface(shadowElevation = 3.dp, color = Color.White) {
+                Surface(shadowElevation = 3.dp, color = SettingsModel.backgroundColor) {
                     TopAppBar(
+                        colors = TopAppBarDefaults.mediumTopAppBarColors(containerColor = SettingsModel.topBarColor),
                         navigationIcon = {
                             IconButton(onClick = { navController?.popBackStack() }) {
                                 Icon(
                                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                    contentDescription = "Back"
+                                    contentDescription = "Back",
+                                    tint = SettingsModel.buttonColor
                                 )
                             }
                         },
                         title = {
                             Text(
                                 text = "POS",
-                                color = Color.Black,
+                                color = SettingsModel.textColor,
                                 fontSize = 16.sp,
                                 textAlign = TextAlign.Center
                             )
                         },
-                        actions = {
+                       /* actions = {
                             IconButton(
                                 modifier = Modifier
                                     .fillMaxHeight()
                                     .padding(horizontal = 10.dp),
                                 onClick = { navController?.popBackStack() }
                             ) {
-                                Text(text = "Back")
+                                Text(text = "Back", color = SettingsModel.textColor)
                             }
-                        })
+                        }*/)
                 }
             }
         ) {
@@ -141,7 +147,8 @@ fun PosView(
                 modifier = modifier
                     .wrapContentWidth()
                     .fillMaxHeight()
-                    .padding(it)
+                    .padding(it),
+                color = SettingsModel.backgroundColor
             ) {
                 Column(
                     modifier = Modifier
@@ -208,8 +215,8 @@ fun PosView(
         ModalBottomSheet(
             onDismissRequest = { isEditBottomSheetVisible = false },
             sheetState = bottomSheetState,
-            containerColor = Color.White,
-            contentColor = White,
+            containerColor = SettingsModel.backgroundColor,
+            contentColor = SettingsModel.backgroundColor,
             shape = RectangleShape,
             dragHandle = null,
             scrimColor = Color.Black.copy(alpha = .5f),
@@ -237,8 +244,8 @@ fun PosView(
         ModalBottomSheet(
             onDismissRequest = { isAddItemBottomSheetVisible = false },
             sheetState = bottomSheetState,
-            containerColor = Color.White,
-            contentColor = White,
+            containerColor = SettingsModel.backgroundColor,
+            contentColor = SettingsModel.backgroundColor,
             shape = RectangleShape,
             dragHandle = null,
             scrimColor = Color.Black.copy(alpha = .5f),
@@ -270,8 +277,8 @@ fun PosView(
         ModalBottomSheet(
             onDismissRequest = { isPayBottomSheetVisible = false },
             sheetState = bottomSheetState,
-            containerColor = Color.White,
-            contentColor = White,
+            containerColor = SettingsModel.backgroundColor,
+            contentColor = SettingsModel.backgroundColor,
             shape = RectangleShape,
             dragHandle = null,
             scrimColor = Color.Black.copy(alpha = .5f),

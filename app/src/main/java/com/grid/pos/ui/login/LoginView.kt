@@ -9,11 +9,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ElevatedButton
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
@@ -22,6 +24,7 @@ import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -38,12 +41,15 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.grid.pos.R
+import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.LoadingIndicator
 import com.grid.pos.ui.common.UIButton
 import com.grid.pos.ui.common.UITextField
@@ -63,6 +69,11 @@ fun LoginView(
     val keyboardController = LocalSoftwareKeyboardController.current
     val snackbarHostState = remember { SnackbarHostState() }
     val passwordFocusRequester = remember { FocusRequester() }
+
+    var usernameState by remember { mutableStateOf("") }
+    var passwordState by remember { mutableStateOf("") }
+    var passwordVisibility by remember { mutableStateOf(false) }
+
     LaunchedEffect(loginState.warning, loginState.isLoggedIn) {
         if (!loginState.warning.isNullOrEmpty()) {
             CoroutineScope(Dispatchers.Main).launch {
@@ -83,16 +94,18 @@ fun LoginView(
     }
     GridPOSTheme {
         Scaffold(
+            containerColor = SettingsModel.backgroundColor,
             snackbarHost = {
                 SnackbarHost(hostState = snackbarHostState)
             },
             topBar = {
-                Surface(shadowElevation = 3.dp, color = Color.White) {
+                Surface(shadowElevation = 3.dp, color = SettingsModel.backgroundColor) {
                     TopAppBar(
+                        colors = TopAppBarDefaults.mediumTopAppBarColors(containerColor = SettingsModel.topBarColor),
                         title = {
                             Text(
                                 text = "Login",
-                                color = Color.Black,
+                                color = SettingsModel.textColor,
                                 fontSize = 16.sp,
                                 textAlign = TextAlign.Center
                             )
@@ -103,7 +116,8 @@ fun LoginView(
                             ) {
                                 Icon(
                                     painterResource(R.drawable.ic_settings),
-                                    contentDescription = "Back"
+                                    contentDescription = "Back",
+                                    tint = SettingsModel.buttonColor
                                 )
                             }
                         }
@@ -117,8 +131,6 @@ fun LoginView(
                     .padding(it)
                     .background(color = Color.Transparent)
             ) {
-                var usernameState by remember { mutableStateOf("") }
-                var passwordState by remember { mutableStateOf("") }
                 Box(
                     modifier = Modifier
                         .fillMaxSize(),
@@ -148,9 +160,21 @@ fun LoginView(
                             focusRequester = passwordFocusRequester,
                             keyboardType = KeyboardType.Password,
                             imeAction = ImeAction.Done,
+                            visualTransformation = if (passwordVisibility) VisualTransformation.None else PasswordVisualTransformation(),
                             onAction = {
                                 keyboardController?.hide()
                                 viewModel.login(usernameState, passwordState)
+                            },
+                            trailingIcon = {
+                                IconButton(
+                                    onClick = { passwordVisibility = !passwordVisibility }
+                                ) {
+                                    Icon(
+                                        imageVector = if (passwordVisibility) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
+                                        contentDescription = if (passwordVisibility) "Hide password" else "Show password",
+                                        tint = SettingsModel.buttonColor
+                                    )
+                                }
                             }
                         ) {
                             passwordState = it
