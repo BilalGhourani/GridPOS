@@ -51,7 +51,7 @@ fun HomeView(
                 Surface(shadowElevation = 3.dp, color = SettingsModel.backgroundColor) {
                     TopAppBar(
                         colors = TopAppBarDefaults.mediumTopAppBarColors(containerColor = SettingsModel.topBarColor),
-                        navigationIcon = {
+                      /*  navigationIcon = {
                             IconButton(onClick = { navController?.popBackStack() }) {
                                 Icon(
                                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -59,7 +59,7 @@ fun HomeView(
                                     tint = SettingsModel.buttonColor
                                 )
                             }
-                        },
+                        },*/
                         title = {
                             Text(
                                 text = "Home",
