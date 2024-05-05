@@ -40,6 +40,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -63,6 +64,7 @@ fun EditInvoiceHeaderView(
     onAddItem: () -> Unit = {},
     onClose: () -> Unit = {},
 ) {
+    val keyboardController = LocalSoftwareKeyboardController.current
     val rDiscount1FocusRequester = remember { FocusRequester() }
     val rDiscount2FocusRequester = remember { FocusRequester() }
     val discount1FocusRequester = remember { FocusRequester() }
@@ -70,6 +72,11 @@ fun EditInvoiceHeaderView(
     val clientExtraNameFocusRequester = remember { FocusRequester() }
     val itemNoteFocusRequester = remember { FocusRequester() }
     val invoiceNoteFocusRequester = remember { FocusRequester() }
+    val taxFocusRequester = remember { FocusRequester() }
+    val tax1FocusRequester = remember { FocusRequester() }
+    val tax2FocusRequester = remember { FocusRequester() }
+
+
     var price by remember { mutableStateOf("") }
     var qty by remember { mutableStateOf(1) }
     var rDiscount1 by remember { mutableStateOf("") }
@@ -79,6 +86,9 @@ fun EditInvoiceHeaderView(
     var clientExtraName by remember { mutableStateOf("") }
     var itemNote by remember { mutableStateOf("") }
     var invoiceNote by remember { mutableStateOf("") }
+    var taxState by remember { mutableStateOf("") }
+    var tax1State by remember { mutableStateOf("") }
+    var tax2State by remember { mutableStateOf("") }
 
     Column(
         modifier = modifier
@@ -312,9 +322,57 @@ fun EditInvoiceHeaderView(
             label = "Invoice Note",
             maxLines = 2,
             focusRequester = itemNoteFocusRequester,
-            imeAction = ImeAction.Done
+            onAction = { taxFocusRequester.requestFocus() }
         ) {
             invoiceNote = it
+        }
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .wrapContentHeight()
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            UITextField(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(10.dp),
+                defaultValue = taxState,
+                label = "Tax",
+                keyboardType = KeyboardType.Decimal,
+                focusRequester = taxFocusRequester,
+                onAction = { tax1FocusRequester.requestFocus() }
+            ) {
+                taxState = it
+            }
+
+            UITextField(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(10.dp),
+                defaultValue = tax1State,
+                label = "Tax1",
+                keyboardType = KeyboardType.Decimal,
+                focusRequester = tax1FocusRequester,
+                onAction = { tax2FocusRequester.requestFocus() }
+            ) {
+                tax1State = it
+            }
+
+            UITextField(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(10.dp),
+                defaultValue = tax2State,
+                label = "Tax2",
+                keyboardType = KeyboardType.Decimal,
+                focusRequester = tax2FocusRequester,
+                imeAction = ImeAction.Done,
+                onAction = { keyboardController?.hide() }
+            ) {
+                tax2State = it
+            }
         }
 
         Row(
