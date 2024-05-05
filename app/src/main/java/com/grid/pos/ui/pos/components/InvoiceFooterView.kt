@@ -144,8 +144,8 @@ fun InvoiceFooterView(
             SearchableDropdownMenu(
                 items = items.toMutableList(),
                 modifier = Modifier
-                    .padding(10.dp, 15.dp, 10.dp, 5.dp),
-                label = "Search Items",
+                    .padding(0.dp, 15.dp, 0.dp, 5.dp),
+                label = "Items",
             ) { item ->
                 onItemSelected.invoke(item as Item)
             }
@@ -201,8 +201,8 @@ fun InvoiceFooterView(
             SearchableDropdownMenu(
                 items = thirdParties.toMutableList(),
                 modifier = Modifier
-                    .padding(10.dp, 15.dp, 10.dp, 5.dp),
-                label = "Customer Search",
+                    .padding(0.dp, 15.dp, 0.dp, 5.dp),
+                label = "Customers",
             ) { thirdParty ->
                 onThirdPartySelected.invoke(thirdParty as ThirdParty)
             }

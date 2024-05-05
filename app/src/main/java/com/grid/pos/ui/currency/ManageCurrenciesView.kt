@@ -4,8 +4,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
@@ -51,6 +53,7 @@ import com.grid.pos.ui.common.SearchableDropdownMenu
 import com.grid.pos.ui.common.UIButton
 import com.grid.pos.ui.common.UITextField
 import com.grid.pos.ui.theme.GridPOSTheme
+import com.grid.pos.utils.Utils
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -158,14 +161,15 @@ fun ManageCurrenciesView(
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .wrapContentHeight()
+                                .height(120.dp)
                                 .padding(10.dp),
                             verticalAlignment = Alignment.Bottom
                         ) {
                             UITextField(
                                 modifier = Modifier
-                                    .padding(10.dp)
-                                    .weight(.3f),
+                                    .fillMaxHeight()
+                                    .weight(.3f)
+                                    .padding(horizontal = 5.dp),
                                 defaultValue = curCode1State,
                                 label = "Cur1 Code",
                                 placeHolder = "Code",
@@ -177,8 +181,9 @@ fun ManageCurrenciesView(
 
                             UITextField(
                                 modifier = Modifier
-                                    .padding(10.dp, 10.dp, 0.dp, 10.dp)
-                                    .weight(.5f),
+                                    .fillMaxHeight()
+                                    .weight(.5f)
+                                    .padding(horizontal = 5.dp),
                                 defaultValue = curName1State,
                                 label = "Cur1 Name",
                                 placeHolder = "Name",
@@ -191,29 +196,33 @@ fun ManageCurrenciesView(
 
                             UITextField(
                                 modifier = Modifier
-                                    .padding(0.dp, 10.dp, 10.dp, 10.dp)
-                                    .weight(.2f),
+                                    .fillMaxHeight()
+                                    .weight(.2f)
+                                    .padding(horizontal = 5.dp),
                                 defaultValue = curName1DecState,
+                                keyboardType = KeyboardType.Decimal,
                                 label = "Decimal",
                                 focusRequester = curName1DecFocusRequester,
                                 onAction = { curCode2FocusRequester.requestFocus() }
                             ) { curName1Dec ->
-                                curName1DecState = curName1Dec
-                                manageCurrenciesState.selectedCurrency.currencyName1Dec = curName1Dec
+                                curName1DecState = Utils.getDoubleValue(curName1Dec, curName1DecState)
+                                manageCurrenciesState.selectedCurrency.currencyName1Dec =
+                                    curName1Dec
                             }
                         }
 
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .wrapContentHeight()
+                                .height(120.dp)
                                 .padding(10.dp),
                             verticalAlignment = Alignment.Bottom
                         ) {
                             UITextField(
                                 modifier = Modifier
-                                    .padding(10.dp)
-                                    .weight(.3f),
+                                    .fillMaxHeight()
+                                    .weight(.3f)
+                                    .padding(horizontal = 5.dp),
                                 defaultValue = curCode2State,
                                 label = "Cur2 Code",
                                 placeHolder = "Code",
@@ -226,8 +235,9 @@ fun ManageCurrenciesView(
 
                             UITextField(
                                 modifier = Modifier
-                                    .padding(10.dp, 10.dp, 0.dp, 10.dp)
-                                    .weight(.6f),
+                                    .fillMaxHeight()
+                                    .weight(.5f)
+                                    .padding(horizontal = 5.dp),
                                 defaultValue = curName2State,
                                 label = "Cur2 Name",
                                 placeHolder = "Name",
@@ -240,15 +250,18 @@ fun ManageCurrenciesView(
 
                             UITextField(
                                 modifier = Modifier
-                                    .padding(0.dp, 10.dp, 10.dp, 10.dp)
-                                    .weight(.2f),
+                                    .fillMaxHeight()
+                                    .weight(.2f)
+                                    .padding(horizontal = 5.dp),
                                 defaultValue = curName2DecState,
+                                keyboardType = KeyboardType.Decimal,
                                 label = "Decimal",
                                 focusRequester = curName2DecFocusRequester,
                                 onAction = { rateFocusRequester.requestFocus() }
                             ) { curName2Dec ->
-                                curName2DecState = curName2Dec
-                                manageCurrenciesState.selectedCurrency.currencyName2Dec = curName2Dec
+                                curName2DecState = Utils.getDoubleValue(curName2Dec, curName2DecState)
+                                manageCurrenciesState.selectedCurrency.currencyName2Dec =
+                                    curName2Dec
                             }
                         }
 
@@ -262,10 +275,7 @@ fun ManageCurrenciesView(
                             imeAction = ImeAction.Done,
                             onAction = { keyboardController?.hide() }
                         ) { rateStr ->
-                            /*if (rateStr.isEmpty() || rateStr.matches(pattern)) {
-
-                            }*/
-                            rateState = rateStr
+                            rateState = Utils.getDoubleValue(rateStr, rateState)
                             manageCurrenciesState.selectedCurrency.currencyRate = rateState
                         }
 

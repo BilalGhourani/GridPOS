@@ -281,7 +281,7 @@ fun PosView(
             InvoiceCashView(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .fillMaxHeight(if (isLandscape) 0.9f else 0.5f),
+                    .fillMaxHeight(if (isLandscape) 0.9f else 0.7f),
                 onSave = {
                     // viewModel.saveInvoiceHeader(posState.invoiceHeader, posState.invoices)
                     activityViewModel.posState = posState

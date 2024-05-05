@@ -52,6 +52,7 @@ import com.grid.pos.ui.common.SearchableDropdownMenu
 import com.grid.pos.ui.common.UIButton
 import com.grid.pos.ui.common.UITextField
 import com.grid.pos.ui.theme.GridPOSTheme
+import com.grid.pos.utils.Utils
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -241,8 +242,8 @@ fun ManageCompaniesView(
                                 placeHolder = "Enter Tax",
                                 onAction = { upWithTaxFocusRequester.requestFocus() }
                             ) { tax ->
-                                taxState = tax
-                                manageCompaniesState.selectedCompany.companyTax = tax
+                                taxState =  Utils.getDoubleValue(tax, taxState)
+                                manageCompaniesState.selectedCompany.companyTax = taxState
                             }
 
                             SearchableDropdownMenu(
@@ -293,8 +294,8 @@ fun ManageCompaniesView(
                                 focusRequester = tax1FocusRequester,
                                 onAction = { tax2RegNoFocusRequester.requestFocus() }
                             ) { tax1 ->
-                                tax1State = tax1
-                                manageCompaniesState.selectedCompany.companyTax1 = tax1
+                                tax1State = Utils.getDoubleValue(tax1, tax1State)
+                                manageCompaniesState.selectedCompany.companyTax1 = tax1State
                             }
 
                             //tax2 reg no
@@ -320,8 +321,8 @@ fun ManageCompaniesView(
                                 focusRequester = tax2FocusRequester,
                                 onAction = { emailFocusRequester.requestFocus() }
                             ) { tax2 ->
-                                tax2State = tax2
-                                manageCompaniesState.selectedCompany.companyTax2 = tax2
+                                tax2State = Utils.getDoubleValue(tax2, tax2State)
+                                manageCompaniesState.selectedCompany.companyTax2 = tax2State
                             }
                         }
                         //email

@@ -40,7 +40,7 @@ fun InvoiceHeaderDetails(
     Row(
         modifier = modifier
             .fillMaxWidth(),
-        horizontalArrangement = Arrangement.Absolute.Right
+        horizontalArrangement = Arrangement.Absolute.SpaceBetween
     ) {
         UIButton(
             modifier = Modifier

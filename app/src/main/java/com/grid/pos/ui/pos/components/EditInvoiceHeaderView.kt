@@ -27,6 +27,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -53,6 +54,7 @@ import com.grid.pos.ui.common.UIButton
 import com.grid.pos.ui.common.UITextField
 import com.grid.pos.ui.theme.Blue
 import com.grid.pos.ui.theme.GridPOSTheme
+import com.grid.pos.utils.Utils
 
 @Composable
 fun EditInvoiceHeaderView(
@@ -93,20 +95,28 @@ fun EditInvoiceHeaderView(
         ) {
             OutlinedTextField(
                 value = price,
-                onValueChange = { price = it },
+                onValueChange = { price = Utils.getDoubleValue(it, price) },
                 modifier = Modifier.weight(1f),
+                shape = RoundedCornerShape(15.dp),
                 label = { Text("Price", color = SettingsModel.textColor) },
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Number,
                     imeAction = ImeAction.Next
                 ),
-                keyboardActions = KeyboardActions(onNext = { rDiscount1FocusRequester.requestFocus() })
+                keyboardActions = KeyboardActions(onNext = { rDiscount1FocusRequester.requestFocus() }),
+                colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedBorderColor = Color.Black,
+                    focusedBorderColor = SettingsModel.buttonColor,
+                    focusedTextColor = Color.Black,
+                    unfocusedTextColor = Color.Black,
+                )
             )
             OutlinedTextField(
                 value = qty.toString(),
                 onValueChange = {
                     qty = it.toInt()
                 },
+                shape = RoundedCornerShape(15.dp),
                 modifier = Modifier.weight(1f),
                 readOnly = true,
                 label = {
@@ -133,19 +143,24 @@ fun EditInvoiceHeaderView(
                 keyboardActions = KeyboardActions(onNext = { /* Move focus to next field */ }),
                 leadingIcon = {
                     IconButton(onClick = { qty++ }) {
-                        Icon(Icons.Default.Add, contentDescription = "Increase quantity",
-                            tint = SettingsModel.buttonColor)
+                        Icon(
+                            Icons.Default.Add, contentDescription = "Increase quantity",
+                            tint = SettingsModel.buttonColor
+                        )
                     }
                 },
                 trailingIcon = {
                     IconButton(onClick = { if (qty > 1) qty-- }) {
-                        Icon(Icons.Default.Remove, contentDescription = "Decrease quantity",
-                            tint = SettingsModel.buttonColor)
+                        Icon(
+                            Icons.Default.Remove, contentDescription = "Decrease quantity",
+                            tint = SettingsModel.buttonColor
+                        )
                     }
                 }
             )
         }
         Text(
+            modifier = Modifier.padding(0.dp, 10.dp, 0.dp, 0.dp),
             text = "Discount",
             style = TextStyle(
                 textDecoration = TextDecoration.Underline,
@@ -168,9 +183,9 @@ fun EditInvoiceHeaderView(
             )
             OutlinedTextField(
                 value = rDiscount1,
-                onValueChange = { rDiscount1 = it },
+                onValueChange = { rDiscount1 = Utils.getDoubleValue(it, rDiscount1) },
                 placeholder = {
-                    Text(text = "0.0",)
+                    Text(text = "0.0")
                 },
                 modifier = Modifier
                     .weight(1f)
@@ -179,11 +194,17 @@ fun EditInvoiceHeaderView(
                     keyboardType = KeyboardType.Number,
                     imeAction = ImeAction.Next
                 ),
-                keyboardActions = KeyboardActions(onNext = { rDiscount2FocusRequester.requestFocus() })
+                keyboardActions = KeyboardActions(onNext = { rDiscount2FocusRequester.requestFocus() }),
+                colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedBorderColor = Color.Black,
+                    focusedBorderColor = SettingsModel.buttonColor,
+                    focusedTextColor = Color.Black,
+                    unfocusedTextColor = Color.Black,
+                )
             )
             OutlinedTextField(
                 value = rDiscount2,
-                onValueChange = { rDiscount2 = it },
+                onValueChange = { rDiscount2 = Utils.getDoubleValue(it, rDiscount2) },
                 placeholder = {
                     Text(text = "0.0")
                 },
@@ -194,7 +215,13 @@ fun EditInvoiceHeaderView(
                     keyboardType = KeyboardType.Number,
                     imeAction = ImeAction.Next
                 ),
-                keyboardActions = KeyboardActions(onNext = { discount1FocusRequester.requestFocus() })
+                keyboardActions = KeyboardActions(onNext = { discount1FocusRequester.requestFocus() }),
+                colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedBorderColor = Color.Black,
+                    focusedBorderColor = SettingsModel.buttonColor,
+                    focusedTextColor = Color.Black,
+                    unfocusedTextColor = Color.Black,
+                )
             )
         }
 
@@ -212,7 +239,7 @@ fun EditInvoiceHeaderView(
             )
             OutlinedTextField(
                 value = discount1,
-                onValueChange = { discount1 = it },
+                onValueChange = { discount1 = Utils.getDoubleValue(it, discount1) },
                 placeholder = {
                     Text(text = "0.0")
                 },
@@ -223,11 +250,17 @@ fun EditInvoiceHeaderView(
                     keyboardType = KeyboardType.Number,
                     imeAction = ImeAction.Next
                 ),
-                keyboardActions = KeyboardActions(onNext = { discount2FocusRequester.requestFocus() })
+                keyboardActions = KeyboardActions(onNext = { discount2FocusRequester.requestFocus() }),
+                colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedBorderColor = Color.Black,
+                    focusedBorderColor = SettingsModel.buttonColor,
+                    focusedTextColor = Color.Black,
+                    unfocusedTextColor = Color.Black,
+                )
             )
             OutlinedTextField(
                 value = discount2,
-                onValueChange = { discount2 = it },
+                onValueChange = { discount2 = Utils.getDoubleValue(it, discount2) },
                 placeholder = {
                     Text(text = "0.0")
                 },
@@ -238,7 +271,13 @@ fun EditInvoiceHeaderView(
                     keyboardType = KeyboardType.Number,
                     imeAction = ImeAction.Next
                 ),
-                keyboardActions = KeyboardActions(onNext = { clientExtraNameFocusRequester.requestFocus() })
+                keyboardActions = KeyboardActions(onNext = { clientExtraNameFocusRequester.requestFocus() }),
+                colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedBorderColor = Color.Black,
+                    focusedBorderColor = SettingsModel.buttonColor,
+                    focusedTextColor = Color.Black,
+                    unfocusedTextColor = Color.Black,
+                )
             )
         }
 

@@ -53,6 +53,7 @@ import com.grid.pos.ui.common.UIButton
 import com.grid.pos.ui.common.UISwitch
 import com.grid.pos.ui.common.UITextField
 import com.grid.pos.ui.theme.GridPOSTheme
+import com.grid.pos.utils.Utils
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -194,8 +195,8 @@ fun ManageItemsView(
                             placeHolder = "Enter Unit Price",
                             onAction = { taxFocusRequester.requestFocus() }
                         ) { unitPrice ->
-                            unitPriceState = unitPrice
-                            manageItemsState.selectedItem.itemUnitPrice = unitPrice
+                            unitPriceState = Utils.getDoubleValue(unitPrice, unitPriceState)
+                            manageItemsState.selectedItem.itemUnitPrice = unitPriceState
                         }
 
                         if (!SettingsModel.hideTaxInputs) {
@@ -210,8 +211,8 @@ fun ManageItemsView(
                                 placeHolder = "Enter Tax",
                                 onAction = { tax1FocusRequester.requestFocus() }
                             ) { tax ->
-                                taxState = tax
-                                manageItemsState.selectedItem.itemTax = tax
+                                taxState = Utils.getDoubleValue(tax, taxState)
+                                manageItemsState.selectedItem.itemTax = taxState
                             }
 
                             //tax1
@@ -224,8 +225,8 @@ fun ManageItemsView(
                                 placeHolder = "Enter Tax1",
                                 onAction = { tax2FocusRequester.requestFocus() }
                             ) { tax1 ->
-                                tax1State = tax1
-                                manageItemsState.selectedItem.itemTax1 = tax1
+                                tax1State = Utils.getDoubleValue(tax1, tax1State)
+                                manageItemsState.selectedItem.itemTax1 = tax1State
                             }
 
                             //tax2
@@ -238,8 +239,8 @@ fun ManageItemsView(
                                 placeHolder = "Enter Tax2",
                                 onAction = { barcodeFocusRequester.requestFocus() }
                             ) { tax2 ->
-                                tax2State = tax2
-                                manageItemsState.selectedItem.itemTax2 = tax2
+                                tax2State =  Utils.getDoubleValue(tax2, tax2State)
+                                manageItemsState.selectedItem.itemTax2 = tax2State
                             }
                         }
                         //barcode
@@ -259,13 +260,14 @@ fun ManageItemsView(
                         UITextField(
                             modifier = Modifier.padding(10.dp),
                             defaultValue = openCostState,
+                            keyboardType = KeyboardType.Decimal,
                             label = "Open cost",
                             placeHolder = "Enter Open cost",
                             focusRequester = openCostFocusRequester,
                             onAction = { openQtyFocusRequester.requestFocus() }
                         ) { openCost ->
-                            openCostState = openCost
-                            manageItemsState.selectedItem.itemOpenCost = openCost
+                            openCostState =  Utils.getDoubleValue(openCost, openCostState)
+                            manageItemsState.selectedItem.itemOpenCost = openCostState
                         }
 
                         //open quantity
@@ -278,8 +280,8 @@ fun ManageItemsView(
                             focusRequester = openQtyFocusRequester,
                             onAction = { btnColorFocusRequester.requestFocus() }
                         ) { openQty ->
-                            openQtyState = openQty
-                            manageItemsState.selectedItem.itemOpenQty = openQty
+                            openQtyState =  Utils.getDoubleValue(openQty, openQtyState)
+                            manageItemsState.selectedItem.itemOpenQty = openQtyState
                         }
 
                         SearchableDropdownMenu(

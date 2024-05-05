@@ -4,15 +4,18 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActionScope
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
@@ -49,6 +52,7 @@ fun UITextField(
             onValueChange = {
                 onValueChange(it)
             },
+            shape = RoundedCornerShape(15.dp),
             label = {
                 label?.let { Text(text = label, color = SettingsModel.textColor) }.run { null }
             },
@@ -74,7 +78,13 @@ fun UITextField(
             singleLine = maxLines == 1,
             leadingIcon = leadingIcon,
             trailingIcon = trailingIcon,
-            visualTransformation = visualTransformation
+            visualTransformation = visualTransformation,
+            colors = OutlinedTextFieldDefaults.colors(
+                unfocusedBorderColor = Color.Black,
+                focusedBorderColor = SettingsModel.buttonColor,
+                focusedTextColor = Color.Black,
+                unfocusedTextColor = Color.Black,
+            )
         )
     }
 }

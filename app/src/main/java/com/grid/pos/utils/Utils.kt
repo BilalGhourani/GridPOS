@@ -91,6 +91,17 @@ object Utils {
         return username.replace("_", " ")
     }
 
+    fun getDoubleValue(new: String, old: String): String {
+        return if (new.isEmpty()) {
+            new
+        } else {
+            when (new.toDoubleOrNull()) {
+                null -> old //old value
+                else -> new   //new value
+            }
+        }
+    }
+
 
     fun printWebPage(webView: WebView?, context: Context) {
         if (webView != null) {
