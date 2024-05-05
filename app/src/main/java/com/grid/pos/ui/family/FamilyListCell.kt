@@ -1,5 +1,6 @@
 package com.grid.pos.ui.family
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -15,6 +16,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.grid.pos.data.Family.Family
+import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.utils.Utils
 
@@ -27,12 +29,13 @@ fun CategoryListCell(
 ) {
     var selectionState by remember { mutableStateOf(0) }
     ScrollableTabRow(
-        selectedTabIndex = selectionState, // Set the currently selected tab
+        selectedTabIndex = selectionState,
         modifier = modifier
             .padding(vertical = 5.dp),
         divider = { null },
         edgePadding = 0.dp,
-        contentColor = Color.Black, // Color for tab items (text/icons)
+        contentColor = SettingsModel.backgroundColor,
+        containerColor = SettingsModel.backgroundColor,
         indicator = {
             null
         }

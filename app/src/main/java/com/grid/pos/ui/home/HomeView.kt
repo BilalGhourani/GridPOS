@@ -1,5 +1,6 @@
 package com.grid.pos.ui.home
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -28,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
 import androidx.navigation.NavController
+import com.grid.pos.MainActivity
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.UIButton
 import com.grid.pos.ui.theme.GridPOSTheme
@@ -37,12 +39,16 @@ import com.grid.pos.utils.Utils
 @Composable
 fun HomeView(
     navController: NavController? = null,
+    mainActivity: MainActivity,
     activityViewModel: ViewModel,
     modifier: Modifier = Modifier
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
     LaunchedEffect(true) {
         keyboardController?.hide()
+    }
+    BackHandler {
+    mainActivity.finish()
     }
     GridPOSTheme {
         Scaffold(
@@ -51,15 +57,6 @@ fun HomeView(
                 Surface(shadowElevation = 3.dp, color = SettingsModel.backgroundColor) {
                     TopAppBar(
                         colors = TopAppBarDefaults.mediumTopAppBarColors(containerColor = SettingsModel.topBarColor),
-                      /*  navigationIcon = {
-                            IconButton(onClick = { navController?.popBackStack() }) {
-                                Icon(
-                                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                    contentDescription = "Back",
-                                    tint = SettingsModel.buttonColor
-                                )
-                            }
-                        },*/
                         title = {
                             Text(
                                 text = "Home",

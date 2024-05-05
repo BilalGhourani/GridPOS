@@ -26,14 +26,13 @@ fun CategoryCell(
 ) {
     Box(
         modifier = modifier
-            .padding(horizontal = 5.dp)
+            .padding(end = 5.dp)
             .background(color = Color.Transparent)
     ) {
         UIButton(
             modifier = modifier
                 .wrapContentWidth()
                 .height(80.dp)
-                .padding(horizontal = 5.dp)
                 .let {
                     if (selected) {
                         it.background(color = Blue, shape = RoundedCornerShape(15.dp))

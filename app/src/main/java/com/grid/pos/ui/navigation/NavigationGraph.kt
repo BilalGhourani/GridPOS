@@ -43,7 +43,13 @@ fun AuthNavGraph(
         modifier = modifier.background(color = White)
     ) {
 
-        composable(route = "HomeView") { HomeView(navController, activityViewModel) }
+        composable(route = "HomeView") {
+            HomeView(
+                navController = navController,
+                mainActivity = mainActivity,
+                activityViewModel = activityViewModel
+            )
+        }
         composable(route = "LoginView") { LoginView(navController) }
         composable(route = "SettingsView") { SettingsView(navController) }
         composable(route = "ManageCurrenciesView") { ManageCurrenciesView(navController) }
