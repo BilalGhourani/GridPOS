@@ -5,7 +5,6 @@ import androidx.lifecycle.viewModelScope
 import com.grid.pos.data.Currency.Currency
 import com.grid.pos.data.Currency.CurrencyRepository
 import com.grid.pos.interfaces.OnResult
-import com.grid.pos.utils.Utils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -30,13 +29,12 @@ class ManageCurrenciesViewModel @Inject constructor(
     private suspend fun fetchCurrencies() {
         currencyRepository.getAllCurrencies(object : OnResult {
             override fun onSuccess(result: Any) {
-                val listOfCurrencies = mutableListOf<Currency>()
-                (result as List<Currency>).forEach {
-                    listOfCurrencies.add(it)
-                }
+                result as List<Currency>
+                var currency = if (result.size > 0) result[0] else Currency()
                 viewModelScope.launch(Dispatchers.Main) {
                     manageCurrenciesState.value = manageCurrenciesState.value.copy(
-                        currencies = listOfCurrencies
+                        selectedCurrency = currency,
+                        fillFields = true
                     )
                 }
             }
@@ -63,14 +61,9 @@ class ManageCurrenciesViewModel @Inject constructor(
         val callback = object : OnResult {
             override fun onSuccess(result: Any) {
                 viewModelScope.launch(Dispatchers.Main) {
-                    val addedModel = result as Currency
-                    val currencies = manageCurrenciesState.value.currencies
-                    if (isInserting) currencies.add(addedModel)
                     manageCurrenciesState.value = manageCurrenciesState.value.copy(
-                        currencies = currencies,
-                        selectedCurrency = Currency(),
-                        isLoading = false,
-                        clear = true
+                        selectedCurrency = result as Currency,
+                        isLoading = false
                     )
                 }
             }
@@ -91,55 +84,6 @@ class ManageCurrenciesViewModel @Inject constructor(
             } else {
                 currencyRepository.update(currency, callback)
             }
-        }
-    }
-
-    fun deleteSelectedCurrency(currency: Currency) {
-        if (currency.currencyId.isEmpty()) {
-            manageCurrenciesState.value = manageCurrenciesState.value.copy(
-                warning = "Please select an Currency to delete",
-                isLoading = false
-            )
-            return
-        }
-        manageCurrenciesState.value = manageCurrenciesState.value.copy(
-            warning = null,
-            isLoading = true
-        )
-
-        CoroutineScope(Dispatchers.IO).launch {
-            currencyRepository.delete(currency, object : OnResult {
-                override fun onSuccess(result: Any) {
-                    val currencies = manageCurrenciesState.value.currencies
-                    val position =
-                        currencies.indexOfFirst {
-                            currency.currencyId.equals(
-                                it.currencyId,
-                                ignoreCase = true
-                            )
-                        }
-                    if (position >= 0) {
-                        currencies.removeAt(position)
-                    }
-                    viewModelScope.launch(Dispatchers.Main) {
-                        manageCurrenciesState.value = manageCurrenciesState.value.copy(
-                            currencies = currencies,
-                            selectedCurrency = Currency(),
-                            isLoading = false,
-                            clear = true
-                        )
-                    }
-                }
-
-                override fun onFailure(message: String, errorCode: Int) {
-                    viewModelScope.launch(Dispatchers.Main) {
-                        manageCurrenciesState.value = manageCurrenciesState.value.copy(
-                            isLoading = false
-                        )
-                    }
-                }
-
-            })
         }
     }
 

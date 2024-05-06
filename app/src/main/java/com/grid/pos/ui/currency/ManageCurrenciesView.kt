@@ -76,7 +76,6 @@ fun ManageCurrenciesView(
     val curName2DecFocusRequester = remember { FocusRequester() }
     val rateFocusRequester = remember { FocusRequester() }
 
-    val pattern = remember { Regex("^\\d*\\.?\\d*\$") }
     var curCode1State by remember { mutableStateOf("") }
     var curName1State by remember { mutableStateOf("") }
     var curName1DecState by remember { mutableStateOf("") }
@@ -143,20 +142,6 @@ fun ManageCurrenciesView(
                             .verticalScroll(rememberScrollState()),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        SearchableDropdownMenu(
-                            items = manageCurrenciesState.currencies.toMutableList(),
-                            modifier = Modifier.padding(10.dp),
-                            label =
-                            curName1State.ifEmpty { "Select Currency" },
-                        ) { currency ->
-                            currency as Currency
-                            manageCurrenciesState.selectedCurrency = currency
-                            curCode1State = currency.currencyCode1 ?: ""
-                            curName1State = currency.currencyName1 ?: ""
-                            curCode2State = currency.currencyCode2 ?: ""
-                            curName2State = currency.currencyName2 ?: ""
-                            rateState = currency.currencyRate ?: ""
-                        }
 
                         Row(
                             modifier = Modifier
@@ -205,7 +190,8 @@ fun ManageCurrenciesView(
                                 focusRequester = curName1DecFocusRequester,
                                 onAction = { curCode2FocusRequester.requestFocus() }
                             ) { curName1Dec ->
-                                curName1DecState = Utils.getDoubleValue(curName1Dec, curName1DecState)
+                                curName1DecState =
+                                    Utils.getDoubleValue(curName1Dec, curName1DecState)
                                 manageCurrenciesState.selectedCurrency.currencyName1Dec =
                                     curName1Dec
                             }
@@ -259,7 +245,8 @@ fun ManageCurrenciesView(
                                 focusRequester = curName2DecFocusRequester,
                                 onAction = { rateFocusRequester.requestFocus() }
                             ) { curName2Dec ->
-                                curName2DecState = Utils.getDoubleValue(curName2Dec, curName2DecState)
+                                curName2DecState =
+                                    Utils.getDoubleValue(curName2Dec, curName2DecState)
                                 manageCurrenciesState.selectedCurrency.currencyName2Dec =
                                     curName2Dec
                             }
@@ -289,7 +276,7 @@ fun ManageCurrenciesView(
                         ) {
                             UIButton(
                                 modifier = Modifier
-                                    .weight(.33f)
+                                    .weight(1f)
                                     .padding(3.dp),
                                 text = "Save"
                             ) {
@@ -298,16 +285,7 @@ fun ManageCurrenciesView(
 
                             UIButton(
                                 modifier = Modifier
-                                    .weight(.33f)
-                                    .padding(3.dp),
-                                text = "Delete"
-                            ) {
-                                viewModel.deleteSelectedCurrency(manageCurrenciesState.selectedCurrency)
-                            }
-
-                            UIButton(
-                                modifier = Modifier
-                                    .weight(.33f)
+                                    .weight(1f)
                                     .padding(3.dp),
                                 text = "Close"
                             ) {
@@ -321,14 +299,15 @@ fun ManageCurrenciesView(
         LoadingIndicator(
             show = manageCurrenciesState.isLoading
         )
-        if (manageCurrenciesState.clear) {
-            manageCurrenciesState.selectedCurrency = Currency()
-            curCode1State = ""
-            curName1State = ""
-            curCode2State = ""
-            curName2State = ""
-            rateState = ""
-            manageCurrenciesState.clear = false
+        if (manageCurrenciesState.fillFields) {
+            curCode1State = manageCurrenciesState.selectedCurrency.currencyCode1 ?: ""
+            curName1State = manageCurrenciesState.selectedCurrency.currencyName1 ?: ""
+            curName1DecState = manageCurrenciesState.selectedCurrency.currencyName1Dec ?: ""
+            curCode2State = manageCurrenciesState.selectedCurrency.currencyCode2 ?: ""
+            curName2State = manageCurrenciesState.selectedCurrency.currencyCode2 ?: ""
+            curName2DecState = manageCurrenciesState.selectedCurrency.currencyName2Dec ?: ""
+            rateState = manageCurrenciesState.selectedCurrency.currencyRate ?: ""
+            manageCurrenciesState.fillFields = false
         }
     }
 }
