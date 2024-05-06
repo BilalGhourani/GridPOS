@@ -1,32 +1,62 @@
 package com.grid.pos.data.PosReceipt
 
+import com.google.firebase.firestore.FirebaseFirestore
+import com.grid.pos.data.PosPrinter.PosPrinter
+import com.grid.pos.interfaces.OnResult
 import com.grid.pos.model.SettingsModel
 import kotlinx.coroutines.flow.Flow
 
 class PosReceiptRepositoryImpl(
     private val posReceiptDao: PosReceiptDao
 ) : PosReceiptRepository {
-    override suspend fun insert(posReceipt: PosReceipt) {
+    override suspend fun insert(posReceipt: PosReceipt, callback: OnResult?) {
         if (SettingsModel.loadFromRemote) {
-
+            FirebaseFirestore.getInstance().collection("pos_receipt")
+                .add(posReceipt)
+                .addOnSuccessListener {
+                    posReceipt.posReceiptDocumentId = it.id
+                    callback?.onSuccess(posReceipt)
+                }
+                .addOnFailureListener { e ->
+                    callback?.onFailure(e.message.toString())
+                }
         } else {
             posReceiptDao.insert(posReceipt)
+            callback?.onSuccess(posReceipt)
         }
     }
 
-    override suspend fun delete(posReceipt: PosReceipt) {
+    override suspend fun delete(posReceipt: PosReceipt, callback: OnResult?) {
         if (SettingsModel.loadFromRemote) {
-
+            FirebaseFirestore.getInstance().collection("pos_receipt")
+                .document(posReceipt.posReceiptDocumentId!!)
+                .delete()
+                .addOnSuccessListener {
+                    callback?.onSuccess(posReceipt)
+                }
+                .addOnFailureListener { e ->
+                    callback?.onFailure(e.message.toString())
+                }
         } else {
             posReceiptDao.delete(posReceipt)
+            callback?.onSuccess(posReceipt)
         }
     }
 
-    override suspend fun update(posReceipt: PosReceipt) {
+    override suspend fun update(posReceipt: PosReceipt, callback: OnResult?) {
         if (SettingsModel.loadFromRemote) {
-
+            FirebaseFirestore.getInstance().collection("pos_receipt")
+                .document(posReceipt.posReceiptDocumentId!!)
+                .update(posReceipt.getMap())
+                .addOnSuccessListener {
+                    callback?.onSuccess(posReceipt)
+                }
+                .addOnFailureListener { e ->
+                    callback?.onFailure(e.message.toString())
+                }
         } else {
             posReceiptDao.update(posReceipt)
+            callback?.onSuccess(posReceipt)
         }
     }
 
@@ -34,11 +64,31 @@ class PosReceiptRepositoryImpl(
         return posReceiptDao.getPosReceiptById(id)
     }
 
-    override fun getAllPosReceipts(): Flow<List<PosReceipt>> {
+    override suspend fun getAllPosReceipts(callback: OnResult?) {
         if (SettingsModel.loadFromRemote) {
-            return posReceiptDao.getAllPosReceipts()
+            FirebaseFirestore.getInstance().collection("pos_receipt")
+                .get()
+                .addOnSuccessListener { result ->
+                    val printers = mutableListOf<PosReceipt>()
+                    if (result.size() > 0) {
+                        for (document in result) {
+                            val obj = document.toObject(PosReceipt::class.java)
+                            if (!obj.posReceiptId.isNullOrEmpty()) {
+                                obj.posReceiptDocumentId = document.id
+                                printers.add(obj)
+                            }
+                        }
+                    }
+                    callback?.onSuccess(printers)
+                }.addOnFailureListener { exception ->
+                    callback?.onFailure(
+                        exception.message ?: "Network error! Can't get receipts from remote."
+                    )
+                }
         } else {
-            return posReceiptDao.getAllPosReceipts()
+            posReceiptDao.getAllPosReceipts().collect {
+                callback?.onSuccess(it)
+            }
         }
     }
 

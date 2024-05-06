@@ -62,7 +62,12 @@ fun AuthNavGraph(
             )
         }
         composable(route = "ManageThirdPartiesView") { ManageThirdPartiesView(navController) }
-        composable(route = "ManageItemsView") { ManageItemsView(navController) }
+        composable(route = "ManageItemsView") {
+            ManageItemsView(
+                navController = navController,
+                mainActivity = mainActivity
+            )
+        }
         composable(route = "PosView") { PosView(navController, activityViewModel) }
         composable(route = "ManageTablesView") { ManageTablesView(navController) }
         composable(route = "UIWebView") { UIWebView(navController, activityViewModel) }

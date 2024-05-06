@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.grid.pos.data.User.User
 import com.grid.pos.data.User.UserRepository
 import com.grid.pos.interfaces.OnResult
+import com.grid.pos.model.SettingsModel
+import com.grid.pos.utils.DataStoreManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -53,6 +55,13 @@ class LoginViewModel @Inject constructor(
                                 password.equals(it.userPassword, ignoreCase = true)
                             ) {
                                 user = it
+                                SettingsModel.currentUserId = it.userId
+                                viewModelScope.launch(Dispatchers.IO) {
+                                    DataStoreManager.putString(
+                                        DataStoreManager.DataStoreKeys.CURRENT_USER_ID.key,
+                                        it.userId
+                                    )
+                                }
                                 return@forEach
                             }
                         }

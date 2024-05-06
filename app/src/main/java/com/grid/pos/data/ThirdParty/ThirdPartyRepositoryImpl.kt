@@ -72,7 +72,9 @@ class ThirdPartyRepositoryImpl(
 
     override suspend fun getAllThirdParties(callback: OnResult?) {
         if (SettingsModel.loadFromRemote) {
-            FirebaseFirestore.getInstance().collection("thirdParty").get()
+            FirebaseFirestore.getInstance().collection("thirdParty")
+                .whereEqualTo("tp_cmp_id",SettingsModel.companyID)
+                .get()
                 .addOnSuccessListener { result ->
                     val thirdParties = mutableListOf<ThirdParty>()
                     if (result.size() > 0) {

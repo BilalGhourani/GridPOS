@@ -69,7 +69,9 @@ class PosPrinterRepositoryImpl(
 
     override suspend fun getAllPosPrinters(callback: OnResult?) {
         if (SettingsModel.loadFromRemote) {
-            FirebaseFirestore.getInstance().collection("pos_printer").get()
+            FirebaseFirestore.getInstance().collection("pos_printer")
+                .whereEqualTo("pp_cmp_id",SettingsModel.companyID)
+                .get()
                 .addOnSuccessListener { result ->
                     val printers = mutableListOf<PosPrinter>()
                     if (result.size() > 0) {

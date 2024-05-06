@@ -66,7 +66,9 @@ class CurrencyRepositoryImpl(
 
     override suspend fun getAllCurrencies(callback: OnResult?) {
         if (SettingsModel.loadFromRemote) {
-            FirebaseFirestore.getInstance().collection("currency").get()
+            FirebaseFirestore.getInstance().collection("currency")
+                .whereEqualTo("cur_cmp_id",SettingsModel.companyID)
+                .get()
                 .addOnSuccessListener { result ->
                     val currencies = mutableListOf<Currency>()
                     if (result.size() > 0) {

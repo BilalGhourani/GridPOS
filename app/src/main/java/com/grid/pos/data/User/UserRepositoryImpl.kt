@@ -79,6 +79,7 @@ class UserRepositoryImpl(
             FirebaseFirestore.getInstance().collection("set_users")
                 .whereEqualTo("usr_username", username)
                 .whereEqualTo("usr_password", password)
+                .whereEqualTo("usr_cmp_id",SettingsModel.companyID)
                 .get()
                 .addOnSuccessListener { result ->
                     if (result.size() > 0) {
@@ -117,7 +118,9 @@ class UserRepositoryImpl(
 
     override suspend fun getAllUsers(callback: OnResult?) {
         if (SettingsModel.loadFromRemote) {
-            FirebaseFirestore.getInstance().collection("set_users").get()
+            FirebaseFirestore.getInstance().collection("set_users")
+                .whereEqualTo("usr_cmp_id",SettingsModel.companyID)
+                .get()
                 .addOnSuccessListener { result ->
                     val users = mutableListOf<User>()
                     if (result.size() > 0) {

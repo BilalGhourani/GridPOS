@@ -8,6 +8,7 @@ import com.grid.pos.data.DataModel
 import com.google.firebase.firestore.DocumentId
 import com.google.firebase.firestore.Exclude
 import com.google.firebase.firestore.PropertyName
+import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.Utils
 
 @Entity(tableName = "set_users")
@@ -92,6 +93,7 @@ data class User(
         if (userId.isNullOrEmpty()) {
             userId = Utils.generateRandomUuidString()
         }
+        userCompanyId = SettingsModel.companyID
     }
 
     @Exclude

@@ -1,50 +1,54 @@
 package com.grid.pos.ui.settings
 
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarColors
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.ColorPickerPopup
-import com.grid.pos.ui.common.HueBar
 import com.grid.pos.ui.common.UIButton
-import com.grid.pos.ui.common.UIColorPicker
 import com.grid.pos.ui.common.UISwitch
+import com.grid.pos.ui.common.UITextField
 import com.grid.pos.ui.theme.GridPOSTheme
-import com.grid.pos.ui.theme.White
+import com.grid.pos.ui.theme.LightGrey
 import com.grid.pos.utils.DataStoreManager
 import com.grid.pos.utils.Extension.toHexCode
 import kotlinx.coroutines.CoroutineScope
@@ -57,21 +61,38 @@ fun SettingsView(
     navController: NavController? = null,
     modifier: Modifier = Modifier
 ) {
-    var buttonColorState by remember { mutableStateOf(SettingsModel.buttonColor) }
-    var buttonTextColorState by remember { mutableStateOf(SettingsModel.buttonTextColor) }
-    var topBarColorState by remember { mutableStateOf(SettingsModel.topBarColor) }
-    var backgroundColorState by remember { mutableStateOf(SettingsModel.buttonTextColor) }
-    var textColorState by remember { mutableStateOf(SettingsModel.buttonTextColor) }
-    var colorPickerType by remember { mutableStateOf(ColorPickerType.BUTTON_COLOR) }
-    var isColorPickerShown by remember { mutableStateOf(false) }
+    var firebaseApplicationId by remember {
+        mutableStateOf(
+            SettingsModel.firebaseApplicationId ?: ""
+        )
+    }
+    var firebaseApiKey by remember { mutableStateOf(SettingsModel.firebaseApiKey ?: "") }
+    var firebaseProjectId by remember { mutableStateOf(SettingsModel.firebaseProjectId ?: "") }
+    var firebaseDbPath by remember { mutableStateOf(SettingsModel.firebaseDbPath ?: "") }
+    var companyID by remember { mutableStateOf(SettingsModel.companyID ?: "") }
+
+    val firebaseApiKeyRequester = remember { FocusRequester() }
+    val firebaseProjectIdRequester = remember { FocusRequester() }
+    val firebaseDbPathRequester = remember { FocusRequester() }
+    val companyIdRequester = remember { FocusRequester() }
+
+
     var loadFromRemote by remember { mutableStateOf(SettingsModel.loadFromRemote) }
     var hideTaxInputs by remember { mutableStateOf(SettingsModel.hideTaxInputs) }
     var showPriceInItemBtn by remember { mutableStateOf(SettingsModel.showPriceInItemBtn) }
-    //val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    var buttonColorState by remember { mutableStateOf(SettingsModel.buttonColor) }
+    var buttonTextColorState by remember { mutableStateOf(SettingsModel.buttonTextColor) }
+    var topBarColorState by remember { mutableStateOf(SettingsModel.topBarColor) }
+    var backgroundColorState by remember { mutableStateOf(SettingsModel.backgroundColor) }
+    var textColorState by remember { mutableStateOf(SettingsModel.textColor) }
+    var colorPickerType by remember { mutableStateOf(ColorPickerType.BUTTON_COLOR) }
+    var isColorPickerShown by remember { mutableStateOf(false) }
+
 
     GridPOSTheme {
         Scaffold(
-            containerColor=SettingsModel.backgroundColor,
+            containerColor = SettingsModel.backgroundColor,
             topBar = {
                 Surface(shadowElevation = 3.dp, color = backgroundColorState) {
                     TopAppBar(
@@ -99,134 +120,298 @@ fun SettingsView(
             Column(
                 modifier = modifier
                     .fillMaxSize()
-                    .padding(it),
+                    .padding(it)
+                    .verticalScroll(rememberScrollState()),
             ) {
-                UIButton(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(70.dp)
-                        .padding(10.dp),
-                    text = "Button Color",
-                    buttonColor = buttonColorState,
-                    textColor = buttonTextColorState
+                Card(
+                    modifier = Modifier.padding(10.dp),
+                    shape = RoundedCornerShape(15.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = LightGrey,
+                    )
                 ) {
-                    colorPickerType = ColorPickerType.BUTTON_COLOR
-                    isColorPickerShown = true
+                    Text(
+                        text = "Firebase",
+                        modifier = Modifier
+                            .padding(16.dp),
+                        textAlign = TextAlign.Center,
+                        style = TextStyle(
+                            textDecoration = TextDecoration.None,
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 16.sp
+                        ),
+                        color = SettingsModel.textColor
+                    )
+
+                    UITextField(
+                        modifier = Modifier.padding(10.dp),
+                        defaultValue = firebaseApplicationId,
+                        label = "Application ID",
+                        placeHolder = "Application ID",
+                        onAction = { firebaseApiKeyRequester.requestFocus() }
+                    ) { appId ->
+                        firebaseApplicationId = appId
+                    }
+
+                    UITextField(
+                        modifier = Modifier.padding(10.dp),
+                        defaultValue = firebaseApiKey,
+                        label = "Api Key",
+                        placeHolder = "Api Key",
+                        focusRequester = firebaseApiKeyRequester,
+                        onAction = { firebaseProjectIdRequester.requestFocus() }
+                    ) { apiKey ->
+                        firebaseApiKey = apiKey
+                    }
+
+                    UITextField(
+                        modifier = Modifier.padding(10.dp),
+                        defaultValue = firebaseProjectId,
+                        label = "Project ID",
+                        placeHolder = "Project ID",
+                        focusRequester = firebaseProjectIdRequester,
+                        onAction = { firebaseDbPathRequester.requestFocus() }
+                    ) { projectID ->
+                        firebaseProjectId = projectID
+                    }
+
+                    UITextField(
+                        modifier = Modifier.padding(10.dp),
+                        defaultValue = firebaseDbPath,
+                        label = "Database Path",
+                        placeHolder = "Database Path",
+                        focusRequester = firebaseDbPathRequester,
+                        onAction = { companyIdRequester.requestFocus() }
+                    ) { dbPath ->
+                        firebaseDbPath = dbPath
+                    }
+
+                    UITextField(
+                        modifier = Modifier.padding(10.dp),
+                        defaultValue = companyID,
+                        label = "Company ID",
+                        placeHolder = "Company ID",
+                        focusRequester = companyIdRequester,
+                        imeAction = ImeAction.Done
+                    ) { compId ->
+                        companyID = compId
+                    }
+
+                    UIButton(
+                        modifier = Modifier
+                            .wrapContentWidth()
+                            .height(60.dp)
+                            .padding(10.dp)
+                            .align(Alignment.CenterHorizontally),
+                        text = "Save"
+                    ) {
+                        CoroutineScope(Dispatchers.IO).launch {
+                            SettingsModel.firebaseApplicationId = firebaseApplicationId
+                            DataStoreManager.putString(
+                                DataStoreManager.DataStoreKeys.FIREBASE_APP_ID.key,
+                                firebaseApplicationId
+                            )
+                            SettingsModel.firebaseApiKey = firebaseApiKey
+                            DataStoreManager.putString(
+                                DataStoreManager.DataStoreKeys.FIREBASE_API_KEY.key,
+                                firebaseApiKey
+                            )
+                            SettingsModel.firebaseProjectId = firebaseProjectId
+                            DataStoreManager.putString(
+                                DataStoreManager.DataStoreKeys.FIREBASE_PROJECT_ID.key,
+                                firebaseProjectId
+                            )
+                            SettingsModel.firebaseDbPath = firebaseDbPath
+                            DataStoreManager.putString(
+                                DataStoreManager.DataStoreKeys.FIREBASE_DB_PATH.key,
+                                firebaseDbPath
+                            )
+                            SettingsModel.firebaseDbPath = firebaseDbPath
+                            DataStoreManager.putString(
+                                DataStoreManager.DataStoreKeys.FIREBASE_DB_PATH.key,
+                                firebaseDbPath
+                            )
+                            SettingsModel.companyID = companyID
+                            DataStoreManager.putString(
+                                DataStoreManager.DataStoreKeys.COMPANY_ID.key,
+                                companyID
+                            )
+                        }
+                    }
                 }
-
-                UIButton(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(70.dp)
-                        .padding(10.dp),
-                    text = "Button Text Color",
-                    buttonColor = buttonColorState,
-                    textColor = buttonTextColorState
+                Card(
+                    modifier = Modifier.padding(10.dp),
+                    shape = RoundedCornerShape(15.dp),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = LightGrey,
+                    )
                 ) {
-                    colorPickerType = ColorPickerType.BUTTON_TEXT_COLOR
-                    isColorPickerShown = true
+                    Text(
+                        text = "App Settings",
+                        modifier = Modifier
+                            .padding(16.dp),
+                        textAlign = TextAlign.Center,
+                        style = TextStyle(
+                            textDecoration = TextDecoration.None,
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 16.sp
+                        ),
+                        color = SettingsModel.textColor
+                    )
+                    UISwitch(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(60.dp)
+                            .padding(10.dp),
+                        checked = loadFromRemote,
+                        text = "Load From Remote",
+                        textColor = textColorState
+                    ) {
+                        loadFromRemote = it
+                        SettingsModel.loadFromRemote = it
+                        CoroutineScope(Dispatchers.IO).launch {
+                            DataStoreManager.putBoolean(
+                                DataStoreManager.DataStoreKeys.LOAD_FROM_REMOTE.key,
+                                it
+                            )
+                        }
+                    }
+
+                    UISwitch(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(60.dp)
+                            .padding(10.dp),
+                        checked = hideTaxInputs,
+                        text = "Hide Tax Inputs",
+                        textColor = textColorState
+                    ) {
+                        hideTaxInputs = it
+                        SettingsModel.hideTaxInputs = it
+                        CoroutineScope(Dispatchers.IO).launch {
+                            DataStoreManager.putBoolean(
+                                DataStoreManager.DataStoreKeys.HIDE_TAX_INPUTS.key,
+                                it
+                            )
+                        }
+                    }
+
+                    UISwitch(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(60.dp)
+                            .padding(10.dp),
+                        checked = showPriceInItemBtn,
+                        text = "Show Price in Item Button",
+                        textColor = textColorState
+                    ) {
+                        showPriceInItemBtn = it
+                        SettingsModel.showPriceInItemBtn = it
+                        CoroutineScope(Dispatchers.IO).launch {
+                            DataStoreManager.putBoolean(
+                                DataStoreManager.DataStoreKeys.SHOW_PRICE_IN_ITEM_BTN.key,
+                                it
+                            )
+                        }
+                    }
                 }
-
-                UIButton(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(70.dp)
-                        .padding(10.dp),
-                    text = "Top Bar Color",
-                    buttonColor = buttonColorState,
-                    textColor = buttonTextColorState
+                Card(
+                    modifier = Modifier.padding(10.dp),
+                    shape = RoundedCornerShape(15.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = LightGrey,
+                    )
                 ) {
-                    colorPickerType = ColorPickerType.TOP_BAR_COLOR
-                    isColorPickerShown = true
-                }
+                    Text(
+                        text = "Colors",
+                        modifier = Modifier
+                            .padding(16.dp),
+                        textAlign = TextAlign.Center,
+                        style = TextStyle(
+                            textDecoration = TextDecoration.None,
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 16.sp
+                        ),
+                        color = SettingsModel.textColor
+                    )
+                    UIButton(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(70.dp)
+                            .padding(10.dp),
+                        text = "Button Color",
+                        buttonColor = buttonColorState,
+                        textColor = buttonTextColorState
+                    ) {
+                        colorPickerType = ColorPickerType.BUTTON_COLOR
+                        isColorPickerShown = true
+                    }
 
-                UIButton(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(70.dp)
-                        .padding(10.dp),
-                    text = "Background Color",
-                    buttonColor = buttonColorState,
-                    textColor = buttonTextColorState
-                ) {
-                    colorPickerType = ColorPickerType.BACKGROUND_COLOR
-                    isColorPickerShown = true
-                }
+                    UIButton(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(70.dp)
+                            .padding(10.dp),
+                        text = "Button Text Color",
+                        buttonColor = buttonColorState,
+                        textColor = buttonTextColorState
+                    ) {
+                        colorPickerType = ColorPickerType.BUTTON_TEXT_COLOR
+                        isColorPickerShown = true
+                    }
 
-                UIButton(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(70.dp)
-                        .padding(10.dp),
-                    text = "Text Color",
-                    buttonColor = buttonColorState,
-                    textColor = buttonTextColorState
-                ) {
-                    colorPickerType = ColorPickerType.TEXT_COLOR
-                    isColorPickerShown = true
-                }
+                    UIButton(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(70.dp)
+                            .padding(10.dp),
+                        text = "Top Bar Color",
+                        buttonColor = buttonColorState,
+                        textColor = buttonTextColorState
+                    ) {
+                        colorPickerType = ColorPickerType.TOP_BAR_COLOR
+                        isColorPickerShown = true
+                    }
 
+                    UIButton(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(70.dp)
+                            .padding(10.dp),
+                        text = "Background Color",
+                        buttonColor = buttonColorState,
+                        textColor = buttonTextColorState
+                    ) {
+                        colorPickerType = ColorPickerType.BACKGROUND_COLOR
+                        isColorPickerShown = true
+                    }
 
-
-                UISwitch(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(60.dp)
-                        .padding(10.dp),
-                    checked = loadFromRemote,
-                    text = "Load From Remote",
-                    textColor=textColorState
-                ) {
-                    loadFromRemote = it
-                    SettingsModel.loadFromRemote = it
-                    CoroutineScope(Dispatchers.IO).launch {
-                        DataStoreManager.putBoolean(
-                            DataStoreManager.DataStoreKeys.LOAD_FROM_REMOTE.key,
-                            it
-                        )
+                    UIButton(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(70.dp)
+                            .padding(10.dp),
+                        text = "Text Color",
+                        buttonColor = buttonColorState,
+                        textColor = buttonTextColorState
+                    ) {
+                        colorPickerType = ColorPickerType.TEXT_COLOR
+                        isColorPickerShown = true
                     }
                 }
 
-                UISwitch(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(60.dp)
-                        .padding(10.dp),
-                    checked = hideTaxInputs,
-                    text = "Hide Tax Inputs",
-                    textColor=textColorState
-                ) {
-                    hideTaxInputs = it
-                    SettingsModel.hideTaxInputs = it
-                    CoroutineScope(Dispatchers.IO).launch {
-                        DataStoreManager.putBoolean(
-                            DataStoreManager.DataStoreKeys.HIDE_TAX_INPUTS.key,
-                            it
-                        )
-                    }
-                }
-
-                UISwitch(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(60.dp)
-                        .padding(10.dp),
-                    checked = showPriceInItemBtn,
-                    text = "Show Price in Item Button",
-                    textColor=textColorState
-                ) {
-                    showPriceInItemBtn = it
-                    SettingsModel.showPriceInItemBtn = it
-                    CoroutineScope(Dispatchers.IO).launch {
-                        DataStoreManager.putBoolean(
-                            DataStoreManager.DataStoreKeys.SHOW_PRICE_IN_ITEM_BTN.key,
-                            it
-                        )
-                    }
-                }
             }
         }
-        if (isColorPickerShown) {
+        AnimatedVisibility(
+            visible = isColorPickerShown,
+            enter = fadeIn(
+                initialAlpha = 0.4f
+            ),
+            exit = fadeOut(
+                animationSpec = tween(durationMillis = 250)
+            )
+        ) {
             Dialog(
                 onDismissRequest = { isColorPickerShown = false },
             ) {
@@ -301,75 +486,6 @@ fun SettingsView(
                 )
 
             }
-            /*ModalBottomSheet(
-                onDismissRequest = { isColorPickerShown = false },
-                sheetState = bottomSheetState,
-                containerColor = SettingsModel.backgroundColor,
-                contentColor = White,
-                shape = RectangleShape,
-                dragHandle = null,
-                scrimColor = Color.Black.copy(alpha = .5f),
-                windowInsets = WindowInsets(0, 0, 0, 0)
-            ) {
-                UIColorPicker(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .fillMaxHeight(0.5f),
-                    defaultColor = when (colorPickerType) {
-                        ColorPickerType.BUTTON_COLOR -> buttonColorState
-                        ColorPickerType.BUTTON_TEXT_COLOR -> buttonTextColorState
-                        ColorPickerType.BACKGROUND_COLOR -> backgroundColorState
-                        ColorPickerType.TEXT_COLOR -> textColorState
-                    }
-                ) {
-                    when (colorPickerType) {
-                        ColorPickerType.BUTTON_COLOR -> {
-                            buttonColorState = it
-                            SettingsModel.buttonColor = it
-                            CoroutineScope(Dispatchers.IO).launch {
-                                DataStoreManager.putString(
-                                    DataStoreManager.DataStoreKeys.BUTTON_COLOR.key,
-                                    it.toHexCode()
-                                )
-                            }
-                        }
-
-                        ColorPickerType.BUTTON_TEXT_COLOR -> {
-                            buttonTextColorState = it
-                            SettingsModel.buttonTextColor = it
-                            CoroutineScope(Dispatchers.IO).launch {
-                                DataStoreManager.putString(
-                                    DataStoreManager.DataStoreKeys.BUTTON_TEXT_COLOR.key,
-                                    it.toHexCode()
-                                )
-                            }
-                        }
-
-                        ColorPickerType.BACKGROUND_COLOR -> {
-                            backgroundColorState = it
-                            SettingsModel.backgroundColor = it
-                            CoroutineScope(Dispatchers.IO).launch {
-                                DataStoreManager.putString(
-                                    DataStoreManager.DataStoreKeys.BACKGROUND_COLOR.key,
-                                    it.toHexCode()
-                                )
-                            }
-                        }
-
-                        ColorPickerType.TEXT_COLOR -> {
-                            textColorState = it
-                            SettingsModel.textColor = it
-                            CoroutineScope(Dispatchers.IO).launch {
-                                DataStoreManager.putString(
-                                    DataStoreManager.DataStoreKeys.TEXT_COLOR.key,
-                                    it.toHexCode()
-                                )
-                            }
-                        }
-                    }
-                    isColorPickerShown = false
-                }
-            }*/
         }
     }
 }

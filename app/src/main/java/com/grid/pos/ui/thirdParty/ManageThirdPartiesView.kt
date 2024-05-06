@@ -12,8 +12,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -43,14 +41,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.grid.pos.data.Company.Company
 import com.grid.pos.data.ThirdParty.ThirdParty
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.LoadingIndicator
 import com.grid.pos.ui.common.SearchableDropdownMenu
 import com.grid.pos.ui.common.UIButton
 import com.grid.pos.ui.common.UITextField
-import com.grid.pos.ui.theme.Blue
 import com.grid.pos.ui.theme.GridPOSTheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -73,7 +69,6 @@ fun ManageThirdPartiesView(
 
     var nameState by remember { mutableStateOf("") }
     var fnState by remember { mutableStateOf("") }
-    var companyIdState by remember { mutableStateOf("") }
     var phone1State by remember { mutableStateOf("") }
     var phone2State by remember { mutableStateOf("") }
     var addressState by remember { mutableStateOf("") }
@@ -142,7 +137,6 @@ fun ManageThirdPartiesView(
                             manageThirdPartiesState.selectedThirdParty = thirdParty
                             nameState = thirdParty.thirdPartyName ?: ""
                             fnState = thirdParty.thirdPartyFn ?: ""
-                            companyIdState = thirdParty.thirdPartyCompId ?: ""
                             phone1State = thirdParty.thirdPartyPhone1 ?: ""
                             phone2State = thirdParty.thirdPartyPhone2 ?: ""
                             addressState = thirdParty.thirdPartyAddress ?: ""
@@ -160,20 +154,6 @@ fun ManageThirdPartiesView(
                         ) { name ->
                             nameState = name
                             manageThirdPartiesState.selectedThirdParty.thirdPartyName = name
-                        }
-
-                        //company
-                        SearchableDropdownMenu(
-                            items = manageThirdPartiesState.companies.toMutableList(),
-                            modifier = Modifier.padding(10.dp),
-                            label = "Select Company",
-                            selectedId = companyIdState
-                        ) { company ->
-                            company as Company
-                            companyIdState = company.companyId
-                            manageThirdPartiesState.selectedThirdParty.thirdPartyCompId =
-                                companyIdState
-                            phone1FocusRequester.requestFocus()
                         }
 
                         //phone1
@@ -263,7 +243,6 @@ fun ManageThirdPartiesView(
             manageThirdPartiesState.selectedThirdParty.thirdPartyCompId = ""
             nameState =  ""
             fnState =   ""
-            companyIdState =   ""
             phone1State = ""
             phone2State =  ""
             addressState =   ""

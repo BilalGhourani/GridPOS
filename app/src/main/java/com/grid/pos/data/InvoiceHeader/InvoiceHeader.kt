@@ -7,6 +7,7 @@ import androidx.room.PrimaryKey
 import com.grid.pos.data.DataModel
 import com.google.firebase.firestore.Exclude
 import com.google.firebase.firestore.PropertyName
+import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.Utils
 import java.util.Date
 
@@ -231,9 +232,9 @@ data class InvoiceHeader(
         if (invoiceHeadId.isNullOrEmpty()) {
             invoiceHeadId = Utils.generateRandomUuidString()
         }
-        val time = Utils.getDateinFormat()
-        invoicHeadUserStamp = time
-        invoicHeadTimeStamp = time
+        invoiceHeadCompId = SettingsModel.companyID
+        invoicHeadUserStamp = SettingsModel.currentUserId
+        invoicHeadTimeStamp =  Utils.getDateinFormat()
     }
 
     @Exclude

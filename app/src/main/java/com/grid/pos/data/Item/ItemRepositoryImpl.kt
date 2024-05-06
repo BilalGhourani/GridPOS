@@ -66,7 +66,9 @@ class ItemRepositoryImpl(
 
     override suspend fun getAllItems(callback: OnResult?) {
         if (SettingsModel.loadFromRemote) {
-            FirebaseFirestore.getInstance().collection("st_item").get()
+            FirebaseFirestore.getInstance().collection("st_item")
+                .whereEqualTo("it_cmp_id",SettingsModel.companyID)
+                .get()
                 .addOnSuccessListener { result ->
                     val items = mutableListOf<Item>()
                     if (result.size() > 0) {

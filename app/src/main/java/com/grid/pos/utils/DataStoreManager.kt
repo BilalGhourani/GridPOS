@@ -115,6 +115,7 @@ object DataStoreManager {
     }
 
     suspend fun initSettingsModel() {
+        SettingsModel.currentUserId = getString(DataStoreKeys.CURRENT_USER_ID.key)
         val buttonColor = getString(DataStoreKeys.BUTTON_COLOR.key)
         val buttonTextColor = getString(DataStoreKeys.BUTTON_TEXT_COLOR.key)
         val topBarColor = getString(DataStoreKeys.TOP_BAR_COLOR.key)
@@ -141,17 +142,35 @@ object DataStoreManager {
         }
         SettingsModel.loadFromRemote = getBoolean(DataStoreKeys.LOAD_FROM_REMOTE.key, true) == true
         SettingsModel.hideTaxInputs = getBoolean(DataStoreKeys.HIDE_TAX_INPUTS.key) == true
+
+        SettingsModel.firebaseApplicationId = getString(DataStoreKeys.FIREBASE_APP_ID.key)
+        SettingsModel.firebaseApiKey = getString(DataStoreKeys.FIREBASE_API_KEY.key)
+        SettingsModel.firebaseProjectId = getString(DataStoreKeys.FIREBASE_PROJECT_ID.key)
+        SettingsModel.firebaseDbPath = getString(DataStoreKeys.FIREBASE_DB_PATH.key)
+        SettingsModel.companyID = getString(
+            DataStoreKeys.COMPANY_ID.key,
+            ""
+        ).ifEmpty { "b446ad20-506f-40e1-83e5-022c748f39c0" }
     }
 
 
     enum class DataStoreKeys(val key: String) {
+        CURRENT_USER_ID("CURRENT_USER_ID"),
+
+        FIREBASE_APP_ID("FIREBASE_APP_ID"),
+        FIREBASE_API_KEY("FIREBASE_API_KEY"),
+        FIREBASE_PROJECT_ID("FIREBASE_PROJECT_ID"),
+        FIREBASE_DB_PATH("FIREBASE_DB_PATH"),
+        COMPANY_ID("COMPANY_ID"),
+
+        LOAD_FROM_REMOTE("LOAD_FROM_REMOTE"),
+        HIDE_TAX_INPUTS("HIDE_TAX_INPUTS"),
+        SHOW_PRICE_IN_ITEM_BTN("SHOW_PRICE_IN_ITEM_BTN"),
+
         BUTTON_COLOR("BUTTON_COLOR"),
         BUTTON_TEXT_COLOR("BUTTON_TEXT_COLOR"),
         BACKGROUND_COLOR("BACKGROUND_COLOR"),
         TOP_BAR_COLOR("TOP_BAR_COLOR"),
         TEXT_COLOR("TEXT_COLOR"),
-        LOAD_FROM_REMOTE("LOAD_FROM_REMOTE"),
-        HIDE_TAX_INPUTS("HIDE_TAX_INPUTS"),
-        SHOW_PRICE_IN_ITEM_BTN("SHOW_PRICE_IN_ITEM_BTN"),
     }
 }

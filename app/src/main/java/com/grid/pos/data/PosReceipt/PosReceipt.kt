@@ -7,6 +7,7 @@ import androidx.room.PrimaryKey
 import com.grid.pos.data.DataModel
 import com.google.firebase.firestore.Exclude
 import com.google.firebase.firestore.PropertyName
+import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.Utils
 import java.util.Date
 
@@ -64,6 +65,7 @@ data class PosReceipt(
     override fun getId(): String {
         return posReceiptId
     }
+
     @Exclude
     override fun getName(): String {
         return ""
@@ -74,9 +76,8 @@ data class PosReceipt(
         if (posReceiptId.isNullOrEmpty()) {
             posReceiptId = Utils.generateRandomUuidString()
         }
-        val time = Utils.getDateinFormat()
-        posReceiptUserStamp = time
-        posReceiptTimeStamp = time
+        posReceiptUserStamp = SettingsModel.currentUserId
+        posReceiptTimeStamp = Utils.getDateinFormat()
     }
 
     @Exclude

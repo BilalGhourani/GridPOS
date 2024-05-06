@@ -77,7 +77,6 @@ fun ManageUsersView(
     var nameState by remember { mutableStateOf("") }
     var usernameState by remember { mutableStateOf("") }
     var passwordState by remember { mutableStateOf("") }
-    var companyIdState by remember { mutableStateOf("") }
     var posModeState by remember { mutableStateOf(true) }
     var tableModeState by remember { mutableStateOf(false) }
 
@@ -149,7 +148,6 @@ fun ManageUsersView(
                             nameState = selectedUser.userName ?: ""
                             usernameState = selectedUser.userUsername ?: ""
                             passwordState = selectedUser.userPassword ?: ""
-                            companyIdState = selectedUser.userCompanyId ?: ""
                             posModeState = selectedUser.userPosMode ?: true
                             tableModeState = selectedUser.userTableMode ?: false
                         }
@@ -189,18 +187,6 @@ fun ManageUsersView(
                         ) {
                             passwordState = it
                             manageUsersState.selectedUser.userPassword = it
-                        }
-
-                        SearchableDropdownMenu(
-                            items = manageUsersState.companies.toMutableList(),
-                            modifier = Modifier.padding(10.dp),
-                            label = "Select Company",
-                            selectedId = companyIdState
-                        ) { company ->
-                            company as Company
-                            companyIdState = company.companyId
-                            manageUsersState.selectedUser.userCompanyId =
-                                company.companyId
                         }
 
                         Row(
@@ -282,7 +268,6 @@ fun ManageUsersView(
             nameState = ""
             usernameState = ""
             passwordState = ""
-            companyIdState = ""
             posModeState = true
             tableModeState = false
             manageUsersState.clear = false

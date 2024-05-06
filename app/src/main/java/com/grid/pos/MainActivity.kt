@@ -18,6 +18,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.rememberNavController
 import com.grid.pos.interfaces.OnActivityResult
 import com.grid.pos.interfaces.OnGalleryResult
+import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.login.LoginView
 import com.grid.pos.ui.navigation.AuthNavGraph
 import com.grid.pos.ui.theme.GridPOSTheme
@@ -65,7 +66,7 @@ class MainActivity : ComponentActivity() {
                         navController = navController,
                         activityViewModel = activityViewModel,
                         mainActivity = this,
-                        startDestination = "LoginView"
+                        startDestination = if (SettingsModel.currentUserId.isNullOrEmpty()) "LoginView" else "HomeView"
                     )
                 }
             }

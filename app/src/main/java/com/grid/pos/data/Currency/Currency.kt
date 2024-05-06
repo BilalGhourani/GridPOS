@@ -7,6 +7,7 @@ import androidx.room.PrimaryKey
 import com.grid.pos.data.DataModel
 import com.google.firebase.firestore.Exclude
 import com.google.firebase.firestore.PropertyName
+import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.Utils
 import org.jetbrains.annotations.NotNull
 
@@ -31,7 +32,7 @@ data class Currency(
     @ColumnInfo(name = "cur_cmp_id")
     @set:PropertyName("cur_cmp_id")
     @get:PropertyName("cur_cmp_id")
-    var currencyCompId: String?=null,
+    var currencyCompId: String? = null,
 
     /**
      * Currency code 1
@@ -39,7 +40,7 @@ data class Currency(
     @ColumnInfo(name = "cur_code1")
     @set:PropertyName("cur_code1")
     @get:PropertyName("cur_code1")
-    var currencyCode1: String?=null,
+    var currencyCode1: String? = null,
 
     /**
      * Currency name 1
@@ -47,7 +48,7 @@ data class Currency(
     @ColumnInfo(name = "cur_name1")
     @set:PropertyName("cur_name1")
     @get:PropertyName("cur_name1")
-    var currencyName1: String?=null,
+    var currencyName1: String? = null,
 
 
     /**
@@ -56,7 +57,7 @@ data class Currency(
     @ColumnInfo(name = "cur_code2")
     @set:PropertyName("cur_code2")
     @get:PropertyName("cur_code2")
-    var currencyCode2: String?=null,
+    var currencyCode2: String? = null,
 
     /**
      * Currency Name 2
@@ -64,7 +65,7 @@ data class Currency(
     @ColumnInfo(name = "cur_name2")
     @set:PropertyName("cur_name2")
     @get:PropertyName("cur_name2")
-    var currencyName2: String?=null,
+    var currencyName2: String? = null,
 
     /**
      * Currency Name 1 Decimal
@@ -72,7 +73,7 @@ data class Currency(
     @ColumnInfo(name = "cur_name1decimal")
     @set:PropertyName("cur_name1decimal")
     @get:PropertyName("cur_name1decimal")
-    var currencyName1Dec: String?=null,
+    var currencyName1Dec: String? = null,
 
     /**
      * Currency Name 2 Decimal
@@ -80,7 +81,7 @@ data class Currency(
     @ColumnInfo(name = "cur_name2decimal")
     @set:PropertyName("cur_name2decimal")
     @get:PropertyName("cur_name2decimal")
-    var currencyName2Dec: String?=null,
+    var currencyName2Dec: String? = null,
 
     /**
      * Currency Rate
@@ -88,8 +89,8 @@ data class Currency(
     @ColumnInfo(name = "cur_rate")
     @set:PropertyName("cur_rate")
     @get:PropertyName("cur_rate")
-    var currencyRate: String?=null,
-    ): DataModel() {
+    var currencyRate: String? = null,
+) : DataModel() {
     constructor() : this("")
 
     @Exclude
@@ -107,6 +108,7 @@ data class Currency(
         if (currencyId.isNullOrEmpty()) {
             currencyId = Utils.generateRandomUuidString()
         }
+        currencyCompId = SettingsModel.companyID
     }
 
     @Exclude

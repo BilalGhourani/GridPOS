@@ -1,5 +1,7 @@
 package com.grid.pos.ui.Item
 
+import android.net.Uri
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,6 +14,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Image
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -43,9 +46,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.grid.pos.MainActivity
 import com.grid.pos.data.Family.Family
 import com.grid.pos.data.Item.Item
 import com.grid.pos.data.PosPrinter.PosPrinter
+import com.grid.pos.interfaces.OnGalleryResult
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.LoadingIndicator
 import com.grid.pos.ui.common.SearchableDropdownMenu
@@ -62,6 +67,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun ManageItemsView(
     navController: NavController? = null,
+    mainActivity: MainActivity,
     modifier: Modifier = Modifier,
     viewModel: ManageItemsViewModel = hiltViewModel()
 ) {
@@ -78,6 +84,7 @@ fun ManageItemsView(
     val openQtyFocusRequester = remember { FocusRequester() }
     val btnColorFocusRequester = remember { FocusRequester() }
     val btnTextColorFocusRequester = remember { FocusRequester() }
+    val imageFocusRequester = remember { FocusRequester() }
 
     var nameState by remember { mutableStateOf("") }
     var unitPriceState by remember { mutableStateOf("") }
@@ -91,6 +98,7 @@ fun ManageItemsView(
     var btnColorState by remember { mutableStateOf("") }
     var btnTextColorState by remember { mutableStateOf("") }
     var posPrinterState by remember { mutableStateOf("") }
+    var imageState by remember { mutableStateOf(manageItemsState.selectedItem.itemImage ?: "") }
     var itemPOSState by remember { mutableStateOf(false) }
 
     val snackbarHostState = remember { SnackbarHostState() }
@@ -106,7 +114,7 @@ fun ManageItemsView(
     }
     GridPOSTheme {
         Scaffold(
-            containerColor=SettingsModel.backgroundColor,
+            containerColor = SettingsModel.backgroundColor,
             snackbarHost = {
                 SnackbarHost(hostState = snackbarHostState)
             },
@@ -239,7 +247,7 @@ fun ManageItemsView(
                                 placeHolder = "Enter Tax2",
                                 onAction = { barcodeFocusRequester.requestFocus() }
                             ) { tax2 ->
-                                tax2State =  Utils.getDoubleValue(tax2, tax2State)
+                                tax2State = Utils.getDoubleValue(tax2, tax2State)
                                 manageItemsState.selectedItem.itemTax2 = tax2State
                             }
                         }
@@ -266,7 +274,7 @@ fun ManageItemsView(
                             focusRequester = openCostFocusRequester,
                             onAction = { openQtyFocusRequester.requestFocus() }
                         ) { openCost ->
-                            openCostState =  Utils.getDoubleValue(openCost, openCostState)
+                            openCostState = Utils.getDoubleValue(openCost, openCostState)
                             manageItemsState.selectedItem.itemOpenCost = openCostState
                         }
 
@@ -280,7 +288,7 @@ fun ManageItemsView(
                             focusRequester = openQtyFocusRequester,
                             onAction = { btnColorFocusRequester.requestFocus() }
                         ) { openQty ->
-                            openQtyState =  Utils.getDoubleValue(openQty, openQtyState)
+                            openQtyState = Utils.getDoubleValue(openQty, openQtyState)
                             manageItemsState.selectedItem.itemOpenQty = openQtyState
                         }
 
@@ -315,8 +323,7 @@ fun ManageItemsView(
                             label = "Button Text color",
                             placeHolder = "Enter Button Text color",
                             focusRequester = btnTextColorFocusRequester,
-                            imeAction = ImeAction.Done,
-                            onAction = { keyboardController?.hide() }
+                            onAction = { imageFocusRequester.requestFocus() }
                         ) { btnTextColor ->
                             btnTextColorState = btnTextColor
                             manageItemsState.selectedItem.itemBtnTextColor = btnTextColor
@@ -331,6 +338,41 @@ fun ManageItemsView(
                             printer as PosPrinter
                             posPrinterState = printer.posPrinterId
                             manageItemsState.selectedItem.itemPosPrinter = posPrinterState
+                        }
+
+                        UITextField(
+                            modifier = Modifier.padding(10.dp),
+                            defaultValue = imageState,
+                            label = "Image",
+                            placeHolder = "Image",
+                            focusRequester = imageFocusRequester,
+                            imeAction = ImeAction.Done,
+                            onAction = { keyboardController?.hide() },
+                            trailingIcon = {
+                                IconButton(onClick = {
+                                    mainActivity.launchGalleryPicker(
+                                        mediaType = ActivityResultContracts.PickVisualMedia.ImageOnly,
+                                        object : OnGalleryResult {
+                                            override fun onGalleryResult(uris: List<Uri>) {
+                                                if (uris.isNotEmpty()) {
+                                                    imageState = uris[0].toString()
+                                                    manageItemsState.selectedItem.itemImage =
+                                                        imageState
+                                                }
+                                            }
+
+                                        }
+                                    )
+                                }) {
+                                    Icon(
+                                        Icons.Default.Image, contentDescription = "Image",
+                                        tint = SettingsModel.buttonColor
+                                    )
+                                }
+                            }
+                        ) { img ->
+                            imageState = img
+                            manageItemsState.selectedItem.itemImage = img
                         }
 
                         UISwitch(

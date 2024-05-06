@@ -7,6 +7,7 @@ import androidx.room.PrimaryKey
 import com.grid.pos.data.DataModel
 import com.google.firebase.firestore.Exclude
 import com.google.firebase.firestore.PropertyName
+import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.Utils
 import java.util.Date
 
@@ -179,9 +180,9 @@ data class Item(
         if (itemId.isNullOrEmpty()) {
             itemId = Utils.generateRandomUuidString()
         }
-        val time = Utils.getDateinFormat()
-        itemUserStamp = time
-        itemTimeStamp = time
+        itemCompId = SettingsModel.companyID
+        itemUserStamp = SettingsModel.currentUserId
+        itemTimeStamp = Utils.getDateinFormat()
     }
 
     @Exclude
