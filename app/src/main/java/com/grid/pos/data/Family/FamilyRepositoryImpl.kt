@@ -67,7 +67,9 @@ class FamilyRepositoryImpl(
 
     override suspend fun getAllFamilies(callback: OnResult?) {
         if (SettingsModel.loadFromRemote) {
-            FirebaseFirestore.getInstance().collection("st_family").get()
+            FirebaseFirestore.getInstance().collection("st_family")
+                .whereEqualTo("fa_cmp_id",SettingsModel.companyID)
+                .get()
                 .addOnSuccessListener { result ->
                     val families = mutableListOf<Family>()
                     if (result.size() > 0) {
