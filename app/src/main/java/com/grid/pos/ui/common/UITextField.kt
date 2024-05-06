@@ -84,6 +84,7 @@ fun UITextField(
                 focusedBorderColor = SettingsModel.buttonColor,
                 focusedTextColor = Color.Black,
                 unfocusedTextColor = Color.Black,
+                cursorColor = SettingsModel.buttonColor
             )
         )
     }
