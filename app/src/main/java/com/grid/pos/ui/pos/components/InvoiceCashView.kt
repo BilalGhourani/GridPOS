@@ -34,6 +34,8 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.grid.pos.data.Currency.Currency
+import com.grid.pos.data.InvoiceHeader.InvoiceHeader
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.UIButton
 import com.grid.pos.utils.Utils
@@ -41,6 +43,8 @@ import com.grid.pos.utils.Utils
 @Composable
 fun InvoiceCashView(
     modifier: Modifier,
+    invoiceHeader: InvoiceHeader = InvoiceHeader(),
+    currency: Currency = Currency(),
     onSave: () -> Unit = {},
     onFinish: () -> Unit = {},
 ) {
@@ -57,12 +61,20 @@ fun InvoiceCashView(
     val debitCurr1TotalFocusRequester = remember { FocusRequester() }
     val debitCurr2TotalFocusRequester = remember { FocusRequester() }
 
-    var curr1State by remember { mutableStateOf("USD") }
-    var curr2State by remember { mutableStateOf("LIRA") }
+    val curr1Decimal = currency.currencyName1Dec ?: 2
+    val curr2Decimal = currency.currencyName2Dec ?: 2
+    val rate = currency.currencyRate?.toDouble() ?: 1.0
+    val cashTotal1Paid = String.format("%.${curr1Decimal}f", invoiceHeader.invoicHeadTotal ?: 0.0)
+    val cashTotal2Paid = String.format(
+        "%.${curr1Decimal}f", (invoiceHeader.invoicHeadTotal ?: 0.0).times(rate)
+    )
+
+    val curr1State by remember { mutableStateOf(currency.currencyName1 ?: "") }
+    val curr2State by remember { mutableStateOf(currency.currencyName2 ?: "") }
     var cashCurr1Paid by remember { mutableStateOf("") }
     var cashCurr2Paid by remember { mutableStateOf("") }
-    var cashCurr1Total by remember { mutableStateOf("") }
-    var cashCurr2Total by remember { mutableStateOf("") }
+    var cashCurr1Total by remember { mutableStateOf(cashTotal1Paid) }
+    var cashCurr2Total by remember { mutableStateOf(cashTotal2Paid) }
     var creditCurr1Paid by remember { mutableStateOf("") }
     var creditCurr2Paid by remember { mutableStateOf("") }
     var creditCurr1Total by remember { mutableStateOf("") }
@@ -87,42 +99,41 @@ fun InvoiceCashView(
             horizontalArrangement = Arrangement.spacedBy(5.dp)
         ) {
             Text(
-                "",
-                modifier = Modifier
+                "", modifier = Modifier
                     .fillMaxHeight()
                     .weight(.10f)
             )
 
             Text(
-                curr1State,
-                modifier = Modifier
+                curr1State, modifier = Modifier
                     .fillMaxHeight()
                     .weight(.20f)
-                    .wrapContentHeight(align = Alignment.CenterVertically)
+                    .wrapContentHeight(
+                        align = Alignment.CenterVertically
+                    )
                     .wrapContentWidth(align = Alignment.CenterHorizontally),
                 color = SettingsModel.textColor
             )
 
             Text(
-                curr2State,
-                modifier = Modifier
+                curr2State, modifier = Modifier
                     .fillMaxHeight()
                     .weight(.20f)
-                    .wrapContentHeight(align = Alignment.CenterVertically)
+                    .wrapContentHeight(
+                        align = Alignment.CenterVertically
+                    )
                     .wrapContentWidth(align = Alignment.CenterHorizontally),
                 color = SettingsModel.textColor
             )
 
             Text(
-                "",
-                modifier = Modifier
+                "", modifier = Modifier
                     .fillMaxHeight()
                     .weight(.25f)
             )
 
             Text(
-                "",
-                modifier = Modifier
+                "", modifier = Modifier
                     .fillMaxHeight()
                     .weight(.25f)
             )
@@ -136,27 +147,40 @@ fun InvoiceCashView(
             horizontalArrangement = Arrangement.spacedBy(5.dp)
         ) {
             Text(
-                "Cash",
-                modifier = Modifier
+                "Cash", modifier = Modifier
                     .weight(.10f)
                     .fillMaxHeight()
-                    .wrapContentHeight(align = Alignment.CenterVertically),
-                color = SettingsModel.textColor
+                    .wrapContentHeight(
+                        align = Alignment.CenterVertically
+                    ), color = SettingsModel.textColor
             )
-            OutlinedTextField(
-                value = cashCurr1Paid,
-                onValueChange = { cashCurr1Paid = Utils.getDoubleValue(it, cashCurr1Paid) },
-                placeholder = {
-                    Text(text = "0.0")
-                },
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .weight(.20f),
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Number,
-                    imeAction = ImeAction.Next
-                ),
-                keyboardActions = KeyboardActions(onNext = { cashCurr2FocusRequester.requestFocus() }),
+            OutlinedTextField(value = cashCurr1Paid, onValueChange = {
+                cashCurr1Paid = Utils.getDoubleValue(it, cashCurr1Paid)
+                val cashCurrTotal1 = cashCurr1Paid.toDouble()
+                val cashCurrTotal2 = if (cashCurr2Paid.isEmpty()) 0.0 else cashCurr2Paid.toDouble()
+                creditCurr1Total = String.format(
+                    "%.${curr1Decimal}f", cashCurrTotal1 + (cashCurrTotal2 / rate)
+                )
+
+                creditCurr2Total = String.format(
+                    "%.${curr2Decimal}f", (cashCurrTotal1 * rate) + cashCurrTotal2
+                )
+
+                debitCurr1Total = String.format(
+                    "%.${curr1Decimal}f", cashTotal1Paid.toDouble() - creditCurr1Total.toDouble()
+                )
+
+                debitCurr2Total = String.format(
+                    "%.${curr2Decimal}f", cashTotal2Paid.toDouble() - creditCurr2Total.toDouble()
+                )
+            }, placeholder = {
+                Text(text = "0.0")
+            }, modifier = Modifier
+                .fillMaxHeight()
+                .weight(.20f), keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Number, imeAction = ImeAction.Next
+            ), keyboardActions = KeyboardActions(
+                onNext = { cashCurr2FocusRequester.requestFocus() }),
                 colors = OutlinedTextFieldDefaults.colors(
                     unfocusedBorderColor = Color.Black,
                     focusedBorderColor = SettingsModel.buttonColor,
@@ -165,21 +189,37 @@ fun InvoiceCashView(
                 )
             )
 
-            OutlinedTextField(
-                value = cashCurr2Paid,
-                onValueChange = { cashCurr2Paid = Utils.getDoubleValue(it, cashCurr2Paid) },
-                placeholder = {
-                    Text(text = "0.0")
-                },
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .weight(.20f)
-                    .focusRequester(cashCurr2FocusRequester),
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Number,
-                    imeAction = ImeAction.Next
-                ),
-                keyboardActions = KeyboardActions(onNext = { cashTotal1FocusRequester.requestFocus() }),
+            OutlinedTextField(value = cashCurr2Paid, onValueChange = {
+                cashCurr2Paid = Utils.getDoubleValue(it, cashCurr2Paid)
+                val cashCurrTotal1 = if (cashCurr1Paid.isEmpty()) 0.0 else cashCurr1Paid.toDouble()
+                val cashCurrTotal2 = cashCurr2Paid.toDouble()
+                creditCurr1Total = String.format(
+                    "%.${curr1Decimal}f", cashCurrTotal1 + (cashCurrTotal2 / rate)
+                )
+
+                creditCurr2Total = String.format(
+                    "%.${curr2Decimal}f", (cashCurrTotal1 * rate) + cashCurrTotal2
+                )
+
+                debitCurr2Total = String.format(
+                    "%.${curr2Decimal}f", cashTotal2Paid.toDouble() - creditCurr2Total.toDouble()
+                )
+
+                debitCurr1Total = String.format(
+                    "%.${curr1Decimal}f", cashTotal1Paid.toDouble() - creditCurr1Total.toDouble()
+                )
+
+            }, placeholder = {
+                Text(text = "0.0")
+            }, modifier = Modifier
+                .fillMaxHeight()
+                .weight(.20f)
+                .focusRequester(
+                    cashCurr2FocusRequester
+                ), keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Number, imeAction = ImeAction.Next
+            ), keyboardActions = KeyboardActions(
+                onNext = { cashTotal1FocusRequester.requestFocus() }),
                 colors = OutlinedTextFieldDefaults.colors(
                     unfocusedBorderColor = Color.Black,
                     focusedBorderColor = SettingsModel.buttonColor,
@@ -192,16 +232,15 @@ fun InvoiceCashView(
                 onValueChange = { cashCurr1Total = Utils.getDoubleValue(it, cashCurr1Total) },
                 placeholder = {
                     Text(text = "Total")
-                },
-                modifier = Modifier
+                }, modifier = Modifier
                     .fillMaxHeight()
                     .weight(.25f)
-                    .focusRequester(cashTotal1FocusRequester),
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Number,
-                    imeAction = ImeAction.Next
-                ),
-                keyboardActions = KeyboardActions(onNext = { cashTotal2FocusRequester.requestFocus() }),
+                    .focusRequester(
+                        cashTotal1FocusRequester
+                    ), keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Number, imeAction = ImeAction.Next
+                ), keyboardActions = KeyboardActions(
+                    onNext = { cashTotal2FocusRequester.requestFocus() }),
                 colors = OutlinedTextFieldDefaults.colors(
                     unfocusedBorderColor = Color.Black,
                     focusedBorderColor = SettingsModel.buttonColor,
@@ -215,16 +254,15 @@ fun InvoiceCashView(
                 onValueChange = { cashCurr2Total = Utils.getDoubleValue(it, cashCurr2Total) },
                 placeholder = {
                     Text(text = "Total2")
-                },
-                modifier = Modifier
+                }, modifier = Modifier
                     .fillMaxHeight()
                     .weight(.25f)
-                    .focusRequester(cashTotal2FocusRequester),
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Number,
-                    imeAction = ImeAction.Next
-                ),
-                keyboardActions = KeyboardActions(onNext = { creditCurr1PaidFocusRequester.requestFocus() }),
+                    .focusRequester(
+                        cashTotal2FocusRequester
+                    ), keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Number, imeAction = ImeAction.Next
+                ), keyboardActions = KeyboardActions(
+                    onNext = { creditCurr1PaidFocusRequester.requestFocus() }),
                 colors = OutlinedTextFieldDefaults.colors(
                     unfocusedBorderColor = Color.Black,
                     focusedBorderColor = SettingsModel.buttonColor,
@@ -242,28 +280,27 @@ fun InvoiceCashView(
             horizontalArrangement = Arrangement.spacedBy(5.dp)
         ) {
             Text(
-                "Credit",
-                modifier = Modifier
+                "Credit", modifier = Modifier
                     .weight(.10f)
                     .fillMaxHeight()
-                    .wrapContentHeight(align = Alignment.CenterVertically),
-                color = SettingsModel.textColor
+                    .wrapContentHeight(
+                        align = Alignment.CenterVertically
+                    ), color = SettingsModel.textColor
             )
             OutlinedTextField(
                 value = creditCurr1Paid,
                 onValueChange = { creditCurr1Paid = Utils.getDoubleValue(it, creditCurr1Paid) },
                 placeholder = {
                     Text(text = "0.0")
-                },
-                modifier = Modifier
+                }, modifier = Modifier
                     .weight(.20f)
                     .fillMaxHeight()
-                    .focusRequester(creditCurr1PaidFocusRequester),
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Number,
-                    imeAction = ImeAction.Next
-                ),
-                keyboardActions = KeyboardActions(onNext = { creditCurr2PaidFocusRequester.requestFocus() }),
+                    .focusRequester(
+                        creditCurr1PaidFocusRequester
+                    ), keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Number, imeAction = ImeAction.Next
+                ), keyboardActions = KeyboardActions(
+                    onNext = { creditCurr2PaidFocusRequester.requestFocus() }),
                 colors = OutlinedTextFieldDefaults.colors(
                     unfocusedBorderColor = Color.Black,
                     focusedBorderColor = SettingsModel.buttonColor,
@@ -277,16 +314,15 @@ fun InvoiceCashView(
                 onValueChange = { creditCurr2Paid = Utils.getDoubleValue(it, creditCurr2Paid) },
                 placeholder = {
                     Text(text = "0.0")
-                },
-                modifier = Modifier
+                }, modifier = Modifier
                     .weight(.20f)
                     .fillMaxHeight()
-                    .focusRequester(creditCurr2PaidFocusRequester),
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Number,
-                    imeAction = ImeAction.Next
-                ),
-                keyboardActions = KeyboardActions(onNext = { creditCurr1TotalFocusRequester.requestFocus() }),
+                    .focusRequester(
+                        creditCurr2PaidFocusRequester
+                    ), keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Number, imeAction = ImeAction.Next
+                ), keyboardActions = KeyboardActions(
+                    onNext = { creditCurr1TotalFocusRequester.requestFocus() }),
                 colors = OutlinedTextFieldDefaults.colors(
                     unfocusedBorderColor = Color.Black,
                     focusedBorderColor = SettingsModel.buttonColor,
@@ -299,16 +335,15 @@ fun InvoiceCashView(
                 onValueChange = { creditCurr1Total = Utils.getDoubleValue(it, creditCurr1Total) },
                 placeholder = {
                     Text(text = "Paid")
-                },
-                modifier = Modifier
+                }, modifier = Modifier
                     .fillMaxHeight()
                     .weight(.25f)
-                    .focusRequester(creditCurr1TotalFocusRequester),
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Number,
-                    imeAction = ImeAction.Next
-                ),
-                keyboardActions = KeyboardActions(onNext = { creditCurr2TotalFocusRequester.requestFocus() }),
+                    .focusRequester(
+                        creditCurr1TotalFocusRequester
+                    ), keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Number, imeAction = ImeAction.Next
+                ), keyboardActions = KeyboardActions(
+                    onNext = { creditCurr2TotalFocusRequester.requestFocus() }),
                 colors = OutlinedTextFieldDefaults.colors(
                     unfocusedBorderColor = Color.Black,
                     focusedBorderColor = SettingsModel.buttonColor,
@@ -322,16 +357,15 @@ fun InvoiceCashView(
                 onValueChange = { creditCurr2Total = Utils.getDoubleValue(it, creditCurr2Total) },
                 placeholder = {
                     Text(text = "Paid")
-                },
-                modifier = Modifier
+                }, modifier = Modifier
                     .fillMaxHeight()
                     .weight(.25f)
-                    .focusRequester(creditCurr2TotalFocusRequester),
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Number,
-                    imeAction = ImeAction.Next
-                ),
-                keyboardActions = KeyboardActions(onNext = { debitCurr1PaidFocusRequester.requestFocus() }),
+                    .focusRequester(
+                        creditCurr2TotalFocusRequester
+                    ), keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Number, imeAction = ImeAction.Next
+                ), keyboardActions = KeyboardActions(
+                    onNext = { debitCurr1PaidFocusRequester.requestFocus() }),
                 colors = OutlinedTextFieldDefaults.colors(
                     unfocusedBorderColor = Color.Black,
                     focusedBorderColor = SettingsModel.buttonColor,
@@ -349,28 +383,27 @@ fun InvoiceCashView(
             horizontalArrangement = Arrangement.spacedBy(5.dp)
         ) {
             Text(
-                "Debit",
-                modifier = Modifier
+                "Debit", modifier = Modifier
                     .weight(.10f)
                     .fillMaxHeight()
-                    .wrapContentHeight(align = Alignment.CenterVertically),
-                color = SettingsModel.textColor
+                    .wrapContentHeight(
+                        align = Alignment.CenterVertically
+                    ), color = SettingsModel.textColor
             )
             OutlinedTextField(
                 value = debitCurr1Paid,
                 onValueChange = { debitCurr1Paid = Utils.getDoubleValue(it, debitCurr1Paid) },
                 placeholder = {
                     Text(text = "0.0")
-                },
-                modifier = Modifier
+                }, modifier = Modifier
                     .fillMaxHeight()
                     .weight(.20f)
-                    .focusRequester(debitCurr1PaidFocusRequester),
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Number,
-                    imeAction = ImeAction.Next
-                ),
-                keyboardActions = KeyboardActions(onNext = { debitCurr2PaidFocusRequester.requestFocus() }),
+                    .focusRequester(
+                        debitCurr1PaidFocusRequester
+                    ), keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Number, imeAction = ImeAction.Next
+                ), keyboardActions = KeyboardActions(
+                    onNext = { debitCurr2PaidFocusRequester.requestFocus() }),
                 colors = OutlinedTextFieldDefaults.colors(
                     unfocusedBorderColor = Color.Black,
                     focusedBorderColor = SettingsModel.buttonColor,
@@ -384,16 +417,15 @@ fun InvoiceCashView(
                 onValueChange = { debitCurr2Paid = Utils.getDoubleValue(it, debitCurr2Paid) },
                 placeholder = {
                     Text(text = "0.0")
-                },
-                modifier = Modifier
+                }, modifier = Modifier
                     .fillMaxHeight()
                     .weight(.20f)
-                    .focusRequester(debitCurr2PaidFocusRequester),
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Number,
-                    imeAction = ImeAction.Next
-                ),
-                keyboardActions = KeyboardActions(onNext = { debitCurr1TotalFocusRequester.requestFocus() }),
+                    .focusRequester(
+                        debitCurr2PaidFocusRequester
+                    ), keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Number, imeAction = ImeAction.Next
+                ), keyboardActions = KeyboardActions(
+                    onNext = { debitCurr1TotalFocusRequester.requestFocus() }),
                 colors = OutlinedTextFieldDefaults.colors(
                     unfocusedBorderColor = Color.Black,
                     focusedBorderColor = SettingsModel.buttonColor,
@@ -406,16 +438,15 @@ fun InvoiceCashView(
                 onValueChange = { debitCurr1Total = Utils.getDoubleValue(it, debitCurr1Total) },
                 placeholder = {
                     Text(text = "Change")
-                },
-                modifier = Modifier
+                }, modifier = Modifier
                     .fillMaxHeight()
                     .weight(.25f)
-                    .focusRequester(debitCurr1TotalFocusRequester),
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Number,
-                    imeAction = ImeAction.Next
-                ),
-                keyboardActions = KeyboardActions(onNext = { debitCurr2TotalFocusRequester.requestFocus() }),
+                    .focusRequester(
+                        debitCurr1TotalFocusRequester
+                    ), keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Number, imeAction = ImeAction.Next
+                ), keyboardActions = KeyboardActions(
+                    onNext = { debitCurr2TotalFocusRequester.requestFocus() }),
                 colors = OutlinedTextFieldDefaults.colors(
                     unfocusedBorderColor = Color.Black,
                     focusedBorderColor = SettingsModel.buttonColor,
@@ -429,16 +460,14 @@ fun InvoiceCashView(
                 onValueChange = { debitCurr2Total = Utils.getDoubleValue(it, debitCurr2Total) },
                 placeholder = {
                     Text(text = "Change")
-                },
-                modifier = Modifier
+                }, modifier = Modifier
                     .fillMaxHeight()
                     .weight(.25f)
-                    .focusRequester(debitCurr2TotalFocusRequester),
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Number,
-                    imeAction = ImeAction.Done
-                ),
-                keyboardActions = KeyboardActions(onDone = { keyboardController?.hide() }),
+                    .focusRequester(
+                        debitCurr2TotalFocusRequester
+                    ), keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Number, imeAction = ImeAction.Done
+                ), keyboardActions = KeyboardActions(onDone = { keyboardController?.hide() }),
                 colors = OutlinedTextFieldDefaults.colors(
                     unfocusedBorderColor = Color.Black,
                     focusedBorderColor = SettingsModel.buttonColor,
@@ -458,8 +487,7 @@ fun InvoiceCashView(
             UIButton(
                 modifier = Modifier
                     .weight(1f)
-                    .fillMaxHeight(),
-                text = "Save & Print Order",
+                    .fillMaxHeight(), text = "Save & Print Order",
                 shape = RoundedCornerShape(15.dp)
             ) {
                 onSave.invoke()
@@ -468,8 +496,7 @@ fun InvoiceCashView(
             UIButton(
                 modifier = Modifier
                     .weight(1f)
-                    .fillMaxHeight(),
-                text = "Finish & Print",
+                    .fillMaxHeight(), text = "Finish & Print",
                 shape = RoundedCornerShape(15.dp)
             ) {
                 onFinish.invoke()

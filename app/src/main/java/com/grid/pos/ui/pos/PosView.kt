@@ -30,7 +30,6 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
@@ -38,7 +37,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -52,7 +50,6 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -80,15 +77,11 @@ import kotlinx.coroutines.launch
 @SuppressLint("MutableCollectionMutableState")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PosView(
-    navController: NavController? = null,
-    activityViewModel: ActivityScopedViewModel = ActivityScopedViewModel(),
-    modifier: Modifier = Modifier,
-    viewModel: POSViewModel = hiltViewModel()
-) {
+fun PosView(navController: NavController? = null, activityViewModel: ActivityScopedViewModel = ActivityScopedViewModel(), modifier: Modifier = Modifier, viewModel: POSViewModel = hiltViewModel()) {
     val posState: POSState by viewModel.posState.collectAsState(activityViewModel.posState)
     var invoicesState = remember { mutableStateListOf<InvoiceItemModel>() }
     var invoiceHeaderState = remember { mutableStateOf(posState.invoiceHeader) }
+    var itemIndexToEdit by remember { mutableIntStateOf(-1) }
     var isEditBottomSheetVisible by remember { mutableStateOf(false) }
     var isAddItemBottomSheetVisible by remember { mutableStateOf(false) }
     var isPayBottomSheetVisible by remember { mutableStateOf(false) }
@@ -100,8 +93,7 @@ fun PosView(
     val keyboardController = LocalSoftwareKeyboardController.current
 
     LaunchedEffect(configuration) {
-        snapshotFlow { configuration.orientation }
-            .collect {
+        snapshotFlow { configuration.orientation }.collect {
                 orientation = it
                 isEditBottomSheetVisible = false
                 isAddItemBottomSheetVisible = false
@@ -137,52 +129,42 @@ fun PosView(
         handleBack()
     }
     GridPOSTheme {
-        Scaffold(
-            containerColor = SettingsModel.backgroundColor,
-            topBar = {
-                Surface(shadowElevation = 3.dp, color = SettingsModel.backgroundColor) {
-                    TopAppBar(
-                        colors = TopAppBarDefaults.mediumTopAppBarColors(containerColor = SettingsModel.topBarColor),
-                        navigationIcon = {
-                            IconButton(onClick = {
-                                handleBack()
-                            }
-                            ) {
-                                Icon(
-                                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                    contentDescription = "Back",
-                                    tint = SettingsModel.buttonColor
-                                )
-                            }
-                        },
-                        title = {
-                            Text(
-                                text = "POS",
-                                color = SettingsModel.textColor,
-                                fontSize = 16.sp,
-                                textAlign = TextAlign.Center
+        Scaffold(containerColor = SettingsModel.backgroundColor, topBar = {
+            Surface(shadowElevation = 3.dp, color = SettingsModel.backgroundColor) {
+                TopAppBar(
+                    colors = TopAppBarDefaults.mediumTopAppBarColors(containerColor = SettingsModel.topBarColor),
+                    navigationIcon = {
+                        IconButton(onClick = {
+                            handleBack()
+                        }) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = SettingsModel.buttonColor
                             )
-                        },
-                        /* actions = {
-                             IconButton(
-                                 modifier = Modifier
-                                     .fillMaxHeight()
-                                     .padding(horizontal = 10.dp),
-                                 onClick = { navController?.popBackStack() }
-                             ) {
-                                 Text(text = "Back", color = SettingsModel.textColor)
-                             }
-                         }*/
-                    )
-                }
+                        }
+                    },
+                    title = {
+                        Text(
+                            text = "POS", color = SettingsModel.textColor, fontSize = 16.sp, textAlign = TextAlign.Center
+                        )
+                    },
+                    /* actions = {
+                         IconButton(
+                             modifier = Modifier
+                                 .fillMaxHeight()
+                                 .padding(horizontal = 10.dp),
+                             onClick = { navController?.popBackStack() }
+                         ) {
+                             Text(text = "Back", color = SettingsModel.textColor)
+                         }
+                     }*/
+                )
             }
-        ) {
+        }) {
             Surface(
                 modifier = modifier
                     .wrapContentWidth()
                     .fillMaxHeight()
-                    .padding(it),
-                color = SettingsModel.backgroundColor
+                    .padding(it), color = SettingsModel.backgroundColor
             ) {
                 Column(
                     modifier = Modifier
@@ -191,33 +173,35 @@ fun PosView(
                         .verticalScroll(rememberScrollState())
                         .padding(horizontal = 10.dp, vertical = 10.dp),
                 ) {
-                    InvoiceHeaderDetails(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(70.dp),
-                        onEdit = { isEditBottomSheetVisible = true },
-                        onPay = { isPayBottomSheetVisible = true }
-                    )
+                    InvoiceHeaderDetails(modifier = Modifier
+                        .fillMaxWidth()
+                        .height(70.dp), onEdit = {
+                        isEditBottomSheetVisible = true
+                        itemIndexToEdit = if (invoicesState.size > 0) {
+                            0
+                        } else {
+                            -1
+                        }
+                    }, onPay = { isPayBottomSheetVisible = true })
 
                     // Border stroke configuration
                     val borderStroke = BorderStroke(1.dp, Color.Black)
 
-                    InvoiceBodyDetails(
-                        invoices = invoicesState,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(Utils.getListHeight(invoicesState.size, 50))
-                            .border(borderStroke),
-                        isLandscape = isTablet || isLandscape,
-                        onDismiss = { index ->
-                            invoicesState.removeAt(index)
-                            posState.invoices = invoicesState
-                            invoiceHeaderState.value = posState.refreshValues()
-                        }
-                    )
+                    InvoiceBodyDetails(invoices = invoicesState, modifier = Modifier
+                        .fillMaxWidth()
+                        .height(Utils.getListHeight(invoicesState.size, 50))
+                        .border(borderStroke), isLandscape = isTablet || isLandscape, onEdit = { index ->
+                        itemIndexToEdit = index
+                        isEditBottomSheetVisible = true
+                    }, onRemove = { index ->
+                        invoicesState.removeAt(index)
+                        posState.invoices = invoicesState
+                        invoiceHeaderState.value = posState.refreshValues()
+                    })
 
                     InvoiceFooterView(
                         invoiceHeader = invoiceHeaderState.value,
+                        currency = posState.currency,
                         items = posState.items,
                         thirdParties = posState.thirdParties,
                         modifier = Modifier
@@ -232,49 +216,40 @@ fun PosView(
                             isAddItemBottomSheetVisible = false
                         },
                         onThirdPartySelected = { thirdParty ->
-                            posState.invoiceHeader.invoiceHeadThirdPartyName =
-                                thirdParty.thirdPartyId
+                            posState.invoiceHeader.invoiceHeadThirdPartyName = thirdParty.thirdPartyId
                         },
                     )
                 }
             }
             AnimatedVisibility(
-                visible = isEditBottomSheetVisible,
-                enter = scaleIn() + expandVertically(expandFrom = Alignment.CenterVertically),
-                exit = scaleOut() + shrinkVertically(shrinkTowards = Alignment.CenterVertically)
-            ) {
-                EditInvoiceHeaderView(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(it)
-                        .background(color = SettingsModel.backgroundColor),
-                    onAddCustomer = {
-                        isEditBottomSheetVisible = false
-                        navController?.navigate("ManageThirdPartiesView")
-                    },
-                    onAddItem = {
-                        isAddItemBottomSheetVisible = true
-                    },
-                    onClose = {
-                        isEditBottomSheetVisible = false
-                    }
+                visible = isEditBottomSheetVisible, enter = fadeIn(
+                    initialAlpha = 0.4f
+                ), exit = fadeOut(
+                    animationSpec = tween(durationMillis = 250)
                 )
+            ) {
+                EditInvoiceHeaderView(invoiceItemModel = if (itemIndexToEdit > 0) invoicesState[itemIndexToEdit] else InvoiceItemModel(), invoiceHeader = invoiceHeaderState.value, modifier = Modifier
+                    .fillMaxSize()
+                    .padding(it)
+                    .background(color = SettingsModel.backgroundColor), onAddCustomer = {
+                    isEditBottomSheetVisible = false
+                    navController?.navigate("ManageThirdPartiesView")
+                }, onAddItem = {
+                    isAddItemBottomSheetVisible = true
+                }, onClose = {
+                    isEditBottomSheetVisible = false
+                })
             }
 
             AnimatedVisibility(
-                isAddItemBottomSheetVisible,
-                // Sets the initial height of the content to 20, revealing only the top of the content at
-                // the beginning of the expanding animation.
-                enter = expandVertically(expandFrom = Alignment.Bottom) { 20 },
-                // Shrinks the content to half of its full height via an animation.
-                exit = shrinkVertically(animationSpec = tween()) { fullHeight ->
-                    fullHeight / 4
-                },
+                isAddItemBottomSheetVisible, enter = fadeIn(
+                    initialAlpha = 0.4f
+                ), exit = fadeOut(
+                    animationSpec = tween(durationMillis = 250)
+                )
             ) {
                 AddInvoiceItemView(
-                    categories = posState.families,
-                    items = posState.items,
-                    modifier = Modifier
+                    categories = posState.families, items = posState.items, modifier = Modifier
                         .fillMaxSize()
                         .padding(it)
                         .background(color = SettingsModel.backgroundColor)
@@ -293,21 +268,20 @@ fun PosView(
                 }
             }
             AnimatedVisibility(
-                visible = isPayBottomSheetVisible,
-                enter = fadeIn(
+                visible = isPayBottomSheetVisible, enter = fadeIn(
                     initialAlpha = 0.4f
-                ),
-                exit = fadeOut(
+                ), exit = fadeOut(
                     animationSpec = tween(durationMillis = 250)
                 )
             ) {
                 InvoiceCashView(
+                    invoiceHeader = invoiceHeaderState.value,
+                    currency = posState.currency,
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(it)
                         .background(color = SettingsModel.backgroundColor),
-                    onSave = {
-                        // viewModel.saveInvoiceHeader(posState.invoiceHeader, posState.invoices)
+                    onSave = { // viewModel.saveInvoiceHeader(posState.invoiceHeader, posState.invoices)
                         activityViewModel.posState = posState
                         navController?.navigate("UIWebView")
                     },

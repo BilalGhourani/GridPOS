@@ -4,12 +4,12 @@ import com.grid.pos.data.Invoice.Invoice
 import com.grid.pos.data.Item.Item
 
 data class InvoiceItemModel(
-    private var name: String = "Item",
     val invoice: Invoice = Invoice(),
+    var invoiceItem: Item = Item(),
 ) {
 
     fun setItem(item: Item) {
-        name = item.itemName ?: "Item"
+        invoiceItem = item
         invoice.invoiceItemId = item.itemId
         invoice.invoiceQuantity = 1.0
         invoice.invoicePrice = item.itemUnitPrice?.toDouble() ?: 0.0
@@ -23,7 +23,7 @@ data class InvoiceItemModel(
     }
 
     fun getName(): String {
-        return name
+        return invoiceItem.itemName ?: "Item"
     }
 
     fun getQuantity(): Double {
@@ -54,5 +54,11 @@ data class InvoiceItemModel(
         val quantity = invoice.invoiceQuantity ?: 1.0
         val price = invoice.invoicePrice ?: 0.0
         return quantity.times(price)
+    }
+
+    fun getNetAmount(): Double {
+        val quantity = invoice.invoiceQuantity ?: 1.0
+        val netPrice = (getPrice() + getTax() + getTax1() + getTax2()) - getDiscount()
+        return quantity.times(netPrice)
     }
 }

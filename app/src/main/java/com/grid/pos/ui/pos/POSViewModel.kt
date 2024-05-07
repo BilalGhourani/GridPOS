@@ -2,6 +2,8 @@ package com.grid.pos.ui.pos
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.grid.pos.data.Currency.Currency
+import com.grid.pos.data.Currency.CurrencyRepository
 import com.grid.pos.data.Family.Family
 import com.grid.pos.data.Family.FamilyRepository
 import com.grid.pos.data.Invoice.Invoice
@@ -10,12 +12,10 @@ import com.grid.pos.data.InvoiceHeader.InvoiceHeader
 import com.grid.pos.data.InvoiceHeader.InvoiceHeaderRepository
 import com.grid.pos.data.Item.Item
 import com.grid.pos.data.Item.ItemRepository
-import com.grid.pos.data.PosPrinter.PosPrinterRepository
 import com.grid.pos.data.ThirdParty.ThirdParty
 import com.grid.pos.data.ThirdParty.ThirdPartyRepository
 import com.grid.pos.interfaces.OnResult
 import com.grid.pos.model.InvoiceItemModel
-import com.grid.pos.utils.Utils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -29,7 +29,8 @@ class POSViewModel @Inject constructor(
     private val invoiceRepository: InvoiceRepository,
     private val itemRepository: ItemRepository,
     private val thirdPartyRepository: ThirdPartyRepository,
-    private val familyRepository: FamilyRepository
+    private val familyRepository: FamilyRepository,
+    private val currencyRepository: CurrencyRepository
 ) : ViewModel() {
 
     private val _posState = MutableStateFlow(POSState())
@@ -40,6 +41,7 @@ class POSViewModel @Inject constructor(
             fetchItems()
             fetchThirdParties()
             fetchFamilies()
+            fetchCurrencies()
         }
     }
 
@@ -95,6 +97,25 @@ class POSViewModel @Inject constructor(
                 viewModelScope.launch(Dispatchers.Main) {
                     posState.value = posState.value.copy(
                         families = listOfFamilies
+                    )
+                }
+            }
+
+            override fun onFailure(message: String, errorCode: Int) {
+
+            }
+
+        })
+    }
+
+    private suspend fun fetchCurrencies() {
+        currencyRepository.getAllCurrencies(object : OnResult {
+            override fun onSuccess(result: Any) {
+                result as List<Currency>
+                val currency = if (result.size > 0) result[0] else Currency()
+                viewModelScope.launch(Dispatchers.Main) {
+                    posState.value = posState.value.copy(
+                        currency = currency
                     )
                 }
             }

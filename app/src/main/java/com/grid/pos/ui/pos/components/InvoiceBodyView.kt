@@ -22,7 +22,8 @@ fun InvoiceBodyDetails(
     invoices: MutableList<InvoiceItemModel> = mutableListOf(),
     modifier: Modifier = Modifier,
     isLandscape: Boolean = false,
-    onDismiss: (Int) -> Unit = {}
+    onEdit: (Int) -> Unit = {},
+    onRemove: (Int) -> Unit = {}
 ) {
 
     LazyColumn(
@@ -59,7 +60,8 @@ fun InvoiceBodyDetails(
                     invoiceItemModel = invoiceItemModel,
                     isLandscape = isLandscape,
                     index = index,
-                    onDismiss = { onDismiss.invoke(it) }
+                    onEdit = { onEdit.invoke(it) },
+                    onRemove = { onRemove.invoke(it) }
                 )
             }
         }
