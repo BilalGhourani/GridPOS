@@ -34,12 +34,11 @@ import com.grid.pos.utils.Utils
 @Composable
 fun InvoiceHeaderDetails(
     modifier: Modifier = Modifier,
-    onEdit: () -> Unit = {},
-    onPay: () -> Unit = {},
+    onAddCutomer: () -> Unit = {},
+    onAddItem: () -> Unit = {},
 ) {
     Row(
-        modifier = modifier
-            .fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.Absolute.SpaceBetween
     ) {
         UIButton(
@@ -47,11 +46,9 @@ fun InvoiceHeaderDetails(
                 .fillMaxHeight()
                 .weight(1f)
                 .padding(3.dp, 5.dp, 3.dp, 5.dp),
-            text = "Edit",
-            textAlign = TextAlign.Center,
-            shape = RoundedCornerShape(15.dp)
+            text = "Add Customer", textAlign = TextAlign.Center, shape = RoundedCornerShape(15.dp)
         ) {
-            onEdit.invoke()
+            onAddCutomer.invoke()
         }
 
         UIButton(
@@ -59,11 +56,9 @@ fun InvoiceHeaderDetails(
                 .fillMaxHeight()
                 .weight(1f)
                 .padding(3.dp, 5.dp, 3.dp, 5.dp),
-            text = "Pay",
-            textAlign = TextAlign.Center,
-            shape = RoundedCornerShape(15.dp)
+            text = "Add Item", textAlign = TextAlign.Center, shape = RoundedCornerShape(15.dp)
         ) {
-            onPay.invoke()
+            onAddItem.invoke()
         }
     }
 }

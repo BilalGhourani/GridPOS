@@ -64,17 +64,18 @@ fun InvoiceCashView(
     val curr1Decimal = currency.currencyName1Dec ?: 2
     val curr2Decimal = currency.currencyName2Dec ?: 2
     val rate = currency.currencyRate?.toDouble() ?: 1.0
-    val cashTotal1Paid = String.format("%.${curr1Decimal}f", invoiceHeader.invoicHeadTotal ?: 0.0)
-    val cashTotal2Paid = String.format(
-        "%.${curr1Decimal}f", (invoiceHeader.invoicHeadTotal ?: 0.0).times(rate)
+    val netTotal=invoiceHeader.invoicHeadGrossmont
+    val cashTotalPaid1 = String.format("%.${curr1Decimal}f", netTotal ?: 0.0)
+    val cashTotalPaid2 = String.format(
+        "%.${curr1Decimal}f", (netTotal ?: 0.0).times(rate)
     )
 
     val curr1State by remember { mutableStateOf(currency.currencyName1 ?: "") }
     val curr2State by remember { mutableStateOf(currency.currencyName2 ?: "") }
     var cashCurr1Paid by remember { mutableStateOf("") }
     var cashCurr2Paid by remember { mutableStateOf("") }
-    var cashCurr1Total by remember { mutableStateOf(cashTotal1Paid) }
-    var cashCurr2Total by remember { mutableStateOf(cashTotal2Paid) }
+    var cashCurr1Total by remember { mutableStateOf(cashTotalPaid1) }
+    var cashCurr2Total by remember { mutableStateOf(cashTotalPaid2) }
     var creditCurr1Paid by remember { mutableStateOf("") }
     var creditCurr2Paid by remember { mutableStateOf("") }
     var creditCurr1Total by remember { mutableStateOf("") }
@@ -167,11 +168,11 @@ fun InvoiceCashView(
                 )
 
                 debitCurr1Total = String.format(
-                    "%.${curr1Decimal}f", cashTotal1Paid.toDouble() - creditCurr1Total.toDouble()
+                    "%.${curr1Decimal}f", cashTotalPaid1.toDouble() - creditCurr1Total.toDouble()
                 )
 
                 debitCurr2Total = String.format(
-                    "%.${curr2Decimal}f", cashTotal2Paid.toDouble() - creditCurr2Total.toDouble()
+                    "%.${curr2Decimal}f", cashTotalPaid2.toDouble() - creditCurr2Total.toDouble()
                 )
             }, placeholder = {
                 Text(text = "0.0")
@@ -202,11 +203,11 @@ fun InvoiceCashView(
                 )
 
                 debitCurr2Total = String.format(
-                    "%.${curr2Decimal}f", cashTotal2Paid.toDouble() - creditCurr2Total.toDouble()
+                    "%.${curr2Decimal}f", cashTotalPaid2.toDouble() - creditCurr2Total.toDouble()
                 )
 
                 debitCurr1Total = String.format(
-                    "%.${curr1Decimal}f", cashTotal1Paid.toDouble() - creditCurr1Total.toDouble()
+                    "%.${curr1Decimal}f", cashTotalPaid1.toDouble() - creditCurr1Total.toDouble()
                 )
 
             }, placeholder = {

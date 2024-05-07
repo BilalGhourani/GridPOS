@@ -38,8 +38,8 @@ fun InvoiceFooterView(
     onItemSelected: (Item) -> Unit = {},
     onThirdPartySelected: (ThirdParty) -> Unit = {},
 ) {
-    val curState by remember { mutableStateOf(currency.currencyName1 ?: "") }
-    val cur2State by remember { mutableStateOf(currency.currencyName2 ?: "") }
+    val curState by remember { mutableStateOf(currency.currencyCode1 ?: "") }
+    val cur2State by remember { mutableStateOf(currency.currencyCode2 ?: "") }
     var taxState by remember { mutableStateOf("0.0") }
     var tax1State by remember { mutableStateOf("0.0") }
     var totalState by remember { mutableStateOf("0.0") }
@@ -58,7 +58,7 @@ fun InvoiceFooterView(
     tax1State = String.format("%.${curr1Decimal}f", tax1)
     tax2State = String.format("%.${curr1Decimal}f", tax2)
     totalTaxState = String.format("%.${curr1Decimal}f", tax + tax1 + tax2)
-    totalState = String.format("%.${curr1Decimal}f", invoiceHeader.invoicHeadTotal ?: 0.0)
+    totalState = String.format("%.${curr1Decimal}f", invoiceHeader.invoicHeadGrossmont ?: 0.0)
     totalCur2State = String.format("%.${curr2Decimal}f", totalState.toDouble().times(currency.currencyRate?.toDouble() ?: 0.0))
 
     Row(
