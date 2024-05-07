@@ -39,7 +39,10 @@ fun InvoiceItemCell(modifier: Modifier = Modifier, invoiceItemModel: InvoiceItem
         modifier = modifier
             .fillMaxSize()
             .pointerInput(Unit) {
-                detectTapGestures(onLongPress = {
+                detectTapGestures(
+                    onDoubleTap  = {
+                    onEdit.invoke(index)
+                },  onLongPress   = {
                     onEdit.invoke(index)
                 })
             }, horizontalArrangement = Arrangement.SpaceBetween
