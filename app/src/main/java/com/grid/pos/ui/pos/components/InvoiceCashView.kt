@@ -156,7 +156,7 @@ fun InvoiceCashView(
             )
             OutlinedTextField(value = cashCurr1Paid, onValueChange = {
                 cashCurr1Paid = Utils.getDoubleValue(it, cashCurr1Paid)
-                val cashCurrTotal1 = cashCurr1Paid.toDouble()
+                val cashCurrTotal1 = if (cashCurr1Paid.isEmpty()) 0.0 else cashCurr1Paid.toDouble()
                 val cashCurrTotal2 = if (cashCurr2Paid.isEmpty()) 0.0 else cashCurr2Paid.toDouble()
                 creditCurr1Total = String.format(
                     "%.${curr1Decimal}f", cashCurrTotal1 + (cashCurrTotal2 / rate)
@@ -192,7 +192,7 @@ fun InvoiceCashView(
             OutlinedTextField(value = cashCurr2Paid, onValueChange = {
                 cashCurr2Paid = Utils.getDoubleValue(it, cashCurr2Paid)
                 val cashCurrTotal1 = if (cashCurr1Paid.isEmpty()) 0.0 else cashCurr1Paid.toDouble()
-                val cashCurrTotal2 = cashCurr2Paid.toDouble()
+                val cashCurrTotal2 = if (cashCurr2Paid.isEmpty()) 0.0 else cashCurr2Paid.toDouble()
                 creditCurr1Total = String.format(
                     "%.${curr1Decimal}f", cashCurrTotal1 + (cashCurrTotal2 / rate)
                 )
