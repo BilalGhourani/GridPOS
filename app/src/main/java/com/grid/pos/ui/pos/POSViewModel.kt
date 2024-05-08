@@ -49,8 +49,8 @@ class POSViewModel @Inject constructor(
         itemRepository.getAllItems(object : OnResult {
             override fun onSuccess(result: Any) {
                 val listOfItems = mutableListOf<Item>()
-                (result as List<Item>).forEach {
-                    listOfItems.add(it)
+                (result as List<*>).forEach {
+                    listOfItems.add(it as Item)
                 }
                 viewModelScope.launch(Dispatchers.Main) {
                     posState.value = posState.value.copy(
@@ -70,8 +70,8 @@ class POSViewModel @Inject constructor(
         thirdPartyRepository.getAllThirdParties(object : OnResult {
             override fun onSuccess(result: Any) {
                 val listOfThirdParties = mutableListOf<ThirdParty>()
-                (result as List<ThirdParty>).forEach {
-                    listOfThirdParties.add(it)
+                (result as List<*>).forEach {
+                    listOfThirdParties.add(it as ThirdParty)
                 }
                 viewModelScope.launch(Dispatchers.Main) {
                     posState.value = posState.value.copy(
@@ -91,8 +91,8 @@ class POSViewModel @Inject constructor(
         familyRepository.getAllFamilies(object : OnResult {
             override fun onSuccess(result: Any) {
                 val listOfFamilies = mutableListOf<Family>()
-                (result as List<Family>).forEach {
-                    listOfFamilies.add(it)
+                (result as List<*>).forEach {
+                    listOfFamilies.add(it as Family)
                 }
                 viewModelScope.launch(Dispatchers.Main) {
                     posState.value = posState.value.copy(
@@ -111,11 +111,11 @@ class POSViewModel @Inject constructor(
     private suspend fun fetchCurrencies() {
         currencyRepository.getAllCurrencies(object : OnResult {
             override fun onSuccess(result: Any) {
-                result as List<Currency>
+                result as List<*>
                 val currency = if (result.size > 0) result[0] else Currency()
                 viewModelScope.launch(Dispatchers.Main) {
                     posState.value = posState.value.copy(
-                        currency = currency
+                        currency = currency as Currency
                     )
                 }
             }
@@ -134,7 +134,7 @@ class POSViewModel @Inject constructor(
         if (invoiceItems.isEmpty()) {
             posState.value = posState.value.copy(
                 warning = "invoice doesn't contains any item!",
-                isLoading = false
+                isLoading = false,
             )
             return
         }
@@ -150,6 +150,7 @@ class POSViewModel @Inject constructor(
             override fun onFailure(message: String, errorCode: Int) {
                 viewModelScope.launch(Dispatchers.Main) {
                     posState.value = posState.value.copy(
+                        warning = message,
                         isLoading = false
                     )
                 }
@@ -167,7 +168,7 @@ class POSViewModel @Inject constructor(
         }
     }
 
-    fun saveInvoiceItems(
+    private fun saveInvoiceItems(
         invoiceHeader: InvoiceHeader,
         invoiceItems: MutableList<InvoiceItemModel>
     ) {
@@ -187,12 +188,13 @@ class POSViewModel @Inject constructor(
         }
     }
 
-    fun saveInvoiceItem(invoice: Invoice, isInserting: Boolean, notify: Boolean = false) {
+    private fun saveInvoiceItem(invoice: Invoice, isInserting: Boolean, notify: Boolean = false) {
         val callback = if (notify) object : OnResult {
             override fun onSuccess(result: Any) {
                 viewModelScope.launch(Dispatchers.Main) {
                     posState.value = posState.value.copy(
-                        isLoading = false
+                        isLoading = false,
+                        isSaved=true
                     )
                 }
             }

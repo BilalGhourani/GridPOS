@@ -63,7 +63,7 @@ data class Company(
     @ColumnInfo(name = "cmp_tax")
     @set:PropertyName("cmp_tax")
     @get:PropertyName("cmp_tax")
-    var companyTax: String? = null,
+    var companyTax: Double = 0.0,
 
     /**
      * Company currency code tax
@@ -127,7 +127,7 @@ data class Company(
     @ColumnInfo(name = "cmp_tax1")
     @set:PropertyName("cmp_tax1")
     @get:PropertyName("cmp_tax1")
-    var companyTax1: String? = null,
+    var companyTax1: Double = 0.0,
 
     /**
      * Company Tax 1 Regno
@@ -143,7 +143,7 @@ data class Company(
     @ColumnInfo(name = "cmp_tax2")
     @set:PropertyName("cmp_tax2")
     @get:PropertyName("cmp_tax2")
-    var companyTax2: String? = null,
+    var companyTax2: Double = 0.0,
 
     /**
      * Company Tax 2 Regno

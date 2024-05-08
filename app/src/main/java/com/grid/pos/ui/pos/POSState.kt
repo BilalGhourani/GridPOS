@@ -9,15 +9,16 @@ import com.grid.pos.data.ThirdParty.ThirdParty
 import com.grid.pos.model.InvoiceItemModel
 
 data class POSState(
-    var invoices: MutableList<InvoiceItemModel> = mutableListOf(),
-    val families: MutableList<Family> = mutableListOf(),
-    val items: MutableList<Item> = mutableListOf(),
-    val thirdParties: MutableList<ThirdParty> = mutableListOf(),
-    var invoiceHeader: InvoiceHeader = InvoiceHeader(),
-    var posReceipt: PosReceipt = PosReceipt(),
-    var currency: Currency = Currency(),
-    val isLoading: Boolean = false,
-    val warning: String? = null,
+        var invoices: MutableList<InvoiceItemModel> = mutableListOf(),
+        val families: MutableList<Family> = mutableListOf(),
+        val items: MutableList<Item> = mutableListOf(),
+        val thirdParties: MutableList<ThirdParty> = mutableListOf(),
+        var invoiceHeader: InvoiceHeader = InvoiceHeader(),
+        var posReceipt: PosReceipt = PosReceipt(),
+        var currency: Currency = Currency(),
+        var isSaved: Boolean = false,
+        val isLoading: Boolean = false,
+        val warning: String? = null,
 ) {
     fun refreshValues(): InvoiceHeader {
         var discount = 0.0
@@ -37,10 +38,11 @@ data class POSState(
         invoiceHeader.invoicHeadTax2Amt = tax2
         invoiceHeader.invoicHeadTotalTax = tax + tax1 + tax2
         invoiceHeader.invoicHeadTotal = total
-        invoiceHeader.invoicHeadTotal1 = total
+        invoiceHeader.invoicHeadTotal1 = total.times(currency.currencyRate)
         invoiceHeader.invoiceHeadDiscamt = discount
         invoiceHeader.invoicHeadGrossmont = (total + tax + tax1 + tax2) - discount
         invoiceHeader.invoiceHeadTtCode = if(total>0) "SI" else "RS"
+        invoiceHeader.invoicHeadRate = currency.currencyRate
         return invoiceHeader
     }
 }

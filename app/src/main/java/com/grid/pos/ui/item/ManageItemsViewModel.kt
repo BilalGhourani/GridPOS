@@ -1,11 +1,9 @@
-package com.grid.pos.ui.Item
+package com.grid.pos.ui.item
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.grid.pos.data.Company.Company
 import com.grid.pos.data.Company.CompanyRepository
-import com.grid.pos.data.Currency.Currency
-import com.grid.pos.data.Currency.CurrencyRepository
 import com.grid.pos.data.Family.Family
 import com.grid.pos.data.Family.FamilyRepository
 import com.grid.pos.data.Item.Item
@@ -13,7 +11,6 @@ import com.grid.pos.data.Item.ItemRepository
 import com.grid.pos.data.PosPrinter.PosPrinter
 import com.grid.pos.data.PosPrinter.PosPrinterRepository
 import com.grid.pos.interfaces.OnResult
-import com.grid.pos.utils.Utils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -45,8 +42,8 @@ class ManageItemsViewModel @Inject constructor(
         itemRepository.getAllItems(object : OnResult {
             override fun onSuccess(result: Any) {
                 val listOfItems = mutableListOf<Item>()
-                (result as List<Item>).forEach {
-                    listOfItems.add(it)
+                (result as List<*>).forEach {
+                    listOfItems.add(it as Item)
                 }
                 viewModelScope.launch(Dispatchers.Main) {
                     manageItemsState.value = manageItemsState.value.copy(
@@ -66,8 +63,8 @@ class ManageItemsViewModel @Inject constructor(
         companyRepository.getAllCompanies(object : OnResult {
             override fun onSuccess(result: Any) {
                 val listOfCompanies = mutableListOf<Company>()
-                (result as List<Company>).forEach {
-                    listOfCompanies.add(it)
+                (result as List<*>).forEach {
+                    listOfCompanies.add(it as Company)
                 }
                 viewModelScope.launch(Dispatchers.Main) {
                     manageItemsState.value = manageItemsState.value.copy(
@@ -87,8 +84,8 @@ class ManageItemsViewModel @Inject constructor(
         posPrinterRepository.getAllPosPrinters(object : OnResult {
             override fun onSuccess(result: Any) {
                 val listOfPrinters = mutableListOf<PosPrinter>()
-                (result as List<PosPrinter>).forEach {
-                    listOfPrinters.add(it)
+                (result as List<*>).forEach {
+                    listOfPrinters.add(it as PosPrinter)
                 }
                 viewModelScope.launch(Dispatchers.Main) {
                     manageItemsState.value = manageItemsState.value.copy(
@@ -108,8 +105,8 @@ class ManageItemsViewModel @Inject constructor(
         familyRepository.getAllFamilies(object : OnResult {
             override fun onSuccess(result: Any) {
                 val listOfFamilies = mutableListOf<Family>()
-                (result as List<Family>).forEach {
-                    listOfFamilies.add(it)
+                (result as List<*>).forEach {
+                    listOfFamilies.add(it as Family)
                 }
                 viewModelScope.launch(Dispatchers.Main) {
                     manageItemsState.value = manageItemsState.value.copy(
@@ -126,9 +123,9 @@ class ManageItemsViewModel @Inject constructor(
     }
 
     fun saveItem(item: Item) {
-        if (item.itemName.isNullOrEmpty() || item.itemBarcode.isNullOrEmpty()) {
+        if (item.itemName.isNullOrEmpty() || item.itemFaId.isNullOrEmpty()) {
             manageItemsState.value = manageItemsState.value.copy(
-                warning = "Please fill all inputs",
+                warning = "Please fill item name and family",
                 isLoading = false
             )
             return

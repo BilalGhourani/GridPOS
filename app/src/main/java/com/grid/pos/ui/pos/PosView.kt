@@ -77,9 +77,12 @@ import kotlinx.coroutines.launch
 @SuppressLint("MutableCollectionMutableState")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PosView(navController: NavController? = null,
-            activityViewModel: ActivityScopedViewModel = ActivityScopedViewModel(),
-            modifier: Modifier = Modifier, viewModel: POSViewModel = hiltViewModel()) {
+fun PosView(
+        navController: NavController? = null,
+        activityViewModel: ActivityScopedViewModel = ActivityScopedViewModel(),
+        modifier: Modifier = Modifier,
+        viewModel: POSViewModel = hiltViewModel()
+) {
     val posState: POSState by viewModel.posState.collectAsState(activityViewModel.posState)
     var invoicesState = remember { mutableStateListOf<InvoiceItemModel>() }
     var invoiceHeaderState = remember { mutableStateOf(posState.invoiceHeader) }
@@ -103,7 +106,7 @@ fun PosView(navController: NavController? = null,
         }
     }
 
-    LaunchedEffect(posState.warning) {
+    LaunchedEffect(posState.warning, posState.isSaved) {
         if (!posState.warning.isNullOrEmpty()) {
             CoroutineScope(Dispatchers.Main).launch {
                 snackbarHostState.showSnackbar(
@@ -111,6 +114,11 @@ fun PosView(navController: NavController? = null,
                     duration = SnackbarDuration.Short,
                 )
             }
+        }
+        if (posState.isSaved) {
+            activityViewModel.posState = posState
+            navController?.navigate("UIWebView")
+            posState.isSaved = false
         }
     }
     val isImeVisible = WindowInsets.ime.getBottom(LocalDensity.current) > 0
@@ -295,9 +303,8 @@ fun PosView(navController: NavController? = null,
                         .background(
                             color = SettingsModel.backgroundColor
                         ),
-                    onSave = { // viewModel.saveInvoiceHeader(posState.invoiceHeader, posState.invoices)
-                        activityViewModel.posState = posState
-                        navController?.navigate("UIWebView")
+                    onSave = {
+                        viewModel.saveInvoiceHeader(posState.invoiceHeader, posState.invoices)
                     },
                     onFinish = {},
                 )

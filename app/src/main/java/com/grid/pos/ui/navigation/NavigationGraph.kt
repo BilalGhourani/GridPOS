@@ -5,15 +5,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.ViewModel
 import androidx.navigation.NavHostController
-import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.navArgument
 import com.grid.pos.ActivityScopedViewModel
 import com.grid.pos.MainActivity
-import com.grid.pos.ui.Item.ManageItemsView
+import com.grid.pos.ui.item.ManageItemsView
 import com.grid.pos.ui.common.UIWebView
 import com.grid.pos.ui.company.ManageCompaniesView
 import com.grid.pos.ui.currency.ManageCurrenciesView
@@ -51,7 +48,7 @@ fun AuthNavGraph(
             )
         }
         composable(route = "LoginView") { LoginView(navController) }
-        composable(route = "SettingsView") { SettingsView(navController) }
+        composable(route = "SettingsView") { SettingsView(navController = navController) }
         composable(route = "ManageCurrenciesView") { ManageCurrenciesView(navController) }
         composable(route = "ManageCompaniesView") { ManageCompaniesView(navController) }
         composable(route = "ManageUsersView") { ManageUsersView(navController) }

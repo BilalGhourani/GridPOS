@@ -73,7 +73,7 @@ data class Currency(
     @ColumnInfo(name = "cur_name1decimal")
     @set:PropertyName("cur_name1decimal")
     @get:PropertyName("cur_name1decimal")
-    var currencyName1Dec: String? = null,
+    var currencyName1Dec: Int = 2,
 
     /**
      * Currency Name 2 Decimal
@@ -81,7 +81,7 @@ data class Currency(
     @ColumnInfo(name = "cur_name2decimal")
     @set:PropertyName("cur_name2decimal")
     @get:PropertyName("cur_name2decimal")
-    var currencyName2Dec: String? = null,
+    var currencyName2Dec: Int = 2,
 
     /**
      * Currency Rate
@@ -89,7 +89,7 @@ data class Currency(
     @ColumnInfo(name = "cur_rate")
     @set:PropertyName("cur_rate")
     @get:PropertyName("cur_rate")
-    var currencyRate: String? = null,
+    var currencyRate: Double = 1.0,
 ) : DataModel() {
     constructor() : this("")
 

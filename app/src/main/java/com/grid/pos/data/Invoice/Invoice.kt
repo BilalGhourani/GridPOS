@@ -48,7 +48,7 @@ data class Invoice(
     @ColumnInfo(name = "in_qty")
     @set:PropertyName("in_qty")
     @get:PropertyName("in_qty")
-    var invoiceQuantity: Double? = null,
+    var invoiceQuantity: Double = 0.0,
 
     /**
      * Invoice price
@@ -56,7 +56,7 @@ data class Invoice(
     @ColumnInfo(name = "in_price")
     @set:PropertyName("in_price")
     @get:PropertyName("in_price")
-    var invoicePrice: Double? = null,
+    var invoicePrice: Double = 0.0,
 
     /**
      * Invoice discount
@@ -64,7 +64,7 @@ data class Invoice(
     @ColumnInfo(name = "in_disc")
     @set:PropertyName("in_disc")
     @get:PropertyName("in_disc")
-    var invoiceDiscount: Double? = null,
+    var invoiceDiscount: Double = 0.0,
 
     /**
      * Invoice discamt
@@ -72,7 +72,7 @@ data class Invoice(
     @ColumnInfo(name = "in_discamt")
     @set:PropertyName("in_discamt")
     @get:PropertyName("in_discamt")
-    var invoiceDiscamt: Double? = null,
+    var invoiceDiscamt: Double = 0.0,
 
     /**
      * Invoice tax
@@ -80,7 +80,7 @@ data class Invoice(
     @ColumnInfo(name = "in_tax")
     @set:PropertyName("in_tax")
     @get:PropertyName("in_tax")
-    var invoiceTax: Double? = null,
+    var invoiceTax: Double = 0.0,
 
     /**
      * Invoice tax 1
@@ -88,7 +88,7 @@ data class Invoice(
     @ColumnInfo(name = "in_tax1")
     @set:PropertyName("in_tax1")
     @get:PropertyName("in_tax1")
-    var invoiceTax1: Double? = null,
+    var invoiceTax1: Double = 0.0,
 
     /**
      * Invoice tax 2
@@ -96,7 +96,7 @@ data class Invoice(
     @ColumnInfo(name = "in_tax2")
     @set:PropertyName("in_tax2")
     @get:PropertyName("in_tax2")
-    var invoiceTax2: Double? = null,
+    var invoiceTax2: Double = 0.0,
 
     /**
      * Invoice note
@@ -112,7 +112,7 @@ data class Invoice(
     @ColumnInfo(name = "in_cost")
     @set:PropertyName("in_cost")
     @get:PropertyName("in_cost")
-    var invoicCost: Double? = null,
+    var invoicCost: Double = 0.0,
 
     /**
      * Invoice remaining quantity
@@ -120,7 +120,7 @@ data class Invoice(
     @ColumnInfo(name = "in_remqty")
     @set:PropertyName("in_remqty")
     @get:PropertyName("in_remqty")
-    var invoicRemQty: Double? = null,
+    var invoicRemQty: Double = 0.0,
 
     /**
      * Invoice timestamp

@@ -64,7 +64,7 @@ data class Item(
     @ColumnInfo(name = "it_unitprice")
     @set:PropertyName("it_unitprice")
     @get:PropertyName("it_unitprice")
-    var itemUnitPrice: String? = null,
+    var itemUnitPrice: Double = 0.0,
 
     /**
      * Item tax
@@ -72,7 +72,7 @@ data class Item(
     @ColumnInfo(name = "it_tax")
     @set:PropertyName("it_tax")
     @get:PropertyName("it_tax")
-    var itemTax: String? = null,
+    var itemTax: Double = 0.0,
 
     /**
      * Item tax 1
@@ -80,7 +80,7 @@ data class Item(
     @ColumnInfo(name = "it_tax1")
     @set:PropertyName("it_tax1")
     @get:PropertyName("it_tax1")
-    var itemTax1: String? = null,
+    var itemTax1: Double = 0.0,
 
     /**
      * Item tax 2
@@ -88,7 +88,7 @@ data class Item(
     @ColumnInfo(name = "it_tax2")
     @set:PropertyName("it_tax2")
     @get:PropertyName("it_tax2")
-    var itemTax2: String? = null,
+    var itemTax2: Double = 0.0,
 
     /**
      * related Item pos printer id
@@ -104,7 +104,7 @@ data class Item(
     @ColumnInfo(name = "it_openqty")
     @set:PropertyName("it_openqty")
     @get:PropertyName("it_openqty")
-    var itemOpenQty: String? = null,
+    var itemOpenQty: Double = 0.0,
 
     /**
      * Item open cost
@@ -112,7 +112,7 @@ data class Item(
     @ColumnInfo(name = "it_opencost")
     @set:PropertyName("it_opencost")
     @get:PropertyName("it_opencost")
-    var itemOpenCost: String? = null,
+    var itemOpenCost: Double = 0.0,
 
     /**
      * related Item POS id

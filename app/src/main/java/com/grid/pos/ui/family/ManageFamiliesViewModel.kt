@@ -37,8 +37,8 @@ class ManageFamiliesViewModel @Inject constructor(
         familyRepository.getAllFamilies(object : OnResult {
             override fun onSuccess(result: Any) {
                 val listOfFamilies = mutableListOf<Family>()
-                (result as List<Family>).forEach {
-                    listOfFamilies.add(it)
+                (result as List<*>).forEach {
+                    listOfFamilies.add(it as Family)
                 }
                 viewModelScope.launch(Dispatchers.Main) {
                     manageFamiliesState.value = manageFamiliesState.value.copy(
@@ -58,8 +58,8 @@ class ManageFamiliesViewModel @Inject constructor(
         companyRepository.getAllCompanies(object : OnResult {
             override fun onSuccess(result: Any) {
                 val listOfCompanies = mutableListOf<Company>()
-                (result as List<Company>).forEach {
-                    listOfCompanies.add(it)
+                (result as List<*>).forEach {
+                    listOfCompanies.add(it as Company)
                 }
                 viewModelScope.launch(Dispatchers.Main) {
                     manageFamiliesState.value = manageFamiliesState.value.copy(
@@ -77,9 +77,9 @@ class ManageFamiliesViewModel @Inject constructor(
 
     fun saveFamily() {
         val family = manageFamiliesState.value.selectedFamily
-        if (family.familyName.isNullOrEmpty() || family.familyCompanyId.isNullOrEmpty()) {
+        if (family.familyName.isNullOrEmpty()) {
             manageFamiliesState.value = manageFamiliesState.value.copy(
-                warning = "Please fill all inputs",
+                warning = "Please fill family name.",
                 isLoading = false
             )
             return

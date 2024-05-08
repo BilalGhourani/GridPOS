@@ -1,6 +1,5 @@
-package com.grid.pos.ui.Item
+package com.grid.pos.ui.item
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -15,17 +14,16 @@ import com.grid.pos.utils.Utils
 
 @Composable
 fun ItemListCell(
-    items: MutableList<Item>,
-    onClick: (Item) -> Unit = {},
-    modifier: Modifier = Modifier
+        modifier: Modifier = Modifier,
+        items: MutableList<Item>,
+        onClick: (Item) -> Unit = {}
 ) {
     LazyVerticalGrid(
         modifier = modifier
             .fillMaxWidth()
-            .wrapContentHeight(),
-        columns = GridCells.Adaptive(120.dp)
+            .wrapContentHeight(), columns = GridCells.Adaptive(120.dp)
     ) {
-        items.forEachIndexed { index, item ->
+        items.forEach { item ->
             item {
                 ItemCell(
                     item = item,
@@ -43,6 +41,7 @@ fun ItemListCell(
 fun ItemListCellPreview() {
     GridPOSTheme {
         ItemListCell(
+            modifier = Modifier,
             Utils.listOfItems
         )
     }

@@ -20,41 +20,58 @@ import kotlinx.coroutines.flow.map
 
 object DataStoreManager {
     private val context = App.getInstance().applicationContext
-    private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "GRID_POS_DATA_STORE")
+    private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(
+        name = "GRID_POS_DATA_STORE"
+    )
 
     suspend fun initValues() {
         initSettingsModel()
     }
 
-    suspend fun putString(key: String, value: String) {
+    suspend fun putString(
+            key: String,
+            value: String
+    ) {
         val preferencesKey = stringPreferencesKey(key)
         context.dataStore.edit { preferences ->
             preferences[preferencesKey] = value
         }
     }
 
-    suspend fun putInt(key: String, value: Int) {
+    suspend fun putInt(
+            key: String,
+            value: Int
+    ) {
         val preferencesKey = intPreferencesKey(key)
         context.dataStore.edit { preferences ->
             preferences[preferencesKey] = value
         }
     }
 
-    suspend fun putLong(key: String, value: Long) {
+    suspend fun putLong(
+            key: String,
+            value: Long
+    ) {
         val preferencesKey = longPreferencesKey(key)
         context.dataStore.edit { preferences ->
             preferences[preferencesKey] = value
         }
     }
 
-    suspend fun putBoolean(key: String, value: Boolean) {
+    suspend fun putBoolean(
+            key: String,
+            value: Boolean
+    ) {
         val preferencesKey = booleanPreferencesKey(key)
         context.dataStore.edit { preferences ->
             preferences[preferencesKey] = value
         }
     }
 
-    suspend fun getString(key: String, fallback: String = ""): String {
+    suspend fun getString(
+            key: String,
+            fallback: String = ""
+    ): String {
         return try {
             val preferencesKey = stringPreferencesKey(key)
             val preferences = context.dataStore.data.first()
@@ -66,7 +83,10 @@ object DataStoreManager {
         }
     }
 
-    suspend fun getInt(key: String, fallback: Int = -1): Int {
+    suspend fun getInt(
+            key: String,
+            fallback: Int = -1
+    ): Int {
         return try {
             val preferencesKey = intPreferencesKey(key)
             val preferences = context.dataStore.data.first()
@@ -78,7 +98,10 @@ object DataStoreManager {
         }
     }
 
-    suspend fun getLong(key: String, fallback: Long = -1L): Long {
+    suspend fun getLong(
+            key: String,
+            fallback: Long = -1L
+    ): Long {
         return try {
             val preferencesKey = longPreferencesKey(key)
             val preferences = context.dataStore.data.first()
@@ -89,7 +112,10 @@ object DataStoreManager {
         }
     }
 
-    suspend fun getBoolean(key: String, fallback: Boolean = false): Boolean {
+    suspend fun getBoolean(
+            key: String,
+            fallback: Boolean = false
+    ): Boolean {
         return try {
             val preferencesKey = booleanPreferencesKey(key)
             val preferences = context.dataStore.data.first()
@@ -141,36 +167,38 @@ object DataStoreManager {
             SettingsModel.textColor = Color(textColor.toColorInt())
         }
         SettingsModel.loadFromRemote = getBoolean(DataStoreKeys.LOAD_FROM_REMOTE.key, true) == true
-        SettingsModel.hideTaxInputs = getBoolean(DataStoreKeys.HIDE_TAX_INPUTS.key) == true
+        SettingsModel.showTax = getBoolean(DataStoreKeys.SHOW_TAX.key, false) == true
+        SettingsModel.showTax1 = getBoolean(DataStoreKeys.SHOW_TAX1.key, false) == true
+        SettingsModel.showTax2 = getBoolean(DataStoreKeys.SHOW_TAX2.key, false) == true
 
         SettingsModel.firebaseApplicationId = getString(DataStoreKeys.FIREBASE_APP_ID.key)
         SettingsModel.firebaseApiKey = getString(DataStoreKeys.FIREBASE_API_KEY.key)
         SettingsModel.firebaseProjectId = getString(DataStoreKeys.FIREBASE_PROJECT_ID.key)
         SettingsModel.firebaseDbPath = getString(DataStoreKeys.FIREBASE_DB_PATH.key)
         SettingsModel.companyID = getString(
-            DataStoreKeys.COMPANY_ID.key,
-            ""
+            DataStoreKeys.COMPANY_ID.key, ""
         ).ifEmpty { "b446ad20-506f-40e1-83e5-022c748f39c0" }
     }
-
 
     enum class DataStoreKeys(val key: String) {
         CURRENT_USER_ID("CURRENT_USER_ID"),
 
-        FIREBASE_APP_ID("FIREBASE_APP_ID"),
-        FIREBASE_API_KEY("FIREBASE_API_KEY"),
-        FIREBASE_PROJECT_ID("FIREBASE_PROJECT_ID"),
-        FIREBASE_DB_PATH("FIREBASE_DB_PATH"),
+        FIREBASE_APP_ID("FIREBASE_APP_ID"), FIREBASE_API_KEY(
+            "FIREBASE_API_KEY"
+        ),
+        FIREBASE_PROJECT_ID("FIREBASE_PROJECT_ID"), FIREBASE_DB_PATH(
+            "FIREBASE_DB_PATH"
+        ),
         COMPANY_ID("COMPANY_ID"),
 
-        LOAD_FROM_REMOTE("LOAD_FROM_REMOTE"),
-        HIDE_TAX_INPUTS("HIDE_TAX_INPUTS"),
-        SHOW_PRICE_IN_ITEM_BTN("SHOW_PRICE_IN_ITEM_BTN"),
+        LOAD_FROM_REMOTE("LOAD_FROM_REMOTE"), SHOW_TAX("SHOW_TAX"), SHOW_TAX1(
+            "SHOW_TAX1"
+        ),
+        SHOW_TAX2("SHOW_TAX2"), SHOW_PRICE_IN_ITEM_BTN("SHOW_PRICE_IN_ITEM_BTN"),
 
-        BUTTON_COLOR("BUTTON_COLOR"),
-        BUTTON_TEXT_COLOR("BUTTON_TEXT_COLOR"),
-        BACKGROUND_COLOR("BACKGROUND_COLOR"),
-        TOP_BAR_COLOR("TOP_BAR_COLOR"),
-        TEXT_COLOR("TEXT_COLOR"),
+        BUTTON_COLOR("BUTTON_COLOR"), BUTTON_TEXT_COLOR("BUTTON_TEXT_COLOR"), BACKGROUND_COLOR(
+            "BACKGROUND_COLOR"
+        ),
+        TOP_BAR_COLOR("TOP_BAR_COLOR"), TEXT_COLOR("TEXT_COLOR"),
     }
 }

@@ -37,8 +37,8 @@ class ManageThirdPartiesViewModel @Inject constructor(
         thirdPartyRepository.getAllThirdParties(object : OnResult {
             override fun onSuccess(result: Any) {
                 val listOfThirdParties = mutableListOf<ThirdParty>()
-                (result as List<ThirdParty>).forEach {
-                    listOfThirdParties.add(it)
+                (result as List<*>).forEach {
+                    listOfThirdParties.add(it as ThirdParty)
                 }
                 viewModelScope.launch(Dispatchers.Main) {
                     manageThirdPartiesState.value = manageThirdPartiesState.value.copy(
@@ -58,8 +58,8 @@ class ManageThirdPartiesViewModel @Inject constructor(
         companyRepository.getAllCompanies(object : OnResult {
             override fun onSuccess(result: Any) {
                 val listOfCompanies = mutableListOf<Company>()
-                (result as List<Company>).forEach {
-                    listOfCompanies.add(it)
+                (result as List<*>).forEach {
+                    listOfCompanies.add(it as Company)
                 }
                 viewModelScope.launch(Dispatchers.Main) {
                     manageThirdPartiesState.value = manageThirdPartiesState.value.copy(
@@ -79,7 +79,7 @@ class ManageThirdPartiesViewModel @Inject constructor(
         val thirdParty = manageThirdPartiesState.value.selectedThirdParty
         if (thirdParty.thirdPartyName.isNullOrEmpty()) {
             manageThirdPartiesState.value = manageThirdPartiesState.value.copy(
-                warning = "Please fill all inputs",
+                warning = "Please fill Third Party name.",
                 isLoading = false
             )
             return

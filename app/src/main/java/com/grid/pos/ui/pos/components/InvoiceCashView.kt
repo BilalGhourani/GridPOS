@@ -1,6 +1,5 @@
 package com.grid.pos.ui.pos.components
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -15,8 +14,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -42,11 +39,11 @@ import com.grid.pos.utils.Utils
 
 @Composable
 fun InvoiceCashView(
-    modifier: Modifier,
-    invoiceHeader: InvoiceHeader = InvoiceHeader(),
-    currency: Currency = Currency(),
-    onSave: () -> Unit = {},
-    onFinish: () -> Unit = {},
+        modifier: Modifier,
+        invoiceHeader: InvoiceHeader = InvoiceHeader(),
+        currency: Currency = Currency(),
+        onSave: () -> Unit = {},
+        onFinish: () -> Unit = {},
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
     val cashCurr2FocusRequester = remember { FocusRequester() }
@@ -61,13 +58,13 @@ fun InvoiceCashView(
     val debitCurr1TotalFocusRequester = remember { FocusRequester() }
     val debitCurr2TotalFocusRequester = remember { FocusRequester() }
 
-    val curr1Decimal = currency.currencyName1Dec ?: 2
-    val curr2Decimal = currency.currencyName2Dec ?: 2
-    val rate = currency.currencyRate?.toDouble() ?: 1.0
-    val netTotal=invoiceHeader.invoicHeadGrossmont
-    val cashTotalPaid1 = String.format("%.${curr1Decimal}f", netTotal ?: 0.0)
+    val curr1Decimal = currency.currencyName1Dec
+    val curr2Decimal = currency.currencyName2Dec
+    val rate = currency.currencyRate
+    val netTotal = invoiceHeader.invoicHeadGrossmont
+    val cashTotalPaid1 = String.format("%.${curr1Decimal}f", netTotal)
     val cashTotalPaid2 = String.format(
-        "%.${curr1Decimal}f", (netTotal ?: 0.0).times(rate)
+        "%.${curr1Decimal}f", (netTotal).times(rate)
     )
 
     val curr1State by remember { mutableStateOf(currency.currencyName1 ?: "") }

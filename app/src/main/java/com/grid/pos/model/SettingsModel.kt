@@ -12,7 +12,9 @@ object SettingsModel {
     var companyID: String? = null
 
     var loadFromRemote: Boolean = true
-    var hideTaxInputs: Boolean = false
+    var showTax: Boolean = false
+    var showTax1: Boolean = false
+    var showTax2: Boolean = false
     var showPriceInItemBtn: Boolean = false
 
     var buttonColor: Color = Color.Blue

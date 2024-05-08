@@ -1,4 +1,4 @@
-package com.grid.pos.ui.Item
+package com.grid.pos.ui.item
 
 import android.net.Uri
 import androidx.activity.result.contract.ActivityResultContracts
@@ -34,7 +34,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
@@ -63,13 +62,13 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ManageItemsView(
-    navController: NavController? = null,
-    mainActivity: MainActivity,
-    modifier: Modifier = Modifier,
-    viewModel: ManageItemsViewModel = hiltViewModel()
+        modifier: Modifier = Modifier,
+        navController: NavController? = null,
+        mainActivity: MainActivity,
+        viewModel: ManageItemsViewModel = hiltViewModel()
 ) {
     val manageItemsState: ManageItemsState by viewModel.manageItemsState.collectAsState(
         ManageItemsState()
@@ -113,35 +112,27 @@ fun ManageItemsView(
         }
     }
     GridPOSTheme {
-        Scaffold(
-            containerColor = SettingsModel.backgroundColor,
-            snackbarHost = {
-                SnackbarHost(hostState = snackbarHostState)
-            },
-            topBar = {
-                Surface(shadowElevation = 3.dp, color = SettingsModel.backgroundColor) {
-                    TopAppBar(
-                        colors = TopAppBarDefaults.mediumTopAppBarColors(containerColor = SettingsModel.topBarColor),
-                        navigationIcon = {
-                            IconButton(onClick = { navController?.popBackStack() }) {
-                                Icon(
-                                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                    contentDescription = "Back",
-                                    tint = SettingsModel.buttonColor
-                                )
-                            }
-                        },
-                        title = {
-                            Text(
-                                text = "Manage Items",
-                                color = SettingsModel.textColor,
-                                fontSize = 16.sp,
-                                textAlign = TextAlign.Center
-                            )
-                        })
-                }
+        Scaffold(containerColor = SettingsModel.backgroundColor, snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState)
+        }, topBar = {
+            Surface(shadowElevation = 3.dp, color = SettingsModel.backgroundColor) {
+                TopAppBar(colors = TopAppBarDefaults.mediumTopAppBarColors(
+                    containerColor = SettingsModel.topBarColor
+                ), navigationIcon = {
+                    IconButton(onClick = { navController?.popBackStack() }) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back", tint = SettingsModel.buttonColor
+                        )
+                    }
+                }, title = {
+                    Text(
+                        text = "Manage Items", color = SettingsModel.textColor, fontSize = 16.sp,
+                        textAlign = TextAlign.Center
+                    )
+                })
             }
-        ) {
+        }) {
             Box(
                 modifier = modifier
                     .fillMaxSize()
@@ -149,15 +140,15 @@ fun ManageItemsView(
                     .background(color = Color.Transparent)
             ) {
                 Column(
-                    modifier = Modifier
-                        .fillMaxSize(),
+                    modifier = Modifier.fillMaxSize(),
                 ) {
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
-                            .verticalScroll(rememberScrollState())
-                            .weight(1f),
-                        horizontalAlignment = Alignment.CenterHorizontally
+                            .verticalScroll(
+                                rememberScrollState()
+                            )
+                            .weight(1f), horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         SearchableDropdownMenu(
                             items = manageItemsState.items.toMutableList(),
@@ -167,13 +158,13 @@ fun ManageItemsView(
                             item as Item
                             manageItemsState.selectedItem = item
                             nameState = item.itemName ?: ""
-                            unitPriceState = item.itemUnitPrice ?: ""
-                            taxState = item.itemTax ?: ""
-                            tax1State = item.itemTax1 ?: ""
-                            tax2State = item.itemTax2 ?: ""
+                            unitPriceState = item.itemUnitPrice.toString()
+                            taxState = item.itemTax.toString()
+                            tax1State = item.itemTax1.toString()
+                            tax2State = item.itemTax2.toString()
                             barcodeState = item.itemBarcode ?: ""
-                            openCostState = item.itemOpenCost ?: ""
-                            openQtyState = item.itemOpenQty ?: ""
+                            openCostState = item.itemOpenCost.toString()
+                            openQtyState = item.itemOpenQty.toString()
                             familyIdState = item.itemFaId ?: ""
                             btnColorState = item.itemBtnColor ?: ""
                             btnTextColorState = item.itemBtnTextColor ?: ""
@@ -182,120 +173,86 @@ fun ManageItemsView(
                         }
 
                         //name
-                        UITextField(
-                            modifier = Modifier.padding(10.dp),
-                            defaultValue = nameState,
-                            label = "Name",
-                            placeHolder = "Enter Name",
-                            onAction = { unitPriceFocusRequester.requestFocus() }
-                        ) { name ->
+                        UITextField(modifier = Modifier.padding(10.dp), defaultValue = nameState,
+                            label = "Name", placeHolder = "Enter Name",
+                            onAction = { unitPriceFocusRequester.requestFocus() }) { name ->
                             nameState = name
                             manageItemsState.selectedItem.itemName = name
                         }
 
                         //unitPrice
-                        UITextField(
-                            modifier = Modifier.padding(10.dp),
-                            defaultValue = unitPriceState,
-                            label = "Unit Price",
+                        UITextField(modifier = Modifier.padding(10.dp),
+                            defaultValue = unitPriceState, label = "Unit Price",
                             focusRequester = unitPriceFocusRequester,
-                            keyboardType = KeyboardType.Decimal,
-                            placeHolder = "Enter Unit Price",
-                            onAction = { taxFocusRequester.requestFocus() }
-                        ) { unitPrice ->
+                            keyboardType = KeyboardType.Decimal, placeHolder = "Enter Unit Price",
+                            onAction = { taxFocusRequester.requestFocus() }) { unitPrice ->
                             unitPriceState = Utils.getDoubleValue(unitPrice, unitPriceState)
-                            manageItemsState.selectedItem.itemUnitPrice = unitPriceState
+                            manageItemsState.selectedItem.itemUnitPrice = unitPriceState.toDoubleOrNull() ?: 0.0
                         }
 
-                        if (!SettingsModel.hideTaxInputs) {
+                        if (SettingsModel.showTax) {
                             //tax
-                            UITextField(
-                                modifier = Modifier.padding(10.dp),
-                                defaultValue = taxState,
-                                label = "Tax",
-                                maxLines = 3,
-                                focusRequester = taxFocusRequester,
-                                keyboardType = KeyboardType.Decimal,
-                                placeHolder = "Enter Tax",
-                                onAction = { tax1FocusRequester.requestFocus() }
-                            ) { tax ->
+                            UITextField(modifier = Modifier.padding(10.dp), defaultValue = taxState,
+                                label = "Tax", maxLines = 3, focusRequester = taxFocusRequester,
+                                keyboardType = KeyboardType.Decimal, placeHolder = "Enter Tax",
+                                onAction = { tax1FocusRequester.requestFocus() }) { tax ->
                                 taxState = Utils.getDoubleValue(tax, taxState)
-                                manageItemsState.selectedItem.itemTax = taxState
+                                manageItemsState.selectedItem.itemTax = taxState.toDoubleOrNull() ?: 0.0
                             }
-
+                        }
+                        if (SettingsModel.showTax1) {
                             //tax1
-                            UITextField(
-                                modifier = Modifier.padding(10.dp),
-                                defaultValue = tax1State,
-                                label = "Tax1",
+                            UITextField(modifier = Modifier.padding(10.dp),
+                                defaultValue = tax1State, label = "Tax1",
                                 focusRequester = tax1FocusRequester,
-                                keyboardType = KeyboardType.Decimal,
-                                placeHolder = "Enter Tax1",
-                                onAction = { tax2FocusRequester.requestFocus() }
-                            ) { tax1 ->
+                                keyboardType = KeyboardType.Decimal, placeHolder = "Enter Tax1",
+                                onAction = { tax2FocusRequester.requestFocus() }) { tax1 ->
                                 tax1State = Utils.getDoubleValue(tax1, tax1State)
-                                manageItemsState.selectedItem.itemTax1 = tax1State
+                                manageItemsState.selectedItem.itemTax1 = tax1State.toDoubleOrNull() ?: 0.0
                             }
-
+                        }
+                        if (SettingsModel.showTax2) {
                             //tax2
-                            UITextField(
-                                modifier = Modifier.padding(10.dp),
-                                defaultValue = tax2State,
-                                label = "Tax2",
+                            UITextField(modifier = Modifier.padding(10.dp),
+                                defaultValue = tax2State, label = "Tax2",
                                 focusRequester = tax2FocusRequester,
-                                keyboardType = KeyboardType.Decimal,
-                                placeHolder = "Enter Tax2",
-                                onAction = { barcodeFocusRequester.requestFocus() }
-                            ) { tax2 ->
+                                keyboardType = KeyboardType.Decimal, placeHolder = "Enter Tax2",
+                                onAction = { barcodeFocusRequester.requestFocus() }) { tax2 ->
                                 tax2State = Utils.getDoubleValue(tax2, tax2State)
-                                manageItemsState.selectedItem.itemTax2 = tax2State
+                                manageItemsState.selectedItem.itemTax2 = tax2State.toDoubleOrNull() ?: 0.0
                             }
                         }
                         //barcode
-                        UITextField(
-                            modifier = Modifier.padding(10.dp),
-                            defaultValue = barcodeState,
-                            label = "Barcode",
-                            placeHolder = "Enter Barcode",
+                        UITextField(modifier = Modifier.padding(10.dp), defaultValue = barcodeState,
+                            label = "Barcode", placeHolder = "Enter Barcode",
                             focusRequester = barcodeFocusRequester,
-                            onAction = { openCostFocusRequester.requestFocus() }
-                        ) { barcode ->
+                            onAction = { openCostFocusRequester.requestFocus() }) { barcode ->
                             barcodeState = barcode
                             manageItemsState.selectedItem.itemBarcode = barcode
                         }
 
                         //open cost
-                        UITextField(
-                            modifier = Modifier.padding(10.dp),
-                            defaultValue = openCostState,
-                            keyboardType = KeyboardType.Decimal,
-                            label = "Open cost",
-                            placeHolder = "Enter Open cost",
+                        UITextField(modifier = Modifier.padding(10.dp),
+                            defaultValue = openCostState, keyboardType = KeyboardType.Decimal,
+                            label = "Open cost", placeHolder = "Enter Open cost",
                             focusRequester = openCostFocusRequester,
-                            onAction = { openQtyFocusRequester.requestFocus() }
-                        ) { openCost ->
+                            onAction = { openQtyFocusRequester.requestFocus() }) { openCost ->
                             openCostState = Utils.getDoubleValue(openCost, openCostState)
-                            manageItemsState.selectedItem.itemOpenCost = openCostState
+                            manageItemsState.selectedItem.itemOpenCost = openCostState.toDoubleOrNull() ?: 0.0
                         }
 
                         //open quantity
-                        UITextField(
-                            modifier = Modifier.padding(10.dp),
-                            defaultValue = openQtyState,
-                            label = "Open Qty",
-                            keyboardType = KeyboardType.Decimal,
-                            placeHolder = "Enter Open Qty",
-                            focusRequester = openQtyFocusRequester,
-                            onAction = { btnColorFocusRequester.requestFocus() }
-                        ) { openQty ->
+                        UITextField(modifier = Modifier.padding(10.dp), defaultValue = openQtyState,
+                            label = "Open Qty", keyboardType = KeyboardType.Decimal,
+                            placeHolder = "Enter Open Qty", focusRequester = openQtyFocusRequester,
+                            onAction = { btnColorFocusRequester.requestFocus() }) { openQty ->
                             openQtyState = Utils.getDoubleValue(openQty, openQtyState)
-                            manageItemsState.selectedItem.itemOpenQty = openQtyState
+                            manageItemsState.selectedItem.itemOpenQty = openQtyState.toDoubleOrNull() ?: 0.0
                         }
 
                         SearchableDropdownMenu(
                             items = manageItemsState.families.toMutableList(),
-                            modifier = Modifier.padding(10.dp),
-                            label = "Select Family",
+                            modifier = Modifier.padding(10.dp), label = "Select Family",
                             selectedId = familyIdState
                         ) { family ->
                             family as Family
@@ -304,35 +261,28 @@ fun ManageItemsView(
                         }
 
                         //Button color
-                        UITextField(
-                            modifier = Modifier.padding(10.dp),
-                            defaultValue = btnColorState,
-                            label = "Button color",
+                        UITextField(modifier = Modifier.padding(10.dp),
+                            defaultValue = btnColorState, label = "Button color",
                             placeHolder = "Enter Button color",
                             focusRequester = btnColorFocusRequester,
-                            onAction = { btnTextColorFocusRequester.requestFocus() }
-                        ) { btnColor ->
+                            onAction = { btnTextColorFocusRequester.requestFocus() }) { btnColor ->
                             btnColorState = btnColor
                             manageItemsState.selectedItem.itemBtnColor = btnColor
                         }
 
                         //Button text color
-                        UITextField(
-                            modifier = Modifier.padding(10.dp),
-                            defaultValue = btnTextColorState,
-                            label = "Button Text color",
+                        UITextField(modifier = Modifier.padding(10.dp),
+                            defaultValue = btnTextColorState, label = "Button Text color",
                             placeHolder = "Enter Button Text color",
                             focusRequester = btnTextColorFocusRequester,
-                            onAction = { imageFocusRequester.requestFocus() }
-                        ) { btnTextColor ->
+                            onAction = { imageFocusRequester.requestFocus() }) { btnTextColor ->
                             btnTextColorState = btnTextColor
                             manageItemsState.selectedItem.itemBtnTextColor = btnTextColor
                         }
 
                         SearchableDropdownMenu(
                             items = manageItemsState.printers.toMutableList(),
-                            modifier = Modifier.padding(10.dp),
-                            label = "Select Printer",
+                            modifier = Modifier.padding(10.dp), label = "Select Printer",
                             selectedId = posPrinterState
                         ) { printer ->
                             printer as PosPrinter
@@ -340,15 +290,10 @@ fun ManageItemsView(
                             manageItemsState.selectedItem.itemPosPrinter = posPrinterState
                         }
 
-                        UITextField(
-                            modifier = Modifier.padding(10.dp),
-                            defaultValue = imageState,
-                            label = "Image",
-                            placeHolder = "Image",
-                            focusRequester = imageFocusRequester,
-                            imeAction = ImeAction.Done,
-                            onAction = { keyboardController?.hide() },
-                            trailingIcon = {
+                        UITextField(modifier = Modifier.padding(10.dp), defaultValue = imageState,
+                            label = "Image", placeHolder = "Image",
+                            focusRequester = imageFocusRequester, imeAction = ImeAction.Done,
+                            onAction = { keyboardController?.hide() }, trailingIcon = {
                                 IconButton(onClick = {
                                     mainActivity.launchGalleryPicker(
                                         mediaType = ActivityResultContracts.PickVisualMedia.ImageOnly,
@@ -356,21 +301,18 @@ fun ManageItemsView(
                                             override fun onGalleryResult(uris: List<Uri>) {
                                                 if (uris.isNotEmpty()) {
                                                     imageState = uris[0].toString()
-                                                    manageItemsState.selectedItem.itemImage =
-                                                        imageState
+                                                    manageItemsState.selectedItem.itemImage = imageState
                                                 }
                                             }
 
-                                        }
-                                    )
+                                        })
                                 }) {
                                     Icon(
                                         Icons.Default.Image, contentDescription = "Image",
                                         tint = SettingsModel.buttonColor
                                     )
                                 }
-                            }
-                        ) { img ->
+                            }) { img ->
                             imageState = img
                             manageItemsState.selectedItem.itemImage = img
                         }
@@ -379,9 +321,9 @@ fun ManageItemsView(
                             modifier = Modifier.padding(10.dp),
                             checked = itemPOSState,
                             text = "Item POS",
-                        ) {
-                            itemPOSState = it
-                            manageItemsState.selectedItem.itemPos = it
+                        ) {isItemPOS->
+                            itemPOSState = isItemPOS
+                            manageItemsState.selectedItem.itemPos = isItemPOS
                         }
 
                         Row(
@@ -394,8 +336,7 @@ fun ManageItemsView(
                             UIButton(
                                 modifier = Modifier
                                     .weight(.33f)
-                                    .padding(3.dp),
-                                text = "Save"
+                                    .padding(3.dp), text = "Save"
                             ) {
                                 viewModel.saveItem(manageItemsState.selectedItem)
                             }
@@ -403,8 +344,7 @@ fun ManageItemsView(
                             UIButton(
                                 modifier = Modifier
                                     .weight(.33f)
-                                    .padding(3.dp),
-                                text = "Delete"
+                                    .padding(3.dp), text = "Delete"
                             ) {
                                 viewModel.deleteSelectedItem(manageItemsState.selectedItem)
                             }
@@ -412,8 +352,7 @@ fun ManageItemsView(
                             UIButton(
                                 modifier = Modifier
                                     .weight(.33f)
-                                    .padding(3.dp),
-                                text = "Close"
+                                    .padding(3.dp), text = "Close"
                             ) {
                                 navController?.popBackStack()
                             }

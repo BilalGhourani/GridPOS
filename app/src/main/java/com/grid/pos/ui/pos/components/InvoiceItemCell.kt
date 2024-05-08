@@ -3,14 +3,11 @@ package com.grid.pos.ui.pos.components
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.RemoveCircle
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -47,7 +44,7 @@ fun InvoiceItemCell(modifier: Modifier = Modifier, invoiceItemModel: InvoiceItem
                 })
             }, horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        val modifier = if (isLandscape) {
+        val textModifier = if (isLandscape) {
             Modifier
                 .weight(1f)
                 .fillMaxHeight()
@@ -113,7 +110,7 @@ fun InvoiceItemCell(modifier: Modifier = Modifier, invoiceItemModel: InvoiceItem
         )
         Text(
             text = if (isHeader) "Count" else invoiceItemModel.getQuantity().toString(),
-            modifier = modifier, textAlign = TextAlign.Center, style = textStyle,
+            modifier = textModifier, textAlign = TextAlign.Center, style = textStyle,
             color = SettingsModel.textColor
         )
         VerticalDivider(
@@ -121,7 +118,7 @@ fun InvoiceItemCell(modifier: Modifier = Modifier, invoiceItemModel: InvoiceItem
         )
         Text(
             text = if (isHeader) "Price" else invoiceItemModel.getPrice().toString(),
-            modifier = modifier, textAlign = TextAlign.Center, style = textStyle,
+            modifier = textModifier, textAlign = TextAlign.Center, style = textStyle,
             color = SettingsModel.textColor
         )
         VerticalDivider(
@@ -129,32 +126,36 @@ fun InvoiceItemCell(modifier: Modifier = Modifier, invoiceItemModel: InvoiceItem
         )
         Text(
             text = if (isHeader) "Dis%" else invoiceItemModel.getDiscount().toString(),
-            modifier = modifier, textAlign = TextAlign.Center, style = textStyle,
+            modifier = textModifier, textAlign = TextAlign.Center, style = textStyle,
             color = SettingsModel.textColor
         )
-        if (!SettingsModel.hideTaxInputs) {
+        if (SettingsModel.showTax) {
             VerticalDivider(
                 color = Color.Black, modifier = dividerModifier
             )
             Text(
                 text = if (isHeader) "Tax" else invoiceItemModel.getTax().toString(),
-                modifier = modifier, textAlign = TextAlign.Center, style = textStyle,
+                modifier = textModifier, textAlign = TextAlign.Center, style = textStyle,
                 color = SettingsModel.textColor
             )
+        }
+        if (SettingsModel.showTax1) {
             VerticalDivider(
                 color = Color.Black, modifier = dividerModifier
             )
             Text(
                 text = if (isHeader) "Tax1" else invoiceItemModel.getTax1().toString(),
-                modifier = modifier, textAlign = TextAlign.Center, style = textStyle,
+                modifier = textModifier, textAlign = TextAlign.Center, style = textStyle,
                 color = SettingsModel.textColor
             )
+        }
+        if (SettingsModel.showTax2) {
             VerticalDivider(
                 color = Color.Black, modifier = dividerModifier
             )
             Text(
                 text = if (isHeader) "Tax2" else invoiceItemModel.getTax2().toString(),
-                modifier = modifier, textAlign = TextAlign.Center, style = textStyle,
+                modifier = textModifier, textAlign = TextAlign.Center, style = textStyle,
                 color = SettingsModel.textColor
             )
         }
@@ -163,7 +164,7 @@ fun InvoiceItemCell(modifier: Modifier = Modifier, invoiceItemModel: InvoiceItem
         )
         Text(
             text = if (isHeader) "Amount" else invoiceItemModel.getNetAmount().toString(),
-            modifier = modifier, textAlign = TextAlign.Center, style = textStyle,
+            modifier = textModifier, textAlign = TextAlign.Center, style = textStyle,
             color = SettingsModel.textColor
         )
         VerticalDivider(

@@ -30,13 +30,13 @@ import com.grid.pos.ui.theme.GridPOSTheme
 
 @Composable
 fun InvoiceFooterView(
-    invoiceHeader: InvoiceHeader,
-    currency: Currency,
-    items: MutableList<Item> = mutableListOf(),
-    thirdParties: MutableList<ThirdParty> = mutableListOf(),
-    modifier: Modifier = Modifier,
-    onItemSelected: (Item) -> Unit = {},
-    onThirdPartySelected: (ThirdParty) -> Unit = {},
+        invoiceHeader: InvoiceHeader,
+        currency: Currency,
+        items: MutableList<Item> = mutableListOf(),
+        thirdParties: MutableList<ThirdParty> = mutableListOf(),
+        modifier: Modifier = Modifier,
+        onItemSelected: (Item) -> Unit = {},
+        onThirdPartySelected: (ThirdParty) -> Unit = {},
 ) {
     val curState by remember { mutableStateOf(currency.currencyCode1 ?: "") }
     val cur2State by remember { mutableStateOf(currency.currencyCode2 ?: "") }
@@ -49,17 +49,19 @@ fun InvoiceFooterView(
     var tableNoState by remember { mutableStateOf("1") }
     var clientState by remember { mutableStateOf("Cash") }
 
-    val tax = invoiceHeader.invoicHeadTaxAmt ?: 0.0
-    val tax1 = invoiceHeader.invoicHeadTax1Amt ?: 0.0
-    val tax2 = invoiceHeader.invoicHeadTax2Amt ?: 0.0
-    val curr1Decimal = currency.currencyName1Dec ?: 2
-    val curr2Decimal = currency.currencyName2Dec ?: 2
+    val tax = invoiceHeader.invoicHeadTaxAmt
+    val tax1 = invoiceHeader.invoicHeadTax1Amt
+    val tax2 = invoiceHeader.invoicHeadTax2Amt
+    val curr1Decimal = currency.currencyName1Dec
+    val curr2Decimal = currency.currencyName2Dec
     taxState = String.format("%.${curr1Decimal}f", tax)
     tax1State = String.format("%.${curr1Decimal}f", tax1)
     tax2State = String.format("%.${curr1Decimal}f", tax2)
     totalTaxState = String.format("%.${curr1Decimal}f", tax + tax1 + tax2)
-    totalState = String.format("%.${curr1Decimal}f", invoiceHeader.invoicHeadGrossmont ?: 0.0)
-    totalCur2State = String.format("%.${curr2Decimal}f", totalState.toDouble().times(currency.currencyRate?.toDouble() ?: 0.0))
+    totalState = String.format("%.${curr1Decimal}f", invoiceHeader.invoicHeadGrossmont)
+    totalCur2State = String.format(
+        "%.${curr2Decimal}f", totalState.toDouble().times(currency.currencyRate)
+    )
 
     Row(
         modifier = modifier
@@ -72,9 +74,10 @@ fun InvoiceFooterView(
                 .wrapContentHeight()
                 .padding(5.dp)
         ) {
-            if (!SettingsModel.hideTaxInputs) {
+            if (SettingsModel.showTax) {
                 Row(
-                    modifier = Modifier.wrapContentWidth(), horizontalArrangement = Arrangement.Absolute.Left
+                    modifier = Modifier.wrapContentWidth(),
+                    horizontalArrangement = Arrangement.Absolute.Left
                 ) {
                     Text(text = "Tax:", color = SettingsModel.textColor)
                     Spacer(modifier = Modifier.width(5.dp))
@@ -82,9 +85,11 @@ fun InvoiceFooterView(
                     Spacer(modifier = Modifier.width(5.dp))
                     Text(text = curState, color = SettingsModel.textColor)
                 }
-
+            }
+            if (SettingsModel.showTax1) {
                 Row(
-                    modifier = Modifier.wrapContentWidth(), horizontalArrangement = Arrangement.Absolute.Left
+                    modifier = Modifier.wrapContentWidth(),
+                    horizontalArrangement = Arrangement.Absolute.Left
                 ) {
                     Text(text = "Tax1:", color = SettingsModel.textColor)
                     Spacer(modifier = Modifier.width(5.dp))
@@ -94,7 +99,8 @@ fun InvoiceFooterView(
                 }
             }
             Row(
-                modifier = Modifier.wrapContentWidth(), horizontalArrangement = Arrangement.Absolute.Left
+                modifier = Modifier.wrapContentWidth(),
+                horizontalArrangement = Arrangement.Absolute.Left
             ) {
                 Text(text = "Total:", color = SettingsModel.textColor)
                 Spacer(modifier = Modifier.width(5.dp))
@@ -104,7 +110,8 @@ fun InvoiceFooterView(
             }
 
             Row(
-                modifier = Modifier.wrapContentWidth(), horizontalArrangement = Arrangement.Absolute.Left
+                modifier = Modifier.wrapContentWidth(),
+                horizontalArrangement = Arrangement.Absolute.Left
             ) {
                 Text(text = "Total:", color = SettingsModel.textColor)
                 Spacer(modifier = Modifier.width(5.dp))
@@ -128,9 +135,10 @@ fun InvoiceFooterView(
                 .wrapContentHeight()
                 .padding(5.dp)
         ) {
-            if (!SettingsModel.hideTaxInputs) {
+            if (SettingsModel.showTax2) {
                 Row(
-                    modifier = Modifier.wrapContentWidth(), horizontalArrangement = Arrangement.Absolute.Left
+                    modifier = Modifier.wrapContentWidth(),
+                    horizontalArrangement = Arrangement.Absolute.Left
                 ) {
                     Text(text = "Tax2:", color = SettingsModel.textColor)
                     Spacer(modifier = Modifier.width(5.dp))
@@ -138,9 +146,11 @@ fun InvoiceFooterView(
                     Spacer(modifier = Modifier.width(5.dp))
                     Text(text = curState, color = SettingsModel.textColor)
                 }
-
+            }
+            if (SettingsModel.showTax||SettingsModel.showTax1||SettingsModel.showTax2) {
                 Row(
-                    modifier = Modifier.wrapContentWidth(), horizontalArrangement = Arrangement.Absolute.Left
+                    modifier = Modifier.wrapContentWidth(),
+                    horizontalArrangement = Arrangement.Absolute.Left
                 ) {
                     Text(text = "Total Tax:", color = SettingsModel.textColor)
                     Spacer(modifier = Modifier.width(5.dp))
@@ -150,7 +160,8 @@ fun InvoiceFooterView(
                 }
             }
             Row(
-                modifier = Modifier.wrapContentWidth(), horizontalArrangement = Arrangement.Absolute.Left
+                modifier = Modifier.wrapContentWidth(),
+                horizontalArrangement = Arrangement.Absolute.Left
             ) {
                 Text(text = "Table Number:", color = SettingsModel.textColor)
                 Spacer(modifier = Modifier.width(5.dp))
@@ -158,7 +169,8 @@ fun InvoiceFooterView(
             }
 
             Row(
-                modifier = Modifier.wrapContentWidth(), horizontalArrangement = Arrangement.Absolute.Left
+                modifier = Modifier.wrapContentWidth(),
+                horizontalArrangement = Arrangement.Absolute.Left
             ) {
                 Text(text = "Client:", color = SettingsModel.textColor)
                 Spacer(modifier = Modifier.width(5.dp))

@@ -36,8 +36,8 @@ class ManageUsersViewModel @Inject constructor(
         userRepository.getAllUsers(object : OnResult {
             override fun onSuccess(result: Any) {
                 val listOfUsers = mutableListOf<User>()
-                (result as List<User>).forEach {
-                    listOfUsers.add(it)
+                (result as List<*>).forEach {
+                    listOfUsers.add(it as User)
                 }
                 viewModelScope.launch(Dispatchers.Main) {
                     manageUsersState.value = manageUsersState.value.copy(
@@ -57,8 +57,8 @@ class ManageUsersViewModel @Inject constructor(
         companyRepository.getAllCompanies(object : OnResult {
             override fun onSuccess(result: Any) {
                 val listOfCompanies = mutableListOf<Company>()
-                (result as List<Company>).forEach {
-                    listOfCompanies.add(it)
+                (result as List<*>).forEach {
+                    listOfCompanies.add(it as Company)
                 }
                 viewModelScope.launch(Dispatchers.Main) {
                     manageUsersState.value = manageUsersState.value.copy(

@@ -35,8 +35,8 @@ class ManageCompaniesViewModel @Inject constructor(
         companyRepository.getAllCompanies(object : OnResult {
             override fun onSuccess(result: Any) {
                 val listOfCompanies = mutableListOf<Company>()
-                (result as List<Company>).forEach {
-                    listOfCompanies.add(it)
+                (result as List<*>).forEach {
+                    listOfCompanies.add(it as Company)
                 }
                 viewModelScope.launch(Dispatchers.Main) {
                     manageCompaniesState.value = manageCompaniesState.value.copy(
@@ -56,8 +56,8 @@ class ManageCompaniesViewModel @Inject constructor(
         currencyRepository.getAllCurrencies(object : OnResult {
             override fun onSuccess(result: Any) {
                 val listOfCurrencies = mutableListOf<Currency>()
-                (result as List<Currency>).forEach {
-                    listOfCurrencies.add(it)
+                (result as List<*>).forEach {
+                    listOfCurrencies.add(it as Currency)
                 }
                 viewModelScope.launch(Dispatchers.Main) {
                     manageCompaniesState.value = manageCompaniesState.value.copy(
@@ -74,9 +74,9 @@ class ManageCompaniesViewModel @Inject constructor(
     }
 
     fun saveCompany(company: Company) {
-        if (company.companyName.isNullOrEmpty() || company.companyAddress.isNullOrEmpty()) {
+        if (company.companyName.isNullOrEmpty() || company.companyCurCodeTax.isNullOrEmpty()) {
             manageCompaniesState.value = manageCompaniesState.value.copy(
-                warning = "Please fill all inputs",
+                warning = "Please fill company name and Currency.",
                 isLoading = false
             )
             return

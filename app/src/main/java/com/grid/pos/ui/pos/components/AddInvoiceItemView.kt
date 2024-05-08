@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowRight
 import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
@@ -29,7 +28,7 @@ import androidx.compose.ui.unit.dp
 import com.grid.pos.data.Family.Family
 import com.grid.pos.data.Item.Item
 import com.grid.pos.model.SettingsModel
-import com.grid.pos.ui.Item.ItemListCell
+import com.grid.pos.ui.item.ItemListCell
 import com.grid.pos.ui.family.CategoryListCell
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.utils.Utils

@@ -14,8 +14,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ManageCurrenciesViewModel @Inject constructor(
-    private val currencyRepository: CurrencyRepository
-) : ViewModel() {
+    private val currencyRepository: CurrencyRepository) : ViewModel() {
 
     private val _manageCurrenciesState = MutableStateFlow(ManageCurrenciesState())
     val manageCurrenciesState: MutableStateFlow<ManageCurrenciesState> = _manageCurrenciesState
@@ -29,12 +28,11 @@ class ManageCurrenciesViewModel @Inject constructor(
     private suspend fun fetchCurrencies() {
         currencyRepository.getAllCurrencies(object : OnResult {
             override fun onSuccess(result: Any) {
-                result as List<Currency>
-                var currency = if (result.size > 0) result[0] else Currency()
+                result as List<*>
+                val currency = if (result.size > 0) result[0] as Currency else Currency()
                 viewModelScope.launch(Dispatchers.Main) {
                     manageCurrenciesState.value = manageCurrenciesState.value.copy(
-                        selectedCurrency = currency,
-                        fillFields = true
+                        selectedCurrency = currency, fillFields = true
                     )
                 }
             }
@@ -47,10 +45,9 @@ class ManageCurrenciesViewModel @Inject constructor(
     }
 
     fun saveCurrency(currency: Currency) {
-        if (currency.currencyCode1.isNullOrEmpty() || currency.currencyName1.isNullOrEmpty() || currency.currencyCode2.isNullOrEmpty() || currency.currencyName2.isNullOrEmpty() || currency.currencyRate.isNullOrEmpty()) {
+        if (currency.currencyCode1.isNullOrEmpty() || currency.currencyName1.isNullOrEmpty() || currency.currencyCode2.isNullOrEmpty() || currency.currencyName2.isNullOrEmpty() || currency.currencyRate.isNaN()) {
             manageCurrenciesState.value = manageCurrenciesState.value.copy(
-                warning = "Please fill all inputs",
-                isLoading = false
+                warning = "Please fill all inputs", isLoading = false
             )
             return
         }
@@ -62,8 +59,7 @@ class ManageCurrenciesViewModel @Inject constructor(
             override fun onSuccess(result: Any) {
                 viewModelScope.launch(Dispatchers.Main) {
                     manageCurrenciesState.value = manageCurrenciesState.value.copy(
-                        selectedCurrency = result as Currency,
-                        isLoading = false
+                        selectedCurrency = result as Currency, isLoading = false
                     )
                 }
             }

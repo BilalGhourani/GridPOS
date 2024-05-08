@@ -12,14 +12,14 @@ data class InvoiceItemModel(
         invoiceItem = item
         invoice.invoiceItemId = item.itemId
         invoice.invoiceQuantity = 1.0
-        invoice.invoicePrice = item.itemUnitPrice?.toDouble() ?: 0.0
+        invoice.invoicePrice = item.itemUnitPrice
         invoice.invoiceDiscount = 0.0
         invoice.invoiceDiscamt = 0.0
-        invoice.invoiceTax = item.itemTax?.toDouble() ?: 0.0
-        invoice.invoiceTax1 = item.itemTax1?.toDouble() ?: 0.0
-        invoice.invoiceTax2 = item.itemTax2?.toDouble() ?: 0.0
-        invoice.invoicCost = item.itemOpenCost?.toDouble() ?: 0.0
-        invoice.invoicRemQty = item.itemOpenQty?.toDouble() ?: 0.0
+        invoice.invoiceTax = item.itemTax
+        invoice.invoiceTax1 = item.itemTax1
+        invoice.invoiceTax2 = item.itemTax2
+        invoice.invoicCost = item.itemOpenCost
+        invoice.invoicRemQty = item.itemOpenQty
     }
 
     fun getName(): String {
@@ -27,37 +27,37 @@ data class InvoiceItemModel(
     }
 
     fun getQuantity(): Double {
-        return invoice.invoiceQuantity ?: 0.0
+        return invoice.invoiceQuantity
     }
 
     fun getPrice(): Double {
-        return invoice.invoicePrice ?: 0.0
+        return invoice.invoicePrice
     }
 
     fun getDiscount(): Double {
-        return invoice.invoiceDiscount ?: 0.0
+        return invoice.invoiceDiscount
     }
 
     fun getTax(): Double {
-        return invoice.invoiceTax ?: 0.0
+        return invoice.invoiceTax
     }
 
     fun getTax1(): Double {
-        return invoice.invoiceTax1 ?: 0.0
+        return invoice.invoiceTax1
     }
 
     fun getTax2(): Double {
-        return invoice.invoiceTax2 ?: 0.0
+        return invoice.invoiceTax2
     }
 
     fun getAmount(): Double {
-        val quantity = invoice.invoiceQuantity ?: 1.0
-        val price = invoice.invoicePrice ?: 0.0
+        val quantity = invoice.invoiceQuantity
+        val price = invoice.invoicePrice
         return quantity.times(price)
     }
 
     fun getNetAmount(): Double {
-        val quantity = invoice.invoiceQuantity ?: 1.0
+        val quantity = invoice.invoiceQuantity
         val netPrice = (getPrice() + getTax() + getTax1() + getTax2()) - getDiscount()
         return quantity.times(netPrice)
     }

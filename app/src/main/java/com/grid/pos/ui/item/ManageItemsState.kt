@@ -1,4 +1,4 @@
-package com.grid.pos.ui.Item
+package com.grid.pos.ui.item
 
 import com.grid.pos.data.Company.Company
 import com.grid.pos.data.Family.Family
