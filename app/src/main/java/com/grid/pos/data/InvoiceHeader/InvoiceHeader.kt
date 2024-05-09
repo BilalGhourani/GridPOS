@@ -40,7 +40,7 @@ data class InvoiceHeader(
         @ColumnInfo(name = "hi_date")
         @set:PropertyName("hi_date")
         @get:PropertyName("hi_date")
-        var invoiceHeadDate: String? = null,
+        var invoiceHeadDate: String = Utils.getDateinFormat(),
 
         /**
          * Invoice Header Order Number

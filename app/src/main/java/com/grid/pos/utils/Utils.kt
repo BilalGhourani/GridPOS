@@ -2,11 +2,13 @@ package com.grid.pos.utils
 
 import android.content.Context
 import android.content.res.Configuration
+import android.os.Build
 import android.print.PrintAttributes
 import android.print.PrintAttributes.MediaSize
 import android.print.PrintManager
 import android.webkit.WebView
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.substring
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.grid.pos.data.DataModel
@@ -18,7 +20,9 @@ import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.text.SimpleDateFormat
 import java.time.LocalDateTime
+import java.time.Year
 import java.time.format.DateTimeFormatter
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import java.util.UUID
@@ -117,8 +121,8 @@ object Utils {
 
             // Define Print Attributes (optional)
             val printAttributes = PrintAttributes.Builder().setMediaSize(
-                    getMediaSize()
-                ).setMinMargins(PrintAttributes.Margins.NO_MARGINS).build()
+                getMediaSize()
+            ).setMinMargins(PrintAttributes.Margins.NO_MARGINS).build()
 
             printManager.print(jobName, printAdapter, printAttributes)
         }
@@ -168,5 +172,26 @@ object Utils {
         if (size < min) size = min
         else if (size > max) size = max
         return (size * cellHeight).dp + 50.dp
+    }
+
+    fun getInvoiceNo(oldInvoiceNo: String?): String {
+        val currentYear = getCurrentYear()
+        var invNoStr = oldInvoiceNo.takeIf { !it.isNullOrEmpty() } ?: (currentYear + "000000001")
+        if (invNoStr.length > 4 && !invNoStr.substring(0, 3)
+                .equals(currentYear, ignoreCase = true)
+        ) {
+            invNoStr = currentYear + "000000001"
+        }
+        return (invNoStr.toInt() + 1).toString()
+    }
+
+    private fun getCurrentYear(): String {
+        val calendar: Calendar = Calendar.getInstance()
+        val currentYear = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            Year.now().value
+        } else {
+            calendar[Calendar.YEAR]
+        }
+        return currentYear.toString()
     }
 }

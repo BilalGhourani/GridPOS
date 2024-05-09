@@ -16,6 +16,7 @@ import com.grid.pos.data.ThirdParty.ThirdParty
 import com.grid.pos.data.ThirdParty.ThirdPartyRepository
 import com.grid.pos.interfaces.OnResult
 import com.grid.pos.model.InvoiceItemModel
+import com.grid.pos.utils.Utils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -160,8 +161,23 @@ class POSViewModel @Inject constructor(
 
         CoroutineScope(Dispatchers.IO).launch {
             if (isInserting) {
-                invoiceHeader.prepareForInsert()
-                invoiceHeaderRepository.insert(invoiceHeader, callback)
+                    invoiceHeaderRepository.getLastInvoiceNo(posState.value.getInvoiceType(),object : OnResult {
+                        override fun onSuccess(result: Any) {
+                            invoiceHeader.invoiceHeadOrderNo = Utils.getInvoiceNo(result as String)
+                            invoiceHeader.prepareForInsert()
+                            CoroutineScope(Dispatchers.IO).launch {
+                                invoiceHeaderRepository.insert(invoiceHeader, callback)
+                            }
+                        }
+
+                        override fun onFailure(message: String, errorCode: Int) {
+                            invoiceHeader.invoiceHeadOrderNo = Utils.getInvoiceNo("")
+                            invoiceHeader.prepareForInsert()
+                            CoroutineScope(Dispatchers.IO).launch {
+                                invoiceHeaderRepository.insert(invoiceHeader, callback)
+                            }
+                        }
+                    })
             } else {
                 invoiceHeaderRepository.update(invoiceHeader, callback)
             }
@@ -194,7 +210,7 @@ class POSViewModel @Inject constructor(
                 viewModelScope.launch(Dispatchers.Main) {
                     posState.value = posState.value.copy(
                         isLoading = false,
-                        isSaved=true
+                        isSaved = true
                     )
                 }
             }

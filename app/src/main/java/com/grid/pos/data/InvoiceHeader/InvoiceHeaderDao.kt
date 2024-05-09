@@ -40,4 +40,8 @@ interface InvoiceHeaderDao {
     @Query("SELECT * FROM `in_hinvoice`")
     fun getAllInvoiceHeaders(): Flow<List<InvoiceHeader>>
 
+    // Get all Invoice Headers as stream.
+    @Query("SELECT * FROM `in_hinvoice` WHERE hi_tt_code = :type ORDER BY hi_orderno DESC LIMIT 1")
+    fun getLastInvoiceNo(type:String):Flow<InvoiceHeader>
+
 }

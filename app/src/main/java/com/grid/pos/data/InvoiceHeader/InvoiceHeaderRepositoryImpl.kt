@@ -1,8 +1,7 @@
 package com.grid.pos.data.InvoiceHeader
 
-import androidx.lifecycle.asLiveData
 import com.google.firebase.firestore.FirebaseFirestore
-import com.grid.pos.data.Invoice.Invoice
+import com.google.firebase.firestore.Query
 import com.grid.pos.interfaces.OnResult
 import com.grid.pos.model.SettingsModel
 
@@ -67,7 +66,7 @@ class InvoiceHeaderRepositoryImpl(
     override suspend fun getAllInvoiceHeaders(callback: OnResult?) {
         if (SettingsModel.loadFromRemote) {
             FirebaseFirestore.getInstance().collection("in_hinvoice")
-                .whereEqualTo("hi_cmp_id",SettingsModel.companyID)
+                .whereEqualTo("hi_cmp_id", SettingsModel.companyID)
                 .get()
                 .addOnSuccessListener { result ->
                     val invoices = mutableListOf<InvoiceHeader>()
@@ -86,9 +85,37 @@ class InvoiceHeaderRepositoryImpl(
                         exception.message ?: "Network error! Can't get items from remote."
                     )
                 }
-        }else {
+        } else {
             invoiceHeaderDao.getAllInvoiceHeaders().collect {
                 callback?.onSuccess(it)
+            }
+        }
+    }
+
+    override suspend fun getLastInvoiceNo(type: String,callback: OnResult?) {
+        if (SettingsModel.loadFromRemote) {
+           FirebaseFirestore.getInstance().collection("in_hinvoice")
+                .whereEqualTo("hi_cmp_id", SettingsModel.companyID)
+                .whereEqualTo("hi_tt_code", type)
+                .orderBy("hi_orderno", Query.Direction.DESCENDING)
+                .limit(1)
+                .get()
+                .addOnSuccessListener { result ->
+                    val document = result.firstOrNull()
+                    if (document != null) {
+                        val obj = document.toObject(InvoiceHeader::class.java)
+                        callback?.onSuccess(obj.invoiceHeadOrderNo ?: "")
+                    }
+
+                }.addOnFailureListener { exception ->
+                    callback?.onFailure(
+                        exception.message ?: "Network error."
+                    )
+                }
+
+        } else {
+            invoiceHeaderDao.getLastInvoiceNo(type).collect {
+                callback?.onSuccess(it.invoiceHeadOrderNo ?: "")
             }
         }
     }
