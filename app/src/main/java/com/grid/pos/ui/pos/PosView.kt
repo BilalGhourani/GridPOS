@@ -32,6 +32,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -78,10 +79,10 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PosView(
-        navController: NavController? = null,
-        activityViewModel: ActivityScopedViewModel = ActivityScopedViewModel(),
-        modifier: Modifier = Modifier,
-        viewModel: POSViewModel = hiltViewModel()
+    navController: NavController? = null,
+    activityViewModel: ActivityScopedViewModel = ActivityScopedViewModel(),
+    modifier: Modifier = Modifier,
+    viewModel: POSViewModel = hiltViewModel()
 ) {
     val posState: POSState by viewModel.posState.collectAsState(activityViewModel.posState)
     var invoicesState = remember { mutableStateListOf<InvoiceItemModel>() }
@@ -139,9 +140,15 @@ fun PosView(
         handleBack()
     }
     GridPOSTheme {
-        Scaffold(containerColor = SettingsModel.backgroundColor, topBar = {
+        Scaffold(
+            containerColor = SettingsModel.backgroundColor,
+            snackbarHost = {
+                SnackbarHost(hostState = snackbarHostState)
+            },
+            topBar = {
             Surface(shadowElevation = 3.dp, color = SettingsModel.backgroundColor) {
-                TopAppBar(colors = TopAppBarDefaults.mediumTopAppBarColors(
+                TopAppBar(
+                    colors = TopAppBarDefaults.mediumTopAppBarColors(
                     containerColor = SettingsModel.topBarColor
                 ), navigationIcon = {
                     IconButton(onClick = {
@@ -226,7 +233,8 @@ fun PosView(
                             isAddItemBottomSheetVisible = false
                         },
                         onThirdPartySelected = { thirdParty ->
-                            posState.invoiceHeader.invoiceHeadThirdPartyName = thirdParty.thirdPartyId
+                            posState.invoiceHeader.invoiceHeadThirdPartyName =
+                                thirdParty.thirdPartyId
                         },
                     )
                 }
