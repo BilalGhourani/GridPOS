@@ -1,6 +1,7 @@
 package com.grid.pos.model
 
 import androidx.compose.ui.graphics.Color
+import com.grid.pos.data.Company.Company
 import com.grid.pos.data.Currency.Currency
 import com.grid.pos.data.User.User
 
@@ -27,4 +28,7 @@ object SettingsModel {
 
     var currentCurrency: Currency? = null
     var currentUser: User? = null
+    var currentCompany: Company? = null
+
+    var companyAccessWarning: String = "You don't have access to this company!"
 }

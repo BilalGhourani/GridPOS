@@ -99,6 +99,7 @@ class InvoiceHeaderRepositoryImpl(
                 .whereEqualTo("hi_tt_code", type)
                 .whereNotEqualTo("hi_orderno", null)
                 .orderBy("hi_orderno", Query.Direction.DESCENDING)
+                .limit(1)
                 .get()
                 .addOnSuccessListener { result ->
                     val document = result.firstOrNull()

@@ -1,24 +1,29 @@
 package com.grid.pos.ui.pos.components
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.PersonAdd
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import com.grid.pos.data.Currency.Currency
 import com.grid.pos.data.InvoiceHeader.InvoiceHeader
 import com.grid.pos.data.Item.Item
@@ -29,6 +34,7 @@ import com.grid.pos.ui.theme.GridPOSTheme
 
 @Composable
 fun InvoiceFooterView(
+        navController: NavController? = null,
         invoiceHeader: InvoiceHeader,
         currency: Currency,
         items: MutableList<Item> = mutableListOf(),
@@ -193,8 +199,7 @@ fun InvoiceFooterView(
                 )
             }
 
-            SearchableDropdownMenu(
-                items = thirdParties.toMutableList(),
+            SearchableDropdownMenu(items = thirdParties.toMutableList(),
                 modifier = Modifier.padding(
                     0.dp,
                     15.dp,
@@ -202,7 +207,15 @@ fun InvoiceFooterView(
                     5.dp
                 ),
                 label = "Customers",
-            ) { thirdParty ->
+                leadingIcon = {
+                    Icon(
+                        Icons.Default.PersonAdd,
+                        contentDescription = "Increase quantity",
+                        tint = Color.Black,
+                        modifier = it
+                    )
+                },
+                onLeadingIconClick = { navController?.navigate("ManageThirdPartiesView") }) { thirdParty ->
                 onThirdPartySelected.invoke(thirdParty as ThirdParty)
             }
         }

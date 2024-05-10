@@ -38,6 +38,15 @@ object DataStoreManager {
         }
     }
 
+    suspend fun removeKey(
+            key: String
+    ) {
+        val preferencesKey = stringPreferencesKey(key)
+        context.dataStore.edit { preferences ->
+            preferences.remove(preferencesKey)
+        }
+    }
+
     suspend fun putInt(
             key: String,
             value: Int

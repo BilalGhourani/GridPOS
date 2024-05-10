@@ -48,6 +48,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.grid.pos.ActivityScopedViewModel
 import com.grid.pos.R
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.LoadingIndicator
@@ -58,10 +59,11 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginView(
     navController: NavController? = null,
+    activityScopedViewModel: ActivityScopedViewModel?=null,
     modifier: Modifier = Modifier,
     viewModel: LoginViewModel = hiltViewModel()
 ) {
@@ -89,6 +91,8 @@ fun LoginView(
             }
         }
         if (loginState.isLoggedIn) {
+            activityScopedViewModel!!.activityState.value.isLoggedIn=true
+            activityScopedViewModel.activityState.value.warning=null
             navController?.navigate("HomeView")
         }
     }

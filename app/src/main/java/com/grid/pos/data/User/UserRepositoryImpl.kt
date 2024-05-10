@@ -72,7 +72,7 @@ class UserRepositoryImpl(
                 "usr_cmp_id",
                 SettingsModel.companyID
             ).whereEqualTo(
-                "userId",
+                "usr_id",
                 id
             ).get().addOnSuccessListener { result ->
                 val document = result.documents.firstOrNull()

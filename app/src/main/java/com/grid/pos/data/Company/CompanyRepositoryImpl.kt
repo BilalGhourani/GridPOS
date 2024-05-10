@@ -62,8 +62,29 @@ class CompanyRepositoryImpl(
         }
     }
 
-    override suspend fun getCompanyById(id: String): Company {
-        return companyDao.getCompanyById(id)
+    override suspend fun getCompanyById(id: String,callback: OnResult?) {
+        if (SettingsModel.loadFromRemote) {
+            FirebaseFirestore.getInstance().collection("company").whereEqualTo(
+                "cmp_id",
+                id
+            ).get().addOnSuccessListener { result ->
+                val document = result.documents.firstOrNull()
+                if (document != null) {
+                    val company = document.toObject(Company::class.java)
+                    if (company != null) {
+                        callback?.onSuccess(company)
+                        return@addOnSuccessListener
+                    }
+                }
+                callback?.onFailure("not found.")
+            }.addOnFailureListener { exception ->
+                callback?.onFailure(
+                    exception.message ?: "Network error! Can't get company from remote."
+                )
+            }
+        } else {
+            callback?.onSuccess(companyDao.getCompanyById(id))
+        }
     }
 
     override suspend fun getAllCompanies(callback: OnResult?) {

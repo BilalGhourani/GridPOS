@@ -8,7 +8,6 @@ import android.print.PrintAttributes.MediaSize
 import android.print.PrintManager
 import android.webkit.WebView
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.substring
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.grid.pos.data.DataModel
@@ -20,9 +19,7 @@ import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.math.BigInteger
 import java.text.SimpleDateFormat
-import java.time.LocalDateTime
 import java.time.Year
-import java.time.format.DateTimeFormatter
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
@@ -32,44 +29,153 @@ import java.util.UUID
 object Utils {
 
     val homeSections = mutableListOf(
-        HomeSectionModel("Currency", "ManageCurrenciesView"),
-        HomeSectionModel("Company", "ManageCompaniesView"),
-        HomeSectionModel("User", "ManageUsersView"),
-        HomeSectionModel("Third Party", "ManageThirdPartiesView"),
-        HomeSectionModel("Family", "ManageFamiliesView"),
-        HomeSectionModel("Item", "ManageItemsView"),
-        HomeSectionModel("POS", "PosView"),
-        HomeSectionModel("Table", "ManageTablesView"),
+        HomeSectionModel(
+            "Currency",
+            "ManageCurrenciesView"
+        ),
+        HomeSectionModel(
+            "Company",
+            "ManageCompaniesView"
+        ),
+        HomeSectionModel(
+            "User",
+            "ManageUsersView"
+        ),
+        HomeSectionModel(
+            "Third Party",
+            "ManageThirdPartiesView"
+        ),
+        HomeSectionModel(
+            "Family",
+            "ManageFamiliesView"
+        ),
+        HomeSectionModel(
+            "Item",
+            "ManageItemsView"
+        ),
+        HomeSectionModel(
+            "POS",
+            "PosView"
+        ),
+        HomeSectionModel(
+            "Table",
+            "ManageTablesView"
+        ),
     )
 
     val users = mutableListOf(
-        User(userId = "1", userName = "Bilal", userPassword = "123456") as DataModel,
-        User(userId = "1", userName = "Ziad", userPassword = "133442") as DataModel,
-        User(userId = "1", userName = "Zakariya", userPassword = "123432") as DataModel,
-        User(userId = "1", userName = "Mohammad", userPassword = "432785") as DataModel,
-        User(userId = "1", userName = "Ahmad", userPassword = "009988") as DataModel,
-        User(userId = "1", userName = "Samir", userPassword = "225577") as DataModel,
-        User(userId = "1", userName = "Omar", userPassword = "113311") as DataModel,
-        User(userId = "1", userName = "Abed Al Rahman", userPassword = "112345") as DataModel,
-        User(userId = "1", userName = "Abdullah", userPassword = "998888") as DataModel,
+        User(
+            userId = "1",
+            userName = "Bilal",
+            userPassword = "123456"
+        ) as DataModel,
+        User(
+            userId = "1",
+            userName = "Ziad",
+            userPassword = "133442"
+        ) as DataModel,
+        User(
+            userId = "1",
+            userName = "Zakariya",
+            userPassword = "123432"
+        ) as DataModel,
+        User(
+            userId = "1",
+            userName = "Mohammad",
+            userPassword = "432785"
+        ) as DataModel,
+        User(
+            userId = "1",
+            userName = "Ahmad",
+            userPassword = "009988"
+        ) as DataModel,
+        User(
+            userId = "1",
+            userName = "Samir",
+            userPassword = "225577"
+        ) as DataModel,
+        User(
+            userId = "1",
+            userName = "Omar",
+            userPassword = "113311"
+        ) as DataModel,
+        User(
+            userId = "1",
+            userName = "Abed Al Rahman",
+            userPassword = "112345"
+        ) as DataModel,
+        User(
+            userId = "1",
+            userName = "Abdullah",
+            userPassword = "998888"
+        ) as DataModel,
     )
 
     val categories = mutableListOf(
-        Family("1", "Chicken"), Family("2", "Meat"), Family("3", "Salad"), Family("4", "Veg"),
-        Family("5", "Other")
+        Family(
+            "1",
+            "Chicken"
+        ),
+        Family(
+            "2",
+            "Meat"
+        ),
+        Family(
+            "3",
+            "Salad"
+        ),
+        Family(
+            "4",
+            "Veg"
+        ),
+        Family(
+            "5",
+            "Other"
+        )
     )
 
     val listOfItems = mutableListOf(
-        Item(itemId = "1", itemName = "Chicken", itemUnitPrice = 100.0),
-        Item(itemId = "2", itemName = "Salad", itemUnitPrice = 100.0),
-        Item(itemId = "3", itemName = "Veg", itemUnitPrice = 100.0),
-        Item(itemId = "4", itemName = "Other", itemUnitPrice = 100.0),
-        Item(itemId = "5", itemName = "Other1", itemUnitPrice = 100.0),
-        Item(itemId = "6", itemName = "Other2", itemUnitPrice = 100.0),
-        Item(itemId = "7", itemName = "Other3", itemUnitPrice = 100.0),
+        Item(
+            itemId = "1",
+            itemName = "Chicken",
+            itemUnitPrice = 100.0
+        ),
+        Item(
+            itemId = "2",
+            itemName = "Salad",
+            itemUnitPrice = 100.0
+        ),
+        Item(
+            itemId = "3",
+            itemName = "Veg",
+            itemUnitPrice = 100.0
+        ),
+        Item(
+            itemId = "4",
+            itemName = "Other",
+            itemUnitPrice = 100.0
+        ),
+        Item(
+            itemId = "5",
+            itemName = "Other1",
+            itemUnitPrice = 100.0
+        ),
+        Item(
+            itemId = "6",
+            itemName = "Other2",
+            itemUnitPrice = 100.0
+        ),
+        Item(
+            itemId = "7",
+            itemName = "Other3",
+            itemUnitPrice = 100.0
+        ),
     )
 
-    fun calculateColumns(cellWidth: Dp, screenWidth: Dp): Int {
+    fun calculateColumns(
+            cellWidth: Dp,
+            screenWidth: Dp
+    ): Int {
         val availableSpace = screenWidth - Dp((2 * 16F))// Account for paddings (adjust as needed)
         return (availableSpace / cellWidth).toInt().coerceAtLeast(1) // Ensure at least 1 column
     }
@@ -78,23 +184,43 @@ object Utils {
         return UUID.randomUUID().toString()
     }
 
-    fun getDateinFormat(date: Date = Date(), format: String = "MMMM dd, yyyy 'at' hh:mm:ss a zzz"): String {
-        val parserFormat = SimpleDateFormat(format, Locale.getDefault())
-        parserFormat.timeZone = TimeZone.getDefault()
+    fun getDateinFormat(
+            date: Date = Date(),
+            format: String = "MMMM dd, yyyy 'at' hh:mm:ss a 'Z'"
+    ): String {
+        val parserFormat = SimpleDateFormat(
+            format,
+            Locale.getDefault()
+        )
+        parserFormat.timeZone = TimeZone.getTimeZone("UTC")
         return parserFormat.format(date)
     }
 
-    fun floatToColor(hue: Float, saturation: Float = 1f, brightness: Float = 1f): Color {
+    fun floatToColor(
+            hue: Float,
+            saturation: Float = 1f,
+            brightness: Float = 1f
+    ): Color {
         // Convert HSV to RGB
-        val hsv = floatArrayOf(hue, saturation, brightness)
+        val hsv = floatArrayOf(
+            hue,
+            saturation,
+            brightness
+        )
         return Color(android.graphics.Color.HSVToColor(hsv))
     }
 
     fun generateNameFromUsername(username: String): String {
-        return username.replace("_", " ")
+        return username.replace(
+            "_",
+            " "
+        )
     }
 
-    fun getDoubleValue(new: String, old: String): String {
+    fun getDoubleValue(
+            new: String,
+            old: String
+    ): String {
         return if (new.isEmpty()) {
             new
         } else {
@@ -105,7 +231,10 @@ object Utils {
         }
     }
 
-    fun getIntValue(new: String, old: String): String {
+    fun getIntValue(
+            new: String,
+            old: String
+    ): String {
         return if (new.isEmpty()) {
             new
         } else {
@@ -116,7 +245,10 @@ object Utils {
         }
     }
 
-    fun printWebPage(webView: WebView?, context: Context) {
+    fun printWebPage(
+            webView: WebView?,
+            context: Context
+    ) {
         if (webView != null) {
             val printManager = context.getSystemService(Context.PRINT_SERVICE) as PrintManager
             val jobName = "webpage_" + System.currentTimeMillis()
@@ -127,7 +259,11 @@ object Utils {
                 getMediaSize()
             ).setMinMargins(PrintAttributes.Margins.NO_MARGINS).build()
 
-            printManager.print(jobName, printAdapter, printAttributes)
+            printManager.print(
+                jobName,
+                printAdapter,
+                printAttributes
+            )
         }
     }
 
@@ -143,10 +279,18 @@ object Utils {
         val widthMicrometers = widthInches * 25400
         val heightMicrometers = heightInches * 25400
 
-        return MediaSize("POS Receipt", "POS Receipt", widthMicrometers, heightMicrometers)
+        return MediaSize(
+            "POS Receipt",
+            "POS Receipt",
+            widthMicrometers,
+            heightMicrometers
+        )
     }
 
-    fun readHtmlFromAssets(fileName: String, context: Context): String {
+    fun readHtmlFromAssets(
+            fileName: String,
+            context: Context
+    ): String {
         return try {
             val inputStream = context.assets.open(fileName)
             val reader = BufferedReader(InputStreamReader(inputStream))
@@ -170,7 +314,12 @@ object Utils {
         return configuration.screenWidthDp > 840
     }
 
-    fun getListHeight(listSize: Int = 0, cellHeight: Int, min: Int = 1, max: Int = 8): Dp {
+    fun getListHeight(
+            listSize: Int = 0,
+            cellHeight: Int,
+            min: Int = 1,
+            max: Int = 8
+    ): Dp {
         var size = listSize
         if (size < min) size = min
         else if (size > max) size = max
@@ -180,8 +329,13 @@ object Utils {
     fun getInvoiceNo(oldInvoiceNo: String?): String {
         val currentYear = getCurrentYear()
         var invNoStr = oldInvoiceNo.takeIf { !it.isNullOrEmpty() } ?: (currentYear + "000000000")
-        if (invNoStr.length > 4 && !invNoStr.substring(0, 3)
-                .equals(currentYear, ignoreCase = true)
+        if (invNoStr.length > 4 && !invNoStr.substring(
+                0,
+                4
+            ).equals(
+                    currentYear,
+                    ignoreCase = true
+                )
         ) {
             invNoStr = currentYear + "000000000"
         }

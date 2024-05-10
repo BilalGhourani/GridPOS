@@ -12,11 +12,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -40,15 +42,16 @@ import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.utils.Utils
 
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchableDropdownMenu(
-    modifier: Modifier = Modifier,
-    items: MutableList<DataModel> = mutableListOf(),
-    label: String = "",
-    selectedId: String? = null,
-    onSelectionChange: (DataModel) -> Unit = {},
+        modifier: Modifier = Modifier,
+        items: MutableList<DataModel> = mutableListOf(),
+        label: String = "",
+        selectedId: String? = null,
+        leadingIcon: @Composable ((Modifier) -> Unit)? = null,
+        onLeadingIconClick:()->Unit={},
+        onSelectionChange: (DataModel) -> Unit = {},
 ) {
     var expanded by remember { mutableStateOf(false) }
     var searchText by remember { mutableStateOf(label) }
@@ -56,7 +59,11 @@ fun SearchableDropdownMenu(
     LaunchedEffect(selectedId) {
         if (!selectedId.isNullOrEmpty()) {
             items.forEach {
-                if (it.getId().equals(selectedId, ignoreCase = true)) {
+                if (it.getId().equals(
+                        selectedId,
+                        ignoreCase = true
+                    )
+                ) {
                     selectedItemState = it.getName()
                 }
             }
@@ -70,28 +77,33 @@ fun SearchableDropdownMenu(
             .fillMaxWidth()
             .background(color = Color.White)
     ) {
-        ExposedDropdownMenuBox(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(color = Color.White),
+        ExposedDropdownMenuBox(modifier = Modifier
+            .fillMaxWidth()
+            .background(color = Color.White),
             expanded = expanded,
             onExpandedChange = {
                 expanded = !expanded
-            }
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(60.dp)
-                    .border(1.dp, Color.Black, RoundedCornerShape(10.dp))
-                    .menuAnchor()
-                    .clickable {
-                        searchText = ""
-                    }
-            ) {
+            }) {
+            Row(modifier = Modifier
+                .fillMaxWidth()
+                .height(60.dp)
+                .border(
+                    1.dp,
+                    Color.Black,
+                    RoundedCornerShape(10.dp)
+                )
+                .menuAnchor()
+                .clickable {
+                    searchText = ""
+                }) {
+                leadingIcon?.invoke(Modifier
+                    .padding(start = 10.dp, top = 10.dp, bottom = 10.dp)
+                    .align(Alignment.CenterVertically).clickable { onLeadingIconClick.invoke()
+                        expanded=false }
+                )
                 Text(
                     modifier = Modifier
-                        .padding(10.dp)
+                        .padding(start = 10.dp, top = 10.dp, bottom = 10.dp)
                         .align(Alignment.CenterVertically),
                     text = selectedItemState,
                     style = TextStyle(
@@ -108,14 +120,18 @@ fun SearchableDropdownMenu(
                     Icons.Filled.ArrowDropDown,
                     null,
                     Modifier
-                        .padding(10.dp)
+                        .padding(top = 10.dp, bottom = 10.dp, end = 10.dp)
                         .align(Alignment.CenterVertically)
                         .rotate(if (expanded) 180f else 0f),
                     tint = Color.Black
                 )
             }
-            val filteredItems = if (searchText.isEmpty()) items else
-                items.filter { it.getName().contains(searchText, ignoreCase = true) }
+            val filteredItems = if (searchText.isEmpty()) items else items.filter {
+                it.getName().contains(
+                    searchText,
+                    ignoreCase = true
+                )
+            }
             if (filteredItems.isNotEmpty()) {
                 DropdownMenu(
                     expanded = expanded,
@@ -126,8 +142,7 @@ fun SearchableDropdownMenu(
                 ) {
                     DropdownMenuItem(
                         text = {
-                            OutlinedTextField(
-                                value = searchText,
+                            OutlinedTextField(value = searchText,
                                 onValueChange = {
                                     searchText = it
                                 },
@@ -136,20 +151,18 @@ fun SearchableDropdownMenu(
                                         "Search",
                                         color = SettingsModel.textColor
                                     )
-                                }
-                            )
+                                })
                         },
                         onClick = {},
                     )
                     filteredItems.forEach { item ->
                         val text = item.getName()
-                        DropdownMenuItem(
-                            text = {
-                                Text(
-                                    text = text,
-                                    color = SettingsModel.textColor
-                                )
-                            },
+                        DropdownMenuItem(text = {
+                            Text(
+                                text = text,
+                                color = SettingsModel.textColor
+                            )
+                        },
                             onClick = {
                                 onSelectionChange(item)
                                 searchText = text

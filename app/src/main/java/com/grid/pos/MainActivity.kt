@@ -57,6 +57,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         CoroutineScope(Dispatchers.IO).launch {
             DataStoreManager.initValues()
+            activityViewModel.initiateValues()
         }
         window.setBackgroundDrawableResource(R.drawable.white_background)
         setContent {

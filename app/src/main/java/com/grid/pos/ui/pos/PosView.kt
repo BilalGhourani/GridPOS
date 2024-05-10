@@ -167,17 +167,6 @@ fun PosView(
                                 fontSize = 16.sp,
                                 textAlign = TextAlign.Center
                             )
-                        },
-                        actions = {
-                            IconButton(modifier = Modifier
-                                .fillMaxHeight()
-                                .padding(horizontal = 10.dp),
-                                onClick = { isPayBottomSheetVisible = true }) {
-                                Text(
-                                    text = "Pay",
-                                    color = SettingsModel.textColor
-                                )
-                            }
                         })
                 }
             }) {
@@ -203,10 +192,8 @@ fun PosView(
                     InvoiceHeaderDetails(modifier = Modifier
                         .fillMaxWidth()
                         .height(70.dp),
-                        onAddCutomer = {
-                            navController?.navigate("ManageThirdPartiesView")
-                        },
-                        onAddItem = { isAddItemBottomSheetVisible = true })
+                        onAddItem = { isAddItemBottomSheetVisible = true },
+                        onPay = { isPayBottomSheetVisible = true })
 
                     // Border stroke configuration
                     val borderStroke = BorderStroke(
@@ -236,6 +223,7 @@ fun PosView(
                         })
 
                     InvoiceFooterView(
+                        navController=navController,
                         invoiceHeader = invoiceHeaderState.value,
                         currency = posState.currency,
                         items = posState.items,

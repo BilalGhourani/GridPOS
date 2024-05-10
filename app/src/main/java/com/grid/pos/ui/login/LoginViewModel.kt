@@ -33,6 +33,14 @@ class LoginViewModel @Inject constructor(
             )
             return
         }
+        if (SettingsModel.currentCompany?.companySS == true) {
+            usersState.value = usersState.value.copy(
+                warning = SettingsModel.companyAccessWarning,
+                isLoading = false,
+                warningAction = "",
+            )
+            return
+        }
         usersState.value = usersState.value.copy(
             isLoading = true,
             warning = "",

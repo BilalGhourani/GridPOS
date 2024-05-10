@@ -15,7 +15,7 @@ interface CompanyRepository {
     suspend fun update(company: Company, callback: OnResult? = null)
 
     // Get Company by it's ID
-    suspend fun getCompanyById(id: String): Company
+    suspend fun getCompanyById(id: String,callback: OnResult?)
 
     // Get all Companies logs as stream.
     suspend fun getAllCompanies(callback: OnResult? = null)
