@@ -171,11 +171,17 @@ class POSViewModel @Inject constructor(
                         }
 
                         override fun onFailure(message: String, errorCode: Int) {
-                            invoiceHeader.invoiceHeadOrderNo = Utils.getInvoiceNo("")
+                            viewModelScope.launch(Dispatchers.Main) {
+                                posState.value = posState.value.copy(
+                                    warning = message,
+                                    isLoading = false
+                                )
+                            }
+                           /* invoiceHeader.invoiceHeadOrderNo = Utils.getInvoiceNo("")
                             invoiceHeader.prepareForInsert()
                             CoroutineScope(Dispatchers.IO).launch {
                                 invoiceHeaderRepository.insert(invoiceHeader, callback)
-                            }
+                            }*/
                         }
                     })
             } else {

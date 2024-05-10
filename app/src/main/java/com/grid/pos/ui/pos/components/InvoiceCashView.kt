@@ -61,7 +61,7 @@ fun InvoiceCashView(
     val curr1Decimal = currency.currencyName1Dec
     val curr2Decimal = currency.currencyName2Dec
     val rate = currency.currencyRate
-    val netTotal = invoiceHeader.invoicHeadGrossmont
+    val netTotal = invoiceHeader.invoiceHeadGrossAmount
     val cashTotalPaid1 = String.format("%.${curr1Decimal}f", netTotal)
     val cashTotalPaid2 = String.format(
         "%.${curr1Decimal}f", (netTotal).times(rate)

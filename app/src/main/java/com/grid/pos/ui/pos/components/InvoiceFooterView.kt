@@ -23,7 +23,6 @@ import com.grid.pos.data.Currency.Currency
 import com.grid.pos.data.InvoiceHeader.InvoiceHeader
 import com.grid.pos.data.Item.Item
 import com.grid.pos.data.ThirdParty.ThirdParty
-import com.grid.pos.model.InvoiceItemModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.SearchableDropdownMenu
 import com.grid.pos.ui.theme.GridPOSTheme
@@ -49,16 +48,16 @@ fun InvoiceFooterView(
     var tableNoState by remember { mutableStateOf("1") }
     var clientState by remember { mutableStateOf("Cash") }
 
-    val tax = invoiceHeader.invoicHeadTaxAmt
-    val tax1 = invoiceHeader.invoicHeadTax1Amt
-    val tax2 = invoiceHeader.invoicHeadTax2Amt
+    val tax = invoiceHeader.invoiceHeadTaxAmt
+    val tax1 = invoiceHeader.invoiceHeadTax1Amt
+    val tax2 = invoiceHeader.invoiceHeadTax2Amt
     val curr1Decimal = currency.currencyName1Dec
     val curr2Decimal = currency.currencyName2Dec
     taxState = String.format("%.${curr1Decimal}f", tax)
     tax1State = String.format("%.${curr1Decimal}f", tax1)
     tax2State = String.format("%.${curr1Decimal}f", tax2)
     totalTaxState = String.format("%.${curr1Decimal}f", tax + tax1 + tax2)
-    totalState = String.format("%.${curr1Decimal}f", invoiceHeader.invoicHeadGrossmont)
+    totalState = String.format("%.${curr1Decimal}f", invoiceHeader.invoiceHeadGrossAmount)
     totalCur2State = String.format(
         "%.${curr2Decimal}f", totalState.toDouble().times(currency.currencyRate)
     )

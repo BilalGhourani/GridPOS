@@ -97,8 +97,6 @@ class InvoiceHeaderRepositoryImpl(
            FirebaseFirestore.getInstance().collection("in_hinvoice")
                 .whereEqualTo("hi_cmp_id", SettingsModel.companyID)
                 .whereEqualTo("hi_tt_code", type)
-                .orderBy("hi_orderno", Query.Direction.DESCENDING)
-                .limit(1)
                 .get()
                 .addOnSuccessListener { result ->
                     val document = result.firstOrNull()

@@ -33,21 +33,21 @@ data class POSState(
             tax2 += it.getTax2()
             total += it.getAmount()
         }
-        invoiceHeader.invoicHeadTaxAmt = tax
-        invoiceHeader.invoicHeadTax1Amt = tax1
-        invoiceHeader.invoicHeadTax2Amt = tax2
-        invoiceHeader.invoicHeadTotalTax = tax + tax1 + tax2
-        invoiceHeader.invoicHeadTotal = total
-        invoiceHeader.invoicHeadTotal1 = total.times(currency.currencyRate)
-        invoiceHeader.invoiceHeadDiscamt = discount
-        invoiceHeader.invoicHeadGrossmont = (total + tax + tax1 + tax2) - discount
+        invoiceHeader.invoiceHeadTaxAmt = tax
+        invoiceHeader.invoiceHeadTax1Amt = tax1
+        invoiceHeader.invoiceHeadTax2Amt = tax2
+        invoiceHeader.invoiceHeadTotalTax = tax + tax1 + tax2
+        invoiceHeader.invoiceHeadTotal = total
+        invoiceHeader.invoiceHeadTotal1 = total.times(currency.currencyRate)
+        invoiceHeader.invoiceHeadDiscountAmount = discount
+        invoiceHeader.invoiceHeadGrossAmount = (total + tax + tax1 + tax2) - discount
         invoiceHeader.invoiceHeadTtCode = if (total > 0) "SI" else "RS"
-        invoiceHeader.invoicHeadRate = currency.currencyRate
+        invoiceHeader.invoiceHeadRate = currency.currencyRate
         return invoiceHeader
     }
 
     fun getInvoiceType(): String {
         return invoiceHeader.invoiceHeadTtCode
-            ?: if (invoiceHeader.invoicHeadTotal > 0) "SI" else "RS"
+            ?: if (invoiceHeader.invoiceHeadTotal > 0) "SI" else "RS"
     }
 }

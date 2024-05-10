@@ -18,6 +18,7 @@ import com.grid.pos.data.User.User
 import com.grid.pos.model.HomeSectionModel
 import java.io.BufferedReader
 import java.io.InputStreamReader
+import java.math.BigInteger
 import java.text.SimpleDateFormat
 import java.time.LocalDateTime
 import java.time.Year
@@ -182,7 +183,7 @@ object Utils {
         ) {
             invNoStr = currentYear + "000000001"
         }
-        return (invNoStr.toInt() + 1).toString()
+        return (invNoStr.toBigInteger().plus(BigInteger("1"))).toString()
     }
 
     private fun getCurrentYear(): String {
