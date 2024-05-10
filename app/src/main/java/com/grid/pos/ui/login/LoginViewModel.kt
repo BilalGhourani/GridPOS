@@ -15,13 +15,16 @@ import javax.inject.Inject
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val repository: UserRepository
+        private val repository: UserRepository
 ) : ViewModel() {
 
     private val _usersState = MutableStateFlow(LoginState())
     val usersState: MutableStateFlow<LoginState> = _usersState
 
-    fun login(username: String, password: String) {
+    fun login(
+            username: String,
+            password: String
+    ) {
         if (username.isNullOrEmpty() || password.isNullOrEmpty()) {
             usersState.value = usersState.value.copy(
                 warning = "Please fill all inputs",
@@ -51,11 +54,17 @@ class LoginViewModel @Inject constructor(
                     } else {
                         var user: User? = null
                         result.forEach {
-                            if (username.equals(it.userUsername, ignoreCase = true) &&
-                                password.equals(it.userPassword, ignoreCase = true)
+                            if (username.equals(
+                                    it.userUsername,
+                                    ignoreCase = true
+                                ) && password.equals(
+                                    it.userPassword,
+                                    ignoreCase = true
+                                )
                             ) {
                                 user = it
                                 SettingsModel.currentUserId = it.userId
+                                SettingsModel.currentUser = it
                                 viewModelScope.launch(Dispatchers.IO) {
                                     DataStoreManager.putString(
                                         DataStoreManager.DataStoreKeys.CURRENT_USER_ID.key,
@@ -83,10 +92,12 @@ class LoginViewModel @Inject constructor(
                     }
                 }
 
-                override fun onFailure(message: String, errorCode: Int) {
+                override fun onFailure(
+                        message: String,
+                        errorCode: Int
+                ) {
 
-                }
-                /*repository.getUserByCredentials(username, password, object : OnResult {
+                }/*repository.getUserByCredentials(username, password, object : OnResult {
                     override fun onSuccess(result: Any) {
                         if (result is User) {
                             viewModelScope.launch(Dispatchers.Main) {
@@ -110,8 +121,7 @@ class LoginViewModel @Inject constructor(
                     }
 
                 })*/
-            }
-            )
+            })
         }
     }
 }

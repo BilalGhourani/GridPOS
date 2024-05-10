@@ -26,6 +26,7 @@ import java.time.format.DateTimeFormatter
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import java.util.TimeZone
 import java.util.UUID
 
 object Utils {
@@ -77,8 +78,9 @@ object Utils {
         return UUID.randomUUID().toString()
     }
 
-    fun getDateinFormat(date: Date = Date(), format: String = "dd MMMM yyyy HH:mm:ss a"): String {
+    fun getDateinFormat(date: Date = Date(), format: String = "MMMM dd, yyyy 'at' hh:mm:ss a zzz"): String {
         val parserFormat = SimpleDateFormat(format, Locale.getDefault())
+        parserFormat.timeZone = TimeZone.getDefault()
         return parserFormat.format(date)
     }
 
@@ -177,11 +179,11 @@ object Utils {
 
     fun getInvoiceNo(oldInvoiceNo: String?): String {
         val currentYear = getCurrentYear()
-        var invNoStr = oldInvoiceNo.takeIf { !it.isNullOrEmpty() } ?: (currentYear + "000000001")
+        var invNoStr = oldInvoiceNo.takeIf { !it.isNullOrEmpty() } ?: (currentYear + "000000000")
         if (invNoStr.length > 4 && !invNoStr.substring(0, 3)
                 .equals(currentYear, ignoreCase = true)
         ) {
-            invNoStr = currentYear + "000000001"
+            invNoStr = currentYear + "000000000"
         }
         return (invNoStr.toBigInteger().plus(BigInteger("1"))).toString()
     }

@@ -46,7 +46,7 @@ fun HomeView(
     mainActivity: MainActivity,
     activityViewModel: ActivityScopedViewModel?,
 ) {
-    activityViewModel?.fetchCurrencies()
+    activityViewModel?.initiateValues()
     val keyboardController = LocalSoftwareKeyboardController.current
     LaunchedEffect(true) {
         keyboardController?.hide()

@@ -53,13 +53,29 @@ fun InvoiceFooterView(
     val tax2 = invoiceHeader.invoiceHeadTax2Amt
     val curr1Decimal = currency.currencyName1Dec
     val curr2Decimal = currency.currencyName2Dec
-    taxState = String.format("%.${curr1Decimal}f", tax)
-    tax1State = String.format("%.${curr1Decimal}f", tax1)
-    tax2State = String.format("%.${curr1Decimal}f", tax2)
-    totalTaxState = String.format("%.${curr1Decimal}f", tax + tax1 + tax2)
-    totalState = String.format("%.${curr1Decimal}f", invoiceHeader.invoiceHeadGrossAmount)
+    taxState = String.format(
+        "%.${curr1Decimal}f",
+        tax
+    )
+    tax1State = String.format(
+        "%.${curr1Decimal}f",
+        tax1
+    )
+    tax2State = String.format(
+        "%.${curr1Decimal}f",
+        tax2
+    )
+    totalTaxState = String.format(
+        "%.${curr1Decimal}f",
+        tax + tax1 + tax2
+    )
+    totalState = String.format(
+        "%.${curr1Decimal}f",
+        invoiceHeader.invoiceHeadGrossAmount
+    )
     totalCur2State = String.format(
-        "%.${curr2Decimal}f", totalState.toDouble().times(currency.currencyRate)
+        "%.${curr2Decimal}f",
+        totalState.toDouble().times(currency.currencyRate)
     )
 
     Row(
@@ -78,11 +94,10 @@ fun InvoiceFooterView(
                     modifier = Modifier.wrapContentWidth(),
                     horizontalArrangement = Arrangement.Absolute.Left
                 ) {
-                    Text(text = "Tax:", color = SettingsModel.textColor)
-                    Spacer(modifier = Modifier.width(5.dp))
-                    Text(text = taxState, color = SettingsModel.textColor)
-                    Spacer(modifier = Modifier.width(5.dp))
-                    Text(text = curState, color = SettingsModel.textColor)
+                    Text(
+                        text = "Tax: ${taxState} ${curState}",
+                        color = SettingsModel.textColor
+                    )
                 }
             }
             if (SettingsModel.showTax1) {
@@ -90,38 +105,40 @@ fun InvoiceFooterView(
                     modifier = Modifier.wrapContentWidth(),
                     horizontalArrangement = Arrangement.Absolute.Left
                 ) {
-                    Text(text = "Tax1:", color = SettingsModel.textColor)
-                    Spacer(modifier = Modifier.width(5.dp))
-                    Text(text = tax1State, color = SettingsModel.textColor)
-                    Spacer(modifier = Modifier.width(5.dp))
-                    Text(text = curState, color = SettingsModel.textColor)
+                    Text(
+                        text = "Tax1: ${tax1State} ${curState}",
+                        color = SettingsModel.textColor
+                    )
                 }
             }
             Row(
                 modifier = Modifier.wrapContentWidth(),
                 horizontalArrangement = Arrangement.Absolute.Left
             ) {
-                Text(text = "Total:", color = SettingsModel.textColor)
-                Spacer(modifier = Modifier.width(5.dp))
-                Text(text = totalState, color = SettingsModel.textColor)
-                Spacer(modifier = Modifier.width(5.dp))
-                Text(text = curState, color = SettingsModel.textColor)
+                Text(
+                    text = "Total: ${totalState} ${curState}",
+                    color = SettingsModel.textColor
+                )
             }
 
             Row(
                 modifier = Modifier.wrapContentWidth(),
                 horizontalArrangement = Arrangement.Absolute.Left
             ) {
-                Text(text = "Total:", color = SettingsModel.textColor)
-                Spacer(modifier = Modifier.width(5.dp))
-                Text(text = totalCur2State, color = SettingsModel.textColor)
-                Spacer(modifier = Modifier.width(5.dp))
-                Text(text = cur2State, color = SettingsModel.textColor)
+                Text(
+                    text = "Total: ${totalCur2State} ${cur2State}",
+                    color = SettingsModel.textColor
+                )
             }
 
             SearchableDropdownMenu(
                 items = items.toMutableList(),
-                modifier = Modifier.padding(0.dp, 15.dp, 0.dp, 5.dp),
+                modifier = Modifier.padding(
+                    0.dp,
+                    15.dp,
+                    0.dp,
+                    5.dp
+                ),
                 label = "Items",
             ) { item ->
                 onItemSelected.invoke(item as Item)
@@ -139,46 +156,51 @@ fun InvoiceFooterView(
                     modifier = Modifier.wrapContentWidth(),
                     horizontalArrangement = Arrangement.Absolute.Left
                 ) {
-                    Text(text = "Tax2:", color = SettingsModel.textColor)
-                    Spacer(modifier = Modifier.width(5.dp))
-                    Text(text = tax2State, color = SettingsModel.textColor)
-                    Spacer(modifier = Modifier.width(5.dp))
-                    Text(text = curState, color = SettingsModel.textColor)
+                    Text(
+                        text = "Tax2: ${tax2State} ${curState}",
+                        color = SettingsModel.textColor
+                    )
                 }
             }
-            if (SettingsModel.showTax||SettingsModel.showTax1||SettingsModel.showTax2) {
+            if (SettingsModel.showTax || SettingsModel.showTax1 || SettingsModel.showTax2) {
                 Row(
                     modifier = Modifier.wrapContentWidth(),
                     horizontalArrangement = Arrangement.Absolute.Left
                 ) {
-                    Text(text = "Total Tax:", color = SettingsModel.textColor)
-                    Spacer(modifier = Modifier.width(5.dp))
-                    Text(text = totalTaxState, color = SettingsModel.textColor)
-                    Spacer(modifier = Modifier.width(5.dp))
-                    Text(text = curState, color = SettingsModel.textColor)
+                    Text(
+                        text = "Total Tax: ${totalTaxState} ${curState}",
+                        color = SettingsModel.textColor
+                    )
                 }
             }
             Row(
                 modifier = Modifier.wrapContentWidth(),
                 horizontalArrangement = Arrangement.Absolute.Left
             ) {
-                Text(text = "Table Number:", color = SettingsModel.textColor)
-                Spacer(modifier = Modifier.width(5.dp))
-                Text(text = tableNoState, color = SettingsModel.textColor)
+                Text(
+                    text = "Table Number: ${tableNoState}",
+                    color = SettingsModel.textColor
+                )
             }
 
             Row(
                 modifier = Modifier.wrapContentWidth(),
                 horizontalArrangement = Arrangement.Absolute.Left
             ) {
-                Text(text = "Client:", color = SettingsModel.textColor)
-                Spacer(modifier = Modifier.width(5.dp))
-                Text(text = clientState, color = SettingsModel.textColor)
+                Text(
+                    text = "Client: ${clientState}",
+                    color = SettingsModel.textColor
+                )
             }
 
             SearchableDropdownMenu(
                 items = thirdParties.toMutableList(),
-                modifier = Modifier.padding(0.dp, 15.dp, 0.dp, 5.dp),
+                modifier = Modifier.padding(
+                    0.dp,
+                    15.dp,
+                    0.dp,
+                    5.dp
+                ),
                 label = "Customers",
             ) { thirdParty ->
                 onThirdPartySelected.invoke(thirdParty as ThirdParty)
@@ -191,6 +213,9 @@ fun InvoiceFooterView(
 @Composable
 fun InvoiceFooterViewPreview() {
     GridPOSTheme {
-        InvoiceFooterView(invoiceHeader = InvoiceHeader(), currency = Currency())
+        InvoiceFooterView(
+            invoiceHeader = InvoiceHeader(),
+            currency = Currency()
+        )
     }
 }

@@ -42,8 +42,8 @@ fun InvoiceCashView(
         modifier: Modifier,
         invoiceHeader: InvoiceHeader = InvoiceHeader(),
         currency: Currency = Currency(),
-        onSave: () -> Unit = {},
-        onFinish: () -> Unit = {},
+        onSave: (Double) -> Unit = {},
+        onFinish: (Double) -> Unit = {},
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
     val cashCurr2FocusRequester = remember { FocusRequester() }
@@ -488,7 +488,7 @@ fun InvoiceCashView(
                     .fillMaxHeight(), text = "Save & Print Order",
                 shape = RoundedCornerShape(15.dp)
             ) {
-                onSave.invoke()
+                onSave.invoke(debitCurr1Total.toDoubleOrNull()?:0.0)
             }
 
             UIButton(
@@ -497,7 +497,7 @@ fun InvoiceCashView(
                     .fillMaxHeight(), text = "Finish & Print",
                 shape = RoundedCornerShape(15.dp)
             ) {
-                onFinish.invoke()
+                onFinish.invoke(debitCurr1Total.toDoubleOrNull()?:0.0)
             }
         }
     }

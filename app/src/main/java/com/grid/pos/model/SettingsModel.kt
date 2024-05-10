@@ -2,6 +2,7 @@ package com.grid.pos.model
 
 import androidx.compose.ui.graphics.Color
 import com.grid.pos.data.Currency.Currency
+import com.grid.pos.data.User.User
 
 object SettingsModel {
     var currentUserId: String? = null
@@ -25,4 +26,5 @@ object SettingsModel {
     var textColor: Color = Color.Black
 
     var currentCurrency: Currency? = null
+    var currentUser: User? = null
 }

@@ -11,104 +11,137 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-
 class UserRepositoryImpl(
-    private val userDao: UserDao
+        private val userDao: UserDao
 ) : UserRepository {
-    override suspend fun insert(user: User, callback: OnResult?) {
+    override suspend fun insert(
+            user: User,
+            callback: OnResult?
+    ) {
         if (SettingsModel.loadFromRemote) {
-            FirebaseFirestore.getInstance().collection("set_users")
-                .add(user)
-                .addOnSuccessListener {
-                    user.userDocumentId = it.id
-                    callback?.onSuccess(user)
-                }
-                .addOnFailureListener { e ->
-                    callback?.onFailure(e.message.toString())
-                }
+            FirebaseFirestore.getInstance().collection("set_users").add(user).addOnSuccessListener {
+                user.userDocumentId = it.id
+                callback?.onSuccess(user)
+            }.addOnFailureListener { e ->
+                callback?.onFailure(e.message.toString())
+            }
         } else {
             userDao.insert(user)
             callback?.onSuccess(user)
         }
     }
 
-    override suspend fun delete(user: User, callback: OnResult?) {
+    override suspend fun delete(
+            user: User,
+            callback: OnResult?
+    ) {
         if (SettingsModel.loadFromRemote) {
-            FirebaseFirestore.getInstance().collection("set_users")
-                .document(user.userDocumentId!!)
-                .delete()
-                .addOnSuccessListener {
-                    callback?.onSuccess(user)
-                }
-                .addOnFailureListener { e ->
-                    callback?.onFailure(e.message.toString())
-                }
+            FirebaseFirestore.getInstance().collection("set_users").document(user.userDocumentId!!).delete().addOnSuccessListener {
+                callback?.onSuccess(user)
+            }.addOnFailureListener { e ->
+                callback?.onFailure(e.message.toString())
+            }
         } else {
             userDao.delete(user)
             callback?.onSuccess(user)
         }
     }
 
-    override suspend fun update(user: User, callback: OnResult?) {
+    override suspend fun update(
+            user: User,
+            callback: OnResult?
+    ) {
         if (SettingsModel.loadFromRemote) {
-            FirebaseFirestore.getInstance().collection("set_users")
-                .document(user.userDocumentId!!)
-                .update(user.getMap())
-                .addOnSuccessListener {
-                    callback?.onSuccess(user)
-                }
-                .addOnFailureListener { e ->
-                    callback?.onFailure(e.message.toString())
-                }
+            FirebaseFirestore.getInstance().collection("set_users").document(user.userDocumentId!!).update(user.getMap()).addOnSuccessListener {
+                callback?.onSuccess(user)
+            }.addOnFailureListener { e ->
+                callback?.onFailure(e.message.toString())
+            }
         } else {
             userDao.update(user)
             callback?.onSuccess(user)
         }
     }
 
-    override suspend fun getUserById(id: String): User {
-        return userDao.getUserById(id)
+    override suspend fun getUserById(
+            id: String,
+            callback: OnResult?
+    ) {
+        if (SettingsModel.loadFromRemote) {
+            FirebaseFirestore.getInstance().collection("set_users").whereEqualTo(
+                "usr_cmp_id",
+                SettingsModel.companyID
+            ).whereEqualTo(
+                "userId",
+                id
+            ).get().addOnSuccessListener { result ->
+                val document = result.documents.firstOrNull()
+                if (document != null) {
+                    val user = document.toObject(User::class.java)
+                    if (user != null) {
+                        callback?.onSuccess(user)
+                        return@addOnSuccessListener
+                    }
+                }
+                callback?.onFailure("not found.")
+            }.addOnFailureListener { exception ->
+                callback?.onFailure(
+                    exception.message ?: "Network error! Can't get users from remote."
+                )
+            }
+        } else {
+            callback?.onSuccess(userDao.getUserById(id))
+        }
     }
 
     override suspend fun getUserByCredentials(
-        username: String,
-        password: String,
-        callback: OnResult?
+            username: String,
+            password: String,
+            callback: OnResult?
     ) {
         if (SettingsModel.loadFromRemote) {
-            FirebaseFirestore.getInstance().collection("set_users")
-                .whereEqualTo("usr_username", username)
-                .whereEqualTo("usr_password", password)
-                .whereEqualTo("usr_cmp_id",SettingsModel.companyID)
-                .get()
-                .addOnSuccessListener { result ->
-                    if (result.size() > 0) {
-                        CoroutineScope(Dispatchers.IO).launch {
-                            for (document in result) {
-                                val obj = document.toObject(User::class.java)
-                                if (!obj.userId.isNullOrEmpty()) {
-                                    obj.userDocumentId = document.id
-                                    callback?.onSuccess(obj)
-                                }
+            FirebaseFirestore.getInstance().collection("set_users").whereEqualTo(
+                "usr_username",
+                username
+            ).whereEqualTo(
+                "usr_password",
+                password
+            ).whereEqualTo(
+                "usr_cmp_id",
+                SettingsModel.companyID
+            ).get().addOnSuccessListener { result ->
+                if (result.size() > 0) {
+                    CoroutineScope(Dispatchers.IO).launch {
+                        for (document in result) {
+                            val obj = document.toObject(User::class.java)
+                            if (!obj.userId.isNullOrEmpty()) {
+                                obj.userDocumentId = document.id
+                                callback?.onSuccess(obj)
                             }
                         }
-                    } else {
-                        callback?.onFailure(
-                            "Username or Password are incorrect!", 1
-                        )
                     }
-                }.addOnFailureListener { exception ->
+                } else {
                     callback?.onFailure(
-                        exception.message ?: "Network error! Can't get users from remote!"
+                        "Username or Password are incorrect!",
+                        1
                     )
                 }
+            }.addOnFailureListener { exception ->
+                callback?.onFailure(
+                    exception.message ?: "Network error! Can't get users from remote!"
+                )
+            }
         } else {
-            userDao.login(username, password).collect {
+            userDao.login(
+                username,
+                password
+            ).collect {
                 if (it.isNotEmpty()) {
                     callback?.onSuccess(it[0])
                 } else {
                     callback?.onFailure(
-                        "no user found!", 1
+                        "no user found!",
+                        1
                     )
                 }
                 callback?.onSuccess(it)
@@ -118,26 +151,26 @@ class UserRepositoryImpl(
 
     override suspend fun getAllUsers(callback: OnResult?) {
         if (SettingsModel.loadFromRemote) {
-            FirebaseFirestore.getInstance().collection("set_users")
-                .whereEqualTo("usr_cmp_id",SettingsModel.companyID)
-                .get()
-                .addOnSuccessListener { result ->
-                    val users = mutableListOf<User>()
-                    if (result.size() > 0) {
-                        for (document in result) {
-                            val obj = document.toObject(User::class.java)
-                            if (!obj.userId.isNullOrEmpty()) {
-                                obj.userDocumentId = document.id
-                                users.add(obj)
-                            }
+            FirebaseFirestore.getInstance().collection("set_users").whereEqualTo(
+                "usr_cmp_id",
+                SettingsModel.companyID
+            ).get().addOnSuccessListener { result ->
+                val users = mutableListOf<User>()
+                if (result.size() > 0) {
+                    for (document in result) {
+                        val obj = document.toObject(User::class.java)
+                        if (!obj.userId.isNullOrEmpty()) {
+                            obj.userDocumentId = document.id
+                            users.add(obj)
                         }
                     }
-                    callback?.onSuccess(users)
-                }.addOnFailureListener { exception ->
-                    callback?.onFailure(
-                        exception.message ?: "Network error! Can't get users from remote."
-                    )
                 }
+                callback?.onSuccess(users)
+            }.addOnFailureListener { exception ->
+                callback?.onFailure(
+                    exception.message ?: "Network error! Can't get users from remote."
+                )
+            }
         } else {
             userDao.getAllUsers().collect {
                 callback?.onSuccess(it)

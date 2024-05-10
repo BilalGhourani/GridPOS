@@ -6,6 +6,8 @@ import androidx.lifecycle.viewModelScope
 import com.grid.pos.data.Currency.Currency
 import com.grid.pos.data.Currency.CurrencyRepository
 import com.grid.pos.data.InvoiceHeader.InvoiceHeaderRepository
+import com.grid.pos.data.User.User
+import com.grid.pos.data.User.UserRepository
 import com.grid.pos.interfaces.OnResult
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.pos.POSState
@@ -17,22 +19,29 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ActivityScopedViewModel @Inject constructor(
-    private val currencyRepository: CurrencyRepository
+        private val currencyRepository: CurrencyRepository,
+        private val userRepository: UserRepository
 ) : ViewModel() {
     var posState: POSState = POSState()
 
+    fun initiateValues() {
+        fetchCurrentCurrency()
+        fetchCurrentUser()
+    }
 
-    fun fetchCurrencies() {
+    private  fun fetchCurrentCurrency() {
         if (SettingsModel.currentCurrency == null) {
             viewModelScope.launch(Dispatchers.IO) {
                 currencyRepository.getAllCurrencies(object : OnResult {
                     override fun onSuccess(result: Any) {
                         result as List<*>
-                        SettingsModel.currentCurrency =
-                            if (result.size > 0) result[0] as Currency else Currency()
+                        SettingsModel.currentCurrency = if (result.size > 0) result[0] as Currency else Currency()
                     }
 
-                    override fun onFailure(message: String, errorCode: Int) {
+                    override fun onFailure(
+                            message: String,
+                            errorCode: Int
+                    ) {
 
                     }
                 })
@@ -40,9 +49,32 @@ class ActivityScopedViewModel @Inject constructor(
         }
     }
 
+    private fun fetchCurrentUser() {
+        if (SettingsModel.currentUser == null && !SettingsModel.currentUserId.isNullOrEmpty()) {
+            viewModelScope.launch(Dispatchers.IO) {
+                userRepository.getUserById(SettingsModel.currentUserId!!,
+                    object : OnResult {
+                        override fun onSuccess(result: Any) {
+                            SettingsModel.currentUser = result as User
+                        }
+
+                        override fun onFailure(
+                                message: String,
+                                errorCode: Int
+                        ) {
+
+                        }
+                    })
+            }
+        }
+    }
+
     fun getHtmlContent(
-        context: Context,
-        content: String = Utils.readHtmlFromAssets("receipt.html", context)
+            context: Context,
+            content: String = Utils.readHtmlFromAssets(
+                "receipt.html",
+                context
+            )
     ): String {//"file:///android_asset/receipt.html"
         var result = content
         if (posState != null) {
@@ -56,11 +88,25 @@ class ActivityScopedViewModel @Inject constructor(
                             "%.2f",
                             item.getQuantity()
                         )
-                    }</td> <td>$${String.format("%.2f", item.getPrice())}</td>  </tr>"
+                    }</td> <td>$${
+                        String.format(
+                            "%.2f",
+                            item.getPrice()
+                        )
+                    }</td>  </tr>"
                 )
             }
-            result = result.replace("{rows_content}", trs.toString())
-            result = result.replace("{total}", String.format("%.2f", total))
+            result = result.replace(
+                "{rows_content}",
+                trs.toString()
+            )
+            result = result.replace(
+                "{total}",
+                String.format(
+                    "%.2f",
+                    total
+                )
+            )
         }
         return result
     }

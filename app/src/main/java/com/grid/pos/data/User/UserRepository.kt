@@ -15,7 +15,7 @@ interface UserRepository {
     suspend fun update(user: User, callback: OnResult? = null)
 
     // Get User by it's ID
-    suspend fun getUserById(id: String): User
+    suspend fun getUserById(id: String, callback: OnResult?)
 
     // Get User by it's ID
     suspend fun getUserByCredentials(username: String, password: String, callback: OnResult?)
