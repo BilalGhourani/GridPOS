@@ -2,6 +2,7 @@ package com.grid.pos.ui.pos
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.grid.pos.data.Company.Company
 import com.grid.pos.data.Currency.Currency
 import com.grid.pos.data.Currency.CurrencyRepository
 import com.grid.pos.data.Family.Family
@@ -161,7 +162,8 @@ class POSViewModel @Inject constructor(
 
         CoroutineScope(Dispatchers.IO).launch {
             if (isInserting) {
-                    invoiceHeaderRepository.getLastInvoiceNo(posState.value.getInvoiceType(),object : OnResult {
+                invoiceHeaderRepository.getLastInvoiceNo(posState.value.getInvoiceType(),
+                    object : OnResult {
                         override fun onSuccess(result: Any) {
                             invoiceHeader.invoiceHeadOrderNo = Utils.getInvoiceNo(result as String)
                             invoiceHeader.prepareForInsert()
@@ -171,17 +173,11 @@ class POSViewModel @Inject constructor(
                         }
 
                         override fun onFailure(message: String, errorCode: Int) {
-                            viewModelScope.launch(Dispatchers.Main) {
-                                posState.value = posState.value.copy(
-                                    warning = message,
-                                    isLoading = false
-                                )
-                            }
-                           /* invoiceHeader.invoiceHeadOrderNo = Utils.getInvoiceNo("")
-                            invoiceHeader.prepareForInsert()
-                            CoroutineScope(Dispatchers.IO).launch {
-                                invoiceHeaderRepository.insert(invoiceHeader, callback)
-                            }*/
+                             invoiceHeader.invoiceHeadOrderNo = Utils.getInvoiceNo("")
+                             invoiceHeader.prepareForInsert()
+                             CoroutineScope(Dispatchers.IO).launch {
+                                 invoiceHeaderRepository.insert(invoiceHeader, callback)
+                             }
                         }
                     })
             } else {
@@ -239,6 +235,42 @@ class POSViewModel @Inject constructor(
             } else {
                 invoiceRepository.update(invoice, callback)
             }
+        }
+    }
+
+    fun deleteInvoiceHeader(invoiceHeader: InvoiceHeader) {
+        CoroutineScope(Dispatchers.IO).launch {
+            invoiceRepository.getAllInvoices(invoiceHeader.invoiceHeadId, object : OnResult {
+                override fun onSuccess(result: Any) {
+                    CoroutineScope(Dispatchers.IO).launch {
+                        result as List<*>
+                        val invoices = mutableListOf<Invoice>()
+                        val size = result.size
+                        result.forEachIndexed { index, invoice ->
+                            if (index == size) {
+                                invoiceRepository.delete(invoice as Invoice, object : OnResult {
+                                    override fun onSuccess(result: Any) {
+                                        CoroutineScope(Dispatchers.IO).launch {
+                                            invoiceHeaderRepository.delete(invoiceHeader, null)
+                                        }
+                                    }
+
+                                    override fun onFailure(message: String, errorCode: Int) {
+                                    }
+
+                                })
+                            } else {
+                                invoiceRepository.delete(invoice as Invoice, null)
+                            }
+
+                        }
+                    }
+                }
+
+                override fun onFailure(message: String, errorCode: Int) {
+                }
+
+            })
         }
     }
 

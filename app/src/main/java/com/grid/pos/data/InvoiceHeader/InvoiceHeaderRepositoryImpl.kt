@@ -92,11 +92,13 @@ class InvoiceHeaderRepositoryImpl(
         }
     }
 
-    override suspend fun getLastInvoiceNo(type: String,callback: OnResult?) {
+    override suspend fun getLastInvoiceNo(type: String, callback: OnResult?) {
         if (SettingsModel.loadFromRemote) {
-           FirebaseFirestore.getInstance().collection("in_hinvoice")
+            FirebaseFirestore.getInstance().collection("in_hinvoice")
                 .whereEqualTo("hi_cmp_id", SettingsModel.companyID)
                 .whereEqualTo("hi_tt_code", type)
+                .whereNotEqualTo("hi_orderno", null)
+                .orderBy("hi_orderno", Query.Direction.DESCENDING)
                 .get()
                 .addOnSuccessListener { result ->
                     val document = result.firstOrNull()

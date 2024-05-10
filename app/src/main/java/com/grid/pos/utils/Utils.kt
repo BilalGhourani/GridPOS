@@ -77,7 +77,7 @@ object Utils {
         return UUID.randomUUID().toString()
     }
 
-    fun getDateinFormat(date: Date = Date(), format: String = "dd MMMM yyyy, HH:mm:ss a"): String {
+    fun getDateinFormat(date: Date = Date(), format: String = "dd MMMM yyyy HH:mm:ss a"): String {
         val parserFormat = SimpleDateFormat(format, Locale.getDefault())
         return parserFormat.format(date)
     }
