@@ -67,8 +67,8 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsView(
-        modifier: Modifier = Modifier,
-        navController: NavController? = null
+    modifier: Modifier = Modifier,
+    navController: NavController? = null
 ) {
     var firebaseApplicationId by remember {
         mutableStateOf(
@@ -103,6 +103,7 @@ fun SettingsView(
     var isAppSettingsSectionExpanded by remember { mutableStateOf(false) }
     var isColorsSectionExpanded by remember { mutableStateOf(false) }
 
+    val isLoggedId = !SettingsModel.currentUserId.isNullOrEmpty()
 
     GridPOSTheme {
         Scaffold(
@@ -140,147 +141,156 @@ fun SettingsView(
                     .padding(it)
                     .verticalScroll(rememberScrollState()),
             ) {
-                Card(
-                    modifier = Modifier.padding(10.dp).animateContentSize(),
-                    shape = RoundedCornerShape(15.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = LightGrey,
-                    )
-                ) {
-
-                    Row(modifier = Modifier
-                        .fillMaxWidth()
-                        .height(60.dp)
-                        .clickable { isFirebaseSectionExpanded = !isFirebaseSectionExpanded },
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically
+                if (!isLoggedId) {
+                    Card(
+                        modifier = Modifier
+                            .padding(10.dp)
+                            .animateContentSize(),
+                        shape = RoundedCornerShape(15.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = LightGrey,
+                        )
                     ) {
-                        Text(
-                            text = "Firebase",
-                            modifier = Modifier.padding(16.dp),
-                            textAlign = TextAlign.Center,
-                            style = TextStyle(
-                                textDecoration = TextDecoration.None,
-                                fontWeight = FontWeight.SemiBold,
-                                fontSize = 16.sp
-                            ),
-                            color = SettingsModel.textColor
-                        )
 
-                        Spacer(modifier = Modifier.weight(1f))
-
-                        Icon(
-                            Icons.Default.KeyboardArrowDown,
-                            null,
-                            Modifier
-                                .padding(16.dp)
-                                .size(20.dp)
-                                .align(
-                                    Alignment.CenterVertically
-                                )
-                                .rotate(
-                                    if (isFirebaseSectionExpanded) 180f else 0f
-                                ),
-                            tint = Color.Black
-                        )
-                    }
-
-                    if (isFirebaseSectionExpanded) {
-                        UITextField(modifier = Modifier.padding(10.dp),
-                            defaultValue = firebaseApplicationId,
-                            label = "Application ID",
-                            placeHolder = "Application ID",
-                            onAction = { firebaseApiKeyRequester.requestFocus() }) { appId ->
-                            firebaseApplicationId = appId
-                        }
-
-                        UITextField(modifier = Modifier.padding(10.dp),
-                            defaultValue = firebaseApiKey,
-                            label = "Api Key",
-                            placeHolder = "Api Key",
-                            focusRequester = firebaseApiKeyRequester,
-                            onAction = { firebaseProjectIdRequester.requestFocus() }) { apiKey ->
-                            firebaseApiKey = apiKey
-                        }
-
-                        UITextField(modifier = Modifier.padding(10.dp),
-                            defaultValue = firebaseProjectId,
-                            label = "Project ID",
-                            placeHolder = "Project ID",
-                            focusRequester = firebaseProjectIdRequester,
-                            onAction = { firebaseDbPathRequester.requestFocus() }) { projectID ->
-                            firebaseProjectId = projectID
-                        }
-
-                        UITextField(modifier = Modifier.padding(10.dp),
-                            defaultValue = firebaseDbPath,
-                            label = "Database Path",
-                            placeHolder = "Database Path",
-                            focusRequester = firebaseDbPathRequester,
-                            onAction = { companyIdRequester.requestFocus() }) { dbPath ->
-                            firebaseDbPath = dbPath
-                        }
-
-                        UITextField(
-                            modifier = Modifier.padding(10.dp),
-                            defaultValue = companyID,
-                            label = "Company ID",
-                            placeHolder = "Company ID",
-                            focusRequester = companyIdRequester,
-                            imeAction = ImeAction.Done
-                        ) { compId ->
-                            companyID = compId
-                        }
-
-                        UIButton(
+                        Row(
                             modifier = Modifier
-                                .wrapContentWidth()
+                                .fillMaxWidth()
                                 .height(60.dp)
-                                .padding(
-                                    10.dp
-                                )
-                                .align(
-                                    Alignment.CenterHorizontally
-                                ),
-                            text = "Save"
+                                .clickable {
+                                    isFirebaseSectionExpanded = !isFirebaseSectionExpanded
+                                },
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            CoroutineScope(Dispatchers.IO).launch {
-                                SettingsModel.firebaseApplicationId = firebaseApplicationId
-                                DataStoreManager.putString(
-                                    DataStoreManager.DataStoreKeys.FIREBASE_APP_ID.key,
-                                    firebaseApplicationId
-                                )
-                                SettingsModel.firebaseApiKey = firebaseApiKey
-                                DataStoreManager.putString(
-                                    DataStoreManager.DataStoreKeys.FIREBASE_API_KEY.key,
-                                    firebaseApiKey
-                                )
-                                SettingsModel.firebaseProjectId = firebaseProjectId
-                                DataStoreManager.putString(
-                                    DataStoreManager.DataStoreKeys.FIREBASE_PROJECT_ID.key,
-                                    firebaseProjectId
-                                )
-                                SettingsModel.firebaseDbPath = firebaseDbPath
-                                DataStoreManager.putString(
-                                    DataStoreManager.DataStoreKeys.FIREBASE_DB_PATH.key,
-                                    firebaseDbPath
-                                )
-                                SettingsModel.firebaseDbPath = firebaseDbPath
-                                DataStoreManager.putString(
-                                    DataStoreManager.DataStoreKeys.FIREBASE_DB_PATH.key,
-                                    firebaseDbPath
-                                )
-                                SettingsModel.companyID = companyID
-                                DataStoreManager.putString(
-                                    DataStoreManager.DataStoreKeys.COMPANY_ID.key,
-                                    companyID
-                                )
+                            Text(
+                                text = "Firebase",
+                                modifier = Modifier.padding(16.dp),
+                                textAlign = TextAlign.Center,
+                                style = TextStyle(
+                                    textDecoration = TextDecoration.None,
+                                    fontWeight = FontWeight.SemiBold,
+                                    fontSize = 16.sp
+                                ),
+                                color = SettingsModel.textColor
+                            )
+
+                            Spacer(modifier = Modifier.weight(1f))
+
+                            Icon(
+                                Icons.Default.KeyboardArrowDown,
+                                null,
+                                Modifier
+                                    .padding(16.dp)
+                                    .size(20.dp)
+                                    .align(
+                                        Alignment.CenterVertically
+                                    )
+                                    .rotate(
+                                        if (isFirebaseSectionExpanded) 180f else 0f
+                                    ),
+                                tint = Color.Black
+                            )
+                        }
+
+                        if (isFirebaseSectionExpanded) {
+                            UITextField(modifier = Modifier.padding(10.dp),
+                                defaultValue = firebaseApplicationId,
+                                label = "Application ID",
+                                placeHolder = "Application ID",
+                                onAction = { firebaseApiKeyRequester.requestFocus() }) { appId ->
+                                firebaseApplicationId = appId
+                            }
+
+                            UITextField(modifier = Modifier.padding(10.dp),
+                                defaultValue = firebaseApiKey,
+                                label = "Api Key",
+                                placeHolder = "Api Key",
+                                focusRequester = firebaseApiKeyRequester,
+                                onAction = { firebaseProjectIdRequester.requestFocus() }) { apiKey ->
+                                firebaseApiKey = apiKey
+                            }
+
+                            UITextField(modifier = Modifier.padding(10.dp),
+                                defaultValue = firebaseProjectId,
+                                label = "Project ID",
+                                placeHolder = "Project ID",
+                                focusRequester = firebaseProjectIdRequester,
+                                onAction = { firebaseDbPathRequester.requestFocus() }) { projectID ->
+                                firebaseProjectId = projectID
+                            }
+
+                            UITextField(modifier = Modifier.padding(10.dp),
+                                defaultValue = firebaseDbPath,
+                                label = "Database Path",
+                                placeHolder = "Database Path",
+                                focusRequester = firebaseDbPathRequester,
+                                onAction = { companyIdRequester.requestFocus() }) { dbPath ->
+                                firebaseDbPath = dbPath
+                            }
+
+                            UITextField(
+                                modifier = Modifier.padding(10.dp),
+                                defaultValue = companyID,
+                                label = "Company ID",
+                                placeHolder = "Company ID",
+                                focusRequester = companyIdRequester,
+                                imeAction = ImeAction.Done
+                            ) { compId ->
+                                companyID = compId
+                            }
+
+                            UIButton(
+                                modifier = Modifier
+                                    .wrapContentWidth()
+                                    .height(60.dp)
+                                    .padding(
+                                        10.dp
+                                    )
+                                    .align(
+                                        Alignment.CenterHorizontally
+                                    ),
+                                text = "Save"
+                            ) {
+                                CoroutineScope(Dispatchers.IO).launch {
+                                    SettingsModel.firebaseApplicationId = firebaseApplicationId
+                                    DataStoreManager.putString(
+                                        DataStoreManager.DataStoreKeys.FIREBASE_APP_ID.key,
+                                        firebaseApplicationId
+                                    )
+                                    SettingsModel.firebaseApiKey = firebaseApiKey
+                                    DataStoreManager.putString(
+                                        DataStoreManager.DataStoreKeys.FIREBASE_API_KEY.key,
+                                        firebaseApiKey
+                                    )
+                                    SettingsModel.firebaseProjectId = firebaseProjectId
+                                    DataStoreManager.putString(
+                                        DataStoreManager.DataStoreKeys.FIREBASE_PROJECT_ID.key,
+                                        firebaseProjectId
+                                    )
+                                    SettingsModel.firebaseDbPath = firebaseDbPath
+                                    DataStoreManager.putString(
+                                        DataStoreManager.DataStoreKeys.FIREBASE_DB_PATH.key,
+                                        firebaseDbPath
+                                    )
+                                    SettingsModel.firebaseDbPath = firebaseDbPath
+                                    DataStoreManager.putString(
+                                        DataStoreManager.DataStoreKeys.FIREBASE_DB_PATH.key,
+                                        firebaseDbPath
+                                    )
+                                    SettingsModel.companyID = companyID
+                                    DataStoreManager.putString(
+                                        DataStoreManager.DataStoreKeys.COMPANY_ID.key,
+                                        companyID
+                                    )
+                                }
                             }
                         }
                     }
                 }
                 Card(
-                    modifier = Modifier.padding(10.dp).animateContentSize(),
+                    modifier = Modifier
+                        .padding(10.dp)
+                        .animateContentSize(),
                     shape = RoundedCornerShape(15.dp),
                     colors = CardDefaults.cardColors(
                         containerColor = LightGrey,
@@ -290,7 +300,9 @@ fun SettingsView(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(60.dp)
-                            .clickable { isAppSettingsSectionExpanded = !isAppSettingsSectionExpanded },
+                            .clickable {
+                                isAppSettingsSectionExpanded = !isAppSettingsSectionExpanded
+                            },
                         horizontalArrangement = Arrangement.Center,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -325,26 +337,26 @@ fun SettingsView(
                     }
 
                     if (isAppSettingsSectionExpanded) {
-
-                        UISwitch(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(60.dp)
-                                .padding(10.dp),
-                            checked = loadFromRemote,
-                            text = "Load From Remote",
-                            textColor = textColorState
-                        ) { isRemote ->
-                            loadFromRemote = isRemote
-                            SettingsModel.loadFromRemote = isRemote
-                            CoroutineScope(Dispatchers.IO).launch {
-                                DataStoreManager.putBoolean(
-                                    DataStoreManager.DataStoreKeys.LOAD_FROM_REMOTE.key,
-                                    isRemote
-                                )
+                        if (!isLoggedId) {
+                            UISwitch(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(60.dp)
+                                    .padding(10.dp),
+                                checked = loadFromRemote,
+                                text = "Load From Remote",
+                                textColor = textColorState
+                            ) { isRemote ->
+                                loadFromRemote = isRemote
+                                SettingsModel.loadFromRemote = isRemote
+                                CoroutineScope(Dispatchers.IO).launch {
+                                    DataStoreManager.putBoolean(
+                                        DataStoreManager.DataStoreKeys.LOAD_FROM_REMOTE.key,
+                                        isRemote
+                                    )
+                                }
                             }
                         }
-
                         UISwitch(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -423,22 +435,25 @@ fun SettingsView(
                     }
                 }
                 Card(
-                    modifier = Modifier.padding(10.dp).animateContentSize(),
+                    modifier = Modifier
+                        .padding(10.dp)
+                        .animateContentSize(),
                     shape = RoundedCornerShape(15.dp),
                     colors = CardDefaults.cardColors(
                         containerColor = LightGrey,
                     )
                 ) {
-                    Row(modifier = Modifier
-                        .fillMaxWidth()
-                        .height(60.dp)
-                        .clickable { isColorsSectionExpanded = !isColorsSectionExpanded },
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(60.dp)
+                            .clickable { isColorsSectionExpanded = !isColorsSectionExpanded },
                         horizontalArrangement = Arrangement.Center,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
                             text = "Colors",
-                            modifier= Modifier
+                            modifier = Modifier
                                 .padding(16.dp),
                             textAlign = TextAlign.Center,
                             style = TextStyle(

@@ -24,12 +24,15 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
 import androidx.navigation.NavController
+import com.grid.pos.ActivityScopedViewModel
 import com.grid.pos.MainActivity
+import com.grid.pos.R
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.UIButton
 import com.grid.pos.ui.theme.GridPOSTheme
@@ -38,21 +41,22 @@ import com.grid.pos.utils.Utils
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
 fun HomeView(
+    modifier: Modifier = Modifier,
     navController: NavController? = null,
     mainActivity: MainActivity,
-    activityViewModel: ViewModel,
-    modifier: Modifier = Modifier
+    activityViewModel: ActivityScopedViewModel?,
 ) {
+    activityViewModel?.fetchCurrencies()
     val keyboardController = LocalSoftwareKeyboardController.current
     LaunchedEffect(true) {
         keyboardController?.hide()
     }
     BackHandler {
-    mainActivity.finish()
+        mainActivity.finish()
     }
     GridPOSTheme {
         Scaffold(
-            containerColor=SettingsModel.backgroundColor,
+            containerColor = SettingsModel.backgroundColor,
             topBar = {
                 Surface(shadowElevation = 3.dp, color = SettingsModel.backgroundColor) {
                     TopAppBar(
@@ -64,6 +68,16 @@ fun HomeView(
                                 fontSize = 16.sp,
                                 textAlign = TextAlign.Center
                             )
+                        }, actions = {
+                            IconButton(
+                                onClick = { navController?.navigate("SettingsView") }
+                            ) {
+                                Icon(
+                                    painterResource(R.drawable.ic_settings),
+                                    contentDescription = "Back",
+                                    tint = SettingsModel.buttonColor
+                                )
+                            }
                         })
                 }
             }

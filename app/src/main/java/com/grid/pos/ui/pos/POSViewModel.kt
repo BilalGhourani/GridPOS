@@ -2,9 +2,6 @@ package com.grid.pos.ui.pos
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.grid.pos.data.Company.Company
-import com.grid.pos.data.Currency.Currency
-import com.grid.pos.data.Currency.CurrencyRepository
 import com.grid.pos.data.Family.Family
 import com.grid.pos.data.Family.FamilyRepository
 import com.grid.pos.data.Invoice.Invoice
@@ -31,8 +28,7 @@ class POSViewModel @Inject constructor(
     private val invoiceRepository: InvoiceRepository,
     private val itemRepository: ItemRepository,
     private val thirdPartyRepository: ThirdPartyRepository,
-    private val familyRepository: FamilyRepository,
-    private val currencyRepository: CurrencyRepository
+    private val familyRepository: FamilyRepository
 ) : ViewModel() {
 
     private val _posState = MutableStateFlow(POSState())
@@ -43,7 +39,6 @@ class POSViewModel @Inject constructor(
             fetchItems()
             fetchThirdParties()
             fetchFamilies()
-            fetchCurrencies()
         }
     }
 
@@ -99,25 +94,6 @@ class POSViewModel @Inject constructor(
                 viewModelScope.launch(Dispatchers.Main) {
                     posState.value = posState.value.copy(
                         families = listOfFamilies
-                    )
-                }
-            }
-
-            override fun onFailure(message: String, errorCode: Int) {
-
-            }
-
-        })
-    }
-
-    private suspend fun fetchCurrencies() {
-        currencyRepository.getAllCurrencies(object : OnResult {
-            override fun onSuccess(result: Any) {
-                result as List<*>
-                val currency = if (result.size > 0) result[0] else Currency()
-                viewModelScope.launch(Dispatchers.Main) {
-                    posState.value = posState.value.copy(
-                        currency = currency as Currency
                     )
                 }
             }
@@ -244,7 +220,6 @@ class POSViewModel @Inject constructor(
                 override fun onSuccess(result: Any) {
                     CoroutineScope(Dispatchers.IO).launch {
                         result as List<*>
-                        val invoices = mutableListOf<Invoice>()
                         val size = result.size
                         result.forEachIndexed { index, invoice ->
                             if (index == size) {

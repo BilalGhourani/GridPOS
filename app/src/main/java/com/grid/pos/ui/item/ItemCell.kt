@@ -2,6 +2,7 @@ package com.grid.pos.ui.item
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -24,7 +25,7 @@ import com.grid.pos.ui.theme.GridPOSTheme
 
 @Composable
 fun ItemCell(
-        item: Item, modifier: Modifier = Modifier, onClick: () -> Unit = {}
+    item: Item, modifier: Modifier = Modifier, onClick: () -> Unit = {}
 ) {
     ElevatedButton(modifier = modifier
         .width(120.dp)
@@ -36,24 +37,22 @@ fun ItemCell(
             onClick.invoke()
         }) {
         Column(
-            modifier = Modifier.wrapContentSize(),
+            modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
             val price = item.itemUnitPrice.toString()
             Text(
                 text = item.itemName ?: "", color = SettingsModel.textColor,
-                modifier = Modifier.padding(5.dp), textAlign = TextAlign.Center
+                maxLines = 2,
+                modifier = Modifier.padding(top = 5.dp), textAlign = TextAlign.Center
             )
             if (SettingsModel.showPriceInItemBtn) {
                 Text(
-                    text = "$price US", color = SettingsModel.textColor,
-                    modifier = Modifier.padding(5.dp), textAlign = TextAlign.Center
-                )
-
-                Text(
-                    text = "DOLLAR", color = SettingsModel.textColor,
-                    modifier = Modifier.padding(5.dp), textAlign = TextAlign.Center
+                    text = "$price ${SettingsModel.currentCurrency?.currencyCode1 ?: ""}",
+                    color = SettingsModel.textColor,
+                    modifier = Modifier.padding(top = 5.dp),
+                    textAlign = TextAlign.Center
                 )
             }
         }

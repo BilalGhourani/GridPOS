@@ -7,6 +7,7 @@ import com.grid.pos.data.Item.Item
 import com.grid.pos.data.PosReceipt.PosReceipt
 import com.grid.pos.data.ThirdParty.ThirdParty
 import com.grid.pos.model.InvoiceItemModel
+import com.grid.pos.model.SettingsModel
 
 data class POSState(
     var invoices: MutableList<InvoiceItemModel> = mutableListOf(),
@@ -15,7 +16,7 @@ data class POSState(
     val thirdParties: MutableList<ThirdParty> = mutableListOf(),
     var invoiceHeader: InvoiceHeader = InvoiceHeader(),
     var posReceipt: PosReceipt = PosReceipt(),
-    var currency: Currency = Currency(),
+    var currency: Currency = SettingsModel.currentCurrency ?: Currency(),
     var isSaved: Boolean = false,
     val isLoading: Boolean = false,
     val warning: String? = null,

@@ -8,13 +8,16 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.rememberNavController
 import com.grid.pos.interfaces.OnActivityResult
 import com.grid.pos.interfaces.OnGalleryResult
@@ -22,6 +25,7 @@ import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.login.LoginView
 import com.grid.pos.ui.navigation.AuthNavGraph
 import com.grid.pos.ui.theme.GridPOSTheme
+import com.grid.pos.ui.theme.White
 import com.grid.pos.utils.DataStoreManager
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
@@ -63,6 +67,9 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     AuthNavGraph(
+                        modifier = Modifier
+                            .background(color = White)
+                            .padding(0.dp),
                         navController = navController,
                         activityViewModel = activityViewModel,
                         mainActivity = this,

@@ -1,6 +1,7 @@
 package com.grid.pos.model
 
 import androidx.compose.ui.graphics.Color
+import com.grid.pos.data.Currency.Currency
 
 object SettingsModel {
     var currentUserId: String? = null
@@ -22,4 +23,6 @@ object SettingsModel {
     var topBarColor: Color = Color.White
     var backgroundColor: Color = Color.White
     var textColor: Color = Color.Black
+
+    var currentCurrency: Currency? = null
 }

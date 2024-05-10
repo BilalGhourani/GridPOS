@@ -33,12 +33,14 @@ fun UIButton(
     textDecoration: TextDecoration = TextDecoration.None,
     fontWeight: FontWeight = FontWeight.Bold,
     fontSize: TextUnit = 16.sp,
+    enabled:Boolean=true,
     onClick: () -> Unit = {},
 ) {
     ElevatedButton(
         modifier = modifier,
         colors = ButtonDefaults.buttonColors(containerColor = buttonColor),
         shape = shape,
+        enabled = enabled,
         onClick = {
             onClick.invoke()
         }

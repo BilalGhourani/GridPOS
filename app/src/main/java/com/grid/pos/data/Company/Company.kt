@@ -73,13 +73,6 @@ data class Company(
     @get:PropertyName("cmp_cur_codetax")
     var companyCurCodeTax: String? = null,
 
-    /**
-     * Company Up With Tax
-     * */
-    @ColumnInfo(name = "cmp_upwithtax")
-    @set:PropertyName("cmp_upwithtax")
-    @get:PropertyName("cmp_upwithtax")
-    var companyUpWithTax: String? = null,
 
     /**
      * Company Email
@@ -182,7 +175,6 @@ data class Company(
             "cmp_taxregno" to companyTaxRegno,
             "cmp_tax" to companyTax,
             "cmp_cur_codetax" to companyCurCodeTax,
-            "cmp_upwithtax" to companyUpWithTax,
             "cmp_email" to companyEmail,
             "cmp_web" to companyWeb,
             "cmp_logo" to companyLogo,

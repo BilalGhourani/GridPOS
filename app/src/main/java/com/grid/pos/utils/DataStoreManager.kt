@@ -170,6 +170,7 @@ object DataStoreManager {
         SettingsModel.showTax = getBoolean(DataStoreKeys.SHOW_TAX.key, false) == true
         SettingsModel.showTax1 = getBoolean(DataStoreKeys.SHOW_TAX1.key, false) == true
         SettingsModel.showTax2 = getBoolean(DataStoreKeys.SHOW_TAX2.key, false) == true
+        SettingsModel.showPriceInItemBtn = getBoolean(DataStoreKeys.SHOW_PRICE_IN_ITEM_BTN.key, false) == true
 
         SettingsModel.firebaseApplicationId = getString(DataStoreKeys.FIREBASE_APP_ID.key)
         SettingsModel.firebaseApiKey = getString(DataStoreKeys.FIREBASE_API_KEY.key)

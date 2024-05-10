@@ -35,7 +35,7 @@ import com.grid.pos.utils.Utils
 @Composable
 fun UIWebView(
     navController: NavController? = null,
-    activityViewModel: ActivityScopedViewModel = ActivityScopedViewModel(),
+    activityViewModel: ActivityScopedViewModel,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current

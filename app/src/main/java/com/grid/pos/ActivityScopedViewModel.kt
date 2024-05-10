@@ -2,12 +2,43 @@ package com.grid.pos
 
 import android.content.Context
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.grid.pos.data.Currency.Currency
+import com.grid.pos.data.Currency.CurrencyRepository
+import com.grid.pos.data.InvoiceHeader.InvoiceHeaderRepository
+import com.grid.pos.interfaces.OnResult
+import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.pos.POSState
 import com.grid.pos.utils.Utils
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class ActivityScopedViewModel : ViewModel() {
+@HiltViewModel
+class ActivityScopedViewModel @Inject constructor(
+    private val currencyRepository: CurrencyRepository
+) : ViewModel() {
     var posState: POSState = POSState()
 
+
+    fun fetchCurrencies() {
+        if (SettingsModel.currentCurrency == null) {
+            viewModelScope.launch(Dispatchers.IO) {
+                currencyRepository.getAllCurrencies(object : OnResult {
+                    override fun onSuccess(result: Any) {
+                        result as List<*>
+                        SettingsModel.currentCurrency =
+                            if (result.size > 0) result[0] as Currency else Currency()
+                    }
+
+                    override fun onFailure(message: String, errorCode: Int) {
+
+                    }
+                })
+            }
+        }
+    }
 
     fun getHtmlContent(
         context: Context,

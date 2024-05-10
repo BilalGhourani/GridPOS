@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.grid.pos.data.Currency.Currency
 import com.grid.pos.data.Currency.CurrencyRepository
 import com.grid.pos.interfaces.OnResult
+import com.grid.pos.model.SettingsModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -14,7 +15,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ManageCurrenciesViewModel @Inject constructor(
-    private val currencyRepository: CurrencyRepository) : ViewModel() {
+    private val currencyRepository: CurrencyRepository
+) : ViewModel() {
 
     private val _manageCurrenciesState = MutableStateFlow(ManageCurrenciesState())
     val manageCurrenciesState: MutableStateFlow<ManageCurrenciesState> = _manageCurrenciesState
@@ -26,10 +28,18 @@ class ManageCurrenciesViewModel @Inject constructor(
     }
 
     private suspend fun fetchCurrencies() {
+        SettingsModel.currentCurrency?.let {
+            viewModelScope.launch(Dispatchers.Main) {
+                manageCurrenciesState.value = manageCurrenciesState.value.copy(
+                    selectedCurrency = it, fillFields = true
+                )
+            }
+        }
         currencyRepository.getAllCurrencies(object : OnResult {
             override fun onSuccess(result: Any) {
                 result as List<*>
                 val currency = if (result.size > 0) result[0] as Currency else Currency()
+                SettingsModel.currentCurrency = currency
                 viewModelScope.launch(Dispatchers.Main) {
                     manageCurrenciesState.value = manageCurrenciesState.value.copy(
                         selectedCurrency = currency, fillFields = true

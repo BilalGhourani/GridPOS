@@ -31,7 +31,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
@@ -57,7 +56,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ManageCompaniesView(navController: NavController? = null, modifier: Modifier = Modifier,
                         viewModel: ManageCompaniesViewModel = hiltViewModel()) {
@@ -84,7 +83,6 @@ fun ManageCompaniesView(navController: NavController? = null, modifier: Modifier
     var taxRegnoState by remember { mutableStateOf("") }
     var taxState by remember { mutableStateOf("") }
     var curCodeTaxState by remember { mutableStateOf("") }
-    var curUpWithTaxState by remember { mutableStateOf("") }
     var emailState by remember { mutableStateOf("") }
     var webState by remember { mutableStateOf("") }
     var logoState by remember { mutableStateOf("") }
@@ -156,7 +154,6 @@ fun ManageCompaniesView(navController: NavController? = null, modifier: Modifier
                             taxRegnoState = company.companyTaxRegno ?: ""
                             taxState = company.companyTax.toString()
                             curCodeTaxState = company.companyCurCodeTax ?: ""
-                            curUpWithTaxState = company.companyUpWithTax ?: ""
                             emailState = company.companyEmail ?: ""
                             webState = company.companyWeb ?: ""
                             logoState = company.companyLogo ?: ""
@@ -223,15 +220,6 @@ fun ManageCompaniesView(navController: NavController? = null, modifier: Modifier
                                 manageCompaniesState.selectedCompany.companyCurCodeTax = currency.currencyId
                             }
 
-                            //tax1 reg no
-                            UITextField(modifier = Modifier.padding(10.dp),
-                                defaultValue = curUpWithTaxState, label = "Up With Tax",
-                                placeHolder = "Enter Up With Tax",
-                                focusRequester = upWithTaxFocusRequester,
-                                onAction = { tax1RegNoFocusRequester.requestFocus() }) { upWithTax ->
-                                curUpWithTaxState = upWithTax
-                                manageCompaniesState.selectedCompany.companyUpWithTax = upWithTax
-                            }
                         }
                         if (SettingsModel.showTax1) {
                             //tax1 reg no
@@ -352,7 +340,6 @@ fun ManageCompaniesView(navController: NavController? = null, modifier: Modifier
             taxRegnoState = ""
             taxState = ""
             curCodeTaxState = ""
-            curUpWithTaxState = ""
             emailState = ""
             webState = ""
             logoState = ""

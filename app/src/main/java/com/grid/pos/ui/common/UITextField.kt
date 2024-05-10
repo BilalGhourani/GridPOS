@@ -38,6 +38,7 @@ fun UITextField(
     onAction: KeyboardActionScope.() -> Unit = {},
     visualTransformation: VisualTransformation = VisualTransformation.None,
     maxLines: Int = 1,
+    readOnly: Boolean = false,
     leadingIcon: @Composable (() -> Unit)? = null,
     trailingIcon: @Composable (() -> Unit)? = null,
     onValueChange: (String) -> Unit
@@ -56,6 +57,7 @@ fun UITextField(
             label = {
                 label?.let { Text(text = label, color = SettingsModel.textColor) }.run { null }
             },
+            readOnly = readOnly,
             placeholder = { placeHolder?.let { Text(text = placeHolder) }.run { null } },
             modifier = Modifier
                 .fillMaxSize()
