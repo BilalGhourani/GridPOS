@@ -52,17 +52,21 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
+@OptIn(
+    ExperimentalMaterial3Api::class,
+    ExperimentalComposeUiApi::class
+)
 @Composable
 fun ManageThirdPartiesView(
-    navController: NavController? = null,
-    modifier: Modifier = Modifier,
-    viewModel: ManageThirdPartiesViewModel = hiltViewModel()
+        navController: NavController? = null,
+        modifier: Modifier = Modifier,
+        viewModel: ManageThirdPartiesViewModel = hiltViewModel()
 ) {
     val manageThirdPartiesState: ManageThirdPartiesState by viewModel.manageThirdPartiesState.collectAsState(
         ManageThirdPartiesState()
     )
     val keyboardController = LocalSoftwareKeyboardController.current
+    val fnFocusRequester = remember { FocusRequester() }
     val phone1FocusRequester = remember { FocusRequester() }
     val phone2FocusRequester = remember { FocusRequester() }
     val addressFocusRequester = remember { FocusRequester() }
@@ -85,12 +89,13 @@ fun ManageThirdPartiesView(
         }
     }
     GridPOSTheme {
-        Scaffold(
-            containerColor=SettingsModel.backgroundColor,
+        Scaffold(containerColor = SettingsModel.backgroundColor,
             topBar = {
-                Surface(shadowElevation = 3.dp, color = SettingsModel.backgroundColor) {
-                    TopAppBar(
-                        colors = TopAppBarDefaults.mediumTopAppBarColors(containerColor = SettingsModel.topBarColor),
+                Surface(
+                    shadowElevation = 3.dp,
+                    color = SettingsModel.backgroundColor
+                ) {
+                    TopAppBar(colors = TopAppBarDefaults.mediumTopAppBarColors(containerColor = SettingsModel.topBarColor),
                         navigationIcon = {
                             IconButton(onClick = { navController?.popBackStack() }) {
                                 Icon(
@@ -109,8 +114,7 @@ fun ManageThirdPartiesView(
                             )
                         })
                 }
-            }
-        ) {
+            }) {
             Box(
                 modifier = modifier
                     .fillMaxSize()
@@ -118,8 +122,7 @@ fun ManageThirdPartiesView(
                     .background(color = Color.Transparent)
             ) {
                 Column(
-                    modifier = Modifier
-                        .fillMaxSize(),
+                    modifier = Modifier.fillMaxSize(),
                 ) {
                     Column(
                         modifier = Modifier
@@ -143,56 +146,61 @@ fun ManageThirdPartiesView(
                         }
 
                         //name
-                        UITextField(
-                            modifier = Modifier.padding(10.dp),
+                        UITextField(modifier = Modifier.padding(10.dp),
                             defaultValue = nameState,
                             label = "Name",
                             placeHolder = "Enter Name",
                             onAction = {
-                                keyboardController?.hide()
-                            }
-                        ) { name ->
+                                fnFocusRequester.requestFocus()
+                            }) { name ->
                             nameState = name
                             manageThirdPartiesState.selectedThirdParty.thirdPartyName = name
                         }
 
+                        //financial number
+                        UITextField(modifier = Modifier.padding(10.dp),
+                            defaultValue = fnState,
+                            label = "Financial No.",
+                            placeHolder = "Financial No.",
+                            focusRequester = fnFocusRequester,
+                            onAction = {
+                                phone1FocusRequester.requestFocus()
+                            }) { fn ->
+                            fnState = fn
+                            manageThirdPartiesState.selectedThirdParty.thirdPartyFn = fn
+                        }
+
                         //phone1
-                        UITextField(
-                            modifier = Modifier.padding(10.dp),
+                        UITextField(modifier = Modifier.padding(10.dp),
                             defaultValue = phone1State,
                             label = "Phone1",
                             placeHolder = "Enter Phone1",
                             focusRequester = phone1FocusRequester,
-                            onAction = { phone2FocusRequester.requestFocus() }
-                        ) { phone1 ->
+                            onAction = { phone2FocusRequester.requestFocus() }) { phone1 ->
                             phone1State = phone1
                             manageThirdPartiesState.selectedThirdParty.thirdPartyPhone1 = phone1
                         }
 
                         //phone2
-                        UITextField(
-                            modifier = Modifier.padding(10.dp),
+                        UITextField(modifier = Modifier.padding(10.dp),
                             defaultValue = phone2State,
                             label = "Phone2",
                             placeHolder = "Enter Phone2",
                             focusRequester = phone2FocusRequester,
-                            onAction = { addressFocusRequester.requestFocus() }
-                        ) { phone2 ->
+                            onAction = { addressFocusRequester.requestFocus() }) { phone2 ->
                             phone2State = phone2
                             manageThirdPartiesState.selectedThirdParty.thirdPartyPhone2 = phone2
                         }
 
                         //address
-                        UITextField(
-                            modifier = Modifier.padding(10.dp),
+                        UITextField(modifier = Modifier.padding(10.dp),
                             defaultValue = addressState,
                             label = "Address",
                             maxLines = 3,
                             placeHolder = "Enter address",
                             focusRequester = addressFocusRequester,
                             imeAction = ImeAction.Done,
-                            onAction = { keyboardController?.hide() }
-                        ) { address ->
+                            onAction = { keyboardController?.hide() }) { address ->
                             addressState = address
                             manageThirdPartiesState.selectedThirdParty.thirdPartyAddress = address
                         }
@@ -241,11 +249,11 @@ fun ManageThirdPartiesView(
         if (manageThirdPartiesState.clear) {
             manageThirdPartiesState.selectedThirdParty = ThirdParty()
             manageThirdPartiesState.selectedThirdParty.thirdPartyCompId = ""
-            nameState =  ""
-            fnState =   ""
+            nameState = ""
+            fnState = ""
             phone1State = ""
-            phone2State =  ""
-            addressState =   ""
+            phone2State = ""
+            addressState = ""
             manageThirdPartiesState.clear = false
         }
     }
