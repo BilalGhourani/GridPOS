@@ -79,7 +79,7 @@ fun SearchableDropdownMenu(
     ) {
         ExposedDropdownMenuBox(modifier = Modifier
             .fillMaxWidth()
-            .background(color = Color.White),
+            .background(color = SettingsModel.backgroundColor),
             expanded = expanded,
             onExpandedChange = {
                 expanded = !expanded
