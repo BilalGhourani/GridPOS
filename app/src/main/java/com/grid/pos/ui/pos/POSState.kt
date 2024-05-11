@@ -43,7 +43,7 @@ data class POSState(
         invoiceHeader.invoiceHeadTotal1 = total.times(currency.currencyRate)
         invoiceHeader.invoiceHeadDiscount = discount
         invoiceHeader.invoiceHeadDiscountAmount = total.times(discount.div(100.0))
-        invoiceHeader.invoiceHeadGrossAmount = (total - (tax + tax1 + tax2)) - invoiceHeader.invoiceHeadDiscountAmount
+        invoiceHeader.invoiceHeadGrossAmount = (total - invoiceHeader.invoiceHeadTotalTax) - invoiceHeader.invoiceHeadDiscountAmount
         invoiceHeader.invoiceHeadTtCode = if (total > 0) "SI" else "RS"
         invoiceHeader.invoiceHeadRate = currency.currencyRate
         return invoiceHeader

@@ -34,6 +34,10 @@ data class InvoiceItemModel(
         return invoice.invoicePrice
     }
 
+    fun getPriceWithTax(): Double {
+        return invoice.invoicePrice - (invoice.invoiceTax + invoice.invoiceTax1 + invoice.invoiceTax2)
+    }
+
     fun getDiscount(): Double {
         return invoice.invoiceDiscount
     }
@@ -59,7 +63,7 @@ data class InvoiceItemModel(
     fun getNetAmount(): Double {
         val quantity = invoice.invoiceQuantity
         val discountPercentage = getDiscount().div(100.0)
-        var totalAfterDisc = getPrice() - (getTax() + getTax1() + getTax2())
+        var totalAfterDisc = getPriceWithTax()
         if (discountPercentage > 0.0) {
             val discountAmount = (totalAfterDisc).times(discountPercentage)
             totalAfterDisc -= discountAmount
