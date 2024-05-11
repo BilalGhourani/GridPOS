@@ -7,6 +7,7 @@ import com.grid.pos.data.Company.CompanyRepository
 import com.grid.pos.data.Currency.Currency
 import com.grid.pos.data.Currency.CurrencyRepository
 import com.grid.pos.interfaces.OnResult
+import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.Utils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -17,8 +18,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ManageCompaniesViewModel @Inject constructor(
-    private val companyRepository: CompanyRepository,
-    private val currencyRepository: CurrencyRepository
+        private val companyRepository: CompanyRepository,
+        private val currencyRepository: CurrencyRepository
 ) : ViewModel() {
 
     private val _manageCompaniesState = MutableStateFlow(ManageCompaniesState())
@@ -45,7 +46,10 @@ class ManageCompaniesViewModel @Inject constructor(
                 }
             }
 
-            override fun onFailure(message: String, errorCode: Int) {
+            override fun onFailure(
+                    message: String,
+                    errorCode: Int
+            ) {
 
             }
 
@@ -66,7 +70,10 @@ class ManageCompaniesViewModel @Inject constructor(
                 }
             }
 
-            override fun onFailure(message: String, errorCode: Int) {
+            override fun onFailure(
+                    message: String,
+                    errorCode: Int
+            ) {
 
             }
 
@@ -89,6 +96,9 @@ class ManageCompaniesViewModel @Inject constructor(
             override fun onSuccess(result: Any) {
                 viewModelScope.launch(Dispatchers.Main) {
                     val addedModel = result as Company
+                    if (addedModel.companyId.equals(SettingsModel.currentCompany?.companyId)) {
+                        SettingsModel.currentCompany = addedModel
+                    }
                     val companies = manageCompaniesState.value.companies
                     if (isInserting) companies.add(addedModel)
                     manageCompaniesState.value = manageCompaniesState.value.copy(
@@ -100,7 +110,10 @@ class ManageCompaniesViewModel @Inject constructor(
                 }
             }
 
-            override fun onFailure(message: String, errorCode: Int) {
+            override fun onFailure(
+                    message: String,
+                    errorCode: Int
+            ) {
                 viewModelScope.launch(Dispatchers.Main) {
                     manageCompaniesState.value = manageCompaniesState.value.copy(
                         isLoading = false
@@ -112,9 +125,15 @@ class ManageCompaniesViewModel @Inject constructor(
         CoroutineScope(Dispatchers.IO).launch {
             if (isInserting) {
                 company.prepareForInsert()
-                companyRepository.insert(company, callback)
+                companyRepository.insert(
+                    company,
+                    callback
+                )
             } else {
-                companyRepository.update(company, callback)
+                companyRepository.update(
+                    company,
+                    callback
+                )
             }
         }
     }
@@ -133,38 +152,42 @@ class ManageCompaniesViewModel @Inject constructor(
         )
 
         CoroutineScope(Dispatchers.IO).launch {
-            companyRepository.delete(company, object : OnResult {
-                override fun onSuccess(result: Any) {
-                    val companies = manageCompaniesState.value.companies
-                    val position =
-                        companies.indexOfFirst {
+            companyRepository.delete(
+                company,
+                object : OnResult {
+                    override fun onSuccess(result: Any) {
+                        val companies = manageCompaniesState.value.companies
+                        val position = companies.indexOfFirst {
                             company.companyId.equals(
                                 it.companyId,
                                 ignoreCase = true
                             )
                         }
-                    if (position >= 0) {
-                        companies.removeAt(position)
+                        if (position >= 0) {
+                            companies.removeAt(position)
+                        }
+                        viewModelScope.launch(Dispatchers.Main) {
+                            manageCompaniesState.value = manageCompaniesState.value.copy(
+                                companies = companies,
+                                selectedCompany = Company(),
+                                isLoading = false,
+                                clear = true
+                            )
+                        }
                     }
-                    viewModelScope.launch(Dispatchers.Main) {
-                        manageCompaniesState.value = manageCompaniesState.value.copy(
-                            companies = companies,
-                            selectedCompany = Company(),
-                            isLoading = false,
-                            clear = true
-                        )
-                    }
-                }
 
-                override fun onFailure(message: String, errorCode: Int) {
-                    viewModelScope.launch(Dispatchers.Main) {
-                        manageCompaniesState.value = manageCompaniesState.value.copy(
-                            isLoading = false
-                        )
+                    override fun onFailure(
+                            message: String,
+                            errorCode: Int
+                    ) {
+                        viewModelScope.launch(Dispatchers.Main) {
+                            manageCompaniesState.value = manageCompaniesState.value.copy(
+                                isLoading = false
+                            )
+                        }
                     }
-                }
 
-            })
+                })
         }
     }
 

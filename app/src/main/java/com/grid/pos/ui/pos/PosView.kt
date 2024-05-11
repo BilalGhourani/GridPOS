@@ -223,7 +223,7 @@ fun PosView(
                         })
 
                     InvoiceFooterView(
-                        navController=navController,
+                        navController = navController,
                         invoiceHeader = invoiceHeaderState.value,
                         currency = posState.currency,
                         items = posState.items,
@@ -240,6 +240,7 @@ fun PosView(
                             isAddItemBottomSheetVisible = false
                         },
                         onThirdPartySelected = { thirdParty ->
+                            posState.selectedThirdParty = thirdParty
                             posState.invoiceHeader.invoiceHeadThirdPartyName = thirdParty.thirdPartyId
                         },
                     )
@@ -254,8 +255,7 @@ fun PosView(
                     animationSpec = tween(durationMillis = 250)
                 )
             ) {
-                EditInvoiceHeaderView(
-                    posState= posState,
+                EditInvoiceHeaderView(posState = posState,
                     invoiceIndex = itemIndexToEdit,
                     modifier = Modifier
                         .fillMaxSize()
@@ -327,8 +327,10 @@ fun PosView(
                             color = SettingsModel.backgroundColor
                         ),
                     onSave = { change ->
-                        posState.invoiceHeader.invoiceHeadChange =  Math.abs(change)
-                        posState.invoiceHeader.invoiceHeadCashName = SettingsModel.currentUser?.getName()
+                        posState.invoiceHeader.invoiceHeadChange = change
+                        var cashName = posState.invoiceHeader.invoiceHeadCashName ?: ""
+                        cashName = (posState.selectedThirdParty.thirdPartyName ?: "") + " ${cashName}"
+                        posState.invoiceHeader.invoiceHeadCashName = cashName.ifEmpty { null }
                         invoiceHeaderState.value = posState.invoiceHeader
                         viewModel.saveInvoiceHeader(
                             posState.invoiceHeader,
@@ -336,8 +338,10 @@ fun PosView(
                         )
                     },
                     onFinish = { change ->
-                        posState.invoiceHeader.invoiceHeadChange = Math.abs(change)
-                        posState.invoiceHeader.invoiceHeadCashName = SettingsModel.currentUser?.getName()
+                        posState.invoiceHeader.invoiceHeadChange = change
+                        var cashName = posState.invoiceHeader.invoiceHeadCashName ?: ""
+                        cashName = (posState.selectedThirdParty.thirdPartyName ?: "") + " ${cashName}"
+                        posState.invoiceHeader.invoiceHeadCashName = cashName.ifEmpty { null }
                         invoiceHeaderState.value = posState.invoiceHeader
                         viewModel.saveInvoiceHeader(
                             posState.invoiceHeader,

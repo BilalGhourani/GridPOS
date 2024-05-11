@@ -17,6 +17,7 @@ data class POSState(
         var invoiceHeader: InvoiceHeader = InvoiceHeader(),
         var posReceipt: PosReceipt = PosReceipt(),
         var currency: Currency = SettingsModel.currentCurrency ?: Currency(),
+        var selectedThirdParty: ThirdParty = ThirdParty(),
         var isSaved: Boolean = false,
         val isLoading: Boolean = false,
         val warning: String? = null,
@@ -42,7 +43,7 @@ data class POSState(
         invoiceHeader.invoiceHeadTotal1 = total.times(currency.currencyRate)
         invoiceHeader.invoiceHeadDiscount = discount
         invoiceHeader.invoiceHeadDiscountAmount = total.times(discount.div(100.0))
-        invoiceHeader.invoiceHeadGrossAmount = (total + tax + tax1 + tax2) -  invoiceHeader.invoiceHeadDiscountAmount
+        invoiceHeader.invoiceHeadGrossAmount = (total - (tax + tax1 + tax2)) - invoiceHeader.invoiceHeadDiscountAmount
         invoiceHeader.invoiceHeadTtCode = if (total > 0) "SI" else "RS"
         invoiceHeader.invoiceHeadRate = currency.currencyRate
         return invoiceHeader

@@ -72,15 +72,17 @@ fun EditInvoiceHeaderView(
     val clientExtraNameFocusRequester = remember { FocusRequester() }
     val itemNoteFocusRequester = remember { FocusRequester() }
     val invoiceNoteFocusRequester = remember { FocusRequester() }
+    val cashNameRequester = remember { FocusRequester() }
     val taxFocusRequester = remember { FocusRequester() }
     val tax1FocusRequester = remember { FocusRequester() }
     val tax2FocusRequester = remember { FocusRequester() }
     val invoiceItemModel = posState.invoices[invoiceIndex]
+    val invoiceHeader = posState.invoiceHeader
 
     val rDiscountVal = invoiceItemModel.invoice.invoiceDiscount
     val rDiscamtVal = invoiceItemModel.invoice.invoiceDiscamt * (rDiscountVal.div(100.0))
-    val discountVal = invoiceItemModel.invoice.invoiceDiscount
-    val discamtVal = invoiceItemModel.invoice.invoiceDiscamt * (discountVal.div(100.0))
+    val discountVal = invoiceHeader.invoiceHeadDiscount
+    val discamtVal = invoiceHeader.invoiceHeadDiscountAmount * (discountVal.div(100.0))
 
     var price by remember {
         mutableStateOf(
@@ -92,17 +94,18 @@ fun EditInvoiceHeaderView(
             invoiceItemModel.invoice.invoiceQuantity.toInt()
         )
     }
-    var rDiscount1 by remember { mutableStateOf(rDiscountVal.toString()) }
-    var rDiscount2 by remember { mutableStateOf(rDiscamtVal.toString()) }
-    var discount1 by remember { mutableStateOf(discountVal.toString()) }
-    var discount2 by remember { mutableStateOf(discamtVal.toString()) }
+    var rDiscount1 by remember { mutableStateOf(if (rDiscountVal > 0.0) rDiscountVal.toString() else "") }
+    var rDiscount2 by remember { mutableStateOf(if (rDiscamtVal > 0.0) rDiscamtVal.toString() else "") }
+    var discount1 by remember { mutableStateOf(if (discountVal > 0.0) discountVal.toString() else "") }
+    var discount2 by remember { mutableStateOf(if (discamtVal > 0.0) discamtVal.toString() else "") }
     var clientExtraName by remember {
         mutableStateOf(
             invoiceItemModel.invoice.invoicExtraName ?: ""
         )
     }
     var itemNote by remember { mutableStateOf(invoiceItemModel.invoice.invoicNote ?: "") }
-    var invoiceNote by remember { mutableStateOf(posState.invoiceHeader.invoiceHeadNote ?: "") }
+    var invoiceNote by remember { mutableStateOf(invoiceHeader.invoiceHeadNote ?: "") }
+    var cashName by remember { mutableStateOf(invoiceHeader.invoiceHeadCashName ?: "") }
     var taxState by remember { mutableStateOf(invoiceItemModel.invoice.invoiceTax.toString()) }
     var tax1State by remember {
         mutableStateOf(
@@ -115,30 +118,32 @@ fun EditInvoiceHeaderView(
         )
     }
 
-    fun calculateItemDiscount(){
+    fun calculateItemDiscount() {
         val itemPrice = price.toDoubleOrNull() ?: 0.0
         val itemDiscount2 = rDiscount2.toDoubleOrNull() ?: 0.0
         rDiscount1 = ((itemDiscount2.div(itemPrice)).times(100.0)).toString()
+        invoiceItemModel.invoice.invoiceDiscount = rDiscount1.toDoubleOrNull() ?: 0.0
     }
 
-    fun calculateItemDiscAmt(){
+    fun calculateItemDiscAmt() {
         val itemPrice = price.toDoubleOrNull() ?: 0.0
         val itemDiscount = rDiscount1.toDoubleOrNull() ?: 0.0
         rDiscount2 = (itemPrice.times(itemDiscount.div(100.0))).toString()
+        invoiceItemModel.invoice.invoiceDiscamt = rDiscount2.toDoubleOrNull() ?: 0.0
     }
 
-    fun calculateInvoiceDiscount(){
-        posState.refreshValues()
-        val invoiceAmount = posState.invoiceHeader.invoiceHeadTotal
-        val invoiceDiscount = posState.invoiceHeader.invoiceHeadDiscount
+    fun calculateInvoiceDiscount() {
+        val invoiceAmount = invoiceHeader.invoiceHeadGrossAmount
+        val invoiceDiscount = invoiceHeader.invoiceHeadDiscount
         discount1 = ((invoiceDiscount.div(invoiceAmount)).times(100.0)).toString()
+        invoiceHeader.invoiceHeadDiscount = discount1.toDoubleOrNull() ?: 0.0
     }
 
-    fun calculateInvoiceDiscAmt(){
-        posState.refreshValues()
-        val invoiceAmount = posState.invoiceHeader.invoiceHeadTotal
-        val invoiceDiscount = posState.invoiceHeader.invoiceHeadDiscount
+    fun calculateInvoiceDiscAmt() {
+        val invoiceAmount = invoiceHeader.invoiceHeadGrossAmount
+        val invoiceDiscount = invoiceHeader.invoiceHeadDiscount
         discount2 = (invoiceAmount.times(invoiceDiscount.div(100.0))).toString()
+        invoiceHeader.invoiceHeadDiscountAmount = discount2.toDoubleOrNull() ?: 0.0
     }
 
     Column(
@@ -263,6 +268,7 @@ fun EditInvoiceHeaderView(
                         it,
                         rDiscount1
                     )
+                    invoiceItemModel.invoice.invoiceDiscount = rDiscount1.toDoubleOrNull() ?: 0.0
                     calculateItemDiscAmt()
                 },
                 placeholder = {
@@ -290,6 +296,7 @@ fun EditInvoiceHeaderView(
                         it,
                         rDiscount2
                     )
+                    invoiceItemModel.invoice.invoiceDiscamt= rDiscount2.toDoubleOrNull() ?: 0.0
                     calculateItemDiscount()
                 },
                 placeholder = {
@@ -333,6 +340,7 @@ fun EditInvoiceHeaderView(
                         it,
                         discount1
                     )
+                    invoiceHeader.invoiceHeadDiscount = discount1.toDoubleOrNull() ?: 0.0
                     calculateInvoiceDiscAmt()
                 },
                 placeholder = {
@@ -360,6 +368,7 @@ fun EditInvoiceHeaderView(
                         it,
                         discount2
                     )
+                    invoiceHeader.invoiceHeadDiscountAmount = discount2.toDoubleOrNull() ?: 0.0
                     calculateInvoiceDiscount()
                 },
                 placeholder = {
@@ -402,9 +411,27 @@ fun EditInvoiceHeaderView(
         UITextField(modifier = Modifier.padding(10.dp),
             defaultValue = invoiceNote,
             label = "Invoice Note",
-            focusRequester = itemNoteFocusRequester,
-            onAction = { taxFocusRequester.requestFocus() }) {
+            focusRequester = invoiceNoteFocusRequester,
+            onAction = { cashNameRequester.requestFocus() }) {
             invoiceNote = it
+        }
+
+        UITextField(modifier = Modifier.padding(10.dp),
+            defaultValue = cashName,
+            label = "Cash Name",
+            focusRequester = cashNameRequester,
+            onAction = {
+                if (SettingsModel.showTax) {
+                    taxFocusRequester.requestFocus()
+                } else if (SettingsModel.showTax1) {
+                    tax1FocusRequester.requestFocus()
+                } else if (SettingsModel.showTax2) {
+                    tax2FocusRequester.requestFocus()
+                } else {
+                    keyboardController?.hide()
+                }
+            }) {
+            cashName = it
         }
         if (SettingsModel.showTax || SettingsModel.showTax1 || SettingsModel.showTax2) {
             Row(
@@ -422,7 +449,15 @@ fun EditInvoiceHeaderView(
                         label = "Tax",
                         keyboardType = KeyboardType.Decimal,
                         focusRequester = taxFocusRequester,
-                        onAction = { tax1FocusRequester.requestFocus() }) {
+                        onAction = {
+                            if (SettingsModel.showTax1) {
+                                tax1FocusRequester.requestFocus()
+                            } else if (SettingsModel.showTax2) {
+                                tax2FocusRequester.requestFocus()
+                            } else {
+                                keyboardController?.hide()
+                            }
+                        }) {
                         taxState = Utils.getDoubleValue(
                             it,
                             taxState
@@ -437,7 +472,13 @@ fun EditInvoiceHeaderView(
                         label = "Tax1",
                         keyboardType = KeyboardType.Decimal,
                         focusRequester = tax1FocusRequester,
-                        onAction = { tax2FocusRequester.requestFocus() }) {
+                        onAction = {
+                            if (SettingsModel.showTax2) {
+                                tax2FocusRequester.requestFocus()
+                            } else {
+                                keyboardController?.hide()
+                            }
+                        }) {
                         tax1State = Utils.getDoubleValue(
                             it,
                             taxState
@@ -478,6 +519,7 @@ fun EditInvoiceHeaderView(
                 shape = RoundedCornerShape(15.dp)
             ) {
                 posState.invoiceHeader.invoiceHeadNote = invoiceNote
+                posState.invoiceHeader.invoiceHeadCashName = cashName
                 posState.invoiceHeader.invoiceHeadDiscount = discount1.toDoubleOrNull() ?: 0.0
                 posState.invoiceHeader.invoiceHeadDiscountAmount = discount2.toDoubleOrNull() ?: 0.0
 
@@ -513,6 +555,7 @@ fun EditInvoiceHeaderView(
                 clientExtraName = ""
                 itemNote = ""
                 invoiceNote = ""
+                cashName = ""
             }
 
             UIButton(

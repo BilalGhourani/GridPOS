@@ -57,6 +57,7 @@ fun InvoiceFooterView(
     val tax = invoiceHeader.invoiceHeadTaxAmt
     val tax1 = invoiceHeader.invoiceHeadTax1Amt
     val tax2 = invoiceHeader.invoiceHeadTax2Amt
+    val total = invoiceHeader.invoiceHeadTotal
     val curr1Decimal = currency.currencyName1Dec
     val curr2Decimal = currency.currencyName2Dec
     taxState = String.format(
@@ -75,13 +76,14 @@ fun InvoiceFooterView(
         "%.${curr1Decimal}f",
         tax + tax1 + tax2
     )
+    val netTotal = (total - (tax + tax1 + tax2)).times(invoiceHeader.invoiceHeadDiscount.div(100.0))
     totalState = String.format(
         "%.${curr1Decimal}f",
-        invoiceHeader.invoiceHeadGrossAmount
+        netTotal
     )
     totalCur2State = String.format(
         "%.${curr2Decimal}f",
-        totalState.toDouble().times(currency.currencyRate)
+        netTotal.times(currency.currencyRate)
     )
 
     Row(
