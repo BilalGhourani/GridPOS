@@ -254,8 +254,9 @@ fun PosView(
                     animationSpec = tween(durationMillis = 250)
                 )
             ) {
-                EditInvoiceHeaderView(invoiceItemModel = if (itemIndexToEdit >= 0) invoicesState[itemIndexToEdit] else InvoiceItemModel(),
-                    invoiceHeader = invoiceHeaderState.value,
+                EditInvoiceHeaderView(
+                    posState= posState,
+                    invoiceIndex = itemIndexToEdit,
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(it)

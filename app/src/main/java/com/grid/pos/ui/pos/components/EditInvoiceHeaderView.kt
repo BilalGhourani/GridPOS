@@ -52,14 +52,15 @@ import com.grid.pos.model.InvoiceItemModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.UIButton
 import com.grid.pos.ui.common.UITextField
+import com.grid.pos.ui.pos.POSState
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.utils.Utils
 
 @Composable
 fun EditInvoiceHeaderView(
         modifier: Modifier = Modifier,
-        invoiceItemModel: InvoiceItemModel = InvoiceItemModel(),
-        invoiceHeader: InvoiceHeader = InvoiceHeader(),
+        posState: POSState = POSState(),
+        invoiceIndex: Int = 0,
         onSave: (InvoiceHeader, InvoiceItemModel) -> Unit = { _, _ -> },
         onClose: () -> Unit = {},
 ) {
@@ -74,6 +75,12 @@ fun EditInvoiceHeaderView(
     val taxFocusRequester = remember { FocusRequester() }
     val tax1FocusRequester = remember { FocusRequester() }
     val tax2FocusRequester = remember { FocusRequester() }
+    val invoiceItemModel = posState.invoices[invoiceIndex]
+
+    val rDiscountVal = invoiceItemModel.invoice.invoiceDiscount
+    val rDiscamtVal = invoiceItemModel.invoice.invoiceDiscamt * (rDiscountVal.div(100.0))
+    val discountVal = invoiceItemModel.invoice.invoiceDiscount
+    val discamtVal = invoiceItemModel.invoice.invoiceDiscamt * (discountVal.div(100.0))
 
     var price by remember {
         mutableStateOf(
@@ -85,17 +92,17 @@ fun EditInvoiceHeaderView(
             invoiceItemModel.invoice.invoiceQuantity.toInt()
         )
     }
-    var rDiscount1 by remember { mutableStateOf("") }
-    var rDiscount2 by remember { mutableStateOf("") }
-    var discount1 by remember { mutableStateOf("") }
-    var discount2 by remember { mutableStateOf("") }
+    var rDiscount1 by remember { mutableStateOf(rDiscountVal.toString()) }
+    var rDiscount2 by remember { mutableStateOf(rDiscamtVal.toString()) }
+    var discount1 by remember { mutableStateOf(discountVal.toString()) }
+    var discount2 by remember { mutableStateOf(discamtVal.toString()) }
     var clientExtraName by remember {
         mutableStateOf(
             invoiceItemModel.invoice.invoicExtraName ?: ""
         )
     }
     var itemNote by remember { mutableStateOf(invoiceItemModel.invoice.invoicNote ?: "") }
-    var invoiceNote by remember { mutableStateOf(invoiceHeader.invoiceHeadNote ?: "") }
+    var invoiceNote by remember { mutableStateOf(posState.invoiceHeader.invoiceHeadNote ?: "") }
     var taxState by remember { mutableStateOf(invoiceItemModel.invoice.invoiceTax.toString()) }
     var tax1State by remember {
         mutableStateOf(
@@ -106,6 +113,32 @@ fun EditInvoiceHeaderView(
         mutableStateOf(
             invoiceItemModel.invoice.invoiceTax2.toString()
         )
+    }
+
+    fun calculateItemDiscount(){
+        val itemPrice = price.toDoubleOrNull() ?: 0.0
+        val itemDiscount2 = rDiscount2.toDoubleOrNull() ?: 0.0
+        rDiscount1 = ((itemDiscount2.div(itemPrice)).times(100.0)).toString()
+    }
+
+    fun calculateItemDiscAmt(){
+        val itemPrice = price.toDoubleOrNull() ?: 0.0
+        val itemDiscount = rDiscount1.toDoubleOrNull() ?: 0.0
+        rDiscount2 = (itemPrice.times(itemDiscount.div(100.0))).toString()
+    }
+
+    fun calculateInvoiceDiscount(){
+        posState.refreshValues()
+        val invoiceAmount = posState.invoiceHeader.invoiceHeadTotal
+        val invoiceDiscount = posState.invoiceHeader.invoiceHeadDiscount
+        discount1 = ((invoiceDiscount.div(invoiceAmount)).times(100.0)).toString()
+    }
+
+    fun calculateInvoiceDiscAmt(){
+        posState.refreshValues()
+        val invoiceAmount = posState.invoiceHeader.invoiceHeadTotal
+        val invoiceDiscount = posState.invoiceHeader.invoiceHeadDiscount
+        discount2 = (invoiceAmount.times(invoiceDiscount.div(100.0))).toString()
     }
 
     Column(
@@ -230,6 +263,7 @@ fun EditInvoiceHeaderView(
                         it,
                         rDiscount1
                     )
+                    calculateItemDiscAmt()
                 },
                 placeholder = {
                     Text(text = "0.0")
@@ -256,6 +290,7 @@ fun EditInvoiceHeaderView(
                         it,
                         rDiscount2
                     )
+                    calculateItemDiscount()
                 },
                 placeholder = {
                     Text(text = "0.0")
@@ -298,6 +333,7 @@ fun EditInvoiceHeaderView(
                         it,
                         discount1
                     )
+                    calculateInvoiceDiscAmt()
                 },
                 placeholder = {
                     Text(text = "0.0")
@@ -324,6 +360,7 @@ fun EditInvoiceHeaderView(
                         it,
                         discount2
                     )
+                    calculateInvoiceDiscount()
                 },
                 placeholder = {
                     Text(text = "0.0")
@@ -424,28 +461,7 @@ fun EditInvoiceHeaderView(
                     }
                 }
             }
-        }/* Row(
-             modifier = Modifier
-                 .fillMaxWidth()
-                 .height(60.dp)
-                 .fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)
-         ) {
-             UIButton(
-                 modifier = Modifier
-                     .weight(1f)
-                     .fillMaxHeight(), text = "Add Customer", shape = RoundedCornerShape(15.dp)
-             ) {
-                 onAddCustomer.invoke()
-             }
-
-             UIButton(
-                 modifier = Modifier
-                     .weight(1f)
-                     .fillMaxHeight(), text = "Add Item", shape = RoundedCornerShape(15.dp)
-             ) {
-                 onAddItem.invoke()
-             }
-         }*/
+        }
 
         Row(
             modifier = Modifier
@@ -461,17 +477,22 @@ fun EditInvoiceHeaderView(
                 text = "Save",
                 shape = RoundedCornerShape(15.dp)
             ) {
-                invoiceHeader.invoiceHeadNote = invoiceNote
+                posState.invoiceHeader.invoiceHeadNote = invoiceNote
+                posState.invoiceHeader.invoiceHeadDiscount = discount1.toDoubleOrNull() ?: 0.0
+                posState.invoiceHeader.invoiceHeadDiscountAmount = discount2.toDoubleOrNull() ?: 0.0
 
                 invoiceItemModel.invoice.invoicePrice = price.toDoubleOrNull() ?: invoiceItemModel.invoiceItem.itemUnitPrice
                 invoiceItemModel.invoice.invoiceTax = taxState.toDoubleOrNull() ?: 0.0
                 invoiceItemModel.invoice.invoiceTax1 = tax1State.toDoubleOrNull() ?: 0.0
                 invoiceItemModel.invoice.invoiceTax2 = tax2State.toDoubleOrNull() ?: 0.0
+                invoiceItemModel.invoice.invoiceDiscount = rDiscount1.toDoubleOrNull() ?: 0.0
+                invoiceItemModel.invoice.invoiceDiscamt = rDiscount2.toDoubleOrNull() ?: 0.0
                 invoiceItemModel.invoice.invoiceQuantity = qty.toDouble()
                 invoiceItemModel.invoice.invoicExtraName = clientExtraName
                 invoiceItemModel.invoice.invoicNote = itemNote
+                posState.invoices[invoiceIndex] = invoiceItemModel
                 onSave.invoke(
-                    invoiceHeader,
+                    posState.invoiceHeader,
                     invoiceItemModel
                 )
             }

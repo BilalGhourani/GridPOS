@@ -4,8 +4,8 @@ import com.grid.pos.data.Invoice.Invoice
 import com.grid.pos.data.Item.Item
 
 data class InvoiceItemModel(
-    val invoice: Invoice = Invoice(),
-    var invoiceItem: Item = Item(),
+        val invoice: Invoice = Invoice(),
+        var invoiceItem: Item = Item(),
 ) {
 
     fun setItem(item: Item) {
@@ -58,7 +58,12 @@ data class InvoiceItemModel(
 
     fun getNetAmount(): Double {
         val quantity = invoice.invoiceQuantity
-        val netPrice = (getPrice() + getTax() + getTax1() + getTax2()) - getDiscount()
-        return quantity.times(netPrice)
+        val discountPercentage = getDiscount().div(100.0)
+        var totalAfterDisc = getPrice() + getTax() + getTax1() + getTax2()
+        if (discountPercentage > 0.0) {
+            val discountAmount = (totalAfterDisc).times(discountPercentage)
+            totalAfterDisc -= discountAmount
+        }
+        return quantity.times(totalAfterDisc)
     }
 }
