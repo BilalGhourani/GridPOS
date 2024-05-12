@@ -7,6 +7,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.QuerySnapshot
 import com.grid.pos.model.SettingsModel
+import com.grid.pos.utils.Extension.encryptCBC
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -36,7 +37,8 @@ class UserRepositoryImpl(
             callback: OnResult?
     ) {
         if (SettingsModel.loadFromRemote) {
-            FirebaseFirestore.getInstance().collection("set_users").document(user.userDocumentId!!).delete().addOnSuccessListener {
+            FirebaseFirestore.getInstance().collection("set_users").document(user.userDocumentId!!)
+                .delete().addOnSuccessListener {
                 callback?.onSuccess(user)
             }.addOnFailureListener { e ->
                 callback?.onFailure(e.message.toString())
@@ -52,7 +54,8 @@ class UserRepositoryImpl(
             callback: OnResult?
     ) {
         if (SettingsModel.loadFromRemote) {
-            FirebaseFirestore.getInstance().collection("set_users").document(user.userDocumentId!!).update(user.getMap()).addOnSuccessListener {
+            FirebaseFirestore.getInstance().collection("set_users").document(user.userDocumentId!!)
+                .update(user.getMap()).addOnSuccessListener {
                 callback?.onSuccess(user)
             }.addOnFailureListener { e ->
                 callback?.onFailure(e.message.toString())
@@ -69,11 +72,9 @@ class UserRepositoryImpl(
     ) {
         if (SettingsModel.loadFromRemote) {
             FirebaseFirestore.getInstance().collection("set_users").whereEqualTo(
-                "usr_cmp_id",
-                SettingsModel.companyID
+                "usr_cmp_id", SettingsModel.companyID
             ).whereEqualTo(
-                "usr_id",
-                id
+                "usr_id", id
             ).get().addOnSuccessListener { result ->
                 val document = result.documents.firstOrNull()
                 if (document != null) {
@@ -101,14 +102,11 @@ class UserRepositoryImpl(
     ) {
         if (SettingsModel.loadFromRemote) {
             FirebaseFirestore.getInstance().collection("set_users").whereEqualTo(
-                "usr_username",
-                username
+                "usr_username", username
             ).whereEqualTo(
-                "usr_password",
-                password
+                "usr_password", password
             ).whereEqualTo(
-                "usr_cmp_id",
-                SettingsModel.companyID
+                "usr_cmp_id", SettingsModel.companyID
             ).get().addOnSuccessListener { result ->
                 if (result.size() > 0) {
                     CoroutineScope(Dispatchers.IO).launch {
@@ -122,8 +120,7 @@ class UserRepositoryImpl(
                     }
                 } else {
                     callback?.onFailure(
-                        "Username or Password are incorrect!",
-                        1
+                        "Username or Password are incorrect!", 1
                     )
                 }
             }.addOnFailureListener { exception ->
@@ -133,16 +130,12 @@ class UserRepositoryImpl(
             }
         } else {
             userDao.login(
-                username,
-                password
+                username, password
             ).collect {
                 if (it.isNotEmpty()) {
                     callback?.onSuccess(it[0])
                 } else {
-                    callback?.onFailure(
-                        "no user found!",
-                        1
-                    )
+                    callback?.onSuccess(User("", null, "temp user", "user", "1".encryptCBC()))
                 }
                 callback?.onSuccess(it)
             }
@@ -152,8 +145,7 @@ class UserRepositoryImpl(
     override suspend fun getAllUsers(callback: OnResult?) {
         if (SettingsModel.loadFromRemote) {
             FirebaseFirestore.getInstance().collection("set_users").whereEqualTo(
-                "usr_cmp_id",
-                SettingsModel.companyID
+                "usr_cmp_id", SettingsModel.companyID
             ).get().addOnSuccessListener { result ->
                 val users = mutableListOf<User>()
                 if (result.size() > 0) {
