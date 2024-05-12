@@ -10,11 +10,14 @@ import android.webkit.WebView
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.grid.pos.data.Currency.Currency
 import com.grid.pos.data.DataModel
 import com.grid.pos.data.Family.Family
+import com.grid.pos.data.InvoiceHeader.InvoiceHeader
 import com.grid.pos.data.Item.Item
 import com.grid.pos.data.User.User
 import com.grid.pos.model.HomeSectionModel
+import com.grid.pos.model.InvoiceItemModel
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.math.BigInteger
@@ -30,145 +33,96 @@ object Utils {
 
     val homeSections = mutableListOf(
         HomeSectionModel(
-            "Currency",
-            "ManageCurrenciesView"
+            "Currency", "ManageCurrenciesView"
         ),
         HomeSectionModel(
-            "Company",
-            "ManageCompaniesView"
+            "Company", "ManageCompaniesView"
         ),
         HomeSectionModel(
-            "User",
-            "ManageUsersView"
+            "User", "ManageUsersView"
         ),
         HomeSectionModel(
-            "Third Party",
-            "ManageThirdPartiesView"
+            "Third Party", "ManageThirdPartiesView"
         ),
         HomeSectionModel(
-            "Family",
-            "ManageFamiliesView"
+            "Family", "ManageFamiliesView"
         ),
         HomeSectionModel(
-            "Item",
-            "ManageItemsView"
+            "Item", "ManageItemsView"
         ),
         HomeSectionModel(
-            "POS",
-            "PosView"
+            "POS", "PosView"
         ),
         HomeSectionModel(
-            "Table",
-            "ManageTablesView"
+            "Table", "ManageTablesView"
         ),
     )
 
     val users = mutableListOf(
         User(
-            userId = "1",
-            userName = "Bilal",
-            userPassword = "123456"
+            userId = "1", userName = "Bilal", userPassword = "123456"
         ) as DataModel,
         User(
-            userId = "1",
-            userName = "Ziad",
-            userPassword = "133442"
+            userId = "1", userName = "Ziad", userPassword = "133442"
         ) as DataModel,
         User(
-            userId = "1",
-            userName = "Zakariya",
-            userPassword = "123432"
+            userId = "1", userName = "Zakariya", userPassword = "123432"
         ) as DataModel,
         User(
-            userId = "1",
-            userName = "Mohammad",
-            userPassword = "432785"
+            userId = "1", userName = "Mohammad", userPassword = "432785"
         ) as DataModel,
         User(
-            userId = "1",
-            userName = "Ahmad",
-            userPassword = "009988"
+            userId = "1", userName = "Ahmad", userPassword = "009988"
         ) as DataModel,
         User(
-            userId = "1",
-            userName = "Samir",
-            userPassword = "225577"
+            userId = "1", userName = "Samir", userPassword = "225577"
         ) as DataModel,
         User(
-            userId = "1",
-            userName = "Omar",
-            userPassword = "113311"
+            userId = "1", userName = "Omar", userPassword = "113311"
         ) as DataModel,
         User(
-            userId = "1",
-            userName = "Abed Al Rahman",
-            userPassword = "112345"
+            userId = "1", userName = "Abed Al Rahman", userPassword = "112345"
         ) as DataModel,
         User(
-            userId = "1",
-            userName = "Abdullah",
-            userPassword = "998888"
+            userId = "1", userName = "Abdullah", userPassword = "998888"
         ) as DataModel,
     )
 
     val categories = mutableListOf(
         Family(
-            "1",
-            "Chicken"
-        ),
-        Family(
-            "2",
-            "Meat"
-        ),
-        Family(
-            "3",
-            "Salad"
-        ),
-        Family(
-            "4",
-            "Veg"
-        ),
-        Family(
-            "5",
-            "Other"
+            "1", "Chicken"
+        ), Family(
+            "2", "Meat"
+        ), Family(
+            "3", "Salad"
+        ), Family(
+            "4", "Veg"
+        ), Family(
+            "5", "Other"
         )
     )
 
     val listOfItems = mutableListOf(
         Item(
-            itemId = "1",
-            itemName = "Chicken",
-            itemUnitPrice = 100.0
+            itemId = "1", itemName = "Chicken", itemUnitPrice = 100.0
         ),
         Item(
-            itemId = "2",
-            itemName = "Salad",
-            itemUnitPrice = 100.0
+            itemId = "2", itemName = "Salad", itemUnitPrice = 100.0
         ),
         Item(
-            itemId = "3",
-            itemName = "Veg",
-            itemUnitPrice = 100.0
+            itemId = "3", itemName = "Veg", itemUnitPrice = 100.0
         ),
         Item(
-            itemId = "4",
-            itemName = "Other",
-            itemUnitPrice = 100.0
+            itemId = "4", itemName = "Other", itemUnitPrice = 100.0
         ),
         Item(
-            itemId = "5",
-            itemName = "Other1",
-            itemUnitPrice = 100.0
+            itemId = "5", itemName = "Other1", itemUnitPrice = 100.0
         ),
         Item(
-            itemId = "6",
-            itemName = "Other2",
-            itemUnitPrice = 100.0
+            itemId = "6", itemName = "Other2", itemUnitPrice = 100.0
         ),
         Item(
-            itemId = "7",
-            itemName = "Other3",
-            itemUnitPrice = 100.0
+            itemId = "7", itemName = "Other3", itemUnitPrice = 100.0
         ),
     )
 
@@ -189,8 +143,7 @@ object Utils {
             format: String = "MMMM dd, yyyy 'at' hh:mm:ss a 'Z'"
     ): String {
         val parserFormat = SimpleDateFormat(
-            format,
-            Locale.getDefault()
+            format, Locale.getDefault()
         )
         parserFormat.timeZone = TimeZone.getTimeZone("UTC")
         return parserFormat.format(date)
@@ -203,17 +156,14 @@ object Utils {
     ): Color {
         // Convert HSV to RGB
         val hsv = floatArrayOf(
-            hue,
-            saturation,
-            brightness
+            hue, saturation, brightness
         )
         return Color(android.graphics.Color.HSVToColor(hsv))
     }
 
     fun generateNameFromUsername(username: String): String {
         return username.replace(
-            "_",
-            " "
+            "_", " "
         )
     }
 
@@ -260,9 +210,7 @@ object Utils {
             ).setMinMargins(PrintAttributes.Margins.NO_MARGINS).build()
 
             printManager.print(
-                jobName,
-                printAdapter,
-                printAttributes
+                jobName, printAdapter, printAttributes
             )
         }
     }
@@ -280,10 +228,7 @@ object Utils {
         val heightMicrometers = heightInches * 25400
 
         return MediaSize(
-            "POS Receipt",
-            "POS Receipt",
-            widthMicrometers,
-            heightMicrometers
+            "POS Receipt", "POS Receipt", widthMicrometers, heightMicrometers
         )
     }
 
@@ -330,12 +275,10 @@ object Utils {
         val currentYear = getCurrentYear()
         var invNoStr = oldInvoiceNo.takeIf { !it.isNullOrEmpty() } ?: (currentYear + "000000000")
         if (invNoStr.length > 4 && !invNoStr.substring(
-                0,
-                4
+                0, 4
             ).equals(
-                    currentYear,
-                    ignoreCase = true
-                )
+                currentYear, ignoreCase = true
+            )
         ) {
             invNoStr = currentYear + "000000000"
         }

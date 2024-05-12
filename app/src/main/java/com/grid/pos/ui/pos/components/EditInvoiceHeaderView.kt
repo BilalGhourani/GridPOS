@@ -78,8 +78,9 @@ fun EditInvoiceHeaderView(
     val tax1FocusRequester = remember { FocusRequester() }
     val tax2FocusRequester = remember { FocusRequester() }
 
-    val invoiceItemModel = posState.invoices[invoiceIndex].copy()
-    val invoiceHeader = posState.invoiceHeader.copy()
+    val invoices = posState.invoices.toMutableList()
+    val invoiceItemModel = invoices[invoiceIndex].copy()
+    var invoiceHeader = posState.invoiceHeader.copy()
 
     val rDiscountVal = invoiceItemModel.invoice.invoiceDiscount
     val rDiscamtVal = invoiceItemModel.invoice.invoiceDiscamt * (rDiscountVal.div(100.0))
@@ -161,8 +162,8 @@ fun EditInvoiceHeaderView(
         if (invDiscount == 0.0 && invDiscountAmount == 0.0) {
             return
         }
-        posState.invoices[invoiceIndex] = invoiceItemModel
-        posState.refreshValues()
+        invoices[invoiceIndex] = invoiceItemModel
+        invoiceHeader = posState.refreshValues(invoices, invoiceHeader)
         val invoiceAmount = invoiceHeader.invoiceHeadGrossAmount
         if (isPercentage) {
             discount2 = String.format(
@@ -516,10 +517,10 @@ fun EditInvoiceHeaderView(
                     .fillMaxHeight(), text = "Save",
                 shape = RoundedCornerShape(15.dp)
             ) {
-                posState.invoiceHeader.invoiceHeadNote = invoiceNote
-                posState.invoiceHeader.invoiceHeadCashName = cashName
-                posState.invoiceHeader.invoiceHeadDiscount = discount1.toDoubleOrNull() ?: 0.0
-                posState.invoiceHeader.invoiceHeadDiscountAmount = discount2.toDoubleOrNull() ?: 0.0
+                invoiceHeader.invoiceHeadNote = invoiceNote
+                invoiceHeader.invoiceHeadCashName = cashName
+                invoiceHeader.invoiceHeadDiscount = discount1.toDoubleOrNull() ?: 0.0
+                invoiceHeader.invoiceHeadDiscountAmount = discount2.toDoubleOrNull() ?: 0.0
 
                 invoiceItemModel.invoice.invoicePrice = price.toDoubleOrNull() ?: invoiceItemModel.invoiceItem.itemUnitPrice
                 invoiceItemModel.invoice.invoiceTax = taxState.toDoubleOrNull() ?: 0.0
@@ -530,9 +531,8 @@ fun EditInvoiceHeaderView(
                 invoiceItemModel.invoice.invoiceQuantity = qty.toDouble()
                 invoiceItemModel.invoice.invoicExtraName = clientExtraName
                 invoiceItemModel.invoice.invoicNote = itemNote
-                posState.invoices[invoiceIndex] = invoiceItemModel
                 onSave.invoke(
-                    posState.invoiceHeader, invoiceItemModel
+                    invoiceHeader, invoiceItemModel
                 )
             }
 

@@ -22,31 +22,34 @@ data class POSState(
         val isLoading: Boolean = false,
         val warning: String? = null,
 ) {
-    fun refreshValues(): InvoiceHeader {
+    fun refreshValues(
+            invoiceList: MutableList<InvoiceItemModel> = invoices,
+            invHeader: InvoiceHeader = invoiceHeader
+    ): InvoiceHeader {
         var discount = 0.0
         var tax = 0.0
         var tax1 = 0.0
         var tax2 = 0.0
         var total = 0.0
-        invoices.forEach {
+        invoiceList.forEach {
             discount += it.getDiscount()
             tax += it.getTax()
             tax1 += it.getTax1()
             tax2 += it.getTax2()
             total += it.getAmount()
         }
-        invoiceHeader.invoiceHeadTaxAmt = tax
-        invoiceHeader.invoiceHeadTax1Amt = tax1
-        invoiceHeader.invoiceHeadTax2Amt = tax2
-        invoiceHeader.invoiceHeadTotalTax = tax + tax1 + tax2
-        invoiceHeader.invoiceHeadTotal = total
-        invoiceHeader.invoiceHeadTotal1 = total.times(currency.currencyRate)
-        invoiceHeader.invoiceHeadDiscount = discount
-        invoiceHeader.invoiceHeadDiscountAmount = total.times(discount.div(100.0))
-        invoiceHeader.invoiceHeadGrossAmount = (total - invoiceHeader.invoiceHeadTotalTax) - invoiceHeader.invoiceHeadDiscountAmount
-        invoiceHeader.invoiceHeadTtCode = if (total > 0) "SI" else "RS"
-        invoiceHeader.invoiceHeadRate = currency.currencyRate
-        return invoiceHeader
+        invHeader.invoiceHeadTaxAmt = tax
+        invHeader.invoiceHeadTax1Amt = tax1
+        invHeader.invoiceHeadTax2Amt = tax2
+        invHeader.invoiceHeadTotalTax = tax + tax1 + tax2
+        invHeader.invoiceHeadTotal = total
+        invHeader.invoiceHeadTotal1 = total.times(currency.currencyRate)
+        invHeader.invoiceHeadDiscount = discount
+        invHeader.invoiceHeadDiscountAmount = total.times(discount.div(100.0))
+        invHeader.invoiceHeadGrossAmount = (total - invHeader.invoiceHeadTotalTax) - invHeader.invoiceHeadDiscountAmount
+        invHeader.invoiceHeadTtCode = if (total > 0) "SI" else "RS"
+        invHeader.invoiceHeadRate = currency.currencyRate
+        return invHeader
     }
 
     fun getInvoiceType(): String {
