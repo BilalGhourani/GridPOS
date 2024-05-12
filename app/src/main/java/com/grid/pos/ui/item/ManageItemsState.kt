@@ -6,12 +6,12 @@ import com.grid.pos.data.Item.Item
 import com.grid.pos.data.PosPrinter.PosPrinter
 
 data class ManageItemsState(
-    val items: MutableList<Item> = mutableListOf(),
-    val companies: MutableList<Company> = mutableListOf(),
-    val families: MutableList<Family> = mutableListOf(),
-    val printers: MutableList<PosPrinter> = mutableListOf(),
-    var selectedItem: Item = Item(),
-    val isLoading: Boolean = false,
-    var clear: Boolean = false,
-    val warning: String? = null,
+        val items: MutableList<Item> = mutableListOf(),
+        val companies: MutableList<Company> = mutableListOf(),
+        val families: MutableList<Family> = mutableListOf(),
+        val printers: MutableList<PosPrinter> = mutableListOf(),
+        var selectedItem: Item = Item(),
+        var isLoading: Boolean = false,
+        var clear: Boolean = false,
+        val warning: String? = null,
 )

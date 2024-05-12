@@ -51,14 +51,19 @@ import com.grid.pos.ui.common.UIButton
 import com.grid.pos.ui.common.UITextField
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.utils.Utils
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalGlideComposeApi::class)
 @Composable
 fun ManageFamiliesView(
-    navController: NavController? = null,
-    modifier: Modifier = Modifier,
-    mainActivity: MainActivity,
-    viewModel: ManageFamiliesViewModel = hiltViewModel()
+        navController: NavController? = null,
+        modifier: Modifier = Modifier,
+        mainActivity: MainActivity,
+        viewModel: ManageFamiliesViewModel = hiltViewModel()
 ) {
     val manageFamiliesState: ManageFamiliesState by viewModel.manageFamiliesState.collectAsState(
         ManageFamiliesState()
@@ -67,34 +72,27 @@ fun ManageFamiliesView(
     val imageFocusRequester = remember { FocusRequester() }
 
     var nameState by remember { mutableStateOf("") }
-    var imageState by remember { mutableStateOf(manageFamiliesState.selectedFamily.familyImage ?: "") }
+    var imageState by remember { mutableStateOf("") }
     GridPOSTheme {
-        Scaffold(
-            containerColor = SettingsModel.backgroundColor,
-            topBar = {
-                Surface(shadowElevation = 3.dp, color = SettingsModel.backgroundColor) {
-                    TopAppBar(
-                        colors = TopAppBarDefaults.mediumTopAppBarColors(containerColor = SettingsModel.topBarColor),
-                        navigationIcon = {
-                            IconButton(onClick = { navController?.popBackStack() }) {
-                                Icon(
-                                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                    contentDescription = "Back",
-                                    tint = SettingsModel.buttonColor
-                                )
-                            }
-                        },
-                        title = {
-                            Text(
-                                text = "Manage Families",
-                                color = SettingsModel.textColor,
-                                fontSize = 16.sp,
-                                textAlign = TextAlign.Center
-                            )
-                        })
-                }
+        Scaffold(containerColor = SettingsModel.backgroundColor, topBar = {
+            Surface(shadowElevation = 3.dp, color = SettingsModel.backgroundColor) {
+                TopAppBar(colors = TopAppBarDefaults.mediumTopAppBarColors(
+                    containerColor = SettingsModel.topBarColor
+                ), navigationIcon = {
+                    IconButton(onClick = { navController?.popBackStack() }) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back", tint = SettingsModel.buttonColor
+                        )
+                    }
+                }, title = {
+                    Text(
+                        text = "Manage Families", color = SettingsModel.textColor, fontSize = 16.sp,
+                        textAlign = TextAlign.Center
+                    )
+                })
             }
-        ) {
+        }) {
             Box(
                 modifier = modifier
                     .fillMaxSize()
@@ -102,9 +100,7 @@ fun ManageFamiliesView(
                     .background(color = Color.Transparent)
             ) {
                 Box(
-                    modifier = Modifier
-                        .fillMaxSize(),
-                    contentAlignment = Alignment.TopCenter
+                    modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter
                 ) {
                     Column(
                         modifier = Modifier
@@ -115,8 +111,7 @@ fun ManageFamiliesView(
                         SearchableDropdownMenu(
                             items = manageFamiliesState.families.toMutableList(),
                             modifier = Modifier.padding(10.dp),
-                            label =
-                            nameState.ifEmpty { "Select Family" },
+                            label = nameState.ifEmpty { "Select Family" },
                         ) { family ->
                             family as Family
                             manageFamiliesState.selectedFamily = family
@@ -124,49 +119,51 @@ fun ManageFamiliesView(
                             imageState = family.familyImage ?: ""
                         }
 
-                        UITextField(
-                            modifier = Modifier.padding(10.dp),
-                            defaultValue = nameState,
-                            label = "Name",
-                            placeHolder = "Enter Name",
-                            onAction = {imageFocusRequester.requestFocus()}
-                        ) { name ->
+                        UITextField(modifier = Modifier.padding(10.dp), defaultValue = nameState,
+                            label = "Name", placeHolder = "Enter Name",
+                            onAction = { imageFocusRequester.requestFocus() }) { name ->
                             nameState = name
                             manageFamiliesState.selectedFamily.familyName = name
                         }
 
-                        UITextField(
-                            modifier = Modifier.padding(10.dp),
-                            defaultValue = imageState,
-                            label = "Image",
-                            placeHolder = "Image",
-                            focusRequester = imageFocusRequester,
-                            imeAction = ImeAction.Done,
-                            onAction = { keyboardController?.hide() },
-                            trailingIcon = {
+                        UITextField(modifier = Modifier.padding(10.dp), defaultValue = imageState,
+                            label = "Image", placeHolder = "Image",
+                            focusRequester = imageFocusRequester, imeAction = ImeAction.Done,
+                            onAction = { keyboardController?.hide() }, trailingIcon = {
                                 IconButton(onClick = {
                                     mainActivity.launchGalleryPicker(
                                         mediaType = ActivityResultContracts.PickVisualMedia.ImageOnly,
                                         object : OnGalleryResult {
                                             override fun onGalleryResult(uris: List<Uri>) {
                                                 if (uris.isNotEmpty()) {
-                                                    imageState = uris[0].toString()
-                                                    manageFamiliesState.selectedFamily.familyImage = imageState
+                                                    manageFamiliesState.isLoading = true
+                                                    CoroutineScope(Dispatchers.IO).launch {
+                                                        val file = File(uris[0].path)
+                                                        val internalPath = Utils.saveToInternalStorage(
+                                                            context = mainActivity,
+                                                            parent = "family", file,
+                                                            nameState.ifEmpty { file.name })
+                                                        withContext(Dispatchers.Main) {
+                                                            manageFamiliesState.isLoading = false
+                                                            if (internalPath != null) {
+                                                                imageState = internalPath
+                                                                manageFamiliesState.selectedFamily.familyImage = imageState
+                                                            }
+                                                        }
+                                                    }
                                                 }
                                             }
 
-                                        }
-                                    )
+                                        })
                                 }) {
                                     Icon(
                                         Icons.Default.Image, contentDescription = "Image",
                                         tint = SettingsModel.buttonColor
                                     )
                                 }
-                            }
-                        ) { img ->
+                            }) { img ->
                             imageState = img
-                            manageFamiliesState.selectedFamily.familyName = img
+                            manageFamiliesState.selectedFamily.familyImage = img
                         }
 
                         Row(
@@ -179,8 +176,7 @@ fun ManageFamiliesView(
                             UIButton(
                                 modifier = Modifier
                                     .weight(.33f)
-                                    .padding(3.dp),
-                                text = "Save"
+                                    .padding(3.dp), text = "Save"
                             ) {
                                 viewModel.saveFamily()
                             }
@@ -188,8 +184,7 @@ fun ManageFamiliesView(
                             UIButton(
                                 modifier = Modifier
                                     .weight(.33f)
-                                    .padding(3.dp),
-                                text = "Delete"
+                                    .padding(3.dp), text = "Delete"
                             ) {
                                 viewModel.deleteSelectedFamily()
                             }
@@ -197,8 +192,7 @@ fun ManageFamiliesView(
                             UIButton(
                                 modifier = Modifier
                                     .weight(.33f)
-                                    .padding(3.dp),
-                                text = "Close"
+                                    .padding(3.dp), text = "Close"
                             ) {
                                 navController?.popBackStack()
                             }

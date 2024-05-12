@@ -2,14 +2,21 @@ plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.jetbrainsKotlinAndroid)
     kotlin("kapt")
-    id ("dagger.hilt.android.plugin")
+    id("dagger.hilt.android.plugin")
     id("com.google.gms.google-services")
 }
 
 android {
     namespace = "com.grid.pos"
-    compileSdk = 34
 
+
+  /*  signingConfigs {
+        release {
+
+        }
+    }*/
+
+    compileSdk = 34
     defaultConfig {
         applicationId = "com.grid.pos"
         minSdk = 24
@@ -25,10 +32,18 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isDebuggable = false
+           /* signingConfig = signingConfigs.release*/
             proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
+                getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
+            )
+        }
+        debug {
+            isMinifyEnabled = false
+            isDebuggable = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
             )
         }
     }
@@ -71,21 +86,20 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
 
 
-    implementation ("androidx.compose.material:material-icons-core:1.6.6")
-    implementation ("androidx.compose.material:material-icons-extended:1.6.6")
-
+    implementation("androidx.compose.material:material-icons-core:1.6.6")
+    implementation("androidx.compose.material:material-icons-extended:1.6.6")
 
     //Navigation
-    implementation ("androidx.navigation:navigation-compose:2.7.7")
-    implementation ("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.1")
-    implementation ("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
-    implementation ("androidx.activity:activity-ktx:1.9.0")
+    implementation("androidx.navigation:navigation-compose:2.7.7")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.1")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
+    implementation("androidx.activity:activity-ktx:1.9.0")
 
     //Dagger - Hilt
-    implementation ("com.google.dagger:hilt-android:2.48")
-    implementation ("androidx.hilt:hilt-navigation-compose:1.2.0")
-    kapt ("com.google.dagger:hilt-android-compiler:2.48")
-    implementation ("androidx.hilt:hilt-navigation-compose:1.2.0")
+    implementation("com.google.dagger:hilt-android:2.48")
+    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
+    kapt("com.google.dagger:hilt-android-compiler:2.48")
+    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
 
     // Room
     implementation("androidx.room:room-runtime:2.6.1")
@@ -95,22 +109,22 @@ dependencies {
     implementation("androidx.room:room-ktx:2.6.1")
 
     //firebase
-    implementation ("com.google.firebase:firebase-crashlytics-buildtools:2.9.9")
+    implementation("com.google.firebase:firebase-crashlytics-buildtools:2.9.9")
 //    api ("com.google.firebase:firebase-messaging:23.4.1")
     implementation(platform("com.google.firebase:firebase-bom:32.8.1"))
     implementation("com.google.firebase:firebase-firestore:24.11.1")
     implementation("com.google.firebase:firebase-analytics")
     implementation("com.google.firebase:firebase-storage:20.3.0")
 
-
     // Glide images
-    implementation (libs.compose.glide)
+    implementation(libs.compose.glide)
+    implementation("io.coil-kt:coil-compose:2.6.0")
 
     //gson
-    implementation ("com.google.code.gson:gson:2.10.1")
+    implementation("com.google.code.gson:gson:2.10.1")
 
     //jetPack DataStore
-    implementation ("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.1")
-    implementation ("androidx.datastore:datastore-preferences-rxjava2:1.0.0")
-    implementation ("androidx.datastore:datastore-preferences-rxjava3:1.0.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.1")
+    implementation("androidx.datastore:datastore-preferences-rxjava2:1.0.0")
+    implementation("androidx.datastore:datastore-preferences-rxjava3:1.0.0")
 }

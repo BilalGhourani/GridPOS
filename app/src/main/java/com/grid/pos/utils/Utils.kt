@@ -2,24 +2,31 @@ package com.grid.pos.utils
 
 import android.content.Context
 import android.content.res.Configuration
+import android.net.Uri
 import android.os.Build
 import android.print.PrintAttributes
 import android.print.PrintAttributes.MediaSize
 import android.print.PrintManager
+import android.util.Log
 import android.webkit.WebView
+import android.widget.Toast
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.grid.pos.data.Currency.Currency
+import androidx.core.net.toUri
 import com.grid.pos.data.DataModel
 import com.grid.pos.data.Family.Family
-import com.grid.pos.data.InvoiceHeader.InvoiceHeader
 import com.grid.pos.data.Item.Item
 import com.grid.pos.data.User.User
 import com.grid.pos.model.HomeSectionModel
-import com.grid.pos.model.InvoiceItemModel
 import java.io.BufferedReader
+import java.io.File
+import java.io.FileInputStream
+import java.io.FileOutputStream
+import java.io.IOException
+import java.io.InputStream
 import java.io.InputStreamReader
+import java.io.OutputStream
 import java.math.BigInteger
 import java.text.SimpleDateFormat
 import java.time.Year
@@ -294,4 +301,86 @@ object Utils {
         }
         return currentYear.toString()
     }
+
+    fun saveToInternalStorage(
+            context: Context,
+            parent: String = "family",
+            sourceFile: File,
+            destName: String
+    ): String? {
+        val storageDir = File(context.filesDir, "images")
+        if (!storageDir.exists()) {
+            storageDir.mkdir()
+        }
+        val parentDir = File(storageDir, parent)
+        if (!parentDir.exists()) {
+            parentDir.mkdir()
+        }
+        val name = "$destName.jpg"
+        val destinationFile = File(parentDir, name)
+
+        // Create imageDir
+         copyImageToInternalStorage(context,sourceFile.toUri())
+        return ""
+        //return sourceFile.copyAndGetPath(context, destinationFile.absolutePath, name)
+        // copyImage(context, sourceFile, destinationFile)
+        //return destinationFile.path
+    }
+
+    fun copyImage(
+            context: Context,
+            sourceFile: File,
+            destinationFile: File
+    ) {
+        val contentResolver = context.contentResolver
+        try {
+            val inputStream: InputStream = if (!sourceFile.exists()) {
+                // Opening from gallery using content URI
+                contentResolver.openInputStream(Uri.fromFile(sourceFile))!!
+            } else {
+                // Opening from internal storage using path
+                FileInputStream(sourceFile)
+            }
+            val outputStream = destinationFile.outputStream()
+            val buffer = ByteArray(1024) // Adjust buffer size as needed
+            var bytesRead: Int
+            while (inputStream.read(buffer).also { bytesRead = it } > 0) {
+                outputStream.write(buffer, 0, bytesRead)
+            }
+            inputStream.close()
+            outputStream.close()
+        } catch (e: IOException) {
+            Log.e("tag", "Failed to copy image", e)
+        }
+    }
+
+    private fun copyImageToInternalStorage(context: Context,imageUri: Uri) {
+        try {
+            // Open input stream from selected image URI
+            val inputStream: InputStream = context.contentResolver.openInputStream(imageUri)?:return
+
+            // Create destination file in internal storage
+            val fileName = "copied_image.jpg"
+            val destFile: File = File(context.filesDir, fileName)
+
+            // Open output stream to destination file
+            val outputStream: OutputStream = FileOutputStream(destFile)
+
+            // Copy data from input stream to output stream
+            val buffer = ByteArray(1024)
+            var length: Int
+            while (inputStream.read(buffer).also { length = it } > 0) {
+                outputStream.write(buffer, 0, length)
+            }
+
+            // Close streams
+            inputStream.close()
+            outputStream.close()
+
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
+    }
+
+
 }

@@ -5,6 +5,7 @@ import android.util.Log
 import com.google.firebase.FirebaseApp
 import com.google.firebase.FirebaseOptions
 import com.google.firebase.firestore.FirebaseFirestore
+import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.Utils
 import dagger.hilt.android.HiltAndroidApp
 import org.json.JSONException
@@ -26,6 +27,7 @@ class App : Application() {
         super.onCreate()
         instance = this
         initAppConfig()
+       // initFirebase()
         FirebaseFirestore.setLoggingEnabled(true)
     }
 
@@ -50,10 +52,10 @@ class App : Application() {
     private fun initFirebase() {
         // Initialize Firebase only once (preferably in onCreate)
         val options: FirebaseOptions = FirebaseOptions.Builder()
-            .setApplicationId("1:337880577447:android:295a236f47063a5233b282")
-            .setApiKey("AIzaSyDSh65g8EqvGeyOviwCKmJh4jFD2iXQhYk").setProjectId("grids-app-8a2b7")
+            .setApplicationId(SettingsModel.firebaseApplicationId!!)
+            .setApiKey(SettingsModel.firebaseApiKey!!).setProjectId(SettingsModel.firebaseProjectId!!)
             .setDatabaseUrl(
-                "https://grids-app-8a2b7-default-rtdb.europe-west1.firebasedatabase.app"
+                SettingsModel.firebaseDbPath!!
             ).build()
         FirebaseApp.initializeApp(this, options)
     }

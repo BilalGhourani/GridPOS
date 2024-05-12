@@ -176,6 +176,17 @@ data class Item(
     }
 
     @Exclude
+    fun getFullItemImage(): String {
+        itemImage?.let {
+            if (it.startsWith("/")) {
+                return "file://$it"
+            }
+            return it
+        }
+        return ""
+    }
+
+    @Exclude
     override fun prepareForInsert() {
         if (itemId.isNullOrEmpty()) {
             itemId = Utils.generateRandomUuidString()
