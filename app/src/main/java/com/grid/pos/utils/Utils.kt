@@ -287,7 +287,7 @@ object Utils {
         )
     }
 
-    fun readHtmlFromAssets(
+    fun readFileFromAssets(
             fileName: String,
             context: Context
     ): String {

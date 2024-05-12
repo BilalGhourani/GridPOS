@@ -77,8 +77,9 @@ fun EditInvoiceHeaderView(
     val taxFocusRequester = remember { FocusRequester() }
     val tax1FocusRequester = remember { FocusRequester() }
     val tax2FocusRequester = remember { FocusRequester() }
-    val invoiceItemModel = posState.invoices[invoiceIndex]
-    val invoiceHeader = posState.invoiceHeader
+
+    val invoiceItemModel = posState.invoices[invoiceIndex].copy()
+    val invoiceHeader = posState.invoiceHeader.copy()
 
     val rDiscountVal = invoiceItemModel.invoice.invoiceDiscount
     val rDiscamtVal = invoiceItemModel.invoice.invoiceDiscamt * (rDiscountVal.div(100.0))

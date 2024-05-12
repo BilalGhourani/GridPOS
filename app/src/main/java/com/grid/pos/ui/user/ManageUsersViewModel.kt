@@ -8,6 +8,7 @@ import com.grid.pos.data.Family.Family
 import com.grid.pos.data.User.User
 import com.grid.pos.data.User.UserRepository
 import com.grid.pos.interfaces.OnResult
+import com.grid.pos.utils.Extension.encryptCBC
 import com.grid.pos.utils.Utils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -18,8 +19,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ManageUsersViewModel @Inject constructor(
-    private val userRepository: UserRepository,
-    private val companyRepository: CompanyRepository
+        private val userRepository: UserRepository,
+        private val companyRepository: CompanyRepository
 ) : ViewModel() {
 
     private val _manageUsersState = MutableStateFlow(ManageUsersState())
@@ -46,7 +47,10 @@ class ManageUsersViewModel @Inject constructor(
                 }
             }
 
-            override fun onFailure(message: String, errorCode: Int) {
+            override fun onFailure(
+                    message: String,
+                    errorCode: Int
+            ) {
 
             }
 
@@ -67,7 +71,10 @@ class ManageUsersViewModel @Inject constructor(
                 }
             }
 
-            override fun onFailure(message: String, errorCode: Int) {
+            override fun onFailure(
+                    message: String,
+                    errorCode: Int
+            ) {
 
             }
 
@@ -77,8 +84,7 @@ class ManageUsersViewModel @Inject constructor(
     fun saveUser(user: User) {
         if (user.userName.isNullOrEmpty() || user.userUsername.isNullOrEmpty() || user.userPassword.isNullOrEmpty()) {
             manageUsersState.value = manageUsersState.value.copy(
-                warning = "Please fill all inputs",
-                isLoading = false
+                warning = "Please fill all inputs", isLoading = false
             )
             return
         }
@@ -93,15 +99,15 @@ class ManageUsersViewModel @Inject constructor(
                     val users = manageUsersState.value.users
                     if (isInserting) users.add(addedModel)
                     manageUsersState.value = manageUsersState.value.copy(
-                        users = users,
-                        selectedUser = addedModel,
-                        isLoading = false,
-                        clear = true
+                        users = users, selectedUser = addedModel, isLoading = false, clear = true
                     )
                 }
             }
 
-            override fun onFailure(message: String, errorCode: Int) {
+            override fun onFailure(
+                    message: String,
+                    errorCode: Int
+            ) {
                 viewModelScope.launch(Dispatchers.Main) {
                     manageUsersState.value = manageUsersState.value.copy(
                         isLoading = false
@@ -111,6 +117,7 @@ class ManageUsersViewModel @Inject constructor(
 
         }
         CoroutineScope(Dispatchers.IO).launch {
+            user.userPassword = user.userPassword!!.encryptCBC()
             if (isInserting) {
                 user.prepareForInsert()
                 userRepository.insert(user, callback)
@@ -123,36 +130,37 @@ class ManageUsersViewModel @Inject constructor(
     fun deleteSelectedUser(user: User) {
         if (user.userId.isEmpty()) {
             manageUsersState.value = manageUsersState.value.copy(
-                warning = "Please select an user to delete",
-                isLoading = false
+                warning = "Please select an user to delete", isLoading = false
             )
             return
         }
         manageUsersState.value = manageUsersState.value.copy(
-            warning = null,
-            isLoading = true
+            warning = null, isLoading = true
         )
 
         CoroutineScope(Dispatchers.IO).launch {
             userRepository.delete(user, object : OnResult {
                 override fun onSuccess(result: Any) {
                     val users = manageUsersState.value.users
-                    val position =
-                        users.indexOfFirst { user.userId.equals(it.userId, ignoreCase = true) }
+                    val position = users.indexOfFirst {
+                        user.userId.equals(
+                            it.userId, ignoreCase = true
+                        )
+                    }
                     if (position >= 0) {
                         users.removeAt(position)
                     }
                     viewModelScope.launch(Dispatchers.Main) {
                         manageUsersState.value = manageUsersState.value.copy(
-                            users = users,
-                            selectedUser = User(),
-                            isLoading = false,
-                            clear = true
+                            users = users, selectedUser = User(), isLoading = false, clear = true
                         )
                     }
                 }
 
-                override fun onFailure(message: String, errorCode: Int) {
+                override fun onFailure(
+                        message: String,
+                        errorCode: Int
+                ) {
                     viewModelScope.launch(Dispatchers.Main) {
                         manageUsersState.value = manageUsersState.value.copy(
                             isLoading = false

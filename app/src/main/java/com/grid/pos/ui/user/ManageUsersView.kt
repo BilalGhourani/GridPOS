@@ -12,6 +12,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -40,6 +42,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -56,6 +60,7 @@ import com.grid.pos.ui.common.UITextField
 import com.grid.pos.ui.common.UiVerticalCheckBox
 import com.grid.pos.ui.theme.Blue
 import com.grid.pos.ui.theme.GridPOSTheme
+import com.grid.pos.utils.Extension.decryptCBC
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -79,6 +84,7 @@ fun ManageUsersView(
     var passwordState by remember { mutableStateOf("") }
     var posModeState by remember { mutableStateOf(true) }
     var tableModeState by remember { mutableStateOf(false) }
+    var passwordVisibility by remember { mutableStateOf(false) }
 
     val snackbarHostState = remember { SnackbarHostState() }
     LaunchedEffect(manageUsersState.warning) {
@@ -147,7 +153,7 @@ fun ManageUsersView(
                             manageUsersState.selectedUser = selectedUser
                             nameState = selectedUser.userName ?: ""
                             usernameState = selectedUser.userUsername ?: ""
-                            passwordState = selectedUser.userPassword ?: ""
+                            passwordState = selectedUser.userPassword?.decryptCBC() ?: ""
                             posModeState = selectedUser.userPosMode ?: true
                             tableModeState = selectedUser.userTableMode ?: false
                         }
@@ -182,8 +188,20 @@ fun ManageUsersView(
                             placeHolder = "Enter Password",
                             focusRequester = passwordFocusRequester,
                             keyboardType = KeyboardType.Password,
+                            visualTransformation = if (passwordVisibility) VisualTransformation.None else PasswordVisualTransformation(),
                             imeAction = ImeAction.Done,
-                            onAction = { keyboardController?.hide() }
+                            onAction = { keyboardController?.hide() },
+                            trailingIcon = {
+                                IconButton(
+                                    onClick = { passwordVisibility = !passwordVisibility }
+                                ) {
+                                    Icon(
+                                        imageVector = if (passwordVisibility) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
+                                        contentDescription = if (passwordVisibility) "Hide password" else "Show password",
+                                        tint = SettingsModel.buttonColor
+                                    )
+                                }
+                            }
                         ) {
                             passwordState = it
                             manageUsersState.selectedUser.userPassword = it

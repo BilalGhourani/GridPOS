@@ -1,6 +1,7 @@
 package com.grid.pos.utils
 
 import android.annotation.SuppressLint
+import android.util.Base64
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -10,7 +11,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import com.grid.pos.App
 import kotlinx.coroutines.launch
+import javax.crypto.Cipher
+import javax.crypto.spec.IvParameterSpec
+import javax.crypto.spec.SecretKeySpec
 
 object Extension {
     fun Long?.isNullOrZero(): Boolean {
@@ -28,7 +33,7 @@ object Extension {
 
     @SuppressLint("ModifierFactoryUnreferencedReceiver")
     fun Modifier.emitDragGesture(
-        interactionSource: MutableInteractionSource
+            interactionSource: MutableInteractionSource
     ): Modifier = composed {
         val scope = rememberCoroutineScope()
         pointerInput(Unit) {
@@ -37,7 +42,30 @@ object Extension {
                     interactionSource.emit(PressInteraction.Press(change.position))
                 }
             }
-        }.clickable(interactionSource, null) {
-        }
+        }.clickable(interactionSource, null) {}
+    }
+
+    fun String.encryptCBC(): String {
+        val keyStr = App.getInstance().getConfigValue("key", "123456789")
+        val ivStr = App.getInstance().getConfigValue("iv", "123456789")
+        val iv = IvParameterSpec(ivStr.toByteArray())
+        val keySpec = SecretKeySpec(keyStr.toByteArray(), "AES")
+        val cipher = Cipher.getInstance("AES/CBC/PKCS5PADDING")
+        cipher.init(Cipher.ENCRYPT_MODE, keySpec, iv)
+        val crypted = cipher.doFinal(this.toByteArray())
+        val encodedByte = Base64.encode(crypted, Base64.DEFAULT)
+        return String(encodedByte)
+    }
+
+    fun String.decryptCBC(): String {
+        val keyStr = App.getInstance().getConfigValue("key", "123456789")
+        val ivStr = App.getInstance().getConfigValue("iv", "123456789")
+        val decodedByte: ByteArray = Base64.decode(this, Base64.DEFAULT)
+        val iv = IvParameterSpec(ivStr.toByteArray())
+        val keySpec = SecretKeySpec(keyStr.toByteArray(), "AES")
+        val cipher = Cipher.getInstance("AES/CBC/PKCS5PADDING")
+        cipher.init(Cipher.DECRYPT_MODE, keySpec, iv)
+        val output = cipher.doFinal(decodedByte)
+        return String(output)
     }
 }

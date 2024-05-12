@@ -1,22 +1,16 @@
 package com.grid.pos
 
 import android.content.Context
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.grid.pos.data.Company.Company
 import com.grid.pos.data.Company.CompanyRepository
 import com.grid.pos.data.Currency.Currency
 import com.grid.pos.data.Currency.CurrencyRepository
-import com.grid.pos.data.InvoiceHeader.InvoiceHeaderRepository
 import com.grid.pos.data.User.User
 import com.grid.pos.data.User.UserRepository
 import com.grid.pos.interfaces.OnResult
 import com.grid.pos.model.SettingsModel
-import com.grid.pos.ui.company.ManageCompaniesState
 import com.grid.pos.ui.pos.POSState
 import com.grid.pos.utils.DataStoreManager
 import com.grid.pos.utils.Utils
@@ -121,7 +115,7 @@ class ActivityScopedViewModel @Inject constructor(
 
     fun getHtmlContent(
             context: Context,
-            content: String = Utils.readHtmlFromAssets(
+            content: String = Utils.readFileFromAssets(
                 "receipt.html",
                 context
             )

@@ -7,6 +7,8 @@ import com.grid.pos.data.User.UserRepository
 import com.grid.pos.interfaces.OnResult
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.DataStoreManager
+import com.grid.pos.utils.Extension.decryptCBC
+import com.grid.pos.utils.Extension.encryptCBC
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -46,6 +48,7 @@ class LoginViewModel @Inject constructor(
             warning = "",
             warningAction = ""
         )
+       val decPassword=password.encryptCBC()
         viewModelScope.launch(Dispatchers.IO) {
             repository.getAllUsers(object : OnResult {
                 override fun onSuccess(result: Any) {
@@ -65,7 +68,7 @@ class LoginViewModel @Inject constructor(
                             if (username.equals(
                                     it.userUsername,
                                     ignoreCase = true
-                                ) && password.equals(
+                                ) && decPassword.equals(
                                     it.userPassword,
                                     ignoreCase = true
                                 )
