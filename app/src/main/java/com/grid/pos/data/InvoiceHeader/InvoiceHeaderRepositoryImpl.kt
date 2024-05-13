@@ -92,7 +92,7 @@ class InvoiceHeaderRepositoryImpl(
         }
     }
 
-    override suspend fun getLastInvoiceNo(type: String, callback: OnResult?) {
+    override suspend fun getLastInvoiceTransNo(type: String, callback: OnResult?) {
         if (SettingsModel.loadFromRemote) {
             FirebaseFirestore.getInstance().collection("in_hinvoice")
                 .whereEqualTo("hi_cmp_id", SettingsModel.companyID)
@@ -105,7 +105,7 @@ class InvoiceHeaderRepositoryImpl(
                     val document = result.firstOrNull()
                     if (document != null) {
                         val obj = document.toObject(InvoiceHeader::class.java)
-                        callback?.onSuccess(obj.invoiceHeadOrderNo ?: "")
+                        callback?.onSuccess(obj)
                     }
 
                 }.addOnFailureListener { exception ->
@@ -116,7 +116,7 @@ class InvoiceHeaderRepositoryImpl(
 
         } else {
             invoiceHeaderDao.getLastInvoiceNo(type).collect {
-                callback?.onSuccess(it.invoiceHeadOrderNo ?: "")
+                callback?.onSuccess(it)
             }
         }
     }

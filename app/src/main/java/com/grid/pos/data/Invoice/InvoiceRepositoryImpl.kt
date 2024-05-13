@@ -66,7 +66,9 @@ class InvoiceRepositoryImpl(
 
     override suspend fun getAllInvoices(invoiceHeaderId: String, callback: OnResult?) {
         if (SettingsModel.loadFromRemote) {
-            FirebaseFirestore.getInstance().collection("in_invoice").get()
+            FirebaseFirestore.getInstance().collection("in_invoice")
+                .whereEqualTo("in_hi_id",invoiceHeaderId)
+                .get()
                 .addOnSuccessListener { result ->
                     val invoiceItems = mutableListOf<Invoice>()
                     if (result.size() > 0) {

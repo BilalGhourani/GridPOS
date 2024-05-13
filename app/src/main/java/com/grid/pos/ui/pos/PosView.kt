@@ -79,8 +79,8 @@ fun PosView(
         viewModel: POSViewModel = hiltViewModel()
 ) {
     val posState: POSState by viewModel.posState.collectAsState(activityViewModel.posState)
-    var invoicesState = remember { mutableStateListOf<InvoiceItemModel>() }
-    var invoiceHeaderState = remember { mutableStateOf(posState.invoiceHeader) }
+    val invoicesState = remember { mutableStateListOf<InvoiceItemModel>() }
+    val invoiceHeaderState = remember { mutableStateOf(posState.invoiceHeader) }
     var itemIndexToEdit by remember { mutableIntStateOf(-1) }
     var isEditBottomSheetVisible by remember { mutableStateOf(false) }
     var isAddItemBottomSheetVisible by remember { mutableStateOf(false) }
@@ -208,12 +208,10 @@ fun PosView(
                             invoiceHeaderState.value = posState.refreshValues()
                         })
 
-                    InvoiceFooterView(
-                        navController = navController,
-                        invoiceHeader = invoiceHeaderState.value,
-                        currency = posState.currency,
-                        items = posState.items,
-                        thirdParties = posState.thirdParties,
+                    InvoiceFooterView(navController = navController,
+                        invoiceHeader = invoiceHeaderState.value, currency = posState.currency,
+                        items = posState.items, thirdParties = posState.thirdParties,
+                        invoiceHeaders = posState.invoiceHeaders,
                         modifier = Modifier
                             .wrapContentWidth()
                             .height(250.dp),
@@ -224,12 +222,14 @@ fun PosView(
                             posState.invoices = invoicesState
                             invoiceHeaderState.value = posState.refreshValues()
                             isAddItemBottomSheetVisible = false
-                        },
-                        onThirdPartySelected = { thirdParty ->
+                        }, onThirdPartySelected = { thirdParty ->
                             posState.selectedThirdParty = thirdParty
                             posState.invoiceHeader.invoiceHeadThirdPartyName = thirdParty.thirdPartyId
-                        },
-                    )
+                        }, onInvoiceSelected = { invoiceHeader ->
+                            invoiceHeaderState.value = invoiceHeader
+                            posState.invoiceHeader = invoiceHeader
+                            viewModel.loadInvoiceDetails(invoiceHeader)
+                        })
                 }
             }
             AnimatedVisibility(
@@ -292,32 +292,33 @@ fun PosView(
                 )
             ) {
                 InvoiceCashView(
-                    invoiceHeader = invoiceHeaderState.value,
-                    currency = posState.currency,
+                    posState = posState,
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(it)
                         .background(
                             color = SettingsModel.backgroundColor
                         ),
-                    onSave = { change ->
+                    onSave = { change, posReceipt ->
+                        posState.posReceipt = posReceipt
                         posState.invoiceHeader.invoiceHeadChange = change
                         var cashName = posState.invoiceHeader.invoiceHeadCashName ?: ""
-                        cashName = (posState.selectedThirdParty.thirdPartyName ?: "") + " ${cashName}"
+                        cashName = (posState.selectedThirdParty.thirdPartyName ?: "") + " $cashName"
                         posState.invoiceHeader.invoiceHeadCashName = cashName.ifEmpty { null }
                         invoiceHeaderState.value = posState.invoiceHeader
                         viewModel.saveInvoiceHeader(
-                            posState.invoiceHeader, posState.invoices
+                            posState.invoiceHeader, posState.posReceipt, posState.invoices
                         )
                     },
-                    onFinish = { change ->
+                    onFinish = { change, posReceipt ->
+                        posState.posReceipt = posReceipt
                         posState.invoiceHeader.invoiceHeadChange = change
                         var cashName = posState.invoiceHeader.invoiceHeadCashName ?: ""
-                        cashName = (posState.selectedThirdParty.thirdPartyName ?: "") + " ${cashName}"
+                        cashName = (posState.selectedThirdParty.thirdPartyName ?: "") + " $cashName"
                         posState.invoiceHeader.invoiceHeadCashName = cashName.ifEmpty { null }
                         invoiceHeaderState.value = posState.invoiceHeader
                         viewModel.saveInvoiceHeader(
-                            posState.invoiceHeader, posState.invoices
+                            posState.invoiceHeader, posState.posReceipt, posState.invoices, true
                         )
                     },
                 )

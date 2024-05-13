@@ -14,6 +14,7 @@ data class POSState(
         val families: MutableList<Family> = mutableListOf(),
         val items: MutableList<Item> = mutableListOf(),
         val thirdParties: MutableList<ThirdParty> = mutableListOf(),
+        val invoiceHeaders: MutableList<InvoiceHeader> = mutableListOf(),
         var invoiceHeader: InvoiceHeader = InvoiceHeader(),
         var posReceipt: PosReceipt = PosReceipt(),
         var currency: Currency = SettingsModel.currentCurrency ?: Currency(),

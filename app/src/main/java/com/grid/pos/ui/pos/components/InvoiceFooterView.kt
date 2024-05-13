@@ -33,9 +33,11 @@ fun InvoiceFooterView(
         currency: Currency,
         items: MutableList<Item> = mutableListOf(),
         thirdParties: MutableList<ThirdParty> = mutableListOf(),
+        invoiceHeaders: MutableList<InvoiceHeader> = mutableListOf(),
         modifier: Modifier = Modifier,
         onItemSelected: (Item) -> Unit = {},
         onThirdPartySelected: (ThirdParty) -> Unit = {},
+        onInvoiceSelected: (InvoiceHeader) -> Unit = {},
 ) {
     val curState = currency.currencyCode1 ?: ""
     val cur2State = currency.currencyCode2 ?: ""
@@ -182,6 +184,14 @@ fun InvoiceFooterView(
                     )
                 }) { thirdParty ->
                 onThirdPartySelected.invoke(thirdParty as ThirdParty)
+            }
+
+            SearchableDropdownMenu(
+                items = invoiceHeaders.toMutableList(), modifier = Modifier.padding(
+                    0.dp, 15.dp, 0.dp, 5.dp
+                ), label = "Invoices"
+            ) { invoiceHeader ->
+                onInvoiceSelected.invoke(invoiceHeader as InvoiceHeader)
             }
         }
     }

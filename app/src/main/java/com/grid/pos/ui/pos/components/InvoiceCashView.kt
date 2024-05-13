@@ -31,19 +31,18 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import com.grid.pos.data.Currency.Currency
-import com.grid.pos.data.InvoiceHeader.InvoiceHeader
+import com.grid.pos.data.PosReceipt.PosReceipt
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.UIButton
+import com.grid.pos.ui.pos.POSState
 import com.grid.pos.utils.Utils
 
 @Composable
 fun InvoiceCashView(
         modifier: Modifier,
-        invoiceHeader: InvoiceHeader = InvoiceHeader(),
-        currency: Currency = Currency(),
-        onSave: (Double) -> Unit = {},
-        onFinish: (Double) -> Unit = {},
+        posState: POSState,
+        onSave: (Double, PosReceipt) -> Unit = { _, _ -> },
+        onFinish: (Double, PosReceipt) -> Unit = { _, _ -> },
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
     val cashCurr2FocusRequester = remember { FocusRequester() }
@@ -57,6 +56,10 @@ fun InvoiceCashView(
     val debitCurr2PaidFocusRequester = remember { FocusRequester() }
     val debitCurr1TotalFocusRequester = remember { FocusRequester() }
     val debitCurr2TotalFocusRequester = remember { FocusRequester() }
+
+    val invoiceHeader = posState.invoiceHeader
+    val currency = posState.currency
+    val posReceipt = posState.posReceipt.copy()
 
     val curr1Decimal = currency.currencyName1Dec
     val curr2Decimal = currency.currencyName2Dec
@@ -488,7 +491,13 @@ fun InvoiceCashView(
                     .fillMaxHeight(), text = "Save & Print Order",
                 shape = RoundedCornerShape(15.dp)
             ) {
-                onSave.invoke(debitCurr1Total.toDoubleOrNull()?:0.0)
+                posReceipt.posReceiptCashAmount = cashTotalPaid1.toDoubleOrNull() ?: 0.0
+                posReceipt.posReceiptCashAmount2 = cashTotalPaid2.toDoubleOrNull() ?: 0.0
+                posReceipt.posReceiptDebitAmount = debitCurr1Paid.toDoubleOrNull() ?: 0.0
+                posReceipt.posReceiptDebitAmount2 = debitCurr2Paid.toDoubleOrNull() ?: 0.0
+                posReceipt.posReceiptCreditAmount = creditCurr1Paid.toDoubleOrNull() ?: 0.0
+                posReceipt.posReceiptCreditAmount2 = creditCurr2Paid.toDoubleOrNull() ?: 0.0
+                onSave.invoke(debitCurr1Total.toDoubleOrNull() ?: 0.0, posReceipt)
             }
 
             UIButton(
@@ -497,7 +506,13 @@ fun InvoiceCashView(
                     .fillMaxHeight(), text = "Finish & Print",
                 shape = RoundedCornerShape(15.dp)
             ) {
-                onFinish.invoke(debitCurr1Total.toDoubleOrNull()?:0.0)
+                posReceipt.posReceiptCashAmount = cashTotalPaid1.toDoubleOrNull() ?: 0.0
+                posReceipt.posReceiptCashAmount2 = cashTotalPaid2.toDoubleOrNull() ?: 0.0
+                posReceipt.posReceiptDebitAmount = debitCurr1Paid.toDoubleOrNull() ?: 0.0
+                posReceipt.posReceiptDebitAmount2 = debitCurr2Paid.toDoubleOrNull() ?: 0.0
+                posReceipt.posReceiptCreditAmount = creditCurr1Paid.toDoubleOrNull() ?: 0.0
+                posReceipt.posReceiptCreditAmount2 = creditCurr2Paid.toDoubleOrNull() ?: 0.0
+                onFinish.invoke(debitCurr1Total.toDoubleOrNull() ?: 0.0, posReceipt)
             }
         }
     }

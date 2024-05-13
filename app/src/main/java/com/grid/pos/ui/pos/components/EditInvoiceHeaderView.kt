@@ -124,7 +124,7 @@ fun EditInvoiceHeaderView(
     }
     var itemNote by remember { mutableStateOf(invoiceItemModel.invoice.invoicNote ?: "") }
     var invoiceNote by remember { mutableStateOf(invoiceHeader.invoiceHeadNote ?: "") }
-    var cashName by remember { mutableStateOf(invoiceHeader.invoiceHeadCashName ?: "") }
+    var cashExtraName by remember { mutableStateOf(invoiceHeader.invoiceHeadCashName ?: "") }
     var taxState by remember {
         mutableStateOf(invoiceItemModel.invoice.invoiceTax.toString().takeIf { it != "0.0" } ?: "")
     }
@@ -395,8 +395,15 @@ fun EditInvoiceHeaderView(
 
         UITextField(modifier = Modifier.padding(10.dp), defaultValue = clientExtraName,
             label = "Client Extra Name", focusRequester = clientExtraNameFocusRequester,
-            onAction = { itemNoteFocusRequester.requestFocus() }) {
+            onAction = { cashNameRequester.requestFocus() }) {
             clientExtraName = it
+        }
+
+        UITextField(modifier = Modifier.padding(10.dp), defaultValue = cashExtraName,
+            label = "Cash Exta Name", focusRequester = cashNameRequester, onAction = {
+          itemNoteFocusRequester.requestFocus()
+            }) {
+            cashExtraName = it
         }
 
         UITextField(modifier = Modifier.padding(10.dp), defaultValue = itemNote,
@@ -407,12 +414,7 @@ fun EditInvoiceHeaderView(
 
         UITextField(modifier = Modifier.padding(10.dp), defaultValue = invoiceNote,
             label = "Invoice Note", focusRequester = invoiceNoteFocusRequester,
-            onAction = { cashNameRequester.requestFocus() }) {
-            invoiceNote = it
-        }
-
-        UITextField(modifier = Modifier.padding(10.dp), defaultValue = cashName,
-            label = "Cash Name", focusRequester = cashNameRequester, onAction = {
+            onAction = {
                 if (SettingsModel.showTax) {
                     taxFocusRequester.requestFocus()
                 } else if (SettingsModel.showTax1) {
@@ -423,8 +425,9 @@ fun EditInvoiceHeaderView(
                     keyboardController?.hide()
                 }
             }) {
-            cashName = it
+            invoiceNote = it
         }
+
         if (SettingsModel.showTax || SettingsModel.showTax1 || SettingsModel.showTax2) {
             Row(
                 modifier = Modifier
@@ -518,7 +521,7 @@ fun EditInvoiceHeaderView(
                 shape = RoundedCornerShape(15.dp)
             ) {
                 invoiceHeader.invoiceHeadNote = invoiceNote
-                invoiceHeader.invoiceHeadCashName = cashName
+                invoiceHeader.invoiceHeadCashName = cashExtraName
                 invoiceHeader.invoiceHeadDiscount = discount1.toDoubleOrNull() ?: 0.0
                 invoiceHeader.invoiceHeadDiscountAmount = discount2.toDoubleOrNull() ?: 0.0
 
@@ -551,7 +554,7 @@ fun EditInvoiceHeaderView(
                 clientExtraName = ""
                 itemNote = ""
                 invoiceNote = ""
-                cashName = ""
+                cashExtraName = ""
             }
 
             UIButton(

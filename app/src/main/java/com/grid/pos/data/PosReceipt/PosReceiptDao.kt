@@ -32,4 +32,7 @@ interface PosReceiptDao {
     @Query("SELECT * FROM `pos_receipt`")
     fun getAllPosReceipts(): Flow<List<PosReceipt>>
 
+    // Get POS Receipt by it's ID
+    @Query("SELECT * FROM pos_receipt WHERE pr_hi_id = :id")
+    suspend fun getPosReceiptByInvoice(id: String): PosReceipt
 }

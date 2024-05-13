@@ -12,7 +12,7 @@ import com.grid.pos.utils.Utils
 
 @Entity(tableName = "in_hinvoice")
 data class InvoiceHeader(
-    /**
+        /**
          * Invoice Header Id
          * */
         @PrimaryKey
@@ -21,11 +21,11 @@ data class InvoiceHeader(
         @get:PropertyName("hi_id")
         var invoiceHeadId: String,
 
-    @Ignore
+        @Ignore
         @get:Exclude
         var invoiceHeadDocumentId: String? = null,
 
-    /**
+        /**
          * related Invoice header id
          * */
         @ColumnInfo(name = "hi_cmp_id")
@@ -33,7 +33,7 @@ data class InvoiceHeader(
         @get:PropertyName("hi_cmp_id")
         var invoiceHeadCompId: String? = null,
 
-    /**
+        /**
          * Invoice Header Date
          * */
         @ColumnInfo(name = "hi_date")
@@ -41,7 +41,7 @@ data class InvoiceHeader(
         @get:PropertyName("hi_date")
         var invoiceHeadDate: String = Utils.getDateinFormat(),
 
-    /**
+        /**
          * Invoice Header Order Number
          * */
         @ColumnInfo(name = "hi_orderno")
@@ -49,7 +49,7 @@ data class InvoiceHeader(
         @get:PropertyName("hi_orderno")
         var invoiceHeadOrderNo: String? = null,
 
-    /**
+        /**
          * Invoice Header tt code
          * */
         @ColumnInfo(name = "hi_tt_code")
@@ -57,15 +57,15 @@ data class InvoiceHeader(
         @get:PropertyName("hi_tt_code")
         var invoiceHeadTtCode: String? = null,
 
-    /**
+        /**
          * Invoice Header Trans number
          * */
         @ColumnInfo(name = "hi_transno")
         @set:PropertyName("hi_transno")
         @get:PropertyName("hi_transno")
-        var invoiceHeadTransNo: Int = 0,
+        var invoiceHeadTransNo: String? = null,
 
-    /**
+        /**
          * Invoice Header Status
          * */
         @ColumnInfo(name = "hi_status")
@@ -73,7 +73,7 @@ data class InvoiceHeader(
         @get:PropertyName("hi_status")
         var invoiceHeadStatus: String? = null,
 
-    /**
+        /**
          * Invoice Header Note
          * */
         @ColumnInfo(name = "hi_note")
@@ -81,7 +81,7 @@ data class InvoiceHeader(
         @get:PropertyName("hi_note")
         var invoiceHeadNote: String? = null,
 
-    /**
+        /**
          * invoice Header Third Party id
          * */
         @ColumnInfo(name = "hi_tp_name")
@@ -89,7 +89,7 @@ data class InvoiceHeader(
         @get:PropertyName("hi_tp_name")
         var invoiceHeadThirdPartyName: String? = null,
 
-    /**
+        /**
          * Invoice Header cash name
          * */
         @ColumnInfo(name = "hi_cashname")
@@ -97,7 +97,7 @@ data class InvoiceHeader(
         @get:PropertyName("hi_cashname")
         var invoiceHeadCashName: String? = null,
 
-    /**
+        /**
          * Invoice Header Grossmont
          * */
         @ColumnInfo(name = "hi_grossamt")
@@ -105,7 +105,7 @@ data class InvoiceHeader(
         @get:PropertyName("hi_grossamt")
         var invoiceHeadGrossAmount: Double = 0.0,
 
-    /**
+        /**
          * Invoice Header Discount
          * */
         @ColumnInfo(name = "hi_disc")
@@ -113,7 +113,7 @@ data class InvoiceHeader(
         @get:PropertyName("hi_disc")
         var invoiceHeadDiscount: Double = 0.0,
 
-    /**
+        /**
          * Invoice Header Discamt
          * */
         @ColumnInfo(name = "hi_discamt")
@@ -121,7 +121,7 @@ data class InvoiceHeader(
         @get:PropertyName("hi_discamt")
         var invoiceHeadDiscountAmount: Double = 0.0,
 
-    /**
+        /**
          * Invoice header tax amount
          * */
         @ColumnInfo(name = "hi_taxamt")
@@ -129,7 +129,7 @@ data class InvoiceHeader(
         @get:PropertyName("hi_taxamt")
         var invoiceHeadTaxAmt: Double = 0.0,
 
-    /**
+        /**
          * Invoice header tax 1 amount
          * */
         @ColumnInfo(name = "hi_tax1amt")
@@ -137,7 +137,7 @@ data class InvoiceHeader(
         @get:PropertyName("hi_tax1amt")
         var invoiceHeadTax1Amt: Double = 0.0,
 
-    /**
+        /**
          * Invoice header tax 2 amount
          * */
         @ColumnInfo(name = "hi_tax2amt")
@@ -145,7 +145,7 @@ data class InvoiceHeader(
         @get:PropertyName("hi_tax2amt")
         var invoiceHeadTax2Amt: Double = 0.0,
 
-    /**
+        /**
          * Invoice header total tax
          * */
         @ColumnInfo(name = "hi_totaltax")
@@ -153,7 +153,7 @@ data class InvoiceHeader(
         @get:PropertyName("hi_totaltax")
         var invoiceHeadTotalTax: Double = 0.0,
 
-    /**
+        /**
          * Invoice header total
          * */
         @ColumnInfo(name = "hi_total")
@@ -161,7 +161,7 @@ data class InvoiceHeader(
         @get:PropertyName("hi_total")
         var invoiceHeadTotal: Double = 0.0,
 
-    /**
+        /**
          * Invoice header total 1
          * */
         @ColumnInfo(name = "hi_total1")
@@ -169,7 +169,7 @@ data class InvoiceHeader(
         @get:PropertyName("hi_total1")
         var invoiceHeadTotal1: Double = 0.0,
 
-    /**
+        /**
          * Invoice header Rate
          * */
         @ColumnInfo(name = "hi_rates")
@@ -177,7 +177,7 @@ data class InvoiceHeader(
         @get:PropertyName("hi_rates")
         var invoiceHeadRate: Double = 0.0,
 
-    /**
+        /**
          * Invoice header Ta name
          * */
         @ColumnInfo(name = "hi_ta_name")
@@ -185,7 +185,7 @@ data class InvoiceHeader(
         @get:PropertyName("hi_ta_name")
         var invoiceHeadTaName: String? = null,
 
-    /**
+        /**
          * Invoice header Clients Count
          * */
         @ColumnInfo(name = "hi_clientscount")
@@ -193,7 +193,7 @@ data class InvoiceHeader(
         @get:PropertyName("hi_clientscount")
         var invoiceHeadClientsCount: Int = 1,
 
-    /**
+        /**
          * Invoice header Change
          * */
         @ColumnInfo(name = "hi_change")
@@ -201,7 +201,7 @@ data class InvoiceHeader(
         @get:PropertyName("hi_change")
         var invoiceHeadChange: Double = 0.0,
 
-    /**
+        /**
          * Invoice Header timestamp
          * */
         @ColumnInfo(name = "hi_timestamp")
@@ -209,7 +209,7 @@ data class InvoiceHeader(
         @get:PropertyName("hi_timestamp")
         var invoiceHeadTimeStamp: String? = null,
 
-    /**
+        /**
          * Invoice Header userstamp
          * */
         @ColumnInfo(name = "hi_userstamp")
@@ -217,12 +217,12 @@ data class InvoiceHeader(
         @get:PropertyName("hi_userstamp")
         var invoiceHeadUserStamp: String? = null,
 
-    ) : DataModel() {
+        ) : DataModel() {
     constructor() : this("")
 
     @Exclude
     override fun getName(): String {
-        return ""
+        return "$invoiceHeadTtCode$invoiceHeadTransNo"
     }
 
     @Exclude

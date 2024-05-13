@@ -130,8 +130,8 @@ object Utils {
     )
 
     fun calculateColumns(
-        cellWidth: Dp,
-        screenWidth: Dp
+            cellWidth: Dp,
+            screenWidth: Dp
     ): Int {
         val availableSpace = screenWidth - Dp((2 * 16F))// Account for paddings (adjust as needed)
         return (availableSpace / cellWidth).toInt().coerceAtLeast(1) // Ensure at least 1 column
@@ -142,8 +142,8 @@ object Utils {
     }
 
     fun getDateinFormat(
-        date: Date = Date(),
-        format: String = "MMMM dd, yyyy 'at' hh:mm:ss a 'Z'"
+            date: Date = Date(),
+            format: String = "MMMM dd, yyyy 'at' hh:mm:ss a 'Z'"
     ): String {
         val parserFormat = SimpleDateFormat(
             format, Locale.getDefault()
@@ -153,9 +153,9 @@ object Utils {
     }
 
     fun floatToColor(
-        hue: Float,
-        saturation: Float = 1f,
-        brightness: Float = 1f
+            hue: Float,
+            saturation: Float = 1f,
+            brightness: Float = 1f
     ): Color {
         // Convert HSV to RGB
         val hsv = floatArrayOf(
@@ -171,8 +171,8 @@ object Utils {
     }
 
     fun getDoubleValue(
-        new: String,
-        old: String
+            new: String,
+            old: String
     ): String {
         return if (new.isEmpty()) {
             new
@@ -185,8 +185,8 @@ object Utils {
     }
 
     fun getIntValue(
-        new: String,
-        old: String
+            new: String,
+            old: String
     ): String {
         return if (new.isEmpty()) {
             new
@@ -199,8 +199,8 @@ object Utils {
     }
 
     fun printWebPage(
-        webView: WebView?,
-        context: Context
+            webView: WebView?,
+            context: Context
     ) {
         if (webView != null) {
             val printManager = context.getSystemService(Context.PRINT_SERVICE) as PrintManager
@@ -236,8 +236,8 @@ object Utils {
     }
 
     fun readFileFromAssets(
-        fileName: String,
-        context: Context
+            fileName: String,
+            context: Context
     ): String {
         return try {
             val inputStream = context.assets.open(fileName)
@@ -263,10 +263,10 @@ object Utils {
     }
 
     fun getListHeight(
-        listSize: Int = 0,
-        cellHeight: Int,
-        min: Int = 1,
-        max: Int = 8
+            listSize: Int = 0,
+            cellHeight: Int,
+            min: Int = 1,
+            max: Int = 8
     ): Dp {
         var size = listSize
         if (size < min) size = min
@@ -274,9 +274,9 @@ object Utils {
         return (size * cellHeight).dp + 50.dp
     }
 
-    fun getInvoiceNo(oldInvoiceNo: String?): String {
+    fun getInvoiceTransactionNo(oldInvoiceTransNo: String?): String {
         val currentYear = getCurrentYear()
-        var invNoStr = oldInvoiceNo.takeIf { !it.isNullOrEmpty() } ?: (currentYear + "000000000")
+        var invNoStr = oldInvoiceTransNo.takeIf { !it.isNullOrEmpty() } ?: (currentYear + "000000000")
         if (invNoStr.length > 4 && !invNoStr.substring(
                 0, 4
             ).equals(
@@ -286,6 +286,20 @@ object Utils {
             invNoStr = currentYear + "000000000"
         }
         return (invNoStr.toBigInteger().plus(BigInteger("1"))).toString()
+    }
+
+    fun getInvoiceNo(oldInvoiceNo: String?): String {
+        val currentYear = getCurrentYear()
+        val sections = if (oldInvoiceNo.isNullOrEmpty()) listOf(
+            currentYear, "1"
+        ) else oldInvoiceNo.split("-")
+        var invYearStr = if (sections.isNotEmpty()) sections[0] else currentYear
+        val serialNo = if (sections.size > 1) sections[1] else "1"
+        if (!invYearStr.equals(currentYear, ignoreCase = true)) {
+            invYearStr = currentYear
+        }
+        val serialInt = (serialNo.toIntOrNull() ?: 1) + 1
+        return "$invYearStr-${serialInt}"
     }
 
     private fun getCurrentYear(): String {
@@ -299,10 +313,10 @@ object Utils {
     }
 
     fun saveToInternalStorage(
-        context: Context,
-        parent: String = "family",
-        sourceFile: Uri,
-        destName: String
+            context: Context,
+            parent: String = "family",
+            sourceFile: Uri,
+            destName: String
     ): String? {
         val storageDir = File(context.filesDir, "images")
         if (!storageDir.exists()) {
@@ -320,9 +334,9 @@ object Utils {
     }
 
     fun copyImage(
-        context: Context,
-        sourceFilePath: Uri,
-        destinationFile: File
+            context: Context,
+            sourceFilePath: Uri,
+            destinationFile: File
     ) {
         val contentResolver = context.contentResolver
         try {

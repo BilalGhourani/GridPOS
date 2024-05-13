@@ -21,4 +21,9 @@ interface PosReceiptRepository {
     // Get all POS Receipts as stream.
     suspend fun getAllPosReceipts(callback: OnResult?)
 
+    suspend fun getPosReceiptByInvoice(
+            invoiceHeaderId: String,
+            callback: OnResult?
+    )
+
 }

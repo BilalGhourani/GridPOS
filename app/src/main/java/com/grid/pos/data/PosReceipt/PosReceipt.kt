@@ -35,12 +35,52 @@ data class PosReceipt(
     var posReceiptInvoiceId: String? = null,
 
     /**
-     *  POS Receipt Amount
+     *  POS Receipt Cash Amount
      * */
-    @ColumnInfo(name = "pr_amt")
-    @set:PropertyName("pr_amt")
-    @get:PropertyName("pr_amt")
-    var posReceiptAmount: Double? = null,
+    @ColumnInfo(name = "pr_cash_amt")
+    @set:PropertyName("pr_cash_amt")
+    @get:PropertyName("pr_cash_amt")
+    var posReceiptCashAmount: Double? = null,
+
+    /**
+     *  POS Receipt Cash Amount 2
+     * */
+    @ColumnInfo(name = "pr_cash_amts")
+    @set:PropertyName("pr_cash_amts")
+    @get:PropertyName("pr_cash_amts")
+    var posReceiptCashAmount2: Double? = null,
+
+    /**
+     *  POS Receipt Debit Amount
+     * */
+    @ColumnInfo(name = "pr_debit_amt")
+    @set:PropertyName("pr_debit_amt")
+    @get:PropertyName("pr_debit_amt")
+    var posReceiptDebitAmount: Double? = null,
+
+    /**
+     *  POS Receipt Debit Amount 2
+     * */
+    @ColumnInfo(name = "pr_debit_amts")
+    @set:PropertyName("pr_debit_amts")
+    @get:PropertyName("pr_debit_amts")
+    var posReceiptDebitAmount2: Double? = null,
+
+    /**
+     *  POS Receipt Credit Amount
+     * */
+    @ColumnInfo(name = "pr_credit_amt")
+    @set:PropertyName("pr_credit_amt")
+    @get:PropertyName("pr_credit_amt")
+    var posReceiptCreditAmount: Double? = null,
+
+    /**
+     *  POS Receipt Credit Amounts
+     * */
+    @ColumnInfo(name = "pr_credit_amts")
+    @set:PropertyName("pr_credit_amts")
+    @get:PropertyName("pr_credit_amts")
+    var posReceiptCreditAmount2: Double? = null,
 
     /**
      *  POS Receipt Date
@@ -84,7 +124,12 @@ data class PosReceipt(
     fun getMap(): Map<String, Any?> {
         return mapOf(
             "pr_hi_id" to posReceiptInvoiceId,
-            "pr_amt" to posReceiptAmount,
+            "pr_cash_amt" to posReceiptCashAmount,
+            "pr_cash_amts" to posReceiptCashAmount2,
+            "pr_debit_amt" to posReceiptDebitAmount,
+            "pr_debit_amts" to posReceiptDebitAmount2,
+            "pr_credit_amt" to posReceiptCreditAmount,
+            "pr_credit_amts" to posReceiptCreditAmount2,
             "pr_timestamp" to posReceiptTimeStamp,
             "pr_userstamp" to posReceiptUserStamp
         )
