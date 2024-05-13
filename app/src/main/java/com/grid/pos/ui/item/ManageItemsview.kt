@@ -120,6 +120,8 @@ fun ManageItemsView(
     var imageState by remember { mutableStateOf("") }
     var itemPOSState by remember { mutableStateOf(false) }
 
+    var oldImage: String? = null
+
     var colorPickerType by remember { mutableStateOf(ColorPickerType.BUTTON_COLOR) }
     var isColorPickerShown by remember { mutableStateOf(false) }
 
@@ -398,10 +400,11 @@ fun ManageItemsView(
                                                                 context = mainActivity,
                                                                 parent = "item",
                                                                 uris[0],
-                                                                nameState.ifEmpty { "item" })
+                                                                nameState.replace(" ","_").ifEmpty { "item" })
                                                         withContext(Dispatchers.Main) {
                                                             manageItemsState.isLoading = false
                                                             if (internalPath != null) {
+                                                                oldImage = imageState
                                                                 imageState = internalPath
                                                                 manageItemsState.selectedItem.itemImage =
                                                                     imageState
@@ -444,6 +447,9 @@ fun ManageItemsView(
                                     .weight(.33f)
                                     .padding(3.dp), text = "Save"
                             ) {
+                                oldImage?.let {
+                                    File(it).deleteOnExit()
+                                }
                                 viewModel.saveItem(manageItemsState.selectedItem)
                             }
 
@@ -452,6 +458,12 @@ fun ManageItemsView(
                                     .weight(.33f)
                                     .padding(3.dp), text = "Delete"
                             ) {
+                                oldImage?.let {
+                                    File(it).deleteOnExit()
+                                }
+                                if (imageState.isNotEmpty()) {
+                                    File(imageState).deleteOnExit()
+                                }
                                 viewModel.deleteSelectedItem(manageItemsState.selectedItem)
                             }
 
