@@ -60,10 +60,10 @@ import java.io.File
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalGlideComposeApi::class)
 @Composable
 fun ManageFamiliesView(
-        navController: NavController? = null,
-        modifier: Modifier = Modifier,
-        mainActivity: MainActivity,
-        viewModel: ManageFamiliesViewModel = hiltViewModel()
+    navController: NavController? = null,
+    modifier: Modifier = Modifier,
+    mainActivity: MainActivity,
+    viewModel: ManageFamiliesViewModel = hiltViewModel()
 ) {
     val manageFamiliesState: ManageFamiliesState by viewModel.manageFamiliesState.collectAsState(
         ManageFamiliesState()
@@ -73,6 +73,7 @@ fun ManageFamiliesView(
 
     var nameState by remember { mutableStateOf("") }
     var imageState by remember { mutableStateOf("") }
+    var oldImage: String? = null
     GridPOSTheme {
         Scaffold(containerColor = SettingsModel.backgroundColor, topBar = {
             Surface(shadowElevation = 3.dp, color = SettingsModel.backgroundColor) {
@@ -87,7 +88,9 @@ fun ManageFamiliesView(
                     }
                 }, title = {
                     Text(
-                        text = "Manage Families", color = SettingsModel.textColor, fontSize = 16.sp,
+                        text = "Manage Families",
+                        color = SettingsModel.textColor,
+                        fontSize = 16.sp,
                         textAlign = TextAlign.Center
                     )
                 })
@@ -138,16 +141,19 @@ fun ManageFamiliesView(
                                                 if (uris.isNotEmpty()) {
                                                     manageFamiliesState.isLoading = true
                                                     CoroutineScope(Dispatchers.IO).launch {
-                                                        val file = File(uris[0].path)
-                                                        val internalPath = Utils.saveToInternalStorage(
-                                                            context = mainActivity,
-                                                            parent = "family", file,
-                                                            nameState.ifEmpty { file.name })
+                                                        val internalPath =
+                                                            Utils.saveToInternalStorage(
+                                                                context = mainActivity,
+                                                                parent = "family", uris[0],
+                                                                nameState.replace(" ", "_")
+                                                                    .ifEmpty { "family" })
                                                         withContext(Dispatchers.Main) {
                                                             manageFamiliesState.isLoading = false
                                                             if (internalPath != null) {
+                                                                oldImage = imageState
                                                                 imageState = internalPath
-                                                                manageFamiliesState.selectedFamily.familyImage = imageState
+                                                                manageFamiliesState.selectedFamily.familyImage =
+                                                                    imageState
                                                             }
                                                         }
                                                     }
@@ -178,6 +184,9 @@ fun ManageFamiliesView(
                                     .weight(.33f)
                                     .padding(3.dp), text = "Save"
                             ) {
+                                oldImage?.let {
+                                    File(it).deleteOnExit()
+                                }
                                 viewModel.saveFamily()
                             }
 
@@ -186,6 +195,12 @@ fun ManageFamiliesView(
                                     .weight(.33f)
                                     .padding(3.dp), text = "Delete"
                             ) {
+                                oldImage?.let {
+                                    File(it).deleteOnExit()
+                                }
+                                if (imageState.isNotEmpty()) {
+                                    File(imageState).deleteOnExit()
+                                }
                                 viewModel.deleteSelectedFamily()
                             }
 

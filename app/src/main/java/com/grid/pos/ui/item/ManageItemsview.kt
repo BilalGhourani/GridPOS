@@ -77,10 +77,10 @@ import java.io.File
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ManageItemsView(
-        modifier: Modifier = Modifier,
-        navController: NavController? = null,
-        mainActivity: MainActivity,
-        viewModel: ManageItemsViewModel = hiltViewModel()
+    modifier: Modifier = Modifier,
+    navController: NavController? = null,
+    mainActivity: MainActivity,
+    viewModel: ManageItemsViewModel = hiltViewModel()
 ) {
     val manageItemsState: ManageItemsState by viewModel.manageItemsState.collectAsState(
         ManageItemsState()
@@ -120,6 +120,8 @@ fun ManageItemsView(
     var imageState by remember { mutableStateOf("") }
     var itemPOSState by remember { mutableStateOf(false) }
 
+    var oldImage: String? = null
+
     var colorPickerType by remember { mutableStateOf(ColorPickerType.BUTTON_COLOR) }
     var isColorPickerShown by remember { mutableStateOf(false) }
 
@@ -152,7 +154,9 @@ fun ManageItemsView(
                     }
                 }, title = {
                     Text(
-                        text = "Manage Items", color = SettingsModel.textColor, fontSize = 16.sp,
+                        text = "Manage Items",
+                        color = SettingsModel.textColor,
+                        fontSize = 16.sp,
                         textAlign = TextAlign.Center
                     )
                 })
@@ -225,7 +229,8 @@ fun ManageItemsView(
                             unitPriceState = Utils.getDoubleValue(
                                 unitPrice, unitPriceState
                             )
-                            manageItemsState.selectedItem.itemUnitPrice = unitPriceState.toDoubleOrNull() ?: 0.0
+                            manageItemsState.selectedItem.itemUnitPrice =
+                                unitPriceState.toDoubleOrNull() ?: 0.0
                         }
 
                         if (SettingsModel.showTax) {
@@ -245,7 +250,8 @@ fun ManageItemsView(
                                 taxState = Utils.getDoubleValue(
                                     tax, taxState
                                 )
-                                manageItemsState.selectedItem.itemTax = taxState.toDoubleOrNull() ?: 0.0
+                                manageItemsState.selectedItem.itemTax =
+                                    taxState.toDoubleOrNull() ?: 0.0
                             }
                         }
                         if (SettingsModel.showTax1) {
@@ -264,7 +270,8 @@ fun ManageItemsView(
                                 tax1State = Utils.getDoubleValue(
                                     tax1, tax1State
                                 )
-                                manageItemsState.selectedItem.itemTax1 = tax1State.toDoubleOrNull() ?: 0.0
+                                manageItemsState.selectedItem.itemTax1 =
+                                    tax1State.toDoubleOrNull() ?: 0.0
                             }
                         }
                         if (SettingsModel.showTax2) {
@@ -277,7 +284,8 @@ fun ManageItemsView(
                                 tax2State = Utils.getDoubleValue(
                                     tax2, tax2State
                                 )
-                                manageItemsState.selectedItem.itemTax2 = tax2State.toDoubleOrNull() ?: 0.0
+                                manageItemsState.selectedItem.itemTax2 =
+                                    tax2State.toDoubleOrNull() ?: 0.0
                             }
                         }
                         //barcode
@@ -298,7 +306,8 @@ fun ManageItemsView(
                             openCostState = Utils.getDoubleValue(
                                 openCost, openCostState
                             )
-                            manageItemsState.selectedItem.itemOpenCost = openCostState.toDoubleOrNull() ?: 0.0
+                            manageItemsState.selectedItem.itemOpenCost =
+                                openCostState.toDoubleOrNull() ?: 0.0
                         }
 
                         //open quantity
@@ -309,7 +318,8 @@ fun ManageItemsView(
                             openQtyState = Utils.getDoubleValue(
                                 openQty, openQtyState
                             )
-                            manageItemsState.selectedItem.itemOpenQty = openQtyState.toDoubleOrNull() ?: 0.0
+                            manageItemsState.selectedItem.itemOpenQty =
+                                openQtyState.toDoubleOrNull() ?: 0.0
                         }
 
                         SearchableDropdownMenu(
@@ -331,7 +341,7 @@ fun ManageItemsView(
                             trailingIcon = {
                                 IconButton(onClick = {
                                     colorPickerType = ColorPickerType.BUTTON_COLOR
-                                    isColorPickerShown=true
+                                    isColorPickerShown = true
                                 }) {
                                     Icon(
                                         Icons.Default.ColorLens, contentDescription = "color",
@@ -351,7 +361,7 @@ fun ManageItemsView(
                             onAction = { imageFocusRequester.requestFocus() }, trailingIcon = {
                                 IconButton(onClick = {
                                     colorPickerType = ColorPickerType.BUTTON_TEXT_COLOR
-                                    isColorPickerShown=true
+                                    isColorPickerShown = true
                                 }) {
                                     Icon(
                                         Icons.Default.ColorLens, contentDescription = "color",
@@ -385,15 +395,19 @@ fun ManageItemsView(
                                                 if (uris.isNotEmpty()) {
                                                     manageItemsState.isLoading = true
                                                     CoroutineScope(Dispatchers.IO).launch {
-                                                        val file = File(uris[0].path)
-                                                        val internalPath = Utils.saveToInternalStorage(
-                                                            context = mainActivity, parent = "item",
-                                                            file, nameState.ifEmpty { file.name })
+                                                        val internalPath =
+                                                            Utils.saveToInternalStorage(
+                                                                context = mainActivity,
+                                                                parent = "item",
+                                                                uris[0],
+                                                                nameState.replace(" ","_").ifEmpty { "item" })
                                                         withContext(Dispatchers.Main) {
                                                             manageItemsState.isLoading = false
                                                             if (internalPath != null) {
-                                                                imageState = uris[0].toString()
-                                                                manageItemsState.selectedItem.itemImage = imageState
+                                                                oldImage = imageState
+                                                                imageState = internalPath
+                                                                manageItemsState.selectedItem.itemImage =
+                                                                    imageState
                                                             }
                                                         }
                                                     }
@@ -433,6 +447,9 @@ fun ManageItemsView(
                                     .weight(.33f)
                                     .padding(3.dp), text = "Save"
                             ) {
+                                oldImage?.let {
+                                    File(it).deleteOnExit()
+                                }
                                 viewModel.saveItem(manageItemsState.selectedItem)
                             }
 
@@ -441,6 +458,12 @@ fun ManageItemsView(
                                     .weight(.33f)
                                     .padding(3.dp), text = "Delete"
                             ) {
+                                oldImage?.let {
+                                    File(it).deleteOnExit()
+                                }
+                                if (imageState.isNotEmpty()) {
+                                    File(imageState).deleteOnExit()
+                                }
                                 viewModel.deleteSelectedItem(manageItemsState.selectedItem)
                             }
 
