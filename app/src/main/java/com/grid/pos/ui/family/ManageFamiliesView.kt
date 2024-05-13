@@ -138,11 +138,10 @@ fun ManageFamiliesView(
                                                 if (uris.isNotEmpty()) {
                                                     manageFamiliesState.isLoading = true
                                                     CoroutineScope(Dispatchers.IO).launch {
-                                                        val file = File(uris[0].path)
                                                         val internalPath = Utils.saveToInternalStorage(
                                                             context = mainActivity,
-                                                            parent = "family", file,
-                                                            nameState.ifEmpty { file.name })
+                                                            parent = "family", uris[0],
+                                                            nameState.ifEmpty { "family" })
                                                         withContext(Dispatchers.Main) {
                                                             manageFamiliesState.isLoading = false
                                                             if (internalPath != null) {

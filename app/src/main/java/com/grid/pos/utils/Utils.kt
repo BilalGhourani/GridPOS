@@ -13,6 +13,7 @@ import android.widget.Toast
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toFile
 import androidx.core.net.toUri
 import com.grid.pos.data.DataModel
 import com.grid.pos.data.Family.Family
@@ -134,8 +135,8 @@ object Utils {
     )
 
     fun calculateColumns(
-            cellWidth: Dp,
-            screenWidth: Dp
+        cellWidth: Dp,
+        screenWidth: Dp
     ): Int {
         val availableSpace = screenWidth - Dp((2 * 16F))// Account for paddings (adjust as needed)
         return (availableSpace / cellWidth).toInt().coerceAtLeast(1) // Ensure at least 1 column
@@ -146,8 +147,8 @@ object Utils {
     }
 
     fun getDateinFormat(
-            date: Date = Date(),
-            format: String = "MMMM dd, yyyy 'at' hh:mm:ss a 'Z'"
+        date: Date = Date(),
+        format: String = "MMMM dd, yyyy 'at' hh:mm:ss a 'Z'"
     ): String {
         val parserFormat = SimpleDateFormat(
             format, Locale.getDefault()
@@ -157,9 +158,9 @@ object Utils {
     }
 
     fun floatToColor(
-            hue: Float,
-            saturation: Float = 1f,
-            brightness: Float = 1f
+        hue: Float,
+        saturation: Float = 1f,
+        brightness: Float = 1f
     ): Color {
         // Convert HSV to RGB
         val hsv = floatArrayOf(
@@ -175,8 +176,8 @@ object Utils {
     }
 
     fun getDoubleValue(
-            new: String,
-            old: String
+        new: String,
+        old: String
     ): String {
         return if (new.isEmpty()) {
             new
@@ -189,8 +190,8 @@ object Utils {
     }
 
     fun getIntValue(
-            new: String,
-            old: String
+        new: String,
+        old: String
     ): String {
         return if (new.isEmpty()) {
             new
@@ -203,8 +204,8 @@ object Utils {
     }
 
     fun printWebPage(
-            webView: WebView?,
-            context: Context
+        webView: WebView?,
+        context: Context
     ) {
         if (webView != null) {
             val printManager = context.getSystemService(Context.PRINT_SERVICE) as PrintManager
@@ -240,8 +241,8 @@ object Utils {
     }
 
     fun readFileFromAssets(
-            fileName: String,
-            context: Context
+        fileName: String,
+        context: Context
     ): String {
         return try {
             val inputStream = context.assets.open(fileName)
@@ -267,10 +268,10 @@ object Utils {
     }
 
     fun getListHeight(
-            listSize: Int = 0,
-            cellHeight: Int,
-            min: Int = 1,
-            max: Int = 8
+        listSize: Int = 0,
+        cellHeight: Int,
+        min: Int = 1,
+        max: Int = 8
     ): Dp {
         var size = listSize
         if (size < min) size = min
@@ -303,10 +304,10 @@ object Utils {
     }
 
     fun saveToInternalStorage(
-            context: Context,
-            parent: String = "family",
-            sourceFile: File,
-            destName: String
+        context: Context,
+        parent: String = "family",
+        sourceFile: Uri,
+        destName: String
     ): String? {
         val storageDir = File(context.filesDir, "images")
         if (!storageDir.exists()) {
@@ -319,24 +320,21 @@ object Utils {
         val name = "$destName.jpg"
         val destinationFile = File(parentDir, name)
 
-        // Create imageDir
-         copyImageToInternalStorage(context,sourceFile.toUri())
-        return ""
-        //return sourceFile.copyAndGetPath(context, destinationFile.absolutePath, name)
-        // copyImage(context, sourceFile, destinationFile)
-        //return destinationFile.path
+        copyImage(context, sourceFile, destinationFile)
+        return destinationFile.absolutePath
     }
 
     fun copyImage(
-            context: Context,
-            sourceFile: File,
-            destinationFile: File
+        context: Context,
+        sourceFilePath: Uri,
+        destinationFile: File
     ) {
         val contentResolver = context.contentResolver
         try {
+            val sourceFile = File(sourceFilePath.toString())
             val inputStream: InputStream = if (!sourceFile.exists()) {
                 // Opening from gallery using content URI
-                contentResolver.openInputStream(Uri.fromFile(sourceFile))!!
+                contentResolver.openInputStream(sourceFilePath)!!
             } else {
                 // Opening from internal storage using path
                 FileInputStream(sourceFile)
@@ -353,34 +351,5 @@ object Utils {
             Log.e("tag", "Failed to copy image", e)
         }
     }
-
-    private fun copyImageToInternalStorage(context: Context,imageUri: Uri) {
-        try {
-            // Open input stream from selected image URI
-            val inputStream: InputStream = context.contentResolver.openInputStream(imageUri)?:return
-
-            // Create destination file in internal storage
-            val fileName = "copied_image.jpg"
-            val destFile: File = File(context.filesDir, fileName)
-
-            // Open output stream to destination file
-            val outputStream: OutputStream = FileOutputStream(destFile)
-
-            // Copy data from input stream to output stream
-            val buffer = ByteArray(1024)
-            var length: Int
-            while (inputStream.read(buffer).also { length = it } > 0) {
-                outputStream.write(buffer, 0, length)
-            }
-
-            // Close streams
-            inputStream.close()
-            outputStream.close()
-
-        } catch (e: IOException) {
-            e.printStackTrace()
-        }
-    }
-
 
 }
