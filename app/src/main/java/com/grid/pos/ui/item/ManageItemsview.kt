@@ -402,7 +402,7 @@ fun ManageItemsView(
                                                         withContext(Dispatchers.Main) {
                                                             manageItemsState.isLoading = false
                                                             if (internalPath != null) {
-                                                                imageState = uris[0].toString()
+                                                                imageState = internalPath
                                                                 manageItemsState.selectedItem.itemImage =
                                                                     imageState
                                                             }
