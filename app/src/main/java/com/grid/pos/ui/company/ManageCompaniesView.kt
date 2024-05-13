@@ -69,6 +69,7 @@ fun ManageCompaniesView(
     val keyboardController = LocalSoftwareKeyboardController.current
     val phoneFocusRequester = remember { FocusRequester() }
     val addressFocusRequester = remember { FocusRequester() }
+    val countryFocusRequester = remember { FocusRequester() }
     val taxRegNoFocusRequester = remember { FocusRequester() }
     val taxFocusRequester = remember { FocusRequester() }
     val emailFocusRequester = remember { FocusRequester() }
@@ -82,6 +83,7 @@ fun ManageCompaniesView(
     var nameState by remember { mutableStateOf("") }
     var phoneState by remember { mutableStateOf("") }
     var addressState by remember { mutableStateOf("") }
+    var countryState by remember { mutableStateOf("") }
     var taxRegnoState by remember { mutableStateOf("") }
     var taxState by remember { mutableStateOf("") }
     var curCodeTaxState by remember { mutableStateOf("") }
@@ -164,6 +166,7 @@ fun ManageCompaniesView(
                             nameState = company.companyName ?: ""
                             phoneState = company.companyPhone ?: ""
                             addressState = company.companyAddress ?: ""
+                            countryState = company.companyCountry ?: ""
                             taxRegnoState = company.companyTaxRegno ?: ""
                             taxState = company.companyTax.toString()
                             curCodeTaxState = company.companyCurCodeTax ?: ""
@@ -205,6 +208,20 @@ fun ManageCompaniesView(
                             focusRequester = addressFocusRequester,
                             placeHolder = "Enter address",
                             onAction = {
+                                countryFocusRequester.requestFocus()
+                            }) { address ->
+                            addressState = address
+                            manageCompaniesState.selectedCompany.companyAddress = address
+                        }
+
+                        //country
+                        UITextField(modifier = Modifier.padding(10.dp),
+                            defaultValue = countryState,
+                            label = "Country",
+                            maxLines = 3,
+                            focusRequester = countryFocusRequester,
+                            placeHolder = "Enter country",
+                            onAction = {
                                 if (SettingsModel.showTax) {
                                     taxRegNoFocusRequester.requestFocus()
                                 } else if (SettingsModel.showTax1) {
@@ -214,9 +231,9 @@ fun ManageCompaniesView(
                                 } else {
                                     emailFocusRequester.requestFocus()
                                 }
-                            }) { address ->
-                            addressState = address
-                            manageCompaniesState.selectedCompany.companyAddress = address
+                            }) { country ->
+                            countryState = country
+                            manageCompaniesState.selectedCompany.companyCountry = countryState
                         }
 
                         if (SettingsModel.showTax) {
@@ -411,6 +428,7 @@ fun ManageCompaniesView(
             nameState = ""
             phoneState = ""
             addressState = ""
+            countryState = ""
             taxRegnoState = ""
             taxState = ""
             curCodeTaxState = ""

@@ -13,6 +13,7 @@ object SettingsModel {
     var firebaseProjectId: String? = "grids-app-8a2b7"
     var firebaseDbPath: String? = "https://grids-app-8a2b7-default-rtdb.europe-west1.firebasedatabase.app"
     var companyID: String? = null
+    var invoicePrinter: String? = null
 
     var loadFromRemote: Boolean = true
     var showTax: Boolean = false

@@ -79,11 +79,13 @@ fun SettingsView(
     var firebaseProjectId by remember { mutableStateOf(SettingsModel.firebaseProjectId ?: "") }
     var firebaseDbPath by remember { mutableStateOf(SettingsModel.firebaseDbPath ?: "") }
     var companyID by remember { mutableStateOf(SettingsModel.companyID ?: "") }
+    var invoicePrinter by remember { mutableStateOf(SettingsModel.invoicePrinter ?: "") }
 
     val firebaseApiKeyRequester = remember { FocusRequester() }
     val firebaseProjectIdRequester = remember { FocusRequester() }
     val firebaseDbPathRequester = remember { FocusRequester() }
     val companyIdRequester = remember { FocusRequester() }
+    val printerRequester = remember { FocusRequester() }
 
     var loadFromRemote by remember { mutableStateOf(SettingsModel.loadFromRemote) }
     var showTax by remember { mutableStateOf(SettingsModel.showTax) }
@@ -153,7 +155,7 @@ fun SettingsView(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = "Firebase", modifier = Modifier.padding(16.dp),
+                                text = "Connectivity Settings", modifier = Modifier.padding(16.dp),
                                 textAlign = TextAlign.Center, style = TextStyle(
                                     textDecoration = TextDecoration.None,
                                     fontWeight = FontWeight.SemiBold, fontSize = 16.sp
@@ -209,9 +211,18 @@ fun SettingsView(
                             UITextField(
                                 modifier = Modifier.padding(10.dp), defaultValue = companyID,
                                 label = "Company ID", placeHolder = "Company ID",
-                                focusRequester = companyIdRequester, imeAction = ImeAction.Done
+                                focusRequester = companyIdRequester,
+                                onAction = { printerRequester.requestFocus() }
                             ) { compId ->
                                 companyID = compId
+                            }
+
+                            UITextField(
+                                modifier = Modifier.padding(10.dp), defaultValue = invoicePrinter,
+                                label = "Invoice Printer", placeHolder = "Printer name",
+                                focusRequester = printerRequester, imeAction = ImeAction.Done
+                            ) { printer ->
+                                invoicePrinter = printer
                             }
 
                             UIButton(
@@ -254,6 +265,11 @@ fun SettingsView(
                                     SettingsModel.companyID = companyID
                                     DataStoreManager.putString(
                                         DataStoreManager.DataStoreKeys.COMPANY_ID.key, companyID
+                                    )
+
+                                    SettingsModel.invoicePrinter = invoicePrinter
+                                    DataStoreManager.putString(
+                                        DataStoreManager.DataStoreKeys.INVOICE_PRINTER.key, invoicePrinter
                                     )
                                 }
                             }

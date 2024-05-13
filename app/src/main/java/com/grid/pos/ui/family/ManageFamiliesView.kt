@@ -224,6 +224,7 @@ fun ManageFamiliesView(
             manageFamiliesState.selectedFamily = Family()
             manageFamiliesState.selectedFamily.familyCompanyId = ""
             nameState = ""
+            imageState = ""
             manageFamiliesState.clear = false
         }
     }

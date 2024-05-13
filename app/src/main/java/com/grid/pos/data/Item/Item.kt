@@ -93,10 +93,10 @@ data class Item(
     /**
      * related Item pos printer id
      * */
-    @ColumnInfo(name = "it_pp_id")
-    @set:PropertyName("it_pp_id")
-    @get:PropertyName("it_pp_id")
-    var itemPosPrinter: String? = null,
+    @ColumnInfo(name = "it_printer")
+    @set:PropertyName("it_printer")
+    @get:PropertyName("it_printer")
+    var itemPrinter: String? = null,
 
     /**
      * Item open quantity
@@ -207,7 +207,7 @@ data class Item(
             "it_tax" to itemTax,
             "it_tax1" to itemTax1,
             "it_tax2" to itemTax2,
-            "it_pp_id" to itemPosPrinter,
+            "it_printer" to itemPrinter,
             "it_openqty" to itemOpenQty,
             "it_opencost" to itemOpenCost,
             "it_pos" to itemPos,

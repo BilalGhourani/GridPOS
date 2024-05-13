@@ -179,7 +179,9 @@ object DataStoreManager {
         SettingsModel.showTax = getBoolean(DataStoreKeys.SHOW_TAX.key, false) == true
         SettingsModel.showTax1 = getBoolean(DataStoreKeys.SHOW_TAX1.key, false) == true
         SettingsModel.showTax2 = getBoolean(DataStoreKeys.SHOW_TAX2.key, false) == true
-        SettingsModel.showPriceInItemBtn = getBoolean(DataStoreKeys.SHOW_PRICE_IN_ITEM_BTN.key, false) == true
+        SettingsModel.showPriceInItemBtn = getBoolean(
+            DataStoreKeys.SHOW_PRICE_IN_ITEM_BTN.key, false
+        ) == true
 
         SettingsModel.firebaseApplicationId = getString(DataStoreKeys.FIREBASE_APP_ID.key)
         SettingsModel.firebaseApiKey = getString(DataStoreKeys.FIREBASE_API_KEY.key)
@@ -188,6 +190,8 @@ object DataStoreManager {
         SettingsModel.companyID = getString(
             DataStoreKeys.COMPANY_ID.key, ""
         ).ifEmpty { "b446ad20-506f-40e1-83e5-022c748f39c0" }
+
+        SettingsModel.invoicePrinter = getString(DataStoreKeys.INVOICE_PRINTER.key, "")
     }
 
     enum class DataStoreKeys(val key: String) {
@@ -200,6 +204,8 @@ object DataStoreManager {
             "FIREBASE_DB_PATH"
         ),
         COMPANY_ID("COMPANY_ID"),
+
+        INVOICE_PRINTER("INVOICE_PRINTER"),
 
         LOAD_FROM_REMOTE("LOAD_FROM_REMOTE"), SHOW_TAX("SHOW_TAX"), SHOW_TAX1(
             "SHOW_TAX1"
