@@ -9,12 +9,9 @@ import android.print.PrintAttributes.MediaSize
 import android.print.PrintManager
 import android.util.Log
 import android.webkit.WebView
-import android.widget.Toast
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.core.net.toFile
-import androidx.core.net.toUri
 import com.grid.pos.data.DataModel
 import com.grid.pos.data.Family.Family
 import com.grid.pos.data.Item.Item
@@ -23,11 +20,9 @@ import com.grid.pos.model.HomeSectionModel
 import java.io.BufferedReader
 import java.io.File
 import java.io.FileInputStream
-import java.io.FileOutputStream
 import java.io.IOException
 import java.io.InputStream
 import java.io.InputStreamReader
-import java.io.OutputStream
 import java.math.BigInteger
 import java.text.SimpleDateFormat
 import java.time.Year
