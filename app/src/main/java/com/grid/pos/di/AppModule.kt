@@ -17,6 +17,8 @@ import com.grid.pos.data.Item.ItemRepository
 import com.grid.pos.data.Item.ItemRepositoryImpl
 import com.grid.pos.data.PosPrinter.PosPrinterRepository
 import com.grid.pos.data.PosPrinter.PosPrinterRepositoryImpl
+import com.grid.pos.data.PosReceipt.PosReceiptRepository
+import com.grid.pos.data.PosReceipt.PosReceiptRepositoryImpl
 import com.grid.pos.data.ThirdParty.ThirdPartyRepository
 import com.grid.pos.data.ThirdParty.ThirdPartyRepositoryImpl
 import com.grid.pos.data.User.UserRepository
@@ -91,6 +93,12 @@ object AppModule {
     @Singleton
     fun provideInvoiceHeaderRepository(db: AppDatabase): InvoiceHeaderRepository {
         return InvoiceHeaderRepositoryImpl(db.invoiceHeaderDao)
+    }
+
+    @Provides
+    @Singleton
+    fun providePosReceiptRepository(db: AppDatabase): PosReceiptRepository {
+        return PosReceiptRepositoryImpl(db.posReceiptDao)
     }
 
 

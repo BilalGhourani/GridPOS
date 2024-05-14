@@ -55,6 +55,8 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.grid.pos.ActivityScopedViewModel
+import com.grid.pos.data.PosReceipt.PosReceipt
+import com.grid.pos.interfaces.OnResult
 import com.grid.pos.model.InvoiceItemModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.pos.components.AddInvoiceItemView
@@ -73,10 +75,10 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PosView(
-        modifier: Modifier = Modifier,
-        navController: NavController? = null,
-        activityViewModel: ActivityScopedViewModel,
-        viewModel: POSViewModel = hiltViewModel()
+    modifier: Modifier = Modifier,
+    navController: NavController? = null,
+    activityViewModel: ActivityScopedViewModel,
+    viewModel: POSViewModel = hiltViewModel()
 ) {
     val posState: POSState by viewModel.posState.collectAsState(activityViewModel.posState)
     val invoicesState = remember { mutableStateListOf<InvoiceItemModel>() }
@@ -224,11 +226,24 @@ fun PosView(
                             isAddItemBottomSheetVisible = false
                         }, onThirdPartySelected = { thirdParty ->
                             posState.selectedThirdParty = thirdParty
-                            posState.invoiceHeader.invoiceHeadThirdPartyName = thirdParty.thirdPartyId
+                            posState.invoiceHeader.invoiceHeadThirdPartyName =
+                                thirdParty.thirdPartyId
                         }, onInvoiceSelected = { invoiceHeader ->
                             invoiceHeaderState.value = invoiceHeader
                             posState.invoiceHeader = invoiceHeader
-                            viewModel.loadInvoiceDetails(invoiceHeader)
+                            viewModel.loadInvoiceDetails(invoiceHeader, object : OnResult {
+                                override fun onSuccess(result: Any) {
+                                    invoicesState.clear()
+                                    invoicesState.addAll(posState.invoices)
+                                    posState.posReceipt = result as PosReceipt
+                                }
+
+                                override fun onFailure(message: String, errorCode: Int) {
+                                    invoicesState.clear()
+                                    invoicesState.addAll(posState.invoices)
+                                }
+
+                            })
                         })
                 }
             }
