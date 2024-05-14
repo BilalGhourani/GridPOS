@@ -9,7 +9,6 @@ import com.google.firebase.firestore.Exclude
 import com.google.firebase.firestore.PropertyName
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.Utils
-import java.util.Date
 
 @Entity(tableName = "pos_receipt")
 data class PosReceipt(
@@ -37,50 +36,51 @@ data class PosReceipt(
     /**
      *  POS Receipt Cash Amount
      * */
-    @ColumnInfo(name = "pr_cash_amt")
-    @set:PropertyName("pr_cash_amt")
-    @get:PropertyName("pr_cash_amt")
-    var posReceiptCashAmount: Double? = null,
+    @ColumnInfo(name = "pr_cash")
+    @set:PropertyName("pr_cash")
+    @get:PropertyName("pr_cash")
+    var posReceiptCash: Double = 0.0,
 
     /**
      *  POS Receipt Cash Amount 2
      * */
-    @ColumnInfo(name = "pr_cash_amts")
-    @set:PropertyName("pr_cash_amts")
-    @get:PropertyName("pr_cash_amts")
-    var posReceiptCashAmount2: Double? = null,
-
-    /**
-     *  POS Receipt Debit Amount
-     * */
-    @ColumnInfo(name = "pr_debit_amt")
-    @set:PropertyName("pr_debit_amt")
-    @get:PropertyName("pr_debit_amt")
-    var posReceiptDebitAmount: Double? = null,
-
-    /**
-     *  POS Receipt Debit Amount 2
-     * */
-    @ColumnInfo(name = "pr_debit_amts")
-    @set:PropertyName("pr_debit_amts")
-    @get:PropertyName("pr_debit_amts")
-    var posReceiptDebitAmount2: Double? = null,
+    @ColumnInfo(name = "pr_cashs")
+    @set:PropertyName("pr_cashs")
+    @get:PropertyName("pr_cashs")
+    var posReceiptCashs: Double = 0.0,
 
     /**
      *  POS Receipt Credit Amount
      * */
-    @ColumnInfo(name = "pr_credit_amt")
-    @set:PropertyName("pr_credit_amt")
-    @get:PropertyName("pr_credit_amt")
-    var posReceiptCreditAmount: Double? = null,
+    @ColumnInfo(name = "pr_credit")
+    @set:PropertyName("pr_credit")
+    @get:PropertyName("pr_credit")
+    var posReceiptCredit: Double = 0.0,
 
     /**
      *  POS Receipt Credit Amounts
      * */
-    @ColumnInfo(name = "pr_credit_amts")
-    @set:PropertyName("pr_credit_amts")
-    @get:PropertyName("pr_credit_amts")
-    var posReceiptCreditAmount2: Double? = null,
+    @ColumnInfo(name = "pr_credits")
+    @set:PropertyName("pr_credits")
+    @get:PropertyName("pr_credits")
+    var posReceiptCredits: Double = 0.0,
+
+    /**
+     *  POS Receipt Debit Amount
+     * */
+    @ColumnInfo(name = "pr_debit")
+    @set:PropertyName("pr_debit")
+    @get:PropertyName("pr_debit")
+    var posReceiptDebit: Double = 0.0,
+
+    /**
+     *  POS Receipt Debit Amount 2
+     * */
+    @ColumnInfo(name = "pr_debits")
+    @set:PropertyName("pr_debits")
+    @get:PropertyName("pr_debits")
+    var posReceiptDebits: Double = 0.0,
+
 
     /**
      *  POS Receipt Date
@@ -124,12 +124,12 @@ data class PosReceipt(
     fun getMap(): Map<String, Any?> {
         return mapOf(
             "pr_hi_id" to posReceiptInvoiceId,
-            "pr_cash_amt" to posReceiptCashAmount,
-            "pr_cash_amts" to posReceiptCashAmount2,
-            "pr_debit_amt" to posReceiptDebitAmount,
-            "pr_debit_amts" to posReceiptDebitAmount2,
-            "pr_credit_amt" to posReceiptCreditAmount,
-            "pr_credit_amts" to posReceiptCreditAmount2,
+            "pr_cash_amt" to posReceiptCash,
+            "pr_cash_amts" to posReceiptCashs,
+            "pr_debit_amt" to posReceiptDebit,
+            "pr_debit_amts" to posReceiptDebits,
+            "pr_credit_amt" to posReceiptCredit,
+            "pr_credit_amts" to posReceiptCredits,
             "pr_timestamp" to posReceiptTimeStamp,
             "pr_userstamp" to posReceiptUserStamp
         )

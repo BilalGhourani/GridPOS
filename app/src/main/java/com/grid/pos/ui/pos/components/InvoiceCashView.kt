@@ -39,10 +39,10 @@ import com.grid.pos.utils.Utils
 
 @Composable
 fun InvoiceCashView(
-        modifier: Modifier,
-        posState: POSState,
-        onSave: (Double, PosReceipt) -> Unit = { _, _ -> },
-        onFinish: (Double, PosReceipt) -> Unit = { _, _ -> },
+    modifier: Modifier,
+    posState: POSState,
+    onSave: (Double, PosReceipt) -> Unit = { _, _ -> },
+    onFinish: (Double, PosReceipt) -> Unit = { _, _ -> },
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
     val cashCurr2FocusRequester = remember { FocusRequester() }
@@ -66,24 +66,78 @@ fun InvoiceCashView(
     val rate = currency.currencyRate
     val netTotal = invoiceHeader.invoiceHeadGrossAmount
     val cashTotalPaid1 = String.format("%.${curr1Decimal}f", netTotal)
-    val cashTotalPaid2 = String.format(
-        "%.${curr1Decimal}f", (netTotal).times(rate)
-    )
+    val cashTotalPaid2 = String.format("%.${curr1Decimal}f", (netTotal).times(rate))
 
     val curr1State by remember { mutableStateOf(currency.currencyName1 ?: "") }
     val curr2State by remember { mutableStateOf(currency.currencyName2 ?: "") }
-    var cashCurr1Paid by remember { mutableStateOf("") }
-    var cashCurr2Paid by remember { mutableStateOf("") }
+    var cashCurr1Paid by remember { mutableStateOf(
+        if (posReceipt.posReceiptCash > 0.0) String.format(
+        "%.${curr1Decimal}f",
+        posReceipt.posReceiptCash
+    ) else "") }
+    var cashCurr2Paid by remember { mutableStateOf(
+        if (posReceipt.posReceiptCashs > 0.0) String.format(
+            "%.${curr2Decimal}f",
+            posReceipt.posReceiptCashs
+        ) else ""
+    ) }
     var cashCurr1Total by remember { mutableStateOf(cashTotalPaid1) }
     var cashCurr2Total by remember { mutableStateOf(cashTotalPaid2) }
-    var creditCurr1Paid by remember { mutableStateOf("") }
-    var creditCurr2Paid by remember { mutableStateOf("") }
-    var creditCurr1Total by remember { mutableStateOf("") }
-    var creditCurr2Total by remember { mutableStateOf("") }
-    var debitCurr1Paid by remember { mutableStateOf("") }
-    var debitCurr2Paid by remember { mutableStateOf("") }
-    var debitCurr1Total by remember { mutableStateOf("") }
-    var debitCurr2Total by remember { mutableStateOf("") }
+    var creditCurr1Paid by remember { mutableStateOf(
+        if (posReceipt.posReceiptCredit> 0.0) String.format(
+            "%.${curr1Decimal}f",
+            posReceipt.posReceiptCredit
+        ) else ""
+    ) }
+    var creditCurr2Paid by remember { mutableStateOf(
+        if (posReceipt.posReceiptCredits > 0.0) String.format(
+            "%.${curr2Decimal}f",
+            posReceipt.posReceiptCredits
+        ) else ""
+    ) }
+    var totalCurr1Paid by remember { mutableStateOf("0.0") }
+    var totalCurr2Paid by remember { mutableStateOf("0.0") }
+    var debitCurr1Paid by remember { mutableStateOf(
+        if (posReceipt.posReceiptDebit > 0.0) String.format(
+            "%.${curr1Decimal}f",
+            posReceipt.posReceiptDebit
+        ) else ""
+    ) }
+    var debitCurr2Paid by remember { mutableStateOf(
+        if (posReceipt.posReceiptDebits > 0.0) String.format(
+            "%.${curr2Decimal}f",
+            posReceipt.posReceiptDebits
+        ) else ""
+    ) }
+    var changeCurr1 by remember { mutableStateOf("0.0") }
+    var changeCurr2 by remember { mutableStateOf("0.0") }
+
+    fun calculateTotal() {
+        val cashPaid1 = cashCurr1Paid.toDoubleOrNull() ?: 0.0
+        val cashPaid2 = cashCurr2Paid.toDoubleOrNull() ?: 0.0
+        val creditPaid1 = creditCurr1Paid.toDoubleOrNull() ?: 0.0
+        val creditPaid2 = creditCurr2Paid.toDoubleOrNull() ?: 0.0
+        val debitPaid1 = debitCurr1Paid.toDoubleOrNull() ?: 0.0
+        val debitPaid2 = debitCurr2Paid.toDoubleOrNull() ?: 0.0
+
+        val totalPaid1 = cashPaid1 + creditPaid1 + debitPaid1
+        val totalPaid2 = cashPaid2 + creditPaid2 + debitPaid2
+
+        totalCurr1Paid = String.format(
+            "%.${curr1Decimal}f", totalPaid1
+        )
+        totalCurr2Paid = String.format(
+            "%.${curr2Decimal}f", totalPaid2
+        )
+        changeCurr1 = String.format(
+            "%.${curr1Decimal}f", (cashCurr1Total.toDoubleOrNull() ?: 0.0) - totalPaid1
+        )
+        changeCurr2 = String.format(
+            "%.${curr2Decimal}f", (cashCurr2Total.toDoubleOrNull() ?: 0.0) - totalPaid2
+        )
+    }
+
+    calculateTotal()
 
     Column(
         modifier = modifier
@@ -157,23 +211,7 @@ fun InvoiceCashView(
             )
             OutlinedTextField(value = cashCurr1Paid, onValueChange = {
                 cashCurr1Paid = Utils.getDoubleValue(it, cashCurr1Paid)
-                val cashCurrTotal1 = if (cashCurr1Paid.isEmpty()) 0.0 else cashCurr1Paid.toDouble()
-                val cashCurrTotal2 = if (cashCurr2Paid.isEmpty()) 0.0 else cashCurr2Paid.toDouble()
-                creditCurr1Total = String.format(
-                    "%.${curr1Decimal}f", cashCurrTotal1 + (cashCurrTotal2 / rate)
-                )
-
-                creditCurr2Total = String.format(
-                    "%.${curr2Decimal}f", (cashCurrTotal1 * rate) + cashCurrTotal2
-                )
-
-                debitCurr1Total = String.format(
-                    "%.${curr1Decimal}f", cashTotalPaid1.toDouble() - creditCurr1Total.toDouble()
-                )
-
-                debitCurr2Total = String.format(
-                    "%.${curr2Decimal}f", cashTotalPaid2.toDouble() - creditCurr2Total.toDouble()
-                )
+                calculateTotal()
             }, placeholder = {
                 Text(text = "0.0")
             }, modifier = Modifier
@@ -192,24 +230,7 @@ fun InvoiceCashView(
 
             OutlinedTextField(value = cashCurr2Paid, onValueChange = {
                 cashCurr2Paid = Utils.getDoubleValue(it, cashCurr2Paid)
-                val cashCurrTotal1 = if (cashCurr1Paid.isEmpty()) 0.0 else cashCurr1Paid.toDouble()
-                val cashCurrTotal2 = if (cashCurr2Paid.isEmpty()) 0.0 else cashCurr2Paid.toDouble()
-                creditCurr1Total = String.format(
-                    "%.${curr1Decimal}f", cashCurrTotal1 + (cashCurrTotal2 / rate)
-                )
-
-                creditCurr2Total = String.format(
-                    "%.${curr2Decimal}f", (cashCurrTotal1 * rate) + cashCurrTotal2
-                )
-
-                debitCurr2Total = String.format(
-                    "%.${curr2Decimal}f", cashTotalPaid2.toDouble() - creditCurr2Total.toDouble()
-                )
-
-                debitCurr1Total = String.format(
-                    "%.${curr1Decimal}f", cashTotalPaid1.toDouble() - creditCurr1Total.toDouble()
-                )
-
+                calculateTotal()
             }, placeholder = {
                 Text(text = "0.0")
             }, modifier = Modifier
@@ -231,6 +252,7 @@ fun InvoiceCashView(
             OutlinedTextField(
                 value = cashCurr1Total,
                 onValueChange = { cashCurr1Total = Utils.getDoubleValue(it, cashCurr1Total) },
+                readOnly = true,
                 placeholder = {
                     Text(text = "Total")
                 }, modifier = Modifier
@@ -253,6 +275,7 @@ fun InvoiceCashView(
             OutlinedTextField(
                 value = cashCurr2Total,
                 onValueChange = { cashCurr2Total = Utils.getDoubleValue(it, cashCurr2Total) },
+                readOnly = true,
                 placeholder = {
                     Text(text = "Total2")
                 }, modifier = Modifier
@@ -290,7 +313,10 @@ fun InvoiceCashView(
             )
             OutlinedTextField(
                 value = creditCurr1Paid,
-                onValueChange = { creditCurr1Paid = Utils.getDoubleValue(it, creditCurr1Paid) },
+                onValueChange = {
+                    creditCurr1Paid = Utils.getDoubleValue(it, creditCurr1Paid)
+                    calculateTotal()
+                },
                 placeholder = {
                     Text(text = "0.0")
                 }, modifier = Modifier
@@ -312,7 +338,10 @@ fun InvoiceCashView(
 
             OutlinedTextField(
                 value = creditCurr2Paid,
-                onValueChange = { creditCurr2Paid = Utils.getDoubleValue(it, creditCurr2Paid) },
+                onValueChange = {
+                    creditCurr2Paid = Utils.getDoubleValue(it, creditCurr2Paid)
+                    calculateTotal()
+                },
                 placeholder = {
                     Text(text = "0.0")
                 }, modifier = Modifier
@@ -332,8 +361,9 @@ fun InvoiceCashView(
                 )
             )
             OutlinedTextField(
-                value = creditCurr1Total,
-                onValueChange = { creditCurr1Total = Utils.getDoubleValue(it, creditCurr1Total) },
+                value = totalCurr1Paid,
+                onValueChange = { totalCurr1Paid = Utils.getDoubleValue(it, totalCurr1Paid) },
+                readOnly = true,
                 placeholder = {
                     Text(text = "Paid")
                 }, modifier = Modifier
@@ -354,8 +384,9 @@ fun InvoiceCashView(
             )
 
             OutlinedTextField(
-                value = creditCurr2Total,
-                onValueChange = { creditCurr2Total = Utils.getDoubleValue(it, creditCurr2Total) },
+                value = totalCurr2Paid,
+                onValueChange = { totalCurr2Paid = Utils.getDoubleValue(it, totalCurr2Paid) },
+                readOnly = true,
                 placeholder = {
                     Text(text = "Paid")
                 }, modifier = Modifier
@@ -393,7 +424,10 @@ fun InvoiceCashView(
             )
             OutlinedTextField(
                 value = debitCurr1Paid,
-                onValueChange = { debitCurr1Paid = Utils.getDoubleValue(it, debitCurr1Paid) },
+                onValueChange = {
+                    debitCurr1Paid = Utils.getDoubleValue(it, debitCurr1Paid)
+                    calculateTotal()
+                },
                 placeholder = {
                     Text(text = "0.0")
                 }, modifier = Modifier
@@ -415,7 +449,10 @@ fun InvoiceCashView(
 
             OutlinedTextField(
                 value = debitCurr2Paid,
-                onValueChange = { debitCurr2Paid = Utils.getDoubleValue(it, debitCurr2Paid) },
+                onValueChange = {
+                    debitCurr2Paid = Utils.getDoubleValue(it, debitCurr2Paid)
+                    calculateTotal()
+                },
                 placeholder = {
                     Text(text = "0.0")
                 }, modifier = Modifier
@@ -435,8 +472,9 @@ fun InvoiceCashView(
                 )
             )
             OutlinedTextField(
-                value = debitCurr1Total,
-                onValueChange = { debitCurr1Total = Utils.getDoubleValue(it, debitCurr1Total) },
+                value = changeCurr1,
+                onValueChange = { changeCurr1 = Utils.getDoubleValue(it, changeCurr1) },
+                readOnly = true,
                 placeholder = {
                     Text(text = "Change")
                 }, modifier = Modifier
@@ -457,8 +495,9 @@ fun InvoiceCashView(
             )
 
             OutlinedTextField(
-                value = debitCurr2Total,
-                onValueChange = { debitCurr2Total = Utils.getDoubleValue(it, debitCurr2Total) },
+                value = changeCurr2,
+                onValueChange = { changeCurr2 = Utils.getDoubleValue(it, changeCurr2) },
+                readOnly = true,
                 placeholder = {
                     Text(text = "Change")
                 }, modifier = Modifier
@@ -491,13 +530,13 @@ fun InvoiceCashView(
                     .fillMaxHeight(), text = "Save & Print Order",
                 shape = RoundedCornerShape(15.dp)
             ) {
-                posReceipt.posReceiptCashAmount = cashTotalPaid1.toDoubleOrNull() ?: 0.0
-                posReceipt.posReceiptCashAmount2 = cashTotalPaid2.toDoubleOrNull() ?: 0.0
-                posReceipt.posReceiptDebitAmount = debitCurr1Paid.toDoubleOrNull() ?: 0.0
-                posReceipt.posReceiptDebitAmount2 = debitCurr2Paid.toDoubleOrNull() ?: 0.0
-                posReceipt.posReceiptCreditAmount = creditCurr1Paid.toDoubleOrNull() ?: 0.0
-                posReceipt.posReceiptCreditAmount2 = creditCurr2Paid.toDoubleOrNull() ?: 0.0
-                onSave.invoke(debitCurr1Total.toDoubleOrNull() ?: 0.0, posReceipt)
+                posReceipt.posReceiptCash = cashTotalPaid1.toDoubleOrNull() ?: 0.0
+                posReceipt.posReceiptCashs = cashTotalPaid2.toDoubleOrNull() ?: 0.0
+                posReceipt.posReceiptDebit = debitCurr1Paid.toDoubleOrNull() ?: 0.0
+                posReceipt.posReceiptDebits = debitCurr2Paid.toDoubleOrNull() ?: 0.0
+                posReceipt.posReceiptCredit = creditCurr1Paid.toDoubleOrNull() ?: 0.0
+                posReceipt.posReceiptCredits = creditCurr2Paid.toDoubleOrNull() ?: 0.0
+                onSave.invoke(changeCurr1.toDoubleOrNull() ?: 0.0, posReceipt)
             }
 
             UIButton(
@@ -506,13 +545,13 @@ fun InvoiceCashView(
                     .fillMaxHeight(), text = "Finish & Print",
                 shape = RoundedCornerShape(15.dp)
             ) {
-                posReceipt.posReceiptCashAmount = cashTotalPaid1.toDoubleOrNull() ?: 0.0
-                posReceipt.posReceiptCashAmount2 = cashTotalPaid2.toDoubleOrNull() ?: 0.0
-                posReceipt.posReceiptDebitAmount = debitCurr1Paid.toDoubleOrNull() ?: 0.0
-                posReceipt.posReceiptDebitAmount2 = debitCurr2Paid.toDoubleOrNull() ?: 0.0
-                posReceipt.posReceiptCreditAmount = creditCurr1Paid.toDoubleOrNull() ?: 0.0
-                posReceipt.posReceiptCreditAmount2 = creditCurr2Paid.toDoubleOrNull() ?: 0.0
-                onFinish.invoke(debitCurr1Total.toDoubleOrNull() ?: 0.0, posReceipt)
+                posReceipt.posReceiptCash = cashTotalPaid1.toDoubleOrNull() ?: 0.0
+                posReceipt.posReceiptCashs = cashTotalPaid2.toDoubleOrNull() ?: 0.0
+                posReceipt.posReceiptDebit = debitCurr1Paid.toDoubleOrNull() ?: 0.0
+                posReceipt.posReceiptDebits = debitCurr2Paid.toDoubleOrNull() ?: 0.0
+                posReceipt.posReceiptCredit = creditCurr1Paid.toDoubleOrNull() ?: 0.0
+                posReceipt.posReceiptCredits = creditCurr2Paid.toDoubleOrNull() ?: 0.0
+                onFinish.invoke(changeCurr1.toDoubleOrNull() ?: 0.0, posReceipt)
             }
         }
     }
