@@ -2,14 +2,10 @@ package com.grid.pos.ui.user
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.grid.pos.data.Company.Company
-import com.grid.pos.data.Company.CompanyRepository
-import com.grid.pos.data.Family.Family
 import com.grid.pos.data.User.User
 import com.grid.pos.data.User.UserRepository
 import com.grid.pos.interfaces.OnResult
 import com.grid.pos.utils.Extension.encryptCBC
-import com.grid.pos.utils.Utils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -19,8 +15,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ManageUsersViewModel @Inject constructor(
-        private val userRepository: UserRepository,
-        private val companyRepository: CompanyRepository
+        private val userRepository: UserRepository
 ) : ViewModel() {
 
     private val _manageUsersState = MutableStateFlow(ManageUsersState())
@@ -29,7 +24,16 @@ class ManageUsersViewModel @Inject constructor(
     init {
         viewModelScope.launch(Dispatchers.IO) {
             fetchUsers()
-            fetchCompanies()
+        }
+    }
+
+    fun fillCachedUsers(users: MutableList<User> = mutableListOf()) {
+        if (manageUsersState.value.users.isEmpty()) {
+            viewModelScope.launch(Dispatchers.Main) {
+                manageUsersState.value = manageUsersState.value.copy(
+                    users = users
+                )
+            }
         }
     }
 
@@ -43,30 +47,6 @@ class ManageUsersViewModel @Inject constructor(
                 viewModelScope.launch(Dispatchers.Main) {
                     manageUsersState.value = manageUsersState.value.copy(
                         users = listOfUsers
-                    )
-                }
-            }
-
-            override fun onFailure(
-                    message: String,
-                    errorCode: Int
-            ) {
-
-            }
-
-        })
-    }
-
-    private suspend fun fetchCompanies() {
-        companyRepository.getAllCompanies(object : OnResult {
-            override fun onSuccess(result: Any) {
-                val listOfCompanies = mutableListOf<Company>()
-                (result as List<*>).forEach {
-                    listOfCompanies.add(it as Company)
-                }
-                viewModelScope.launch(Dispatchers.Main) {
-                    manageUsersState.value = manageUsersState.value.copy(
-                        companies = listOfCompanies
                     )
                 }
             }

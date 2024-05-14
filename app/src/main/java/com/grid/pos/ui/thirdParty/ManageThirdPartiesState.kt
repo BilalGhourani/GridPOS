@@ -6,7 +6,6 @@ import com.grid.pos.data.ThirdParty.ThirdParty
 
 data class ManageThirdPartiesState(
     val thirdParties: MutableList<ThirdParty> = mutableListOf(),
-    val companies: MutableList<Company> = mutableListOf(),
     var selectedThirdParty: ThirdParty = ThirdParty(),
     val isLoading: Boolean = false,
     var clear: Boolean = false,

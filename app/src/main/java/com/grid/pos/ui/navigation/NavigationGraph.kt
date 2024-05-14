@@ -24,54 +24,71 @@ import com.grid.pos.ui.user.ManageUsersView
 
 @Composable
 fun AuthNavGraph(
-    navController: NavHostController,
-    mainActivity: MainActivity,
-    activityViewModel: ActivityScopedViewModel,
-    startDestination: String,
-    modifier: Modifier = Modifier
+        navController: NavHostController,
+        mainActivity: MainActivity,
+        activityViewModel: ActivityScopedViewModel,
+        startDestination: String,
+        modifier: Modifier = Modifier
 ) {
     NavHost(
-        navController = navController,
-        startDestination = startDestination,
+        navController = navController, startDestination = startDestination,
         modifier = modifier.background(color = White)
     ) {
 
         composable(route = "HomeView") {
             HomeView(
-                navController = navController,
-                mainActivity = mainActivity,
+                navController = navController, mainActivity = mainActivity,
                 activityViewModel = activityViewModel
             )
         }
-        composable(route = "LoginView") { LoginView(navController = navController,activityScopedViewModel = activityViewModel) }
+        composable(route = "LoginView") {
+            LoginView(
+                navController = navController, activityScopedViewModel = activityViewModel
+            )
+        }
         composable(route = "SettingsView") { SettingsView(navController = navController) }
-        composable(route = "ManageCurrenciesView") { ManageCurrenciesView(navController = navController) }
-        composable(route = "ManageCompaniesView") { ManageCompaniesView(navController = navController) }
-        composable(route = "ManageUsersView") { ManageUsersView(navController = navController) }
+        composable(route = "ManageCurrenciesView") {
+            ManageCurrenciesView(
+                navController = navController
+            )
+        }
+        composable(route = "ManageCompaniesView") {
+            ManageCompaniesView(
+                navController = navController, activityScopedViewModel = activityViewModel
+            )
+        }
+        composable(route = "ManageUsersView") {
+            ManageUsersView(
+                navController = navController, activityScopedViewModel = activityViewModel
+            )
+        }
         composable(route = "ManageFamiliesView") {
             ManageFamiliesView(
                 navController = navController,
-                mainActivity = mainActivity
+                mainActivity = mainActivity,
+                activityScopedViewModel = activityViewModel,
             )
         }
-        composable(route = "ManageThirdPartiesView") { ManageThirdPartiesView(navController = navController) }
+        composable(route = "ManageThirdPartiesView") {
+            ManageThirdPartiesView(
+                navController = navController, activityScopedViewModel = activityViewModel
+            )
+        }
         composable(route = "ManageItemsView") {
             ManageItemsView(
-                navController = navController,
+                navController = navController, activityScopedViewModel = activityViewModel,
                 mainActivity = mainActivity
             )
         }
         composable(route = "PosView") {
             PosView(
-                navController = navController,
-                activityViewModel = activityViewModel
+                navController = navController, activityViewModel = activityViewModel
             )
         }
         composable(route = "ManageTablesView") { ManageTablesView(navController = navController) }
         composable(route = "UIWebView") {
             UIWebView(
-                navController = navController,
-                activityViewModel = activityViewModel
+                navController = navController, activityViewModel = activityViewModel
             )
         }
     }

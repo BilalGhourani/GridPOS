@@ -227,7 +227,7 @@ class POSViewModel @Inject constructor(
     ) {
         val callback = object : OnResult {
             override fun onSuccess(result: Any) {
-                saveInvoiceItems(result as InvoiceHeader, invoiceItems)
+                saveInvoiceItems(invoiceHeader, invoiceItems)
             }
 
             override fun onFailure(

@@ -97,7 +97,7 @@ class PosReceiptRepositoryImpl(
     ) {
         if (SettingsModel.loadFromRemote) {
             FirebaseFirestore.getInstance().collection("pos_receipt")
-                .whereEqualTo("in_hi_id", invoiceHeaderId).get().addOnSuccessListener { result ->
+                .whereEqualTo("pr_hi_id", invoiceHeaderId).get().addOnSuccessListener { result ->
                     val document = result.documents.firstOrNull()
                     if (document != null) {
                         val obj = document.toObject(PosReceipt::class.java)

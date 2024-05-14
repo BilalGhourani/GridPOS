@@ -2,13 +2,9 @@ package com.grid.pos.ui.thirdParty
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.grid.pos.data.Company.Company
-import com.grid.pos.data.Company.CompanyRepository
-import com.grid.pos.data.Family.Family
 import com.grid.pos.data.ThirdParty.ThirdParty
 import com.grid.pos.data.ThirdParty.ThirdPartyRepository
 import com.grid.pos.interfaces.OnResult
-import com.grid.pos.utils.Utils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -18,8 +14,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ManageThirdPartiesViewModel @Inject constructor(
-    private val thirdPartyRepository: ThirdPartyRepository,
-    private val companyRepository: CompanyRepository
+    private val thirdPartyRepository: ThirdPartyRepository
 ) : ViewModel() {
 
     private val _manageThirdPartiesState = MutableStateFlow(ManageThirdPartiesState())
@@ -29,7 +24,16 @@ class ManageThirdPartiesViewModel @Inject constructor(
     init {
         viewModelScope.launch(Dispatchers.IO) {
             fetchThirdParties()
-            fetchCompanies()
+        }
+    }
+
+    fun fillCachedThirdParties(thirdParties: MutableList<ThirdParty> = mutableListOf()) {
+        if (manageThirdPartiesState.value.thirdParties.isEmpty()) {
+            viewModelScope.launch(Dispatchers.Main) {
+                manageThirdPartiesState.value = manageThirdPartiesState.value.copy(
+                    thirdParties = thirdParties
+                )
+            }
         }
     }
 
@@ -43,27 +47,6 @@ class ManageThirdPartiesViewModel @Inject constructor(
                 viewModelScope.launch(Dispatchers.Main) {
                     manageThirdPartiesState.value = manageThirdPartiesState.value.copy(
                         thirdParties = listOfThirdParties
-                    )
-                }
-            }
-
-            override fun onFailure(message: String, errorCode: Int) {
-
-            }
-
-        })
-    }
-
-    private suspend fun fetchCompanies() {
-        companyRepository.getAllCompanies(object : OnResult {
-            override fun onSuccess(result: Any) {
-                val listOfCompanies = mutableListOf<Company>()
-                (result as List<*>).forEach {
-                    listOfCompanies.add(it as Company)
-                }
-                viewModelScope.launch(Dispatchers.Main) {
-                    manageThirdPartiesState.value = manageThirdPartiesState.value.copy(
-                        companies = listOfCompanies
                     )
                 }
             }

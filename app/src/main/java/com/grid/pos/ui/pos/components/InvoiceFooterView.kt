@@ -63,7 +63,7 @@ fun InvoiceFooterView(
     )
 
     val tableNoState = invoiceHeader.invoiceHeadClientsCount
-    val clientState = invoiceHeader.invoiceHeadCashName
+    val clientState = invoiceHeader.invoiceHeadCashName ?: "Cash"
 
     Row(
         modifier = modifier
@@ -170,8 +170,12 @@ fun InvoiceFooterView(
                 )
             }
 
+            val defaultThirdParty = thirdParties.firstOrNull { it.thirdPartyDefault }
+            defaultThirdParty?.let {
+                onThirdPartySelected.invoke(it)
+            }
             SearchableDropdownMenu(items = thirdParties.toMutableList(),
-                modifier = Modifier.padding(
+                selectedId = defaultThirdParty?.thirdPartyId, modifier = Modifier.padding(
                     0.dp, 15.dp, 0.dp, 5.dp
                 ), label = "Customers", leadingIcon = {
                     Icon(

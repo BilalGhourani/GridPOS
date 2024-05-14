@@ -1,6 +1,7 @@
 package com.grid.pos.ui.item
 
 import android.net.Uri
+import androidx.activity.compose.BackHandler
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
@@ -51,6 +52,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.grid.pos.ActivityScopedViewModel
 import com.grid.pos.MainActivity
 import com.grid.pos.data.Family.Family
 import com.grid.pos.data.Item.Item
@@ -77,12 +79,14 @@ import java.io.File
 fun ManageItemsView(
         modifier: Modifier = Modifier,
         navController: NavController? = null,
+        activityScopedViewModel: ActivityScopedViewModel,
         mainActivity: MainActivity,
         viewModel: ManageItemsViewModel = hiltViewModel()
 ) {
     val manageItemsState: ManageItemsState by viewModel.manageItemsState.collectAsState(
         ManageItemsState()
     )
+    viewModel.fillCachedItems(activityScopedViewModel.items, activityScopedViewModel.families)
     val keyboardController = LocalSoftwareKeyboardController.current
     val unitPriceFocusRequester = remember { FocusRequester() }
     val taxFocusRequester = remember { FocusRequester() }
@@ -134,6 +138,16 @@ fun ManageItemsView(
             }
         }
     }
+
+    fun handleBack() {
+        if (manageItemsState.items.isNotEmpty()) {
+            activityScopedViewModel.items = manageItemsState.items
+        }
+        navController?.popBackStack()
+    }
+    BackHandler {
+        handleBack()
+    }
     GridPOSTheme {
         Scaffold(containerColor = SettingsModel.backgroundColor, snackbarHost = {
             SnackbarHost(hostState = snackbarHostState)
@@ -144,7 +158,7 @@ fun ManageItemsView(
                 TopAppBar(colors = TopAppBarDefaults.mediumTopAppBarColors(
                     containerColor = SettingsModel.topBarColor
                 ), navigationIcon = {
-                    IconButton(onClick = { navController?.popBackStack() }) {
+                    IconButton(onClick = { handleBack() }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back", tint = SettingsModel.buttonColor

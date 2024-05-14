@@ -8,6 +8,7 @@ import com.grid.pos.data.Company.Company
 import com.grid.pos.data.Company.CompanyRepository
 import com.grid.pos.data.Family.Family
 import com.grid.pos.data.Family.FamilyRepository
+import com.grid.pos.data.ThirdParty.ThirdParty
 import com.grid.pos.interfaces.OnResult
 import com.grid.pos.utils.Utils
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -19,8 +20,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ManageFamiliesViewModel @Inject constructor(
-    private val familyRepository: FamilyRepository,
-    private val companyRepository: CompanyRepository
+    private val familyRepository: FamilyRepository
 ) : ViewModel() {
 
     private val _manageFamiliesState = MutableStateFlow(ManageFamiliesState())
@@ -29,10 +29,18 @@ class ManageFamiliesViewModel @Inject constructor(
     init {
         viewModelScope.launch(Dispatchers.IO) {
             fetchFamilies()
-            fetchCompanies()
         }
     }
 
+    fun fillCachedFamilies(families: MutableList<Family> = mutableListOf()) {
+        if (manageFamiliesState.value.families.isEmpty()) {
+            viewModelScope.launch(Dispatchers.Main) {
+                manageFamiliesState.value = manageFamiliesState.value.copy(
+                    families = families
+                )
+            }
+        }
+    }
     private suspend fun fetchFamilies() {
         familyRepository.getAllFamilies(object : OnResult {
             override fun onSuccess(result: Any) {
@@ -43,27 +51,6 @@ class ManageFamiliesViewModel @Inject constructor(
                 viewModelScope.launch(Dispatchers.Main) {
                     manageFamiliesState.value = manageFamiliesState.value.copy(
                         families = listOfFamilies
-                    )
-                }
-            }
-
-            override fun onFailure(message: String, errorCode: Int) {
-
-            }
-
-        })
-    }
-
-    private suspend fun fetchCompanies() {
-        companyRepository.getAllCompanies(object : OnResult {
-            override fun onSuccess(result: Any) {
-                val listOfCompanies = mutableListOf<Company>()
-                (result as List<*>).forEach {
-                    listOfCompanies.add(it as Company)
-                }
-                viewModelScope.launch(Dispatchers.Main) {
-                    manageFamiliesState.value = manageFamiliesState.value.copy(
-                        companies = listOfCompanies
                     )
                 }
             }

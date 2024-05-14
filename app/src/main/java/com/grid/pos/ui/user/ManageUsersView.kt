@@ -1,5 +1,6 @@
 package com.grid.pos.ui.user
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,8 +15,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -45,12 +44,11 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.grid.pos.data.Company.Company
+import com.grid.pos.ActivityScopedViewModel
 import com.grid.pos.data.User.User
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.LoadingIndicator
@@ -58,7 +56,6 @@ import com.grid.pos.ui.common.SearchableDropdownMenu
 import com.grid.pos.ui.common.UIButton
 import com.grid.pos.ui.common.UITextField
 import com.grid.pos.ui.common.UiVerticalCheckBox
-import com.grid.pos.ui.theme.Blue
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.utils.Extension.decryptCBC
 import kotlinx.coroutines.CoroutineScope
@@ -68,13 +65,16 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
 fun ManageUsersView(
-    navController: NavController? = null,
-    modifier: Modifier = Modifier,
-    viewModel: ManageUsersViewModel = hiltViewModel()
+        navController: NavController? = null,
+        modifier: Modifier = Modifier,
+        activityScopedViewModel: ActivityScopedViewModel,
+        viewModel: ManageUsersViewModel = hiltViewModel()
 ) {
     val manageUsersState: ManageUsersState by viewModel.manageUsersState.collectAsState(
         ManageUsersState()
     )
+
+    viewModel.fillCachedUsers(activityScopedViewModel.users)
     val keyboardController = LocalSoftwareKeyboardController.current
     val usernameFocusRequester = remember { FocusRequester() }
     val passwordFocusRequester = remember { FocusRequester() }
@@ -97,36 +97,38 @@ fun ManageUsersView(
             }
         }
     }
+
+    fun handleBack() {
+        if (manageUsersState.users.isNotEmpty()) {
+            activityScopedViewModel.users = manageUsersState.users
+        }
+        navController?.popBackStack()
+    }
+    BackHandler {
+        handleBack()
+    }
     GridPOSTheme {
-        Scaffold(
-            containerColor=SettingsModel.backgroundColor,
-            snackbarHost = {
-                SnackbarHost(hostState = snackbarHostState)
-            },
-            topBar = {
-                Surface(shadowElevation = 3.dp, color = SettingsModel.backgroundColor) {
-                    TopAppBar(
-                        colors = TopAppBarDefaults.mediumTopAppBarColors(containerColor = SettingsModel.topBarColor),
-                        navigationIcon = {
-                            IconButton(onClick = { navController?.popBackStack() }) {
-                                Icon(
-                                    imageVector =Icons.AutoMirrored.Filled.ArrowBack,
-                                    contentDescription = "Back",
-                                    tint = SettingsModel.buttonColor
-                                )
-                            }
-                        },
-                        title = {
-                            Text(
-                                text = "Manage Users",
-                                color = SettingsModel.textColor,
-                                fontSize = 16.sp,
-                                textAlign = TextAlign.Center
-                            )
-                        })
-                }
+        Scaffold(containerColor = SettingsModel.backgroundColor, snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState)
+        }, topBar = {
+            Surface(shadowElevation = 3.dp, color = SettingsModel.backgroundColor) {
+                TopAppBar(colors = TopAppBarDefaults.mediumTopAppBarColors(
+                    containerColor = SettingsModel.topBarColor
+                ), navigationIcon = {
+                    IconButton(onClick = { handleBack() }) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back", tint = SettingsModel.buttonColor
+                        )
+                    }
+                }, title = {
+                    Text(
+                        text = "Manage Users", color = SettingsModel.textColor, fontSize = 16.sp,
+                        textAlign = TextAlign.Center
+                    )
+                })
             }
-        ) { it ->
+        }) { it ->
             Box(
                 modifier = modifier
                     .fillMaxSize()
@@ -134,15 +136,13 @@ fun ManageUsersView(
                     .background(color = Color.Transparent)
             ) {
                 Column(
-                    modifier = Modifier
-                        .fillMaxSize(),
+                    modifier = Modifier.fillMaxSize(),
                 ) {
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
                             .verticalScroll(rememberScrollState())
-                            .weight(1f),
-                        horizontalAlignment = Alignment.CenterHorizontally
+                            .weight(1f), horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         SearchableDropdownMenu(
                             items = manageUsersState.users.toMutableList(),
@@ -158,51 +158,36 @@ fun ManageUsersView(
                             tableModeState = selectedUser.userTableMode ?: false
                         }
 
-                        UITextField(
-                            modifier = Modifier.padding(10.dp),
-                            defaultValue = nameState,
-                            label = "Name",
-                            placeHolder = "Enter Name",
-                            onAction = { usernameFocusRequester.requestFocus() }
-                        ) {
+                        UITextField(modifier = Modifier.padding(10.dp), defaultValue = nameState,
+                            label = "Name", placeHolder = "Enter Name",
+                            onAction = { usernameFocusRequester.requestFocus() }) {
                             nameState = it
                             manageUsersState.selectedUser.userName = it
                         }
 
-                        UITextField(
-                            modifier = Modifier.padding(10.dp),
-                            defaultValue = usernameState,
-                            label = "Username",
-                            placeHolder = "Enter Username",
-                            focusRequester = usernameFocusRequester,
-                            onAction = { passwordFocusRequester.requestFocus() }
-                        ) {
+                        UITextField(modifier = Modifier.padding(10.dp),
+                            defaultValue = usernameState, label = "Username",
+                            placeHolder = "Enter Username", focusRequester = usernameFocusRequester,
+                            onAction = { passwordFocusRequester.requestFocus() }) {
                             usernameState = it
                             manageUsersState.selectedUser.userUsername = it
                         }
 
-                        UITextField(
-                            modifier = Modifier.padding(10.dp),
-                            defaultValue = passwordState,
-                            label = "Password",
-                            placeHolder = "Enter Password",
-                            focusRequester = passwordFocusRequester,
+                        UITextField(modifier = Modifier.padding(10.dp),
+                            defaultValue = passwordState, label = "Password",
+                            placeHolder = "Enter Password", focusRequester = passwordFocusRequester,
                             keyboardType = KeyboardType.Password,
                             visualTransformation = if (passwordVisibility) VisualTransformation.None else PasswordVisualTransformation(),
-                            imeAction = ImeAction.Done,
-                            onAction = { keyboardController?.hide() },
+                            imeAction = ImeAction.Done, onAction = { keyboardController?.hide() },
                             trailingIcon = {
-                                IconButton(
-                                    onClick = { passwordVisibility = !passwordVisibility }
-                                ) {
+                                IconButton(onClick = { passwordVisibility = !passwordVisibility }) {
                                     Icon(
                                         imageVector = if (passwordVisibility) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
                                         contentDescription = if (passwordVisibility) "Hide password" else "Show password",
                                         tint = SettingsModel.buttonColor
                                     )
                                 }
-                            }
-                        ) {
+                            }) {
                             passwordState = it
                             manageUsersState.selectedUser.userPassword = it
                         }
@@ -215,8 +200,7 @@ fun ManageUsersView(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             UiVerticalCheckBox(
-                                modifier = Modifier.weight(.5f),
-                                label = "POS Mode",
+                                modifier = Modifier.weight(.5f), label = "POS Mode",
                                 checked = posModeState
                             ) {
                                 posModeState = it
@@ -226,8 +210,7 @@ fun ManageUsersView(
                             }
 
                             UiVerticalCheckBox(
-                                modifier = Modifier.weight(.5f),
-                                label = "Table Mode",
+                                modifier = Modifier.weight(.5f), label = "Table Mode",
                                 checked = tableModeState
                             ) {
                                 tableModeState = it
@@ -247,8 +230,7 @@ fun ManageUsersView(
                             UIButton(
                                 modifier = Modifier
                                     .weight(.33f)
-                                    .padding(3.dp),
-                                text = "Save"
+                                    .padding(3.dp), text = "Save"
                             ) {
                                 viewModel.saveUser(manageUsersState.selectedUser)
                             }
@@ -256,8 +238,7 @@ fun ManageUsersView(
                             UIButton(
                                 modifier = Modifier
                                     .weight(.33f)
-                                    .padding(3.dp),
-                                text = "Delete"
+                                    .padding(3.dp), text = "Delete"
                             ) {
                                 viewModel.deleteSelectedUser(manageUsersState.selectedUser)
                             }
@@ -265,8 +246,7 @@ fun ManageUsersView(
                             UIButton(
                                 modifier = Modifier
                                     .weight(.33f)
-                                    .padding(3.dp),
-                                text = "Close"
+                                    .padding(3.dp), text = "Close"
                             ) {
                                 navController?.popBackStack()
                             }
@@ -290,13 +270,5 @@ fun ManageUsersView(
             tableModeState = false
             manageUsersState.clear = false
         }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun ManageUsersViewPreview() {
-    GridPOSTheme {
-        ManageUsersView()
     }
 }

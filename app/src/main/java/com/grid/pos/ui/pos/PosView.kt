@@ -75,10 +75,10 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PosView(
-    modifier: Modifier = Modifier,
-    navController: NavController? = null,
-    activityViewModel: ActivityScopedViewModel,
-    viewModel: POSViewModel = hiltViewModel()
+        modifier: Modifier = Modifier,
+        navController: NavController? = null,
+        activityViewModel: ActivityScopedViewModel,
+        viewModel: POSViewModel = hiltViewModel()
 ) {
     val posState: POSState by viewModel.posState.collectAsState(activityViewModel.posState)
     val invoicesState = remember { mutableStateListOf<InvoiceItemModel>() }
@@ -93,6 +93,19 @@ fun PosView(
     val isTablet = Utils.isTablet(LocalConfiguration.current)
     val isLandscape = orientation == Configuration.ORIENTATION_LANDSCAPE
     val keyboardController = LocalSoftwareKeyboardController.current
+
+    if (posState.items.isEmpty()) {
+        posState.items.addAll(activityViewModel.items)
+    }
+    if (posState.families.isEmpty()) {
+        posState.families.addAll(activityViewModel.families)
+    }
+    if (posState.thirdParties.isEmpty()) {
+        posState.thirdParties.addAll(activityViewModel.thirdParties)
+    }
+    if (posState.invoiceHeaders.isEmpty()) {
+        posState.invoiceHeaders.addAll(activityViewModel.invoices)
+    }
 
     LaunchedEffect(configuration) {
         snapshotFlow { configuration.orientation }.collect {
@@ -212,7 +225,7 @@ fun PosView(
 
                     InvoiceFooterView(navController = navController,
                         invoiceHeader = invoiceHeaderState.value, currency = posState.currency,
-                        items = posState.items, thirdParties = posState.thirdParties,
+                        items = posState.items, thirdParties = posState.thirdParties.toMutableList(),
                         invoiceHeaders = posState.invoiceHeaders,
                         modifier = Modifier
                             .wrapContentWidth()
@@ -226,8 +239,7 @@ fun PosView(
                             isAddItemBottomSheetVisible = false
                         }, onThirdPartySelected = { thirdParty ->
                             posState.selectedThirdParty = thirdParty
-                            posState.invoiceHeader.invoiceHeadThirdPartyName =
-                                thirdParty.thirdPartyId
+                            posState.invoiceHeader.invoiceHeadThirdPartyName = thirdParty.thirdPartyId
                         }, onInvoiceSelected = { invoiceHeader ->
                             invoiceHeaderState.value = invoiceHeader
                             posState.invoiceHeader = invoiceHeader
@@ -238,7 +250,10 @@ fun PosView(
                                     posState.posReceipt = result as PosReceipt
                                 }
 
-                                override fun onFailure(message: String, errorCode: Int) {
+                                override fun onFailure(
+                                        message: String,
+                                        errorCode: Int
+                                ) {
                                     invoicesState.clear()
                                     invoicesState.addAll(posState.invoices)
                                 }

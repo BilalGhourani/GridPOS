@@ -1,5 +1,6 @@
 package com.grid.pos.ui.thirdParty
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -40,11 +41,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.grid.pos.ActivityScopedViewModel
 import com.grid.pos.data.ThirdParty.ThirdParty
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.LoadingIndicator
 import com.grid.pos.ui.common.SearchableDropdownMenu
 import com.grid.pos.ui.common.UIButton
+import com.grid.pos.ui.common.UISwitch
 import com.grid.pos.ui.common.UITextField
 import com.grid.pos.ui.theme.GridPOSTheme
 import kotlinx.coroutines.CoroutineScope
@@ -56,13 +59,15 @@ import kotlinx.coroutines.launch
 )
 @Composable
 fun ManageThirdPartiesView(
-        navController: NavController? = null,
         modifier: Modifier = Modifier,
+        navController: NavController? = null,
+        activityScopedViewModel: ActivityScopedViewModel,
         viewModel: ManageThirdPartiesViewModel = hiltViewModel()
 ) {
     val manageThirdPartiesState: ManageThirdPartiesState by viewModel.manageThirdPartiesState.collectAsState(
         ManageThirdPartiesState()
     )
+    viewModel.fillCachedThirdParties(activityScopedViewModel.thirdParties)
     val keyboardController = LocalSoftwareKeyboardController.current
     val fnFocusRequester = remember { FocusRequester() }
     val phone1FocusRequester = remember { FocusRequester() }
@@ -74,6 +79,7 @@ fun ManageThirdPartiesView(
     var phone1State by remember { mutableStateOf("") }
     var phone2State by remember { mutableStateOf("") }
     var addressState by remember { mutableStateOf("") }
+    var isDefaultState by remember { mutableStateOf(false) }
 
     val snackbarHostState = remember { SnackbarHostState() }
     LaunchedEffect(manageThirdPartiesState.warning) {
@@ -86,33 +92,37 @@ fun ManageThirdPartiesView(
             }
         }
     }
+    fun handleBack() {
+        if (manageThirdPartiesState.thirdParties.isNotEmpty()) {
+            activityScopedViewModel.thirdParties = manageThirdPartiesState.thirdParties
+        }
+        navController?.popBackStack()
+    }
+    BackHandler {
+        handleBack()
+    }
     GridPOSTheme {
-        Scaffold(containerColor = SettingsModel.backgroundColor,
-            topBar = {
-                Surface(
-                    shadowElevation = 3.dp,
-                    color = SettingsModel.backgroundColor
-                ) {
-                    TopAppBar(colors = TopAppBarDefaults.mediumTopAppBarColors(containerColor = SettingsModel.topBarColor),
-                        navigationIcon = {
-                            IconButton(onClick = { navController?.popBackStack() }) {
-                                Icon(
-                                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                    contentDescription = "Back",
-                                    tint = SettingsModel.buttonColor
-                                )
-                            }
-                        },
-                        title = {
-                            Text(
-                                text = "Manage Third Parties",
-                                color = SettingsModel.textColor,
-                                fontSize = 16.sp,
-                                textAlign = TextAlign.Center
-                            )
-                        })
-                }
-            }) {
+        Scaffold(containerColor = SettingsModel.backgroundColor, topBar = {
+            Surface(
+                shadowElevation = 3.dp, color = SettingsModel.backgroundColor
+            ) {
+                TopAppBar(colors = TopAppBarDefaults.mediumTopAppBarColors(
+                    containerColor = SettingsModel.topBarColor
+                ), navigationIcon = {
+                    IconButton(onClick = { handleBack() }) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back", tint = SettingsModel.buttonColor
+                        )
+                    }
+                }, title = {
+                    Text(
+                        text = "Manage Third Parties", color = SettingsModel.textColor,
+                        fontSize = 16.sp, textAlign = TextAlign.Center
+                    )
+                })
+            }
+        }) {
             Box(
                 modifier = modifier
                     .fillMaxSize()
@@ -126,8 +136,7 @@ fun ManageThirdPartiesView(
                         modifier = Modifier
                             .fillMaxSize()
                             .verticalScroll(rememberScrollState())
-                            .weight(1f),
-                        horizontalAlignment = Alignment.CenterHorizontally
+                            .weight(1f), horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         SearchableDropdownMenu(
                             items = manageThirdPartiesState.thirdParties.toMutableList(),
@@ -141,14 +150,12 @@ fun ManageThirdPartiesView(
                             phone1State = thirdParty.thirdPartyPhone1 ?: ""
                             phone2State = thirdParty.thirdPartyPhone2 ?: ""
                             addressState = thirdParty.thirdPartyAddress ?: ""
+                            isDefaultState = thirdParty.thirdPartyDefault
                         }
 
                         //name
-                        UITextField(modifier = Modifier.padding(10.dp),
-                            defaultValue = nameState,
-                            label = "Name",
-                            placeHolder = "Enter Name",
-                            onAction = {
+                        UITextField(modifier = Modifier.padding(10.dp), defaultValue = nameState,
+                            label = "Name", placeHolder = "Enter Name", onAction = {
                                 fnFocusRequester.requestFocus()
                             }) { name ->
                             nameState = name
@@ -156,12 +163,9 @@ fun ManageThirdPartiesView(
                         }
 
                         //financial number
-                        UITextField(modifier = Modifier.padding(10.dp),
-                            defaultValue = fnState,
-                            label = "Financial No.",
-                            placeHolder = "Financial No.",
-                            focusRequester = fnFocusRequester,
-                            onAction = {
+                        UITextField(modifier = Modifier.padding(10.dp), defaultValue = fnState,
+                            label = "Financial No.", placeHolder = "Financial No.",
+                            focusRequester = fnFocusRequester, onAction = {
                                 phone1FocusRequester.requestFocus()
                             }) { fn ->
                             fnState = fn
@@ -169,10 +173,8 @@ fun ManageThirdPartiesView(
                         }
 
                         //phone1
-                        UITextField(modifier = Modifier.padding(10.dp),
-                            defaultValue = phone1State,
-                            label = "Phone1",
-                            placeHolder = "Enter Phone1",
+                        UITextField(modifier = Modifier.padding(10.dp), defaultValue = phone1State,
+                            label = "Phone1", placeHolder = "Enter Phone1",
                             focusRequester = phone1FocusRequester,
                             onAction = { phone2FocusRequester.requestFocus() }) { phone1 ->
                             phone1State = phone1
@@ -180,10 +182,8 @@ fun ManageThirdPartiesView(
                         }
 
                         //phone2
-                        UITextField(modifier = Modifier.padding(10.dp),
-                            defaultValue = phone2State,
-                            label = "Phone2",
-                            placeHolder = "Enter Phone2",
+                        UITextField(modifier = Modifier.padding(10.dp), defaultValue = phone2State,
+                            label = "Phone2", placeHolder = "Enter Phone2",
                             focusRequester = phone2FocusRequester,
                             onAction = { addressFocusRequester.requestFocus() }) { phone2 ->
                             phone2State = phone2
@@ -191,16 +191,21 @@ fun ManageThirdPartiesView(
                         }
 
                         //address
-                        UITextField(modifier = Modifier.padding(10.dp),
-                            defaultValue = addressState,
-                            label = "Address",
-                            maxLines = 3,
-                            placeHolder = "Enter address",
-                            focusRequester = addressFocusRequester,
-                            imeAction = ImeAction.Done,
+                        UITextField(modifier = Modifier.padding(10.dp), defaultValue = addressState,
+                            label = "Address", maxLines = 3, placeHolder = "Enter address",
+                            focusRequester = addressFocusRequester, imeAction = ImeAction.Done,
                             onAction = { keyboardController?.hide() }) { address ->
                             addressState = address
                             manageThirdPartiesState.selectedThirdParty.thirdPartyAddress = address
+                        }
+
+                        UISwitch(
+                            modifier = Modifier.padding(10.dp),
+                            checked = isDefaultState,
+                            text = "POS Default",
+                        ) { isDefault ->
+                            isDefaultState = isDefault
+                            manageThirdPartiesState.selectedThirdParty.thirdPartyDefault = isDefaultState
                         }
 
                         Row(
@@ -213,8 +218,7 @@ fun ManageThirdPartiesView(
                             UIButton(
                                 modifier = Modifier
                                     .weight(.33f)
-                                    .padding(3.dp),
-                                text = "Save"
+                                    .padding(3.dp), text = "Save"
                             ) {
                                 viewModel.saveThirdParty()
                             }
@@ -222,8 +226,7 @@ fun ManageThirdPartiesView(
                             UIButton(
                                 modifier = Modifier
                                     .weight(.33f)
-                                    .padding(3.dp),
-                                text = "Delete"
+                                    .padding(3.dp), text = "Delete"
                             ) {
                                 viewModel.deleteSelectedThirdParty()
                             }
@@ -231,8 +234,7 @@ fun ManageThirdPartiesView(
                             UIButton(
                                 modifier = Modifier
                                     .weight(.33f)
-                                    .padding(3.dp),
-                                text = "Close"
+                                    .padding(3.dp), text = "Close"
                             ) {
                                 navController?.popBackStack()
                             }

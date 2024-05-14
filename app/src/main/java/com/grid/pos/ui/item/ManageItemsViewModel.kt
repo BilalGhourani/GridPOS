@@ -2,14 +2,10 @@ package com.grid.pos.ui.item
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.grid.pos.data.Company.Company
-import com.grid.pos.data.Company.CompanyRepository
 import com.grid.pos.data.Family.Family
 import com.grid.pos.data.Family.FamilyRepository
 import com.grid.pos.data.Item.Item
 import com.grid.pos.data.Item.ItemRepository
-import com.grid.pos.data.PosPrinter.PosPrinter
-import com.grid.pos.data.PosPrinter.PosPrinterRepository
 import com.grid.pos.interfaces.OnResult
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -20,10 +16,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ManageItemsViewModel @Inject constructor(
-    private val itemRepository: ItemRepository,
-    private val companyRepository: CompanyRepository,
-    private val familyRepository: FamilyRepository,
-    private val posPrinterRepository: PosPrinterRepository
+        private val itemRepository: ItemRepository,
+        private val familyRepository: FamilyRepository
 ) : ViewModel() {
 
     private val _manageItemsState = MutableStateFlow(ManageItemsState())
@@ -32,9 +26,20 @@ class ManageItemsViewModel @Inject constructor(
     init {
         viewModelScope.launch(Dispatchers.IO) {
             fetchItems()
-            fetchCompanies()
             fetchFamilies()
-            fetchPrintes()
+        }
+    }
+
+    fun fillCachedItems(
+            items: MutableList<Item> = mutableListOf(),
+            families: MutableList<Family> = mutableListOf()
+    ) {
+        if (manageItemsState.value.items.isEmpty()) {
+            viewModelScope.launch(Dispatchers.Main) {
+                manageItemsState.value = manageItemsState.value.copy(
+                    items = items, families = families
+                )
+            }
         }
     }
 
@@ -52,49 +57,10 @@ class ManageItemsViewModel @Inject constructor(
                 }
             }
 
-            override fun onFailure(message: String, errorCode: Int) {
-
-            }
-
-        })
-    }
-
-    private suspend fun fetchCompanies() {
-        companyRepository.getAllCompanies(object : OnResult {
-            override fun onSuccess(result: Any) {
-                val listOfCompanies = mutableListOf<Company>()
-                (result as List<*>).forEach {
-                    listOfCompanies.add(it as Company)
-                }
-                viewModelScope.launch(Dispatchers.Main) {
-                    manageItemsState.value = manageItemsState.value.copy(
-                        companies = listOfCompanies
-                    )
-                }
-            }
-
-            override fun onFailure(message: String, errorCode: Int) {
-
-            }
-
-        })
-    }
-
-    private suspend fun fetchPrintes() {
-        posPrinterRepository.getAllPosPrinters(object : OnResult {
-            override fun onSuccess(result: Any) {
-                val listOfPrinters = mutableListOf<PosPrinter>()
-                (result as List<*>).forEach {
-                    listOfPrinters.add(it as PosPrinter)
-                }
-                viewModelScope.launch(Dispatchers.Main) {
-                    manageItemsState.value = manageItemsState.value.copy(
-                        printers = listOfPrinters
-                    )
-                }
-            }
-
-            override fun onFailure(message: String, errorCode: Int) {
+            override fun onFailure(
+                    message: String,
+                    errorCode: Int
+            ) {
 
             }
 
@@ -115,7 +81,10 @@ class ManageItemsViewModel @Inject constructor(
                 }
             }
 
-            override fun onFailure(message: String, errorCode: Int) {
+            override fun onFailure(
+                    message: String,
+                    errorCode: Int
+            ) {
 
             }
 
@@ -125,8 +94,7 @@ class ManageItemsViewModel @Inject constructor(
     fun saveItem(item: Item) {
         if (item.itemName.isNullOrEmpty() || item.itemFaId.isNullOrEmpty()) {
             manageItemsState.value = manageItemsState.value.copy(
-                warning = "Please fill item name and family",
-                isLoading = false
+                warning = "Please fill item name and family", isLoading = false
             )
             return
         }
@@ -141,15 +109,15 @@ class ManageItemsViewModel @Inject constructor(
                     val items = manageItemsState.value.items
                     if (isInserting) items.add(addedModel)
                     manageItemsState.value = manageItemsState.value.copy(
-                        items = items,
-                        selectedItem = addedModel,
-                        isLoading = false,
-                        clear = true
+                        items = items, selectedItem = addedModel, isLoading = false, clear = true
                     )
                 }
             }
 
-            override fun onFailure(message: String, errorCode: Int) {
+            override fun onFailure(
+                    message: String,
+                    errorCode: Int
+            ) {
                 viewModelScope.launch(Dispatchers.Main) {
                     manageItemsState.value = manageItemsState.value.copy(
                         isLoading = false
@@ -172,41 +140,37 @@ class ManageItemsViewModel @Inject constructor(
     fun deleteSelectedItem(item: Item) {
         if (item.itemId.isEmpty()) {
             manageItemsState.value = manageItemsState.value.copy(
-                warning = "Please select an Item to delete",
-                isLoading = false
+                warning = "Please select an Item to delete", isLoading = false
             )
             return
         }
         manageItemsState.value = manageItemsState.value.copy(
-            warning = null,
-            isLoading = true
+            warning = null, isLoading = true
         )
 
         CoroutineScope(Dispatchers.IO).launch {
             itemRepository.delete(item, object : OnResult {
                 override fun onSuccess(result: Any) {
                     val items = manageItemsState.value.items
-                    val position =
-                        items.indexOfFirst {
-                            item.itemId.equals(
-                                it.itemId,
-                                ignoreCase = true
-                            )
-                        }
+                    val position = items.indexOfFirst {
+                        item.itemId.equals(
+                            it.itemId, ignoreCase = true
+                        )
+                    }
                     if (position >= 0) {
                         items.removeAt(position)
                     }
                     viewModelScope.launch(Dispatchers.Main) {
                         manageItemsState.value = manageItemsState.value.copy(
-                            items = items,
-                            selectedItem = Item(),
-                            isLoading = false,
-                            clear = true
+                            items = items, selectedItem = Item(), isLoading = false, clear = true
                         )
                     }
                 }
 
-                override fun onFailure(message: String, errorCode: Int) {
+                override fun onFailure(
+                        message: String,
+                        errorCode: Int
+                ) {
                     viewModelScope.launch(Dispatchers.Main) {
                         manageItemsState.value = manageItemsState.value.copy(
                             isLoading = false
