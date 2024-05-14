@@ -50,12 +50,14 @@ class ActivityScopedViewModel @Inject constructor(
     val activityState: MutableStateFlow<ActivityState> = _activityState
 
     suspend fun initiateValues() {
-        fetchCurrencies()
-        fetchCurrentUser()
-        fetchCompanies()
-        fetchThirdParties()
-        fetchFamilies()
-        fetchItems()
+        if (SettingsModel.currentUser != null) {
+            fetchCurrencies()
+            fetchCurrentUser()
+            fetchCompanies()
+            fetchThirdParties()
+            fetchFamilies()
+            fetchItems()
+        }
     }
 
     private suspend fun fetchCurrencies() {

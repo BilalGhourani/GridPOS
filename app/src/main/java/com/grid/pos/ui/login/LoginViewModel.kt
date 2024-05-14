@@ -95,7 +95,7 @@ class LoginViewModel @Inject constructor(
                             } else {
                                 usersState.value = usersState.value.copy(
                                     selectedUser = user!!,
-                                    isLoading = false,
+                                    /*isLoading = false,*/
                                     isLoggedIn = true
                                 )
                             }

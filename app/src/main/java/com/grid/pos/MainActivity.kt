@@ -1,6 +1,8 @@
 package com.grid.pos
 
 import android.content.Intent
+import android.content.IntentFilter
+import android.net.ConnectivityManager
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -26,6 +28,7 @@ import com.grid.pos.ui.login.LoginView
 import com.grid.pos.ui.navigation.AuthNavGraph
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.ui.theme.White
+import com.grid.pos.utils.ConnectivityReceiver
 import com.grid.pos.utils.DataStoreManager
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
@@ -33,25 +36,26 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
-class MainActivity : ComponentActivity() {
+class MainActivity : ComponentActivity(), ConnectivityReceiver.ConnectivityChangeListener {
     private val activityViewModel: ActivityScopedViewModel by viewModels()
     private var mActivityResultCallBack: OnActivityResult? = null
     private var mGalleryCallBack: OnGalleryResult? = null
+    private val connectivityReceiver = ConnectivityReceiver()
 
-    private var resultLauncher =
-        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            mActivityResultCallBack?.onActivityResult(result.resultCode, result.data)
-            mActivityResultCallBack = null
-        }
+    private var resultLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        mActivityResultCallBack?.onActivityResult(result.resultCode, result.data)
+        mActivityResultCallBack = null
+    }
 
-    val pickSingleMedia =
-        registerForActivityResult(
-            ActivityResultContracts.PickVisualMedia()
-        ) { uri ->
-            // Callback is invoked after the user selects a media item or closes the
-            // photo picker.
-            uri?.let { mGalleryCallBack?.onGalleryResult(listOf(it)) }
-        }
+    val pickSingleMedia = registerForActivityResult(
+        ActivityResultContracts.PickVisualMedia()
+    ) { uri ->
+        // Callback is invoked after the user selects a media item or closes the
+        // photo picker.
+        uri?.let { mGalleryCallBack?.onGalleryResult(listOf(it)) }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -64,15 +68,13 @@ class MainActivity : ComponentActivity() {
             val navController = rememberNavController()
             GridPOSTheme {
                 Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
+                    modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background
                 ) {
                     AuthNavGraph(
                         modifier = Modifier
                             .background(color = White)
                             .padding(0.dp),
-                        navController = navController,
-                        activityViewModel = activityViewModel,
+                        navController = navController, activityViewModel = activityViewModel,
                         mainActivity = this,
                         startDestination = if (SettingsModel.currentUserId.isNullOrEmpty()) "LoginView" else "HomeView"
                     )
@@ -81,7 +83,10 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    fun launchActivityForResult(i: Intent, activityResult: OnActivityResult) {
+    fun launchActivityForResult(
+            i: Intent,
+            activityResult: OnActivityResult
+    ) {
         try {
             mActivityResultCallBack = activityResult
             resultLauncher.launch(i)
@@ -91,8 +96,8 @@ class MainActivity : ComponentActivity() {
     }
 
     fun launchGalleryPicker(
-        mediaType: ActivityResultContracts.PickVisualMedia.VisualMediaType = ActivityResultContracts.PickVisualMedia.ImageOnly,
-        galleryResult: OnGalleryResult
+            mediaType: ActivityResultContracts.PickVisualMedia.VisualMediaType = ActivityResultContracts.PickVisualMedia.ImageOnly,
+            galleryResult: OnGalleryResult
     ) {
         try {
             mGalleryCallBack = galleryResult
@@ -104,6 +109,28 @@ class MainActivity : ComponentActivity() {
         } catch (e: Exception) {
             Log.e("exception", e.message.toString())
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        val filter = IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION)
+        registerReceiver(connectivityReceiver, filter)
+        connectivityReceiver.listener = this
+    }
+
+    override fun onPause() {
+        super.onPause()
+        unregisterReceiver(connectivityReceiver)
+    }
+
+    override fun onNetworkConnected() {
+        CoroutineScope(Dispatchers.IO).launch {
+            activityViewModel.initiateValues()
+        }
+    }
+
+    override fun onNetworkDisconnected() {
+
     }
 }
 

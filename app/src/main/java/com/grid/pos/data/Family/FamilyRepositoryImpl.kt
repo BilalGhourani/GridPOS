@@ -1,8 +1,6 @@
 package com.grid.pos.data.Family
 
-import android.net.Uri
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.storage.FirebaseStorage
 import com.grid.pos.interfaces.OnResult
 import com.grid.pos.model.SettingsModel
 
@@ -92,34 +90,6 @@ class FamilyRepositoryImpl(
                 callback?.onSuccess(it)
             }
         }
-    }
-
-    override suspend fun uploadImage(pathString: String, imageUri: Uri, callback: OnResult?) {
-        imageUri.let { uri ->
-            val storageRef = FirebaseStorage.getInstance().reference
-            val imageRef = storageRef.child(pathString)
-            val uploadTask = imageRef.putFile(uri)
-
-            uploadTask.addOnSuccessListener {
-                callback?.onSuccess(pathString)
-
-            }.addOnFailureListener { e ->
-                callback?.onFailure(e.message.toString())
-            }
-        }
-    }
-
-    override fun getDownloadUrl(imageUri: String): String {
-        return FirebaseStorage.getInstance().reference.child(imageUri).path
-        /* val storageRef = FirebaseStorage.getInstance().reference
-         val imageRef = storageRef.child(imageUri)
-
-         val ONE_MEGABYTE: Long = 1024 * 1024
-         imageRef.getBytes(ONE_MEGABYTE).addOnSuccessListener {
-             // Data for "images/island.jpg" is returned, use this as needed
-         }.addOnFailureListener {
-             // Handle any errors
-         }*/
     }
 
 }

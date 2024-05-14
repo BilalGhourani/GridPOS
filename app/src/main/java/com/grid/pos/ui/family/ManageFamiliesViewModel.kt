@@ -1,16 +1,10 @@
 package com.grid.pos.ui.family
 
-import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.firebase.storage.FirebaseStorage
-import com.grid.pos.data.Company.Company
-import com.grid.pos.data.Company.CompanyRepository
 import com.grid.pos.data.Family.Family
 import com.grid.pos.data.Family.FamilyRepository
-import com.grid.pos.data.ThirdParty.ThirdParty
 import com.grid.pos.interfaces.OnResult
-import com.grid.pos.utils.Utils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -161,40 +155,5 @@ class ManageFamiliesViewModel @Inject constructor(
 
             })
         }
-    }
-
-    fun uploadImage(id: String, imageUri: Uri) {
-        viewModelScope.launch(Dispatchers.Main) {
-            manageFamiliesState.value = manageFamiliesState.value.copy(
-                isLoading = true
-            )
-        }
-        viewModelScope.launch(Dispatchers.IO) {
-            familyRepository.uploadImage(id, imageUri, object : OnResult {
-                override fun onSuccess(result: Any) {
-                    viewModelScope.launch(Dispatchers.Main) {
-                        val family = manageFamiliesState.value.selectedFamily
-                        family.familyImage = result as String
-                        manageFamiliesState.value = manageFamiliesState.value.copy(
-                            selectedFamily = family,
-                            isLoading = false
-                        )
-                    }
-                }
-
-                override fun onFailure(message: String, errorCode: Int) {
-                    viewModelScope.launch(Dispatchers.Main) {
-                        manageFamiliesState.value = manageFamiliesState.value.copy(
-                            isLoading = false,
-                            warning = message
-                        )
-                    }
-                }
-            })
-        }
-    }
-
-    fun getDownloadUrl(imageUri: String): String {
-        return familyRepository.getDownloadUrl(imageUri)
     }
 }

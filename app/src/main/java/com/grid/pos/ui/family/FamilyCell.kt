@@ -12,9 +12,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -31,6 +37,7 @@ import com.grid.pos.ui.theme.Blue
 import com.grid.pos.ui.theme.Grey
 import com.grid.pos.ui.theme.GridPOSTheme
 import java.io.File
+import java.io.FileNotFoundException
 
 @OptIn(ExperimentalGlideComposeApi::class)
 @Composable
@@ -40,13 +47,14 @@ fun CategoryCell(
         modifier: Modifier = Modifier,
         onClick: () -> Unit = {},
 ) {
-    Box(
+    Surface(
         modifier = modifier
             .width(120.dp)
             .height(80.dp)
             .padding(end = 5.dp)
             .background(color = Color.Transparent)
-            .clip(RoundedCornerShape(15.dp))
+            .clip(RoundedCornerShape(15.dp)),
+        shadowElevation = 10.dp
     ) {
         val image = family.getFullFamilyImage()
         var selectedColor = SettingsModel.buttonColor

@@ -27,7 +27,7 @@ class App : Application() {
         super.onCreate()
         instance = this
         initAppConfig()
-       // initFirebase()
+        initFirebase()
         FirebaseFirestore.setLoggingEnabled(true)
     }
 

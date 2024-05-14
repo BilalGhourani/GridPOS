@@ -14,6 +14,7 @@ import androidx.datastore.preferences.preferencesDataStore
 import com.grid.pos.App
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.Extension.isNullOrZero
+import io.grpc.android.BuildConfig
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
@@ -187,6 +188,14 @@ object DataStoreManager {
         SettingsModel.firebaseApiKey = getString(DataStoreKeys.FIREBASE_API_KEY.key)
         SettingsModel.firebaseProjectId = getString(DataStoreKeys.FIREBASE_PROJECT_ID.key)
         SettingsModel.firebaseDbPath = getString(DataStoreKeys.FIREBASE_DB_PATH.key)
+        if (BuildConfig.DEBUG) {
+            SettingsModel.firebaseApplicationId!!.ifEmpty { "1:337880577447:android:295a236f47063a5233b282" }
+            SettingsModel.firebaseApiKey!!.ifEmpty { "AIzaSyDSh65g8EqvGeyOviwCKmJh4jFD2iXQhYk" }
+            SettingsModel.firebaseProjectId!!.ifEmpty { "grids-app-8a2b7" }
+            SettingsModel.firebaseDbPath!!.ifEmpty { "https://grids-app-8a2b7-default-rtdb.europe-west1.firebasedatabase.app" }
+        }
+
+
         SettingsModel.companyID = getString(
             DataStoreKeys.COMPANY_ID.key, ""
         ).ifEmpty { "b446ad20-506f-40e1-83e5-022c748f39c0" }

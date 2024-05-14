@@ -58,14 +58,15 @@ import com.grid.pos.ui.theme.GridPOSTheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginView(
-    navController: NavController? = null,
-    activityScopedViewModel: ActivityScopedViewModel?=null,
-    modifier: Modifier = Modifier,
-    viewModel: LoginViewModel = hiltViewModel()
+        navController: NavController? = null,
+        activityScopedViewModel: ActivityScopedViewModel? = null,
+        modifier: Modifier = Modifier,
+        viewModel: LoginViewModel = hiltViewModel()
 ) {
     val loginState: LoginState by viewModel.usersState.collectAsState(LoginState())
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -80,8 +81,7 @@ fun LoginView(
         if (!loginState.warning.isNullOrEmpty()) {
             CoroutineScope(Dispatchers.Main).launch {
                 val snackbarResult = snackbarHostState.showSnackbar(
-                    message = loginState.warning!!,
-                    duration = SnackbarDuration.Short,
+                    message = loginState.warning!!, duration = SnackbarDuration.Short,
                     actionLabel = loginState.warningAction
                 )
                 when (snackbarResult) {
@@ -91,44 +91,39 @@ fun LoginView(
             }
         }
         if (loginState.isLoggedIn) {
-            activityScopedViewModel!!.activityState.value.isLoggedIn=true
-            activityScopedViewModel.activityState.value.warning=null
-            navController?.navigate("HomeView")
+            CoroutineScope(Dispatchers.IO).launch {
+                activityScopedViewModel!!.activityState.value.isLoggedIn = true
+                activityScopedViewModel.activityState.value.warning = null
+                activityScopedViewModel.initiateValues()
+                withContext(Dispatchers.Main) {
+                    loginState.isLoading = false
+                    navController?.navigate("HomeView")
+                }
+            }
         }
     }
     GridPOSTheme {
-        Scaffold(
-            containerColor = SettingsModel.backgroundColor,
-            snackbarHost = {
-                SnackbarHost(hostState = snackbarHostState)
-            },
-            topBar = {
-                Surface(shadowElevation = 3.dp, color = SettingsModel.backgroundColor) {
-                    TopAppBar(
-                        colors = TopAppBarDefaults.mediumTopAppBarColors(containerColor = SettingsModel.topBarColor),
-                        title = {
-                            Text(
-                                text = "Login",
-                                color = SettingsModel.textColor,
-                                fontSize = 16.sp,
-                                textAlign = TextAlign.Center
-                            )
-                        },
-                        actions = {
-                            IconButton(
-                                onClick = { navController?.navigate("SettingsView") }
-                            ) {
-                                Icon(
-                                    painterResource(R.drawable.ic_settings),
-                                    contentDescription = "Back",
-                                    tint = SettingsModel.buttonColor
-                                )
-                            }
-                        }
+        Scaffold(containerColor = SettingsModel.backgroundColor, snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState)
+        }, topBar = {
+            Surface(shadowElevation = 3.dp, color = SettingsModel.backgroundColor) {
+                TopAppBar(colors = TopAppBarDefaults.mediumTopAppBarColors(
+                    containerColor = SettingsModel.topBarColor
+                ), title = {
+                    Text(
+                        text = "Login", color = SettingsModel.textColor, fontSize = 16.sp,
+                        textAlign = TextAlign.Center
                     )
-                }
+                }, actions = {
+                    IconButton(onClick = { navController?.navigate("SettingsView") }) {
+                        Icon(
+                            painterResource(R.drawable.ic_settings), contentDescription = "Back",
+                            tint = SettingsModel.buttonColor
+                        )
+                    }
+                })
             }
-        ) {
+        }) {
             Box(
                 modifier = modifier
                     .fillMaxSize()
@@ -136,9 +131,7 @@ fun LoginView(
                     .background(color = Color.Transparent)
             ) {
                 Box(
-                    modifier = Modifier
-                        .fillMaxSize(),
-                    contentAlignment = Alignment.TopCenter
+                    modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter
                 ) {
                     Column(
                         modifier = Modifier
@@ -146,41 +139,30 @@ fun LoginView(
                             .verticalScroll(rememberScrollState()),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        UITextField(
-                            modifier = Modifier.padding(10.dp),
-                            defaultValue = usernameState,
-                            label = "Username",
+                        UITextField(modifier = Modifier.padding(10.dp),
+                            defaultValue = usernameState, label = "Username",
                             placeHolder = "Username",
-                            onAction = { passwordFocusRequester.requestFocus() }
-                        ) {
+                            onAction = { passwordFocusRequester.requestFocus() }) {
                             usernameState = it
                         }
 
-                        UITextField(
-                            modifier = Modifier.padding(10.dp),
-                            defaultValue = passwordState,
-                            label = "Password",
-                            placeHolder = "Password",
-                            focusRequester = passwordFocusRequester,
-                            keyboardType = KeyboardType.Password,
-                            imeAction = ImeAction.Done,
+                        UITextField(modifier = Modifier.padding(10.dp),
+                            defaultValue = passwordState, label = "Password",
+                            placeHolder = "Password", focusRequester = passwordFocusRequester,
+                            keyboardType = KeyboardType.Password, imeAction = ImeAction.Done,
                             visualTransformation = if (passwordVisibility) VisualTransformation.None else PasswordVisualTransformation(),
                             onAction = {
                                 keyboardController?.hide()
                                 viewModel.login(usernameState, passwordState)
-                            },
-                            trailingIcon = {
-                                IconButton(
-                                    onClick = { passwordVisibility = !passwordVisibility }
-                                ) {
+                            }, trailingIcon = {
+                                IconButton(onClick = { passwordVisibility = !passwordVisibility }) {
                                     Icon(
                                         imageVector = if (passwordVisibility) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
                                         contentDescription = if (passwordVisibility) "Hide password" else "Show password",
                                         tint = SettingsModel.buttonColor
                                     )
                                 }
-                            }
-                        ) {
+                            }) {
                             passwordState = it
                         }
                         UIButton(
