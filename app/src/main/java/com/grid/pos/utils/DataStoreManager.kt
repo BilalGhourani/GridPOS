@@ -12,15 +12,13 @@ import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.grid.pos.App
+import com.grid.pos.BuildConfig
 import com.grid.pos.model.SettingsModel
-import com.grid.pos.utils.Extension.isNullOrZero
-import io.grpc.android.BuildConfig
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 
 object DataStoreManager {
-    private val context = App.getInstance().applicationContext
     private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(
         name = "GRID_POS_DATA_STORE"
     )
@@ -34,7 +32,7 @@ object DataStoreManager {
             value: String
     ) {
         val preferencesKey = stringPreferencesKey(key)
-        context.dataStore.edit { preferences ->
+        App.getInstance().applicationContext.dataStore.edit { preferences ->
             preferences[preferencesKey] = value
         }
     }
@@ -43,7 +41,7 @@ object DataStoreManager {
             key: String
     ) {
         val preferencesKey = stringPreferencesKey(key)
-        context.dataStore.edit { preferences ->
+        App.getInstance().applicationContext.dataStore.edit { preferences ->
             preferences.remove(preferencesKey)
         }
     }
@@ -53,7 +51,7 @@ object DataStoreManager {
             value: Int
     ) {
         val preferencesKey = intPreferencesKey(key)
-        context.dataStore.edit { preferences ->
+        App.getInstance().applicationContext.dataStore.edit { preferences ->
             preferences[preferencesKey] = value
         }
     }
@@ -63,7 +61,7 @@ object DataStoreManager {
             value: Long
     ) {
         val preferencesKey = longPreferencesKey(key)
-        context.dataStore.edit { preferences ->
+        App.getInstance().applicationContext.dataStore.edit { preferences ->
             preferences[preferencesKey] = value
         }
     }
@@ -73,7 +71,7 @@ object DataStoreManager {
             value: Boolean
     ) {
         val preferencesKey = booleanPreferencesKey(key)
-        context.dataStore.edit { preferences ->
+        App.getInstance().applicationContext.dataStore.edit { preferences ->
             preferences[preferencesKey] = value
         }
     }
@@ -84,8 +82,8 @@ object DataStoreManager {
     ): String {
         return try {
             val preferencesKey = stringPreferencesKey(key)
-            val preferences = context.dataStore.data.first()
-            var value = preferences[preferencesKey]
+            val preferences = App.getInstance().applicationContext.dataStore.data.first()
+            val value = preferences[preferencesKey]
             return value ?: fallback
         } catch (e: Exception) {
             e.printStackTrace()
@@ -99,8 +97,8 @@ object DataStoreManager {
     ): Int {
         return try {
             val preferencesKey = intPreferencesKey(key)
-            val preferences = context.dataStore.data.first()
-            var value = preferences[preferencesKey]
+            val preferences = App.getInstance().applicationContext.dataStore.data.first()
+            val value = preferences[preferencesKey]
             return value ?: fallback
         } catch (e: Exception) {
             e.printStackTrace()
@@ -114,7 +112,7 @@ object DataStoreManager {
     ): Long {
         return try {
             val preferencesKey = longPreferencesKey(key)
-            val preferences = context.dataStore.data.first()
+            val preferences = App.getInstance().applicationContext.dataStore.data.first()
             return preferences[preferencesKey] ?: fallback
         } catch (e: Exception) {
             e.printStackTrace()
@@ -128,8 +126,8 @@ object DataStoreManager {
     ): Boolean {
         return try {
             val preferencesKey = booleanPreferencesKey(key)
-            val preferences = context.dataStore.data.first()
-            var value = preferences[preferencesKey]
+            val preferences = App.getInstance().applicationContext.dataStore.data.first()
+            val value = preferences[preferencesKey]
             return value ?: fallback
         } catch (e: Exception) {
             e.printStackTrace()
@@ -138,42 +136,43 @@ object DataStoreManager {
     }
 
     suspend fun getValueByKey(key: Preferences.Key<*>): Any? {
-        val value = context.dataStore.data.map {
+        val value = App.getInstance().applicationContext.dataStore.data.map {
             it[key]
         }
         return value.firstOrNull()
     }
 
     suspend fun deleteAll() {
-        context.dataStore.edit {
+        App.getInstance().applicationContext.dataStore.edit {
             it.clear()
         }
     }
 
-    suspend fun initSettingsModel() {
+    private suspend fun initSettingsModel() {
         SettingsModel.currentUserId = getString(DataStoreKeys.CURRENT_USER_ID.key)
         val buttonColor = getString(DataStoreKeys.BUTTON_COLOR.key)
         val buttonTextColor = getString(DataStoreKeys.BUTTON_TEXT_COLOR.key)
         val topBarColor = getString(DataStoreKeys.TOP_BAR_COLOR.key)
         val backgroundColor = getString(DataStoreKeys.BACKGROUND_COLOR.key)
         val textColor = getString(DataStoreKeys.TEXT_COLOR.key)
-        if (buttonColor?.isNullOrEmpty() == false) {
+
+        if (buttonColor.isNotEmpty()) {
             SettingsModel.buttonColor = Color(buttonColor.toColorInt())
         }
 
-        if (buttonTextColor?.isNullOrEmpty() == false) {
+        if (buttonTextColor.isNotEmpty()) {
             SettingsModel.buttonTextColor = Color(buttonTextColor.toColorInt())
         }
 
-        if (topBarColor?.isNullOrEmpty() == false) {
+        if (topBarColor.isNotEmpty()) {
             SettingsModel.topBarColor = Color(topBarColor.toColorInt())
         }
 
-        if (backgroundColor?.isNullOrEmpty() == false) {
+        if (backgroundColor.isNotEmpty()) {
             SettingsModel.backgroundColor = Color(backgroundColor.toColorInt())
         }
 
-        if (textColor?.isNullOrEmpty() == false) {
+        if (textColor.isNotEmpty()) {
             SettingsModel.textColor = Color(textColor.toColorInt())
         }
         SettingsModel.loadFromRemote = getBoolean(DataStoreKeys.LOAD_FROM_REMOTE.key, true) == true
@@ -189,10 +188,10 @@ object DataStoreManager {
         SettingsModel.firebaseProjectId = getString(DataStoreKeys.FIREBASE_PROJECT_ID.key)
         SettingsModel.firebaseDbPath = getString(DataStoreKeys.FIREBASE_DB_PATH.key)
         if (BuildConfig.DEBUG) {
-            SettingsModel.firebaseApplicationId!!.ifEmpty { "1:337880577447:android:295a236f47063a5233b282" }
-            SettingsModel.firebaseApiKey!!.ifEmpty { "AIzaSyDSh65g8EqvGeyOviwCKmJh4jFD2iXQhYk" }
-            SettingsModel.firebaseProjectId!!.ifEmpty { "grids-app-8a2b7" }
-            SettingsModel.firebaseDbPath!!.ifEmpty { "https://grids-app-8a2b7-default-rtdb.europe-west1.firebasedatabase.app" }
+            SettingsModel.firebaseApplicationId = SettingsModel.firebaseApplicationId!!.ifEmpty { "1:337880577447:android:295a236f47063a5233b282" }
+            SettingsModel.firebaseApiKey = SettingsModel.firebaseApiKey!!.ifEmpty { "AIzaSyDSh65g8EqvGeyOviwCKmJh4jFD2iXQhYk" }
+            SettingsModel.firebaseProjectId = SettingsModel.firebaseProjectId!!.ifEmpty { "grids-app-8a2b7" }
+            SettingsModel.firebaseDbPath = SettingsModel.firebaseDbPath!!.ifEmpty { "https://grids-app-8a2b7-default-rtdb.europe-west1.firebasedatabase.app" }
         }
 
 

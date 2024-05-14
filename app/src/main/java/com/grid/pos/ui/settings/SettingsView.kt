@@ -51,6 +51,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
+import com.grid.pos.App
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.ColorPickerPopup
 import com.grid.pos.ui.common.UIButton
@@ -208,12 +209,10 @@ fun SettingsView(
                                 firebaseDbPath = dbPath
                             }
 
-                            UITextField(
-                                modifier = Modifier.padding(10.dp), defaultValue = companyID,
-                                label = "Company ID", placeHolder = "Company ID",
-                                focusRequester = companyIdRequester,
-                                onAction = { printerRequester.requestFocus() }
-                            ) { compId ->
+                            UITextField(modifier = Modifier.padding(10.dp),
+                                defaultValue = companyID, label = "Company ID",
+                                placeHolder = "Company ID", focusRequester = companyIdRequester,
+                                onAction = { printerRequester.requestFocus() }) { compId ->
                                 companyID = compId
                             }
 
@@ -269,8 +268,10 @@ fun SettingsView(
 
                                     SettingsModel.invoicePrinter = invoicePrinter
                                     DataStoreManager.putString(
-                                        DataStoreManager.DataStoreKeys.INVOICE_PRINTER.key, invoicePrinter
+                                        DataStoreManager.DataStoreKeys.INVOICE_PRINTER.key,
+                                        invoicePrinter
                                     )
+                                    App.getInstance().initFirebase()
                                 }
                             }
                         }

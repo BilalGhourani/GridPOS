@@ -6,8 +6,12 @@ import com.google.firebase.FirebaseApp
 import com.google.firebase.FirebaseOptions
 import com.google.firebase.firestore.FirebaseFirestore
 import com.grid.pos.model.SettingsModel
+import com.grid.pos.utils.DataStoreManager
 import com.grid.pos.utils.Utils
 import dagger.hilt.android.HiltAndroidApp
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import org.json.JSONException
 import org.json.JSONObject
 
@@ -26,9 +30,12 @@ class App : Application() {
     override fun onCreate() {
         super.onCreate()
         instance = this
-        initAppConfig()
-        initFirebase()
-        FirebaseFirestore.setLoggingEnabled(true)
+        CoroutineScope(Dispatchers.IO).launch {
+            initAppConfig()
+            DataStoreManager.initValues()
+            initFirebase()
+            FirebaseFirestore.setLoggingEnabled(true)
+        }
     }
 
     private fun initAppConfig() {
@@ -49,15 +56,17 @@ class App : Application() {
         return configs?.optString(key, fallback) ?: fallback
     }
 
-    private fun initFirebase() {
+    fun initFirebase() {
         // Initialize Firebase only once (preferably in onCreate)
-        val options: FirebaseOptions = FirebaseOptions.Builder()
-            .setApplicationId(SettingsModel.firebaseApplicationId!!)
-            .setApiKey(SettingsModel.firebaseApiKey!!).setProjectId(SettingsModel.firebaseProjectId!!)
-            .setDatabaseUrl(
-                SettingsModel.firebaseDbPath!!
-            ).build()
-        FirebaseApp.initializeApp(this, options)
+        if (!SettingsModel.firebaseApplicationId.isNullOrEmpty() && !SettingsModel.firebaseApiKey.isNullOrEmpty() && !SettingsModel.firebaseProjectId.isNullOrEmpty() && !SettingsModel.firebaseDbPath.isNullOrEmpty()) {
+            val options: FirebaseOptions = FirebaseOptions.Builder()
+                .setApplicationId(SettingsModel.firebaseApplicationId!!)
+                .setApiKey(SettingsModel.firebaseApiKey!!)
+                .setProjectId(SettingsModel.firebaseProjectId!!).setDatabaseUrl(
+                    SettingsModel.firebaseDbPath!!
+                ).build()
+            FirebaseApp.initializeApp(this, options)
+        }
     }
 
 }
