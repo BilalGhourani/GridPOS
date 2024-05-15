@@ -22,7 +22,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
 import com.grid.pos.data.Currency.Currency
 import com.grid.pos.data.InvoiceHeader.InvoiceHeader
 import com.grid.pos.data.Item.Item
@@ -34,7 +33,6 @@ import com.grid.pos.ui.theme.GridPOSTheme
 @Composable
 fun InvoiceFooterView(
         invoiceHeader: InvoiceHeader,
-        currency: Currency,
         items: MutableList<Item> = mutableListOf(),
         thirdParties: MutableList<ThirdParty> = mutableListOf(),
         invoiceHeaders: MutableList<InvoiceHeader> = mutableListOf(),
@@ -45,6 +43,7 @@ fun InvoiceFooterView(
         onThirdPartySelected: (ThirdParty) -> Unit = {},
         onInvoiceSelected: (InvoiceHeader) -> Unit = {},
 ) {
+    val currency = SettingsModel.currentCurrency ?: Currency()
     val curState = currency.currencyCode1 ?: ""
     val cur2State = currency.currencyCode2 ?: ""
     val curr1Decimal = currency.currencyName1Dec
@@ -266,8 +265,7 @@ fun InvoiceFooterView(
 fun InvoiceFooterViewPreview() {
     GridPOSTheme {
         InvoiceFooterView(
-            invoiceHeader = InvoiceHeader(),
-            currency = Currency()
+            invoiceHeader = InvoiceHeader()
         )
     }
 }

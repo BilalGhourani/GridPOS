@@ -17,7 +17,6 @@ data class POSState(
         val invoiceHeaders: MutableList<InvoiceHeader> = mutableListOf(),
         var invoiceHeader: InvoiceHeader = InvoiceHeader(),
         var posReceipt: PosReceipt = PosReceipt(),
-        var currency: Currency = SettingsModel.currentCurrency ?: Currency(),
         var selectedThirdParty: ThirdParty = ThirdParty(),
         var isSaved: Boolean = false,
         val isLoading: Boolean = false,
@@ -27,6 +26,7 @@ data class POSState(
             invoiceList: MutableList<InvoiceItemModel> = invoices,
             invHeader: InvoiceHeader = invoiceHeader
     ): InvoiceHeader {
+        val currency = SettingsModel.currentCurrency ?: Currency()
         var discount = 0.0
         var tax = 0.0
         var tax1 = 0.0

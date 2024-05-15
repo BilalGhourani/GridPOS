@@ -55,6 +55,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.grid.pos.ActivityScopedViewModel
+import com.grid.pos.data.Currency.Currency
 import com.grid.pos.data.PosReceipt.PosReceipt
 import com.grid.pos.interfaces.OnResult
 import com.grid.pos.model.InvoiceItemModel
@@ -241,9 +242,7 @@ fun PosView(
                             invoiceHeaderState.value = posState.refreshValues()
                         })
 
-                    InvoiceFooterView(
-                        invoiceHeader = invoiceHeaderState.value,
-                        currency = posState.currency,
+                    InvoiceFooterView(invoiceHeader = invoiceHeaderState.value,
                         items = posState.items,
                         thirdParties = posState.thirdParties.toMutableList(),
                         invoiceHeaders = posState.invoiceHeaders,
