@@ -2,6 +2,7 @@ package com.grid.pos.ui.common
 
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -27,16 +28,16 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavController
 import com.grid.pos.ActivityScopedViewModel
 import com.grid.pos.model.SettingsModel
+import com.grid.pos.ui.pos.POSState
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.utils.Utils
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UIWebView(
-    navController: NavController? = null,
-    activityViewModel: ActivityScopedViewModel,
-    modifier: Modifier = Modifier,
+        navController: NavController? = null,
+        activityViewModel: ActivityScopedViewModel,
+        modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
     val webView = remember {
@@ -44,22 +45,42 @@ fun UIWebView(
             webViewClient = WebViewClient()
             val htmlContent = activityViewModel.getHtmlContent(context)
             if (htmlContent.isNotEmpty()) {
-                loadDataWithBaseURL(null, htmlContent, "text/html", "UTF-8", null)
+                loadDataWithBaseURL(
+                    null,
+                    htmlContent,
+                    "text/html",
+                    "UTF-8",
+                    null
+                )
             } else {
-                loadUrl(activityViewModel.getHtmlContent(context, Utils.getDefaultReceipt()))
+                loadUrl(
+                    activityViewModel.getHtmlContent(
+                        context,
+                        Utils.getDefaultReceipt()
+                    )
+                )
             }
         }
     }
 
+    fun handleBack() {
+        activityViewModel.posState = POSState()
+        navController?.popBackStack()
+    }
+    BackHandler {
+        handleBack()
+    }
+
     GridPOSTheme {
-        Scaffold(
-            containerColor=SettingsModel.backgroundColor,
+        Scaffold(containerColor = SettingsModel.backgroundColor,
             topBar = {
-                Surface(shadowElevation = 3.dp, color = SettingsModel.backgroundColor) {
-                    TopAppBar(
-                        colors = TopAppBarDefaults.mediumTopAppBarColors(containerColor = SettingsModel.topBarColor),
+                Surface(
+                    shadowElevation = 3.dp,
+                    color = SettingsModel.backgroundColor
+                ) {
+                    TopAppBar(colors = TopAppBarDefaults.mediumTopAppBarColors(containerColor = SettingsModel.topBarColor),
                         navigationIcon = {
-                            IconButton(onClick = { navController?.popBackStack() }) {
+                            IconButton(onClick = { handleBack() }) {
                                 Icon(
                                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                                     contentDescription = "Back",
@@ -76,18 +97,14 @@ fun UIWebView(
                             )
                         })
                 }
-            }
-        ) {
+            }) {
             Column(
                 modifier = modifier
                     .fillMaxSize()
                     .padding(it)
             ) {
-                AndroidView(
-                    modifier = Modifier.weight(1f),
-                    factory = { webView }
-                ) {
-                }
+                AndroidView(modifier = Modifier.weight(1f),
+                    factory = { webView }) {}
 
                 UIButton(
                     modifier = Modifier
@@ -95,7 +112,10 @@ fun UIWebView(
                         .padding(10.dp),
                     text = "Print"
                 ) {
-                    Utils.printWebPage(webView, context)
+                    Utils.printWebPage(
+                        webView,
+                        context
+                    )
                 }
             }
         }

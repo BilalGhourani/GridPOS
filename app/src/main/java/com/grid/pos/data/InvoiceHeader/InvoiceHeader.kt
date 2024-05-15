@@ -222,7 +222,12 @@ data class InvoiceHeader(
 
     @Exclude
     override fun getName(): String {
-        return "$invoiceHeadTtCode$invoiceHeadTransNo"
+        return "$invoiceHeadTtCode - $invoiceHeadTransNo - $invoiceHeadOrderNo - $invoiceHeadTaName"
+    }
+
+    @Exclude
+    fun getCashName(pref:String=""): String {
+        return if(invoiceHeadCashName.isNullOrEmpty())  "" else "$pref $invoiceHeadCashName"
     }
 
     @Exclude
