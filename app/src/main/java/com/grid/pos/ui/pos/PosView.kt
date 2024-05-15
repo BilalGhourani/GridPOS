@@ -199,7 +199,6 @@ fun PosView(
             ) {
                 Column(
                     modifier = Modifier
-                        .wrapContentWidth()
                         .fillMaxWidth()
                         .verticalScroll(
                             rememberScrollState()

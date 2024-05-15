@@ -222,7 +222,7 @@ data class InvoiceHeader(
 
     @Exclude
     override fun getName(): String {
-        return "$invoiceHeadTtCode - $invoiceHeadTransNo - $invoiceHeadOrderNo - $invoiceHeadTaName"
+        return "${invoiceHeadTtCode?:"N/A"} ${invoiceHeadTransNo?:"N/A"} ${invoiceHeadOrderNo?:"N/A"} ${invoiceHeadTaName?:"N/A"}"
     }
 
     @Exclude

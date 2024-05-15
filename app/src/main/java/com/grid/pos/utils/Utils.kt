@@ -291,10 +291,10 @@ object Utils {
     fun getInvoiceNo(oldInvoiceNo: String?): String {
         val currentYear = getCurrentYear()
         val sections = if (oldInvoiceNo.isNullOrEmpty()) listOf(
-            currentYear, "1"
+            currentYear, "0"
         ) else oldInvoiceNo.split("-")
         var invYearStr = if (sections.isNotEmpty()) sections[0] else currentYear
-        val serialNo = if (sections.size > 1) sections[1] else "1"
+        val serialNo = if (sections.size > 1) sections[1] else "0"
         if (!invYearStr.equals(currentYear, ignoreCase = true)) {
             invYearStr = currentYear
         }

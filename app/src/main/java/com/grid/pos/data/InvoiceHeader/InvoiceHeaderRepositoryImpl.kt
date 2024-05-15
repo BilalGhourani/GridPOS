@@ -106,8 +106,9 @@ class InvoiceHeaderRepositoryImpl(
                     if (document != null) {
                         val obj = document.toObject(InvoiceHeader::class.java)
                         callback?.onSuccess(obj)
+                        return@addOnSuccessListener
                     }
-
+                    callback?.onSuccess(InvoiceHeader())
                 }.addOnFailureListener { exception ->
                     callback?.onFailure(
                         exception.message ?: "Network error."
