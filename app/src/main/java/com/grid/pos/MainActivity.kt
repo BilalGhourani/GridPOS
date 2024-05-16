@@ -75,7 +75,7 @@ class MainActivity : ComponentActivity(), ConnectivityReceiver.ConnectivityChang
                             .padding(0.dp),
                         navController = navController, activityViewModel = activityViewModel,
                         mainActivity = this,
-                        startDestination = if (SettingsModel.currentUserId.isNullOrEmpty()) "LoginView" else "HomeView"
+                        startDestination = "LoginView" /*if (SettingsModel.currentUserId.isNullOrEmpty()) "LoginView" else "HomeView"*/
                     )
                 }
             }

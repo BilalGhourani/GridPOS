@@ -155,7 +155,7 @@ fun ManageUsersView(
                             usernameState = selectedUser.userUsername ?: ""
                             passwordState = selectedUser.userPassword?.decryptCBC() ?: ""
                             posModeState = selectedUser.userPosMode ?: true
-                            tableModeState = selectedUser.userTableMode ?: false
+                            tableModeState = selectedUser.userTableMode ?: true
                         }
 
                         UITextField(modifier = Modifier.padding(10.dp), defaultValue = nameState,
@@ -204,9 +204,7 @@ fun ManageUsersView(
                                 checked = posModeState
                             ) {
                                 posModeState = it
-                                tableModeState = !it
                                 manageUsersState.selectedUser.userPosMode = posModeState
-                                manageUsersState.selectedUser.userTableMode = tableModeState
                             }
 
                             UiVerticalCheckBox(
@@ -214,8 +212,6 @@ fun ManageUsersView(
                                 checked = tableModeState
                             ) {
                                 tableModeState = it
-                                posModeState = !it
-                                manageUsersState.selectedUser.userPosMode = posModeState
                                 manageUsersState.selectedUser.userTableMode = tableModeState
                             }
                         }
@@ -267,7 +263,7 @@ fun ManageUsersView(
             usernameState = ""
             passwordState = ""
             posModeState = true
-            tableModeState = false
+            tableModeState = true
             manageUsersState.clear = false
         }
     }
