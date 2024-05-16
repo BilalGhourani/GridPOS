@@ -175,13 +175,3 @@ fun SearchableDropdownMenu(
         }
     }
 }
-
-@Preview(showBackground = true)
-@Composable
-fun SearchableDropdownMenuPreview() {
-    GridPOSTheme {
-        SearchableDropdownMenu(
-            items = Utils.users
-        )
-    }
-}

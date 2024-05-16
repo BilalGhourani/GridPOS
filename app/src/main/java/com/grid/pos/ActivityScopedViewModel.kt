@@ -17,8 +17,8 @@ import com.grid.pos.data.ThirdParty.ThirdPartyRepository
 import com.grid.pos.data.User.User
 import com.grid.pos.data.User.UserRepository
 import com.grid.pos.interfaces.OnResult
+import com.grid.pos.model.InvoiceItemModel
 import com.grid.pos.model.SettingsModel
-import com.grid.pos.ui.pos.POSState
 import com.grid.pos.utils.DataStoreManager
 import com.grid.pos.utils.Utils
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -37,7 +37,8 @@ class ActivityScopedViewModel @Inject constructor(
     private val familyRepository: FamilyRepository,
     private val itemRepository: ItemRepository,
 ) : ViewModel() {
-    var posState: POSState = POSState()
+    var invoiceHeader: InvoiceHeader = InvoiceHeader()
+    var invoiceItemModels: MutableList<InvoiceItemModel> = mutableListOf()
     var isFromTable: Boolean = false
     var companies: MutableList<Company> = mutableListOf()
     var currencies: MutableList<Currency> = mutableListOf()
@@ -45,7 +46,7 @@ class ActivityScopedViewModel @Inject constructor(
     var thirdParties: MutableList<ThirdParty> = mutableListOf()
     var families: MutableList<Family> = mutableListOf()
     var items: MutableList<Item> = mutableListOf()
-    var invoices: MutableList<InvoiceHeader> = mutableListOf()
+    var invoiceHeaders: MutableList<InvoiceHeader> = mutableListOf()
 
     private val _activityState = MutableStateFlow(ActivityState())
     val activityState: MutableStateFlow<ActivityState> = _activityState
@@ -215,10 +216,10 @@ class ActivityScopedViewModel @Inject constructor(
         )
     ): String {//"file:///android_asset/receipt.html"
         var result = content
-        if (posState.invoices.isNotEmpty()) {
+        if (invoiceItemModels.isNotEmpty()) {
             val trs = StringBuilder("")
             var total = 0.0
-            posState.invoices.forEach { item ->
+            invoiceItemModels.forEach { item ->
                 total += item.getAmount()
                 trs.append(
                     "<tr> <td>${item.getName()}</td>  <td>${

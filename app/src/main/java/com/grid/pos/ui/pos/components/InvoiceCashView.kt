@@ -32,16 +32,17 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.grid.pos.data.Currency.Currency
+import com.grid.pos.data.InvoiceHeader.InvoiceHeader
 import com.grid.pos.data.PosReceipt.PosReceipt
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.UIButton
-import com.grid.pos.ui.pos.POSState
 import com.grid.pos.utils.Utils
 
 @Composable
 fun InvoiceCashView(
         modifier: Modifier,
-        posState: POSState,
+        invoiceHeader: InvoiceHeader,
+        posReceipt: PosReceipt,
         onSave: (Double, PosReceipt) -> Unit = { _, _ -> },
         onFinish: (Double, PosReceipt) -> Unit = { _, _ -> },
 ) {
@@ -58,9 +59,7 @@ fun InvoiceCashView(
     val debitCurr1TotalFocusRequester = remember { FocusRequester() }
     val debitCurr2TotalFocusRequester = remember { FocusRequester() }
 
-    val invoiceHeader = posState.invoiceHeader
     val currency = SettingsModel.currentCurrency ?: Currency()
-    val posReceipt = posState.posReceipt.copy()
 
     val curr1Decimal = currency.currencyName1Dec
     val curr2Decimal = currency.currencyName2Dec

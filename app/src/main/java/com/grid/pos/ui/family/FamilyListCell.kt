@@ -58,7 +58,19 @@ fun CategoryListCell(
 fun CategoryListCellPreview() {
     GridPOSTheme {
         CategoryListCell(
-            categories = Utils.categories,
+            categories = mutableListOf(
+                Family(
+                    "1", "Chicken"
+                ), Family(
+                    "2", "Meat"
+                ), Family(
+                    "3", "Salad"
+                ), Family(
+                    "4", "Veg"
+                ), Family(
+                    "5", "Other"
+                )
+            ),
             modifier = Modifier.fillMaxWidth().wrapContentHeight()
         )
     }

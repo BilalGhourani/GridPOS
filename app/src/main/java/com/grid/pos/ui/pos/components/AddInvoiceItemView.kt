@@ -35,8 +35,8 @@ import com.grid.pos.utils.Utils
 
 @Composable
 fun AddInvoiceItemView(
-    categories: MutableList<Family> = Utils.categories,
-    items: MutableList<Item> = Utils.listOfItems,
+    categories: MutableList<Family> = mutableListOf(),
+    items: MutableList<Item> = mutableListOf(),
     modifier: Modifier = Modifier,
     onSelect: (List<Item>) -> Unit = {},
 ) {

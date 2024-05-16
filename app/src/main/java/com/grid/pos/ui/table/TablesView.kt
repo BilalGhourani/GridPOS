@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Search
@@ -28,7 +27,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -40,13 +38,11 @@ import androidx.navigation.NavController
 import com.grid.pos.ActivityScopedViewModel
 import com.grid.pos.MainActivity
 import com.grid.pos.data.InvoiceHeader.InvoiceHeader
-import com.grid.pos.data.User.User
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.LoadingIndicator
 import com.grid.pos.ui.common.UIButton
 import com.grid.pos.ui.common.UITextField
 import com.grid.pos.ui.theme.GridPOSTheme
-import com.grid.pos.ui.user.ManageUsersState
 import com.grid.pos.utils.Utils
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -185,8 +181,9 @@ fun TablesView(
                         tablesState.invoiceHeader.invoiceHeadTaName = tableNameState
                         tablesState.invoiceHeader.invoiceHeadClientsCount =
                             clientsCountState.toIntOrNull() ?: 1
-                        activityScopedViewModel.posState.invoiceHeader = tablesState.invoiceHeader
+                        activityScopedViewModel.invoiceHeader = tablesState.invoiceHeader
                         activityScopedViewModel.isFromTable = true
+                        tablesState.clear = true
                         navController?.navigate("PosView")
                     }
 

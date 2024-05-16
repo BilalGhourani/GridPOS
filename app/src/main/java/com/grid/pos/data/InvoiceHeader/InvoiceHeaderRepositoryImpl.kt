@@ -127,6 +127,7 @@ class InvoiceHeaderRepositoryImpl(
             FirebaseFirestore.getInstance().collection("in_hinvoice")
                 .whereEqualTo("hi_cmp_id", SettingsModel.companyID)
                 .whereEqualTo("hi_ta_name", tableNo)
+                .whereEqualTo("hi_transno", null)
                 .limit(1)
                 .get()
                 .addOnSuccessListener { result ->

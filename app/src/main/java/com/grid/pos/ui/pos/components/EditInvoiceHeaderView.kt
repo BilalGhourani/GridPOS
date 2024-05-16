@@ -45,7 +45,6 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.grid.pos.data.InvoiceHeader.InvoiceHeader
@@ -53,17 +52,17 @@ import com.grid.pos.model.InvoiceItemModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.UIButton
 import com.grid.pos.ui.common.UITextField
-import com.grid.pos.ui.pos.POSState
-import com.grid.pos.ui.theme.GridPOSTheme
+import com.grid.pos.ui.pos.POSUtils
 import com.grid.pos.utils.Utils
 
 @Composable
 fun EditInvoiceHeaderView(
-        modifier: Modifier = Modifier,
-        posState: POSState = POSState(),
-        invoiceIndex: Int = 0,
-        onSave: (InvoiceHeader, InvoiceItemModel) -> Unit = { _, _ -> },
-        onClose: () -> Unit = {},
+    modifier: Modifier = Modifier,
+    invoices: MutableList<InvoiceItemModel>,
+    invHeader: InvoiceHeader,
+    invoiceIndex: Int = 0,
+    onSave: (InvoiceHeader, InvoiceItemModel) -> Unit = { _, _ -> },
+    onClose: () -> Unit = {},
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
     val rDiscount1FocusRequester = remember { FocusRequester() }
@@ -78,9 +77,8 @@ fun EditInvoiceHeaderView(
     val tax1FocusRequester = remember { FocusRequester() }
     val tax2FocusRequester = remember { FocusRequester() }
 
-    val invoices = posState.invoices.toMutableList()
-    val invoiceItemModel = invoices[invoiceIndex].copy()
-    var invoiceHeader = posState.invoiceHeader.copy()
+    var invoiceHeader = invHeader.copy()
+    val invoiceItemModel = invoices[invoiceIndex]
 
     val rDiscountVal = invoiceItemModel.invoice.invoiceDiscount
     val rDiscamtVal = invoiceItemModel.invoice.invoiceDiscamt * (rDiscountVal.div(100.0))
@@ -163,7 +161,7 @@ fun EditInvoiceHeaderView(
             return
         }
         invoices[invoiceIndex] = invoiceItemModel
-        invoiceHeader = posState.refreshValues(invoices, invoiceHeader)
+        invoiceHeader = POSUtils.refreshValues(invoices, invoiceHeader)
         val invoiceAmount = invoiceHeader.invoiceHeadGrossAmount
         if (isPercentage) {
             discount2 = String.format(
@@ -216,9 +214,13 @@ fun EditInvoiceHeaderView(
                     unfocusedTextColor = Color.Black,
                 )
             )
-            OutlinedTextField(value = qty.toString(), onValueChange = {
-                qty = it.toInt()
-            }, shape = RoundedCornerShape(15.dp), modifier = Modifier.weight(1f), readOnly = true,
+            OutlinedTextField(value = qty.toString(),
+                onValueChange = {
+                    qty = it.toInt()
+                },
+                shape = RoundedCornerShape(15.dp),
+                modifier = Modifier.weight(1f),
+                readOnly = true,
                 label = {
                     Box(
                         modifier = Modifier
@@ -230,10 +232,12 @@ fun EditInvoiceHeaderView(
                             textAlign = TextAlign.Center, color = SettingsModel.textColor
                         )
                     }
-                }, textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Center),
+                },
+                textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Center),
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Number, imeAction = ImeAction.Next
-                ), keyboardActions = KeyboardActions(onNext = { /* Move focus to next field */ }),
+                ),
+                keyboardActions = KeyboardActions(onNext = { /* Move focus to next field */ }),
                 leadingIcon = {
                     IconButton(onClick = {
                         qty++
@@ -246,7 +250,8 @@ fun EditInvoiceHeaderView(
                             tint = SettingsModel.buttonColor
                         )
                     }
-                }, trailingIcon = {
+                },
+                trailingIcon = {
                     IconButton(onClick = {
                         if (qty > 1) qty--
                         invoiceItemModel.invoice.invoiceQuantity = qty.toDouble()
@@ -526,7 +531,8 @@ fun EditInvoiceHeaderView(
                 invoiceHeader.invoiceHeadDiscount = discount1.toDoubleOrNull() ?: 0.0
                 invoiceHeader.invoiceHeadDiscountAmount = discount2.toDoubleOrNull() ?: 0.0
 
-                invoiceItemModel.invoice.invoicePrice = price.toDoubleOrNull() ?: invoiceItemModel.invoiceItem.itemUnitPrice
+                invoiceItemModel.invoice.invoicePrice =
+                    price.toDoubleOrNull() ?: invoiceItemModel.invoiceItem.itemUnitPrice
                 invoiceItemModel.invoice.invoiceTax = taxState.toDoubleOrNull() ?: 0.0
                 invoiceItemModel.invoice.invoiceTax1 = tax1State.toDoubleOrNull() ?: 0.0
                 invoiceItemModel.invoice.invoiceTax2 = tax2State.toDoubleOrNull() ?: 0.0
@@ -568,13 +574,5 @@ fun EditInvoiceHeaderView(
             }
         }
 
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun EditInvoiceHeaderViewPreview() {
-    GridPOSTheme {
-        EditInvoiceHeaderView()
     }
 }

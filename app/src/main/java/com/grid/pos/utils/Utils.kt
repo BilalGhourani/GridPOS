@@ -12,10 +12,6 @@ import android.webkit.WebView
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.grid.pos.data.DataModel
-import com.grid.pos.data.Family.Family
-import com.grid.pos.data.Item.Item
-import com.grid.pos.data.User.User
 import com.grid.pos.model.HomeSectionModel
 import java.io.BufferedReader
 import java.io.File
@@ -23,7 +19,6 @@ import java.io.FileInputStream
 import java.io.IOException
 import java.io.InputStream
 import java.io.InputStreamReader
-import java.math.BigInteger
 import java.text.SimpleDateFormat
 import java.time.Year
 import java.util.Calendar
@@ -58,74 +53,6 @@ object Utils {
         ),
         HomeSectionModel(
             "Table", "TablesView"
-        ),
-    )
-
-    val users = mutableListOf(
-        User(
-            userId = "1", userName = "Bilal", userPassword = "123456"
-        ) as DataModel,
-        User(
-            userId = "1", userName = "Ziad", userPassword = "133442"
-        ) as DataModel,
-        User(
-            userId = "1", userName = "Zakariya", userPassword = "123432"
-        ) as DataModel,
-        User(
-            userId = "1", userName = "Mohammad", userPassword = "432785"
-        ) as DataModel,
-        User(
-            userId = "1", userName = "Ahmad", userPassword = "009988"
-        ) as DataModel,
-        User(
-            userId = "1", userName = "Samir", userPassword = "225577"
-        ) as DataModel,
-        User(
-            userId = "1", userName = "Omar", userPassword = "113311"
-        ) as DataModel,
-        User(
-            userId = "1", userName = "Abed Al Rahman", userPassword = "112345"
-        ) as DataModel,
-        User(
-            userId = "1", userName = "Abdullah", userPassword = "998888"
-        ) as DataModel,
-    )
-
-    val categories = mutableListOf(
-        Family(
-            "1", "Chicken"
-        ), Family(
-            "2", "Meat"
-        ), Family(
-            "3", "Salad"
-        ), Family(
-            "4", "Veg"
-        ), Family(
-            "5", "Other"
-        )
-    )
-
-    val listOfItems = mutableListOf(
-        Item(
-            itemId = "1", itemName = "Chicken", itemUnitPrice = 100.0
-        ),
-        Item(
-            itemId = "2", itemName = "Salad", itemUnitPrice = 100.0
-        ),
-        Item(
-            itemId = "3", itemName = "Veg", itemUnitPrice = 100.0
-        ),
-        Item(
-            itemId = "4", itemName = "Other", itemUnitPrice = 100.0
-        ),
-        Item(
-            itemId = "5", itemName = "Other1", itemUnitPrice = 100.0
-        ),
-        Item(
-            itemId = "6", itemName = "Other2", itemUnitPrice = 100.0
-        ),
-        Item(
-            itemId = "7", itemName = "Other3", itemUnitPrice = 100.0
         ),
     )
 
@@ -274,35 +201,7 @@ object Utils {
         return (size * cellHeight).dp + 50.dp
     }
 
-    fun getInvoiceTransactionNo(oldInvoiceTransNo: String?): String {
-        val currentYear = getCurrentYear()
-        var invNoStr = oldInvoiceTransNo.takeIf { !it.isNullOrEmpty() } ?: (currentYear + "000000000")
-        if (invNoStr.length > 4 && !invNoStr.substring(
-                0, 4
-            ).equals(
-                currentYear, ignoreCase = true
-            )
-        ) {
-            invNoStr = currentYear + "000000000"
-        }
-        return (invNoStr.toBigInteger().plus(BigInteger("1"))).toString()
-    }
-
-    fun getInvoiceNo(oldInvoiceNo: String?): String {
-        val currentYear = getCurrentYear()
-        val sections = if (oldInvoiceNo.isNullOrEmpty()) listOf(
-            currentYear, "0"
-        ) else oldInvoiceNo.split("-")
-        var invYearStr = if (sections.isNotEmpty()) sections[0] else currentYear
-        val serialNo = if (sections.size > 1) sections[1] else "0"
-        if (!invYearStr.equals(currentYear, ignoreCase = true)) {
-            invYearStr = currentYear
-        }
-        val serialInt = (serialNo.toIntOrNull() ?: 1) + 1
-        return "$invYearStr-${serialInt}"
-    }
-
-    private fun getCurrentYear(): String {
+    fun getCurrentYear(): String {
         val calendar: Calendar = Calendar.getInstance()
         val currentYear = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             Year.now().value

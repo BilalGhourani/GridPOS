@@ -16,7 +16,6 @@ import com.grid.pos.data.ThirdParty.ThirdParty
 import com.grid.pos.data.ThirdParty.ThirdPartyRepository
 import com.grid.pos.interfaces.OnResult
 import com.grid.pos.model.InvoiceItemModel
-import com.grid.pos.utils.Utils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -36,6 +35,7 @@ class POSViewModel @Inject constructor(
 
     private val _posState = MutableStateFlow(POSState())
     val posState: MutableStateFlow<POSState> = _posState
+    var invoices: MutableList<InvoiceItemModel> = mutableListOf()
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
@@ -161,6 +161,9 @@ class POSViewModel @Inject constructor(
         val isInserting = invoiceHeader.invoiceHeadId.isNullOrEmpty()
         val callback = object : OnResult {
             override fun onSuccess(result: Any) {
+                if (isInserting) {
+                    posState.value.invoiceHeaders.add(invoiceHeader)
+                }
                 savePOSReceipt(
                     result as InvoiceHeader,
                     posReceipt,
@@ -185,14 +188,16 @@ class POSViewModel @Inject constructor(
         CoroutineScope(Dispatchers.IO).launch {
             if (isInserting) {
                 if (finish) {
-                    invoiceHeaderRepository.getLastInvoiceTransNo(posState.value.getInvoiceType(),
+                    invoiceHeaderRepository.getLastInvoiceTransNo(POSUtils.getInvoiceType(
+                        invoiceHeader
+                    ),
                         object : OnResult {
                             override fun onSuccess(result: Any) {
                                 result as InvoiceHeader
-                                invoiceHeader.invoiceHeadTransNo = Utils.getInvoiceTransactionNo(
+                                invoiceHeader.invoiceHeadTransNo = POSUtils.getInvoiceTransactionNo(
                                     result.invoiceHeadTransNo ?: ""
                                 )
-                                invoiceHeader.invoiceHeadOrderNo = Utils.getInvoiceNo(
+                                invoiceHeader.invoiceHeadOrderNo = POSUtils.getInvoiceNo(
                                     result.invoiceHeadOrderNo ?: ""
                                 )
                                 invoiceHeader.prepareForInsert()
@@ -228,14 +233,16 @@ class POSViewModel @Inject constructor(
                 }
             } else {
                 if (invoiceHeader.invoiceHeadTransNo.isNullOrEmpty()) {
-                    invoiceHeaderRepository.getLastInvoiceTransNo(posState.value.getInvoiceType(),
+                    invoiceHeaderRepository.getLastInvoiceTransNo(POSUtils.getInvoiceType(
+                        invoiceHeader
+                    ),
                         object : OnResult {
                             override fun onSuccess(result: Any) {
                                 result as InvoiceHeader
-                                invoiceHeader.invoiceHeadTransNo = Utils.getInvoiceTransactionNo(
+                                invoiceHeader.invoiceHeadTransNo = POSUtils.getInvoiceTransactionNo(
                                     result.invoiceHeadTransNo ?: ""
                                 )
-                                invoiceHeader.invoiceHeadOrderNo = Utils.getInvoiceNo(
+                                invoiceHeader.invoiceHeadOrderNo = POSUtils.getInvoiceNo(
                                     result.invoiceHeadOrderNo ?: ""
                                 )
                                 invoiceHeader.prepareForInsert()
@@ -351,7 +358,7 @@ class POSViewModel @Inject constructor(
                 viewModelScope.launch(Dispatchers.Main) {
                     posState.value = posState.value.copy(
                         isLoading = false,
-                        isSaved = true
+                        isSaved = true,
                     )
                 }
             }
@@ -396,20 +403,16 @@ class POSViewModel @Inject constructor(
                 object : OnResult {
                     override fun onSuccess(result: Any) {
                         viewModelScope.launch(Dispatchers.IO) {
-                            val invoices = mutableListOf<InvoiceItemModel>()
+                            val invs = mutableListOf<InvoiceItemModel>()
                             result as List<*>
                             result.forEach { inv ->
                                 inv as Invoice
-                                invoices.add(InvoiceItemModel(invoice = inv,
+                                invs.add(InvoiceItemModel(invoice = inv,
                                     invoiceItem = posState.value.items.firstOrNull {
                                         it.itemId.equals(inv.invoiceItemId)
                                     } ?: Item()))
                             }
-                            viewModelScope.launch(Dispatchers.Main) {
-                                posState.value = posState.value.copy(
-                                    invoices = invoices
-                                )
-                            }
+                            invoices = invs
                             getPosReceipt(
                                 invoiceHeader.invoiceHeadId,
                                 onResult

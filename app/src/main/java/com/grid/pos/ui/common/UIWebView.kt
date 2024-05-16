@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavController
 import com.grid.pos.ActivityScopedViewModel
+import com.grid.pos.data.InvoiceHeader.InvoiceHeader
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.pos.POSState
 import com.grid.pos.ui.theme.GridPOSTheme
@@ -64,7 +65,8 @@ fun UIWebView(
     }
 
     fun handleBack() {
-        activityViewModel.posState = POSState()
+        activityViewModel.invoiceItemModels = mutableListOf()
+        activityViewModel.invoiceHeader = InvoiceHeader()
         navController?.popBackStack()
     }
     BackHandler {
