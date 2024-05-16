@@ -59,9 +59,6 @@ class MainActivity : ComponentActivity(), ConnectivityReceiver.ConnectivityChang
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        CoroutineScope(Dispatchers.IO).launch {
-            activityViewModel.initiateValues()
-        }
         window.setBackgroundDrawableResource(R.drawable.white_background)
         setContent {
             val navController = rememberNavController()

@@ -53,9 +53,8 @@ class ActivityScopedViewModel @Inject constructor(
 
     suspend fun initiateValues() {
         if (SettingsModel.currentUser != null) {
-            fetchCurrencies()
-            fetchCurrentUser()
             fetchCompanies()
+            fetchCurrencies()
             fetchThirdParties()
             fetchFamilies()
             fetchItems()
@@ -71,8 +70,8 @@ class ActivityScopedViewModel @Inject constructor(
                         val listOfCurrencies = mutableListOf<Currency>()
                         result.forEach {
                             it as Currency
-                            if (it.currencyId.equals(
-                                    SettingsModel.currentCompany?.companyCurCodeTax,
+                            if (it.currencyCompId.equals(
+                                    SettingsModel.companyID,
                                     ignoreCase = true
                                 )
                             ) {
