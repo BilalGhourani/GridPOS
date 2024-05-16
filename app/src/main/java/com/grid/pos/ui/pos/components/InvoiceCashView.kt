@@ -70,7 +70,7 @@ fun InvoiceCashView(
         netTotal
     )
     val cashTotalPaid2 = String.format(
-        "%.${curr1Decimal}f",
+        "%.${curr2Decimal}f",
         (netTotal).times(rate)
     )
 
@@ -668,8 +668,8 @@ fun InvoiceCashView(
                 text = "Finish & Print",
                 shape = RoundedCornerShape(15.dp)
             ) {
-                posReceipt.posReceiptCash = cashTotalPaid1.toDoubleOrNull() ?: 0.0
-                posReceipt.posReceiptCashs = cashTotalPaid2.toDoubleOrNull() ?: 0.0
+                posReceipt.posReceiptCash = cashCurr1Paid.toDoubleOrNull() ?: 0.0
+                posReceipt.posReceiptCashs = cashCurr2Paid.toDoubleOrNull() ?: 0.0
                 posReceipt.posReceiptDebit = debitCurr1Paid.toDoubleOrNull() ?: 0.0
                 posReceipt.posReceiptDebits = debitCurr2Paid.toDoubleOrNull() ?: 0.0
                 posReceipt.posReceiptCredit = creditCurr1Paid.toDoubleOrNull() ?: 0.0

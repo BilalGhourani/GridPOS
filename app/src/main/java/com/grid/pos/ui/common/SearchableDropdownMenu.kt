@@ -12,13 +12,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -34,13 +32,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.grid.pos.data.DataModel
 import com.grid.pos.model.SettingsModel
-import com.grid.pos.ui.theme.GridPOSTheme
-import com.grid.pos.utils.Utils
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -53,7 +48,7 @@ fun SearchableDropdownMenu(
         onLeadingIconClick:()->Unit={},
         onSelectionChange: (DataModel) -> Unit = {},
 ) {
-    var expanded by remember { mutableStateOf(false) }
+    var expandedState by remember { mutableStateOf(false) }
     var searchText by remember { mutableStateOf(label) }
     var selectedItemState by remember { mutableStateOf(label) }
     LaunchedEffect(selectedId) {
@@ -80,9 +75,9 @@ fun SearchableDropdownMenu(
         ExposedDropdownMenuBox(modifier = Modifier
             .fillMaxWidth()
             .background(color = SettingsModel.backgroundColor),
-            expanded = expanded,
+            expanded = expandedState,
             onExpandedChange = {
-                expanded = !expanded
+                expandedState = !expandedState
             }) {
             Row(modifier = Modifier
                 .fillMaxWidth()
@@ -99,7 +94,7 @@ fun SearchableDropdownMenu(
                 leadingIcon?.invoke(Modifier
                     .padding(start = 10.dp, top = 10.dp, bottom = 10.dp)
                     .align(Alignment.CenterVertically).clickable { onLeadingIconClick.invoke()
-                        expanded=false }
+                        expandedState=false }
                 )
                 Text(
                     modifier = Modifier
@@ -122,7 +117,7 @@ fun SearchableDropdownMenu(
                     Modifier
                         .padding(top = 10.dp, bottom = 10.dp, end = 10.dp)
                         .align(Alignment.CenterVertically)
-                        .rotate(if (expanded) 180f else 0f),
+                        .rotate(if (expandedState) 180f else 0f),
                     tint = Color.Black
                 )
             }
@@ -134,8 +129,8 @@ fun SearchableDropdownMenu(
             }
             if (filteredItems.isNotEmpty()) {
                 DropdownMenu(
-                    expanded = expanded,
-                    onDismissRequest = { expanded = false },
+                    expanded = expandedState,
+                    onDismissRequest = { expandedState = false },
                     modifier = Modifier
                         .exposedDropdownSize()
                         .background(color = Color.White)
@@ -167,7 +162,7 @@ fun SearchableDropdownMenu(
                                 onSelectionChange(item)
                                 searchText = text
                                 selectedItemState = text
-                                expanded = false
+                                expandedState = false
                             })
                     }
                 }

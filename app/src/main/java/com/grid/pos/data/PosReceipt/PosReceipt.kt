@@ -124,12 +124,12 @@ data class PosReceipt(
     fun getMap(): Map<String, Any?> {
         return mapOf(
             "pr_hi_id" to posReceiptInvoiceId,
-            "pr_cash_amt" to posReceiptCash,
-            "pr_cash_amts" to posReceiptCashs,
-            "pr_debit_amt" to posReceiptDebit,
-            "pr_debit_amts" to posReceiptDebits,
-            "pr_credit_amt" to posReceiptCredit,
-            "pr_credit_amts" to posReceiptCredits,
+            "pr_cash" to posReceiptCash,
+            "pr_cashs" to posReceiptCashs,
+            "pr_debit" to posReceiptDebit,
+            "pr_debits" to posReceiptDebits,
+            "pr_credit" to posReceiptCredit,
+            "pr_credits" to posReceiptCredits,
             "pr_timestamp" to posReceiptTimeStamp,
             "pr_userstamp" to posReceiptUserStamp
         )
