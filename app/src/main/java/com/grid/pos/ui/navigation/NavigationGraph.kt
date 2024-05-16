@@ -87,7 +87,13 @@ fun AuthNavGraph(
                 mainActivity = mainActivity
             )
         }
-        composable(route = "TablesView") { TablesView(navController = navController) }
+        composable(route = "TablesView") {
+            TablesView(
+                navController = navController,
+                activityScopedViewModel = activityViewModel,
+                mainActivity = mainActivity
+            )
+        }
         composable(route = "UIWebView") {
             UIWebView(
                 navController = navController, activityViewModel = activityViewModel

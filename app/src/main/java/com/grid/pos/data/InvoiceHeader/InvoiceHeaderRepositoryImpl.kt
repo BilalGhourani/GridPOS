@@ -121,4 +121,32 @@ class InvoiceHeaderRepositoryImpl(
             }
         }
     }
+
+    override suspend fun getInvoiceByTable(tableNo: String, callback: OnResult?) {
+        if (SettingsModel.loadFromRemote) {
+            FirebaseFirestore.getInstance().collection("in_hinvoice")
+                .whereEqualTo("hi_cmp_id", SettingsModel.companyID)
+                .whereEqualTo("hi_ta_name", tableNo)
+                .limit(1)
+                .get()
+                .addOnSuccessListener { result ->
+                    val document = result.firstOrNull()
+                    if (document != null) {
+                        val obj = document.toObject(InvoiceHeader::class.java)
+                        callback?.onSuccess(obj)
+                        return@addOnSuccessListener
+                    }
+                    callback?.onSuccess(InvoiceHeader())
+                }.addOnFailureListener { exception ->
+                    callback?.onFailure(
+                        exception.message ?: "Network error."
+                    )
+                }
+
+        } else {
+            invoiceHeaderDao.getInvoiceByTable(tableNo).collect {
+                callback?.onSuccess(it)
+            }
+        }
+    }
 }
