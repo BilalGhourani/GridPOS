@@ -10,17 +10,17 @@ import com.grid.pos.model.InvoiceItemModel
 import com.grid.pos.model.SettingsModel
 
 data class POSState(
-        var invoices: MutableList<InvoiceItemModel> = mutableListOf(),
-        val families: MutableList<Family> = mutableListOf(),
-        val items: MutableList<Item> = mutableListOf(),
-        val thirdParties: MutableList<ThirdParty> = mutableListOf(),
-        val invoiceHeaders: MutableList<InvoiceHeader> = mutableListOf(),
-        var invoiceHeader: InvoiceHeader = InvoiceHeader(),
-        var posReceipt: PosReceipt = PosReceipt(),
-        var selectedThirdParty: ThirdParty = ThirdParty(),
-        var isSaved: Boolean = false,
-        val isLoading: Boolean = false,
-        val warning: String? = null,
+    var invoices: MutableList<InvoiceItemModel> = mutableListOf(),
+    val families: MutableList<Family> = mutableListOf(),
+    val items: MutableList<Item> = mutableListOf(),
+    val thirdParties: MutableList<ThirdParty> = mutableListOf(),
+    val invoiceHeaders: MutableList<InvoiceHeader> = mutableListOf(),
+    var invoiceHeader: InvoiceHeader = InvoiceHeader(),
+    var posReceipt: PosReceipt = PosReceipt(),
+    var selectedThirdParty: ThirdParty = ThirdParty(),
+    var isSaved: Boolean = false,
+    var isLoading: Boolean = false,
+    val warning: String? = null,
 ) {
     fun refreshValues(
             invoiceList: MutableList<InvoiceItemModel> = invoices,

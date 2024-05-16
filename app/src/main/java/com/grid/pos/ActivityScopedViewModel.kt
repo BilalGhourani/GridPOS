@@ -30,14 +30,15 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ActivityScopedViewModel @Inject constructor(
-        private val currencyRepository: CurrencyRepository,
-        private val companyRepository: CompanyRepository,
-        private val userRepository: UserRepository,
-        private val thirdPartyRepository: ThirdPartyRepository,
-        private val familyRepository: FamilyRepository,
-        private val itemRepository: ItemRepository,
+    private val currencyRepository: CurrencyRepository,
+    private val companyRepository: CompanyRepository,
+    private val userRepository: UserRepository,
+    private val thirdPartyRepository: ThirdPartyRepository,
+    private val familyRepository: FamilyRepository,
+    private val itemRepository: ItemRepository,
 ) : ViewModel() {
     var posState: POSState = POSState()
+    var isFromTable: Boolean = false
     var companies: MutableList<Company> = mutableListOf()
     var currencies: MutableList<Currency> = mutableListOf()
     var users: MutableList<User> = mutableListOf()
@@ -85,8 +86,8 @@ class ActivityScopedViewModel @Inject constructor(
                     }
 
                     override fun onFailure(
-                            message: String,
-                            errorCode: Int
+                        message: String,
+                        errorCode: Int
                     ) {
 
                     }
@@ -125,8 +126,8 @@ class ActivityScopedViewModel @Inject constructor(
                 }
 
                 override fun onFailure(
-                        message: String,
-                        errorCode: Int
+                    message: String,
+                    errorCode: Int
                 ) {
 
                 }
@@ -143,8 +144,8 @@ class ActivityScopedViewModel @Inject constructor(
                     }
 
                     override fun onFailure(
-                            message: String,
-                            errorCode: Int
+                        message: String,
+                        errorCode: Int
                     ) {
 
                     }
@@ -164,8 +165,8 @@ class ActivityScopedViewModel @Inject constructor(
             }
 
             override fun onFailure(
-                    message: String,
-                    errorCode: Int
+                message: String,
+                errorCode: Int
             ) {
             }
         })
@@ -182,8 +183,8 @@ class ActivityScopedViewModel @Inject constructor(
             }
 
             override fun onFailure(
-                    message: String,
-                    errorCode: Int
+                message: String,
+                errorCode: Int
             ) {
             }
         })
@@ -200,18 +201,18 @@ class ActivityScopedViewModel @Inject constructor(
             }
 
             override fun onFailure(
-                    message: String,
-                    errorCode: Int
+                message: String,
+                errorCode: Int
             ) {
             }
         })
     }
 
     fun getHtmlContent(
-            context: Context,
-            content: String = Utils.readFileFromAssets(
-                "receipt.html", context
-            )
+        context: Context,
+        content: String = Utils.readFileFromAssets(
+            "receipt.html", context
+        )
     ): String {//"file:///android_asset/receipt.html"
         var result = content
         if (posState.invoices.isNotEmpty()) {

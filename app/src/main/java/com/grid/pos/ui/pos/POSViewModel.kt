@@ -26,12 +26,12 @@ import javax.inject.Inject
 
 @HiltViewModel
 class POSViewModel @Inject constructor(
-        private val invoiceHeaderRepository: InvoiceHeaderRepository,
-        private val posReceiptRepository: PosReceiptRepository,
-        private val invoiceRepository: InvoiceRepository,
-        private val itemRepository: ItemRepository,
-        private val thirdPartyRepository: ThirdPartyRepository,
-        private val familyRepository: FamilyRepository
+    private val invoiceHeaderRepository: InvoiceHeaderRepository,
+    private val posReceiptRepository: PosReceiptRepository,
+    private val invoiceRepository: InvoiceRepository,
+    private val itemRepository: ItemRepository,
+    private val thirdPartyRepository: ThirdPartyRepository,
+    private val familyRepository: FamilyRepository
 ) : ViewModel() {
 
     private val _posState = MutableStateFlow(POSState())
@@ -61,8 +61,8 @@ class POSViewModel @Inject constructor(
             }
 
             override fun onFailure(
-                    message: String,
-                    errorCode: Int
+                message: String,
+                errorCode: Int
             ) {
 
             }
@@ -85,8 +85,8 @@ class POSViewModel @Inject constructor(
             }
 
             override fun onFailure(
-                    message: String,
-                    errorCode: Int
+                message: String,
+                errorCode: Int
             ) {
 
             }
@@ -109,8 +109,8 @@ class POSViewModel @Inject constructor(
             }
 
             override fun onFailure(
-                    message: String,
-                    errorCode: Int
+                message: String,
+                errorCode: Int
             ) {
 
             }
@@ -133,8 +133,8 @@ class POSViewModel @Inject constructor(
             }
 
             override fun onFailure(
-                    message: String,
-                    errorCode: Int
+                message: String,
+                errorCode: Int
             ) {
 
             }
@@ -143,10 +143,10 @@ class POSViewModel @Inject constructor(
     }
 
     fun saveInvoiceHeader(
-            invoiceHeader: InvoiceHeader,
-            posReceipt: PosReceipt,
-            invoiceItems: MutableList<InvoiceItemModel>,
-            finish: Boolean = false
+        invoiceHeader: InvoiceHeader,
+        posReceipt: PosReceipt,
+        invoiceItems: MutableList<InvoiceItemModel>,
+        finish: Boolean = false
     ) {
         if (invoiceItems.isEmpty()) {
             posState.value = posState.value.copy(
@@ -169,8 +169,8 @@ class POSViewModel @Inject constructor(
             }
 
             override fun onFailure(
-                    message: String,
-                    errorCode: Int
+                message: String,
+                errorCode: Int
             ) {
                 viewModelScope.launch(Dispatchers.Main) {
                     posState.value = posState.value.copy(
@@ -190,13 +190,14 @@ class POSViewModel @Inject constructor(
                             override fun onSuccess(result: Any) {
                                 result as InvoiceHeader
                                 invoiceHeader.invoiceHeadTransNo = Utils.getInvoiceTransactionNo(
-                                    result.invoiceHeadTransNo?:""
+                                    result.invoiceHeadTransNo ?: ""
                                 )
                                 invoiceHeader.invoiceHeadOrderNo = Utils.getInvoiceNo(
-                                    result.invoiceHeadOrderNo?:""
+                                    result.invoiceHeadOrderNo ?: ""
                                 )
                                 invoiceHeader.prepareForInsert()
-                                invoiceHeader.invoiceHeadTtCode = if (invoiceHeader.invoiceHeadGrossAmount > 0) "SI" else "RS"
+                                invoiceHeader.invoiceHeadTtCode =
+                                    if (invoiceHeader.invoiceHeadGrossAmount > 0) "SI" else "RS"
                                 CoroutineScope(Dispatchers.IO).launch {
                                     invoiceHeaderRepository.insert(
                                         invoiceHeader,
@@ -206,8 +207,8 @@ class POSViewModel @Inject constructor(
                             }
 
                             override fun onFailure(
-                                    message: String,
-                                    errorCode: Int
+                                message: String,
+                                errorCode: Int
                             ) {
                                 viewModelScope.launch(Dispatchers.Main) {
                                     posState.value = posState.value.copy(
@@ -232,10 +233,10 @@ class POSViewModel @Inject constructor(
                             override fun onSuccess(result: Any) {
                                 result as InvoiceHeader
                                 invoiceHeader.invoiceHeadTransNo = Utils.getInvoiceTransactionNo(
-                                    result.invoiceHeadTransNo?:""
+                                    result.invoiceHeadTransNo ?: ""
                                 )
                                 invoiceHeader.invoiceHeadOrderNo = Utils.getInvoiceNo(
-                                    result.invoiceHeadOrderNo?:""
+                                    result.invoiceHeadOrderNo ?: ""
                                 )
                                 invoiceHeader.prepareForInsert()
                                 invoiceHeader.invoiceHeadTtCode =
@@ -249,8 +250,8 @@ class POSViewModel @Inject constructor(
                             }
 
                             override fun onFailure(
-                                    message: String,
-                                    errorCode: Int
+                                message: String,
+                                errorCode: Int
                             ) {
                                 viewModelScope.launch(Dispatchers.Main) {
                                     posState.value = posState.value.copy(
@@ -270,9 +271,9 @@ class POSViewModel @Inject constructor(
     }
 
     private fun savePOSReceipt(
-            invoiceHeader: InvoiceHeader,
-            posReceipt: PosReceipt,
-            invoiceItems: MutableList<InvoiceItemModel>
+        invoiceHeader: InvoiceHeader,
+        posReceipt: PosReceipt,
+        invoiceItems: MutableList<InvoiceItemModel>
     ) {
         val callback = object : OnResult {
             override fun onSuccess(result: Any) {
@@ -283,8 +284,8 @@ class POSViewModel @Inject constructor(
             }
 
             override fun onFailure(
-                    message: String,
-                    errorCode: Int
+                message: String,
+                errorCode: Int
             ) {
                 viewModelScope.launch(Dispatchers.Main) {
                     posState.value = posState.value.copy(
@@ -313,8 +314,8 @@ class POSViewModel @Inject constructor(
     }
 
     private fun saveInvoiceItems(
-            invoiceHeader: InvoiceHeader,
-            invoiceItems: MutableList<InvoiceItemModel>
+        invoiceHeader: InvoiceHeader,
+        invoiceItems: MutableList<InvoiceItemModel>
     ) {
         val itemsToInsert = invoiceItems.filter { it.invoice.invoiceId.isNullOrEmpty() }
         val itemsToUpdate = invoiceItems.filter { !it.invoice.invoiceId.isNullOrEmpty() }
@@ -341,9 +342,9 @@ class POSViewModel @Inject constructor(
     }
 
     private fun saveInvoiceItem(
-            invoice: Invoice,
-            isInserting: Boolean,
-            notify: Boolean = false
+        invoice: Invoice,
+        isInserting: Boolean,
+        notify: Boolean = false
     ) {
         val callback = if (notify) object : OnResult {
             override fun onSuccess(result: Any) {
@@ -356,8 +357,8 @@ class POSViewModel @Inject constructor(
             }
 
             override fun onFailure(
-                    message: String,
-                    errorCode: Int
+                message: String,
+                errorCode: Int
             ) {
                 viewModelScope.launch(Dispatchers.Main) {
                     posState.value = posState.value.copy(
@@ -386,8 +387,8 @@ class POSViewModel @Inject constructor(
     }
 
     fun loadInvoiceDetails(
-            invoiceHeader: InvoiceHeader,
-            onResult: OnResult
+        invoiceHeader: InvoiceHeader,
+        onResult: OnResult
     ) {
         viewModelScope.launch(Dispatchers.IO) {
             invoiceRepository.getAllInvoices(
@@ -417,8 +418,8 @@ class POSViewModel @Inject constructor(
                     }
 
                     override fun onFailure(
-                            message: String,
-                            errorCode: Int
+                        message: String,
+                        errorCode: Int
                     ) {
                         onResult.onFailure(
                             message,
@@ -431,8 +432,8 @@ class POSViewModel @Inject constructor(
     }
 
     suspend fun getPosReceipt(
-            invoiceHeaderId: String,
-            onResult: OnResult
+        invoiceHeaderId: String,
+        onResult: OnResult
     ) {
         posReceiptRepository.getPosReceiptByInvoice(invoiceHeaderId,
             object : OnResult {
@@ -446,8 +447,8 @@ class POSViewModel @Inject constructor(
                 }
 
                 override fun onFailure(
-                        message: String,
-                        errorCode: Int
+                    message: String,
+                    errorCode: Int
                 ) {
                     onResult.onFailure(
                         message,
@@ -481,8 +482,8 @@ class POSViewModel @Inject constructor(
                                             }
 
                                             override fun onFailure(
-                                                    message: String,
-                                                    errorCode: Int
+                                                message: String,
+                                                errorCode: Int
                                             ) {
                                             }
 
@@ -499,8 +500,8 @@ class POSViewModel @Inject constructor(
                     }
 
                     override fun onFailure(
-                            message: String,
-                            errorCode: Int
+                        message: String,
+                        errorCode: Int
                     ) {
                     }
 

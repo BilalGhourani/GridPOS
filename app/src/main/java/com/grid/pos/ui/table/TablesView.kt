@@ -2,7 +2,10 @@ package com.grid.pos.ui.table
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Search
@@ -36,7 +39,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.grid.pos.ActivityScopedViewModel
 import com.grid.pos.MainActivity
+import com.grid.pos.data.InvoiceHeader.InvoiceHeader
+import com.grid.pos.data.User.User
 import com.grid.pos.model.SettingsModel
+import com.grid.pos.ui.common.LoadingIndicator
 import com.grid.pos.ui.common.UIButton
 import com.grid.pos.ui.common.UITextField
 import com.grid.pos.ui.theme.GridPOSTheme
@@ -77,12 +83,15 @@ fun TablesView(
     }
 
     fun handleBack() {
-        if (SettingsModel.currentUser?.userTableMode == true && SettingsModel.currentUser?.userPosMode == false) {
-            mainActivity.finish()
+        if (tablesState.step > 1) {
+            tablesState.step = 1
         } else {
-            navController?.popBackStack()
+            if (SettingsModel.currentUser?.userTableMode == true && SettingsModel.currentUser?.userPosMode == false) {
+                mainActivity.finish()
+            } else {
+                navController?.popBackStack()
+            }
         }
-        navController?.popBackStack()
     }
     BackHandler {
         handleBack()
@@ -166,7 +175,8 @@ fun TablesView(
                 }
                 UIButton(
                     modifier = Modifier
-                        .weight(1f)
+                        .fillMaxWidth()
+                        .height(70.dp)
                         .padding(10.dp), text = "Submit"
                 ) {
                     if (tablesState.step <= 1) {
@@ -176,11 +186,23 @@ fun TablesView(
                         tablesState.invoiceHeader.invoiceHeadClientsCount =
                             clientsCountState.toIntOrNull() ?: 1
                         activityScopedViewModel.posState.invoiceHeader = tablesState.invoiceHeader
+                        activityScopedViewModel.isFromTable = true
                         navController?.navigate("PosView")
                     }
 
                 }
             }
+        }
+        LoadingIndicator(
+            show = tablesState.isLoading
+        )
+
+        if (tablesState.clear) {
+            tablesState.invoiceHeader = InvoiceHeader()
+            tablesState.step = 1
+            tableNameState = ""
+            clientsCountState = ""
+            tablesState.clear = false
         }
     }
 }

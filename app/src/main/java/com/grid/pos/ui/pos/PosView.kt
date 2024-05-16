@@ -85,7 +85,7 @@ fun PosView(
 ) {
     val posState: POSState by viewModel.posState.collectAsState(activityViewModel.posState)
     val invoicesState = remember { mutableStateListOf<InvoiceItemModel>() }
-    val invoiceHeaderState = remember { mutableStateOf(posState.invoiceHeader) }
+    var invoiceHeaderState = remember { mutableStateOf(posState.invoiceHeader) }
     var itemIndexToEdit by remember { mutableIntStateOf(-1) }
     var isEditBottomSheetVisible by remember { mutableStateOf(false) }
     var isAddItemBottomSheetVisible by remember { mutableStateOf(false) }
@@ -96,6 +96,31 @@ fun PosView(
     val isTablet = Utils.isTablet(LocalConfiguration.current)
     val isLandscape = orientation == Configuration.ORIENTATION_LANDSCAPE
     val keyboardController = LocalSoftwareKeyboardController.current
+    if (activityViewModel.isFromTable) {
+        posState.isLoading = true
+        activityViewModel.isFromTable = false
+        if (!activityViewModel.posState.invoiceHeader.invoiceHeadId.isNullOrEmpty()) {
+            invoiceHeaderState.value = activityViewModel.posState.invoiceHeader
+            viewModel.loadInvoiceDetails(invoiceHeaderState.value,
+                object : OnResult {
+                    override fun onSuccess(result: Any) {
+                        posState.isLoading = false
+                        invoicesState.clear()
+                        invoicesState.addAll(posState.invoices)
+                        posState.posReceipt = result as PosReceipt
+                    }
+
+                    override fun onFailure(
+                        message: String,
+                        errorCode: Int
+                    ) {
+                        posState.isLoading = false
+                        invoicesState.clear()
+                        invoicesState.addAll(posState.invoices)
+                    }
+                })
+        }
+    }
 
     if (posState.items.isEmpty()) {
         posState.items.addAll(activityViewModel.items)
