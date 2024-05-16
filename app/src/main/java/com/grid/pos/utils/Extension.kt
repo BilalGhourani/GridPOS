@@ -67,7 +67,7 @@ object Extension {
         cipher.init(Cipher.ENCRYPT_MODE, keySpec, iv)
         val crypted = cipher.doFinal(this.toByteArray())
         val encodedByte = Base64.encode(crypted, Base64.DEFAULT)
-        return String(encodedByte)
+        return String(encodedByte).trim()
     }
 
     fun String.decryptCBC(): String {

@@ -65,7 +65,7 @@ data class User(
     @ColumnInfo(name = "usr_posmode")
     @set:PropertyName("usr_posmode")
     @get:PropertyName("usr_posmode")
-    var userPosMode: Boolean? = true,
+    var userPosMode: Boolean = true,
 
     /**
      * related Email
@@ -73,7 +73,7 @@ data class User(
     @ColumnInfo(name = "usr_tablemode")
     @set:PropertyName("usr_tablemode")
     @get:PropertyName("usr_tablemode")
-    var userTableMode: Boolean? = false,
+    var userTableMode: Boolean = false,
 
     ) : DataModel() {
     constructor() : this("")

@@ -7,7 +7,6 @@ import com.grid.pos.data.User.UserRepository
 import com.grid.pos.interfaces.OnResult
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.DataStoreManager
-import com.grid.pos.utils.Extension.decryptCBC
 import com.grid.pos.utils.Extension.encryptCBC
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers

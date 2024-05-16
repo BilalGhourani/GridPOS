@@ -65,10 +65,10 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
 fun ManageUsersView(
-        navController: NavController? = null,
-        modifier: Modifier = Modifier,
-        activityScopedViewModel: ActivityScopedViewModel,
-        viewModel: ManageUsersViewModel = hiltViewModel()
+    navController: NavController? = null,
+    modifier: Modifier = Modifier,
+    activityScopedViewModel: ActivityScopedViewModel,
+    viewModel: ManageUsersViewModel = hiltViewModel()
 ) {
     val manageUsersState: ManageUsersState by viewModel.manageUsersState.collectAsState(
         ManageUsersState()
@@ -123,7 +123,9 @@ fun ManageUsersView(
                     }
                 }, title = {
                     Text(
-                        text = "Manage Users", color = SettingsModel.textColor, fontSize = 16.sp,
+                        text = "Manage Users",
+                        color = SettingsModel.textColor,
+                        fontSize = 16.sp,
                         textAlign = TextAlign.Center
                     )
                 })
@@ -228,6 +230,7 @@ fun ManageUsersView(
                                     .weight(.33f)
                                     .padding(3.dp), text = "Save"
                             ) {
+                                manageUsersState.selectedUser.userPassword = passwordState
                                 viewModel.saveUser(manageUsersState.selectedUser)
                             }
 

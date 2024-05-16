@@ -17,18 +17,18 @@ import com.grid.pos.ui.item.ManageItemsView
 import com.grid.pos.ui.login.LoginView
 import com.grid.pos.ui.pos.PosView
 import com.grid.pos.ui.settings.SettingsView
-import com.grid.pos.ui.table.ManageTablesView
+import com.grid.pos.ui.table.TablesView
 import com.grid.pos.ui.theme.White
 import com.grid.pos.ui.thirdParty.ManageThirdPartiesView
 import com.grid.pos.ui.user.ManageUsersView
 
 @Composable
 fun AuthNavGraph(
-        navController: NavHostController,
-        mainActivity: MainActivity,
-        activityViewModel: ActivityScopedViewModel,
-        startDestination: String,
-        modifier: Modifier = Modifier
+    navController: NavHostController,
+    mainActivity: MainActivity,
+    activityViewModel: ActivityScopedViewModel,
+    startDestination: String,
+    modifier: Modifier = Modifier
 ) {
     NavHost(
         navController = navController, startDestination = startDestination,
@@ -82,10 +82,12 @@ fun AuthNavGraph(
         }
         composable(route = "PosView") {
             PosView(
-                navController = navController, activityViewModel = activityViewModel
+                navController = navController,
+                activityViewModel = activityViewModel,
+                mainActivity = mainActivity
             )
         }
-        composable(route = "ManageTablesView") { ManageTablesView(navController = navController) }
+        composable(route = "TablesView") { TablesView(navController = navController) }
         composable(route = "UIWebView") {
             UIWebView(
                 navController = navController, activityViewModel = activityViewModel

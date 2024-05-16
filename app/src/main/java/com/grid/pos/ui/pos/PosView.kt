@@ -55,6 +55,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.grid.pos.ActivityScopedViewModel
+import com.grid.pos.MainActivity
 import com.grid.pos.data.Currency.Currency
 import com.grid.pos.data.PosReceipt.PosReceipt
 import com.grid.pos.interfaces.OnResult
@@ -76,10 +77,11 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PosView(
-        modifier: Modifier = Modifier,
-        navController: NavController? = null,
-        activityViewModel: ActivityScopedViewModel,
-        viewModel: POSViewModel = hiltViewModel()
+    modifier: Modifier = Modifier,
+    navController: NavController? = null,
+    activityViewModel: ActivityScopedViewModel,
+    mainActivity: MainActivity,
+    viewModel: POSViewModel = hiltViewModel()
 ) {
     val posState: POSState by viewModel.posState.collectAsState(activityViewModel.posState)
     val invoicesState = remember { mutableStateListOf<InvoiceItemModel>() }
@@ -151,7 +153,11 @@ fun PosView(
             isPayBottomSheetVisible = false
         } else {
             activityViewModel.posState = POSState()
-            navController?.popBackStack()
+            if (SettingsModel.currentUser?.userPosMode == true && SettingsModel.currentUser?.userTableMode == false) {
+                mainActivity.finish()
+            } else {
+                navController?.popBackStack()
+            }
         }
     }
     BackHandler {
@@ -273,7 +279,8 @@ fun PosView(
                         },
                         onThirdPartySelected = { thirdParty ->
                             posState.selectedThirdParty = thirdParty
-                            posState.invoiceHeader.invoiceHeadThirdPartyName = thirdParty.thirdPartyId
+                            posState.invoiceHeader.invoiceHeadThirdPartyName =
+                                thirdParty.thirdPartyId
                         },
                         onInvoiceSelected = { invoiceHeader ->
                             invoiceHeaderState.value = invoiceHeader
@@ -287,8 +294,8 @@ fun PosView(
                                     }
 
                                     override fun onFailure(
-                                            message: String,
-                                            errorCode: Int
+                                        message: String,
+                                        errorCode: Int
                                     ) {
                                         invoicesState.clear()
                                         invoicesState.addAll(posState.invoices)

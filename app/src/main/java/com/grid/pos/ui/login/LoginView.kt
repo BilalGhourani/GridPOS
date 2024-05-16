@@ -97,7 +97,18 @@ fun LoginView(
                 activityScopedViewModel.initiateValues()
                 withContext(Dispatchers.Main) {
                     loginState.isLoading = false
-                    navController?.navigate("HomeView")
+                    SettingsModel.currentUser?.let {
+                        if(it.userPosMode && it.userTableMode){
+                            navController?.navigate("HomeView")
+                        }else if(it.userPosMode){
+                            navController?.navigate("PosView")
+                        }else if(it.userTableMode){
+                            navController?.navigate("TablesView")
+                        }else{
+                            navController?.navigate("HomeView")
+                        }
+                    }
+
                 }
             }
         }

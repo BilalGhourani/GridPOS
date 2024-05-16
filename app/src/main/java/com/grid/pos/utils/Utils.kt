@@ -57,7 +57,7 @@ object Utils {
             "POS", "PosView"
         ),
         HomeSectionModel(
-            "Table", "ManageTablesView"
+            "Table", "TablesView"
         ),
     )
 
