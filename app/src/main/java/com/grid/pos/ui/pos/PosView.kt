@@ -63,7 +63,7 @@ import com.grid.pos.interfaces.OnResult
 import com.grid.pos.model.InvoiceItemModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.pos.components.AddInvoiceItemView
-import com.grid.pos.ui.pos.components.EditInvoiceHeaderView
+import com.grid.pos.ui.pos.components.EditInvoiceItemView
 import com.grid.pos.ui.pos.components.InvoiceBodyDetails
 import com.grid.pos.ui.pos.components.InvoiceCashView
 import com.grid.pos.ui.pos.components.InvoiceFooterView
@@ -353,7 +353,7 @@ fun PosView(
                     animationSpec = tween(durationMillis = 250)
                 )
             ) {
-                EditInvoiceHeaderView(
+                EditInvoiceItemView(
                     invoices = viewModel.invoices.toMutableList(),
                     invHeader = invoiceHeaderState.value,
                     invoiceIndex = itemIndexToEdit,

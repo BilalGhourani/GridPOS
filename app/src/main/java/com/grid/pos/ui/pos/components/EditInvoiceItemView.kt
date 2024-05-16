@@ -56,7 +56,7 @@ import com.grid.pos.ui.pos.POSUtils
 import com.grid.pos.utils.Utils
 
 @Composable
-fun EditInvoiceHeaderView(
+fun EditInvoiceItemView(
     modifier: Modifier = Modifier,
     invoices: MutableList<InvoiceItemModel>,
     invHeader: InvoiceHeader,
@@ -78,7 +78,11 @@ fun EditInvoiceHeaderView(
     val tax2FocusRequester = remember { FocusRequester() }
 
     var invoiceHeader = invHeader.copy()
-    val invoiceItemModel = invoices[invoiceIndex]
+    val invoiceItemAtIndex = invoices[invoiceIndex]
+    val invoiceItemModel = InvoiceItemModel(
+        invoice = invoiceItemAtIndex.invoice.copy(),
+        invoiceItem = invoiceItemAtIndex.invoiceItem
+    )
 
     val rDiscountVal = invoiceItemModel.invoice.invoiceDiscount
     val rDiscamtVal = invoiceItemModel.invoice.invoiceDiscamt * (rDiscountVal.div(100.0))
