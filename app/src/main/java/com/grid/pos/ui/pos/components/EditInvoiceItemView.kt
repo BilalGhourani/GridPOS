@@ -137,15 +137,19 @@ fun EditInvoiceItemView(
         mutableStateOf(invoiceItemModel.invoice.invoiceTax2.toString().takeIf { it != "0.0" } ?: "")
     }
     val curr1Decimal = SettingsModel.currentCurrency?.currencyName1Dec ?: 2
+    val curr2Decimal = SettingsModel.currentCurrency?.currencyName2Dec ?: 2
+    var isPercentageChanged by remember {
+        mutableStateOf(false)
+    }
 
-    fun calculateItemDiscount(isPercentage: Boolean) {
+    fun calculateItemDiscount() {
         val itemDiscount = rDiscount1.toDoubleOrNull() ?: 0.0
         val itemDiscountAmount = rDiscount2.toDoubleOrNull() ?: 0.0
         if (itemDiscount == 0.0 && itemDiscountAmount == 0.0) {
             return
         }
         val itemPrice = (invoiceItemModel.getPriceWithTax()).times(qty)
-        if (isPercentage) {
+        if (isPercentageChanged) {
             rDiscount2 = String.format(
                 "%.${curr1Decimal}f", (itemPrice.times(itemDiscount.div(100.0)))
             )
@@ -158,25 +162,16 @@ fun EditInvoiceItemView(
         }
     }
 
-    fun calculateInvoiceDiscount(isPercentage: Boolean) {
-        val invDiscount = discount1.toDoubleOrNull() ?: 0.0
-        val invDiscountAmount = discount2.toDoubleOrNull() ?: 0.0
-        if (invDiscount == 0.0 && invDiscountAmount == 0.0) {
+    fun calculateInvoiceDiscount() {
+        if ((discount1.isEmpty() || discount1 == "0.0") && (discount2.isEmpty() || discount2 == "0.0")) {
             return
         }
         invoices[invoiceIndex] = invoiceItemModel
         invoiceHeader = POSUtils.refreshValues(invoices, invoiceHeader)
-        val invoiceAmount = invoiceHeader.invoiceHeadGrossAmount
-        if (isPercentage) {
-            discount2 = String.format(
-                "%.${curr1Decimal}f", (invoiceAmount.times(invDiscount.div(100.0)))
-            )
-            invoiceHeader.invoiceHeadDiscountAmount = discount2.toDoubleOrNull() ?: 0.0
+        if (isPercentageChanged) {
+            discount2 = String.format("%.${curr2Decimal}f", invoiceHeader.invoiceHeadDiscountAmount)
         } else {
-            discount1 = String.format(
-                "%.${curr1Decimal}f", ((invDiscountAmount.div(invoiceAmount)).times(100.0))
-            )
-            invoiceHeader.invoiceHeadDiscount = discount1.toDoubleOrNull() ?: 0.0
+            discount1 = String.format("%.${curr1Decimal}f", invoiceHeader.invoiceHeadDiscount)
         }
     }
 
@@ -200,8 +195,8 @@ fun EditInvoiceItemView(
                 .weight(1f)
                 .onFocusChanged {
                     if (!it.hasFocus) {
-                        calculateItemDiscount(true)
-                        calculateInvoiceDiscount(true)
+                        calculateItemDiscount()
+                        calculateInvoiceDiscount()
                     }
                 }, shape = RoundedCornerShape(15.dp), label = {
                 Text(
@@ -246,8 +241,8 @@ fun EditInvoiceItemView(
                     IconButton(onClick = {
                         qty++
                         invoiceItemModel.invoice.invoiceQuantity = qty.toDouble()
-                        calculateItemDiscount(true)
-                        calculateInvoiceDiscount(true)
+                        calculateItemDiscount()
+                        calculateInvoiceDiscount()
                     }) {
                         Icon(
                             Icons.Default.Add, contentDescription = "Increase quantity",
@@ -259,8 +254,8 @@ fun EditInvoiceItemView(
                     IconButton(onClick = {
                         if (qty > 1) qty--
                         invoiceItemModel.invoice.invoiceQuantity = qty.toDouble()
-                        calculateItemDiscount(true)
-                        calculateInvoiceDiscount(true)
+                        calculateItemDiscount()
+                        calculateInvoiceDiscount()
                     }) {
                         Icon(
                             Icons.Default.Remove, contentDescription = "Decrease quantity",
@@ -292,14 +287,15 @@ fun EditInvoiceItemView(
                 rDiscount1 = Utils.getDoubleValue(
                     it, rDiscount1
                 )
+                isPercentageChanged = true
             }, placeholder = {
                 Text(text = "0.0")
             }, modifier = Modifier
                 .weight(1f)
                 .onFocusChanged {
                     if (!it.hasFocus) {
-                        calculateItemDiscount(true)
-                        calculateInvoiceDiscount(true)
+                        calculateItemDiscount()
+                        calculateInvoiceDiscount()
                     }
                 }
                 .focusRequester(rDiscount1FocusRequester), keyboardOptions = KeyboardOptions(
@@ -317,14 +313,15 @@ fun EditInvoiceItemView(
                 rDiscount2 = Utils.getDoubleValue(
                     it, rDiscount2
                 )
+                isPercentageChanged = false
             }, placeholder = {
                 Text(text = "0.0")
             }, modifier = Modifier
                 .weight(1f)
                 .onFocusChanged {
                     if (!it.hasFocus) {
-                        calculateItemDiscount(false)
-                        calculateInvoiceDiscount(false)
+                        calculateItemDiscount()
+                        calculateInvoiceDiscount()
                     }
                 }
                 .focusRequester(rDiscount2FocusRequester), keyboardOptions = KeyboardOptions(
@@ -355,13 +352,15 @@ fun EditInvoiceItemView(
                 discount1 = Utils.getDoubleValue(
                     it, discount1
                 )
+                isPercentageChanged = true
+                invoiceHeader.invoiceHeadDiscount = discount1.toDoubleOrNull() ?: 0.0
             }, placeholder = {
                 Text(text = "0.0")
             }, modifier = Modifier
                 .weight(1f)
                 .onFocusChanged {
                     if (!it.hasFocus) {
-                        calculateInvoiceDiscount(true)
+                        calculateInvoiceDiscount()
                     }
                 }
                 .focusRequester(discount1FocusRequester), keyboardOptions = KeyboardOptions(
@@ -379,13 +378,15 @@ fun EditInvoiceItemView(
                 discount2 = Utils.getDoubleValue(
                     it, discount2
                 )
+                isPercentageChanged = false
+                invoiceHeader.invoiceHeadDiscountAmount = discount2.toDoubleOrNull() ?: 0.0
             }, placeholder = {
                 Text(text = "0.0")
             }, modifier = Modifier
                 .weight(1f)
                 .onFocusChanged {
                     if (!it.hasFocus) {
-                        calculateInvoiceDiscount(false)
+                        calculateInvoiceDiscount()
                     }
                 }
                 .focusRequester(discount2FocusRequester), keyboardOptions = KeyboardOptions(
@@ -461,8 +462,8 @@ fun EditInvoiceItemView(
                             }
                         }, onFocusChanged = {
                             if (!it.hasFocus) {
-                                calculateItemDiscount(true)
-                                calculateInvoiceDiscount(true)
+                                calculateItemDiscount()
+                                calculateInvoiceDiscount()
                             }
                         }) {
                         taxState = Utils.getDoubleValue(
@@ -485,8 +486,8 @@ fun EditInvoiceItemView(
                             }
                         }, onFocusChanged = {
                             if (!it.hasFocus) {
-                                calculateItemDiscount(true)
-                                calculateInvoiceDiscount(true)
+                                calculateItemDiscount()
+                                calculateInvoiceDiscount()
                             }
                         }) {
                         tax1State = Utils.getDoubleValue(
@@ -504,8 +505,8 @@ fun EditInvoiceItemView(
                         imeAction = ImeAction.Done, onAction = { keyboardController?.hide() },
                         onFocusChanged = {
                             if (!it.hasFocus) {
-                                calculateItemDiscount(true)
-                                calculateInvoiceDiscount(true)
+                                calculateItemDiscount()
+                                calculateInvoiceDiscount()
                             }
                         }) {
                         tax2State = Utils.getDoubleValue(

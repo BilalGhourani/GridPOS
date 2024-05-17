@@ -12,7 +12,8 @@ object POSUtils {
 
     fun getInvoiceTransactionNo(oldInvoiceTransNo: String?): String {
         val currentYear = Utils.getCurrentYear()
-        var invNoStr = oldInvoiceTransNo.takeIf { !it.isNullOrEmpty() } ?: (currentYear + "000000000")
+        var invNoStr =
+            oldInvoiceTransNo.takeIf { !it.isNullOrEmpty() } ?: (currentYear + "000000000")
         if (invNoStr.length > 4 && !invNoStr.substring(
                 0, 4
             ).equals(
@@ -44,12 +45,14 @@ object POSUtils {
     ): InvoiceHeader {
         val currency = SettingsModel.currentCurrency ?: Currency()
         var discount = 0.0
+        var discamt = 0.0
         var tax = 0.0
         var tax1 = 0.0
         var tax2 = 0.0
         var total = 0.0
         invoiceList.forEach {
             discount += it.getDiscount()
+            discamt += it.getDiscountAmount()
             tax += it.getTax()
             tax1 += it.getTax1()
             tax2 += it.getTax2()
@@ -62,13 +65,15 @@ object POSUtils {
         invHeader.invoiceHeadTotal = total
         invHeader.invoiceHeadTotal1 = total.times(currency.currencyRate)
         invHeader.invoiceHeadDiscount = discount
-        invHeader.invoiceHeadDiscountAmount = total.times(discount.div(100.0))
-        invHeader.invoiceHeadGrossAmount = (total - invHeader.invoiceHeadTotalTax) - invHeader.invoiceHeadDiscountAmount
+        invHeader.invoiceHeadDiscountAmount = discamt
+        invHeader.invoiceHeadGrossAmount =
+            (total + invHeader.invoiceHeadTotalTax) - invHeader.invoiceHeadDiscountAmount
         invHeader.invoiceHeadRate = currency.currencyRate
         return invHeader
     }
 
     fun getInvoiceType(invoiceHeader: InvoiceHeader): String {
-        return invoiceHeader.invoiceHeadTtCode ?: if (invoiceHeader.invoiceHeadTotal > 0) "SI" else "RS"
+        return invoiceHeader.invoiceHeadTtCode
+            ?: if (invoiceHeader.invoiceHeadTotal > 0) "SI" else "RS"
     }
 }

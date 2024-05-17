@@ -35,23 +35,26 @@ data class InvoiceItemModel(
     }
 
     fun getPriceWithTax(): Double {
-        return invoice.invoicePrice + getTax() + getTax1() + getTax2()
+        return getAmount() + getTax() + getTax1() + getTax2()
     }
 
     fun getDiscount(): Double {
         return invoice.invoiceDiscount
     }
+    fun getDiscountAmount(): Double {
+        return invoice.invoiceDiscamt
+    }
 
     fun getTax(): Double {
-        return invoice.invoicePrice.times(invoice.invoiceTax.div(100.0))
+        return getAmount().times(invoice.invoiceTax.div(100.0))
     }
 
     fun getTax1(): Double {
-        return invoice.invoicePrice.times(invoice.invoiceTax1.div(100.0))
+        return getAmount().times(invoice.invoiceTax1.div(100.0))
     }
 
     fun getTax2(): Double {
-        return invoice.invoicePrice.times(invoice.invoiceTax2.div(100.0))
+        return getAmount().times(invoice.invoiceTax2.div(100.0))
     }
 
     fun getAmount(): Double {
