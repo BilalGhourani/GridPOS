@@ -75,4 +75,8 @@ class App : Application() {
         }
     }
 
+    fun isFirebaseInitiated(): Boolean {
+       return isFirebaseInitialized
+    }
+
 }

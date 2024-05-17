@@ -2,6 +2,7 @@ package com.grid.pos.ui.login
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.grid.pos.App
 import com.grid.pos.data.User.User
 import com.grid.pos.data.User.UserRepository
 import com.grid.pos.interfaces.OnResult
@@ -16,17 +17,25 @@ import javax.inject.Inject
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-        private val repository: UserRepository
+    private val repository: UserRepository
 ) : ViewModel() {
 
     private val _usersState = MutableStateFlow(LoginState())
     val usersState: MutableStateFlow<LoginState> = _usersState
 
     fun login(
-            username: String,
-            password: String
+        username: String,
+        password: String
     ) {
-        if (username.isNullOrEmpty() || password.isNullOrEmpty()) {
+        if (SettingsModel.loadFromRemote && !App.getInstance().isFirebaseInitiated()) {
+            usersState.value = usersState.value.copy(
+                warning = "unable to connect to server",
+                isLoading = false,
+                warningAction = "Settings",
+            )
+            return
+        }
+        if (username.isEmpty() || password.isEmpty()) {
             usersState.value = usersState.value.copy(
                 warning = "Please fill all inputs",
                 isLoading = false,
@@ -47,7 +56,7 @@ class LoginViewModel @Inject constructor(
             warning = "",
             warningAction = ""
         )
-       val decPassword=password.encryptCBC()
+        val decPassword = password.encryptCBC()
         viewModelScope.launch(Dispatchers.IO) {
             repository.getAllUsers(object : OnResult {
                 override fun onSuccess(result: Any) {
@@ -58,7 +67,7 @@ class LoginViewModel @Inject constructor(
                             usersState.value = usersState.value.copy(
                                 isLoading = false,
                                 warning = "no user found!",
-                                warningAction = "Register"
+                                warningAction = if (!SettingsModel.loadFromRemote) "Register" else ""
                             )
                         }
                     } else {
@@ -103,8 +112,8 @@ class LoginViewModel @Inject constructor(
                 }
 
                 override fun onFailure(
-                        message: String,
-                        errorCode: Int
+                    message: String,
+                    errorCode: Int
                 ) {
 
                 }/*repository.getUserByCredentials(username, password, object : OnResult {

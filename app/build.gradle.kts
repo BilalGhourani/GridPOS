@@ -6,14 +6,16 @@ plugins {
 }
 
 android {
+    signingConfigs {
+        create("release") {
+            storeFile = file("/Users/bilalghourani/Documents/Grid/GridKeystore.keystore")
+            storePassword = "Grids123"
+            keyAlias = "GridAlias"
+            keyPassword = "Grids123"
+        }
+    }
     namespace = "com.grid.pos"
 
-
-  /*  signingConfigs {
-        release {
-
-        }
-    }*/
 
     compileSdk = 34
     defaultConfig {
@@ -33,7 +35,7 @@ android {
         release {
             isMinifyEnabled = true
             isDebuggable = false
-           /* signingConfig = signingConfigs.release*/
+            signingConfig = signingConfigs.getByName("release")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
             )

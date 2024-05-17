@@ -63,10 +63,10 @@ import kotlinx.coroutines.withContext
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginView(
-        navController: NavController? = null,
-        activityScopedViewModel: ActivityScopedViewModel? = null,
-        modifier: Modifier = Modifier,
-        viewModel: LoginViewModel = hiltViewModel()
+    navController: NavController? = null,
+    activityScopedViewModel: ActivityScopedViewModel? = null,
+    modifier: Modifier = Modifier,
+    viewModel: LoginViewModel = hiltViewModel()
 ) {
     val loginState: LoginState by viewModel.usersState.collectAsState(LoginState())
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -86,7 +86,10 @@ fun LoginView(
                 )
                 when (snackbarResult) {
                     SnackbarResult.Dismissed -> {}
-                    SnackbarResult.ActionPerformed -> navController?.navigate("ManageUsersView")
+                    SnackbarResult.ActionPerformed -> when (loginState.warningAction) {
+                        "Register" -> navController?.navigate("ManageUsersView")
+                        "Settings" -> navController?.navigate("SettingsView")
+                    }
                 }
             }
         }
@@ -98,13 +101,13 @@ fun LoginView(
                 withContext(Dispatchers.Main) {
                     loginState.isLoading = false
                     SettingsModel.currentUser?.let {
-                        if(it.userPosMode && it.userTableMode){
+                        if (it.userPosMode && it.userTableMode) {
                             navController?.navigate("HomeView")
-                        }else if(it.userPosMode){
+                        } else if (it.userPosMode) {
                             navController?.navigate("POSView")
-                        }else if(it.userTableMode){
+                        } else if (it.userTableMode) {
                             navController?.navigate("TablesView")
-                        }else{
+                        } else {
                             navController?.navigate("HomeView")
                         }
                     }
@@ -128,7 +131,8 @@ fun LoginView(
                 }, actions = {
                     IconButton(onClick = { navController?.navigate("SettingsView") }) {
                         Icon(
-                            painterResource(R.drawable.ic_settings), contentDescription = "Back",
+                            painterResource(R.drawable.ic_settings),
+                            contentDescription = "Back",
                             tint = SettingsModel.buttonColor
                         )
                     }
