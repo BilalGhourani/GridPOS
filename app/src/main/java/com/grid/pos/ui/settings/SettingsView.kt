@@ -1,5 +1,6 @@
 package com.grid.pos.ui.settings
 
+import android.annotation.SuppressLint
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.tween
@@ -51,9 +52,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
+import com.grid.pos.ActivityScopedViewModel
 import com.grid.pos.App
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.ColorPickerPopup
+import com.grid.pos.ui.common.LoadingIndicator
 import com.grid.pos.ui.common.UIButton
 import com.grid.pos.ui.common.UISwitch
 import com.grid.pos.ui.common.UITextField
@@ -63,13 +66,16 @@ import com.grid.pos.utils.DataStoreManager
 import com.grid.pos.utils.Extension.toHexCode
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsView(
-        modifier: Modifier = Modifier,
-        navController: NavController? = null
+    modifier: Modifier = Modifier,
+    navController: NavController? = null,
+    activityScopedViewModel:ActivityScopedViewModel
 ) {
     var firebaseApplicationId by remember {
         mutableStateOf(
@@ -106,7 +112,8 @@ fun SettingsView(
     var isAppSettingsSectionExpanded by remember { mutableStateOf(false) }
     var isColorsSectionExpanded by remember { mutableStateOf(false) }
 
-    val isLoggedId = !SettingsModel.currentUserId.isNullOrEmpty()
+    var isLoading by remember { mutableStateOf(false) }
+    val isLoggedId = activityScopedViewModel.isLoggedIn()
 
     GridPOSTheme {
         Scaffold(containerColor = SettingsModel.backgroundColor, topBar = {
@@ -235,6 +242,7 @@ fun SettingsView(
                                         Alignment.CenterHorizontally
                                     ), text = "Save"
                             ) {
+                                isLoading = true
                                 CoroutineScope(Dispatchers.IO).launch {
                                     SettingsModel.firebaseApplicationId = firebaseApplicationId
                                     DataStoreManager.putString(
@@ -272,6 +280,10 @@ fun SettingsView(
                                         invoicePrinter
                                     )
                                     App.getInstance().initFirebase()
+                                    delay(1000L)
+                                    withContext(Dispatchers.Main) {
+                                        isLoading = false
+                                    }
                                 }
                             }
                         }
@@ -550,7 +562,8 @@ fun SettingsView(
                             SettingsModel.buttonColor = it
                             CoroutineScope(Dispatchers.IO).launch {
                                 DataStoreManager.putString(
-                                    DataStoreManager.DataStoreKeys.BUTTON_COLOR.key, it.toHexCode()
+                                    DataStoreManager.DataStoreKeys.BUTTON_COLOR.key,
+                                    it.toHexCode()
                                 )
                             }
                         }
@@ -582,7 +595,8 @@ fun SettingsView(
                             SettingsModel.topBarColor = it
                             CoroutineScope(Dispatchers.IO).launch {
                                 DataStoreManager.putString(
-                                    DataStoreManager.DataStoreKeys.TOP_BAR_COLOR.key, it.toHexCode()
+                                    DataStoreManager.DataStoreKeys.TOP_BAR_COLOR.key,
+                                    it.toHexCode()
                                 )
                             }
                         }
@@ -592,7 +606,8 @@ fun SettingsView(
                             SettingsModel.textColor = it
                             CoroutineScope(Dispatchers.IO).launch {
                                 DataStoreManager.putString(
-                                    DataStoreManager.DataStoreKeys.TEXT_COLOR.key, it.toHexCode()
+                                    DataStoreManager.DataStoreKeys.TEXT_COLOR.key,
+                                    it.toHexCode()
                                 )
                             }
                         }
@@ -602,6 +617,9 @@ fun SettingsView(
 
             }
         }
+        LoadingIndicator(
+            show = isLoading
+        )
     }
 }
 

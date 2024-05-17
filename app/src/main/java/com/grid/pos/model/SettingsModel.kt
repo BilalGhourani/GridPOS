@@ -8,10 +8,10 @@ import com.grid.pos.data.User.User
 object SettingsModel {
     var currentUserId: String? = null
 
-    var firebaseApplicationId: String? = "1:337880577447:android:295a236f47063a5233b282"
-    var firebaseApiKey: String? = "AIzaSyDSh65g8EqvGeyOviwCKmJh4jFD2iXQhYk"
-    var firebaseProjectId: String? = "grids-app-8a2b7"
-    var firebaseDbPath: String? = "https://grids-app-8a2b7-default-rtdb.europe-west1.firebasedatabase.app"
+    var firebaseApplicationId: String? = null
+    var firebaseApiKey: String? = null
+    var firebaseProjectId: String? = null
+    var firebaseDbPath: String? = null
     var companyID: String? = null
     var invoicePrinter: String? = null
 

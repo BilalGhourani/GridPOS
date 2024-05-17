@@ -56,15 +56,14 @@ import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.utils.Utils
 
 @OptIn(
-    ExperimentalMaterial3Api::class,
-    ExperimentalComposeUiApi::class
+    ExperimentalMaterial3Api::class
 )
 @Composable
 fun HomeView(
-        modifier: Modifier = Modifier,
-        navController: NavController? = null,
-        mainActivity: MainActivity,
-        activityViewModel: ActivityScopedViewModel?,
+    modifier: Modifier = Modifier,
+    navController: NavController? = null,
+    mainActivity: MainActivity,
+    activityViewModel: ActivityScopedViewModel?,
 ) {
     val activityState: ActivityState by activityViewModel!!.activityState.collectAsState(
         ActivityState()
@@ -77,13 +76,15 @@ fun HomeView(
         activityState.warning
     ) {
         keyboardController?.hide()
-        if (!activityState.isLoggedIn && !activityState.warning.isNullOrEmpty()) {
-            isLogoutPopupShown=true
-            activityState.warning=null
+        if (!activityState.warning.isNullOrEmpty()) {
+            isLogoutPopupShown = true
+            activityState.warning = null
         }
     }
     BackHandler {
-        mainActivity.finish()
+        activityState.warning = "Are you sure you want to logout?"
+        activityState.forceLogout = false
+        isLogoutPopupShown = true
     }
     GridPOSTheme {
         Scaffold(
@@ -140,7 +141,7 @@ fun HomeView(
                 }
             }
         }
-        fun logout(){
+        fun logout() {
             isLogoutPopupShown = false
             navController?.clearBackStack("LoginView")
             navController?.navigate("LoginView")
@@ -155,10 +156,16 @@ fun HomeView(
             )
         ) {
             UIAlertDialog(
-                onDismissRequest = { logout()},
-                onConfirmation = {logout()},
+                onDismissRequest = {
+                    isLogoutPopupShown = false
+                    if (activityState.forceLogout) logout()
+                },
+                onConfirmation = {
+                    isLogoutPopupShown = false
+                    logout()
+                },
                 dialogTitle = "Alert.",
-                dialogText = activityState.warning?:SettingsModel.companyAccessWarning,
+                dialogText = activityState.warning ?: SettingsModel.companyAccessWarning,
                 icon = Icons.Default.Info
             )
         }

@@ -118,7 +118,9 @@ class ActivityScopedViewModel @Inject constructor(
                             )
                             withContext(Dispatchers.Main) {
                                 activityState.value = activityState.value.copy(
-                                    isLoggedIn = false, warning = SettingsModel.companyAccessWarning
+                                    isLoggedIn = false,
+                                    warning = SettingsModel.companyAccessWarning,
+                                    forceLogout = true
                                 )
                             }
                         }
@@ -242,5 +244,9 @@ class ActivityScopedViewModel @Inject constructor(
             )
         }
         return result
+    }
+
+    fun isLoggedIn(): Boolean {
+        return activityState.value.isLoggedIn
     }
 }

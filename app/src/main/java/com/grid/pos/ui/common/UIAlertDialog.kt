@@ -10,11 +10,13 @@ import com.grid.pos.model.SettingsModel
 
 @Composable
 fun UIAlertDialog(
-        onDismissRequest: () -> Unit,
-        onConfirmation: () -> Unit,
-        dialogTitle: String,
-        dialogText: String,
-        icon: ImageVector,
+    onDismissRequest: () -> Unit,
+    onConfirmation: () -> Unit,
+    dialogTitle: String,
+    dialogText: String,
+    positiveBtnText: String = "OK",
+    negativeBtnText: String = "CANCEL",
+    icon: ImageVector,
 ) {
     AlertDialog(icon = {
         Icon(
@@ -46,7 +48,7 @@ fun UIAlertDialog(
                 onConfirmation()
             }) {
                 Text(
-                    "ok",
+                    positiveBtnText,
                     color = SettingsModel.textColor
                 )
             }
@@ -56,7 +58,7 @@ fun UIAlertDialog(
                 onDismissRequest()
             }) {
                 Text(
-                    "Dismiss",
+                    negativeBtnText,
                     color = SettingsModel.textColor
                 )
             }

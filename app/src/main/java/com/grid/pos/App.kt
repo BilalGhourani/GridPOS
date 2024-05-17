@@ -19,6 +19,7 @@ import org.json.JSONObject
 class App : Application() {
 
     private var configs: JSONObject? = null
+    private var isFirebaseInitialized: Boolean = false
 
     companion object {
         private lateinit var instance: App
@@ -40,7 +41,7 @@ class App : Application() {
 
     private fun initAppConfig() {
         val configString: String = Utils.readFileFromAssets("config.json", this)
-        if (configString != null && !configString.isEmpty()) {
+        if (configString.isNotEmpty()) {
             try {
                 configs = JSONObject(configString)
             } catch (e: JSONException) {
@@ -50,22 +51,27 @@ class App : Application() {
     }
 
     fun getConfigValue(
-            key: String,
-            fallback: String
+        key: String,
+        fallback: String
     ): String {
         return configs?.optString(key, fallback) ?: fallback
     }
 
     fun initFirebase() {
         // Initialize Firebase only once (preferably in onCreate)
-        if (!SettingsModel.firebaseApplicationId.isNullOrEmpty() && !SettingsModel.firebaseApiKey.isNullOrEmpty() && !SettingsModel.firebaseProjectId.isNullOrEmpty() && !SettingsModel.firebaseDbPath.isNullOrEmpty()) {
-            val options: FirebaseOptions = FirebaseOptions.Builder()
-                .setApplicationId(SettingsModel.firebaseApplicationId!!)
-                .setApiKey(SettingsModel.firebaseApiKey!!)
-                .setProjectId(SettingsModel.firebaseProjectId!!).setDatabaseUrl(
-                    SettingsModel.firebaseDbPath!!
-                ).build()
-            FirebaseApp.initializeApp(this, options)
+        try {
+            if (!isFirebaseInitialized && !SettingsModel.firebaseApplicationId.isNullOrEmpty() && !SettingsModel.firebaseApiKey.isNullOrEmpty() && !SettingsModel.firebaseProjectId.isNullOrEmpty() && !SettingsModel.firebaseDbPath.isNullOrEmpty()) {
+                val options: FirebaseOptions = FirebaseOptions.Builder()
+                    .setApplicationId(SettingsModel.firebaseApplicationId!!)
+                    .setApiKey(SettingsModel.firebaseApiKey!!)
+                    .setProjectId(SettingsModel.firebaseProjectId!!).setDatabaseUrl(
+                        SettingsModel.firebaseDbPath!!
+                    ).build()
+                FirebaseApp.initializeApp(this, options)
+                isFirebaseInitialized = true
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 
