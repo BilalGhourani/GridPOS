@@ -35,7 +35,6 @@ class POSViewModel @Inject constructor(
 
     private val _posState = MutableStateFlow(POSState())
     val posState: MutableStateFlow<POSState> = _posState
-    var invoices: MutableList<InvoiceItemModel> = mutableListOf()
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
@@ -395,7 +394,8 @@ class POSViewModel @Inject constructor(
 
     fun loadInvoiceDetails(
         invoiceHeader: InvoiceHeader,
-        onResult: OnResult
+        onSuccess: (PosReceipt, MutableList<InvoiceItemModel>) -> Unit,
+        onFailure:((String, Int) -> Unit)? = null
     ) {
         viewModelScope.launch(Dispatchers.IO) {
             invoiceRepository.getAllInvoices(
@@ -412,10 +412,10 @@ class POSViewModel @Inject constructor(
                                         it.itemId.equals(inv.invoiceItemId)
                                     } ?: Item()))
                             }
-                            invoices = invs
                             getPosReceipt(
                                 invoiceHeader.invoiceHeadId,
-                                onResult
+                                invs,
+                                onSuccess
                             )
                         }
                     }
@@ -424,10 +424,7 @@ class POSViewModel @Inject constructor(
                         message: String,
                         errorCode: Int
                     ) {
-                        onResult.onFailure(
-                            message,
-                            errorCode
-                        )
+                        onFailure?.invoke(message, errorCode)
                     }
                 })
 
@@ -436,16 +433,14 @@ class POSViewModel @Inject constructor(
 
     suspend fun getPosReceipt(
         invoiceHeaderId: String,
-        onResult: OnResult
+        invoices: MutableList<InvoiceItemModel>,
+        onSuccess: (PosReceipt, MutableList<InvoiceItemModel>) -> Unit
     ) {
         posReceiptRepository.getPosReceiptByInvoice(invoiceHeaderId,
             object : OnResult {
                 override fun onSuccess(result: Any) {
                     viewModelScope.launch(Dispatchers.Main) {
-                        posState.value = posState.value.copy(
-                            posReceipt = result as PosReceipt
-                        )
-                        onResult.onSuccess(result)
+                        onSuccess.invoke(result as PosReceipt, invoices)
                     }
                 }
 
@@ -453,10 +448,9 @@ class POSViewModel @Inject constructor(
                     message: String,
                     errorCode: Int
                 ) {
-                    onResult.onFailure(
-                        message,
-                        errorCode
-                    )
+                    viewModelScope.launch(Dispatchers.Main) {
+                        onSuccess.invoke(PosReceipt(), invoices)
+                    }
                 }
             })
     }

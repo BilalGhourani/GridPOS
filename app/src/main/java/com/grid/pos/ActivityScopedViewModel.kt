@@ -12,6 +12,7 @@ import com.grid.pos.data.Family.FamilyRepository
 import com.grid.pos.data.InvoiceHeader.InvoiceHeader
 import com.grid.pos.data.Item.Item
 import com.grid.pos.data.Item.ItemRepository
+import com.grid.pos.data.PosReceipt.PosReceipt
 import com.grid.pos.data.ThirdParty.ThirdParty
 import com.grid.pos.data.ThirdParty.ThirdPartyRepository
 import com.grid.pos.data.User.User
@@ -37,6 +38,7 @@ class ActivityScopedViewModel @Inject constructor(
     private val familyRepository: FamilyRepository,
     private val itemRepository: ItemRepository,
 ) : ViewModel() {
+    var posReceipt: PosReceipt = PosReceipt()
     var invoiceHeader: InvoiceHeader = InvoiceHeader()
     var invoiceItemModels: MutableList<InvoiceItemModel> = mutableListOf()
     var isFromTable: Boolean = false

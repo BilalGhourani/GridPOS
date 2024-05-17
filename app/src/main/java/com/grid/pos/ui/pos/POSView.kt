@@ -58,8 +58,6 @@ import com.grid.pos.ActivityScopedViewModel
 import com.grid.pos.MainActivity
 import com.grid.pos.data.InvoiceHeader.InvoiceHeader
 import com.grid.pos.data.PosReceipt.PosReceipt
-import com.grid.pos.data.ThirdParty.ThirdParty
-import com.grid.pos.interfaces.OnResult
 import com.grid.pos.model.InvoiceItemModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.pos.components.AddInvoiceItemView
@@ -78,11 +76,11 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun POSView(
-        modifier: Modifier = Modifier,
-        navController: NavController? = null,
-        activityViewModel: ActivityScopedViewModel,
-        mainActivity: MainActivity,
-        viewModel: POSViewModel = hiltViewModel()
+    modifier: Modifier = Modifier,
+    navController: NavController? = null,
+    activityViewModel: ActivityScopedViewModel,
+    mainActivity: MainActivity,
+    viewModel: POSViewModel = hiltViewModel()
 ) {
     val posState: POSState by viewModel.posState.collectAsState(POSState())
     val invoicesState = remember { mutableStateListOf<InvoiceItemModel>() }
@@ -102,22 +100,12 @@ fun POSView(
         activityViewModel.isFromTable = false
         if (!invoiceHeaderState.value.invoiceHeadId.isNullOrEmpty()) {
             viewModel.loadInvoiceDetails(invoiceHeaderState.value,
-                object : OnResult {
-                    override fun onSuccess(result: Any) {
-                        posState.isLoading = false
-                        invoicesState.clear()
-                        invoicesState.addAll(viewModel.invoices)
-                        posState.posReceipt = result as PosReceipt
-                    }
-
-                    override fun onFailure(
-                            message: String,
-                            errorCode: Int
-                    ) {
-                        posState.isLoading = false
-                        invoicesState.clear()
-                        invoicesState.addAll(viewModel.invoices)
-                    }
+                onSuccess = { receipt, invoiceItems ->
+                    posState.isLoading = false
+                    invoicesState.clear()
+                    invoicesState.addAll(invoiceItems)
+                    activityViewModel.invoiceItemModels = invoiceItems
+                    activityViewModel.posReceipt = receipt
                 })
         }
     } else if (invoicesState.isEmpty() && activityViewModel.invoiceItemModels.isNotEmpty()) {
@@ -135,13 +123,6 @@ fun POSView(
     }
     if (posState.invoiceHeaders.isEmpty()) {
         posState.invoiceHeaders.addAll(activityViewModel.invoiceHeaders)
-    }
-
-    fun clear() {
-        viewModel.invoices.clear()
-        invoicesState.clear()
-        invoiceHeaderState.value = InvoiceHeader()
-        posState.selectedThirdParty = ThirdParty()
     }
 
     LaunchedEffect(configuration) {
@@ -186,6 +167,7 @@ fun POSView(
         } else {
             activityViewModel.invoiceItemModels = mutableListOf()
             activityViewModel.invoiceHeader = InvoiceHeader()
+            activityViewModel.posReceipt = PosReceipt()
             if (SettingsModel.currentUser?.userPosMode == true && SettingsModel.currentUser?.userTableMode == false) {
                 mainActivity.finish()
             } else {
@@ -277,9 +259,9 @@ fun POSView(
                         },
                         onRemove = { index ->
                             invoicesState.removeAt(index)
-                            viewModel.invoices = invoicesState
+                            activityViewModel.invoiceItemModels = invoicesState
                             invoiceHeaderState.value = POSUtils.refreshValues(
-                                viewModel.invoices,
+                                activityViewModel.invoiceItemModels,
                                 invoiceHeaderState.value
                             )
                         })
@@ -311,40 +293,28 @@ fun POSView(
                             val invoiceItemModel = InvoiceItemModel()
                             invoiceItemModel.setItem(item)
                             invoicesState.add(invoiceItemModel)
-                            viewModel.invoices = invoicesState
+                            activityViewModel.invoiceItemModels = invoicesState
                             invoiceHeaderState.value = POSUtils.refreshValues(
-                                viewModel.invoices,
+                                activityViewModel.invoiceItemModels,
                                 invoiceHeaderState.value
                             )
                             isAddItemBottomSheetVisible = false
                         },
                         onThirdPartySelected = { thirdParty ->
                             posState.selectedThirdParty = thirdParty
-                            invoiceHeaderState.value.invoiceHeadThirdPartyName = thirdParty.thirdPartyId
+                            invoiceHeaderState.value.invoiceHeadThirdPartyName =
+                                thirdParty.thirdPartyId
                         },
                         onInvoiceSelected = { invoiceHeader ->
                             invoiceHeaderState.value = invoiceHeader
                             posState.isLoading = true
                             viewModel.loadInvoiceDetails(invoiceHeader,
-                                object : OnResult {
-                                    override fun onSuccess(result: Any) {
-                                        posState.isLoading = false
-                                        invoicesState.clear()
-                                        invoicesState.addAll(viewModel.invoices)
-                                        viewModel.invoices = invoicesState
-                                        posState.posReceipt = result as PosReceipt
-                                    }
-
-                                    override fun onFailure(
-                                            message: String,
-                                            errorCode: Int
-                                    ) {
-                                        posState.isLoading = false
-                                        invoicesState.clear()
-                                        invoicesState.addAll(viewModel.invoices)
-                                        viewModel.invoices = invoicesState
-                                    }
-
+                                onSuccess = { receipt, invoiceItems ->
+                                    posState.isLoading = false
+                                    invoicesState.clear()
+                                    invoicesState.addAll(invoiceItems)
+                                    activityViewModel.invoiceItemModels = invoiceItems
+                                    activityViewModel.posReceipt = receipt
                                 })
                         })
                 }
@@ -358,7 +328,7 @@ fun POSView(
                     animationSpec = tween(durationMillis = 250)
                 )
             ) {
-                EditInvoiceItemView(invoices = viewModel.invoices.toMutableList(),
+                EditInvoiceItemView(invoices = invoicesState.toMutableList(),
                     invHeader = invoiceHeaderState.value,
                     invoiceIndex = itemIndexToEdit,
                     modifier = Modifier
@@ -369,9 +339,9 @@ fun POSView(
                         ),
                     onSave = { invHeader, itemModel ->
                         invoicesState[itemIndexToEdit] = itemModel
-                        viewModel.invoices = invoicesState
+                        activityViewModel.invoiceItemModels = invoicesState
                         invoiceHeaderState.value = POSUtils.refreshValues(
-                            viewModel.invoices,
+                            activityViewModel.invoiceItemModels,
                             invHeader
                         )
                         isEditBottomSheetVisible = false
@@ -407,9 +377,9 @@ fun POSView(
                         invoices.add(invoiceItemModel)
                     }
                     invoicesState.addAll(invoices)
-                    viewModel.invoices = invoicesState
+                    activityViewModel.invoiceItemModels = invoicesState
                     invoiceHeaderState.value = POSUtils.refreshValues(
-                        viewModel.invoices,
+                        activityViewModel.invoiceItemModels,
                         invoiceHeaderState.value
                     )
                     isAddItemBottomSheetVisible = false
@@ -426,37 +396,39 @@ fun POSView(
             ) {
                 InvoiceCashView(
                     invoiceHeader = invoiceHeaderState.value,
-                    posReceipt = posState.posReceipt,
+                    posReceipt = activityViewModel.posReceipt,
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(it)
                         .background(
                             color = SettingsModel.backgroundColor
                         ),
-                    onSave = { change, posReceipt ->
-                        posState.posReceipt = posReceipt
+                    onSave = { change, receipt ->
+                        activityViewModel.posReceipt = receipt
                         invoiceHeaderState.value.invoiceHeadChange = change
                         var cashName = invoiceHeaderState.value.getCashName()
                         val thirdPartyName = posState.selectedThirdParty.thirdPartyName ?: ""
-                        cashName = if (cashName.contains(thirdPartyName)) cashName else thirdPartyName + cashName
+                        cashName =
+                            if (cashName.contains(thirdPartyName)) cashName else thirdPartyName + cashName
                         invoiceHeaderState.value.invoiceHeadCashName = cashName.ifEmpty { null }
                         viewModel.saveInvoiceHeader(
                             invoiceHeaderState.value,
-                            posState.posReceipt,
-                            viewModel.invoices
+                            activityViewModel.posReceipt,
+                            activityViewModel.invoiceItemModels
                         )
                     },
-                    onFinish = { change, posReceipt ->
-                        posState.posReceipt = posReceipt
+                    onFinish = { change, receipt ->
+                        activityViewModel.posReceipt = receipt
                         invoiceHeaderState.value.invoiceHeadChange = change
                         var cashName = invoiceHeaderState.value.getCashName()
                         val thirdPartyName = posState.selectedThirdParty.thirdPartyName ?: ""
-                        cashName = if (cashName.contains(thirdPartyName)) cashName else thirdPartyName + cashName
+                        cashName =
+                            if (cashName.contains(thirdPartyName)) cashName else thirdPartyName + cashName
                         invoiceHeaderState.value.invoiceHeadCashName = cashName.ifEmpty { null }
                         viewModel.saveInvoiceHeader(
                             invoiceHeaderState.value,
-                            posState.posReceipt,
-                            viewModel.invoices,
+                            activityViewModel.posReceipt,
+                            activityViewModel.invoiceItemModels,
                             true
                         )
                     },

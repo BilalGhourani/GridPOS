@@ -14,7 +14,6 @@ data class POSState(
     val items: MutableList<Item> = mutableListOf(),
     val thirdParties: MutableList<ThirdParty> = mutableListOf(),
     val invoiceHeaders: MutableList<InvoiceHeader> = mutableListOf(),
-    var posReceipt: PosReceipt = PosReceipt(),
     var selectedThirdParty: ThirdParty = ThirdParty(),
     var isSaved: Boolean = false,
     var isLoading: Boolean = false,
