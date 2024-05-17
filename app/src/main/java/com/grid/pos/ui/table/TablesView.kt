@@ -184,7 +184,7 @@ fun TablesView(
                         activityScopedViewModel.invoiceHeader = tablesState.invoiceHeader
                         activityScopedViewModel.isFromTable = true
                         tablesState.clear = true
-                        navController?.navigate("PosView")
+                        navController?.navigate("POSView")
                     }
 
                 }

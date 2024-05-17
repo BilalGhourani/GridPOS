@@ -77,7 +77,7 @@ import kotlinx.coroutines.launch
 @SuppressLint("MutableCollectionMutableState")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PosView(
+fun POSView(
         modifier: Modifier = Modifier,
         navController: NavController? = null,
         activityViewModel: ActivityScopedViewModel,

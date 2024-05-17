@@ -15,7 +15,7 @@ import com.grid.pos.ui.family.ManageFamiliesView
 import com.grid.pos.ui.home.HomeView
 import com.grid.pos.ui.item.ManageItemsView
 import com.grid.pos.ui.login.LoginView
-import com.grid.pos.ui.pos.PosView
+import com.grid.pos.ui.pos.POSView
 import com.grid.pos.ui.settings.SettingsView
 import com.grid.pos.ui.table.TablesView
 import com.grid.pos.ui.theme.White
@@ -85,8 +85,8 @@ fun AuthNavGraph(
                 mainActivity = mainActivity
             )
         }
-        composable(route = "PosView") {
-            PosView(
+        composable(route = "POSView") {
+            POSView(
                 navController = navController,
                 activityViewModel = activityViewModel,
                 mainActivity = mainActivity

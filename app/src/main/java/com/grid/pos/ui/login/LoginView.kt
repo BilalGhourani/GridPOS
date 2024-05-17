@@ -101,7 +101,7 @@ fun LoginView(
                         if(it.userPosMode && it.userTableMode){
                             navController?.navigate("HomeView")
                         }else if(it.userPosMode){
-                            navController?.navigate("PosView")
+                            navController?.navigate("POSView")
                         }else if(it.userTableMode){
                             navController?.navigate("TablesView")
                         }else{

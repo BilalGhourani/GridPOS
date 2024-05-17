@@ -49,7 +49,7 @@ object Utils {
             "Item", "ManageItemsView"
         ),
         HomeSectionModel(
-            "POS", "PosView"
+            "POS", "POSView"
         ),
         HomeSectionModel(
             "Table", "TablesView"
