@@ -1,10 +1,13 @@
 package com.grid.pos
 
 import android.content.Intent
-import android.content.IntentFilter
 import android.net.ConnectivityManager
+import android.net.LinkProperties
+import android.net.Network
+import android.net.NetworkCapabilities
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.PickVisualMediaRequest
@@ -15,37 +18,60 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.rememberNavController
 import com.grid.pos.interfaces.OnActivityResult
 import com.grid.pos.interfaces.OnGalleryResult
-import com.grid.pos.model.SettingsModel
-import com.grid.pos.ui.login.LoginView
 import com.grid.pos.ui.navigation.AuthNavGraph
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.ui.theme.White
-import com.grid.pos.utils.ConnectivityReceiver
-import com.grid.pos.utils.DataStoreManager
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
-class MainActivity : ComponentActivity(), ConnectivityReceiver.ConnectivityChangeListener {
+class MainActivity : ComponentActivity() {
     private val activityViewModel: ActivityScopedViewModel by viewModels()
     private var mActivityResultCallBack: OnActivityResult? = null
     private var mGalleryCallBack: OnGalleryResult? = null
-    private val connectivityReceiver = ConnectivityReceiver()
+    private var connectivityManager: ConnectivityManager? = null
+    private val networkHandler = object : ConnectivityManager.NetworkCallback() {
+        override fun onAvailable(network: Network) {
+            CoroutineScope(Dispatchers.IO).launch {
+                activityViewModel.initiateValues()
+            }
+        }
+
+        override fun onLost(network: Network) {
+            Toast.makeText(
+                this@MainActivity,
+                "The application no longer has the ability to access the internet.",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+
+        override fun onCapabilitiesChanged(
+                network: Network,
+                networkCapabilities: NetworkCapabilities
+        ) {
+        }
+
+        override fun onLinkPropertiesChanged(
+                network: Network,
+                linkProperties: LinkProperties
+        ) {
+        }
+    }
 
     private var resultLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
-        mActivityResultCallBack?.onActivityResult(result.resultCode, result.data)
+        mActivityResultCallBack?.onActivityResult(
+            result.resultCode,
+            result.data
+        )
         mActivityResultCallBack = null
     }
 
@@ -59,18 +85,21 @@ class MainActivity : ComponentActivity(), ConnectivityReceiver.ConnectivityChang
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        connectivityManager = getSystemService(ConnectivityManager::class.java)
         window.setBackgroundDrawableResource(R.drawable.white_background)
         setContent {
             val navController = rememberNavController()
             GridPOSTheme {
                 Surface(
-                    modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background
                 ) {
                     AuthNavGraph(
                         modifier = Modifier
                             .background(color = White)
                             .padding(0.dp),
-                        navController = navController, activityViewModel = activityViewModel,
+                        navController = navController,
+                        activityViewModel = activityViewModel,
                         mainActivity = this,
                         startDestination = "LoginView" /*if (SettingsModel.currentUserId.isNullOrEmpty()) "LoginView" else "HomeView"*/
                     )
@@ -87,7 +116,10 @@ class MainActivity : ComponentActivity(), ConnectivityReceiver.ConnectivityChang
             mActivityResultCallBack = activityResult
             resultLauncher.launch(i)
         } catch (e: Exception) {
-            Log.e("exception", e.message.toString())
+            Log.e(
+                "exception",
+                e.message.toString()
+            )
         }
     }
 
@@ -103,37 +135,20 @@ class MainActivity : ComponentActivity(), ConnectivityReceiver.ConnectivityChang
                 )
             )
         } catch (e: Exception) {
-            Log.e("exception", e.message.toString())
+            Log.e(
+                "exception",
+                e.message.toString()
+            )
         }
     }
 
     override fun onResume() {
         super.onResume()
-        val filter = IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION)
-        registerReceiver(connectivityReceiver, filter)
-        connectivityReceiver.listener = this
+        connectivityManager?.registerDefaultNetworkCallback(networkHandler)
     }
 
     override fun onPause() {
         super.onPause()
-        unregisterReceiver(connectivityReceiver)
-    }
-
-    override fun onNetworkConnected() {
-        CoroutineScope(Dispatchers.IO).launch {
-            activityViewModel.initiateValues()
-        }
-    }
-
-    override fun onNetworkDisconnected() {
-
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    GridPOSTheme {
-        LoginView()
+        connectivityManager?.unregisterNetworkCallback(networkHandler)
     }
 }

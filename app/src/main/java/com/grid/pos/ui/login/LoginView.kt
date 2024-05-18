@@ -16,7 +16,6 @@ import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
@@ -35,7 +34,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
@@ -66,9 +64,9 @@ import kotlinx.coroutines.withContext
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginView(
+        modifier: Modifier = Modifier,
         navController: NavController? = null,
         activityScopedViewModel: ActivityScopedViewModel? = null,
-        modifier: Modifier = Modifier,
         viewModel: LoginViewModel = hiltViewModel()
 ) {
     val loginState by viewModel.usersState.collectAsState()
@@ -176,8 +174,8 @@ fun LoginView(
                             defaultValue = usernameState,
                             label = "Username",
                             placeHolder = "Username",
-                            onAction = { passwordFocusRequester.requestFocus() }) {
-                            usernameState = it
+                            onAction = { passwordFocusRequester.requestFocus() }) {username->
+                            usernameState = username
                         }
 
                         UITextField(modifier = Modifier.padding(10.dp),
@@ -203,8 +201,8 @@ fun LoginView(
                                         tint = SettingsModel.buttonColor
                                     )
                                 }
-                            }) {
-                            passwordState = it
+                            }) {password->
+                            passwordState = password
                         }
                         UIButton(
                             modifier = Modifier

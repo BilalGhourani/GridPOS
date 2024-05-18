@@ -31,38 +31,38 @@ object Utils {
 
     val homeSections = mutableListOf(
         HomeSectionModel(
-            "Currency", "ManageCurrenciesView"
+            "Currency",
+            "ManageCurrenciesView"
         ),
         HomeSectionModel(
-            "Company", "ManageCompaniesView"
+            "Company",
+            "ManageCompaniesView"
         ),
         HomeSectionModel(
-            "User", "ManageUsersView"
+            "User",
+            "ManageUsersView"
         ),
         HomeSectionModel(
-            "Third Party", "ManageThirdPartiesView"
+            "Third Party",
+            "ManageThirdPartiesView"
         ),
         HomeSectionModel(
-            "Family", "ManageFamiliesView"
+            "Family",
+            "ManageFamiliesView"
         ),
         HomeSectionModel(
-            "Item", "ManageItemsView"
+            "Item",
+            "ManageItemsView"
         ),
         HomeSectionModel(
-            "POS", "POSView"
+            "POS",
+            "POSView"
         ),
         HomeSectionModel(
-            "Table", "TablesView"
+            "Table",
+            "TablesView"
         ),
     )
-
-    fun calculateColumns(
-            cellWidth: Dp,
-            screenWidth: Dp
-    ): Int {
-        val availableSpace = screenWidth - Dp((2 * 16F))// Account for paddings (adjust as needed)
-        return (availableSpace / cellWidth).toInt().coerceAtLeast(1) // Ensure at least 1 column
-    }
 
     fun generateRandomUuidString(): String {
         return UUID.randomUUID().toString()
@@ -73,7 +73,8 @@ object Utils {
             format: String = "MMMM dd, yyyy 'at' hh:mm:ss a 'Z'"
     ): String {
         val parserFormat = SimpleDateFormat(
-            format, Locale.getDefault()
+            format,
+            Locale.getDefault()
         )
         parserFormat.timeZone = TimeZone.getTimeZone("UTC")
         return parserFormat.format(date)
@@ -86,15 +87,11 @@ object Utils {
     ): Color {
         // Convert HSV to RGB
         val hsv = floatArrayOf(
-            hue, saturation, brightness
+            hue,
+            saturation,
+            brightness
         )
         return Color(android.graphics.Color.HSVToColor(hsv))
-    }
-
-    fun generateNameFromUsername(username: String): String {
-        return username.replace(
-            "_", " "
-        )
     }
 
     fun getDoubleValue(
@@ -135,20 +132,18 @@ object Utils {
             val printAdapter = webView.createPrintDocumentAdapter(jobName)
 
             // Define Print Attributes (optional)
-            val printAttributes = PrintAttributes.Builder().setMediaSize(
-                getMediaSize()
-            ).setMinMargins(PrintAttributes.Margins.NO_MARGINS).build()
-
+            val printAttributes = PrintAttributes.Builder()
+                .setMediaSize(MediaSize.ISO_A4/*getMediaSize()*/)
+                .setMinMargins(PrintAttributes.Margins.NO_MARGINS).build()
             printManager.print(
-                jobName, printAdapter, printAttributes
+                jobName,
+                printAdapter,
+                printAttributes
             )
         }
     }
 
-    fun getMediaSize(): MediaSize {
-        if (true) {
-            return PrintAttributes.MediaSize.ISO_A4
-        }
+    private fun getMediaSize(): MediaSize {
         // Define the width and height in inches
         val widthInches = 3 // Typical width for POS receipt paper
         val heightInches = 11 // You can adjust this based on your needs
@@ -158,7 +153,10 @@ object Utils {
         val heightMicrometers = heightInches * 25400
 
         return MediaSize(
-            "POS Receipt", "POS Receipt", widthMicrometers, heightMicrometers
+            "POS Receipt",
+            "POS Receipt",
+            widthMicrometers,
+            heightMicrometers
         )
     }
 
@@ -214,29 +212,29 @@ object Utils {
     fun saveToInternalStorage(
             context: Context,
             parent: String = "family",
-            sourceFile: Uri,
+            sourceFilePath: Uri,
             destName: String
     ): String? {
-        val storageDir = File(context.filesDir, "images")
+        val storageDir = File(
+            context.filesDir,
+            "images"
+        )
         if (!storageDir.exists()) {
             storageDir.mkdir()
         }
-        val parentDir = File(storageDir, parent)
+        val parentDir = File(
+            storageDir,
+            parent
+        )
         if (!parentDir.exists()) {
             parentDir.mkdir()
         }
         val name = "$destName.jpg"
-        val destinationFile = File(parentDir, name)
+        val destinationFile = File(
+            parentDir,
+            name
+        )
 
-        copyImage(context, sourceFile, destinationFile)
-        return destinationFile.absolutePath
-    }
-
-    fun copyImage(
-            context: Context,
-            sourceFilePath: Uri,
-            destinationFile: File
-    ) {
         val contentResolver = context.contentResolver
         try {
             val sourceFile = File(sourceFilePath.toString())
@@ -251,13 +249,30 @@ object Utils {
             val buffer = ByteArray(1024) // Adjust buffer size as needed
             var bytesRead: Int
             while (inputStream.read(buffer).also { bytesRead = it } > 0) {
-                outputStream.write(buffer, 0, bytesRead)
+                outputStream.write(
+                    buffer,
+                    0,
+                    bytesRead
+                )
             }
             inputStream.close()
             outputStream.close()
         } catch (e: IOException) {
-            Log.e("tag", "Failed to copy image", e)
+            Log.e(
+                "tag",
+                "Failed to copy image",
+                e
+            )
         }
+        return destinationFile.absolutePath
+    }
+
+    fun copyImage(
+            context: Context,
+            sourceFilePath: Uri,
+            destinationFile: File
+    ) {
+
     }
 
 }
