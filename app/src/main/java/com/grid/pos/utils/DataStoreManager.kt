@@ -174,19 +174,31 @@ object DataStoreManager {
         if (textColor.isNotEmpty()) {
             SettingsModel.textColor = Color(textColor.toColorInt())
         }
-        SettingsModel.loadFromRemote = getBoolean(DataStoreKeys.LOAD_FROM_REMOTE.key, true) == true
-        SettingsModel.showTax = getBoolean(DataStoreKeys.SHOW_TAX.key, false) == true
-        SettingsModel.showTax1 = getBoolean(DataStoreKeys.SHOW_TAX1.key, false) == true
-        SettingsModel.showTax2 = getBoolean(DataStoreKeys.SHOW_TAX2.key, false) == true
+        SettingsModel.loadFromRemote = getBoolean(
+            DataStoreKeys.LOAD_FROM_REMOTE.key,
+            true
+        ) == true
+        SettingsModel.showTax = getBoolean(
+            DataStoreKeys.SHOW_TAX.key,
+            false
+        ) == true
+        SettingsModel.showTax1 = getBoolean(
+            DataStoreKeys.SHOW_TAX1.key,
+            false
+        ) == true
+        SettingsModel.showTax2 = getBoolean(
+            DataStoreKeys.SHOW_TAX2.key,
+            false
+        ) == true
         SettingsModel.showPriceInItemBtn = getBoolean(
-            DataStoreKeys.SHOW_PRICE_IN_ITEM_BTN.key, false
+            DataStoreKeys.SHOW_PRICE_IN_ITEM_BTN.key,
+            false
         ) == true
 
         SettingsModel.firebaseApplicationId = getString(DataStoreKeys.FIREBASE_APP_ID.key)
         SettingsModel.firebaseApiKey = getString(DataStoreKeys.FIREBASE_API_KEY.key)
         SettingsModel.firebaseProjectId = getString(DataStoreKeys.FIREBASE_PROJECT_ID.key)
-        SettingsModel.firebaseDbPath = getString(DataStoreKeys.FIREBASE_DB_PATH.key)
-        /*if (BuildConfig.DEBUG) {
+        SettingsModel.firebaseDbPath = getString(DataStoreKeys.FIREBASE_DB_PATH.key)/*if (BuildConfig.DEBUG) {
             SettingsModel.firebaseApplicationId = SettingsModel.firebaseApplicationId!!.ifEmpty { "1:337880577447:android:295a236f47063a5233b282" }
             SettingsModel.firebaseApiKey = SettingsModel.firebaseApiKey!!.ifEmpty { "AIzaSyDSh65g8EqvGeyOviwCKmJh4jFD2iXQhYk" }
             SettingsModel.firebaseProjectId = SettingsModel.firebaseProjectId!!.ifEmpty { "grids-app-8a2b7" }
@@ -195,10 +207,14 @@ object DataStoreManager {
 
 
         SettingsModel.companyID = getString(
-            DataStoreKeys.COMPANY_ID.key, ""
-        ).ifEmpty { "b446ad20-506f-40e1-83e5-022c748f39c0" }
+            DataStoreKeys.COMPANY_ID.key,
+            ""
+        )
 
-        SettingsModel.invoicePrinter = getString(DataStoreKeys.INVOICE_PRINTER.key, "")
+        SettingsModel.invoicePrinter = getString(
+            DataStoreKeys.INVOICE_PRINTER.key,
+            ""
+        )
     }
 
     enum class DataStoreKeys(val key: String) {
