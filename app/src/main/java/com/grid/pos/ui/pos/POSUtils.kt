@@ -9,15 +9,15 @@ import java.math.BigInteger
 
 object POSUtils {
 
-
     fun getInvoiceTransactionNo(oldInvoiceTransNo: String?): String {
         val currentYear = Utils.getCurrentYear()
-        var invNoStr =
-            oldInvoiceTransNo.takeIf { !it.isNullOrEmpty() } ?: (currentYear + "000000000")
+        var invNoStr = oldInvoiceTransNo.takeIf { !it.isNullOrEmpty() } ?: (currentYear + "000000000")
         if (invNoStr.length > 4 && !invNoStr.substring(
-                0, 4
+                0,
+                4
             ).equals(
-                currentYear, ignoreCase = true
+                currentYear,
+                ignoreCase = true
             )
         ) {
             invNoStr = currentYear + "000000000"
@@ -28,11 +28,16 @@ object POSUtils {
     fun getInvoiceNo(oldInvoiceNo: String?): String {
         val currentYear = Utils.getCurrentYear()
         val sections = if (oldInvoiceNo.isNullOrEmpty()) listOf(
-            currentYear, "0"
+            currentYear,
+            "0"
         ) else oldInvoiceNo.split("-")
         var invYearStr = if (sections.isNotEmpty()) sections[0] else currentYear
         val serialNo = if (sections.size > 1) sections[1] else "0"
-        if (!invYearStr.equals(currentYear, ignoreCase = true)) {
+        if (!invYearStr.equals(
+                currentYear,
+                ignoreCase = true
+            )
+        ) {
             invYearStr = currentYear
         }
         val serialInt = (serialNo.toIntOrNull() ?: 1) + 1
@@ -40,23 +45,21 @@ object POSUtils {
     }
 
     fun refreshValues(
-        invoiceList: MutableList<InvoiceItemModel>,
-        invHeader: InvoiceHeader
+            invoiceList: MutableList<InvoiceItemModel>,
+            invHeader: InvoiceHeader
     ): InvoiceHeader {
         val currency = SettingsModel.currentCurrency ?: Currency()
-        var discount = 0.0
-        var discamt = 0.0
         var tax = 0.0
         var tax1 = 0.0
         var tax2 = 0.0
         var total = 0.0
+        var netTotal = 0.0
         invoiceList.forEach {
-            discount += it.getDiscount()
-            discamt += it.getDiscountAmount()
             tax += it.getTax()
             tax1 += it.getTax1()
             tax2 += it.getTax2()
-            total += it.getAmount()
+            total += it.getPriceWithTax()
+            netTotal += it.getNetAmount()
         }
         invHeader.invoiceHeadTaxAmt = tax
         invHeader.invoiceHeadTax1Amt = tax1
@@ -64,16 +67,14 @@ object POSUtils {
         invHeader.invoiceHeadTotalTax = tax + tax1 + tax2
         invHeader.invoiceHeadTotal = total
         invHeader.invoiceHeadTotal1 = total.times(currency.currencyRate)
-        invHeader.invoiceHeadDiscount = discount
-        invHeader.invoiceHeadDiscountAmount = discamt
-        invHeader.invoiceHeadGrossAmount =
-            (total + invHeader.invoiceHeadTotalTax) - invHeader.invoiceHeadDiscountAmount
+        invHeader.invoiceHeadTotalNetAmount = netTotal
+        val discamt = netTotal.times(invHeader.invoiceHeadDiscount.div(100.0))
+        invHeader.invoiceHeadGrossAmount = netTotal - discamt
         invHeader.invoiceHeadRate = currency.currencyRate
         return invHeader
     }
 
     fun getInvoiceType(invoiceHeader: InvoiceHeader): String {
-        return invoiceHeader.invoiceHeadTtCode
-            ?: if (invoiceHeader.invoiceHeadTotal > 0) "SI" else "RS"
+        return invoiceHeader.invoiceHeadTtCode ?: if (invoiceHeader.invoiceHeadTotal > 0) "SI" else "RS"
     }
 }

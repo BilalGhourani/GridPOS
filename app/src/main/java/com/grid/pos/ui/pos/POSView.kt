@@ -341,10 +341,7 @@ fun POSView(
                     onSave = { invHeader, itemModel ->
                         invoicesState[itemIndexToEdit] = itemModel
                         activityViewModel.invoiceItemModels = invoicesState
-                        invoiceHeaderState.value = POSUtils.refreshValues(
-                            activityViewModel.invoiceItemModels,
-                            invHeader
-                        )
+                        invoiceHeaderState.value = invHeader
                         isEditBottomSheetVisible = false
                     },
                     onClose = {
@@ -407,10 +404,6 @@ fun POSView(
                     onSave = { change, receipt ->
                         activityViewModel.posReceipt = receipt
                         invoiceHeaderState.value.invoiceHeadChange = change
-                        var cashName = invoiceHeaderState.value.getCashName()
-                        val thirdPartyName = posState.selectedThirdParty.thirdPartyName ?: ""
-                        cashName = if (cashName.contains(thirdPartyName)) cashName else thirdPartyName + cashName
-                        invoiceHeaderState.value.invoiceHeadCashName = cashName.ifEmpty { null }
                         viewModel.saveInvoiceHeader(
                             invoiceHeaderState.value,
                             activityViewModel.posReceipt,
@@ -420,10 +413,6 @@ fun POSView(
                     onFinish = { change, receipt ->
                         activityViewModel.posReceipt = receipt
                         invoiceHeaderState.value.invoiceHeadChange = change
-                        var cashName = invoiceHeaderState.value.getCashName()
-                        val thirdPartyName = posState.selectedThirdParty.thirdPartyName ?: ""
-                        cashName = if (cashName.contains(thirdPartyName)) cashName else thirdPartyName + cashName
-                        invoiceHeaderState.value.invoiceHeadCashName = cashName.ifEmpty { null }
                         viewModel.saveInvoiceHeader(
                             invoiceHeaderState.value,
                             activityViewModel.posReceipt,

@@ -100,6 +100,13 @@ data class InvoiceHeader(
         /**
          * Invoice Header Grossmont
          * */
+        @Ignore
+        @get:Exclude
+        var invoiceHeadTotalNetAmount: Double = 0.0,
+
+        /**
+         * Invoice Header Grossmont
+         * */
         @ColumnInfo(name = "hi_grossamt")
         @set:PropertyName("hi_grossamt")
         @get:PropertyName("hi_grossamt")
@@ -222,12 +229,17 @@ data class InvoiceHeader(
 
     @Exclude
     override fun getName(): String {
-        return "${invoiceHeadTtCode?:"N/A"} ${invoiceHeadTransNo?:"N/A"} ${invoiceHeadOrderNo?:"N/A"} ${invoiceHeadTaName?:"N/A"}"
+        return "${invoiceHeadTtCode ?: "N/A"} ${invoiceHeadTransNo ?: "N/A"} ${invoiceHeadOrderNo ?: "N/A"} ${invoiceHeadTaName ?: "N/A"}"
     }
 
     @Exclude
-    fun getCashName(pref:String=""): String {
-        return if(invoiceHeadCashName.isNullOrEmpty())  "" else "$pref $invoiceHeadCashName"
+    fun getCashName(pref: String = ""): String {
+        return if (invoiceHeadCashName.isNullOrEmpty()) "" else "$pref $invoiceHeadCashName"
+    }
+
+    @Exclude
+    fun getNetAmount(discamt: Double? = null): Double {
+        return (invoiceHeadTotal + invoiceHeadTotalTax) - (discamt ?: invoiceHeadDiscountAmount)
     }
 
     @Exclude

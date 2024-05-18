@@ -57,12 +57,12 @@ import com.grid.pos.utils.Utils
 
 @Composable
 fun EditInvoiceItemView(
-    modifier: Modifier = Modifier,
-    invoices: MutableList<InvoiceItemModel>,
-    invHeader: InvoiceHeader,
-    invoiceIndex: Int = 0,
-    onSave: (InvoiceHeader, InvoiceItemModel) -> Unit = { _, _ -> },
-    onClose: () -> Unit = {},
+        modifier: Modifier = Modifier,
+        invoices: MutableList<InvoiceItemModel>,
+        invHeader: InvoiceHeader,
+        invoiceIndex: Int = 0,
+        onSave: (InvoiceHeader, InvoiceItemModel) -> Unit = { _, _ -> },
+        onClose: () -> Unit = {},
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
     val rDiscount1FocusRequester = remember { FocusRequester() }
@@ -84,11 +84,6 @@ fun EditInvoiceItemView(
         invoiceItem = invoiceItemAtIndex.invoiceItem
     )
 
-    val rDiscountVal = invoiceItemModel.invoice.invoiceDiscount
-    val rDiscamtVal = invoiceItemModel.invoice.invoiceDiscamt * (rDiscountVal.div(100.0))
-    val discountVal = invoiceHeader.invoiceHeadDiscount
-    val discamtVal = invoiceHeader.invoiceHeadDiscountAmount * (discountVal.div(100.0))
-
     var price by remember {
         mutableStateOf(
             invoiceItemModel.invoice.invoicePrice.toString()
@@ -101,22 +96,22 @@ fun EditInvoiceItemView(
     }
     var rDiscount1 by remember {
         mutableStateOf(
-            if (rDiscountVal > 0.0) rDiscountVal.toString() else ""
+            if (invoiceItemModel.invoice.invoiceDiscount > 0.0) invoiceItemModel.invoice.invoiceDiscount.toString() else ""
         )
     }
     var rDiscount2 by remember {
         mutableStateOf(
-            if (rDiscamtVal > 0.0) rDiscamtVal.toString() else ""
+            if (invoiceItemModel.invoice.invoiceDiscamt > 0.0) invoiceItemModel.invoice.invoiceDiscamt.toString() else ""
         )
     }
     var discount1 by remember {
         mutableStateOf(
-            if (discountVal > 0.0) discountVal.toString() else ""
+            if (invoiceHeader.invoiceHeadDiscount > 0.0) invoiceHeader.invoiceHeadDiscount.toString() else ""
         )
     }
     var discount2 by remember {
         mutableStateOf(
-            if (discamtVal > 0.0) discamtVal.toString() else ""
+            if (invoiceHeader.invoiceHeadDiscountAmount > 0.0) invoiceHeader.invoiceHeadDiscountAmount.toString() else ""
         )
     }
     var itemExtraName by remember {
@@ -139,7 +134,7 @@ fun EditInvoiceItemView(
     val curr1Decimal = SettingsModel.currentCurrency?.currencyName1Dec ?: 2
     val curr2Decimal = SettingsModel.currentCurrency?.currencyName2Dec ?: 2
     var isPercentageChanged by remember {
-        mutableStateOf(false)
+        mutableStateOf(true)
     }
 
     fun calculateItemDiscount() {
@@ -148,17 +143,23 @@ fun EditInvoiceItemView(
         if (itemDiscount == 0.0 && itemDiscountAmount == 0.0) {
             return
         }
-        val itemPrice = (invoiceItemModel.getPriceWithTax()).times(qty)
+        val itemPrice = (price.toDoubleOrNull() ?: 0.0).times(qty)
         if (isPercentageChanged) {
+            val disc = itemPrice.times(itemDiscount.div(100.0))
             rDiscount2 = String.format(
-                "%.${curr1Decimal}f", (itemPrice.times(itemDiscount.div(100.0)))
+                "%.${curr2Decimal}f",
+                disc
             )
-            invoiceItemModel.invoice.invoiceDiscamt = rDiscount2.toDoubleOrNull() ?: 0.0
+            invoiceItemModel.invoice.invoiceDiscount = itemDiscount
+            invoiceItemModel.invoice.invoiceDiscamt = disc
         } else {
+            val disc = (itemDiscountAmount.div(itemPrice)).times(100.0)
             rDiscount1 = String.format(
-                "%.${curr1Decimal}f", ((itemDiscountAmount.div(itemPrice)).times(100.0))
+                "%.${curr1Decimal}f",
+                disc
             )
-            invoiceItemModel.invoice.invoiceDiscount = rDiscount1.toDoubleOrNull() ?: 0.0
+            invoiceItemModel.invoice.invoiceDiscount = disc
+            invoiceItemModel.invoice.invoiceDiscamt = itemDiscountAmount
         }
     }
 
@@ -167,11 +168,26 @@ fun EditInvoiceItemView(
             return
         }
         invoices[invoiceIndex] = invoiceItemModel
-        invoiceHeader = POSUtils.refreshValues(invoices, invoiceHeader)
+        invoiceHeader = POSUtils.refreshValues(
+            invoices,
+            invoiceHeader
+        )
         if (isPercentageChanged) {
-            discount2 = String.format("%.${curr2Decimal}f", invoiceHeader.invoiceHeadDiscountAmount)
+            invoiceHeader.invoiceHeadDiscount = discount1.toDoubleOrNull() ?: 0.0
+            invoiceHeader.invoiceHeadDiscountAmount = invoiceHeader.invoiceHeadTotalNetAmount.times(invoiceHeader.invoiceHeadDiscount.div(100.0))
+            discount2 = String.format(
+                "%.${curr2Decimal}f",
+                invoiceHeader.invoiceHeadDiscountAmount
+            )
+            invHeader.invoiceHeadGrossAmount = invoiceHeader.invoiceHeadTotalNetAmount - invoiceHeader.invoiceHeadDiscountAmount
         } else {
-            discount1 = String.format("%.${curr1Decimal}f", invoiceHeader.invoiceHeadDiscount)
+            invoiceHeader.invoiceHeadDiscountAmount = discount2.toDoubleOrNull() ?: 0.0
+            invoiceHeader.invoiceHeadDiscount = (invoiceHeader.invoiceHeadDiscountAmount.div(invoiceHeader.invoiceHeadTotalNetAmount)).times(100.0)
+            discount1 = String.format(
+                "%.${curr1Decimal}f",
+                invoiceHeader.invoiceHeadDiscount
+            )
+            invHeader.invoiceHeadGrossAmount = invoiceHeader.invoiceHeadTotalNetAmount - invoiceHeader.invoiceHeadDiscountAmount
         }
     }
 
@@ -183,29 +199,39 @@ fun EditInvoiceItemView(
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Row(
-            verticalAlignment = Alignment.Top, modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.Top,
+            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(15.dp)
         ) {
-            OutlinedTextField(value = price, onValueChange = {
-                price = Utils.getDoubleValue(
-                    it, price
-                )
-                invoiceItemModel.invoice.invoicePrice = price.toDoubleOrNull() ?: 0.0
-            }, modifier = Modifier
-                .weight(1f)
-                .onFocusChanged {
-                    if (!it.hasFocus) {
-                        calculateItemDiscount()
-                        calculateInvoiceDiscount()
-                    }
-                }, shape = RoundedCornerShape(15.dp), label = {
-                Text(
-                    "Price", color = SettingsModel.textColor
-                )
-            }, keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Number, imeAction = ImeAction.Next
-            ), keyboardActions = KeyboardActions(
-                onNext = { rDiscount1FocusRequester.requestFocus() }),
+            OutlinedTextField(
+                value = price,
+                onValueChange = {
+                    price = Utils.getDoubleValue(
+                        it,
+                        price
+                    )
+                    invoiceItemModel.invoice.invoicePrice = price.toDoubleOrNull() ?: 0.0
+                },
+                modifier = Modifier
+                    .weight(1f)
+                    .onFocusChanged {
+                        if (!it.hasFocus) {
+                            calculateItemDiscount()
+                            calculateInvoiceDiscount()
+                        }
+                    },
+                shape = RoundedCornerShape(15.dp),
+                label = {
+                    Text(
+                        "Price",
+                        color = SettingsModel.textColor
+                    )
+                },
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Number,
+                    imeAction = ImeAction.Next
+                ),
+                keyboardActions = KeyboardActions(onNext = { rDiscount1FocusRequester.requestFocus() }),
                 colors = OutlinedTextFieldDefaults.colors(
                     unfocusedBorderColor = Color.Black,
                     focusedBorderColor = SettingsModel.buttonColor,
@@ -227,14 +253,17 @@ fun EditInvoiceItemView(
                             .background(color = Color.Transparent)
                     ) {
                         Text(
-                            text = "Qty", modifier = Modifier.fillMaxWidth(),
-                            textAlign = TextAlign.Center, color = SettingsModel.textColor
+                            text = "Qty",
+                            modifier = Modifier.fillMaxWidth(),
+                            textAlign = TextAlign.Center,
+                            color = SettingsModel.textColor
                         )
                     }
                 },
                 textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Center),
                 keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Number, imeAction = ImeAction.Next
+                    keyboardType = KeyboardType.Number,
+                    imeAction = ImeAction.Next
                 ),
                 keyboardActions = KeyboardActions(onNext = { /* Move focus to next field */ }),
                 leadingIcon = {
@@ -245,7 +274,8 @@ fun EditInvoiceItemView(
                         calculateInvoiceDiscount()
                     }) {
                         Icon(
-                            Icons.Default.Add, contentDescription = "Increase quantity",
+                            Icons.Default.Add,
+                            contentDescription = "Increase quantity",
                             tint = SettingsModel.buttonColor
                         )
                     }
@@ -258,7 +288,8 @@ fun EditInvoiceItemView(
                         calculateInvoiceDiscount()
                     }) {
                         Icon(
-                            Icons.Default.Remove, contentDescription = "Decrease quantity",
+                            Icons.Default.Remove,
+                            contentDescription = "Decrease quantity",
                             tint = SettingsModel.buttonColor
                         )
                     }
@@ -266,42 +297,58 @@ fun EditInvoiceItemView(
         }
         Text(
             modifier = Modifier.padding(
-                0.dp, 10.dp, 0.dp, 0.dp
-            ), text = "Discount", style = TextStyle(
-                textDecoration = TextDecoration.Underline, fontWeight = FontWeight.Bold,
+                0.dp,
+                10.dp,
+                0.dp,
+                0.dp
+            ),
+            text = "Discount",
+            style = TextStyle(
+                textDecoration = TextDecoration.Underline,
+                fontWeight = FontWeight.Bold,
                 fontSize = 16.sp
-            ), color = SettingsModel.textColor
+            ),
+            color = SettingsModel.textColor
         )
         Row(
-            modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Text(
-                "R. disc", modifier = Modifier
+                "R. disc",
+                modifier = Modifier
                     .width(60.dp)
                     .height(60.dp)
                     .wrapContentHeight(
                         align = Alignment.CenterVertically
-                    ), color = SettingsModel.textColor
+                    ),
+                color = SettingsModel.textColor
             )
-            OutlinedTextField(value = rDiscount1, onValueChange = {
-                rDiscount1 = Utils.getDoubleValue(
-                    it, rDiscount1
-                )
-                isPercentageChanged = true
-            }, placeholder = {
-                Text(text = "0.0")
-            }, modifier = Modifier
-                .weight(1f)
-                .onFocusChanged {
-                    if (!it.hasFocus) {
-                        calculateItemDiscount()
-                        calculateInvoiceDiscount()
+            OutlinedTextField(value = rDiscount1,
+                onValueChange = {
+                    rDiscount1 = Utils.getDoubleValue(
+                        it,
+                        rDiscount1
+                    )
+                    isPercentageChanged = true
+                },
+                placeholder = {
+                    Text(text = "0.0")
+                },
+                modifier = Modifier
+                    .weight(1f)
+                    .onFocusChanged {
+                        if (!it.hasFocus) {
+                            calculateItemDiscount()
+                            calculateInvoiceDiscount()
+                        }
                     }
-                }
-                .focusRequester(rDiscount1FocusRequester), keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Number, imeAction = ImeAction.Next
-            ), keyboardActions = KeyboardActions(
-                onNext = { rDiscount2FocusRequester.requestFocus() }),
+                    .focusRequester(rDiscount1FocusRequester),
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Number,
+                    imeAction = ImeAction.Next
+                ),
+                keyboardActions = KeyboardActions(onNext = { rDiscount2FocusRequester.requestFocus() }),
                 colors = OutlinedTextFieldDefaults.colors(
                     unfocusedBorderColor = Color.Black,
                     focusedBorderColor = SettingsModel.buttonColor,
@@ -309,25 +356,31 @@ fun EditInvoiceItemView(
                     unfocusedTextColor = Color.Black,
                 )
             )
-            OutlinedTextField(value = rDiscount2, onValueChange = {
-                rDiscount2 = Utils.getDoubleValue(
-                    it, rDiscount2
-                )
-                isPercentageChanged = false
-            }, placeholder = {
-                Text(text = "0.0")
-            }, modifier = Modifier
-                .weight(1f)
-                .onFocusChanged {
-                    if (!it.hasFocus) {
-                        calculateItemDiscount()
-                        calculateInvoiceDiscount()
+            OutlinedTextField(value = rDiscount2,
+                onValueChange = {
+                    rDiscount2 = Utils.getDoubleValue(
+                        it,
+                        rDiscount2
+                    )
+                    isPercentageChanged = false
+                },
+                placeholder = {
+                    Text(text = "0.0")
+                },
+                modifier = Modifier
+                    .weight(1f)
+                    .onFocusChanged {
+                        if (!it.hasFocus) {
+                            calculateItemDiscount()
+                            calculateInvoiceDiscount()
+                        }
                     }
-                }
-                .focusRequester(rDiscount2FocusRequester), keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Number, imeAction = ImeAction.Next
-            ), keyboardActions = KeyboardActions(
-                onNext = { discount1FocusRequester.requestFocus() }),
+                    .focusRequester(rDiscount2FocusRequester),
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Number,
+                    imeAction = ImeAction.Next
+                ),
+                keyboardActions = KeyboardActions(onNext = { discount1FocusRequester.requestFocus() }),
                 colors = OutlinedTextFieldDefaults.colors(
                     unfocusedBorderColor = Color.Black,
                     focusedBorderColor = SettingsModel.buttonColor,
@@ -338,35 +391,45 @@ fun EditInvoiceItemView(
         }
 
         Row(
-            modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Text(
-                "Disc", modifier = Modifier
+                "Disc",
+                modifier = Modifier
                     .width(60.dp)
                     .height(60.dp)
                     .wrapContentHeight(
                         align = Alignment.CenterVertically
-                    ), color = SettingsModel.textColor
+                    ),
+                color = SettingsModel.textColor
             )
-            OutlinedTextField(value = discount1, onValueChange = {
-                discount1 = Utils.getDoubleValue(
-                    it, discount1
-                )
-                isPercentageChanged = true
-                invoiceHeader.invoiceHeadDiscount = discount1.toDoubleOrNull() ?: 0.0
-            }, placeholder = {
-                Text(text = "0.0")
-            }, modifier = Modifier
-                .weight(1f)
-                .onFocusChanged {
-                    if (!it.hasFocus) {
-                        calculateInvoiceDiscount()
+            OutlinedTextField(value = discount1,
+                onValueChange = {
+                    discount1 = Utils.getDoubleValue(
+                        it,
+                        discount1
+                    )
+                    isPercentageChanged = true
+                    invoiceHeader.invoiceHeadDiscount = discount1.toDoubleOrNull() ?: 0.0
+                },
+                placeholder = {
+                    Text(text = "0.0")
+                },
+                modifier = Modifier
+                    .weight(1f)
+                    .onFocusChanged {
+                        if (!it.hasFocus) {
+                            calculateItemDiscount()
+                            calculateInvoiceDiscount()
+                        }
                     }
-                }
-                .focusRequester(discount1FocusRequester), keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Number, imeAction = ImeAction.Next
-            ), keyboardActions = KeyboardActions(
-                onNext = { discount2FocusRequester.requestFocus() }),
+                    .focusRequester(discount1FocusRequester),
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Number,
+                    imeAction = ImeAction.Next
+                ),
+                keyboardActions = KeyboardActions(onNext = { discount2FocusRequester.requestFocus() }),
                 colors = OutlinedTextFieldDefaults.colors(
                     unfocusedBorderColor = Color.Black,
                     focusedBorderColor = SettingsModel.buttonColor,
@@ -374,25 +437,32 @@ fun EditInvoiceItemView(
                     unfocusedTextColor = Color.Black,
                 )
             )
-            OutlinedTextField(value = discount2, onValueChange = {
-                discount2 = Utils.getDoubleValue(
-                    it, discount2
-                )
-                isPercentageChanged = false
-                invoiceHeader.invoiceHeadDiscountAmount = discount2.toDoubleOrNull() ?: 0.0
-            }, placeholder = {
-                Text(text = "0.0")
-            }, modifier = Modifier
-                .weight(1f)
-                .onFocusChanged {
-                    if (!it.hasFocus) {
-                        calculateInvoiceDiscount()
+            OutlinedTextField(value = discount2,
+                onValueChange = {
+                    discount2 = Utils.getDoubleValue(
+                        it,
+                        discount2
+                    )
+                    isPercentageChanged = false
+                    invoiceHeader.invoiceHeadDiscountAmount = discount2.toDoubleOrNull() ?: 0.0
+                },
+                placeholder = {
+                    Text(text = "0.0")
+                },
+                modifier = Modifier
+                    .weight(1f)
+                    .onFocusChanged {
+                        if (!it.hasFocus) {
+                            calculateItemDiscount()
+                            calculateInvoiceDiscount()
+                        }
                     }
-                }
-                .focusRequester(discount2FocusRequester), keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Number, imeAction = ImeAction.Next
-            ), keyboardActions = KeyboardActions(
-                onNext = { clientExtraNameRequester.requestFocus() }),
+                    .focusRequester(discount2FocusRequester),
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Number,
+                    imeAction = ImeAction.Next
+                ),
+                keyboardActions = KeyboardActions(onNext = { clientExtraNameRequester.requestFocus() }),
                 colors = OutlinedTextFieldDefaults.colors(
                     unfocusedBorderColor = Color.Black,
                     focusedBorderColor = SettingsModel.buttonColor,
@@ -402,29 +472,38 @@ fun EditInvoiceItemView(
             )
         }
 
-        UITextField(modifier = Modifier.padding(10.dp), defaultValue = clientExtraName,
-            label = "Client Exta Name", focusRequester = clientExtraNameRequester, onAction = {
+        UITextField(modifier = Modifier.padding(10.dp),
+            defaultValue = clientExtraName,
+            label = "Client Exta Name",
+            focusRequester = clientExtraNameRequester,
+            onAction = {
                 itemExtraNameFocusRequester.requestFocus()
             }) {
             clientExtraName = it
         }
 
-        UITextField(modifier = Modifier.padding(10.dp), defaultValue = itemExtraName,
-            label = "Item Extra Name", focusRequester = itemExtraNameFocusRequester,
+        UITextField(modifier = Modifier.padding(10.dp),
+            defaultValue = itemExtraName,
+            label = "Item Extra Name",
+            focusRequester = itemExtraNameFocusRequester,
             onAction = { invoiceNoteFocusRequester.requestFocus() }) {
             itemExtraName = it
         }
 
-        UITextField(modifier = Modifier.padding(10.dp), defaultValue = invoiceNote,
-            label = "Invoice Note", focusRequester = invoiceNoteFocusRequester,
+        UITextField(modifier = Modifier.padding(10.dp),
+            defaultValue = invoiceNote,
+            label = "Invoice Note",
+            focusRequester = invoiceNoteFocusRequester,
             onAction = {
                 itemNoteFocusRequester.requestFocus()
             }) {
             invoiceNote = it
         }
 
-        UITextField(modifier = Modifier.padding(10.dp), defaultValue = itemNote,
-            label = "Item Note", focusRequester = itemNoteFocusRequester,
+        UITextField(modifier = Modifier.padding(10.dp),
+            defaultValue = itemNote,
+            label = "Item Note",
+            focusRequester = itemNoteFocusRequester,
             onAction = {
                 if (SettingsModel.showTax) {
                     taxFocusRequester.requestFocus()
@@ -451,8 +530,11 @@ fun EditInvoiceItemView(
                     UITextField(modifier = Modifier
                         .weight(1f)
                         .padding(10.dp),
-                        defaultValue = taxState, label = "Tax", keyboardType = KeyboardType.Decimal,
-                        focusRequester = taxFocusRequester, onAction = {
+                        defaultValue = taxState,
+                        label = "Tax",
+                        keyboardType = KeyboardType.Decimal,
+                        focusRequester = taxFocusRequester,
+                        onAction = {
                             if (SettingsModel.showTax1) {
                                 tax1FocusRequester.requestFocus()
                             } else if (SettingsModel.showTax2) {
@@ -460,14 +542,16 @@ fun EditInvoiceItemView(
                             } else {
                                 keyboardController?.hide()
                             }
-                        }, onFocusChanged = {
+                        },
+                        onFocusChanged = {
                             if (!it.hasFocus) {
                                 calculateItemDiscount()
                                 calculateInvoiceDiscount()
                             }
                         }) {
                         taxState = Utils.getDoubleValue(
-                            it, taxState
+                            it,
+                            taxState
                         )
                         invoiceItemModel.invoice.invoiceTax = taxState.toDoubleOrNull() ?: 0.0
                     }
@@ -476,22 +560,26 @@ fun EditInvoiceItemView(
                     UITextField(modifier = Modifier
                         .weight(1f)
                         .padding(10.dp),
-                        defaultValue = tax1State, label = "Tax1",
-                        keyboardType = KeyboardType.Decimal, focusRequester = tax1FocusRequester,
+                        defaultValue = tax1State,
+                        label = "Tax1",
+                        keyboardType = KeyboardType.Decimal,
+                        focusRequester = tax1FocusRequester,
                         onAction = {
                             if (SettingsModel.showTax2) {
                                 tax2FocusRequester.requestFocus()
                             } else {
                                 keyboardController?.hide()
                             }
-                        }, onFocusChanged = {
+                        },
+                        onFocusChanged = {
                             if (!it.hasFocus) {
                                 calculateItemDiscount()
                                 calculateInvoiceDiscount()
                             }
                         }) {
                         tax1State = Utils.getDoubleValue(
-                            it, tax1State
+                            it,
+                            tax1State
                         )
                         invoiceItemModel.invoice.invoiceTax1 = tax1State.toDoubleOrNull() ?: 0.0
                     }
@@ -500,9 +588,12 @@ fun EditInvoiceItemView(
                     UITextField(modifier = Modifier
                         .weight(1f)
                         .padding(10.dp),
-                        defaultValue = tax2State, label = "Tax2",
-                        keyboardType = KeyboardType.Decimal, focusRequester = tax2FocusRequester,
-                        imeAction = ImeAction.Done, onAction = { keyboardController?.hide() },
+                        defaultValue = tax2State,
+                        label = "Tax2",
+                        keyboardType = KeyboardType.Decimal,
+                        focusRequester = tax2FocusRequester,
+                        imeAction = ImeAction.Done,
+                        onAction = { keyboardController?.hide() },
                         onFocusChanged = {
                             if (!it.hasFocus) {
                                 calculateItemDiscount()
@@ -510,7 +601,8 @@ fun EditInvoiceItemView(
                             }
                         }) {
                         tax2State = Utils.getDoubleValue(
-                            it, tax1State
+                            it,
+                            tax1State
                         )
                         invoiceItemModel.invoice.invoiceTax2 = tax2State.toDoubleOrNull() ?: 0.0
                     }
@@ -528,7 +620,8 @@ fun EditInvoiceItemView(
             UIButton(
                 modifier = Modifier
                     .weight(1f)
-                    .fillMaxHeight(), text = "Save",
+                    .fillMaxHeight(),
+                text = "Save",
                 shape = RoundedCornerShape(15.dp)
             ) {
                 invoiceHeader.invoiceHeadNote = invoiceNote
@@ -536,8 +629,7 @@ fun EditInvoiceItemView(
                 invoiceHeader.invoiceHeadDiscount = discount1.toDoubleOrNull() ?: 0.0
                 invoiceHeader.invoiceHeadDiscountAmount = discount2.toDoubleOrNull() ?: 0.0
 
-                invoiceItemModel.invoice.invoicePrice =
-                    price.toDoubleOrNull() ?: invoiceItemModel.invoiceItem.itemUnitPrice
+                invoiceItemModel.invoice.invoicePrice = price.toDoubleOrNull() ?: invoiceItemModel.invoiceItem.itemUnitPrice
                 invoiceItemModel.invoice.invoiceTax = taxState.toDoubleOrNull() ?: 0.0
                 invoiceItemModel.invoice.invoiceTax1 = tax1State.toDoubleOrNull() ?: 0.0
                 invoiceItemModel.invoice.invoiceTax2 = tax2State.toDoubleOrNull() ?: 0.0
@@ -547,14 +639,16 @@ fun EditInvoiceItemView(
                 invoiceItemModel.invoice.invoicExtraName = itemExtraName
                 invoiceItemModel.invoice.invoicNote = itemNote
                 onSave.invoke(
-                    invoiceHeader, invoiceItemModel
+                    invoiceHeader,
+                    invoiceItemModel
                 )
             }
 
             UIButton(
                 modifier = Modifier
                     .weight(1f)
-                    .fillMaxHeight(), text = "Clear",
+                    .fillMaxHeight(),
+                text = "Clear",
                 shape = RoundedCornerShape(15.dp)
             ) {
                 price = ""
@@ -572,7 +666,8 @@ fun EditInvoiceItemView(
             UIButton(
                 modifier = Modifier
                     .weight(1f)
-                    .fillMaxHeight(), text = "Close",
+                    .fillMaxHeight(),
+                text = "Close",
                 shape = RoundedCornerShape(15.dp)
             ) {
                 onClose.invoke()

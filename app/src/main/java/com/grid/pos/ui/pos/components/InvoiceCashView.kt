@@ -71,7 +71,7 @@ fun InvoiceCashView(
     )
     val cashTotalPaid2 = String.format(
         "%.${curr2Decimal}f",
-        (netTotal).times(rate)
+        (cashTotalPaid1.toDoubleOrNull() ?: 0.0).times(rate)
     )
 
     val curr1State by remember { mutableStateOf(currency.currencyCode1 ?: "") }
@@ -235,7 +235,8 @@ fun InvoiceCashView(
                 .padding(vertical = 5.dp),
             horizontalArrangement = Arrangement.spacedBy(5.dp)
         ) {
-            OutlinedTextField(value = cashCurr1Paid,
+            OutlinedTextField(
+                value = cashCurr1Paid,
                 onValueChange = {
                     cashCurr1Paid = Utils.getDoubleValue(
                         it,
@@ -265,7 +266,8 @@ fun InvoiceCashView(
                 )
             )
 
-            OutlinedTextField(value = cashCurr2Paid,
+            OutlinedTextField(
+                value = cashCurr2Paid,
                 onValueChange = {
                     cashCurr2Paid = Utils.getDoubleValue(
                         it,
@@ -367,7 +369,8 @@ fun InvoiceCashView(
                 .padding(vertical = 5.dp),
             horizontalArrangement = Arrangement.spacedBy(5.dp)
         ) {
-            OutlinedTextField(value = creditCurr1Paid,
+            OutlinedTextField(
+                value = creditCurr1Paid,
                 onValueChange = {
                     creditCurr1Paid = Utils.getDoubleValue(
                         it,
@@ -400,7 +403,8 @@ fun InvoiceCashView(
                 )
             )
 
-            OutlinedTextField(value = creditCurr2Paid,
+            OutlinedTextField(
+                value = creditCurr2Paid,
                 onValueChange = {
                     creditCurr2Paid = Utils.getDoubleValue(
                         it,
@@ -502,7 +506,8 @@ fun InvoiceCashView(
                 .padding(vertical = 5.dp),
             horizontalArrangement = Arrangement.spacedBy(5.dp)
         ) {
-            OutlinedTextField(value = debitCurr1Paid,
+            OutlinedTextField(
+                value = debitCurr1Paid,
                 onValueChange = {
                     debitCurr1Paid = Utils.getDoubleValue(
                         it,
@@ -535,7 +540,8 @@ fun InvoiceCashView(
                 )
             )
 
-            OutlinedTextField(value = debitCurr2Paid,
+            OutlinedTextField(
+                value = debitCurr2Paid,
                 onValueChange = {
                     debitCurr2Paid = Utils.getDoubleValue(
                         it,

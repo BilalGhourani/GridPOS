@@ -75,8 +75,8 @@ fun LoginView(
     val keyboardController = LocalSoftwareKeyboardController.current
     val passwordFocusRequester = remember { FocusRequester() }
 
-    var usernameState by remember { mutableStateOf("admin") }
-    var passwordState by remember { mutableStateOf("1") }
+    var usernameState by remember { mutableStateOf("") }
+    var passwordState by remember { mutableStateOf("") }
     var passwordVisibility by remember { mutableStateOf(false) }
 
     val snackbarHostState = remember { SnackbarHostState() }
