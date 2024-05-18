@@ -4,11 +4,11 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Ignore
 import androidx.room.PrimaryKey
-import com.grid.pos.data.DataModel
+import com.google.errorprone.annotations.Keep
 import com.google.firebase.firestore.Exclude
 import com.google.firebase.firestore.PropertyName
+import com.grid.pos.data.DataModel
 import com.grid.pos.utils.Utils
-import org.jetbrains.annotations.NotNull
 
 @Entity(tableName = "company")
 data class Company(
