@@ -8,7 +8,7 @@ plugins {
 android {
     signingConfigs {
         create("release") {
-            storeFile = file("/Users/bilalghourani/Documents/Grid/GridKeystore.keystore")
+            storeFile = file("/Users/bilal/Documents/development/freelance/Grids Android/GridKeystore.keystore")
             storePassword = "Grids123"
             keyAlias = "GridsPOS"
             keyPassword = "Grids123"
