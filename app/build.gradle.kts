@@ -10,7 +10,7 @@ android {
         create("release") {
             storeFile = file("/Users/bilalghourani/Documents/Grid/GridKeystore.keystore")
             storePassword = "Grids123"
-            keyAlias = "GridAlias"
+            keyAlias = "GridsPOS"
             keyPassword = "Grids123"
         }
     }

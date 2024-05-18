@@ -25,6 +25,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -51,11 +52,11 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TablesView(
-    modifier: Modifier = Modifier,
-    navController: NavController? = null,
-    activityScopedViewModel: ActivityScopedViewModel,
-    mainActivity: MainActivity,
-    viewModel: TablesViewModel = hiltViewModel()
+        modifier: Modifier = Modifier,
+        navController: NavController? = null,
+        activityScopedViewModel: ActivityScopedViewModel,
+        mainActivity: MainActivity,
+        viewModel: TablesViewModel = hiltViewModel()
 ) {
     val tablesState: TablesState by viewModel.tablesState.collectAsState(
         TablesState()
@@ -67,11 +68,12 @@ fun TablesView(
     var clientsCountState by remember { mutableStateOf("") }
 
     val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
     LaunchedEffect(tablesState.warning) {
-        if (!tablesState.warning.isNullOrEmpty()) {
-            CoroutineScope(Dispatchers.Main).launch {
+        tablesState.warning?.value?.let { message ->
+            scope.launch {
                 snackbarHostState.showSnackbar(
-                    message = tablesState.warning!!,
+                    message = message,
                     duration = SnackbarDuration.Short,
                 )
             }
@@ -94,15 +96,16 @@ fun TablesView(
     }
 
     GridPOSTheme {
-        Scaffold(
-            containerColor = SettingsModel.backgroundColor,
+        Scaffold(containerColor = SettingsModel.backgroundColor,
             snackbarHost = {
                 SnackbarHost(hostState = snackbarHostState)
             },
             topBar = {
-                Surface(shadowElevation = 3.dp, color = SettingsModel.backgroundColor) {
-                    TopAppBar(
-                        colors = TopAppBarDefaults.mediumTopAppBarColors(containerColor = SettingsModel.topBarColor),
+                Surface(
+                    shadowElevation = 3.dp,
+                    color = SettingsModel.backgroundColor
+                ) {
+                    TopAppBar(colors = TopAppBarDefaults.mediumTopAppBarColors(containerColor = SettingsModel.topBarColor),
                         navigationIcon = {
                             IconButton(onClick = { handleBack() }) {
                                 Icon(
@@ -121,14 +124,12 @@ fun TablesView(
                             )
                         })
                 }
-            }
-        ) {
+            }) {
             Column(
                 modifier = modifier.padding(it)
             ) {
                 if (tablesState.step <= 1) {
-                    UITextField(
-                        modifier = Modifier.padding(10.dp),
+                    UITextField(modifier = Modifier.padding(10.dp),
                         defaultValue = tableNameState,
                         label = "Table Number",
                         maxLines = 3,
@@ -147,13 +148,13 @@ fun TablesView(
                             }
                         }) { tabNo ->
                         tableNameState = Utils.getDoubleValue(
-                            tabNo, tableNameState
+                            tabNo,
+                            tableNameState
                         )
 
                     }
                 } else {
-                    UITextField(
-                        modifier = Modifier.padding(10.dp),
+                    UITextField(modifier = Modifier.padding(10.dp),
                         defaultValue = clientsCountState,
                         label = "Client Number",
                         maxLines = 3,
@@ -164,7 +165,8 @@ fun TablesView(
                             keyboardController?.hide()
                         }) { clients ->
                         clientsCountState = Utils.getDoubleValue(
-                            clients, clientsCountState
+                            clients,
+                            clientsCountState
                         )
 
                     }
@@ -173,14 +175,18 @@ fun TablesView(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(70.dp)
-                        .padding(10.dp), text = "Submit"
+                        .padding(10.dp),
+                    text = "Submit"
                 ) {
                     if (tablesState.step <= 1) {
                         viewModel.fetchInvoiceByTable(tableNameState)
                     } else {
+                        if (clientsCountState.toIntOrNull() == null) {
+                            viewModel.showError("Please enter client counts")
+                            return@UIButton
+                        }
                         tablesState.invoiceHeader.invoiceHeadTaName = tableNameState
-                        tablesState.invoiceHeader.invoiceHeadClientsCount =
-                            clientsCountState.toIntOrNull() ?: 1
+                        tablesState.invoiceHeader.invoiceHeadClientsCount = clientsCountState.toIntOrNull() ?: 1
                         activityScopedViewModel.invoiceHeader = tablesState.invoiceHeader
                         activityScopedViewModel.isFromTable = true
                         tablesState.clear = true

@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.grid.pos.data.Currency.Currency
 import com.grid.pos.data.Currency.CurrencyRepository
 import com.grid.pos.interfaces.OnResult
+import com.grid.pos.model.Event
 import com.grid.pos.model.SettingsModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -15,7 +16,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ManageCurrenciesViewModel @Inject constructor(
-    private val currencyRepository: CurrencyRepository
+        private val currencyRepository: CurrencyRepository
 ) : ViewModel() {
 
     private val _manageCurrenciesState = MutableStateFlow(ManageCurrenciesState())
@@ -31,7 +32,8 @@ class ManageCurrenciesViewModel @Inject constructor(
         SettingsModel.currentCurrency?.let {
             viewModelScope.launch(Dispatchers.Main) {
                 manageCurrenciesState.value = manageCurrenciesState.value.copy(
-                    selectedCurrency = it, fillFields = true
+                    selectedCurrency = it,
+                    fillFields = true
                 )
             }
         }
@@ -42,12 +44,16 @@ class ManageCurrenciesViewModel @Inject constructor(
                 SettingsModel.currentCurrency = currency
                 viewModelScope.launch(Dispatchers.Main) {
                     manageCurrenciesState.value = manageCurrenciesState.value.copy(
-                        selectedCurrency = currency, fillFields = true
+                        selectedCurrency = currency,
+                        fillFields = true
                     )
                 }
             }
 
-            override fun onFailure(message: String, errorCode: Int) {
+            override fun onFailure(
+                    message: String,
+                    errorCode: Int
+            ) {
 
             }
 
@@ -57,7 +63,10 @@ class ManageCurrenciesViewModel @Inject constructor(
     fun saveCurrency(currency: Currency) {
         if (currency.currencyCode1.isNullOrEmpty() || currency.currencyName1.isNullOrEmpty() || currency.currencyCode2.isNullOrEmpty() || currency.currencyName2.isNullOrEmpty() || currency.currencyRate.isNaN()) {
             manageCurrenciesState.value = manageCurrenciesState.value.copy(
-                warning = "Please fill all inputs", isLoading = false
+                warning = Event(
+                    "Please fill all inputs"
+                ),
+                isLoading = false
             )
             return
         }
@@ -69,12 +78,16 @@ class ManageCurrenciesViewModel @Inject constructor(
             override fun onSuccess(result: Any) {
                 viewModelScope.launch(Dispatchers.Main) {
                     manageCurrenciesState.value = manageCurrenciesState.value.copy(
-                        selectedCurrency = result as Currency, isLoading = false
+                        selectedCurrency = result as Currency,
+                        isLoading = false
                     )
                 }
             }
 
-            override fun onFailure(message: String, errorCode: Int) {
+            override fun onFailure(
+                    message: String,
+                    errorCode: Int
+            ) {
                 viewModelScope.launch(Dispatchers.Main) {
                     manageCurrenciesState.value = manageCurrenciesState.value.copy(
                         isLoading = false
@@ -86,9 +99,15 @@ class ManageCurrenciesViewModel @Inject constructor(
         CoroutineScope(Dispatchers.IO).launch {
             if (isInserting) {
                 currency.prepareForInsert()
-                currencyRepository.insert(currency, callback)
+                currencyRepository.insert(
+                    currency,
+                    callback
+                )
             } else {
-                currencyRepository.update(currency, callback)
+                currencyRepository.update(
+                    currency,
+                    callback
+                )
             }
         }
     }

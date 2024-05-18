@@ -29,6 +29,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -82,11 +83,12 @@ fun ManageThirdPartiesView(
     var isDefaultState by remember { mutableStateOf(false) }
 
     val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
     LaunchedEffect(manageThirdPartiesState.warning) {
-        if (!manageThirdPartiesState.warning.isNullOrEmpty()) {
-            CoroutineScope(Dispatchers.Main).launch {
+        manageThirdPartiesState.warning?.value?.let { message ->
+            scope.launch {
                 snackbarHostState.showSnackbar(
-                    message = manageThirdPartiesState.warning!!,
+                    message = message,
                     duration = SnackbarDuration.Short,
                 )
             }

@@ -15,6 +15,7 @@ import com.grid.pos.data.PosReceipt.PosReceiptRepository
 import com.grid.pos.data.ThirdParty.ThirdParty
 import com.grid.pos.data.ThirdParty.ThirdPartyRepository
 import com.grid.pos.interfaces.OnResult
+import com.grid.pos.model.Event
 import com.grid.pos.model.InvoiceItemModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -149,7 +150,7 @@ class POSViewModel @Inject constructor(
     ) {
         if (invoiceItems.isEmpty()) {
             posState.value = posState.value.copy(
-                warning = "invoice doesn't contains any item!",
+                warning = Event("invoice doesn't contains any item!"),
                 isLoading = false,
             )
             return
@@ -176,7 +177,7 @@ class POSViewModel @Inject constructor(
             ) {
                 viewModelScope.launch(Dispatchers.Main) {
                     posState.value = posState.value.copy(
-                        warning = message,
+                        warning =  Event(message),
                         isLoading = false
                     )
                 }
@@ -216,7 +217,7 @@ class POSViewModel @Inject constructor(
                             ) {
                                 viewModelScope.launch(Dispatchers.Main) {
                                     posState.value = posState.value.copy(
-                                        warning = message,
+                                        warning =  Event(message),
                                         isLoading = false
                                     )
                                 }
@@ -261,7 +262,7 @@ class POSViewModel @Inject constructor(
                             ) {
                                 viewModelScope.launch(Dispatchers.Main) {
                                     posState.value = posState.value.copy(
-                                        warning = message, isLoading = false
+                                        warning =  Event(message), isLoading = false
                                     )
                                 }
                             }
@@ -295,7 +296,7 @@ class POSViewModel @Inject constructor(
             ) {
                 viewModelScope.launch(Dispatchers.Main) {
                     posState.value = posState.value.copy(
-                        warning = message,
+                        warning =  Event(message),
                         isLoading = false
                     )
                 }

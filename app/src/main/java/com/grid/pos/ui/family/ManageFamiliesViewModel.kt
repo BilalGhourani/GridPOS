@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.grid.pos.data.Family.Family
 import com.grid.pos.data.Family.FamilyRepository
 import com.grid.pos.interfaces.OnResult
+import com.grid.pos.model.Event
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -14,7 +15,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ManageFamiliesViewModel @Inject constructor(
-    private val familyRepository: FamilyRepository
+        private val familyRepository: FamilyRepository
 ) : ViewModel() {
 
     private val _manageFamiliesState = MutableStateFlow(ManageFamiliesState())
@@ -35,6 +36,7 @@ class ManageFamiliesViewModel @Inject constructor(
             }
         }
     }
+
     private suspend fun fetchFamilies() {
         familyRepository.getAllFamilies(object : OnResult {
             override fun onSuccess(result: Any) {
@@ -49,7 +51,10 @@ class ManageFamiliesViewModel @Inject constructor(
                 }
             }
 
-            override fun onFailure(message: String, errorCode: Int) {
+            override fun onFailure(
+                    message: String,
+                    errorCode: Int
+            ) {
 
             }
 
@@ -60,7 +65,7 @@ class ManageFamiliesViewModel @Inject constructor(
         val family = manageFamiliesState.value.selectedFamily
         if (family.familyName.isNullOrEmpty()) {
             manageFamiliesState.value = manageFamiliesState.value.copy(
-                warning = "Please fill family name.",
+                warning = Event("Please fill family name."),
                 isLoading = false
             )
             return
@@ -86,7 +91,10 @@ class ManageFamiliesViewModel @Inject constructor(
                 }
             }
 
-            override fun onFailure(message: String, errorCode: Int) {
+            override fun onFailure(
+                    message: String,
+                    errorCode: Int
+            ) {
                 viewModelScope.launch(Dispatchers.Main) {
                     manageFamiliesState.value = manageFamiliesState.value.copy(
                         isLoading = false
@@ -99,9 +107,15 @@ class ManageFamiliesViewModel @Inject constructor(
             CoroutineScope(Dispatchers.IO).launch {
                 if (isInserting) {
                     it.prepareForInsert()
-                    familyRepository.insert(it, callback)
+                    familyRepository.insert(
+                        it,
+                        callback
+                    )
                 } else {
-                    familyRepository.update(it, callback)
+                    familyRepository.update(
+                        it,
+                        callback
+                    )
                 }
             }
         }
@@ -111,7 +125,7 @@ class ManageFamiliesViewModel @Inject constructor(
         val family = manageFamiliesState.value.selectedFamily
         if (family.familyId.isEmpty()) {
             manageFamiliesState.value = manageFamiliesState.value.copy(
-                warning = "Please select an family to delete",
+                warning = Event("Please select an family to delete"),
                 isLoading = false
             )
             return
@@ -122,38 +136,42 @@ class ManageFamiliesViewModel @Inject constructor(
         )
 
         CoroutineScope(Dispatchers.IO).launch {
-            familyRepository.delete(family, object : OnResult {
-                override fun onSuccess(result: Any) {
-                    val families = manageFamiliesState.value.families
-                    val position =
-                        families.indexOfFirst {
+            familyRepository.delete(
+                family,
+                object : OnResult {
+                    override fun onSuccess(result: Any) {
+                        val families = manageFamiliesState.value.families
+                        val position = families.indexOfFirst {
                             family.familyId.equals(
                                 it.familyId,
                                 ignoreCase = true
                             )
                         }
-                    if (position >= 0) {
-                        families.removeAt(position)
+                        if (position >= 0) {
+                            families.removeAt(position)
+                        }
+                        viewModelScope.launch(Dispatchers.Main) {
+                            manageFamiliesState.value = manageFamiliesState.value.copy(
+                                families = families,
+                                selectedFamily = Family(),
+                                isLoading = false,
+                                clear = true
+                            )
+                        }
                     }
-                    viewModelScope.launch(Dispatchers.Main) {
-                        manageFamiliesState.value = manageFamiliesState.value.copy(
-                            families = families,
-                            selectedFamily = Family(),
-                            isLoading = false,
-                            clear = true
-                        )
-                    }
-                }
 
-                override fun onFailure(message: String, errorCode: Int) {
-                    viewModelScope.launch(Dispatchers.Main) {
-                        manageFamiliesState.value = manageFamiliesState.value.copy(
-                            isLoading = false
-                        )
+                    override fun onFailure(
+                            message: String,
+                            errorCode: Int
+                    ) {
+                        viewModelScope.launch(Dispatchers.Main) {
+                            manageFamiliesState.value = manageFamiliesState.value.copy(
+                                isLoading = false
+                            )
+                        }
                     }
-                }
 
-            })
+                })
         }
     }
 }

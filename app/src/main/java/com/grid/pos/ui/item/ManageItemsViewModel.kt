@@ -7,6 +7,7 @@ import com.grid.pos.data.Family.FamilyRepository
 import com.grid.pos.data.Item.Item
 import com.grid.pos.data.Item.ItemRepository
 import com.grid.pos.interfaces.OnResult
+import com.grid.pos.model.Event
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -94,7 +95,7 @@ class ManageItemsViewModel @Inject constructor(
     fun saveItem(item: Item) {
         if (item.itemName.isNullOrEmpty() || item.itemFaId.isNullOrEmpty()) {
             manageItemsState.value = manageItemsState.value.copy(
-                warning = "Please fill item name and family", isLoading = false
+                warning = Event("Please fill item name and family"), isLoading = false
             )
             return
         }
@@ -140,7 +141,7 @@ class ManageItemsViewModel @Inject constructor(
     fun deleteSelectedItem(item: Item) {
         if (item.itemId.isEmpty()) {
             manageItemsState.value = manageItemsState.value.copy(
-                warning = "Please select an Item to delete", isLoading = false
+                warning = Event("Please select an Item to delete"), isLoading = false
             )
             return
         }

@@ -1,5 +1,6 @@
 package com.grid.pos.ui.login
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -31,6 +32,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
@@ -60,28 +62,32 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+@SuppressLint("CoroutineCreationDuringComposition")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginView(
-    navController: NavController? = null,
-    activityScopedViewModel: ActivityScopedViewModel? = null,
-    modifier: Modifier = Modifier,
-    viewModel: LoginViewModel = hiltViewModel()
+        navController: NavController? = null,
+        activityScopedViewModel: ActivityScopedViewModel? = null,
+        modifier: Modifier = Modifier,
+        viewModel: LoginViewModel = hiltViewModel()
 ) {
-    val loginState: LoginState by viewModel.usersState.collectAsState(LoginState())
+    val loginState by viewModel.usersState.collectAsState()
     val keyboardController = LocalSoftwareKeyboardController.current
-    val snackbarHostState = remember { SnackbarHostState() }
     val passwordFocusRequester = remember { FocusRequester() }
 
-    var usernameState by remember { mutableStateOf("") }
-    var passwordState by remember { mutableStateOf("") }
+    var usernameState by remember { mutableStateOf("admin") }
+    var passwordState by remember { mutableStateOf("1") }
     var passwordVisibility by remember { mutableStateOf(false) }
 
-    LaunchedEffect(loginState.warning, loginState.isLoggedIn) {
-        if (!loginState.warning.isNullOrEmpty()) {
-            CoroutineScope(Dispatchers.Main).launch {
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+
+    LaunchedEffect(loginState.warning) {
+        loginState.warning?.value?.let { message ->
+            scope.launch {
                 val snackbarResult = snackbarHostState.showSnackbar(
-                    message = loginState.warning!!, duration = SnackbarDuration.Short,
+                    message = message,
+                    duration = SnackbarDuration.Short,
                     actionLabel = loginState.warningAction
                 )
                 when (snackbarResult) {
@@ -93,6 +99,8 @@ fun LoginView(
                 }
             }
         }
+    }
+    LaunchedEffect(loginState.isLoggedIn) {
         if (loginState.isLoggedIn) {
             CoroutineScope(Dispatchers.IO).launch {
                 activityScopedViewModel!!.activityState.value.isLoggedIn = true
@@ -117,28 +125,37 @@ fun LoginView(
         }
     }
     GridPOSTheme {
-        Scaffold(containerColor = SettingsModel.backgroundColor, snackbarHost = {
-            SnackbarHost(hostState = snackbarHostState)
-        }, topBar = {
-            Surface(shadowElevation = 3.dp, color = SettingsModel.backgroundColor) {
-                TopAppBar(colors = TopAppBarDefaults.mediumTopAppBarColors(
-                    containerColor = SettingsModel.topBarColor
-                ), title = {
-                    Text(
-                        text = "Login", color = SettingsModel.textColor, fontSize = 16.sp,
-                        textAlign = TextAlign.Center
-                    )
-                }, actions = {
-                    IconButton(onClick = { navController?.navigate("SettingsView") }) {
-                        Icon(
-                            painterResource(R.drawable.ic_settings),
-                            contentDescription = "Back",
-                            tint = SettingsModel.buttonColor
-                        )
-                    }
-                })
-            }
-        }) {
+        Scaffold(containerColor = SettingsModel.backgroundColor,
+            snackbarHost = {
+                SnackbarHost(hostState = snackbarHostState)
+            },
+            topBar = {
+                Surface(
+                    shadowElevation = 3.dp,
+                    color = SettingsModel.backgroundColor
+                ) {
+                    TopAppBar(colors = TopAppBarDefaults.mediumTopAppBarColors(
+                        containerColor = SettingsModel.topBarColor
+                    ),
+                        title = {
+                            Text(
+                                text = "Login",
+                                color = SettingsModel.textColor,
+                                fontSize = 16.sp,
+                                textAlign = TextAlign.Center
+                            )
+                        },
+                        actions = {
+                            IconButton(onClick = { navController?.navigate("SettingsView") }) {
+                                Icon(
+                                    painterResource(R.drawable.ic_settings),
+                                    contentDescription = "Back",
+                                    tint = SettingsModel.buttonColor
+                                )
+                            }
+                        })
+                }
+            }) {
             Box(
                 modifier = modifier
                     .fillMaxSize()
@@ -146,7 +163,8 @@ fun LoginView(
                     .background(color = Color.Transparent)
             ) {
                 Box(
-                    modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.TopCenter
                 ) {
                     Column(
                         modifier = Modifier
@@ -155,21 +173,29 @@ fun LoginView(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         UITextField(modifier = Modifier.padding(10.dp),
-                            defaultValue = usernameState, label = "Username",
+                            defaultValue = usernameState,
+                            label = "Username",
                             placeHolder = "Username",
                             onAction = { passwordFocusRequester.requestFocus() }) {
                             usernameState = it
                         }
 
                         UITextField(modifier = Modifier.padding(10.dp),
-                            defaultValue = passwordState, label = "Password",
-                            placeHolder = "Password", focusRequester = passwordFocusRequester,
-                            keyboardType = KeyboardType.Password, imeAction = ImeAction.Done,
+                            defaultValue = passwordState,
+                            label = "Password",
+                            placeHolder = "Password",
+                            focusRequester = passwordFocusRequester,
+                            keyboardType = KeyboardType.Password,
+                            imeAction = ImeAction.Done,
                             visualTransformation = if (passwordVisibility) VisualTransformation.None else PasswordVisualTransformation(),
                             onAction = {
                                 keyboardController?.hide()
-                                viewModel.login(usernameState, passwordState)
-                            }, trailingIcon = {
+                                viewModel.login(
+                                    usernameState,
+                                    passwordState
+                                )
+                            },
+                            trailingIcon = {
                                 IconButton(onClick = { passwordVisibility = !passwordVisibility }) {
                                     Icon(
                                         imageVector = if (passwordVisibility) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
@@ -188,7 +214,10 @@ fun LoginView(
                             text = "Log In"
                         ) {
                             keyboardController?.hide()
-                            viewModel.login(usernameState, passwordState)
+                            viewModel.login(
+                                usernameState,
+                                passwordState
+                            )
                         }
                     }
                 }

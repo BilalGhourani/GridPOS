@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.grid.pos.data.ThirdParty.ThirdParty
 import com.grid.pos.data.ThirdParty.ThirdPartyRepository
 import com.grid.pos.interfaces.OnResult
+import com.grid.pos.model.Event
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -62,7 +63,7 @@ class ManageThirdPartiesViewModel @Inject constructor(
         val thirdParty = manageThirdPartiesState.value.selectedThirdParty
         if (thirdParty.thirdPartyName.isNullOrEmpty()) {
             manageThirdPartiesState.value = manageThirdPartiesState.value.copy(
-                warning = "Please fill Third Party name.",
+                warning = Event("Please fill Third Party name."),
                 isLoading = false
             )
             return
@@ -111,7 +112,7 @@ class ManageThirdPartiesViewModel @Inject constructor(
         val thirdParty = manageThirdPartiesState.value.selectedThirdParty
         if (thirdParty.thirdPartyId.isEmpty()) {
             manageThirdPartiesState.value = manageThirdPartiesState.value.copy(
-                warning = "Please select an third party to delete",
+                warning = Event("Please select an third party to delete"),
                 isLoading = false
             )
             return

@@ -20,15 +20,20 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -78,6 +83,19 @@ fun ManageFamiliesView(
     var imageState by remember { mutableStateOf("") }
     var oldImage: String? = null
 
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+    LaunchedEffect(manageFamiliesState.warning) {
+        manageFamiliesState.warning?.value?.let { message ->
+            scope.launch {
+                snackbarHostState.showSnackbar(
+                    message = message,
+                    duration = SnackbarDuration.Short,
+                )
+            }
+        }
+    }
+
     fun handleBack() {
         if (manageFamiliesState.families.isNotEmpty()) {
             activityScopedViewModel.families = manageFamiliesState.families
@@ -88,25 +106,38 @@ fun ManageFamiliesView(
         handleBack()
     }
     GridPOSTheme {
-        Scaffold(containerColor = SettingsModel.backgroundColor, topBar = {
-            Surface(shadowElevation = 3.dp, color = SettingsModel.backgroundColor) {
-                TopAppBar(colors = TopAppBarDefaults.mediumTopAppBarColors(
-                    containerColor = SettingsModel.topBarColor
-                ), navigationIcon = {
-                    IconButton(onClick = { handleBack() }) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back", tint = SettingsModel.buttonColor
-                        )
-                    }
-                }, title = {
-                    Text(
-                        text = "Manage Families", color = SettingsModel.textColor, fontSize = 16.sp,
-                        textAlign = TextAlign.Center
-                    )
-                })
-            }
-        }) {
+        Scaffold(
+            containerColor = SettingsModel.backgroundColor,
+            snackbarHost = {
+                SnackbarHost(hostState = snackbarHostState)
+            },
+            topBar = {
+                Surface(
+                    shadowElevation = 3.dp,
+                    color = SettingsModel.backgroundColor
+                ) {
+                    TopAppBar(colors = TopAppBarDefaults.mediumTopAppBarColors(
+                        containerColor = SettingsModel.topBarColor
+                    ),
+                        navigationIcon = {
+                            IconButton(onClick = { handleBack() }) {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                    contentDescription = "Back",
+                                    tint = SettingsModel.buttonColor
+                                )
+                            }
+                        },
+                        title = {
+                            Text(
+                                text = "Manage Families",
+                                color = SettingsModel.textColor,
+                                fontSize = 16.sp,
+                                textAlign = TextAlign.Center
+                            )
+                        })
+                }
+            }) {
             Box(
                 modifier = modifier
                     .fillMaxSize()
@@ -114,7 +145,8 @@ fun ManageFamiliesView(
                     .background(color = Color.Transparent)
             ) {
                 Box(
-                    modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.TopCenter
                 ) {
                     Column(
                         modifier = Modifier
@@ -133,30 +165,37 @@ fun ManageFamiliesView(
                             imageState = family.familyImage ?: ""
                         }
 
-                        UITextField(modifier = Modifier.padding(10.dp), defaultValue = nameState,
-                            label = "Name", placeHolder = "Enter Name",
+                        UITextField(modifier = Modifier.padding(10.dp),
+                            defaultValue = nameState,
+                            label = "Name",
+                            placeHolder = "Enter Name",
                             onAction = { imageFocusRequester.requestFocus() }) { name ->
                             nameState = name
                             manageFamiliesState.selectedFamily.familyName = name
                         }
 
-                        UITextField(modifier = Modifier.padding(10.dp), defaultValue = imageState,
-                            label = "Image", placeHolder = "Image",
-                            focusRequester = imageFocusRequester, imeAction = ImeAction.Done,
-                            onAction = { keyboardController?.hide() }, trailingIcon = {
+                        UITextField(modifier = Modifier.padding(10.dp),
+                            defaultValue = imageState,
+                            label = "Image",
+                            placeHolder = "Image",
+                            focusRequester = imageFocusRequester,
+                            imeAction = ImeAction.Done,
+                            onAction = { keyboardController?.hide() },
+                            trailingIcon = {
                                 IconButton(onClick = {
-                                    mainActivity.launchGalleryPicker(
-                                        mediaType = ActivityResultContracts.PickVisualMedia.ImageOnly,
+                                    mainActivity.launchGalleryPicker(mediaType = ActivityResultContracts.PickVisualMedia.ImageOnly,
                                         object : OnGalleryResult {
                                             override fun onGalleryResult(uris: List<Uri>) {
                                                 if (uris.isNotEmpty()) {
                                                     manageFamiliesState.isLoading = true
                                                     CoroutineScope(Dispatchers.IO).launch {
-                                                        val internalPath = Utils.saveToInternalStorage(
-                                                            context = mainActivity,
-                                                            parent = "family", uris[0],
-                                                            nameState.replace(" ", "_")
-                                                                .ifEmpty { "family" })
+                                                        val internalPath = Utils.saveToInternalStorage(context = mainActivity,
+                                                            parent = "family",
+                                                            uris[0],
+                                                            nameState.replace(
+                                                                " ",
+                                                                "_"
+                                                            ).ifEmpty { "family" })
                                                         withContext(Dispatchers.Main) {
                                                             manageFamiliesState.isLoading = false
                                                             if (internalPath != null) {
@@ -172,7 +211,8 @@ fun ManageFamiliesView(
                                         })
                                 }) {
                                     Icon(
-                                        Icons.Default.Image, contentDescription = "Image",
+                                        Icons.Default.Image,
+                                        contentDescription = "Image",
                                         tint = SettingsModel.buttonColor
                                     )
                                 }
@@ -191,7 +231,8 @@ fun ManageFamiliesView(
                             UIButton(
                                 modifier = Modifier
                                     .weight(.33f)
-                                    .padding(3.dp), text = "Save"
+                                    .padding(3.dp),
+                                text = "Save"
                             ) {
                                 oldImage?.let { old ->
                                     File(old).deleteOnExit()
@@ -202,7 +243,8 @@ fun ManageFamiliesView(
                             UIButton(
                                 modifier = Modifier
                                     .weight(.33f)
-                                    .padding(3.dp), text = "Delete"
+                                    .padding(3.dp),
+                                text = "Delete"
                             ) {
                                 oldImage?.let { old ->
                                     File(old).deleteOnExit()
@@ -216,7 +258,8 @@ fun ManageFamiliesView(
                             UIButton(
                                 modifier = Modifier
                                     .weight(.33f)
-                                    .padding(3.dp), text = "Close"
+                                    .padding(3.dp),
+                                text = "Close"
                             ) {
                                 navController?.popBackStack()
                             }

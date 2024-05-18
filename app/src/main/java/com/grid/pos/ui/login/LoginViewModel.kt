@@ -6,6 +6,7 @@ import com.grid.pos.App
 import com.grid.pos.data.User.User
 import com.grid.pos.data.User.UserRepository
 import com.grid.pos.interfaces.OnResult
+import com.grid.pos.model.Event
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.DataStoreManager
 import com.grid.pos.utils.Extension.encryptCBC
@@ -17,43 +18,48 @@ import javax.inject.Inject
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val repository: UserRepository
+        private val repository: UserRepository
 ) : ViewModel() {
 
     private val _usersState = MutableStateFlow(LoginState())
     val usersState: MutableStateFlow<LoginState> = _usersState
 
     fun login(
-        username: String,
-        password: String
+            username: String,
+            password: String
     ) {
-        if (SettingsModel.loadFromRemote && !App.getInstance().isFirebaseInitiated()) {
-            usersState.value = usersState.value.copy(
-                warning = "unable to connect to server",
-                isLoading = false,
-                warningAction = "Settings",
-            )
+        if (username.isEmpty() || password.isEmpty()) {
+            viewModelScope.launch(Dispatchers.Main) {
+                usersState.value = usersState.value.copy(
+                    warning = Event( "Please fill all inputs"),
+                    isLoading = false,
+                    warningAction = ""
+                )
+            }
             return
         }
-        if (username.isEmpty() || password.isEmpty()) {
-            usersState.value = usersState.value.copy(
-                warning = "Please fill all inputs",
-                isLoading = false,
-                warningAction = "",
-            )
+        if (SettingsModel.loadFromRemote && !App.getInstance().isFirebaseInitiated()) {
+            viewModelScope.launch(Dispatchers.Main) {
+                usersState.value = usersState.value.copy(
+                    warning = Event( "unable to connect to server"),
+                    isLoading = false,
+                    warningAction = "Settings"
+                )
+            }
             return
         }
         if (SettingsModel.currentCompany?.companySS == true) {
-            usersState.value = usersState.value.copy(
-                warning = SettingsModel.companyAccessWarning,
-                isLoading = false,
-                warningAction = "",
-            )
+            viewModelScope.launch(Dispatchers.Main) {
+                usersState.value = usersState.value.copy(
+                    warning = Event( SettingsModel.companyAccessWarning),
+                    isLoading = false,
+                    warningAction = ""
+                )
+            }
             return
         }
         usersState.value = usersState.value.copy(
             isLoading = true,
-            warning = "",
             warningAction = ""
         )
         val decPassword = password.encryptCBC()
@@ -66,7 +72,7 @@ class LoginViewModel @Inject constructor(
                         viewModelScope.launch(Dispatchers.Main) {
                             usersState.value = usersState.value.copy(
                                 isLoading = false,
-                                warning = "no user found!",
+                                warning = Event( "no user found!"),
                                 warningAction = if (!SettingsModel.loadFromRemote) "Register" else ""
                             )
                         }
@@ -97,13 +103,12 @@ class LoginViewModel @Inject constructor(
                             if (user == null) {
                                 usersState.value = usersState.value.copy(
                                     isLoading = false,
-                                    warning = "Username or Password are incorrect!",
+                                    warning = Event( "Username or Password are incorrect!"),
                                     warningAction = ""
                                 )
                             } else {
                                 usersState.value = usersState.value.copy(
-                                    selectedUser = user!!,
-                                    /*isLoading = false,*/
+                                    selectedUser = user!!,/*isLoading = false,*/
                                     isLoggedIn = true
                                 )
                             }
@@ -112,8 +117,8 @@ class LoginViewModel @Inject constructor(
                 }
 
                 override fun onFailure(
-                    message: String,
-                    errorCode: Int
+                        message: String,
+                        errorCode: Int
                 ) {
 
                 }/*repository.getUserByCredentials(username, password, object : OnResult {

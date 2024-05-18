@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.grid.pos.data.User.User
 import com.grid.pos.data.User.UserRepository
 import com.grid.pos.interfaces.OnResult
+import com.grid.pos.model.Event
 import com.grid.pos.utils.Extension.encryptCBC
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -64,7 +65,7 @@ class ManageUsersViewModel @Inject constructor(
     fun saveUser(user: User) {
         if (user.userName.isNullOrEmpty() || user.userUsername.isNullOrEmpty() || user.userPassword.isNullOrEmpty()) {
             manageUsersState.value = manageUsersState.value.copy(
-                warning = "Please fill all inputs", isLoading = false
+                warning = Event("Please fill all inputs"), isLoading = false
             )
             return
         }
@@ -110,7 +111,7 @@ class ManageUsersViewModel @Inject constructor(
     fun deleteSelectedUser(user: User) {
         if (user.userId.isEmpty()) {
             manageUsersState.value = manageUsersState.value.copy(
-                warning = "Please select an user to delete", isLoading = false
+                warning = Event("Please select an user to delete"), isLoading = false
             )
             return
         }

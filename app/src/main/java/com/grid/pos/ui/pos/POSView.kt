@@ -42,6 +42,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
@@ -76,11 +77,11 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun POSView(
-    modifier: Modifier = Modifier,
-    navController: NavController? = null,
-    activityViewModel: ActivityScopedViewModel,
-    mainActivity: MainActivity,
-    viewModel: POSViewModel = hiltViewModel()
+        modifier: Modifier = Modifier,
+        navController: NavController? = null,
+        activityViewModel: ActivityScopedViewModel,
+        mainActivity: MainActivity,
+        viewModel: POSViewModel = hiltViewModel()
 ) {
     val posState: POSState by viewModel.posState.collectAsState(POSState())
     val invoicesState = remember { mutableStateListOf<InvoiceItemModel>() }
@@ -134,18 +135,19 @@ fun POSView(
         }
     }
 
-    LaunchedEffect(
-        posState.warning,
-        posState.isSaved
-    ) {
-        if (!posState.warning.isNullOrEmpty()) {
-            CoroutineScope(Dispatchers.Main).launch {
+    val scope = rememberCoroutineScope()
+    LaunchedEffect(posState.warning) {
+        posState.warning?.value?.let { message ->
+            scope.launch {
                 snackbarHostState.showSnackbar(
-                    message = posState.warning!!,
+                    message = message,
                     duration = SnackbarDuration.Short,
                 )
             }
         }
+    }
+
+    LaunchedEffect(posState.isSaved) {
         if (posState.isSaved) {
             activityViewModel.invoiceItemModels = invoicesState
             activityViewModel.invoiceHeader = invoiceHeaderState.value
@@ -302,8 +304,7 @@ fun POSView(
                         },
                         onThirdPartySelected = { thirdParty ->
                             posState.selectedThirdParty = thirdParty
-                            invoiceHeaderState.value.invoiceHeadThirdPartyName =
-                                thirdParty.thirdPartyId
+                            invoiceHeaderState.value.invoiceHeadThirdPartyName = thirdParty.thirdPartyId
                         },
                         onInvoiceSelected = { invoiceHeader ->
                             invoiceHeaderState.value = invoiceHeader
@@ -408,8 +409,7 @@ fun POSView(
                         invoiceHeaderState.value.invoiceHeadChange = change
                         var cashName = invoiceHeaderState.value.getCashName()
                         val thirdPartyName = posState.selectedThirdParty.thirdPartyName ?: ""
-                        cashName =
-                            if (cashName.contains(thirdPartyName)) cashName else thirdPartyName + cashName
+                        cashName = if (cashName.contains(thirdPartyName)) cashName else thirdPartyName + cashName
                         invoiceHeaderState.value.invoiceHeadCashName = cashName.ifEmpty { null }
                         viewModel.saveInvoiceHeader(
                             invoiceHeaderState.value,
@@ -422,8 +422,7 @@ fun POSView(
                         invoiceHeaderState.value.invoiceHeadChange = change
                         var cashName = invoiceHeaderState.value.getCashName()
                         val thirdPartyName = posState.selectedThirdParty.thirdPartyName ?: ""
-                        cashName =
-                            if (cashName.contains(thirdPartyName)) cashName else thirdPartyName + cashName
+                        cashName = if (cashName.contains(thirdPartyName)) cashName else thirdPartyName + cashName
                         invoiceHeaderState.value.invoiceHeadCashName = cashName.ifEmpty { null }
                         viewModel.saveInvoiceHeader(
                             invoiceHeaderState.value,

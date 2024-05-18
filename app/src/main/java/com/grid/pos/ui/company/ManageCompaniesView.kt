@@ -1,5 +1,6 @@
 package com.grid.pos.ui.company
 
+import android.annotation.SuppressLint
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -30,6 +31,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -57,6 +59,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
+@SuppressLint("CoroutineCreationDuringComposition")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ManageCompaniesView(
@@ -68,7 +71,10 @@ fun ManageCompaniesView(
     val manageCompaniesState: ManageCompaniesState by viewModel.manageCompaniesState.collectAsState(
         ManageCompaniesState()
     )
-    viewModel.fillCachedCompanies(activityScopedViewModel.companies,activityScopedViewModel.currencies)
+    viewModel.fillCachedCompanies(
+        activityScopedViewModel.companies,
+        activityScopedViewModel.currencies
+    )
     val keyboardController = LocalSoftwareKeyboardController.current
     val phoneFocusRequester = remember { FocusRequester() }
     val addressFocusRequester = remember { FocusRequester() }
@@ -99,11 +105,12 @@ fun ManageCompaniesView(
     var tax2RegnoState by remember { mutableStateOf("") }
 
     val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
     LaunchedEffect(manageCompaniesState.warning) {
-        if (!manageCompaniesState.warning.isNullOrEmpty()) {
-            CoroutineScope(Dispatchers.Main).launch {
+        manageCompaniesState.warning?.value?.let { message ->
+            scope.launch {
                 snackbarHostState.showSnackbar(
-                    message = manageCompaniesState.warning!!,
+                    message = message,
                     duration = SnackbarDuration.Short,
                 )
             }
@@ -121,29 +128,37 @@ fun ManageCompaniesView(
     }
 
     GridPOSTheme {
-        Scaffold(containerColor = SettingsModel.backgroundColor, snackbarHost = {
-            SnackbarHost(hostState = snackbarHostState)
-        }, topBar = {
-            Surface(
-                shadowElevation = 3.dp, color = SettingsModel.backgroundColor
-            ) {
-                TopAppBar(colors = TopAppBarDefaults.mediumTopAppBarColors(
-                    containerColor = SettingsModel.topBarColor
-                ), navigationIcon = {
-                    IconButton(onClick = { handleBack() }) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back", tint = SettingsModel.buttonColor
-                        )
-                    }
-                }, title = {
-                    Text(
-                        text = "Manage Companies", color = SettingsModel.textColor,
-                        fontSize = 16.sp, textAlign = TextAlign.Center
-                    )
-                })
-            }
-        }) {
+        Scaffold(containerColor = SettingsModel.backgroundColor,
+            snackbarHost = {
+                SnackbarHost(hostState = snackbarHostState)
+            },
+            topBar = {
+                Surface(
+                    shadowElevation = 3.dp,
+                    color = SettingsModel.backgroundColor
+                ) {
+                    TopAppBar(colors = TopAppBarDefaults.mediumTopAppBarColors(
+                        containerColor = SettingsModel.topBarColor
+                    ),
+                        navigationIcon = {
+                            IconButton(onClick = { handleBack() }) {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                    contentDescription = "Back",
+                                    tint = SettingsModel.buttonColor
+                                )
+                            }
+                        },
+                        title = {
+                            Text(
+                                text = "Manage Companies",
+                                color = SettingsModel.textColor,
+                                fontSize = 16.sp,
+                                textAlign = TextAlign.Center
+                            )
+                        })
+                }
+            }) {
             Box(
                 modifier = modifier
                     .fillMaxSize()
@@ -159,7 +174,8 @@ fun ManageCompaniesView(
                             .verticalScroll(
                                 rememberScrollState()
                             )
-                            .weight(1f), horizontalAlignment = Alignment.CenterHorizontally
+                            .weight(1f),
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         SearchableDropdownMenu(
                             items = manageCompaniesState.companies.toMutableList(),
@@ -185,16 +201,20 @@ fun ManageCompaniesView(
                         }
 
                         //name
-                        UITextField(modifier = Modifier.padding(10.dp), defaultValue = nameState,
-                            label = "Name", placeHolder = "Enter Name",
+                        UITextField(modifier = Modifier.padding(10.dp),
+                            defaultValue = nameState,
+                            label = "Name",
+                            placeHolder = "Enter Name",
                             onAction = { phoneFocusRequester.requestFocus() }) { name ->
                             nameState = name
                             manageCompaniesState.selectedCompany.companyName = name
                         }
 
                         //phone
-                        UITextField(modifier = Modifier.padding(10.dp), defaultValue = phoneState,
-                            label = "Phone", focusRequester = phoneFocusRequester,
+                        UITextField(modifier = Modifier.padding(10.dp),
+                            defaultValue = phoneState,
+                            label = "Phone",
+                            focusRequester = phoneFocusRequester,
                             placeHolder = "Enter Phone",
                             onAction = { addressFocusRequester.requestFocus() }) { phone ->
                             phoneState = phone
@@ -202,9 +222,13 @@ fun ManageCompaniesView(
                         }
 
                         //address
-                        UITextField(modifier = Modifier.padding(10.dp), defaultValue = addressState,
-                            label = "Address", maxLines = 3, focusRequester = addressFocusRequester,
-                            placeHolder = "Enter address", onAction = {
+                        UITextField(modifier = Modifier.padding(10.dp),
+                            defaultValue = addressState,
+                            label = "Address",
+                            maxLines = 3,
+                            focusRequester = addressFocusRequester,
+                            placeHolder = "Enter address",
+                            onAction = {
                                 countryFocusRequester.requestFocus()
                             }) { address ->
                             addressState = address
@@ -212,9 +236,13 @@ fun ManageCompaniesView(
                         }
 
                         //country
-                        UITextField(modifier = Modifier.padding(10.dp), defaultValue = countryState,
-                            label = "Country", maxLines = 3, focusRequester = countryFocusRequester,
-                            placeHolder = "Enter country", onAction = {
+                        UITextField(modifier = Modifier.padding(10.dp),
+                            defaultValue = countryState,
+                            label = "Country",
+                            maxLines = 3,
+                            focusRequester = countryFocusRequester,
+                            placeHolder = "Enter country",
+                            onAction = {
                                 if (SettingsModel.showTax) {
                                     taxRegNoFocusRequester.requestFocus()
                                 } else if (SettingsModel.showTax1) {
@@ -232,7 +260,8 @@ fun ManageCompaniesView(
                         if (SettingsModel.showTax) {
                             //tax reg no
                             UITextField(modifier = Modifier.padding(10.dp),
-                                defaultValue = taxRegnoState, label = "Tax Reg. No",
+                                defaultValue = taxRegnoState,
+                                label = "Tax Reg. No",
                                 focusRequester = taxRegNoFocusRequester,
                                 placeHolder = "Enter Tax Reg. No",
                                 onAction = { taxFocusRequester.requestFocus() }) { taxRegno ->
@@ -241,9 +270,12 @@ fun ManageCompaniesView(
                             }
 
                             //tax
-                            UITextField(modifier = Modifier.padding(10.dp), defaultValue = taxState,
-                                label = "Tax", focusRequester = taxFocusRequester,
-                                keyboardType = KeyboardType.Decimal, placeHolder = "Enter Tax",
+                            UITextField(modifier = Modifier.padding(10.dp),
+                                defaultValue = taxState,
+                                label = "Tax",
+                                focusRequester = taxFocusRequester,
+                                keyboardType = KeyboardType.Decimal,
+                                placeHolder = "Enter Tax",
                                 onAction = {
                                     if (SettingsModel.showTax1) {
                                         tax1RegNoFocusRequester.requestFocus()
@@ -254,7 +286,8 @@ fun ManageCompaniesView(
                                     }
                                 }) { tax ->
                                 taxState = Utils.getDoubleValue(
-                                    tax, taxState
+                                    tax,
+                                    taxState
                                 )
                                 manageCompaniesState.selectedCompany.companyTax = taxState.toDoubleOrNull() ?: 0.0
                             }
@@ -262,7 +295,8 @@ fun ManageCompaniesView(
                         if (SettingsModel.showTax || SettingsModel.showTax1 || SettingsModel.showTax2) {
                             SearchableDropdownMenu(
                                 items = manageCompaniesState.currencies.toMutableList(),
-                                modifier = Modifier.padding(10.dp), label = "Select Tax Currency",
+                                modifier = Modifier.padding(10.dp),
+                                label = "Select Tax Currency",
                                 selectedId = curCodeTaxState
                             ) { currency ->
                                 currency as Currency
@@ -274,7 +308,8 @@ fun ManageCompaniesView(
                         if (SettingsModel.showTax1) {
                             //tax1 reg no
                             UITextField(modifier = Modifier.padding(10.dp),
-                                defaultValue = tax1RegnoState, label = "Tax1 Reg. No",
+                                defaultValue = tax1RegnoState,
+                                label = "Tax1 Reg. No",
                                 placeHolder = "Enter Tax1 Reg. No",
                                 focusRequester = tax1RegNoFocusRequester,
                                 onAction = { tax1FocusRequester.requestFocus() }) { tax1Regno ->
@@ -284,9 +319,12 @@ fun ManageCompaniesView(
 
                             //tax1
                             UITextField(modifier = Modifier.padding(10.dp),
-                                defaultValue = tax1State, label = "Tax1",
-                                keyboardType = KeyboardType.Decimal, placeHolder = "Enter Tax1",
-                                focusRequester = tax1FocusRequester, onAction = {
+                                defaultValue = tax1State,
+                                label = "Tax1",
+                                keyboardType = KeyboardType.Decimal,
+                                placeHolder = "Enter Tax1",
+                                focusRequester = tax1FocusRequester,
+                                onAction = {
                                     if (SettingsModel.showTax2) {
                                         tax2RegNoFocusRequester.requestFocus()
                                     } else {
@@ -294,7 +332,8 @@ fun ManageCompaniesView(
                                     }
                                 }) { tax1 ->
                                 tax1State = Utils.getDoubleValue(
-                                    tax1, tax1State
+                                    tax1,
+                                    tax1State
                                 )
                                 manageCompaniesState.selectedCompany.companyTax1 = tax1State.toDoubleOrNull() ?: 0.0
                             }
@@ -302,7 +341,8 @@ fun ManageCompaniesView(
                         if (SettingsModel.showTax2) {
                             //tax2 reg no
                             UITextField(modifier = Modifier.padding(10.dp),
-                                defaultValue = tax2RegnoState, label = "Tax2 Reg. No",
+                                defaultValue = tax2RegnoState,
+                                label = "Tax2 Reg. No",
                                 placeHolder = "Enter Tax2 Reg. No",
                                 focusRequester = tax2RegNoFocusRequester,
                                 onAction = { tax2FocusRequester.requestFocus() }) { tax2Regno ->
@@ -312,19 +352,24 @@ fun ManageCompaniesView(
 
                             //tax2
                             UITextField(modifier = Modifier.padding(10.dp),
-                                defaultValue = tax2State, label = "Tax2",
-                                keyboardType = KeyboardType.Decimal, placeHolder = "Enter Tax2",
+                                defaultValue = tax2State,
+                                label = "Tax2",
+                                keyboardType = KeyboardType.Decimal,
+                                placeHolder = "Enter Tax2",
                                 focusRequester = tax2FocusRequester,
                                 onAction = { emailFocusRequester.requestFocus() }) { tax2 ->
                                 tax2State = Utils.getDoubleValue(
-                                    tax2, tax2State
+                                    tax2,
+                                    tax2State
                                 )
                                 manageCompaniesState.selectedCompany.companyTax2 = tax2State.toDoubleOrNull() ?: 0.0
                             }
                         }
                         //email
-                        UITextField(modifier = Modifier.padding(10.dp), defaultValue = emailState,
-                            label = "Email Address", placeHolder = "Enter Email Address",
+                        UITextField(modifier = Modifier.padding(10.dp),
+                            defaultValue = emailState,
+                            label = "Email Address",
+                            placeHolder = "Enter Email Address",
                             focusRequester = emailFocusRequester,
                             onAction = { webFocusRequester.requestFocus() }) { email ->
                             emailState = email
@@ -332,8 +377,10 @@ fun ManageCompaniesView(
                         }
 
                         //web
-                        UITextField(modifier = Modifier.padding(10.dp), defaultValue = webState,
-                            label = "Website", placeHolder = "Enter Website",
+                        UITextField(modifier = Modifier.padding(10.dp),
+                            defaultValue = webState,
+                            label = "Website",
+                            placeHolder = "Enter Website",
                             focusRequester = webFocusRequester,
                             onAction = { logoFocusRequester.requestFocus() }) { web ->
                             webState = web
@@ -341,9 +388,12 @@ fun ManageCompaniesView(
                         }
 
                         //logo
-                        UITextField(modifier = Modifier.padding(10.dp), defaultValue = logoState,
-                            label = "Logo", placeHolder = "Enter Logo",
-                            focusRequester = logoFocusRequester, imeAction = ImeAction.Done,
+                        UITextField(modifier = Modifier.padding(10.dp),
+                            defaultValue = logoState,
+                            label = "Logo",
+                            placeHolder = "Enter Logo",
+                            focusRequester = logoFocusRequester,
+                            imeAction = ImeAction.Done,
                             onAction = { keyboardController?.hide() }) { logo ->
                             logoState = logo
                             manageCompaniesState.selectedCompany.companyLogo = logo
@@ -359,7 +409,8 @@ fun ManageCompaniesView(
                             UIButton(
                                 modifier = Modifier
                                     .weight(.33f)
-                                    .padding(3.dp), text = "Save"
+                                    .padding(3.dp),
+                                text = "Save"
                             ) {
                                 viewModel.saveCompany(manageCompaniesState.selectedCompany)
                             }
@@ -367,7 +418,8 @@ fun ManageCompaniesView(
                             UIButton(
                                 modifier = Modifier
                                     .weight(.33f)
-                                    .padding(3.dp), text = "Delete"
+                                    .padding(3.dp),
+                                text = "Delete"
                             ) {
                                 viewModel.deleteSelectedCompany(
                                     manageCompaniesState.selectedCompany
@@ -377,7 +429,8 @@ fun ManageCompaniesView(
                             UIButton(
                                 modifier = Modifier
                                     .weight(.33f)
-                                    .padding(3.dp), text = "Close"
+                                    .padding(3.dp),
+                                text = "Close"
                             ) {
                                 navController?.popBackStack()
                             }

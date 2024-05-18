@@ -32,6 +32,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
@@ -62,13 +63,16 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
+@OptIn(
+    ExperimentalMaterial3Api::class,
+    ExperimentalComposeUiApi::class
+)
 @Composable
 fun ManageUsersView(
-    navController: NavController? = null,
-    modifier: Modifier = Modifier,
-    activityScopedViewModel: ActivityScopedViewModel,
-    viewModel: ManageUsersViewModel = hiltViewModel()
+        navController: NavController? = null,
+        modifier: Modifier = Modifier,
+        activityScopedViewModel: ActivityScopedViewModel,
+        viewModel: ManageUsersViewModel = hiltViewModel()
 ) {
     val manageUsersState: ManageUsersState by viewModel.manageUsersState.collectAsState(
         ManageUsersState()
@@ -87,11 +91,12 @@ fun ManageUsersView(
     var passwordVisibility by remember { mutableStateOf(false) }
 
     val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
     LaunchedEffect(manageUsersState.warning) {
-        if (!manageUsersState.warning.isNullOrEmpty()) {
-            CoroutineScope(Dispatchers.Main).launch {
+        manageUsersState.warning?.value?.let { message ->
+            scope.launch {
                 snackbarHostState.showSnackbar(
-                    message = manageUsersState.warning!!,
+                    message = message,
                     duration = SnackbarDuration.Short,
                 )
             }
@@ -108,29 +113,38 @@ fun ManageUsersView(
         handleBack()
     }
     GridPOSTheme {
-        Scaffold(containerColor = SettingsModel.backgroundColor, snackbarHost = {
-            SnackbarHost(hostState = snackbarHostState)
-        }, topBar = {
-            Surface(shadowElevation = 3.dp, color = SettingsModel.backgroundColor) {
-                TopAppBar(colors = TopAppBarDefaults.mediumTopAppBarColors(
-                    containerColor = SettingsModel.topBarColor
-                ), navigationIcon = {
-                    IconButton(onClick = { handleBack() }) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back", tint = SettingsModel.buttonColor
-                        )
-                    }
-                }, title = {
-                    Text(
-                        text = "Manage Users",
-                        color = SettingsModel.textColor,
-                        fontSize = 16.sp,
-                        textAlign = TextAlign.Center
-                    )
-                })
-            }
-        }) { it ->
+        Scaffold(
+            containerColor = SettingsModel.backgroundColor,
+            snackbarHost = {
+                SnackbarHost(hostState = snackbarHostState)
+            },
+            topBar = {
+                Surface(
+                    shadowElevation = 3.dp,
+                    color = SettingsModel.backgroundColor
+                ) {
+                    TopAppBar(colors = TopAppBarDefaults.mediumTopAppBarColors(
+                        containerColor = SettingsModel.topBarColor
+                    ),
+                        navigationIcon = {
+                            IconButton(onClick = { handleBack() }) {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                    contentDescription = "Back",
+                                    tint = SettingsModel.buttonColor
+                                )
+                            }
+                        },
+                        title = {
+                            Text(
+                                text = "Manage Users",
+                                color = SettingsModel.textColor,
+                                fontSize = 16.sp,
+                                textAlign = TextAlign.Center
+                            )
+                        })
+                }
+            }) { it ->
             Box(
                 modifier = modifier
                     .fillMaxSize()
@@ -144,7 +158,8 @@ fun ManageUsersView(
                         modifier = Modifier
                             .fillMaxSize()
                             .verticalScroll(rememberScrollState())
-                            .weight(1f), horizontalAlignment = Alignment.CenterHorizontally
+                            .weight(1f),
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         SearchableDropdownMenu(
                             items = manageUsersState.users.toMutableList(),
@@ -160,27 +175,34 @@ fun ManageUsersView(
                             tableModeState = selectedUser.userTableMode ?: true
                         }
 
-                        UITextField(modifier = Modifier.padding(10.dp), defaultValue = nameState,
-                            label = "Name", placeHolder = "Enter Name",
+                        UITextField(modifier = Modifier.padding(10.dp),
+                            defaultValue = nameState,
+                            label = "Name",
+                            placeHolder = "Enter Name",
                             onAction = { usernameFocusRequester.requestFocus() }) {
                             nameState = it
                             manageUsersState.selectedUser.userName = it
                         }
 
                         UITextField(modifier = Modifier.padding(10.dp),
-                            defaultValue = usernameState, label = "Username",
-                            placeHolder = "Enter Username", focusRequester = usernameFocusRequester,
+                            defaultValue = usernameState,
+                            label = "Username",
+                            placeHolder = "Enter Username",
+                            focusRequester = usernameFocusRequester,
                             onAction = { passwordFocusRequester.requestFocus() }) {
                             usernameState = it
                             manageUsersState.selectedUser.userUsername = it
                         }
 
                         UITextField(modifier = Modifier.padding(10.dp),
-                            defaultValue = passwordState, label = "Password",
-                            placeHolder = "Enter Password", focusRequester = passwordFocusRequester,
+                            defaultValue = passwordState,
+                            label = "Password",
+                            placeHolder = "Enter Password",
+                            focusRequester = passwordFocusRequester,
                             keyboardType = KeyboardType.Password,
                             visualTransformation = if (passwordVisibility) VisualTransformation.None else PasswordVisualTransformation(),
-                            imeAction = ImeAction.Done, onAction = { keyboardController?.hide() },
+                            imeAction = ImeAction.Done,
+                            onAction = { keyboardController?.hide() },
                             trailingIcon = {
                                 IconButton(onClick = { passwordVisibility = !passwordVisibility }) {
                                     Icon(
@@ -202,7 +224,8 @@ fun ManageUsersView(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             UiVerticalCheckBox(
-                                modifier = Modifier.weight(.5f), label = "POS Mode",
+                                modifier = Modifier.weight(.5f),
+                                label = "POS Mode",
                                 checked = posModeState
                             ) {
                                 posModeState = it
@@ -210,7 +233,8 @@ fun ManageUsersView(
                             }
 
                             UiVerticalCheckBox(
-                                modifier = Modifier.weight(.5f), label = "Table Mode",
+                                modifier = Modifier.weight(.5f),
+                                label = "Table Mode",
                                 checked = tableModeState
                             ) {
                                 tableModeState = it
@@ -228,7 +252,8 @@ fun ManageUsersView(
                             UIButton(
                                 modifier = Modifier
                                     .weight(.33f)
-                                    .padding(3.dp), text = "Save"
+                                    .padding(3.dp),
+                                text = "Save"
                             ) {
                                 manageUsersState.selectedUser.userPassword = passwordState
                                 viewModel.saveUser(manageUsersState.selectedUser)
@@ -237,7 +262,8 @@ fun ManageUsersView(
                             UIButton(
                                 modifier = Modifier
                                     .weight(.33f)
-                                    .padding(3.dp), text = "Delete"
+                                    .padding(3.dp),
+                                text = "Delete"
                             ) {
                                 viewModel.deleteSelectedUser(manageUsersState.selectedUser)
                             }
@@ -245,7 +271,8 @@ fun ManageUsersView(
                             UIButton(
                                 modifier = Modifier
                                     .weight(.33f)
-                                    .padding(3.dp), text = "Close"
+                                    .padding(3.dp),
+                                text = "Close"
                             ) {
                                 navController?.popBackStack()
                             }
