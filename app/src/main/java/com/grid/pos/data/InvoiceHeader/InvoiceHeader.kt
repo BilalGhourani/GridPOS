@@ -4,7 +4,6 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Ignore
 import androidx.room.PrimaryKey
-import com.google.errorprone.annotations.Keep
 import com.google.firebase.firestore.Exclude
 import com.google.firebase.firestore.PropertyName
 import com.grid.pos.data.DataModel
@@ -230,7 +229,9 @@ data class InvoiceHeader(
 
     @Exclude
     override fun getName(): String {
-        return "${invoiceHeadTtCode ?: "N/A"} ${invoiceHeadTransNo ?: "N/A"} ${invoiceHeadOrderNo ?: "N/A"} ${invoiceHeadTaName ?: "N/A"}"
+        val table = if (invoiceHeadTaName.isNullOrEmpty()) "" else "Table: $invoiceHeadTaName"
+        val transNo = if (invoiceHeadTtCode.isNullOrEmpty()) "" else "Trans No: $invoiceHeadTtCode$invoiceHeadTransNo $invoiceHeadOrderNo"
+        return "Total: $invoiceHeadGrossAmount $table $transNo"
     }
 
     @Exclude

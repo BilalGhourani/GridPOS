@@ -32,6 +32,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.grid.pos.data.DataModel
@@ -45,7 +46,7 @@ fun SearchableDropdownMenu(
         label: String = "",
         selectedId: String? = null,
         leadingIcon: @Composable ((Modifier) -> Unit)? = null,
-        onLeadingIconClick:()->Unit={},
+        onLeadingIconClick: () -> Unit = {},
         onSelectionChange: (DataModel) -> Unit = {},
 ) {
     var expandedState by remember { mutableStateOf(false) }
@@ -91,14 +92,25 @@ fun SearchableDropdownMenu(
                 .clickable {
                     searchText = ""
                 }) {
-                leadingIcon?.invoke(Modifier
-                    .padding(start = 10.dp, top = 10.dp, bottom = 10.dp)
-                    .align(Alignment.CenterVertically).clickable { onLeadingIconClick.invoke()
-                        expandedState=false }
-                )
+                leadingIcon?.invoke(
+                    Modifier
+                        .padding(
+                            start = 10.dp,
+                            top = 10.dp,
+                            bottom = 10.dp
+                        )
+                        .align(Alignment.CenterVertically)
+                        .clickable {
+                            onLeadingIconClick.invoke()
+                            expandedState = false
+                        })
                 Text(
                     modifier = Modifier
-                        .padding(start = 10.dp, top = 10.dp, bottom = 10.dp)
+                        .padding(
+                            start = 10.dp,
+                            top = 10.dp,
+                            bottom = 10.dp
+                        )
                         .align(Alignment.CenterVertically),
                     text = selectedItemState,
                     style = TextStyle(
@@ -115,7 +127,11 @@ fun SearchableDropdownMenu(
                     Icons.Filled.ArrowDropDown,
                     null,
                     Modifier
-                        .padding(top = 10.dp, bottom = 10.dp, end = 10.dp)
+                        .padding(
+                            top = 10.dp,
+                            bottom = 10.dp,
+                            end = 10.dp
+                        )
                         .align(Alignment.CenterVertically)
                         .rotate(if (expandedState) 180f else 0f),
                     tint = Color.Black
@@ -155,7 +171,9 @@ fun SearchableDropdownMenu(
                         DropdownMenuItem(text = {
                             Text(
                                 text = text,
-                                color = SettingsModel.textColor
+                                maxLines = 2,
+                                color = SettingsModel.textColor,
+                                overflow = TextOverflow.Ellipsis
                             )
                         },
                             onClick = {
