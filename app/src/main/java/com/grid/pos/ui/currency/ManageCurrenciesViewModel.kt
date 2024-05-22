@@ -76,9 +76,11 @@ class ManageCurrenciesViewModel @Inject constructor(
         val isInserting = currency.currencyDocumentId.isNullOrEmpty()
         val callback = object : OnResult {
             override fun onSuccess(result: Any) {
+                result as Currency
+                SettingsModel.currentCurrency = result
                 viewModelScope.launch(Dispatchers.Main) {
                     manageCurrenciesState.value = manageCurrenciesState.value.copy(
-                        selectedCurrency = result as Currency,
+                        selectedCurrency = result,
                         isLoading = false
                     )
                 }
