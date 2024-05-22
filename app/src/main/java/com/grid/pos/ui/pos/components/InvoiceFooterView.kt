@@ -49,7 +49,7 @@ fun InvoiceFooterView(
     val cur2State = currency.currencyCode2 ?: ""
     val curr1Decimal = currency.currencyName1Dec
     val curr2Decimal = currency.currencyName2Dec
-    val taxState = String.format(
+   /* val taxState = String.format(
         "%.${curr1Decimal}f",
         invoiceHeader.invoiceHeadTaxAmt
     )
@@ -64,7 +64,7 @@ fun InvoiceFooterView(
     val totalTaxState = String.format(
         "%.${curr1Decimal}f",
         invoiceHeader.invoiceHeadTotalTax
-    )
+    )*/
     val totalState = String.format(
         "%.${curr1Decimal}f",
         invoiceHeader.invoiceHeadGrossAmount
@@ -91,7 +91,7 @@ fun InvoiceFooterView(
                     .wrapContentHeight()
                     .padding(5.dp)
             ) {
-                if (SettingsModel.showTax) {
+               /* if (SettingsModel.showTax) {
                     Row(
                         modifier = Modifier.wrapContentWidth(),
                         horizontalArrangement = Arrangement.Absolute.Left
@@ -112,7 +112,7 @@ fun InvoiceFooterView(
                             color = SettingsModel.textColor
                         )
                     }
-                }
+                }*/
                 Row(
                     modifier = Modifier.wrapContentWidth(),
                     horizontalArrangement = Arrangement.Absolute.Left
@@ -162,7 +162,7 @@ fun InvoiceFooterView(
                     .wrapContentHeight()
                     .padding(5.dp)
             ) {
-                if (SettingsModel.showTax2) {
+               /* if (SettingsModel.showTax2) {
                     Row(
                         modifier = Modifier.wrapContentWidth(),
                         horizontalArrangement = Arrangement.Absolute.Left
@@ -183,7 +183,7 @@ fun InvoiceFooterView(
                             color = SettingsModel.textColor
                         )
                     }
-                }
+                }*/
                 Row(
                     modifier = Modifier.wrapContentWidth(),
                     horizontalArrangement = Arrangement.Absolute.Left

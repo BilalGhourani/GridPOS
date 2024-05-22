@@ -5,9 +5,11 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.RemoveCircle
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -29,20 +31,27 @@ import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.theme.GridPOSTheme
 
 @Composable
-fun InvoiceItemCell(modifier: Modifier = Modifier, invoiceItemModel: InvoiceItemModel,
-                    isHeader: Boolean = false, isLandscape: Boolean = false, index: Int,
-                    onEdit: (Int) -> Unit = {}, onRemove: (Int) -> Unit = {}) {
+fun InvoiceItemCell(
+        modifier: Modifier = Modifier,
+        invoiceItemModel: InvoiceItemModel,
+        isHeader: Boolean = false,
+        isLandscape: Boolean = false,
+        index: Int,
+        onEdit: (Int) -> Unit = {},
+        onRemove: (Int) -> Unit = {}
+) {
     Row(
         modifier = modifier
             .fillMaxSize()
             .pointerInput(Unit) {
-                detectTapGestures(
-                    onDoubleTap  = {
+                detectTapGestures(onDoubleTap = {
                     onEdit.invoke(index)
-                },  onLongPress   = {
-                    onEdit.invoke(index)
-                })
-            }, horizontalArrangement = Arrangement.SpaceBetween
+                },
+                    onLongPress = {
+                        onEdit.invoke(index)
+                    })
+            },
+        horizontalArrangement = Arrangement.SpaceBetween
     ) {
         val textModifier = if (isLandscape) {
             Modifier
@@ -69,9 +78,9 @@ fun InvoiceItemCell(modifier: Modifier = Modifier, invoiceItemModel: InvoiceItem
                 .fillMaxHeight()
                 .width(1.dp)
         }
-        val actionsModifier = if (isLandscape) {
+        val qtyModifier = if (isLandscape) {
             Modifier
-                .weight(.7f)
+                .weight(.8f)
                 .fillMaxHeight()
                 .wrapContentHeight(
                     align = Alignment.CenterVertically
@@ -79,13 +88,14 @@ fun InvoiceItemCell(modifier: Modifier = Modifier, invoiceItemModel: InvoiceItem
         } else {
             Modifier
                 .fillMaxHeight()
-                .width(70.dp)
+                .width(80.dp)
                 .wrapContentHeight(
                     align = Alignment.CenterVertically
                 )
         }
         val textStyle = TextStyle(
-            fontWeight = if (isHeader) FontWeight.Bold else FontWeight.Normal, fontSize = 16.sp
+            fontWeight = if (isHeader) FontWeight.Bold else FontWeight.Normal,
+            fontSize = 16.sp
         )
         Text(
             text = if (isHeader) "Item" else invoiceItemModel.getName(),
@@ -103,84 +113,80 @@ fun InvoiceItemCell(modifier: Modifier = Modifier, invoiceItemModel: InvoiceItem
                     .wrapContentHeight(
                         align = Alignment.CenterVertically
                     )
-            }, textAlign = TextAlign.Center, style = textStyle, color = SettingsModel.textColor
-        )
-        VerticalDivider(
-            color = Color.Black, modifier = dividerModifier
-        )
-        Text(
-            text = if (isHeader) "Count" else invoiceItemModel.getQuantity().toString(),
-            modifier = textModifier, textAlign = TextAlign.Center, style = textStyle,
+            },
+            textAlign = TextAlign.Center,
+            style = textStyle,
             color = SettingsModel.textColor
         )
         VerticalDivider(
-            color = Color.Black, modifier = dividerModifier
+            color = Color.Black,
+            modifier = dividerModifier
+        )
+        Text(
+            text = if (isHeader) "Qty" else invoiceItemModel.getQuantity().toString(),
+            modifier = qtyModifier,
+            textAlign = TextAlign.Center,
+            style = textStyle,
+            color = SettingsModel.textColor
+        )
+        VerticalDivider(
+            color = Color.Black,
+            modifier = dividerModifier
         )
         Text(
             text = if (isHeader) "Price" else invoiceItemModel.getPrice().toString(),
-            modifier = textModifier, textAlign = TextAlign.Center, style = textStyle,
+            modifier = textModifier,
+            textAlign = TextAlign.Center,
+            style = textStyle,
             color = SettingsModel.textColor
         )
         VerticalDivider(
-            color = Color.Black, modifier = dividerModifier
-        )
-        Text(
-            text = if (isHeader) "Dis%" else invoiceItemModel.getDiscount().toString(),
-            modifier = textModifier, textAlign = TextAlign.Center, style = textStyle,
-            color = SettingsModel.textColor
-        )
-        if (SettingsModel.showTax) {
-            VerticalDivider(
-                color = Color.Black, modifier = dividerModifier
-            )
-            Text(
-                text = if (isHeader) "Tax" else invoiceItemModel.getTax().toString(),
-                modifier = textModifier, textAlign = TextAlign.Center, style = textStyle,
-                color = SettingsModel.textColor
-            )
-        }
-        if (SettingsModel.showTax1) {
-            VerticalDivider(
-                color = Color.Black, modifier = dividerModifier
-            )
-            Text(
-                text = if (isHeader) "Tax1" else invoiceItemModel.getTax1().toString(),
-                modifier = textModifier, textAlign = TextAlign.Center, style = textStyle,
-                color = SettingsModel.textColor
-            )
-        }
-        if (SettingsModel.showTax2) {
-            VerticalDivider(
-                color = Color.Black, modifier = dividerModifier
-            )
-            Text(
-                text = if (isHeader) "Tax2" else invoiceItemModel.getTax2().toString(),
-                modifier = textModifier, textAlign = TextAlign.Center, style = textStyle,
-                color = SettingsModel.textColor
-            )
-        }
-        VerticalDivider(
-            modifier = dividerModifier, color = Color.Black
+            color = Color.Black,
+            modifier = dividerModifier
         )
         Text(
             text = if (isHeader) "Amount" else invoiceItemModel.getNetAmount().toString(),
-            modifier = textModifier, textAlign = TextAlign.Center, style = textStyle,
+            modifier = textModifier,
+            textAlign = TextAlign.Center,
+            style = textStyle,
             color = SettingsModel.textColor
         )
         VerticalDivider(
-            modifier = dividerModifier, color = Color.Black
+            modifier = dividerModifier,
+            color = Color.Black
         )
-        if (isHeader) {
-            Text(
-                text = "Actions", modifier = actionsModifier, textAlign = TextAlign.Center,
-                style = textStyle, color = SettingsModel.textColor
-            )
-        } else {
-            IconButton(modifier = actionsModifier, onClick = { onRemove.invoke(index) }) {
-                Icon(
-                    imageVector = Icons.Default.RemoveCircle, contentDescription = "Delete",
-                    tint = SettingsModel.buttonColor
+        Row(
+            modifier = textModifier,
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            if (isHeader) {
+                Text(
+                    text = "Actions",
+                    modifier = modifier
+                        .wrapContentHeight(align = Alignment.CenterVertically)
+                        .padding(5.dp),
+                    textAlign = TextAlign.Center,
+                    style = textStyle,
+                    color = SettingsModel.textColor
                 )
+            } else {
+                IconButton(modifier = Modifier.padding(start = 5.dp),
+                    onClick = { onEdit.invoke(index) }) {
+                    Icon(
+                        imageVector = Icons.Default.Edit,
+                        contentDescription = "Edit",
+                        tint = SettingsModel.buttonColor
+                    )
+                }
+                IconButton(modifier = Modifier.padding(horizontal = 5.dp),
+                    onClick = { onRemove.invoke(index) }) {
+                    Icon(
+                        imageVector = Icons.Default.RemoveCircle,
+                        contentDescription = "Delete",
+                        tint = SettingsModel.buttonColor
+                    )
+                }
             }
         }
 
@@ -191,6 +197,10 @@ fun InvoiceItemCell(modifier: Modifier = Modifier, invoiceItemModel: InvoiceItem
 @Composable
 fun InvoiceItemCellPreview() {
     GridPOSTheme {
-        InvoiceItemCell(invoiceItemModel = InvoiceItemModel(), index = 0, isLandscape = true)
+        InvoiceItemCell(
+            invoiceItemModel = InvoiceItemModel(),
+            index = 0,
+            isLandscape = true
+        )
     }
 }
