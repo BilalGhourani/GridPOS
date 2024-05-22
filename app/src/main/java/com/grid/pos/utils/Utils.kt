@@ -13,6 +13,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.grid.pos.model.HomeSectionModel
+import com.grid.pos.model.InvoiceItemModel
 import java.io.BufferedReader
 import java.io.File
 import java.io.FileInputStream
@@ -119,6 +120,17 @@ object Utils {
                 null -> old //old value
                 else -> new  //new value
             }
+        }
+    }
+
+    fun getItemsNumberStr(
+            items: MutableList<InvoiceItemModel>
+    ): String {
+        val size = items.size
+        return if (size <= 1) {
+            "$size item"
+        } else {
+            "$size items"
         }
     }
 

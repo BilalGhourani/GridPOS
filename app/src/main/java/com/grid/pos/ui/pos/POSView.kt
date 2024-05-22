@@ -52,6 +52,8 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -297,6 +299,16 @@ fun POSView(
                                 invoiceHeaderState.value
                             )
                         })
+                    Text(
+                        text = Utils.getItemsNumberStr(invoicesState),
+                        modifier = Modifier.wrapContentWidth(),
+                        textAlign = TextAlign.End,
+                        style = TextStyle(
+                            fontWeight = FontWeight.Normal,
+                            fontSize = 12.sp
+                        ),
+                        color = SettingsModel.textColor
+                    )
 
                     InvoiceFooterView(invoiceHeader = invoiceHeaderState.value,
                         selectedInvoice = activityViewModel.selectedInvHeadId,
