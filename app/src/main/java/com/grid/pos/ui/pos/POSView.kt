@@ -452,6 +452,8 @@ fun POSView(
                 },
                 onConfirmation = {
                     isSavePopupVisible = false
+                    invoicesState.clear()
+                    invoiceHeaderState.value=InvoiceHeader()
                     when (popupState) {
                         PopupState.BACK_PRESSED -> {
                             handleBack()
