@@ -171,6 +171,7 @@ data class Company(
         return mapOf(
             "cmp_name" to companyName,
             "cmp_phone" to companyPhone,
+            "cmp_country" to companyCountry,
             "cmp_address" to companyAddress,
             "cmp_taxregno" to companyTaxRegno,
             "cmp_tax" to companyTax,
