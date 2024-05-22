@@ -40,6 +40,7 @@ class ActivityScopedViewModel @Inject constructor(
 ) : ViewModel() {
     var posReceipt: PosReceipt = PosReceipt()
     var invoiceHeader: InvoiceHeader = InvoiceHeader()
+    var selectedInvHeadId: String? = null
     var pendingInvHeadState: InvoiceHeader? = null
     var invoiceItemModels: MutableList<InvoiceItemModel> = mutableListOf()
     var isFromTable: Boolean = false
@@ -147,8 +148,7 @@ class ActivityScopedViewModel @Inject constructor(
     private suspend fun fetchCurrentUser() {
         if (SettingsModel.currentUser == null && !SettingsModel.currentUserId.isNullOrEmpty()) {
             viewModelScope.launch(Dispatchers.IO) {
-                userRepository.getUserById(
-                    SettingsModel.currentUserId!!,
+                userRepository.getUserById(SettingsModel.currentUserId!!,
                     object : OnResult {
                         override fun onSuccess(result: Any) {
                             SettingsModel.currentUser = result as User

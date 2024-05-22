@@ -284,6 +284,7 @@ fun POSView(
                         })
 
                     InvoiceFooterView(invoiceHeader = invoiceHeaderState.value,
+                        selectedInvoice = activityViewModel.selectedInvHeadId,
                         items = posState.items,
                         thirdParties = posState.thirdParties.toMutableList(),
                         invoiceHeaders = posState.invoiceHeaders,
@@ -324,6 +325,7 @@ fun POSView(
                         onInvoiceSelected = { invoiceHeader ->
                             if (invoicesState.isNotEmpty()) {
                                 activityViewModel.pendingInvHeadState = invoiceHeader
+                                activityViewModel.selectedInvHeadId = invoiceHeader.invoiceHeadId
                                 popupState = PopupState.CHANGE_INVOICE
                                 isSavePopupVisible = true
                             } else {
@@ -447,13 +449,13 @@ fun POSView(
         ) {
             UIAlertDialog(
                 onDismissRequest = {
+                    activityViewModel.selectedInvHeadId = null
                     isSavePopupVisible = false
-
                 },
                 onConfirmation = {
                     isSavePopupVisible = false
                     invoicesState.clear()
-                    invoiceHeaderState.value=InvoiceHeader()
+                    invoiceHeaderState.value = InvoiceHeader()
                     when (popupState) {
                         PopupState.BACK_PRESSED -> {
                             handleBack()
