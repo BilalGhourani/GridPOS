@@ -28,6 +28,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -64,11 +65,22 @@ fun TablesView(
 
     val keyboardController = LocalSoftwareKeyboardController.current
 
+    val tableNameFocusRequester = remember { FocusRequester() }
+    val clientsCountFocusRequester = remember { FocusRequester() }
+
     var tableNameState by remember { mutableStateOf("") }
     var clientsCountState by remember { mutableStateOf("") }
 
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+
+    LaunchedEffect(tablesState.step) {
+        if (tablesState.step == 1) {
+            tableNameFocusRequester.requestFocus()
+        } else {
+            clientsCountFocusRequester.requestFocus()
+        }
+    }
     LaunchedEffect(tablesState.warning) {
         tablesState.warning?.value?.let { message ->
             scope.launch {
@@ -131,8 +143,14 @@ fun TablesView(
                 if (tablesState.step <= 1) {
                     UITextField(modifier = Modifier.padding(10.dp),
                         defaultValue = tableNameState,
+                        onFocusChanged = {
+                            if (it.hasFocus) {
+                                keyboardController?.show()
+                            }
+                        },
                         label = "Table Number",
                         maxLines = 3,
+                        focusRequester = tableNameFocusRequester,
                         keyboardType = KeyboardType.Decimal,
                         placeHolder = "Enter Table Number",
                         onAction = {
@@ -156,8 +174,14 @@ fun TablesView(
                 } else {
                     UITextField(modifier = Modifier.padding(10.dp),
                         defaultValue = clientsCountState,
+                        onFocusChanged = {
+                            if (it.hasFocus) {
+                                keyboardController?.show()
+                            }
+                        },
                         label = "Client Number",
                         maxLines = 3,
+                        focusRequester = clientsCountFocusRequester,
                         keyboardType = KeyboardType.Decimal,
                         placeHolder = "Enter Client Number",
                         imeAction = ImeAction.Done,
@@ -168,7 +192,6 @@ fun TablesView(
                             clients,
                             clientsCountState
                         )
-
                     }
                 }
                 UIButton(
