@@ -51,6 +51,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -58,6 +59,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.grid.pos.ActivityScopedViewModel
 import com.grid.pos.MainActivity
+import com.grid.pos.R
 import com.grid.pos.data.InvoiceHeader.InvoiceHeader
 import com.grid.pos.data.PosReceipt.PosReceipt
 import com.grid.pos.model.InvoiceItemModel
@@ -225,6 +227,19 @@ fun POSView(
                                 fontSize = 16.sp,
                                 textAlign = TextAlign.Center
                             )
+                        },
+                        actions = {
+                            IconButton(onClick = {
+                                activityViewModel.invoiceItemModels = invoicesState
+                                activityViewModel.invoiceHeader = invoiceHeaderState.value
+                                navController?.navigate("SettingsView")
+                            }) {
+                                Icon(
+                                    painterResource(R.drawable.ic_settings),
+                                    contentDescription = "Back",
+                                    tint = SettingsModel.buttonColor
+                                )
+                            }
                         })
                 }
             }) {

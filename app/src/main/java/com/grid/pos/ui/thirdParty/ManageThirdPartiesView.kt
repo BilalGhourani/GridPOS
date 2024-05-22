@@ -36,6 +36,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -43,6 +44,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.grid.pos.ActivityScopedViewModel
+import com.grid.pos.R
 import com.grid.pos.data.ThirdParty.ThirdParty
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.LoadingIndicator
@@ -80,7 +82,7 @@ fun ManageThirdPartiesView(
     var phone1State by remember { mutableStateOf("") }
     var phone2State by remember { mutableStateOf("") }
     var addressState by remember { mutableStateOf("") }
-    var isDefaultState by remember { mutableStateOf(false) }
+   // var isDefaultState by remember { mutableStateOf(false) }
 
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -122,7 +124,16 @@ fun ManageThirdPartiesView(
                         text = "Manage Third Parties", color = SettingsModel.textColor,
                         fontSize = 16.sp, textAlign = TextAlign.Center
                     )
-                })
+                },
+                    actions = {
+                        IconButton(onClick = { navController?.navigate("SettingsView") }) {
+                            Icon(
+                                painterResource(R.drawable.ic_settings),
+                                contentDescription = "Back",
+                                tint = SettingsModel.buttonColor
+                            )
+                        }
+                    })
             }
         }) {
             Box(
@@ -152,7 +163,7 @@ fun ManageThirdPartiesView(
                             phone1State = thirdParty.thirdPartyPhone1 ?: ""
                             phone2State = thirdParty.thirdPartyPhone2 ?: ""
                             addressState = thirdParty.thirdPartyAddress ?: ""
-                            isDefaultState = thirdParty.thirdPartyDefault
+                            //isDefaultState = thirdParty.thirdPartyDefault
                         }
 
                         //name
@@ -201,14 +212,14 @@ fun ManageThirdPartiesView(
                             manageThirdPartiesState.selectedThirdParty.thirdPartyAddress = address
                         }
 
-                        UISwitch(
+                      /*  UISwitch(
                             modifier = Modifier.padding(10.dp),
                             checked = isDefaultState,
                             text = "POS Default",
                         ) { isDefault ->
                             isDefaultState = isDefault
                             manageThirdPartiesState.selectedThirdParty.thirdPartyDefault = isDefaultState
-                        }
+                        }*/
 
                         Row(
                             modifier = Modifier
@@ -222,7 +233,7 @@ fun ManageThirdPartiesView(
                                     .weight(.33f)
                                     .padding(3.dp), text = "Save"
                             ) {
-                                viewModel.saveThirdParty()
+                                viewModel.saveThirdParty(manageThirdPartiesState.selectedThirdParty)
                             }
 
                             UIButton(

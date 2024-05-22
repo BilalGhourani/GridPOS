@@ -38,6 +38,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
@@ -46,6 +47,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.grid.pos.ActivityScopedViewModel
+import com.grid.pos.R
 import com.grid.pos.data.Company.Company
 import com.grid.pos.data.Currency.Currency
 import com.grid.pos.model.SettingsModel
@@ -156,6 +158,15 @@ fun ManageCompaniesView(
                                 fontSize = 16.sp,
                                 textAlign = TextAlign.Center
                             )
+                        },
+                        actions = {
+                            IconButton(onClick = { navController?.navigate("SettingsView") }) {
+                                Icon(
+                                    painterResource(R.drawable.ic_settings),
+                                    contentDescription = "Back",
+                                    tint = SettingsModel.buttonColor
+                                )
+                            }
                         })
                 }
             }) {

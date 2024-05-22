@@ -9,5 +9,6 @@ data class ManageFamiliesState(
         var selectedFamily: Family = Family(),
         var isLoading: Boolean = false,
         var clear: Boolean = false,
-        val warning: Event<String>? = null,
+        var warning: Event<String>? = null,
+        var actionLabel: String? = null,
     )

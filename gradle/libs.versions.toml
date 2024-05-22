@@ -1,4 +1,5 @@
 [versions]
+accompanistPermissions = "0.25.0"
 agp = "8.3.2"
 kotlin = "1.9.0"
 coreKtx = "1.13.0"
@@ -11,6 +12,7 @@ activityCompose = "1.9.0"
 composeBom = "2024.02.01"
 
 [libraries]
+accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanistPermissions" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 compose-glide = { module = "com.github.bumptech.glide:compose", version.ref = "compose" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }

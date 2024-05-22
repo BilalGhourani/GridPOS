@@ -2,6 +2,7 @@ package com.grid.pos.ui.item
 
 import android.net.Uri
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
@@ -28,6 +29,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -45,6 +47,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
@@ -53,8 +56,11 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.grid.pos.ActivityScopedViewModel
 import com.grid.pos.MainActivity
+import com.grid.pos.R
 import com.grid.pos.data.Family.Family
 import com.grid.pos.data.Item.Item
 import com.grid.pos.interfaces.OnGalleryResult
@@ -67,6 +73,8 @@ import com.grid.pos.ui.common.UISwitch
 import com.grid.pos.ui.common.UITextField
 import com.grid.pos.ui.settings.ColorPickerType
 import com.grid.pos.ui.theme.GridPOSTheme
+import com.grid.pos.utils.Extension.getStoragePermissions
+import com.grid.pos.utils.Extension.gotoApplicationSettings
 import com.grid.pos.utils.Extension.toHexCode
 import com.grid.pos.utils.Utils
 import kotlinx.coroutines.CoroutineScope
@@ -75,7 +83,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(
+    ExperimentalMaterial3Api::class,
+    ExperimentalPermissionsApi::class
+)
 @Composable
 fun ManageItemsView(
         modifier: Modifier = Modifier,
@@ -133,13 +144,63 @@ fun ManageItemsView(
 
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+
+    fun browseLocalPhotos() {
+        mainActivity.launchGalleryPicker(mediaType = ActivityResultContracts.PickVisualMedia.ImageOnly,
+            object : OnGalleryResult {
+                override fun onGalleryResult(uris: List<Uri>) {
+                    if (uris.isNotEmpty()) {
+                        manageItemsState.isLoading = true
+                        CoroutineScope(Dispatchers.IO).launch {
+                            val internalPath = Utils.saveToInternalStorage(context = mainActivity,
+                                parent = "item",
+                                uris[0],
+                                nameState.replace(
+                                    " ",
+                                    "_"
+                                ).ifEmpty { "item" })
+                            withContext(Dispatchers.Main) {
+                                manageItemsState.isLoading = false
+                                if (internalPath != null) {
+                                    oldImage = imageState
+                                    imageState = internalPath
+                                    manageItemsState.selectedItem.itemImage = imageState
+                                }
+                            }
+                        }
+                    }
+                }
+
+            })
+    }
+
+    val storagePermissionState = rememberMultiplePermissionsState(permissions = arrayListOf(mainActivity.getStoragePermissions()))
+    val requestPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            browseLocalPhotos()
+        } else {
+            viewModel.showWarning(
+                "Permission Denied",
+                "Settings"
+            )
+        }
+    }
     LaunchedEffect(manageItemsState.warning) {
         manageItemsState.warning?.value?.let { message ->
             scope.launch {
-                snackbarHostState.showSnackbar(
+                val snackBarResult = snackbarHostState.showSnackbar(
                     message = message,
                     duration = SnackbarDuration.Short,
+                    actionLabel = manageItemsState.actionLabel
                 )
+                when (snackBarResult) {
+                    SnackbarResult.Dismissed -> {}
+                    SnackbarResult.ActionPerformed -> when (manageItemsState.actionLabel) {
+                        "Settings" -> mainActivity.gotoApplicationSettings()
+                    }
+                }
             }
         }
     }
@@ -154,8 +215,7 @@ fun ManageItemsView(
         handleBack()
     }
     GridPOSTheme {
-        Scaffold(
-            containerColor = SettingsModel.backgroundColor,
+        Scaffold(containerColor = SettingsModel.backgroundColor,
             snackbarHost = {
                 SnackbarHost(hostState = snackbarHostState)
             },
@@ -183,6 +243,15 @@ fun ManageItemsView(
                                 fontSize = 16.sp,
                                 textAlign = TextAlign.Center
                             )
+                        },
+                        actions = {
+                            IconButton(onClick = { navController?.navigate("SettingsView") }) {
+                                Icon(
+                                    painterResource(R.drawable.ic_settings),
+                                    contentDescription = "Back",
+                                    tint = SettingsModel.buttonColor
+                                )
+                            }
                         })
                 }
             }) {
@@ -442,32 +511,11 @@ fun ManageItemsView(
                             onAction = { keyboardController?.hide() },
                             trailingIcon = {
                                 IconButton(onClick = {
-                                    mainActivity.launchGalleryPicker(mediaType = ActivityResultContracts.PickVisualMedia.ImageOnly,
-                                        object : OnGalleryResult {
-                                            override fun onGalleryResult(uris: List<Uri>) {
-                                                if (uris.isNotEmpty()) {
-                                                    manageItemsState.isLoading = true
-                                                    CoroutineScope(Dispatchers.IO).launch {
-                                                        val internalPath = Utils.saveToInternalStorage(context = mainActivity,
-                                                            parent = "item",
-                                                            uris[0],
-                                                            nameState.replace(
-                                                                " ",
-                                                                "_"
-                                                            ).ifEmpty { "item" })
-                                                        withContext(Dispatchers.Main) {
-                                                            manageItemsState.isLoading = false
-                                                            if (internalPath != null) {
-                                                                oldImage = imageState
-                                                                imageState = internalPath
-                                                                manageItemsState.selectedItem.itemImage = imageState
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            }
-
-                                        })
+                                    if (storagePermissionState.allPermissionsGranted) {
+                                        browseLocalPhotos()
+                                    } else {
+                                        requestPermissionLauncher.launch(mainActivity.getStoragePermissions())
+                                    }
                                 }) {
                                     Icon(
                                         Icons.Default.Image,

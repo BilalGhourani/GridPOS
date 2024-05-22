@@ -14,4 +14,5 @@ data class ManageItemsState(
         var isLoading: Boolean = false,
         var clear: Boolean = false,
         val warning: Event<String>? = null,
+        val actionLabel: String? = null,
 )

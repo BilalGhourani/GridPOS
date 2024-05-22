@@ -59,8 +59,7 @@ class ManageThirdPartiesViewModel @Inject constructor(
         })
     }
 
-    fun saveThirdParty() {
-        val thirdParty = manageThirdPartiesState.value.selectedThirdParty
+    fun saveThirdParty(thirdParty: ThirdParty) {
         if (thirdParty.thirdPartyName.isNullOrEmpty()) {
             manageThirdPartiesState.value = manageThirdPartiesState.value.copy(
                 warning = Event("Please fill Third Party name."),

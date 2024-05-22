@@ -61,6 +61,19 @@ class ManageFamiliesViewModel @Inject constructor(
         })
     }
 
+    fun showWarning(
+            warning: String,
+            action: String
+    ) {
+        viewModelScope.launch(Dispatchers.Main) {
+            manageFamiliesState.value = manageFamiliesState.value.copy(
+                warning = Event(warning),
+                actionLabel = action,
+                isLoading = false
+            )
+        }
+    }
+
     fun saveFamily() {
         val family = manageFamiliesState.value.selectedFamily
         if (family.familyName.isNullOrEmpty()) {
@@ -136,8 +149,7 @@ class ManageFamiliesViewModel @Inject constructor(
         )
 
         CoroutineScope(Dispatchers.IO).launch {
-            familyRepository.delete(
-                family,
+            familyRepository.delete(family,
                 object : OnResult {
                     override fun onSuccess(result: Any) {
                         val families = manageFamiliesState.value.families

@@ -92,6 +92,19 @@ class ManageItemsViewModel @Inject constructor(
         })
     }
 
+    fun showWarning(
+            warning: String,
+            action: String
+    ) {
+        viewModelScope.launch(Dispatchers.Main) {
+            manageItemsState.value = manageItemsState.value.copy(
+                warning = Event(warning),
+                actionLabel = action,
+                isLoading = false
+            )
+        }
+    }
+
     fun saveItem(item: Item) {
         if (item.itemName.isNullOrEmpty() || item.itemFaId.isNullOrEmpty()) {
             manageItemsState.value = manageItemsState.value.copy(
