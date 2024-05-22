@@ -31,15 +31,16 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ActivityScopedViewModel @Inject constructor(
-    private val currencyRepository: CurrencyRepository,
-    private val companyRepository: CompanyRepository,
-    private val userRepository: UserRepository,
-    private val thirdPartyRepository: ThirdPartyRepository,
-    private val familyRepository: FamilyRepository,
-    private val itemRepository: ItemRepository,
+        private val currencyRepository: CurrencyRepository,
+        private val companyRepository: CompanyRepository,
+        private val userRepository: UserRepository,
+        private val thirdPartyRepository: ThirdPartyRepository,
+        private val familyRepository: FamilyRepository,
+        private val itemRepository: ItemRepository,
 ) : ViewModel() {
     var posReceipt: PosReceipt = PosReceipt()
     var invoiceHeader: InvoiceHeader = InvoiceHeader()
+    var pendingInvHeadState: InvoiceHeader? = null
     var invoiceItemModels: MutableList<InvoiceItemModel> = mutableListOf()
     var isFromTable: Boolean = false
     var companies: MutableList<Company> = mutableListOf()
@@ -88,8 +89,8 @@ class ActivityScopedViewModel @Inject constructor(
                     }
 
                     override fun onFailure(
-                        message: String,
-                        errorCode: Int
+                            message: String,
+                            errorCode: Int
                     ) {
 
                     }
@@ -105,7 +106,11 @@ class ActivityScopedViewModel @Inject constructor(
                     val listOfCompanies = mutableListOf<Company>()
                     (result as List<*>).forEach {
                         it as Company
-                        if (it.companyId.equals(SettingsModel.companyID, ignoreCase = true)) {
+                        if (it.companyId.equals(
+                                SettingsModel.companyID,
+                                ignoreCase = true
+                            )
+                        ) {
                             SettingsModel.currentCompany = it
                         }
                         listOfCompanies.add(it)
@@ -130,8 +135,8 @@ class ActivityScopedViewModel @Inject constructor(
                 }
 
                 override fun onFailure(
-                    message: String,
-                    errorCode: Int
+                        message: String,
+                        errorCode: Int
                 ) {
 
                 }
@@ -142,18 +147,20 @@ class ActivityScopedViewModel @Inject constructor(
     private suspend fun fetchCurrentUser() {
         if (SettingsModel.currentUser == null && !SettingsModel.currentUserId.isNullOrEmpty()) {
             viewModelScope.launch(Dispatchers.IO) {
-                userRepository.getUserById(SettingsModel.currentUserId!!, object : OnResult {
-                    override fun onSuccess(result: Any) {
-                        SettingsModel.currentUser = result as User
-                    }
+                userRepository.getUserById(
+                    SettingsModel.currentUserId!!,
+                    object : OnResult {
+                        override fun onSuccess(result: Any) {
+                            SettingsModel.currentUser = result as User
+                        }
 
-                    override fun onFailure(
-                        message: String,
-                        errorCode: Int
-                    ) {
+                        override fun onFailure(
+                                message: String,
+                                errorCode: Int
+                        ) {
 
-                    }
-                })
+                        }
+                    })
             }
         }
     }
@@ -169,8 +176,8 @@ class ActivityScopedViewModel @Inject constructor(
             }
 
             override fun onFailure(
-                message: String,
-                errorCode: Int
+                    message: String,
+                    errorCode: Int
             ) {
             }
         })
@@ -187,8 +194,8 @@ class ActivityScopedViewModel @Inject constructor(
             }
 
             override fun onFailure(
-                message: String,
-                errorCode: Int
+                    message: String,
+                    errorCode: Int
             ) {
             }
         })
@@ -205,18 +212,19 @@ class ActivityScopedViewModel @Inject constructor(
             }
 
             override fun onFailure(
-                message: String,
-                errorCode: Int
+                    message: String,
+                    errorCode: Int
             ) {
             }
         })
     }
 
     fun getHtmlContent(
-        context: Context,
-        content: String = Utils.readFileFromAssets(
-            "receipt.html", context
-        )
+            context: Context,
+            content: String = Utils.readFileFromAssets(
+                "receipt.html",
+                context
+            )
     ): String {//"file:///android_asset/receipt.html"
         var result = content
         if (invoiceItemModels.isNotEmpty()) {
@@ -227,21 +235,26 @@ class ActivityScopedViewModel @Inject constructor(
                 trs.append(
                     "<tr> <td>${item.getName()}</td>  <td>${
                         String.format(
-                            "%.2f", item.getQuantity()
+                            "%.2f",
+                            item.getQuantity()
                         )
                     }</td> <td>$${
                         String.format(
-                            "%.2f", item.getPrice()
+                            "%.2f",
+                            item.getPrice()
                         )
                     }</td>  </tr>"
                 )
             }
             result = result.replace(
-                "{rows_content}", trs.toString()
+                "{rows_content}",
+                trs.toString()
             )
             result = result.replace(
-                "{total}", String.format(
-                    "%.2f", total
+                "{total}",
+                String.format(
+                    "%.2f",
+                    total
                 )
             )
         }
