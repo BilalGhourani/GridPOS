@@ -20,28 +20,30 @@ import com.grid.pos.model.SettingsModel
 
 @Composable
 fun UIButton(
-    modifier: Modifier = Modifier,
-    text: String = "Submit",
-    shape: Shape = RoundedCornerShape(15.dp),
-    buttonColor: Color = SettingsModel.buttonColor,
-    textColor: Color = SettingsModel.buttonTextColor,
-    textAlign: TextAlign = TextAlign.Center,
-    textDecoration: TextDecoration = TextDecoration.None,
-    fontWeight: FontWeight = FontWeight.Bold,
-    fontSize: TextUnit = 16.sp,
-    enabled:Boolean=true,
-    onClick: () -> Unit = {},
+        modifier: Modifier = Modifier,
+        text: String = "Submit",
+        shape: Shape = RoundedCornerShape(15.dp),
+        buttonColor: Color = SettingsModel.buttonColor,
+        disabledButtonColor: Color = Color.Gray,
+        textColor: Color = SettingsModel.buttonTextColor,
+        textAlign: TextAlign = TextAlign.Center,
+        textDecoration: TextDecoration = TextDecoration.None,
+        fontWeight: FontWeight = FontWeight.Bold,
+        fontSize: TextUnit = 16.sp,
+        enabled: Boolean = true,
+        onClick: () -> Unit = {},
 ) {
-    Button(
-        modifier = modifier,
-        colors = ButtonDefaults.buttonColors(containerColor = buttonColor),
+    Button(modifier = modifier,
+        colors = ButtonDefaults.buttonColors(
+            containerColor = buttonColor,
+            disabledContainerColor = disabledButtonColor
+        ),
         shape = shape,
         enabled = enabled,
         contentPadding = PaddingValues(0.dp),
         onClick = {
             onClick.invoke()
-        }
-    ) {
+        }) {
         Text(
             text = text,
             textAlign = textAlign,

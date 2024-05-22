@@ -23,6 +23,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -61,6 +62,7 @@ import com.grid.pos.data.InvoiceHeader.InvoiceHeader
 import com.grid.pos.data.PosReceipt.PosReceipt
 import com.grid.pos.model.InvoiceItemModel
 import com.grid.pos.model.SettingsModel
+import com.grid.pos.ui.common.UIAlertDialog
 import com.grid.pos.ui.pos.components.AddInvoiceItemView
 import com.grid.pos.ui.pos.components.EditInvoiceItemView
 import com.grid.pos.ui.pos.components.InvoiceBodyDetails
@@ -90,28 +92,14 @@ fun POSView(
     var isEditBottomSheetVisible by remember { mutableStateOf(false) }
     var isAddItemBottomSheetVisible by remember { mutableStateOf(false) }
     var isPayBottomSheetVisible by remember { mutableStateOf(false) }
+    var isSavePopupVisible by remember { mutableStateOf(false) }
+    var popupState by remember { mutableStateOf(PopupState.BACK_PRESSED) }
     val snackbarHostState = remember { SnackbarHostState() }
     var orientation by remember { mutableIntStateOf(Configuration.ORIENTATION_PORTRAIT) }
     val configuration = LocalConfiguration.current
     val isTablet = Utils.isTablet(LocalConfiguration.current)
     val isLandscape = orientation == Configuration.ORIENTATION_LANDSCAPE
     val keyboardController = LocalSoftwareKeyboardController.current
-    if (activityViewModel.isFromTable) {
-        posState.isLoading = true
-        activityViewModel.isFromTable = false
-        if (!invoiceHeaderState.value.invoiceHeadId.isNullOrEmpty()) {
-            viewModel.loadInvoiceDetails(invoiceHeaderState.value,
-                onSuccess = { receipt, invoiceItems ->
-                    posState.isLoading = false
-                    invoicesState.clear()
-                    invoicesState.addAll(invoiceItems)
-                    activityViewModel.invoiceItemModels = invoiceItems
-                    activityViewModel.posReceipt = receipt
-                })
-        }
-    } else if (invoicesState.isEmpty() && activityViewModel.invoiceItemModels.isNotEmpty()) {
-        invoicesState.addAll(activityViewModel.invoiceItemModels)
-    }
 
     if (posState.items.isEmpty()) {
         posState.items.addAll(activityViewModel.items)
@@ -124,6 +112,29 @@ fun POSView(
     }
     if (posState.invoiceHeaders.isEmpty()) {
         posState.invoiceHeaders.addAll(activityViewModel.invoiceHeaders)
+    }
+
+    fun selectInvoice(invoiceHeader: InvoiceHeader) {
+        if (invoiceHeader.invoiceHeadId.isNotEmpty()) {
+            invoiceHeaderState.value = invoiceHeader
+            posState.isLoading = true
+            viewModel.loadInvoiceDetails(invoiceHeader,
+                onSuccess = { receipt, invoiceItems ->
+                    posState.isLoading = false
+                    invoicesState.clear()
+                    invoicesState.addAll(invoiceItems)
+                    activityViewModel.invoiceItemModels = invoiceItems
+                    activityViewModel.posReceipt = receipt
+                })
+        }
+    }
+
+    if (activityViewModel.isFromTable) {
+        posState.isLoading = true
+        activityViewModel.isFromTable = false
+        selectInvoice(invoiceHeaderState.value)
+    } else if (invoicesState.isEmpty() && activityViewModel.invoiceItemModels.isNotEmpty()) {
+        invoicesState.addAll(activityViewModel.invoiceItemModels)
     }
 
     LaunchedEffect(configuration) {
@@ -166,6 +177,9 @@ fun POSView(
             isEditBottomSheetVisible = false
         } else if (isPayBottomSheetVisible) {
             isPayBottomSheetVisible = false
+        } else if (invoicesState.isNotEmpty()) {
+            popupState = PopupState.BACK_PRESSED
+            isSavePopupVisible = true
         } else {
             activityViewModel.invoiceItemModels = mutableListOf()
             activityViewModel.invoiceHeader = InvoiceHeader()
@@ -235,6 +249,7 @@ fun POSView(
                     InvoiceHeaderDetails(modifier = Modifier
                         .fillMaxWidth()
                         .height(70.dp),
+                        isPayEnabled = invoicesState.size > 0,
                         onAddItem = { isAddItemBottomSheetVisible = true },
                         onPay = { isPayBottomSheetVisible = true })
 
@@ -307,16 +322,13 @@ fun POSView(
                             invoiceHeaderState.value.invoiceHeadThirdPartyName = thirdParty.thirdPartyId
                         },
                         onInvoiceSelected = { invoiceHeader ->
-                            invoiceHeaderState.value = invoiceHeader
-                            posState.isLoading = true
-                            viewModel.loadInvoiceDetails(invoiceHeader,
-                                onSuccess = { receipt, invoiceItems ->
-                                    posState.isLoading = false
-                                    invoicesState.clear()
-                                    invoicesState.addAll(invoiceItems)
-                                    activityViewModel.invoiceItemModels = invoiceItems
-                                    activityViewModel.posReceipt = receipt
-                                })
+                            if (invoicesState.isNotEmpty()) {
+                                activityViewModel.pendingInvHeadState = invoiceHeader
+                                popupState = PopupState.CHANGE_INVOICE
+                                isSavePopupVisible = true
+                            } else {
+                                selectInvoice(invoiceHeader)
+                            }
                         })
                 }
             }
@@ -423,5 +435,45 @@ fun POSView(
                 )
             }
         }
+
+        AnimatedVisibility(
+            visible = isSavePopupVisible,
+            enter = fadeIn(
+                initialAlpha = 0.4f
+            ),
+            exit = fadeOut(
+                animationSpec = tween(durationMillis = 250)
+            )
+        ) {
+            UIAlertDialog(
+                onDismissRequest = {
+                    isSavePopupVisible = false
+
+                },
+                onConfirmation = {
+                    isSavePopupVisible = false
+                    when (popupState) {
+                        PopupState.BACK_PRESSED -> {
+                            handleBack()
+                        }
+
+                        PopupState.CHANGE_INVOICE -> {
+                            activityViewModel.pendingInvHeadState?.let {
+                                selectInvoice(it)
+                            }
+                        }
+                    }
+                },
+                dialogTitle = "Alert.",
+                dialogText = "discard current invoice?",
+                positiveBtnText = "Discard",
+                negativeBtnText = "Cancel",
+                icon = Icons.Default.Info
+            )
+        }
     }
+}
+
+enum class PopupState(val key: String) {
+    BACK_PRESSED("BACK_PRESSEF"), CHANGE_INVOICE("CHANGE_INVOICE")
 }

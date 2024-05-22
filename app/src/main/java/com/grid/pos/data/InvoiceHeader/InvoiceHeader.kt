@@ -19,7 +19,7 @@ data class InvoiceHeader(
         @ColumnInfo(name = "hi_id")
         @set:PropertyName("hi_id")
         @get:PropertyName("hi_id")
-        var invoiceHeadId: String,
+        var invoiceHeadId: String = "",
 
         @Ignore
         @get:Exclude
