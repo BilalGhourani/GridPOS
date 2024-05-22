@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.AddCircle
+import androidx.compose.material.icons.filled.AddCircleOutline
 import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -142,7 +144,7 @@ fun InvoiceFooterView(
                     label = "Items",
                     leadingIcon = {
                         Icon(
-                            Icons.Default.Add,
+                            Icons.Default.AddCircleOutline,
                             contentDescription = "add Item",
                             tint = Color.Black,
                             modifier = it
