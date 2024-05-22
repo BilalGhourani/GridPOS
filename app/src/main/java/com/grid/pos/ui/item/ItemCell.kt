@@ -9,12 +9,19 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Surface
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -39,8 +46,11 @@ import com.grid.pos.ui.theme.GridPOSTheme
 fun ItemCell(
         item: Item,
         modifier: Modifier = Modifier,
-        onClick: () -> Unit = {}
+        onClick: (Boolean) -> Unit = {}
 ) {
+
+    var itemSelected by remember { mutableStateOf(false) }
+    itemSelected = item.selected
     val image = item.getFullItemImage()
     var itemColor = if (item.itemBtnColor.isNullOrEmpty()) SettingsModel.buttonColor else {
         Color(item.itemBtnColor!!.toColorInt())
@@ -63,15 +73,22 @@ fun ItemCell(
             itemColor = itemColor.copy(alpha = .5f)
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current).data(image).build(),
-                contentScale = ContentScale.FillBounds, contentDescription = "Item image",
+                contentScale = ContentScale.FillBounds,
+                contentDescription = "Item image",
                 modifier = Modifier.fillMaxSize()
             )
         }
-        Button(modifier = modifier.fillMaxSize(), colors = ButtonDefaults.buttonColors(
-            containerColor = itemColor,
-        ), contentPadding = PaddingValues(0.dp), shape = RoundedCornerShape(15.dp), onClick = {
-            onClick.invoke()
-        }) {
+        Button(modifier = modifier.fillMaxSize(),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = itemColor,
+            ),
+            contentPadding = PaddingValues(0.dp),
+            shape = RoundedCornerShape(15.dp),
+            onClick = {
+                itemSelected = !itemSelected
+                item.selected = itemSelected
+                onClick.invoke(itemSelected)
+            }) {
             Column(
                 modifier = Modifier.fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -79,24 +96,46 @@ fun ItemCell(
             ) {
                 val price = item.itemUnitPrice.toString()
                 Text(
-                    text = item.itemName ?: "", color = itemTextColor, style = TextStyle(
-                        textDecoration = TextDecoration.None, fontWeight = FontWeight.SemiBold,
+                    text = item.itemName ?: "",
+                    color = itemTextColor,
+                    style = TextStyle(
+                        textDecoration = TextDecoration.None,
+                        fontWeight = FontWeight.SemiBold,
                         fontSize = 16.sp
-                    ), maxLines = if (SettingsModel.showPriceInItemBtn) 3 else 4,
+                    ),
+                    maxLines = if (SettingsModel.showPriceInItemBtn) 3 else 4,
                     modifier = Modifier.padding(
-                        top = 3.dp, start = 3.dp, end = 3.dp, bottom = 5.dp
-                    ), textAlign = TextAlign.Center
+                        top = 3.dp,
+                        start = 3.dp,
+                        end = 3.dp,
+                        bottom = 5.dp
+                    ),
+                    textAlign = TextAlign.Center
                 )
                 if (SettingsModel.showPriceInItemBtn) {
                     Text(
                         text = "$price ${SettingsModel.currentCurrency?.currencyCode1 ?: ""}",
-                        color = itemTextColor, style = TextStyle(
-                            textDecoration = TextDecoration.None, fontWeight = FontWeight.Bold,
+                        color = itemTextColor,
+                        style = TextStyle(
+                            textDecoration = TextDecoration.None,
+                            fontWeight = FontWeight.Bold,
                             fontSize = 16.sp
-                        ), modifier = Modifier.padding(bottom = 3.dp), textAlign = TextAlign.Center
+                        ),
+                        modifier = Modifier.padding(bottom = 3.dp),
+                        textAlign = TextAlign.Center
                     )
                 }
             }
+        }
+        if (itemSelected) {
+            Icon(
+                modifier = Modifier
+                    .wrapContentSize(align = Alignment.TopEnd)
+                    .padding(10.dp),
+                imageVector = Icons.Filled.CheckCircle,
+                contentDescription = "Checked",
+                tint = Color.White,
+            )
         }
     }
 }
@@ -105,6 +144,12 @@ fun ItemCell(
 @Composable
 fun ItemCellPreview() {
     GridPOSTheme {
-        ItemCell(Item("1", "CHICKEN", itemUnitPrice = 100.0))
+        ItemCell(
+            Item(
+                "1",
+                "CHICKEN",
+                itemUnitPrice = 100.0
+            )
+        )
     }
 }

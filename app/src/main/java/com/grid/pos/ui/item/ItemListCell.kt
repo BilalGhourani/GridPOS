@@ -16,20 +16,23 @@ import com.grid.pos.utils.Utils
 fun ItemListCell(
         modifier: Modifier = Modifier,
         items: MutableList<Item>,
-        onClick: (Item) -> Unit = {}
+        onClick: (Item) -> Unit = { _ -> }
 ) {
     LazyVerticalGrid(
         modifier = modifier
             .fillMaxWidth()
-            .wrapContentHeight(), columns = GridCells.Adaptive(120.dp)
+            .wrapContentHeight(),
+        columns = GridCells.Adaptive(120.dp)
     ) {
         items.forEach { item ->
             item {
                 ItemCell(
                     item = item,
-                    Modifier,
+                    modifier = Modifier
                 ) {
-                    onClick(item)
+                    onClick(
+                        item
+                    )
                 }
             }
         }
@@ -42,27 +45,41 @@ fun ItemListCellPreview() {
     GridPOSTheme {
         ItemListCell(
             modifier = Modifier,
-            mutableListOf(
+            items = mutableListOf(
                 Item(
-                    itemId = "1", itemName = "Chicken", itemUnitPrice = 100.0
+                    itemId = "1",
+                    itemName = "Chicken",
+                    itemUnitPrice = 100.0
                 ),
                 Item(
-                    itemId = "2", itemName = "Salad", itemUnitPrice = 100.0
+                    itemId = "2",
+                    itemName = "Salad",
+                    itemUnitPrice = 100.0
                 ),
                 Item(
-                    itemId = "3", itemName = "Veg", itemUnitPrice = 100.0
+                    itemId = "3",
+                    itemName = "Veg",
+                    itemUnitPrice = 100.0
                 ),
                 Item(
-                    itemId = "4", itemName = "Other", itemUnitPrice = 100.0
+                    itemId = "4",
+                    itemName = "Other",
+                    itemUnitPrice = 100.0
                 ),
                 Item(
-                    itemId = "5", itemName = "Other1", itemUnitPrice = 100.0
+                    itemId = "5",
+                    itemName = "Other1",
+                    itemUnitPrice = 100.0
                 ),
                 Item(
-                    itemId = "6", itemName = "Other2", itemUnitPrice = 100.0
+                    itemId = "6",
+                    itemName = "Other2",
+                    itemUnitPrice = 100.0
                 ),
                 Item(
-                    itemId = "7", itemName = "Other3", itemUnitPrice = 100.0
+                    itemId = "7",
+                    itemName = "Other3",
+                    itemUnitPrice = 100.0
                 ),
             )
         )

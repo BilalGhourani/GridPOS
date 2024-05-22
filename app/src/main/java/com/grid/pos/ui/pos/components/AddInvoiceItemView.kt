@@ -35,10 +35,10 @@ import com.grid.pos.utils.Utils
 
 @Composable
 fun AddInvoiceItemView(
-    categories: MutableList<Family> = mutableListOf(),
-    items: MutableList<Item> = mutableListOf(),
-    modifier: Modifier = Modifier,
-    onSelect: (List<Item>) -> Unit = {},
+        categories: MutableList<Family> = mutableListOf(),
+        items: MutableList<Item> = mutableListOf(),
+        modifier: Modifier = Modifier,
+        onSelect: (List<Item>) -> Unit = {},
 ) {
     val itemsState by remember { mutableStateOf(mutableListOf<Item>()) }
     var familyState by remember { mutableStateOf("") }
@@ -53,11 +53,9 @@ fun AddInvoiceItemView(
                 .fillMaxSize()
                 .padding(10.dp)
         ) {
-            CategoryListCell(
-                modifier=Modifier,
+            CategoryListCell(modifier = Modifier,
                 categories = categories,
-                onClick = { familyState = it.familyId }
-            )
+                onClick = { familyState = it.familyId })
             Spacer(modifier = Modifier.height(3.dp))
             HorizontalDivider(
                 modifier = Modifier
@@ -65,21 +63,41 @@ fun AddInvoiceItemView(
                     .background(color = Color.LightGray)
             )
             Spacer(modifier = Modifier.height(3.dp))
-            val familyItems =
-                items.filter { it.itemPos && it.itemFaId.equals(familyState, ignoreCase = true) }
+            val familyItems = items.filter {
+                it.itemPos && it.itemFaId.equals(
+                    familyState,
+                    ignoreCase = true
+                )
+            }
 
-            ItemListCell(items = familyItems.toMutableList(), onClick = { itemsState.add(it) })
+            ItemListCell(items = familyItems.toMutableList(),
+                onClick = { item ->
+                    if (item.selected) {
+                        itemsState.add(item)
+                    } else {
+                        itemsState.remove(item)
+                    }
+                })
         }
         FloatingActionButton(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(30.dp),
-            onClick = { onSelect.invoke(itemsState) },
+            onClick = {
+                itemsState.forEach { item ->
+                    item.selected = false
+                }
+                onSelect.invoke(itemsState.toMutableList())
+            },
             shape = CircleShape,
             containerColor = SettingsModel.buttonColor,
             contentColor = SettingsModel.buttonTextColor
         ) {
-            Icon(Icons.Filled.ArrowBackIosNew, "Submit", modifier = Modifier.rotate(180f))
+            Icon(
+                Icons.Filled.ArrowBackIosNew,
+                "Submit",
+                modifier = Modifier.rotate(180f)
+            )
         }
     }
 }

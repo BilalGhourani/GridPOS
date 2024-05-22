@@ -13,156 +13,160 @@ import com.grid.pos.utils.Utils
 
 @Entity(tableName = "st_item")
 data class Item(
-    /**
-     * Item Id
-     * */
-    @PrimaryKey
-    @ColumnInfo(name = "it_id")
-    @set:PropertyName("it_id")
-    @get:PropertyName("it_id")
-    var itemId: String,
+        /**
+         * Item Id
+         * */
+        @PrimaryKey
+        @ColumnInfo(name = "it_id")
+        @set:PropertyName("it_id")
+        @get:PropertyName("it_id")
+        var itemId: String,
 
-    @Ignore
-    @get:Exclude
-    var itemDocumentId: String? = null,
+        @Ignore
+        @get:Exclude
+        var itemDocumentId: String? = null,
 
-    /**
-     * Item name
-     * */
-    @ColumnInfo(name = "it_cmp_id")
-    @set:PropertyName("it_cmp_id")
-    @get:PropertyName("it_cmp_id")
-    var itemCompId: String? = null,
+        /**
+         * Item name
+         * */
+        @ColumnInfo(name = "it_cmp_id")
+        @set:PropertyName("it_cmp_id")
+        @get:PropertyName("it_cmp_id")
+        var itemCompId: String? = null,
 
-    /**
-     * Item name
-     * */
-    @ColumnInfo(name = "it_fa_id")
-    @set:PropertyName("it_fa_id")
-    @get:PropertyName("it_fa_id")
-    var itemFaId: String? = null,
+        /**
+         * Item name
+         * */
+        @ColumnInfo(name = "it_fa_id")
+        @set:PropertyName("it_fa_id")
+        @get:PropertyName("it_fa_id")
+        var itemFaId: String? = null,
 
-    /**
-     * Item name
-     * */
-    @ColumnInfo(name = "it_name")
-    @set:PropertyName("it_name")
-    @get:PropertyName("it_name")
-    var itemName: String? = null,
+        /**
+         * Item name
+         * */
+        @ColumnInfo(name = "it_name")
+        @set:PropertyName("it_name")
+        @get:PropertyName("it_name")
+        var itemName: String? = null,
 
-    /**
-     * Item barcode
-     * */
-    @ColumnInfo(name = "it_barcode")
-    @set:PropertyName("it_barcode")
-    @get:PropertyName("it_barcode")
-    var itemBarcode: String? = null,
+        /**
+         * Item barcode
+         * */
+        @ColumnInfo(name = "it_barcode")
+        @set:PropertyName("it_barcode")
+        @get:PropertyName("it_barcode")
+        var itemBarcode: String? = null,
 
-    /**
-     * Item unit price
-     * */
-    @ColumnInfo(name = "it_unitprice")
-    @set:PropertyName("it_unitprice")
-    @get:PropertyName("it_unitprice")
-    var itemUnitPrice: Double = 0.0,
+        /**
+         * Item unit price
+         * */
+        @ColumnInfo(name = "it_unitprice")
+        @set:PropertyName("it_unitprice")
+        @get:PropertyName("it_unitprice")
+        var itemUnitPrice: Double = 0.0,
 
-    /**
-     * Item tax
-     * */
-    @ColumnInfo(name = "it_tax")
-    @set:PropertyName("it_tax")
-    @get:PropertyName("it_tax")
-    var itemTax: Double = 0.0,
+        /**
+         * Item tax
+         * */
+        @ColumnInfo(name = "it_tax")
+        @set:PropertyName("it_tax")
+        @get:PropertyName("it_tax")
+        var itemTax: Double = 0.0,
 
-    /**
-     * Item tax 1
-     * */
-    @ColumnInfo(name = "it_tax1")
-    @set:PropertyName("it_tax1")
-    @get:PropertyName("it_tax1")
-    var itemTax1: Double = 0.0,
+        /**
+         * Item tax 1
+         * */
+        @ColumnInfo(name = "it_tax1")
+        @set:PropertyName("it_tax1")
+        @get:PropertyName("it_tax1")
+        var itemTax1: Double = 0.0,
 
-    /**
-     * Item tax 2
-     * */
-    @ColumnInfo(name = "it_tax2")
-    @set:PropertyName("it_tax2")
-    @get:PropertyName("it_tax2")
-    var itemTax2: Double = 0.0,
+        /**
+         * Item tax 2
+         * */
+        @ColumnInfo(name = "it_tax2")
+        @set:PropertyName("it_tax2")
+        @get:PropertyName("it_tax2")
+        var itemTax2: Double = 0.0,
 
-    /**
-     * related Item pos printer id
-     * */
-    @ColumnInfo(name = "it_printer")
-    @set:PropertyName("it_printer")
-    @get:PropertyName("it_printer")
-    var itemPrinter: String? = null,
+        /**
+         * related Item pos printer id
+         * */
+        @ColumnInfo(name = "it_printer")
+        @set:PropertyName("it_printer")
+        @get:PropertyName("it_printer")
+        var itemPrinter: String? = null,
 
-    /**
-     * Item open quantity
-     * */
-    @ColumnInfo(name = "it_openqty")
-    @set:PropertyName("it_openqty")
-    @get:PropertyName("it_openqty")
-    var itemOpenQty: Double = 0.0,
+        /**
+         * Item open quantity
+         * */
+        @ColumnInfo(name = "it_openqty")
+        @set:PropertyName("it_openqty")
+        @get:PropertyName("it_openqty")
+        var itemOpenQty: Double = 0.0,
 
-    /**
-     * Item open cost
-     * */
-    @ColumnInfo(name = "it_opencost")
-    @set:PropertyName("it_opencost")
-    @get:PropertyName("it_opencost")
-    var itemOpenCost: Double = 0.0,
+        /**
+         * Item open cost
+         * */
+        @ColumnInfo(name = "it_opencost")
+        @set:PropertyName("it_opencost")
+        @get:PropertyName("it_opencost")
+        var itemOpenCost: Double = 0.0,
 
-    /**
-     * related Item POS id
-     * */
-    @ColumnInfo(name = "it_pos")
-    @set:PropertyName("it_pos")
-    @get:PropertyName("it_pos")
-    var itemPos: Boolean = false,
+        /**
+         * related Item POS id
+         * */
+        @ColumnInfo(name = "it_pos")
+        @set:PropertyName("it_pos")
+        @get:PropertyName("it_pos")
+        var itemPos: Boolean = false,
 
-    /**
-     * family image
-     * */
-    @ColumnInfo(name = "it_image")
-    @set:PropertyName("it_image")
-    @get:PropertyName("it_image")
-    var itemImage: String? = null,
+        /**
+         * family image
+         * */
+        @ColumnInfo(name = "it_image")
+        @set:PropertyName("it_image")
+        @get:PropertyName("it_image")
+        var itemImage: String? = null,
 
-    /**
-     * Item button color
-     * */
-    @ColumnInfo(name = "it_btncolor")
-    @set:PropertyName("it_btncolor")
-    @get:PropertyName("it_btncolor")
-    var itemBtnColor: String? = null,
+        /**
+         * Item button color
+         * */
+        @ColumnInfo(name = "it_btncolor")
+        @set:PropertyName("it_btncolor")
+        @get:PropertyName("it_btncolor")
+        var itemBtnColor: String? = null,
 
-    /**
-     * Item button text color
-     * */
-    @ColumnInfo(name = "it_btntextcolor")
-    @set:PropertyName("it_btntextcolor")
-    @get:PropertyName("it_btntextcolor")
-    var itemBtnTextColor: String? = null,
+        /**
+         * Item button text color
+         * */
+        @ColumnInfo(name = "it_btntextcolor")
+        @set:PropertyName("it_btntextcolor")
+        @get:PropertyName("it_btntextcolor")
+        var itemBtnTextColor: String? = null,
 
-    /**
-     * Item userstamp
-     * */
-    @ColumnInfo(name = "it_userstamp")
-    @set:PropertyName("it_userstamp")
-    @get:PropertyName("it_userstamp")
-    var itemUserStamp: String? = null,
+        /**
+         * Item userstamp
+         * */
+        @ColumnInfo(name = "it_userstamp")
+        @set:PropertyName("it_userstamp")
+        @get:PropertyName("it_userstamp")
+        var itemUserStamp: String? = null,
 
-    /**
-     * Item timestamp
-     * */
-    @ColumnInfo(name = "it_timestamp")
-    @set:PropertyName("it_timestamp")
-    @get:PropertyName("it_timestamp")
-    var itemTimeStamp: String? = null,
+        /**
+         * Item timestamp
+         * */
+        @ColumnInfo(name = "it_timestamp")
+        @set:PropertyName("it_timestamp")
+        @get:PropertyName("it_timestamp")
+        var itemTimeStamp: String? = null,
 
-    ) : DataModel() {
+        @Ignore
+        @get:Exclude
+        var selected: Boolean = false,
+
+        ) : DataModel() {
     constructor() : this("")
 
     @Exclude
