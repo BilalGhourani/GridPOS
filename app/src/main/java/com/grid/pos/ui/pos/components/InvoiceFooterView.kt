@@ -117,7 +117,7 @@ fun InvoiceFooterView(
                     horizontalArrangement = Arrangement.Absolute.Left
                 ) {
                     Text(
-                        text = "Total: $totalState $curState",
+                        text = "$totalState $curState",
                         color = SettingsModel.textColor
                     )
                 }
@@ -127,7 +127,7 @@ fun InvoiceFooterView(
                     horizontalArrangement = Arrangement.Absolute.Left
                 ) {
                     Text(
-                        text = "Total: $totalCur2State $cur2State",
+                        text = "$totalCur2State $cur2State",
                         color = SettingsModel.textColor
                     )
                 }
@@ -188,7 +188,7 @@ fun InvoiceFooterView(
                     horizontalArrangement = Arrangement.Absolute.Left
                 ) {
                     Text(
-                        text = "Table Number: $tableNoState",
+                        text = tableNoState,
                         color = SettingsModel.textColor
                     )
                 }
@@ -198,7 +198,7 @@ fun InvoiceFooterView(
                     horizontalArrangement = Arrangement.Absolute.Left
                 ) {
                     Text(
-                        text = "Client: $clientState",
+                        text = clientState,
                         color = SettingsModel.textColor
                     )
                 }
