@@ -33,6 +33,7 @@ import com.grid.pos.ui.theme.GridPOSTheme
 @Composable
 fun InvoiceFooterView(
         invoiceHeader: InvoiceHeader,
+        selectedInvoice: String? = null,
         items: MutableList<Item> = mutableListOf(),
         thirdParties: MutableList<ThirdParty> = mutableListOf(),
         invoiceHeaders: MutableList<InvoiceHeader> = mutableListOf(),
@@ -245,6 +246,7 @@ fun InvoiceFooterView(
         }
         SearchableDropdownMenu(
             items = invoiceHeaders.toMutableList(),
+            selectedId = selectedInvoice,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(
@@ -253,7 +255,7 @@ fun InvoiceFooterView(
                     5.dp,
                     5.dp
                 ),
-            label = "Invoices"
+            label = "Invoices",
         ) { invoiceHeader ->
             onInvoiceSelected.invoke(invoiceHeader as InvoiceHeader)
         }

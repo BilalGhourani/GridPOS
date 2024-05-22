@@ -154,11 +154,11 @@ fun InvoiceCashView(
         )
         changeCurr1 = String.format(
             "%.${curr1Decimal}f",
-            (cashCurr1Total.toDoubleOrNull() ?: 0.0) - totalPaid1
+            totalPaid1 - (cashCurr1Total.toDoubleOrNull() ?: 0.0)
         )
         changeCurr2 = String.format(
             "%.${curr2Decimal}f",
-            (cashCurr2Total.toDoubleOrNull() ?: 0.0) - totalPaid2
+            totalPaid2 - (cashCurr2Total.toDoubleOrNull() ?: 0.0)
         )
     }
 
