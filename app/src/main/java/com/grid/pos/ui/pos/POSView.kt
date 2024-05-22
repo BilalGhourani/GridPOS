@@ -66,6 +66,7 @@ import com.grid.pos.data.InvoiceHeader.InvoiceHeader
 import com.grid.pos.data.PosReceipt.PosReceipt
 import com.grid.pos.model.InvoiceItemModel
 import com.grid.pos.model.SettingsModel
+import com.grid.pos.ui.common.LoadingIndicator
 import com.grid.pos.ui.common.UIAlertDialog
 import com.grid.pos.ui.pos.components.AddInvoiceItemView
 import com.grid.pos.ui.pos.components.EditInvoiceItemView
@@ -75,8 +76,6 @@ import com.grid.pos.ui.pos.components.InvoiceFooterView
 import com.grid.pos.ui.pos.components.InvoiceHeaderDetails
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.utils.Utils
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @SuppressLint("MutableCollectionMutableState")
@@ -164,10 +163,20 @@ fun POSView(
 
     LaunchedEffect(posState.isSaved) {
         if (posState.isSaved) {
-            activityViewModel.invoiceItemModels = invoicesState
-            activityViewModel.invoiceHeader = invoiceHeaderState.value
             isPayBottomSheetVisible = false
-            navController?.navigate("UIWebView")
+            if (activityViewModel.shouldPrintInvoice) {
+                activityViewModel.invoiceItemModels = invoicesState
+                activityViewModel.invoiceHeader = invoiceHeaderState.value
+                navController?.navigate("UIWebView")
+            } else {
+                activityViewModel.invoiceItemModels.clear()
+                activityViewModel.invoiceHeader = InvoiceHeader()
+                activityViewModel.posReceipt = PosReceipt()
+                activityViewModel.shouldPrintInvoice = true
+                activityViewModel.pendingInvHeadState = null
+                invoicesState.clear()
+                invoiceHeaderState.value = activityViewModel.invoiceHeader
+            }
             posState.isSaved = false
         }
     }
@@ -311,7 +320,6 @@ fun POSView(
                     )
 
                     InvoiceFooterView(invoiceHeader = invoiceHeaderState.value,
-                        selectedInvoice = activityViewModel.selectedInvHeadId,
                         items = posState.items,
                         thirdParties = posState.thirdParties.toMutableList(),
                         invoiceHeaders = posState.invoiceHeaders,
@@ -352,7 +360,6 @@ fun POSView(
                         onInvoiceSelected = { invoiceHeader ->
                             if (invoicesState.isNotEmpty()) {
                                 activityViewModel.pendingInvHeadState = invoiceHeader
-                                activityViewModel.selectedInvHeadId = invoiceHeader.invoiceHeadId
                                 popupState = PopupState.CHANGE_INVOICE
                                 isSavePopupVisible = true
                             } else {
@@ -445,20 +452,32 @@ fun POSView(
                     onSave = { change, receipt ->
                         activityViewModel.posReceipt = receipt
                         invoiceHeaderState.value.invoiceHeadChange = change
+                        activityViewModel.shouldPrintInvoice = false
+                        viewModel.saveInvoiceHeader(
+                            invoiceHeaderState.value,
+                            activityViewModel.posReceipt,
+                            activityViewModel.invoiceItemModels,
+                        )
+                    },
+                    onSaveAndPrint = { change, receipt ->
+                        activityViewModel.posReceipt = receipt
+                        invoiceHeaderState.value.invoiceHeadChange = change
+                        activityViewModel.shouldPrintInvoice = true
                         viewModel.saveInvoiceHeader(
                             invoiceHeaderState.value,
                             activityViewModel.posReceipt,
                             activityViewModel.invoiceItemModels
                         )
                     },
-                    onFinish = { change, receipt ->
+                    onFinishAndPrint = { change, receipt ->
                         activityViewModel.posReceipt = receipt
                         invoiceHeaderState.value.invoiceHeadChange = change
+                        activityViewModel.shouldPrintInvoice = true
                         viewModel.saveInvoiceHeader(
                             invoiceHeaderState.value,
                             activityViewModel.posReceipt,
                             activityViewModel.invoiceItemModels,
-                            true
+                            finish = true
                         )
                     },
                 )
@@ -476,7 +495,6 @@ fun POSView(
         ) {
             UIAlertDialog(
                 onDismissRequest = {
-                    activityViewModel.selectedInvHeadId = null
                     isSavePopupVisible = false
                 },
                 onConfirmation = {
@@ -502,6 +520,9 @@ fun POSView(
                 icon = Icons.Default.Info
             )
         }
+        LoadingIndicator(
+            show = posState.isLoading
+        )
     }
 }
 

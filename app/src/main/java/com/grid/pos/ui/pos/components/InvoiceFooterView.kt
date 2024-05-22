@@ -33,7 +33,6 @@ import com.grid.pos.ui.theme.GridPOSTheme
 @Composable
 fun InvoiceFooterView(
         invoiceHeader: InvoiceHeader,
-        selectedInvoice: String? = null,
         items: MutableList<Item> = mutableListOf(),
         thirdParties: MutableList<ThirdParty> = mutableListOf(),
         invoiceHeaders: MutableList<InvoiceHeader> = mutableListOf(),
@@ -48,8 +47,7 @@ fun InvoiceFooterView(
     val curState = currency.currencyCode1 ?: ""
     val cur2State = currency.currencyCode2 ?: ""
     val curr1Decimal = currency.currencyName1Dec
-    val curr2Decimal = currency.currencyName2Dec
-   /* val taxState = String.format(
+    val curr2Decimal = currency.currencyName2Dec/* val taxState = String.format(
         "%.${curr1Decimal}f",
         invoiceHeader.invoiceHeadTaxAmt
     )
@@ -91,28 +89,28 @@ fun InvoiceFooterView(
                     .wrapContentHeight()
                     .padding(5.dp)
             ) {
-               /* if (SettingsModel.showTax) {
-                    Row(
-                        modifier = Modifier.wrapContentWidth(),
-                        horizontalArrangement = Arrangement.Absolute.Left
-                    ) {
-                        Text(
-                            text = "Tax: $taxState $curState",
-                            color = SettingsModel.textColor
-                        )
-                    }
-                }
-                if (SettingsModel.showTax1) {
-                    Row(
-                        modifier = Modifier.wrapContentWidth(),
-                        horizontalArrangement = Arrangement.Absolute.Left
-                    ) {
-                        Text(
-                            text = "Tax1: $tax1State $curState",
-                            color = SettingsModel.textColor
-                        )
-                    }
-                }*/
+                /* if (SettingsModel.showTax) {
+                     Row(
+                         modifier = Modifier.wrapContentWidth(),
+                         horizontalArrangement = Arrangement.Absolute.Left
+                     ) {
+                         Text(
+                             text = "Tax: $taxState $curState",
+                             color = SettingsModel.textColor
+                         )
+                     }
+                 }
+                 if (SettingsModel.showTax1) {
+                     Row(
+                         modifier = Modifier.wrapContentWidth(),
+                         horizontalArrangement = Arrangement.Absolute.Left
+                     ) {
+                         Text(
+                             text = "Tax1: $tax1State $curState",
+                             color = SettingsModel.textColor
+                         )
+                     }
+                 }*/
                 Row(
                     modifier = Modifier.wrapContentWidth(),
                     horizontalArrangement = Arrangement.Absolute.Left
@@ -134,6 +132,7 @@ fun InvoiceFooterView(
                 }
 
                 SearchableDropdownMenu(items = items.toMutableList(),
+                    showSelected = false,
                     modifier = Modifier.padding(
                         0.dp,
                         15.dp,
@@ -162,28 +161,28 @@ fun InvoiceFooterView(
                     .wrapContentHeight()
                     .padding(5.dp)
             ) {
-               /* if (SettingsModel.showTax2) {
-                    Row(
-                        modifier = Modifier.wrapContentWidth(),
-                        horizontalArrangement = Arrangement.Absolute.Left
-                    ) {
-                        Text(
-                            text = "Tax2: $tax2State $curState",
-                            color = SettingsModel.textColor
-                        )
-                    }
-                }
-                if (SettingsModel.showTax || SettingsModel.showTax1 || SettingsModel.showTax2) {
-                    Row(
-                        modifier = Modifier.wrapContentWidth(),
-                        horizontalArrangement = Arrangement.Absolute.Left
-                    ) {
-                        Text(
-                            text = "Total Tax: $totalTaxState $curState",
-                            color = SettingsModel.textColor
-                        )
-                    }
-                }*/
+                /* if (SettingsModel.showTax2) {
+                     Row(
+                         modifier = Modifier.wrapContentWidth(),
+                         horizontalArrangement = Arrangement.Absolute.Left
+                     ) {
+                         Text(
+                             text = "Tax2: $tax2State $curState",
+                             color = SettingsModel.textColor
+                         )
+                     }
+                 }
+                 if (SettingsModel.showTax || SettingsModel.showTax1 || SettingsModel.showTax2) {
+                     Row(
+                         modifier = Modifier.wrapContentWidth(),
+                         horizontalArrangement = Arrangement.Absolute.Left
+                     ) {
+                         Text(
+                             text = "Total Tax: $totalTaxState $curState",
+                             color = SettingsModel.textColor
+                         )
+                     }
+                 }*/
                 Row(
                     modifier = Modifier.wrapContentWidth(),
                     horizontalArrangement = Arrangement.Absolute.Left
@@ -246,7 +245,8 @@ fun InvoiceFooterView(
         }
         SearchableDropdownMenu(
             items = invoiceHeaders.toMutableList(),
-            selectedId = selectedInvoice,
+            showSelected = false,
+            selectedId = null,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(

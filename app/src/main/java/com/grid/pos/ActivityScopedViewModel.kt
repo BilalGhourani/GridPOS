@@ -40,9 +40,9 @@ class ActivityScopedViewModel @Inject constructor(
 ) : ViewModel() {
     var posReceipt: PosReceipt = PosReceipt()
     var invoiceHeader: InvoiceHeader = InvoiceHeader()
-    var selectedInvHeadId: String? = null
     var pendingInvHeadState: InvoiceHeader? = null
     var invoiceItemModels: MutableList<InvoiceItemModel> = mutableListOf()
+    var shouldPrintInvoice: Boolean = false
     var isFromTable: Boolean = false
     var companies: MutableList<Company> = mutableListOf()
     var currencies: MutableList<Currency> = mutableListOf()

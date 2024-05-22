@@ -45,6 +45,7 @@ fun SearchableDropdownMenu(
         items: MutableList<DataModel> = mutableListOf(),
         label: String = "",
         selectedId: String? = null,
+        showSelected: Boolean = true,
         leadingIcon: @Composable ((Modifier) -> Unit)? = null,
         onLeadingIconClick: () -> Unit = {},
         onSelectionChange: (DataModel) -> Unit = {},
@@ -53,7 +54,7 @@ fun SearchableDropdownMenu(
     var searchText by remember { mutableStateOf(label) }
     var selectedItemState by remember { mutableStateOf(label) }
     LaunchedEffect(selectedId) {
-        if (!selectedId.isNullOrEmpty()) {
+        if (showSelected && !selectedId.isNullOrEmpty()) {
             items.forEach {
                 if (it.getId().equals(
                         selectedId,
@@ -179,7 +180,7 @@ fun SearchableDropdownMenu(
                             onClick = {
                                 onSelectionChange(item)
                                 searchText = text
-                                selectedItemState = text
+                                if (showSelected) selectedItemState = text
                                 expandedState = false
                             })
                     }

@@ -44,7 +44,8 @@ fun InvoiceCashView(
         invoiceHeader: InvoiceHeader,
         posReceipt: PosReceipt,
         onSave: (Double, PosReceipt) -> Unit = { _, _ -> },
-        onFinish: (Double, PosReceipt) -> Unit = { _, _ -> },
+        onSaveAndPrint: (Double, PosReceipt) -> Unit = { _, _ -> },
+        onFinishAndPrint: (Double, PosReceipt) -> Unit = { _, _ -> },
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
     val cashCurr2FocusRequester = remember { FocusRequester() }
@@ -171,61 +172,74 @@ fun InvoiceCashView(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(2.dp)
     ) {
+
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(50.dp)
-                .padding(vertical = 5.dp),
-            horizontalArrangement = Arrangement.spacedBy(5.dp)
+                .height(80.dp)
+                .padding(
+                    0.dp,
+                    0.dp,
+                    0.dp,
+                    15.dp
+                ),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-
-            Text(
-                curr1State,
+            UIButton(
                 modifier = Modifier
-                    .fillMaxHeight()
-                    .weight(.25f)
-                    .wrapContentHeight(
-                        align = Alignment.CenterVertically
-                    )
-                    .wrapContentWidth(align = Alignment.CenterHorizontally),
-                color = SettingsModel.textColor
-            )
-
-            Text(
-                curr2State,
+                    .weight(1f)
+                    .fillMaxHeight(),
+                text = "Save & Close",
+                shape = RoundedCornerShape(15.dp)
+            ) {
+                posReceipt.posReceiptCash = cashTotalPaid1.toDoubleOrNull() ?: 0.0
+                posReceipt.posReceiptCashs = cashTotalPaid2.toDoubleOrNull() ?: 0.0
+                posReceipt.posReceiptDebit = debitCurr1Paid.toDoubleOrNull() ?: 0.0
+                posReceipt.posReceiptDebits = debitCurr2Paid.toDoubleOrNull() ?: 0.0
+                posReceipt.posReceiptCredit = creditCurr1Paid.toDoubleOrNull() ?: 0.0
+                posReceipt.posReceiptCredits = creditCurr2Paid.toDoubleOrNull() ?: 0.0
+                onSave.invoke(
+                    changeCurr1.toDoubleOrNull() ?: 0.0,
+                    posReceipt
+                )
+            }
+            UIButton(
                 modifier = Modifier
-                    .fillMaxHeight()
-                    .weight(.25f)
-                    .wrapContentHeight(
-                        align = Alignment.CenterVertically
-                    )
-                    .wrapContentWidth(align = Alignment.CenterHorizontally),
-                color = SettingsModel.textColor
-            )
+                    .weight(1f)
+                    .fillMaxHeight(),
+                text = "Save & Print Order",
+                shape = RoundedCornerShape(15.dp)
+            ) {
+                posReceipt.posReceiptCash = cashTotalPaid1.toDoubleOrNull() ?: 0.0
+                posReceipt.posReceiptCashs = cashTotalPaid2.toDoubleOrNull() ?: 0.0
+                posReceipt.posReceiptDebit = debitCurr1Paid.toDoubleOrNull() ?: 0.0
+                posReceipt.posReceiptDebits = debitCurr2Paid.toDoubleOrNull() ?: 0.0
+                posReceipt.posReceiptCredit = creditCurr1Paid.toDoubleOrNull() ?: 0.0
+                posReceipt.posReceiptCredits = creditCurr2Paid.toDoubleOrNull() ?: 0.0
+                onSaveAndPrint.invoke(
+                    changeCurr1.toDoubleOrNull() ?: 0.0,
+                    posReceipt
+                )
+            }
 
-            Text(
-                curr1State,
+            UIButton(
                 modifier = Modifier
-                    .fillMaxHeight()
-                    .weight(.25f)
-                    .wrapContentHeight(
-                        align = Alignment.CenterVertically
-                    )
-                    .wrapContentWidth(align = Alignment.CenterHorizontally),
-                color = SettingsModel.textColor
-            )
-
-            Text(
-                curr2State,
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .weight(.25f)
-                    .wrapContentHeight(
-                        align = Alignment.CenterVertically
-                    )
-                    .wrapContentWidth(align = Alignment.CenterHorizontally),
-                color = SettingsModel.textColor
-            )
+                    .weight(1f)
+                    .fillMaxHeight(),
+                text = "Finish & Print",
+                shape = RoundedCornerShape(15.dp)
+            ) {
+                posReceipt.posReceiptCash = cashCurr1Paid.toDoubleOrNull() ?: 0.0
+                posReceipt.posReceiptCashs = cashCurr2Paid.toDoubleOrNull() ?: 0.0
+                posReceipt.posReceiptDebit = debitCurr1Paid.toDoubleOrNull() ?: 0.0
+                posReceipt.posReceiptDebits = debitCurr2Paid.toDoubleOrNull() ?: 0.0
+                posReceipt.posReceiptCredit = creditCurr1Paid.toDoubleOrNull() ?: 0.0
+                posReceipt.posReceiptCredits = creditCurr2Paid.toDoubleOrNull() ?: 0.0
+                onFinishAndPrint.invoke(
+                    changeCurr1.toDoubleOrNull() ?: 0.0,
+                    posReceipt
+                )
+            }
         }
 
         Row(
@@ -245,7 +259,7 @@ fun InvoiceCashView(
                     calculateTotal()
                 },
                 label = {
-                    Text(text = "Cash")
+                    Text(text = "Cash $curr1State")
                 },
                 placeholder = {
                     Text(text = "0.0")
@@ -276,7 +290,7 @@ fun InvoiceCashView(
                     calculateTotal()
                 },
                 label = {
-                    Text(text = "Cash")
+                    Text(text = "Cash $curr2State")
                 },
                 placeholder = {
                     Text(text = "0.0")
@@ -309,7 +323,7 @@ fun InvoiceCashView(
                 },
                 readOnly = true,
                 label = {
-                    Text(text = "Total")
+                    Text(text = "Total $curr1State")
                 },
                 modifier = Modifier
                     .fillMaxHeight()
@@ -340,7 +354,7 @@ fun InvoiceCashView(
                 },
                 readOnly = true,
                 label = {
-                    Text(text = "Total")
+                    Text(text = "Total $curr2State")
                 },
                 modifier = Modifier
                     .fillMaxHeight()
@@ -379,7 +393,7 @@ fun InvoiceCashView(
                     calculateTotal()
                 },
                 label = {
-                    Text(text = "Credit")
+                    Text(text = "Credit $curr1State")
                 },
                 placeholder = {
                     Text(text = "0.0")
@@ -413,7 +427,7 @@ fun InvoiceCashView(
                     calculateTotal()
                 },
                 label = {
-                    Text(text = "Credit")
+                    Text(text = "Credit $curr2State")
                 },
                 placeholder = {
                     Text(text = "0.0")
@@ -446,7 +460,7 @@ fun InvoiceCashView(
                 },
                 readOnly = true,
                 label = {
-                    Text(text = "Paid")
+                    Text(text = "Paid $curr1State")
                 },
                 modifier = Modifier
                     .fillMaxHeight()
@@ -477,7 +491,7 @@ fun InvoiceCashView(
                 },
                 readOnly = true,
                 label = {
-                    Text(text = "Paid")
+                    Text(text = "Paid $curr2State")
                 },
                 modifier = Modifier
                     .fillMaxHeight()
@@ -516,7 +530,7 @@ fun InvoiceCashView(
                     calculateTotal()
                 },
                 label = {
-                    Text(text = "Debit")
+                    Text(text = "Debit $curr1State")
                 },
                 placeholder = {
                     Text(text = "0.0")
@@ -550,7 +564,7 @@ fun InvoiceCashView(
                     calculateTotal()
                 },
                 label = {
-                    Text(text = "Debit")
+                    Text(text = "Debit $curr2State")
                 },
                 placeholder = {
                     Text(text = "0.0")
@@ -583,7 +597,7 @@ fun InvoiceCashView(
                 },
                 readOnly = true,
                 label = {
-                    Text(text = "Change")
+                    Text(text = "Change $curr1State")
                 },
                 modifier = Modifier
                     .fillMaxHeight()
@@ -614,7 +628,7 @@ fun InvoiceCashView(
                 },
                 readOnly = true,
                 label = {
-                    Text(text = "Change")
+                    Text(text = "Change $curr2State")
                 },
                 modifier = Modifier
                     .fillMaxHeight()
@@ -636,55 +650,5 @@ fun InvoiceCashView(
             )
         }
 
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(80.dp)
-                .padding(
-                    0.dp,
-                    15.dp,
-                    0.dp,
-                    0.dp
-                ),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            UIButton(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxHeight(),
-                text = "Save & Print Order",
-                shape = RoundedCornerShape(15.dp)
-            ) {
-                posReceipt.posReceiptCash = cashTotalPaid1.toDoubleOrNull() ?: 0.0
-                posReceipt.posReceiptCashs = cashTotalPaid2.toDoubleOrNull() ?: 0.0
-                posReceipt.posReceiptDebit = debitCurr1Paid.toDoubleOrNull() ?: 0.0
-                posReceipt.posReceiptDebits = debitCurr2Paid.toDoubleOrNull() ?: 0.0
-                posReceipt.posReceiptCredit = creditCurr1Paid.toDoubleOrNull() ?: 0.0
-                posReceipt.posReceiptCredits = creditCurr2Paid.toDoubleOrNull() ?: 0.0
-                onSave.invoke(
-                    changeCurr1.toDoubleOrNull() ?: 0.0,
-                    posReceipt
-                )
-            }
-
-            UIButton(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxHeight(),
-                text = "Finish & Print",
-                shape = RoundedCornerShape(15.dp)
-            ) {
-                posReceipt.posReceiptCash = cashCurr1Paid.toDoubleOrNull() ?: 0.0
-                posReceipt.posReceiptCashs = cashCurr2Paid.toDoubleOrNull() ?: 0.0
-                posReceipt.posReceiptDebit = debitCurr1Paid.toDoubleOrNull() ?: 0.0
-                posReceipt.posReceiptDebits = debitCurr2Paid.toDoubleOrNull() ?: 0.0
-                posReceipt.posReceiptCredit = creditCurr1Paid.toDoubleOrNull() ?: 0.0
-                posReceipt.posReceiptCredits = creditCurr2Paid.toDoubleOrNull() ?: 0.0
-                onFinish.invoke(
-                    changeCurr1.toDoubleOrNull() ?: 0.0,
-                    posReceipt
-                )
-            }
-        }
     }
 }

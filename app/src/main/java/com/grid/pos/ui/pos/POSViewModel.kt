@@ -146,7 +146,7 @@ class POSViewModel @Inject constructor(
         invoiceHeader: InvoiceHeader,
         posReceipt: PosReceipt,
         invoiceItems: MutableList<InvoiceItemModel>,
-        finish: Boolean = false
+        finish: Boolean = false,
     ) {
         if (invoiceItems.isEmpty()) {
             posState.value = posState.value.copy(
