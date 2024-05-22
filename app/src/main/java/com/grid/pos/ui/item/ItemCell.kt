@@ -46,7 +46,7 @@ import com.grid.pos.ui.theme.GridPOSTheme
 fun ItemCell(
         item: Item,
         modifier: Modifier = Modifier,
-        onClick: (Boolean) -> Unit = {}
+        onClick: () -> Unit = {}
 ) {
 
     var itemSelected by remember { mutableStateOf(false) }
@@ -87,7 +87,7 @@ fun ItemCell(
             onClick = {
                 itemSelected = !itemSelected
                 item.selected = itemSelected
-                onClick.invoke(itemSelected)
+                onClick.invoke()
             }) {
             Column(
                 modifier = Modifier.fillMaxSize(),
