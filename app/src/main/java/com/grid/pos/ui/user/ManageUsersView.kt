@@ -192,7 +192,7 @@ fun ManageUsersView(
                             placeHolder = "Enter Name",
                             onAction = { usernameFocusRequester.requestFocus() }) {
                             nameState = it
-                            manageUsersState.selectedUser.userName = it
+                            manageUsersState.selectedUser.userName = it.trim()
                         }
 
                         UITextField(modifier = Modifier.padding(10.dp),
@@ -202,7 +202,7 @@ fun ManageUsersView(
                             focusRequester = usernameFocusRequester,
                             onAction = { passwordFocusRequester.requestFocus() }) {
                             usernameState = it
-                            manageUsersState.selectedUser.userUsername = it
+                            manageUsersState.selectedUser.userUsername = it.trim()
                         }
 
                         UITextField(modifier = Modifier.padding(10.dp),
@@ -224,7 +224,7 @@ fun ManageUsersView(
                                 }
                             }) {
                             passwordState = it
-                            manageUsersState.selectedUser.userPassword = it
+                            manageUsersState.selectedUser.userPassword = it.trim()
                         }
 
                         Row(

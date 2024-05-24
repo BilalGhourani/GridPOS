@@ -189,8 +189,8 @@ fun LoginView(
                             onAction = {
                                 keyboardController?.hide()
                                 viewModel.login(
-                                    usernameState,
-                                    passwordState
+                                    usernameState.trim(),
+                                    passwordState.trim()
                                 )
                             },
                             trailingIcon = {
@@ -213,8 +213,8 @@ fun LoginView(
                         ) {
                             keyboardController?.hide()
                             viewModel.login(
-                                usernameState,
-                                passwordState
+                                usernameState.trim(),
+                                passwordState.trim()
                             )
                         }
                     }
