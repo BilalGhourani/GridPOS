@@ -103,7 +103,7 @@ fun ReportsView(
     var toDateState by remember {
         mutableStateOf(
             Utils.getDateinFormat(
-                getDateFromState(fromDatePickerState.selectedDateMillis!!),
+                getDateFromState(toDatePickerState.selectedDateMillis!!),
                 "yyyy-MM-dd"
             )
         )
@@ -206,7 +206,7 @@ fun ReportsView(
                 }
 
                 UITextField(modifier = Modifier.padding(10.dp),
-                    defaultValue = fromDateState,
+                    defaultValue = toDateState,
                     label = "To",
                     maxLines = 1,
                     keyboardType = KeyboardType.Text,
@@ -248,15 +248,12 @@ fun ReportsView(
                 confirmButton = {
                     TextButton(
                         onClick = {
-                            showDatePicker = false
-
                             if (datePickerPopupState == DatePickerPopupState.FROM) {
                                 val fromDate =
                                     getDateFromState(fromDatePickerState.selectedDateMillis!!)
                                 if (fromDate.after(Date())) {
-                                    reportsState.warning =
-                                        Event("From date should be before today, please select again")
-                                    showDatePicker = false
+                                    viewModel.showError("From date should be today or before, please select again")
+                                    showDatePicker = true
                                     return@TextButton
                                 }
                                 fromDateState =
@@ -266,7 +263,7 @@ fun ReportsView(
                                     getDateFromState(toDatePickerState.selectedDateMillis!!)
                                 toDateState = Utils.getDateinFormat(toDate, "yyyy-MM-dd")
                             }
-
+                            showDatePicker = false
                         },
                         modifier = Modifier.padding(8.dp),
                     ) {
