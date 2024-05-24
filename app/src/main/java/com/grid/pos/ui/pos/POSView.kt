@@ -76,17 +76,18 @@ import com.grid.pos.ui.pos.components.InvoiceFooterView
 import com.grid.pos.ui.pos.components.InvoiceHeaderDetails
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.utils.Utils
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @SuppressLint("MutableCollectionMutableState")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun POSView(
-        modifier: Modifier = Modifier,
-        navController: NavController? = null,
-        activityViewModel: ActivityScopedViewModel,
-        mainActivity: MainActivity,
-        viewModel: POSViewModel = hiltViewModel()
+    modifier: Modifier = Modifier,
+    navController: NavController? = null,
+    activityViewModel: ActivityScopedViewModel,
+    mainActivity: MainActivity,
+    viewModel: POSViewModel = hiltViewModel()
 ) {
     val posState: POSState by viewModel.posState.collectAsState(POSState())
     val invoicesState = remember { mutableStateListOf<InvoiceItemModel>() }
@@ -185,6 +186,9 @@ fun POSView(
         if (isImeVisible) {
             keyboardController?.hide()
         } else if (isAddItemBottomSheetVisible) {
+            scope.launch(Dispatchers.IO) {
+                posState.resetItemsSelection()
+            }
             isAddItemBottomSheetVisible = false
         } else if (isEditBottomSheetVisible) {
             isEditBottomSheetVisible = false
@@ -355,7 +359,8 @@ fun POSView(
                         },
                         onThirdPartySelected = { thirdParty ->
                             posState.selectedThirdParty = thirdParty
-                            invoiceHeaderState.value.invoiceHeadThirdPartyName = thirdParty.thirdPartyId
+                            invoiceHeaderState.value.invoiceHeadThirdPartyName =
+                                thirdParty.thirdPartyId
                         },
                         onInvoiceSelected = { invoiceHeader ->
                             if (invoicesState.isNotEmpty()) {
@@ -514,7 +519,7 @@ fun POSView(
                     }
                 },
                 dialogTitle = "Alert.",
-                dialogText = "discard current invoice?",
+                dialogText = "Are you sure you want to discard current invoice?",
                 positiveBtnText = "Discard",
                 negativeBtnText = "Cancel",
                 icon = Icons.Default.Info

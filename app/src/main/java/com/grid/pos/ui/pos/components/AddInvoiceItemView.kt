@@ -7,15 +7,18 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -23,8 +26,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.grid.pos.data.Family.Family
 import com.grid.pos.data.Item.Item
 import com.grid.pos.model.SettingsModel
@@ -35,12 +43,12 @@ import com.grid.pos.utils.Utils
 
 @Composable
 fun AddInvoiceItemView(
-        categories: MutableList<Family> = mutableListOf(),
-        items: MutableList<Item> = mutableListOf(),
-        modifier: Modifier = Modifier,
-        onSelect: (List<Item>) -> Unit = {},
+    categories: MutableList<Family> = mutableListOf(),
+    items: MutableList<Item> = mutableListOf(),
+    modifier: Modifier = Modifier,
+    onSelect: (List<Item>) -> Unit = {},
 ) {
-    val itemsState by remember { mutableStateOf(mutableListOf<Item>()) }
+    val itemsState = remember { mutableStateListOf<Item>() }
     var familyState by remember { mutableStateOf("") }
     LaunchedEffect(true) {
         if (familyState.isEmpty() && categories.size > 0) {
@@ -79,25 +87,38 @@ fun AddInvoiceItemView(
                     }
                 })
         }
-        FloatingActionButton(
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(30.dp),
-            onClick = {
-                itemsState.forEach { item ->
-                    item.selected = false
-                }
-                onSelect.invoke(itemsState.toMutableList())
-            },
-            shape = CircleShape,
-            containerColor = SettingsModel.buttonColor,
-            contentColor = SettingsModel.buttonTextColor
-        ) {
-            Icon(
-                Icons.Filled.ArrowBackIosNew,
-                "Submit",
-                modifier = Modifier.rotate(180f)
-            )
+        if (itemsState.isNotEmpty()) {
+            FloatingActionButton(
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(30.dp),
+                onClick = {
+                    itemsState.forEach { item ->
+                        item.selected = false
+                    }
+                    onSelect.invoke(itemsState.toMutableList())
+                },
+                shape = CircleShape,
+                containerColor = SettingsModel.buttonColor,
+                contentColor = SettingsModel.buttonTextColor
+            ) {
+                Text(
+                    text = "${itemsState.size}",
+                    modifier = Modifier.wrapContentWidth(Alignment.CenterHorizontally),
+                    color = Color.White,
+                    style = TextStyle(
+                        textDecoration = TextDecoration.None,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp
+                    ),
+                    textAlign = TextAlign.Center,
+                )
+                /*Icon(
+                    Icons.Filled.ArrowBackIosNew,
+                    "Submit",
+                    modifier = Modifier.rotate(180f)
+                )*/
+            }
         }
     }
 }
