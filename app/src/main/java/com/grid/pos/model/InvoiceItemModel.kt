@@ -4,8 +4,8 @@ import com.grid.pos.data.Invoice.Invoice
 import com.grid.pos.data.Item.Item
 
 data class InvoiceItemModel(
-        val invoice: Invoice = Invoice(),
-        var invoiceItem: Item = Item(),
+    val invoice: Invoice = Invoice(),
+    var invoiceItem: Item = Item(),
 ) {
 
     fun setItem(item: Item) {
@@ -36,6 +36,10 @@ data class InvoiceItemModel(
 
     fun getPrice(): Double {
         return invoice.invoicePrice
+    }
+
+    fun getTotalTax(): Double {
+        return getTax() + getTax1() + getTax2()
     }
 
     fun getPriceWithTax(): Double {

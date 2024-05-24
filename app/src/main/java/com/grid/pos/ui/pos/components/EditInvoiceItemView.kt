@@ -57,12 +57,12 @@ import com.grid.pos.utils.Utils
 
 @Composable
 fun EditInvoiceItemView(
-        modifier: Modifier = Modifier,
-        invoices: MutableList<InvoiceItemModel>,
-        invHeader: InvoiceHeader,
-        invoiceIndex: Int = 0,
-        onSave: (InvoiceHeader, InvoiceItemModel) -> Unit = { _, _ -> },
-        onClose: () -> Unit = {},
+    modifier: Modifier = Modifier,
+    invoices: MutableList<InvoiceItemModel>,
+    invHeader: InvoiceHeader,
+    invoiceIndex: Int = 0,
+    onSave: (InvoiceHeader, InvoiceItemModel) -> Unit = { _, _ -> },
+    onClose: () -> Unit = {},
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
     val rDiscount1FocusRequester = remember { FocusRequester() }
@@ -143,7 +143,8 @@ fun EditInvoiceItemView(
         if (itemDiscount == 0.0 && itemDiscountAmount == 0.0) {
             return
         }
-        val itemPrice = (price.toDoubleOrNull() ?: 0.0).times(qty)
+        val itemPrice =
+            ((price.toDoubleOrNull() ?: 0.0).times(qty)) + invoiceItemModel.getTotalTax()
         if (isPercentageChanged) {
             val disc = itemPrice.times(itemDiscount.div(100.0))
             rDiscount2 = String.format(
@@ -164,9 +165,6 @@ fun EditInvoiceItemView(
     }
 
     fun calculateInvoiceDiscount() {
-        if ((discount1.isEmpty() || discount1 == "0.0") && (discount2.isEmpty() || discount2 == "0.0")) {
-            return
-        }
         invoices[invoiceIndex] = invoiceItemModel
         invoiceHeader = POSUtils.refreshValues(
             invoices,
@@ -174,20 +172,27 @@ fun EditInvoiceItemView(
         )
         if (isPercentageChanged) {
             invoiceHeader.invoiceHeadDiscount = discount1.toDoubleOrNull() ?: 0.0
-            invoiceHeader.invoiceHeadDiscountAmount = invoiceHeader.invoiceHeadTotalNetAmount.times(invoiceHeader.invoiceHeadDiscount.div(100.0))
+            invoiceHeader.invoiceHeadDiscountAmount = invoiceHeader.invoiceHeadTotalNetAmount.times(
+                invoiceHeader.invoiceHeadDiscount.div(100.0)
+            )
             discount2 = String.format(
                 "%.${curr2Decimal}f",
                 invoiceHeader.invoiceHeadDiscountAmount
             )
-            invHeader.invoiceHeadGrossAmount = invoiceHeader.invoiceHeadTotalNetAmount - invoiceHeader.invoiceHeadDiscountAmount
+            invHeader.invoiceHeadGrossAmount =
+                invoiceHeader.invoiceHeadTotalNetAmount - invoiceHeader.invoiceHeadDiscountAmount
         } else {
             invoiceHeader.invoiceHeadDiscountAmount = discount2.toDoubleOrNull() ?: 0.0
-            invoiceHeader.invoiceHeadDiscount = (invoiceHeader.invoiceHeadDiscountAmount.div(invoiceHeader.invoiceHeadTotalNetAmount)).times(100.0)
+            invoiceHeader.invoiceHeadDiscount =
+                (invoiceHeader.invoiceHeadDiscountAmount.div(invoiceHeader.invoiceHeadTotalNetAmount)).times(
+                    100.0
+                )
             discount1 = String.format(
                 "%.${curr1Decimal}f",
                 invoiceHeader.invoiceHeadDiscount
             )
-            invHeader.invoiceHeadGrossAmount = invoiceHeader.invoiceHeadTotalNetAmount - invoiceHeader.invoiceHeadDiscountAmount
+            invHeader.invoiceHeadGrossAmount =
+                invoiceHeader.invoiceHeadTotalNetAmount - invoiceHeader.invoiceHeadDiscountAmount
         }
     }
 
@@ -629,7 +634,8 @@ fun EditInvoiceItemView(
                 invoiceHeader.invoiceHeadDiscount = discount1.toDoubleOrNull() ?: 0.0
                 invoiceHeader.invoiceHeadDiscountAmount = discount2.toDoubleOrNull() ?: 0.0
 
-                invoiceItemModel.invoice.invoicePrice = price.toDoubleOrNull() ?: invoiceItemModel.invoiceItem.itemUnitPrice
+                invoiceItemModel.invoice.invoicePrice =
+                    price.toDoubleOrNull() ?: invoiceItemModel.invoiceItem.itemUnitPrice
                 invoiceItemModel.invoice.invoiceTax = taxState.toDoubleOrNull() ?: 0.0
                 invoiceItemModel.invoice.invoiceTax1 = tax1State.toDoubleOrNull() ?: 0.0
                 invoiceItemModel.invoice.invoiceTax2 = tax2State.toDoubleOrNull() ?: 0.0

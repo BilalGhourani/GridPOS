@@ -32,13 +32,13 @@ import com.grid.pos.ui.theme.GridPOSTheme
 
 @Composable
 fun InvoiceItemCell(
-        modifier: Modifier = Modifier,
-        invoiceItemModel: InvoiceItemModel,
-        isHeader: Boolean = false,
-        isLandscape: Boolean = false,
-        index: Int,
-        onEdit: (Int) -> Unit = {},
-        onRemove: (Int) -> Unit = {}
+    modifier: Modifier = Modifier,
+    invoiceItemModel: InvoiceItemModel,
+    isHeader: Boolean = false,
+    isLandscape: Boolean = false,
+    index: Int,
+    onEdit: (Int) -> Unit = {},
+    onRemove: (Int) -> Unit = {}
 ) {
     Row(
         modifier = modifier
@@ -134,7 +134,11 @@ fun InvoiceItemCell(
             modifier = dividerModifier
         )
         Text(
-            text = if (isHeader) "Price" else invoiceItemModel.getPrice().toString(),
+            text = if (isHeader) "Price" else
+                String.format(
+                    "%.${SettingsModel.currentCurrency?.currencyName1Dec ?: 2}f",
+                    invoiceItemModel.getPrice()
+                ),
             modifier = textModifier,
             textAlign = TextAlign.Center,
             style = textStyle,
@@ -145,7 +149,10 @@ fun InvoiceItemCell(
             modifier = dividerModifier
         )
         Text(
-            text = if (isHeader) "Amount" else invoiceItemModel.getNetAmount().toString(),
+            text = if (isHeader) "Amount" else String.format(
+                "%.${SettingsModel.currentCurrency?.currencyName1Dec ?: 2}f",
+                invoiceItemModel.getNetAmount()
+            ),
             modifier = textModifier,
             textAlign = TextAlign.Center,
             style = textStyle,
