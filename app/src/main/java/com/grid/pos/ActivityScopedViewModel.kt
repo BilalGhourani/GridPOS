@@ -229,9 +229,7 @@ class ActivityScopedViewModel @Inject constructor(
         var result = content
         if (invoiceItemModels.isNotEmpty()) {
             val trs = StringBuilder("")
-            var total = 0.0
             invoiceItemModels.forEach { item ->
-                total += item.getAmount()
                 trs.append(
                     "<tr> <td>${item.getName()}</td>  <td>${
                         String.format(
@@ -241,7 +239,7 @@ class ActivityScopedViewModel @Inject constructor(
                     }</td> <td>$${
                         String.format(
                             "%.2f",
-                            item.getPrice()
+                            item.getNetAmount()
                         )
                     }</td>  </tr>"
                 )
@@ -254,7 +252,7 @@ class ActivityScopedViewModel @Inject constructor(
                 "{total}",
                 String.format(
                     "%.2f",
-                    total
+                    invoiceHeader.invoiceHeadGrossAmount
                 )
             )
         }
