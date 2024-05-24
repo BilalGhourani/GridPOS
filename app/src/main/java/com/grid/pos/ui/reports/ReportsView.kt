@@ -185,6 +185,7 @@ fun ReportsView(
                     defaultValue = fromDateState,
                     label = "From",
                     maxLines = 1,
+                    readOnly = true,
                     keyboardType = KeyboardType.Text,
                     placeHolder = Utils.getDateinFormat(initialDate, "yyyy-MM-dd"),
                     onAction = {
@@ -209,6 +210,7 @@ fun ReportsView(
                     defaultValue = toDateState,
                     label = "To",
                     maxLines = 1,
+                    readOnly = true,
                     keyboardType = KeyboardType.Text,
                     placeHolder = "yyyy-MM-dd",
                     onAction = {
