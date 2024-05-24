@@ -62,6 +62,9 @@ object Utils {
         HomeSectionModel(
             "Table",
             "TablesView"
+        ), HomeSectionModel(
+            "Reports",
+            "ReportsView"
         ),
     )
 
