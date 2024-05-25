@@ -193,7 +193,7 @@ fun POSPrinterView(
                         UITextField(modifier = Modifier.padding(10.dp),
                             defaultValue = hostState,
                             label = "Host",
-                            placeHolder = "127.0.0.1",
+                            placeHolder = "ex:127.0.0.1",
                             onAction = { portFocusRequester.requestFocus() }) { host ->
                             hostState = host
                             posPrinterState.selectedPrinter.posPrinterHost = host
@@ -202,7 +202,7 @@ fun POSPrinterView(
                         UITextField(modifier = Modifier.padding(10.dp),
                             defaultValue = portState,
                             label = "Port",
-                            placeHolder = "9100",
+                            placeHolder = "ex:9100",
                             onAction = { typeFocusRequester.requestFocus() }) { port ->
                             portState = Utils.getIntValue(
                                 port,
