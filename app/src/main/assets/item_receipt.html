@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Receipt</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+<p>Cash</p>
+<p>Table Number: {table_name}</p>
+<p>Order: {order_no}</p>
+<p>Inv: {trans_no}</p>
+<p>{invoice_time}</p>
+<table>
+    <thead>
+    <tr>
+        <th>Qty</th>
+        <th>Item</th>
+    </tr>
+    </thead>
+    <tbody>
+    {rows_content}
+    <!--<tr>
+        <td>1.00</td>
+        <td>ITEM1</td>
+    </tr>-->
+    </tbody>
+</table>
+</body>
+</html>

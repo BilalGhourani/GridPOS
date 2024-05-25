@@ -7,9 +7,11 @@ import androidx.room.PrimaryKey
 import com.google.errorprone.annotations.Keep
 import com.google.firebase.firestore.Exclude
 import com.google.firebase.firestore.PropertyName
+import com.google.firebase.firestore.ServerTimestamp
 import com.grid.pos.data.DataModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.Utils
+import java.util.Date
 
 @Entity(tableName = "pos_receipt")
 data class PosReceipt(
@@ -86,10 +88,19 @@ data class PosReceipt(
     /**
      *  POS Receipt Date
      * */
-    @ColumnInfo(name = "pr_timestamp")
+    @Ignore
     @set:PropertyName("pr_timestamp")
     @get:PropertyName("pr_timestamp")
-    var posReceiptTimeStamp: String? = null,
+    @ServerTimestamp
+    var posReceiptTimeStamp: Date? = null,
+
+    /**
+     *  POS Receipt Date
+     * */
+    @ColumnInfo(name = "pr_datetime")
+    @set:PropertyName("pr_datetime")
+    @get:PropertyName("pr_datetime")
+    var posReceiptDateTime: Long = System.currentTimeMillis(),
 
 
     /**
@@ -118,7 +129,7 @@ data class PosReceipt(
             posReceiptId = Utils.generateRandomUuidString()
         }
         posReceiptUserStamp = SettingsModel.currentUserId
-        posReceiptTimeStamp = Utils.getDateinFormat()
+//        posReceiptTimeStamp = Utils.getDateinFormat()
     }
 
     @Exclude
@@ -131,8 +142,9 @@ data class PosReceipt(
             "pr_debits" to posReceiptDebits,
             "pr_credit" to posReceiptCredit,
             "pr_credits" to posReceiptCredits,
-            "pr_timestamp" to posReceiptTimeStamp,
-            "pr_userstamp" to posReceiptUserStamp
+            /*"pr_timestamp" to posReceiptTimeStamp,*/
+            "pr_userstamp" to posReceiptUserStamp,
+            "pr_datetime" to posReceiptDateTime
         )
     }
 }

@@ -73,6 +73,13 @@ data class Company(
     @get:PropertyName("cmp_cur_codetax")
     var companyCurCodeTax: String? = null,
 
+    /**
+     * Company Printer
+     * */
+    @ColumnInfo(name = "cmp_pp_id")
+    @set:PropertyName("cmp_pp_id")
+    @get:PropertyName("cmp_pp_id")
+    var companyPrinterId: String? = null,
 
     /**
      * Company Email
@@ -176,6 +183,7 @@ data class Company(
             "cmp_taxregno" to companyTaxRegno,
             "cmp_tax" to companyTax,
             "cmp_cur_codetax" to companyCurCodeTax,
+            "cmp_pp_id" to companyPrinterId,
             "cmp_email" to companyEmail,
             "cmp_web" to companyWeb,
             "cmp_logo" to companyLogo,

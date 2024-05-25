@@ -2,6 +2,7 @@ package com.grid.pos.data.Invoice
 
 import com.grid.pos.interfaces.OnResult
 import kotlinx.coroutines.flow.Flow
+import java.util.Date
 
 interface InvoiceRepository {
 
@@ -20,5 +21,8 @@ interface InvoiceRepository {
 
     // Get all Invoices logs as stream.
     suspend fun getAllInvoices(invoiceHeaderId: String, callback: OnResult?)
+
+    // Get all Invoices between Dates.
+    suspend fun getInvoicesBetween(from: Date, to: Date, callback: OnResult?)
 
 }

@@ -30,38 +30,26 @@ import com.grid.pos.ActivityScopedViewModel
 import com.grid.pos.data.InvoiceHeader.InvoiceHeader
 import com.grid.pos.data.PosReceipt.PosReceipt
 import com.grid.pos.model.SettingsModel
-import com.grid.pos.ui.pos.POSState
 import com.grid.pos.ui.theme.GridPOSTheme
-import com.grid.pos.utils.Utils
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UIWebView(
-    navController: NavController? = null,
-    activityViewModel: ActivityScopedViewModel,
-    modifier: Modifier = Modifier,
+        navController: NavController? = null,
+        activityViewModel: ActivityScopedViewModel,
+        modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
     val webView = remember {
         WebView(context).apply {
             webViewClient = WebViewClient()
-            val htmlContent = activityViewModel.getHtmlContent(context)
-            if (htmlContent.isNotEmpty()) {
-                loadDataWithBaseURL(
-                    null,
-                    htmlContent,
-                    "text/html",
-                    "UTF-8",
-                    null
-                )
-            } else {
-                loadUrl(
-                    activityViewModel.getHtmlContent(
-                        context,
-                        Utils.getDefaultReceipt()
-                    )
-                )
-            }
+            loadDataWithBaseURL(
+                null,
+                activityViewModel.getInvoiceReceiptHtmlContent(context),
+                "text/html",
+                "UTF-8",
+                null
+            )
         }
     }
 
@@ -118,10 +106,11 @@ fun UIWebView(
                         .padding(10.dp),
                     text = "Print"
                 ) {
-                    Utils.printWebPage(
-                        webView,
-                        context
-                    )
+                    activityViewModel.print()
+//                    Utils.printWebPage(
+//                        webView,
+//                        context
+//                    )
                 }
             }
         }

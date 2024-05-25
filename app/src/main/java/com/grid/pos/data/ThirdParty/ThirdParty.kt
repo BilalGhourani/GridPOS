@@ -7,9 +7,11 @@ import androidx.room.PrimaryKey
 import com.google.errorprone.annotations.Keep
 import com.google.firebase.firestore.Exclude
 import com.google.firebase.firestore.PropertyName
+import com.google.firebase.firestore.ServerTimestamp
 import com.grid.pos.data.DataModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.Utils
+import java.util.Date
 
 @Entity(tableName = "thirdparty")
 data class ThirdParty(
@@ -85,10 +87,19 @@ data class ThirdParty(
         /**
          * Third Party time stamp
          * */
-        @ColumnInfo(name = "tp_timestamp")
+        @Ignore
         @set:PropertyName("tp_timestamp")
         @get:PropertyName("tp_timestamp")
-        var thirdPartyTimeStamp: String? = null,
+        @ServerTimestamp
+        var thirdPartyTimeStamp: Date? = null,
+
+        /**
+         * Third Party time stamp
+         * */
+        @ColumnInfo(name = "tp_datetime")
+        @set:PropertyName("tp_datetime")
+        @get:PropertyName("tp_datetime")
+        var thirdPartyDateTime: Long = System.currentTimeMillis(),
 
         /**
          * Third Party user stamp
@@ -118,7 +129,7 @@ data class ThirdParty(
         }
         thirdPartyCompId = SettingsModel.companyID
         thirdPartyUserStamp = SettingsModel.currentUserId
-        thirdPartyTimeStamp = Utils.getDateinFormat()
+//        thirdPartyTimeStamp = Utils.getDateinFormat()
     }
 
     @Exclude
@@ -131,8 +142,9 @@ data class ThirdParty(
             "tp_phone2" to thirdPartyPhone2,
             "tp_address" to thirdPartyAddress,
             "tp_default" to thirdPartyDefault,
-            "tp_timestamp" to thirdPartyTimeStamp,
+           /* "tp_timestamp" to thirdPartyTimeStamp,*/
             "tp_userstamp" to thirdPartyUserStamp,
+            "tp_datetime" to thirdPartyDateTime,
         )
     }
 }

@@ -45,4 +45,8 @@ interface InvoiceDao {
     @Query("SELECT * FROM `in_invoice` WHERE in_hi_id = :id")
     fun getAllInvoiceItems(id: String): Flow<List<Invoice>>
 
+    // Get all Invoices as stream.
+    @Query("SELECT * FROM `in_invoice` WHERE in_datetime >= :from AND in_datetime<= :to")
+    fun getInvoicesBetween(from: Long,to:Long): Flow<List<Invoice>>
+
 }

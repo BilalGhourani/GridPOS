@@ -6,9 +6,11 @@ import androidx.room.Ignore
 import androidx.room.PrimaryKey
 import com.google.firebase.firestore.Exclude
 import com.google.firebase.firestore.PropertyName
+import com.google.firebase.firestore.ServerTimestamp
 import com.grid.pos.data.DataModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.Utils
+import java.util.Date
 
 @Entity(tableName = "in_hinvoice")
 data class InvoiceHeader(
@@ -211,10 +213,19 @@ data class InvoiceHeader(
         /**
          * Invoice Header timestamp
          * */
-        @ColumnInfo(name = "hi_timestamp")
+        @Ignore
         @set:PropertyName("hi_timestamp")
         @get:PropertyName("hi_timestamp")
-        var invoiceHeadTimeStamp: String? = null,
+        @ServerTimestamp
+        var invoiceHeadTimeStamp: Date? = null,
+
+        /**
+         * Invoice Header timestamp
+         * */
+        @ColumnInfo(name = "hi_datetime")
+        @set:PropertyName("hi_datetime")
+        @get:PropertyName("hi_datetime")
+        var invoiceHeadDateTime: Long = System.currentTimeMillis(),
 
         /**
          * Invoice Header userstamp
@@ -251,7 +262,7 @@ data class InvoiceHeader(
         }
         invoiceHeadCompId = SettingsModel.companyID
         invoiceHeadUserStamp = SettingsModel.currentUserId
-        invoiceHeadTimeStamp = Utils.getDateinFormat()
+       // invoiceHeadTimeStamp = Utils.getDateinFormat()
     }
 
     @Exclude
@@ -279,8 +290,9 @@ data class InvoiceHeader(
             "hi_ta_name" to invoiceHeadTaName,
             "hi_clientscount" to invoiceHeadClientsCount,
             "hi_change" to invoiceHeadChange,
-            "hi_timestamp" to invoiceHeadTimeStamp,
+          /*  "hi_timestamp" to invoiceHeadTimeStamp,*/
             "hi_userstamp" to invoiceHeadUserStamp,
+            "hi_datetime" to invoiceHeadDateTime,
         )
     }
 }

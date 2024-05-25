@@ -18,15 +18,15 @@ data class InvoiceItemModel(
         invoice.invoiceTax = item.itemTax
         invoice.invoiceTax1 = item.itemTax1
         invoice.invoiceTax2 = item.itemTax2
-        invoice.invoicCost = item.itemOpenCost
-        invoice.invoicRemQty = item.itemOpenQty
+        invoice.invoiceCost = item.itemOpenCost
+        invoice.invoiceRemQty = item.itemOpenQty
     }
 
     fun getName(): String {
-        return if (invoice.invoicExtraName.isNullOrEmpty()) {
+        return if (invoice.invoiceExtraName.isNullOrEmpty()) {
             invoiceItem.itemName ?: "Item"
         } else {
-            (invoiceItem.itemName ?: "Item") + " - " + invoice.invoicExtraName
+            (invoiceItem.itemName ?: "Item") + " - " + invoice.invoiceExtraName
         }
     }
 
@@ -47,32 +47,30 @@ data class InvoiceItemModel(
     }
 
     fun getDiscount(): Double {
-        return invoice.invoiceDiscount
+        return invoice.getDiscount()
     }
 
     fun getDiscountAmount(): Double {
-        return invoice.invoiceDiscamt
+        return invoice.getDiscountAmount()
     }
 
     fun getTax(): Double {
-        return getAmount().times(invoice.invoiceTax.div(100.0))
+        return invoice.getTax()
     }
 
     fun getTax1(): Double {
-        return getAmount().times(invoice.invoiceTax1.div(100.0))
+        return invoice.getTax1()
     }
 
     fun getTax2(): Double {
-        return getAmount().times(invoice.invoiceTax2.div(100.0))
+        return invoice.getTax2()
     }
 
     fun getAmount(): Double {
-        val quantity = invoice.invoiceQuantity
-        val price = invoice.invoicePrice
-        return quantity.times(price)
+       return invoice.getAmount()
     }
 
     fun getNetAmount(): Double {
-        return getPriceWithTax() - getDiscountAmount()
+        return  invoice.getNetAmount()
     }
 }

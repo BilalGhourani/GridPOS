@@ -1,6 +1,7 @@
 package com.grid.pos.utils
 
 import android.content.Context
+import android.util.Log
 import androidx.compose.ui.graphics.Color
 import androidx.core.graphics.toColorInt
 import androidx.datastore.core.DataStore
@@ -85,7 +86,10 @@ object DataStoreManager {
             val value = preferences[preferencesKey]
             return value ?: fallback
         } catch (e: Exception) {
-            e.printStackTrace()
+            Log.e(
+                "exception",
+                e.message.toString()
+            )
             fallback
         }
     }
@@ -100,7 +104,10 @@ object DataStoreManager {
             val value = preferences[preferencesKey]
             return value ?: fallback
         } catch (e: Exception) {
-            e.printStackTrace()
+            Log.e(
+                "exception",
+                e.message.toString()
+            )
             fallback
         }
     }
@@ -114,7 +121,10 @@ object DataStoreManager {
             val preferences = App.getInstance().applicationContext.dataStore.data.first()
             return preferences[preferencesKey] ?: fallback
         } catch (e: Exception) {
-            e.printStackTrace()
+            Log.e(
+                "exception",
+                e.message.toString()
+            )
             fallback
         }
     }
@@ -129,7 +139,10 @@ object DataStoreManager {
             val value = preferences[preferencesKey]
             return value ?: fallback
         } catch (e: Exception) {
-            e.printStackTrace()
+            Log.e(
+                "exception",
+                e.message.toString()
+            )
             fallback
         }
     }

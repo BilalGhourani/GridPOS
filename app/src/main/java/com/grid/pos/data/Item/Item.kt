@@ -7,9 +7,11 @@ import androidx.room.PrimaryKey
 import com.google.errorprone.annotations.Keep
 import com.google.firebase.firestore.Exclude
 import com.google.firebase.firestore.PropertyName
+import com.google.firebase.firestore.ServerTimestamp
 import com.grid.pos.data.DataModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.Utils
+import java.util.Date
 
 @Entity(tableName = "st_item")
 data class Item(
@@ -157,10 +159,19 @@ data class Item(
         /**
          * Item timestamp
          * */
-        @ColumnInfo(name = "it_timestamp")
+        @Ignore
         @set:PropertyName("it_timestamp")
         @get:PropertyName("it_timestamp")
-        var itemTimeStamp: String? = null,
+        @ServerTimestamp
+        var itemTimeStamp: Date? = null,
+
+        /**
+         * Item timestamp
+         * */
+        @ColumnInfo(name = "it_datetime")
+        @set:PropertyName("it_datetime")
+        @get:PropertyName("it_datetime")
+        var itemDateTime: Long = System.currentTimeMillis(),
 
         @Ignore
         @get:Exclude
@@ -197,7 +208,7 @@ data class Item(
         }
         itemCompId = SettingsModel.companyID
         itemUserStamp = SettingsModel.currentUserId
-        itemTimeStamp = Utils.getDateinFormat()
+//        itemTimeStamp = Utils.getDateinFormat()
     }
 
     @Exclude
@@ -219,7 +230,8 @@ data class Item(
             "it_btncolor" to itemBtnColor,
             "it_btntextcolor" to itemBtnTextColor,
             "it_userstamp" to itemUserStamp,
-            "it_timestamp" to itemTimeStamp,
+            /*"it_timestamp" to itemTimeStamp,*/
+            "it_datetime" to itemDateTime,
         )
     }
 }

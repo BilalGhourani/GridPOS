@@ -70,10 +70,10 @@ import java.util.Date
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReportsView(
-    navController: NavController? = null,
-    activityViewModel: ActivityScopedViewModel,
-    modifier: Modifier = Modifier,
-    viewModel: ReportsViewModel = hiltViewModel()
+        navController: NavController? = null,
+        activityViewModel: ActivityScopedViewModel,
+        modifier: Modifier = Modifier,
+        viewModel: ReportsViewModel = hiltViewModel()
 ) {
     val reportsState: ReportsState by viewModel.reportsState.collectAsState(
         ReportsState()
@@ -187,7 +187,10 @@ fun ReportsView(
                     maxLines = 1,
                     readOnly = true,
                     keyboardType = KeyboardType.Text,
-                    placeHolder = Utils.getDateinFormat(initialDate, "yyyy-MM-dd"),
+                    placeHolder = Utils.getDateinFormat(
+                        initialDate,
+                        "yyyy-MM-dd"
+                    ),
                     onAction = {
                         toDateFocusRequester.requestFocus()
                     },
@@ -238,32 +241,39 @@ fun ReportsView(
                         .padding(10.dp),
                     text = "Generate"
                 ) {
-                    viewModel.generateReportsExcel()
+                    val from = getDateFromState(fromDatePickerState.selectedDateMillis!!)
+                    val to = getDateFromState(toDatePickerState.selectedDateMillis!!)
+                    viewModel.fetchInvoices(
+                        from,
+                        to
+                    )
                 }
             }
         }
 
         // date picker component
         if (showDatePicker) {
-            DatePickerDialog(
-                onDismissRequest = { showDatePicker = false },
+            DatePickerDialog(onDismissRequest = { showDatePicker = false },
                 confirmButton = {
                     TextButton(
                         onClick = {
                             if (datePickerPopupState == DatePickerPopupState.FROM) {
-                                val fromDate =
-                                    getDateFromState(fromDatePickerState.selectedDateMillis!!)
+                                val fromDate = getDateFromState(fromDatePickerState.selectedDateMillis!!)
                                 if (fromDate.after(Date())) {
                                     viewModel.showError("From date should be today or before, please select again")
                                     showDatePicker = true
                                     return@TextButton
                                 }
-                                fromDateState =
-                                    Utils.getDateinFormat(fromDate, "yyyy-MM-dd")
+                                fromDateState = Utils.getDateinFormat(
+                                    fromDate,
+                                    "yyyy-MM-dd"
+                                )
                             } else {
-                                val toDate =
-                                    getDateFromState(toDatePickerState.selectedDateMillis!!)
-                                toDateState = Utils.getDateinFormat(toDate, "yyyy-MM-dd")
+                                val toDate = getDateFromState(toDatePickerState.selectedDateMillis!!)
+                                toDateState = Utils.getDateinFormat(
+                                    toDate,
+                                    "yyyy-MM-dd"
+                                )
                             }
                             showDatePicker = false
                         },
@@ -297,9 +307,7 @@ fun ReportsView(
                             )
                         )
                     }
-                }
-            )
-            {
+                }) {
                 DatePicker(state = if (datePickerPopupState == DatePickerPopupState.FROM) fromDatePickerState else toDatePickerState)
             }
         }

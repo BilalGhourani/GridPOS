@@ -71,7 +71,10 @@ class App : Application() {
                 isFirebaseInitialized = true
             }
         } catch (e: Exception) {
-            e.printStackTrace()
+            Log.e(
+                "exception",
+                e.message.toString()
+            )
         }
     }
 

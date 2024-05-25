@@ -116,10 +116,10 @@ fun EditInvoiceItemView(
     }
     var itemExtraName by remember {
         mutableStateOf(
-            invoiceItemModel.invoice.invoicExtraName ?: ""
+            invoiceItemModel.invoice.invoiceExtraName ?: ""
         )
     }
-    var itemNote by remember { mutableStateOf(invoiceItemModel.invoice.invoicNote ?: "") }
+    var itemNote by remember { mutableStateOf(invoiceItemModel.invoice.invoiceNote ?: "") }
     var invoiceNote by remember { mutableStateOf(invoiceHeader.invoiceHeadNote ?: "") }
     var clientExtraName by remember { mutableStateOf(invoiceHeader.invoiceHeadCashName ?: "") }
     var taxState by remember {
@@ -642,8 +642,8 @@ fun EditInvoiceItemView(
                 invoiceItemModel.invoice.invoiceDiscount = rDiscount1.toDoubleOrNull() ?: 0.0
                 invoiceItemModel.invoice.invoiceDiscamt = rDiscount2.toDoubleOrNull() ?: 0.0
                 invoiceItemModel.invoice.invoiceQuantity = qty.toDouble()
-                invoiceItemModel.invoice.invoicExtraName = itemExtraName
-                invoiceItemModel.invoice.invoicNote = itemNote
+                invoiceItemModel.invoice.invoiceExtraName = itemExtraName
+                invoiceItemModel.invoice.invoiceNote = itemNote
                 onSave.invoke(
                     invoiceHeader,
                     invoiceItemModel
