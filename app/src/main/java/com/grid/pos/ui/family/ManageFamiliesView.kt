@@ -107,7 +107,7 @@ fun ManageFamiliesView(
                             val internalPath = Utils.saveToInternalStorage(context = mainActivity,
                                 parent = "family",
                                 uris[0],
-                                nameState.replace(
+                                nameState.trim().replace(
                                     " ",
                                     "_"
                                 ).ifEmpty { "family" })

@@ -50,6 +50,7 @@ import com.grid.pos.ActivityScopedViewModel
 import com.grid.pos.R
 import com.grid.pos.data.Company.Company
 import com.grid.pos.data.Currency.Currency
+import com.grid.pos.data.PosPrinter.PosPrinter
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.LoadingIndicator
 import com.grid.pos.ui.common.SearchableDropdownMenu
@@ -98,6 +99,7 @@ fun ManageCompaniesView(
     var taxRegnoState by remember { mutableStateOf("") }
     var taxState by remember { mutableStateOf("") }
     var curCodeTaxState by remember { mutableStateOf("") }
+    var printerState by remember { mutableStateOf("") }
     var emailState by remember { mutableStateOf("") }
     var webState by remember { mutableStateOf("") }
     var logoState by remember { mutableStateOf("") }
@@ -202,6 +204,7 @@ fun ManageCompaniesView(
                             taxRegnoState = company.companyTaxRegno ?: ""
                             taxState = company.companyTax.toString()
                             curCodeTaxState = company.companyCurCodeTax ?: ""
+                            printerState = company.companyPrinterId ?: ""
                             emailState = company.companyEmail ?: ""
                             webState = company.companyWeb ?: ""
                             logoState = company.companyLogo ?: ""
@@ -376,6 +379,18 @@ fun ManageCompaniesView(
                                 manageCompaniesState.selectedCompany.companyTax2 = tax2State.toDoubleOrNull() ?: 0.0
                             }
                         }
+
+                        SearchableDropdownMenu(
+                            items = manageCompaniesState.printers.toMutableList(),
+                            modifier = Modifier.padding(10.dp),
+                            label = "Select Printer",
+                            selectedId = printerState
+                        ) { printer ->
+                            printer as PosPrinter
+                            printerState = printer.posPrinterId
+                            manageCompaniesState.selectedCompany.companyPrinterId = printerState
+                        }
+
                         //email
                         UITextField(modifier = Modifier.padding(10.dp),
                             defaultValue = emailState,

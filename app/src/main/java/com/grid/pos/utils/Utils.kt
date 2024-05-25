@@ -92,6 +92,21 @@ object Utils {
         return parserFormat.format(date)
     }
 
+    fun editDate(
+            date: Date = Date(),
+            hours: Int = 23,
+            minutes: Int = 59,
+            seconds: Int = 59
+    ): Date {
+        val calendar = Calendar.getInstance()
+        calendar.time = date
+
+        calendar.set(Calendar.HOUR_OF_DAY, hours)
+        calendar.set(Calendar.MINUTE, minutes)
+        calendar.set(Calendar.SECOND, seconds)
+      return calendar.time
+    }
+
     fun floatToColor(
             hue: Float,
             saturation: Float = 1f,

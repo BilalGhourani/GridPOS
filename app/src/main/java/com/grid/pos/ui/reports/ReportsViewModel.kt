@@ -4,23 +4,21 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.grid.pos.App
 import com.grid.pos.data.Currency.Currency
-import com.grid.pos.data.Family.FamilyRepository
 import com.grid.pos.data.Invoice.Invoice
 import com.grid.pos.data.Invoice.InvoiceRepository
 import com.grid.pos.data.InvoiceHeader.InvoiceHeader
 import com.grid.pos.data.InvoiceHeader.InvoiceHeaderRepository
 import com.grid.pos.data.Item.Item
 import com.grid.pos.data.Item.ItemRepository
-import com.grid.pos.data.PosReceipt.PosReceiptRepository
-import com.grid.pos.data.ThirdParty.ThirdPartyRepository
 import com.grid.pos.interfaces.OnResult
 import com.grid.pos.model.Event
 import com.grid.pos.model.SettingsModel
-import com.grid.pos.utils.Utils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.apache.poi.hssf.usermodel.HSSFWorkbook
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import java.io.File
 import java.io.FileOutputStream
@@ -35,7 +33,8 @@ class ReportsViewModel @Inject constructor(
 ) : ViewModel() {
 
     private var itemMap: Map<String, Item> = mutableMapOf()
-    private var invoiceMap: Map<String, List<Invoice>> = mutableMapOf()
+    private var invoices: MutableList<InvoiceHeader> = mutableListOf()
+    private var invoiceItemMap: Map<String, List<Invoice>> = mutableMapOf()
     private var currency = SettingsModel.currentCurrency ?: Currency()
     private val _reportsState = MutableStateFlow(ReportsState())
     val reportsState: MutableStateFlow<ReportsState> = _reportsState
@@ -74,15 +73,47 @@ class ReportsViewModel @Inject constructor(
             isLoading = true
         )
         viewModelScope.launch(Dispatchers.IO) {
-            invoiceRepository.getInvoicesBetween(from,
+            invoiceHeaderRepository.getInvoicesBetween(from,
                 end,
+                object : OnResult {
+                    override fun onSuccess(result: Any) {
+                        val listOfInvoices = mutableListOf<InvoiceHeader>()
+                        (result as List<*>).forEach {
+                            listOfInvoices.add(it as InvoiceHeader)
+                        }
+                        invoices = listOfInvoices
+                        if (invoices.isNotEmpty()) {
+                            fetchInvoiceItems(listOfInvoices.map { it.invoiceHeadId })
+                        } else {
+                            reportsState.value = reportsState.value.copy(
+                                warning = Event("no data found in the date range!"),
+                                isLoading = false
+                            )
+                        }
+
+                    }
+
+                    override fun onFailure(
+                            message: String,
+                            errorCode: Int
+                    ) {
+
+                    }
+
+                })
+        }
+    }
+
+    fun fetchInvoiceItems(ids: List<String>) {
+        viewModelScope.launch(Dispatchers.IO) {
+            invoiceRepository.getInvoicesByIds(ids,
                 object : OnResult {
                     override fun onSuccess(result: Any) {
                         val listOfInvoices = mutableListOf<Invoice>()
                         (result as List<*>).forEach {
                             listOfInvoices.add(it as Invoice)
                         }
-                        invoiceMap = listOfInvoices.groupBy { it.invoiceItemId ?: "" }
+                        invoiceItemMap = listOfInvoices.groupBy { it.invoiceItemId ?: "" }
                         generateReportsExcel()
                     }
 
@@ -106,7 +137,7 @@ class ReportsViewModel @Inject constructor(
 
     fun generateReportsExcel() {
         viewModelScope.launch(Dispatchers.IO) {
-            val workbook = XSSFWorkbook()
+            val workbook = HSSFWorkbook()
 
             generateFirstSheet(workbook)
             generateSecondSheet(workbook)
@@ -117,6 +148,11 @@ class ReportsViewModel @Inject constructor(
             )
             workbook.write(outputStream)
             outputStream.close()
+            withContext(Dispatchers.Main) {
+                reportsState.value = reportsState.value.copy(
+                    isLoading = false
+                )
+            }
         }
     }
 
@@ -131,7 +167,7 @@ class ReportsViewModel @Inject constructor(
         }
         val child = File(
             storageDir,
-            "grids_report_excel"
+            "grids_report_excel.xlsx"
         )
         if (child.exists()) {
             child.delete()
@@ -140,7 +176,7 @@ class ReportsViewModel @Inject constructor(
         return child
     }
 
-    private fun generateFirstSheet(workbook: XSSFWorkbook) {
+    private fun generateFirstSheet(workbook: HSSFWorkbook) {
         val sheet = workbook.createSheet("Inventory & Profit Reports")
 
         // Write headers (assuming first row in data list is header)
@@ -156,7 +192,7 @@ class ReportsViewModel @Inject constructor(
 
         itemMap.values.forEachIndexed { index, item ->
             val dataRow = sheet.createRow(index + 1)
-            val itemInvoices = invoiceMap[item.itemId]
+            val itemInvoices = invoiceItemMap[item.itemId]
             var quantitiesSold = 0.0
             var totalCost = 0.0
             var totalSale = 0.0
@@ -194,7 +230,7 @@ class ReportsViewModel @Inject constructor(
         }
     }
 
-    private fun generateSecondSheet(workbook: XSSFWorkbook) {
+    private fun generateSecondSheet(workbook: HSSFWorkbook) {
         val sheet = workbook.createSheet("Sales Reports")
 
         // Write headers (assuming first row in data list is header)
@@ -205,7 +241,7 @@ class ReportsViewModel @Inject constructor(
 
         itemMap.values.forEachIndexed { index, item ->
             val dataRow = sheet.createRow(index + 1)
-            val itemInvoices = invoiceMap[item.itemId]
+            val itemInvoices = invoiceItemMap[item.itemId]
             var quantitiesSold = 0.0
             var totalSale = 0.0
             itemInvoices?.map {

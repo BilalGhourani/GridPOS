@@ -2,6 +2,7 @@ package com.grid.pos.data.InvoiceHeader
 
 import com.grid.pos.interfaces.OnResult
 import kotlinx.coroutines.flow.Flow
+import java.util.Date
 
 interface InvoiceHeaderRepository {
 
@@ -22,5 +23,6 @@ interface InvoiceHeaderRepository {
     suspend fun getAllInvoiceHeaders(callback: OnResult?)
     suspend fun getLastInvoiceTransNo(type: String,callback: OnResult?)
     suspend fun getInvoiceByTable(tableNo: String,callback: OnResult?)
+    suspend fun getInvoicesBetween(from: Date, to: Date, callback: OnResult?)
 
 }

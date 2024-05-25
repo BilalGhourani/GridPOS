@@ -2,8 +2,10 @@ package com.grid.pos.data.InvoiceHeader
 
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
+import com.grid.pos.data.Invoice.Invoice
 import com.grid.pos.interfaces.OnResult
 import com.grid.pos.model.SettingsModel
+import java.util.Date
 
 class InvoiceHeaderRepositoryImpl(
     private val invoiceHeaderDao: InvoiceHeaderDao
@@ -146,6 +148,47 @@ class InvoiceHeaderRepositoryImpl(
 
         } else {
             invoiceHeaderDao.getInvoiceByTable(tableNo).collect {
+                callback?.onSuccess(it)
+            }
+        }
+    }
+
+    override suspend fun getInvoicesBetween(
+            from: Date,
+            to: Date,
+            callback: OnResult?
+    ) {
+        if (SettingsModel.loadFromRemote) {
+            FirebaseFirestore.getInstance().collection("in_hinvoice")
+                .whereEqualTo("hi_cmp_id", SettingsModel.companyID)
+                .whereGreaterThanOrEqualTo(
+                    "hi_timestamp",
+                    from
+                ).whereLessThan(
+                    "hi_timestamp",
+                    to
+                ).get().addOnSuccessListener { result ->
+                    val invoices = mutableListOf<InvoiceHeader>()
+                    if (result.size() > 0) {
+                        for (document in result) {
+                            val obj = document.toObject(InvoiceHeader::class.java)
+                            if (!obj.invoiceHeadId.isNullOrEmpty()) {
+                                obj.invoiceHeadDocumentId = document.id
+                                invoices.add(obj)
+                            }
+                        }
+                    }
+                    callback?.onSuccess(invoices)
+                }.addOnFailureListener { exception ->
+                    callback?.onFailure(
+                        exception.message ?: "Network error! Can't get items from remote."
+                    )
+                }
+        } else {
+            invoiceHeaderDao.getInvoicesBetween(
+                from.time * 1000,
+                to.time * 1000
+            ).collect {
                 callback?.onSuccess(it)
             }
         }

@@ -48,4 +48,8 @@ interface InvoiceHeaderDao {
     @Query("SELECT * FROM `in_hinvoice` WHERE hi_ta_name = :tableNo LIMIT 1")
     fun getInvoiceByTable(tableNo:String):Flow<InvoiceHeader>
 
+    // Get all Invoices as stream.
+    @Query("SELECT * FROM `in_hinvoice` WHERE hi_datetime >= :from AND hi_datetime<= :to")
+    fun getInvoicesBetween(from: Long,to:Long): Flow<List<InvoiceHeader>>
+
 }

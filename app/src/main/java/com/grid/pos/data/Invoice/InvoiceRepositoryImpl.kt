@@ -1,12 +1,8 @@
 package com.grid.pos.data.Invoice
 
-import androidx.lifecycle.asLiveData
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.Query
-import com.grid.pos.data.Family.Family
 import com.grid.pos.interfaces.OnResult
 import com.grid.pos.model.SettingsModel
-import java.util.Date
 
 class InvoiceRepositoryImpl(
         private val invoiceDao: InvoiceDao
@@ -86,8 +82,8 @@ class InvoiceRepositoryImpl(
                                 invoiceItems.add(obj)
                             }
                         }
-                        callback?.onSuccess(invoiceItems)
                     }
+                callback?.onSuccess(invoiceItems)
                 }.addOnFailureListener { exception ->
                     callback?.onFailure(
                         exception.message ?: "Network error! Can't get items from remote."
@@ -100,19 +96,14 @@ class InvoiceRepositoryImpl(
         }
     }
 
-    override suspend fun getInvoicesBetween(
-            from: Date,
-            to: Date,
+    override suspend fun getInvoicesByIds(
+            ids:List<String>,
             callback: OnResult?
     ) {
         if (SettingsModel.loadFromRemote) {
-            FirebaseFirestore.getInstance().collection("in_invoice").whereGreaterThanOrEqualTo(
-                    "in_timestamp",
-                    from
-                ).whereLessThan(
-                    "in_timestamp",
-                    to
-                ).get().addOnSuccessListener { result ->
+            FirebaseFirestore.getInstance().collection("in_invoice")
+                .whereIn("in_hi_id",ids)
+               .get().addOnSuccessListener { result ->
                     val invoiceItems = mutableListOf<Invoice>()
                     if (result.size() > 0) {
                         for (document in result) {
@@ -122,18 +113,15 @@ class InvoiceRepositoryImpl(
                                 invoiceItems.add(obj)
                             }
                         }
-                        callback?.onSuccess(invoiceItems)
                     }
+                    callback?.onSuccess(invoiceItems)
                 }.addOnFailureListener { exception ->
                     callback?.onFailure(
                         exception.message ?: "Network error! Can't get items from remote."
                     )
                 }
         } else {
-            invoiceDao.getInvoicesBetween(
-                from.time * 1000,
-                to.time * 1000
-            ).collect {
+            invoiceDao.getInvoicesByIds(ids).collect {
                 callback?.onSuccess(it)
             }
         }

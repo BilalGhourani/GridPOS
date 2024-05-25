@@ -29,6 +29,7 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+        multiDexEnabled = true
     }
 
     buildTypes {
@@ -37,14 +38,16 @@ android {
             isDebuggable = false
             signingConfig = signingConfigs.getByName("release")
             proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
             )
         }
         debug {
             isMinifyEnabled = false
             isDebuggable = true
             proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
             )
         }
     }
@@ -97,7 +100,7 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
     implementation("androidx.activity:activity-ktx:1.9.0")
 
-    implementation (libs.accompanist.permissions)
+    implementation(libs.accompanist.permissions)
 
     //Dagger - Hilt
     implementation("com.google.dagger:hilt-android:2.48")
@@ -128,5 +131,10 @@ dependencies {
     implementation("androidx.datastore:datastore-preferences-rxjava2:1.0.0")
     implementation("androidx.datastore:datastore-preferences-rxjava3:1.0.0")
 
-    implementation ("org.apache.poi:poi-ooxml:4.0.0")
+    implementation(
+        group = "com.aspose",
+        name = "aspose-cells",
+        version = "21.3",
+        classifier = "android.via.java"
+    )
 }

@@ -244,8 +244,13 @@ fun ReportsView(
                     val from = getDateFromState(fromDatePickerState.selectedDateMillis!!)
                     val to = getDateFromState(toDatePickerState.selectedDateMillis!!)
                     viewModel.fetchInvoices(
-                        from,
-                        to
+                        Utils.editDate(
+                            from,
+                            0,
+                            0,
+                            0
+                        ),
+                        Utils.editDate(to)
                     )
                 }
             }
@@ -334,7 +339,8 @@ fun ReportsView(
                 dialogText = "Are you sure you want to cancel the reports?",
                 positiveBtnText = "Cancel",
                 negativeBtnText = "Dismiss",
-                icon = Icons.Default.Info
+                icon = Icons.Default.Info,
+                height = 230.dp
             )
         }
         LoadingIndicator(

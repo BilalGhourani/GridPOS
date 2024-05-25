@@ -155,7 +155,7 @@ fun ManageItemsView(
                             val internalPath = Utils.saveToInternalStorage(context = mainActivity,
                                 parent = "item",
                                 uris[0],
-                                nameState.replace(
+                                nameState.trim().replace(
                                     " ",
                                     "_"
                                 ).ifEmpty { "item" })

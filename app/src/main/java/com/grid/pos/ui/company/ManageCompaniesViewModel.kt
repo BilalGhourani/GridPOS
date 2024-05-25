@@ -6,6 +6,8 @@ import com.grid.pos.data.Company.Company
 import com.grid.pos.data.Company.CompanyRepository
 import com.grid.pos.data.Currency.Currency
 import com.grid.pos.data.Currency.CurrencyRepository
+import com.grid.pos.data.PosPrinter.PosPrinter
+import com.grid.pos.data.PosPrinter.PosPrinterRepository
 import com.grid.pos.interfaces.OnResult
 import com.grid.pos.model.Event
 import com.grid.pos.model.SettingsModel
@@ -19,7 +21,8 @@ import javax.inject.Inject
 @HiltViewModel
 class ManageCompaniesViewModel @Inject constructor(
         private val companyRepository: CompanyRepository,
-        private val currencyRepository: CurrencyRepository
+        private val currencyRepository: CurrencyRepository,
+        private val posPrinterRepository: PosPrinterRepository
 ) : ViewModel() {
 
     private val _manageCompaniesState = MutableStateFlow(ManageCompaniesState())
@@ -29,6 +32,7 @@ class ManageCompaniesViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             fetchCompanies()
             fetchCurrencies()
+            fetchPrinters()
         }
     }
 
@@ -91,6 +95,28 @@ class ManageCompaniesViewModel @Inject constructor(
 
             }
 
+        })
+    }
+
+    private suspend fun fetchPrinters() {
+        posPrinterRepository.getAllPosPrinters(object : OnResult {
+            override fun onSuccess(result: Any) {
+                val listOfPrinters = mutableListOf<PosPrinter>()
+                (result as List<*>).forEach {
+                    listOfPrinters.add(it as PosPrinter)
+                }
+                viewModelScope.launch(Dispatchers.Main) {
+                    manageCompaniesState.value = manageCompaniesState.value.copy(
+                        printers = listOfPrinters
+                    )
+                }
+            }
+
+            override fun onFailure(
+                    message: String,
+                    errorCode: Int
+            ) {
+            }
         })
     }
 
