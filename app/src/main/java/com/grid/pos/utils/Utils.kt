@@ -20,6 +20,8 @@ import java.io.FileInputStream
 import java.io.IOException
 import java.io.InputStream
 import java.io.InputStreamReader
+import java.io.PrintWriter
+import java.net.Socket
 import java.text.SimpleDateFormat
 import java.time.Year
 import java.util.Calendar
@@ -62,10 +64,15 @@ object Utils {
         HomeSectionModel(
             "Table",
             "TablesView"
-        ), HomeSectionModel(
+        ),
+        HomeSectionModel(
+            "Printer",
+            "POSPrinterView"
+        ),
+        HomeSectionModel(
             "Reports",
             "ReportsView"
-        ),
+        )
     )
 
     fun generateRandomUuidString(): String {

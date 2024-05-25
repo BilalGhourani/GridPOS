@@ -13,60 +13,67 @@ import com.grid.pos.utils.Utils
 
 @Entity(tableName = "pos_printer")
 data class PosPrinter(
-    /**
-     * POS Printer Id
-     * */
-    @PrimaryKey
-    @ColumnInfo(name = "pp_id")
-    @set:PropertyName("pp_id")
-    @get:PropertyName("pp_id")
-    var posPrinterId: String,
+        /**
+         * POS Printer Id
+         * */
+        @PrimaryKey
+        @ColumnInfo(name = "pp_id")
+        @set:PropertyName("pp_id")
+        @get:PropertyName("pp_id")
+        var posPrinterId: String,
 
-    @Ignore
-    @get:Exclude
-    var posPrinterDocumentId: String? = null,
+        @Ignore
+        @get:Exclude
+        var posPrinterDocumentId: String? = null,
 
-    /**
-     * related  POS Printer type company id
-     * */
-    @ColumnInfo(name = "pp_cmp_id")
-    @set:PropertyName("pp_cmp_id")
-    @get:PropertyName("pp_cmp_id")
-    var posPrinterCompId: String? = null,
+        /**
+         * related  POS Printer type company id
+         * */
+        @ColumnInfo(name = "pp_cmp_id")
+        @set:PropertyName("pp_cmp_id")
+        @get:PropertyName("pp_cmp_id")
+        var posPrinterCompId: String? = null,
 
-    /**
-     *   POS Printer name
-     * */
-    @ColumnInfo(name = "pp_name")
-    @set:PropertyName("pp_name")
-    @get:PropertyName("pp_name")
-    var posPrinterName: String? = null,
+        /**
+         *   POS Printer name
+         * */
+        @ColumnInfo(name = "pp_name")
+        @set:PropertyName("pp_name")
+        @get:PropertyName("pp_name")
+        var posPrinterName: String? = null,
 
-    /**
-     *   POS Printer printer
-     * */
-    @ColumnInfo(name = "pp_printer")
-    @set:PropertyName("pp_printer")
-    @get:PropertyName("pp_printer")
-    var posPrinterPrinter: String? = null,
+        /**
+         *   POS Printer host
+         * */
+        @ColumnInfo(name = "pp_host")
+        @set:PropertyName("pp_host")
+        @get:PropertyName("pp_host")
+        var posPrinterHost: String = "127.0.0.1",
 
+        /**
+         *   POS Printer printer
+         * */
+        @ColumnInfo(name = "pp_port")
+        @set:PropertyName("pp_port")
+        @get:PropertyName("pp_port")
+        var posPrinterPort: Int = -1,
 
-    /**
-     *  POS Printer type
-     * */
-    @ColumnInfo(name = "pp_type")
-    @set:PropertyName("pp_type")
-    @get:PropertyName("pp_type")
-    var posPrinterType: String? = null,
+        /**
+         *  POS Printer type
+         * */
+        @ColumnInfo(name = "pp_type")
+        @set:PropertyName("pp_type")
+        @get:PropertyName("pp_type")
+        var posPrinterType: String? = null,
 
-
-    ) : DataModel() {
+        ) : DataModel() {
     constructor() : this("")
 
     @Exclude
     override fun getId(): String {
         return posPrinterId
     }
+
     @Exclude
     override fun getName(): String {
         return posPrinterName ?: ""
@@ -77,7 +84,7 @@ data class PosPrinter(
         if (posPrinterId.isNullOrEmpty()) {
             posPrinterId = Utils.generateRandomUuidString()
         }
-        posPrinterCompId= SettingsModel.companyID
+        posPrinterCompId = SettingsModel.companyID
     }
 
     @Exclude
@@ -85,7 +92,8 @@ data class PosPrinter(
         return mapOf(
             "pp_cmp_id" to posPrinterCompId,
             "pp_name" to posPrinterName,
-            "pp_printer" to posPrinterPrinter,
+            "pp_host" to posPrinterHost,
+            "pp_port" to posPrinterPort,
             "pp_type" to posPrinterType,
         )
     }
