@@ -4,7 +4,9 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Ignore
 import androidx.room.PrimaryKey
+import com.google.firebase.Timestamp
 import com.google.firebase.firestore.Exclude
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.PropertyName
 import com.google.firebase.firestore.ServerTimestamp
 import com.grid.pos.data.DataModel
@@ -262,12 +264,12 @@ data class InvoiceHeader(
         }
         invoiceHeadCompId = SettingsModel.companyID
         invoiceHeadUserStamp = SettingsModel.currentUserId
-       // invoiceHeadTimeStamp = Utils.getDateinFormat()
     }
 
     @Exclude
     fun getMap(): Map<String, Any?> {
         return mapOf(
+            "hi_id" to invoiceHeadId,
             "hi_cmp_id" to invoiceHeadCompId,
             "hi_date" to invoiceHeadDate,
             "hi_orderno" to invoiceHeadOrderNo,
@@ -290,7 +292,7 @@ data class InvoiceHeader(
             "hi_ta_name" to invoiceHeadTaName,
             "hi_clientscount" to invoiceHeadClientsCount,
             "hi_change" to invoiceHeadChange,
-          /*  "hi_timestamp" to invoiceHeadTimeStamp,*/
+            "hi_timestamp" to FieldValue.serverTimestamp(),
             "hi_userstamp" to invoiceHeadUserStamp,
             "hi_datetime" to invoiceHeadDateTime,
         )

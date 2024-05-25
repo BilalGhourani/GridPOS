@@ -4,8 +4,9 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Ignore
 import androidx.room.PrimaryKey
-import com.google.errorprone.annotations.Keep
+import com.google.firebase.Timestamp
 import com.google.firebase.firestore.Exclude
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.PropertyName
 import com.google.firebase.firestore.ServerTimestamp
 import com.grid.pos.data.DataModel
@@ -208,12 +209,12 @@ data class Item(
         }
         itemCompId = SettingsModel.companyID
         itemUserStamp = SettingsModel.currentUserId
-//        itemTimeStamp = Utils.getDateinFormat()
     }
 
     @Exclude
     fun getMap(): Map<String, Any?> {
         return mapOf(
+            "it_id" to itemId,
             "it_cmp_id" to itemCompId,
             "it_fa_id" to itemFaId,
             "it_name" to itemName,
@@ -230,7 +231,7 @@ data class Item(
             "it_btncolor" to itemBtnColor,
             "it_btntextcolor" to itemBtnTextColor,
             "it_userstamp" to itemUserStamp,
-            /*"it_timestamp" to itemTimeStamp,*/
+            "it_timestamp" to FieldValue.serverTimestamp(),
             "it_datetime" to itemDateTime,
         )
     }

@@ -17,7 +17,7 @@ class ThirdPartyRepositoryImpl(
     override suspend fun insert(thirdParty: ThirdParty, callback: OnResult?) {
         if (SettingsModel.loadFromRemote) {
             FirebaseFirestore.getInstance().collection("thirdParty")
-                .add(thirdParty)
+                .add(thirdParty.getMap())
                 .addOnSuccessListener {
                     thirdParty.thirdPartyDocumentId = it.id
                     callback?.onSuccess(thirdParty)

@@ -4,7 +4,9 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Ignore
 import androidx.room.PrimaryKey
+import com.google.firebase.Timestamp
 import com.google.firebase.firestore.Exclude
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.PropertyName
 import com.google.firebase.firestore.ServerTimestamp
 import com.grid.pos.data.DataModel
@@ -174,12 +176,13 @@ data class Invoice(
         if (invoiceId.isNullOrEmpty()) {
             invoiceId = Utils.generateRandomUuidString()
         }
-        invoiceUserStamp = SettingsModel.currentUserId/*invoiceTimeStamp = Utils.getDateinFormat()*/
+        invoiceUserStamp = SettingsModel.currentUserId
     }
 
     @Exclude
     fun getMap(): Map<String, Any?> {
         return mapOf(
+            "in_hi_id" to invoiceId,
             "in_hi_id" to invoiceHeaderId,
             "in_it_id" to invoiceItemId,
             "in_qty" to invoiceQuantity,
@@ -192,7 +195,7 @@ data class Invoice(
             "in_note" to invoiceNote,
             "in_cost" to invoiceCost,
             "in_remqty" to invoiceRemQty,
-            /* "in_timestamp" to invoiceTimeStamp,*/
+            "in_timestamp" to FieldValue.serverTimestamp(),
             "in_datetime" to invoiceDateTime,
             "in_userstamp" to invoiceUserStamp,
             "in_extraname" to invoiceExtraName,

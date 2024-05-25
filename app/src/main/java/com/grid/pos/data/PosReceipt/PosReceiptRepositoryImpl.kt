@@ -12,7 +12,7 @@ class PosReceiptRepositoryImpl(
             callback: OnResult?
     ) {
         if (SettingsModel.loadFromRemote) {
-            FirebaseFirestore.getInstance().collection("pos_receipt").add(posReceipt)
+            FirebaseFirestore.getInstance().collection("pos_receipt").add(posReceipt.getMap())
                 .addOnSuccessListener {
                     posReceipt.posReceiptDocumentId = it.id
                     callback?.onSuccess(posReceipt)

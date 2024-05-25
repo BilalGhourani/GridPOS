@@ -11,7 +11,7 @@ class InvoiceHeaderRepositoryImpl(
     override suspend fun insert(invoiceHeader: InvoiceHeader, callback: OnResult?) {
         if (SettingsModel.loadFromRemote) {
             FirebaseFirestore.getInstance().collection("in_hinvoice")
-                .add(invoiceHeader)
+                .add(invoiceHeader.getMap())
                 .addOnSuccessListener {
                     invoiceHeader.invoiceHeadDocumentId = it.id
                     callback?.onSuccess(invoiceHeader)

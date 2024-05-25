@@ -1,6 +1,7 @@
 package com.grid.pos.data.Item
 
 import androidx.lifecycle.asLiveData
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.grid.pos.data.InvoiceHeader.InvoiceHeader
 import com.grid.pos.interfaces.OnResult
@@ -12,7 +13,7 @@ class ItemRepositoryImpl(
     override suspend fun insert(item: Item, callback: OnResult?) {
         if (SettingsModel.loadFromRemote) {
             FirebaseFirestore.getInstance().collection("st_item")
-                .add(item)
+                .add(item.getMap())
                 .addOnSuccessListener {
                     item.itemDocumentId = it.id
                     callback?.onSuccess(item)

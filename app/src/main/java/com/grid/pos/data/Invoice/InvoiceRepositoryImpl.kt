@@ -16,7 +16,7 @@ class InvoiceRepositoryImpl(
             callback: OnResult?
     ) {
         if (SettingsModel.loadFromRemote) {
-            FirebaseFirestore.getInstance().collection("in_invoice").add(invoice)
+            FirebaseFirestore.getInstance().collection("in_invoice").add(invoice.getMap())
                 .addOnSuccessListener {
                     invoice.invoiceDocumentId = it.id
                     callback?.onSuccess(invoice)

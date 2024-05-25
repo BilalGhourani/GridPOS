@@ -4,8 +4,9 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Ignore
 import androidx.room.PrimaryKey
-import com.google.errorprone.annotations.Keep
+import com.google.firebase.Timestamp
 import com.google.firebase.firestore.Exclude
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.PropertyName
 import com.google.firebase.firestore.ServerTimestamp
 import com.grid.pos.data.DataModel
@@ -129,12 +130,12 @@ data class ThirdParty(
         }
         thirdPartyCompId = SettingsModel.companyID
         thirdPartyUserStamp = SettingsModel.currentUserId
-//        thirdPartyTimeStamp = Utils.getDateinFormat()
     }
 
     @Exclude
     fun getMap(): Map<String, Any?> {
         return mapOf(
+            "tp_id" to thirdPartyId,
             "tp_name" to thirdPartyName,
             "tp_fn" to thirdPartyFn,
             "tp_cmp_id" to thirdPartyCompId,
@@ -142,7 +143,7 @@ data class ThirdParty(
             "tp_phone2" to thirdPartyPhone2,
             "tp_address" to thirdPartyAddress,
             "tp_default" to thirdPartyDefault,
-           /* "tp_timestamp" to thirdPartyTimeStamp,*/
+            "tp_timestamp" to FieldValue.serverTimestamp(),
             "tp_userstamp" to thirdPartyUserStamp,
             "tp_datetime" to thirdPartyDateTime,
         )

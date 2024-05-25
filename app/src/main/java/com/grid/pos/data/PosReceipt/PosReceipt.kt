@@ -4,8 +4,9 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Ignore
 import androidx.room.PrimaryKey
-import com.google.errorprone.annotations.Keep
+import com.google.firebase.Timestamp
 import com.google.firebase.firestore.Exclude
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.PropertyName
 import com.google.firebase.firestore.ServerTimestamp
 import com.grid.pos.data.DataModel
@@ -15,7 +16,7 @@ import java.util.Date
 
 @Entity(tableName = "pos_receipt")
 data class PosReceipt(
-    /**
+        /**
      * POS Receipt Id
      * */
     @PrimaryKey
@@ -24,11 +25,11 @@ data class PosReceipt(
     @get:PropertyName("pr_id")
     var posReceiptId: String,
 
-    @Ignore
+        @Ignore
     @get:Exclude
     var posReceiptDocumentId: String? = null,
 
-    /**
+        /**
      * related POS Receipt Invoice Id
      * */
     @ColumnInfo(name = "pr_hi_id")
@@ -36,7 +37,7 @@ data class PosReceipt(
     @get:PropertyName("pr_hi_id")
     var posReceiptInvoiceId: String? = null,
 
-    /**
+        /**
      *  POS Receipt Cash Amount
      * */
     @ColumnInfo(name = "pr_cash")
@@ -44,7 +45,7 @@ data class PosReceipt(
     @get:PropertyName("pr_cash")
     var posReceiptCash: Double = 0.0,
 
-    /**
+        /**
      *  POS Receipt Cash Amount 2
      * */
     @ColumnInfo(name = "pr_cashs")
@@ -52,7 +53,7 @@ data class PosReceipt(
     @get:PropertyName("pr_cashs")
     var posReceiptCashs: Double = 0.0,
 
-    /**
+        /**
      *  POS Receipt Credit Amount
      * */
     @ColumnInfo(name = "pr_credit")
@@ -60,7 +61,7 @@ data class PosReceipt(
     @get:PropertyName("pr_credit")
     var posReceiptCredit: Double = 0.0,
 
-    /**
+        /**
      *  POS Receipt Credit Amounts
      * */
     @ColumnInfo(name = "pr_credits")
@@ -68,7 +69,7 @@ data class PosReceipt(
     @get:PropertyName("pr_credits")
     var posReceiptCredits: Double = 0.0,
 
-    /**
+        /**
      *  POS Receipt Debit Amount
      * */
     @ColumnInfo(name = "pr_debit")
@@ -76,7 +77,7 @@ data class PosReceipt(
     @get:PropertyName("pr_debit")
     var posReceiptDebit: Double = 0.0,
 
-    /**
+        /**
      *  POS Receipt Debit Amount 2
      * */
     @ColumnInfo(name = "pr_debits")
@@ -85,7 +86,7 @@ data class PosReceipt(
     var posReceiptDebits: Double = 0.0,
 
 
-    /**
+        /**
      *  POS Receipt Date
      * */
     @Ignore
@@ -94,7 +95,7 @@ data class PosReceipt(
     @ServerTimestamp
     var posReceiptTimeStamp: Date? = null,
 
-    /**
+        /**
      *  POS Receipt Date
      * */
     @ColumnInfo(name = "pr_datetime")
@@ -103,7 +104,7 @@ data class PosReceipt(
     var posReceiptDateTime: Long = System.currentTimeMillis(),
 
 
-    /**
+        /**
      *  POS Receipt UserStamp
      * */
     @ColumnInfo(name = "pr_userstamp")
@@ -129,12 +130,12 @@ data class PosReceipt(
             posReceiptId = Utils.generateRandomUuidString()
         }
         posReceiptUserStamp = SettingsModel.currentUserId
-//        posReceiptTimeStamp = Utils.getDateinFormat()
     }
 
     @Exclude
     fun getMap(): Map<String, Any?> {
         return mapOf(
+            "pr_id" to posReceiptId,
             "pr_hi_id" to posReceiptInvoiceId,
             "pr_cash" to posReceiptCash,
             "pr_cashs" to posReceiptCashs,
@@ -142,7 +143,7 @@ data class PosReceipt(
             "pr_debits" to posReceiptDebits,
             "pr_credit" to posReceiptCredit,
             "pr_credits" to posReceiptCredits,
-            /*"pr_timestamp" to posReceiptTimeStamp,*/
+            "pr_timestamp" to FieldValue.serverTimestamp(),
             "pr_userstamp" to posReceiptUserStamp,
             "pr_datetime" to posReceiptDateTime
         )
