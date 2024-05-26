@@ -161,13 +161,14 @@ class InvoiceHeaderRepositoryImpl(
         if (SettingsModel.loadFromRemote) {
             FirebaseFirestore.getInstance().collection("in_hinvoice")
                 .whereEqualTo("hi_cmp_id", SettingsModel.companyID)
-                .whereGreaterThanOrEqualTo(
+              /*  .whereGreaterThanOrEqualTo(
                     "hi_timestamp",
                     from
                 ).whereLessThan(
                     "hi_timestamp",
                     to
-                ).get().addOnSuccessListener { result ->
+                )*/
+                .get().addOnSuccessListener { result ->
                     val invoices = mutableListOf<InvoiceHeader>()
                     if (result.size() > 0) {
                         for (document in result) {

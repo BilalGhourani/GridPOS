@@ -11,7 +11,7 @@ pluginManagement {
         }
         mavenCentral()
         gradlePluginPortal()
-        maven { url = URI("https://repository.aspose.com/repo/") }
+        maven { url = uri("https://repository.aspose.com/repo/") }
     }
 }
 dependencyResolutionManagement {
@@ -19,7 +19,7 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
-        maven { url = URI("https://repository.aspose.com/repo/") }
+        maven { url = uri("https://repository.aspose.com/repo/") }
     }
 }
 

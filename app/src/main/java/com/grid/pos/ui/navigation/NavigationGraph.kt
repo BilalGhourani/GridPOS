@@ -124,7 +124,8 @@ fun AuthNavGraph(
         composable(route = "ReportsView") {
             ReportsView(
                 navController = navController,
-                activityViewModel = activityViewModel
+                activityViewModel = activityViewModel,
+                mainActivity = mainActivity
             )
         }
     }

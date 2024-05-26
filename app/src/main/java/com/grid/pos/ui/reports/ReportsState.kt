@@ -7,7 +7,8 @@ import com.grid.pos.model.Event
 import com.grid.pos.model.InvoiceItemModel
 
 data class ReportsState(
-    var isLoading: Boolean = false,
-    var clear: Boolean = false,
-    var warning: Event<String>? = null,
+        var filePath :String? = null,
+        var isLoading: Boolean = false,
+        var clear: Boolean = false,
+        var warning: Event<String>? = null,
 )

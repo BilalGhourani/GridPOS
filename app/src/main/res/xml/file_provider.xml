@@ -1,19 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
 <paths>
-    <external-path name="image" path="images/"/>
-    <external-path name="external_files" path="."/>
-    <external-path name="my_family_images" path="Android/data/com.grid.pos/files/images/family" />
-    <external-path name="my_item_images" path="Android/data/com.grid.pos/files/images/item" />
-    <external-path name="Grid Family Images" path="/data/user/0/com.grid.pos/files/images/family" />
-    <external-path name="Grid Family Images file" path="file:///data/user/0/com.grid.pos/files/images/family" />
-    <external-path name="Grid Item Images" path="/data/user/0/com.grid.pos/files/images/item" />
-    <external-path name="Grid Item Images file" path="file:///data/user/0/com.grid.pos/files/images/item" />
+    <external-path name="external" path="." />
+    <external-files-path name="external_files" path="." />
+    <files-path name="files" path="." />
 
-    <files-path name="internal Family Images" path="/data/user/0/com.grid.pos/files/images/family" />
-    <files-path name="internal Family Images file" path="file:///data/user/0/com.grid.pos/files/images/family" />
-    <files-path name="internal Item Images" path="/data/user/0/com.grid.pos/files/images/item" />
-    <files-path name="internal Item Images file" path="file:///data/user/0/com.grid.pos/files/images/item" />
-
-    <files-path name="Internal Family Images1" path="images/family/" />
-    <files-path name="Internal Item Images1" path="images/item/" />
 </paths>
 

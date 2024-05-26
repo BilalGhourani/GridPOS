@@ -2,6 +2,8 @@ package com.grid.pos.ui.reports
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.aspose.cells.FileFormatType
+import com.aspose.cells.Workbook
 import com.grid.pos.App
 import com.grid.pos.data.Currency.Currency
 import com.grid.pos.data.Invoice.Invoice
@@ -18,8 +20,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.apache.poi.hssf.usermodel.HSSFWorkbook
-import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import java.io.File
 import java.io.FileOutputStream
 import java.util.Date
@@ -35,6 +35,7 @@ class ReportsViewModel @Inject constructor(
     private var itemMap: Map<String, Item> = mutableMapOf()
     private var invoices: MutableList<InvoiceHeader> = mutableListOf()
     private var invoiceItemMap: Map<String, List<Invoice>> = mutableMapOf()
+    private var filteredInvoiceItemMap: Map<String, List<Invoice>> = mutableMapOf()
     private var currency = SettingsModel.currentCurrency ?: Currency()
     private val _reportsState = MutableStateFlow(ReportsState())
     val reportsState: MutableStateFlow<ReportsState> = _reportsState
@@ -67,14 +68,13 @@ class ReportsViewModel @Inject constructor(
 
     fun fetchInvoices(
             from: Date,
-            end: Date
+            to: Date
     ) {
         reportsState.value = reportsState.value.copy(
             isLoading = true
         )
         viewModelScope.launch(Dispatchers.IO) {
-            invoiceHeaderRepository.getInvoicesBetween(from,
-                end,
+            invoiceHeaderRepository.getAllInvoiceHeaders(
                 object : OnResult {
                     override fun onSuccess(result: Any) {
                         val listOfInvoices = mutableListOf<InvoiceHeader>()
@@ -83,7 +83,10 @@ class ReportsViewModel @Inject constructor(
                         }
                         invoices = listOfInvoices
                         if (invoices.isNotEmpty()) {
-                            fetchInvoiceItems(listOfInvoices.map { it.invoiceHeadId })
+                            fetchInvoiceItems(
+                                from,
+                                to,
+                                listOfInvoices.map { it.invoiceHeadId })
                         } else {
                             reportsState.value = reportsState.value.copy(
                                 warning = Event("no data found in the date range!"),
@@ -104,7 +107,11 @@ class ReportsViewModel @Inject constructor(
         }
     }
 
-    fun fetchInvoiceItems(ids: List<String>) {
+    fun fetchInvoiceItems(
+            from: Date,
+            to: Date,
+            ids: List<String>
+    ) {
         viewModelScope.launch(Dispatchers.IO) {
             invoiceRepository.getInvoicesByIds(ids,
                 object : OnResult {
@@ -114,6 +121,8 @@ class ReportsViewModel @Inject constructor(
                             listOfInvoices.add(it as Invoice)
                         }
                         invoiceItemMap = listOfInvoices.groupBy { it.invoiceItemId ?: "" }
+                        val filteredInvoiceItems = listOfInvoices.filter { from.before(it.invoiceTimeStamp) && to.after(it.invoiceTimeStamp) }
+                        filteredInvoiceItemMap = filteredInvoiceItems.groupBy { it.invoiceItemId ?: "" }
                         generateReportsExcel()
                     }
 
@@ -137,19 +146,21 @@ class ReportsViewModel @Inject constructor(
 
     fun generateReportsExcel() {
         viewModelScope.launch(Dispatchers.IO) {
-            val workbook = HSSFWorkbook()
+            val file = getReportFile()
+            val workbook = Workbook()
 
             generateFirstSheet(workbook)
             generateSecondSheet(workbook)
 
             // Write the workbook to a file
-            val outputStream = FileOutputStream(
-                getReportFile()
+            val outputStream = FileOutputStream(file)
+            workbook.save(
+                outputStream,
+                FileFormatType.XLSX
             )
-            workbook.write(outputStream)
-            outputStream.close()
             withContext(Dispatchers.Main) {
                 reportsState.value = reportsState.value.copy(
+                    filePath = file.path,
                     isLoading = false
                 )
             }
@@ -169,29 +180,31 @@ class ReportsViewModel @Inject constructor(
             storageDir,
             "grids_report_excel.xlsx"
         )
-        if (child.exists()) {
-            child.delete()
+        if (!child.exists()) {
+            // child.delete()
             child.createNewFile()
         }
         return child
     }
 
-    private fun generateFirstSheet(workbook: HSSFWorkbook) {
-        val sheet = workbook.createSheet("Inventory & Profit Reports")
+    private fun generateFirstSheet(workbook: Workbook) {
+        val sheet = workbook.worksheets[0]
+        sheet.name = "Inventory & Profit Reports"
 
-        // Write headers (assuming first row in data list is header)
-        val headerRow = sheet.createRow(0)
-        headerRow.createCell(0).setCellValue("Item Name")
-        headerRow.createCell(1).setCellValue("Open Qty")
-        headerRow.createCell(2).setCellValue("Qty Sold")
-        headerRow.createCell(3).setCellValue("Total Cost")
-        headerRow.createCell(4).setCellValue("Total Sales")
-        headerRow.createCell(5).setCellValue("Rem.Qty")
-        headerRow.createCell(6).setCellValue("Profit")
+        var rowIndex = 1
+        // Obtaining Worksheet's cells collection
+        val cells = sheet.cells
+        cells.get("A$rowIndex").value = "Item Name"
+        cells.get("B$rowIndex").value = "Open Qty"
+        cells.get("C$rowIndex").value = "Qty Sold"
+        cells.get("D$rowIndex").value = "Total Cost"
+        cells.get("E$rowIndex").value = "Total Sales"
+        cells.get("F$rowIndex").value = "Rem.Qty"
+        cells.get("G$rowIndex").value = "Profit"
 
 
-        itemMap.values.forEachIndexed { index, item ->
-            val dataRow = sheet.createRow(index + 1)
+        itemMap.values.forEach { item ->
+            rowIndex++
             val itemInvoices = invoiceItemMap[item.itemId]
             var quantitiesSold = 0.0
             var totalCost = 0.0
@@ -205,52 +218,49 @@ class ReportsViewModel @Inject constructor(
                 quantitiesSold += it.invoiceQuantity
                 totalSale += it.getNetAmount()
             }
-            dataRow.createCell(0).setCellValue(item.itemName)
-            dataRow.createCell(1).setCellValue(item.itemOpenQty)
-            dataRow.createCell(2).setCellValue(quantitiesSold)
-            dataRow.createCell(3).setCellValue(
-                String.format(
-                    "%.${currency.currencyName1Dec}f",
-                    totalCost
-                )
+            cells.get("A$rowIndex").value = item.itemName
+            cells.get("B$rowIndex").value = item.itemOpenQty
+            cells.get("C$rowIndex").value = quantitiesSold
+            cells.get("D$rowIndex").value = String.format(
+                "%.${currency.currencyName1Dec}f",
+                totalCost
             )
-            dataRow.createCell(4).setCellValue(
-                String.format(
-                    "%.${currency.currencyName1Dec}f",
-                    totalSale
-                )
+
+            cells.get("E$rowIndex").value = String.format(
+                "%.${currency.currencyName1Dec}f",
+                totalSale
             )
-            dataRow.createCell(5).setCellValue(remQty)
-            dataRow.createCell(6).setCellValue(
-                String.format(
-                    "%.${currency.currencyName1Dec}f",
-                    totalSale - totalCost
-                )
+
+            cells.get("F$rowIndex").value = remQty
+            cells.get("G$rowIndex").value = String.format(
+                "%.${currency.currencyName1Dec}f",
+                totalSale - totalCost
             )
         }
     }
 
-    private fun generateSecondSheet(workbook: HSSFWorkbook) {
-        val sheet = workbook.createSheet("Sales Reports")
+    private fun generateSecondSheet(workbook: Workbook) {
+        val sheet = workbook.worksheets.add("Sales Reports")
 
-        // Write headers (assuming first row in data list is header)
-        val headerRow = sheet.createRow(0)
-        headerRow.createCell(0).setCellValue("Name")
-        headerRow.createCell(1).setCellValue("Qty Sold")
-        headerRow.createCell(1).setCellValue("Total")
+        var rowIndex = 1
+        // Obtaining Worksheet's cells collection
+        val cells = sheet.cells
+        cells.get("A$rowIndex").value = "Name"
+        cells.get("B$rowIndex").value = "Qty Sold"
+        cells.get("C$rowIndex").value = "Total"
 
-        itemMap.values.forEachIndexed { index, item ->
-            val dataRow = sheet.createRow(index + 1)
-            val itemInvoices = invoiceItemMap[item.itemId]
+        filteredInvoiceItemMap.keys.forEach { itemId ->
+            rowIndex++
+            val item = itemMap[itemId]
             var quantitiesSold = 0.0
             var totalSale = 0.0
-            itemInvoices?.map {
+            filteredInvoiceItemMap[itemId]?.map {
                 quantitiesSold += it.invoiceQuantity
                 totalSale += it.getNetAmount()
             }
-            dataRow.createCell(0).setCellValue(item.itemName)
-            dataRow.createCell(1).setCellValue(quantitiesSold)
-            dataRow.createCell(1).setCellValue(totalSale)
+            cells.get("A$rowIndex").value = item?.itemName ?: "N/A"
+            cells.get("B$rowIndex").value = quantitiesSold
+            cells.get("C$rowIndex").value = totalSale
         }
     }
 

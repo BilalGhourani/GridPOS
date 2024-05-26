@@ -1,5 +1,8 @@
 package com.grid.pos.ui.reports
 
+import android.content.Intent
+import android.net.Uri
+import android.os.Build
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
@@ -13,10 +16,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
-import androidx.compose.material3.DatePickerState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -40,7 +41,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -49,30 +49,32 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.grid.pos.ActivityScopedViewModel
+import com.grid.pos.BuildConfig
 import com.grid.pos.MainActivity
 import com.grid.pos.R
-import com.grid.pos.model.Event
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.LoadingIndicator
 import com.grid.pos.ui.common.UIAlertDialog
 import com.grid.pos.ui.common.UIButton
 import com.grid.pos.ui.common.UITextField
-import com.grid.pos.ui.pos.PopupState
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.utils.Utils
 import kotlinx.coroutines.launch
+import java.io.File
 import java.util.Calendar
 import java.util.Date
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReportsView(
+        modifier: Modifier = Modifier,
         navController: NavController? = null,
         activityViewModel: ActivityScopedViewModel,
-        modifier: Modifier = Modifier,
+        mainActivity: MainActivity,
         viewModel: ReportsViewModel = hiltViewModel()
 ) {
     val reportsState: ReportsState by viewModel.reportsState.collectAsState(
@@ -83,6 +85,29 @@ fun ReportsView(
         return Calendar.getInstance().apply {
             timeInMillis = time
         }.time
+    }
+
+    fun shareExcelSheet(localPath: String) {
+        val shareIntent = Intent()
+        shareIntent.setAction(Intent.ACTION_SEND)
+        val file = File(localPath)
+        val attachment = FileProvider.getUriForFile(
+            mainActivity,
+            BuildConfig.APPLICATION_ID,
+            file
+        )
+        shareIntent.putExtra(
+            Intent.EXTRA_STREAM,
+            attachment
+        )
+        shareIntent.setType("application/vnd.ms-excel")
+
+        mainActivity.startActivity(
+            Intent.createChooser(
+                shareIntent,
+                "send"
+            )
+        )
     }
 
     val initialDate = Date()
@@ -116,13 +141,22 @@ fun ReportsView(
     val scope = rememberCoroutineScope()
 
 
-    LaunchedEffect(reportsState.warning) {
+    LaunchedEffect(
+        reportsState.warning,
+        reportsState.filePath
+    ) {
         reportsState.warning?.value?.let { message ->
             scope.launch {
                 snackbarHostState.showSnackbar(
                     message = message,
                     duration = SnackbarDuration.Short,
                 )
+            }
+        }
+
+        reportsState.filePath?.let { path ->
+            scope.launch {
+                shareExcelSheet(path)
             }
         }
     }
