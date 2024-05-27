@@ -173,7 +173,7 @@ data class Invoice(
 
     @Exclude
     override fun prepareForInsert() {
-        if (invoiceId.isNullOrEmpty()) {
+        if (invoiceId.isEmpty()) {
             invoiceId = Utils.generateRandomUuidString()
         }
         invoiceUserStamp = SettingsModel.currentUserId
@@ -182,7 +182,7 @@ data class Invoice(
     @Exclude
     fun getMap(): Map<String, Any?> {
         return mapOf(
-            "in_hi_id" to invoiceId,
+            "in_id" to invoiceId,
             "in_hi_id" to invoiceHeaderId,
             "in_it_id" to invoiceItemId,
             "in_qty" to invoiceQuantity,

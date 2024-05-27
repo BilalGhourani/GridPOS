@@ -27,9 +27,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ReportsViewModel @Inject constructor(
-        private val invoiceHeaderRepository: InvoiceHeaderRepository,
-        private val invoiceRepository: InvoiceRepository,
-        private val itemRepository: ItemRepository
+    private val invoiceHeaderRepository: InvoiceHeaderRepository,
+    private val invoiceRepository: InvoiceRepository,
+    private val itemRepository: ItemRepository
 ) : ViewModel() {
 
     private var itemMap: Map<String, Item> = mutableMapOf()
@@ -37,6 +37,7 @@ class ReportsViewModel @Inject constructor(
     private var invoiceItemMap: Map<String, List<Invoice>> = mutableMapOf()
     private var filteredInvoiceItemMap: Map<String, List<Invoice>> = mutableMapOf()
     private var currency = SettingsModel.currentCurrency ?: Currency()
+    var reportFile: File? = null
     private val _reportsState = MutableStateFlow(ReportsState())
     val reportsState: MutableStateFlow<ReportsState> = _reportsState
 
@@ -57,8 +58,8 @@ class ReportsViewModel @Inject constructor(
             }
 
             override fun onFailure(
-                    message: String,
-                    errorCode: Int
+                message: String,
+                errorCode: Int
             ) {
 
             }
@@ -67,8 +68,8 @@ class ReportsViewModel @Inject constructor(
     }
 
     fun fetchInvoices(
-            from: Date,
-            to: Date
+        from: Date,
+        to: Date
     ) {
         reportsState.value = reportsState.value.copy(
             isLoading = true
@@ -97,8 +98,8 @@ class ReportsViewModel @Inject constructor(
                     }
 
                     override fun onFailure(
-                            message: String,
-                            errorCode: Int
+                        message: String,
+                        errorCode: Int
                     ) {
 
                     }
@@ -108,9 +109,9 @@ class ReportsViewModel @Inject constructor(
     }
 
     fun fetchInvoiceItems(
-            from: Date,
-            to: Date,
-            ids: List<String>
+        from: Date,
+        to: Date,
+        ids: List<String>
     ) {
         viewModelScope.launch(Dispatchers.IO) {
             invoiceRepository.getInvoicesByIds(ids,
@@ -121,14 +122,16 @@ class ReportsViewModel @Inject constructor(
                             listOfInvoices.add(it as Invoice)
                         }
                         invoiceItemMap = listOfInvoices.groupBy { it.invoiceItemId ?: "" }
-                        val filteredInvoiceItems = listOfInvoices.filter { from.before(it.invoiceTimeStamp) && to.after(it.invoiceTimeStamp) }
-                        filteredInvoiceItemMap = filteredInvoiceItems.groupBy { it.invoiceItemId ?: "" }
+                        val filteredInvoiceItems =
+                            listOfInvoices.filter { from.before(it.invoiceTimeStamp) && to.after(it.invoiceTimeStamp) }
+                        filteredInvoiceItemMap =
+                            filteredInvoiceItems.groupBy { it.invoiceItemId ?: "" }
                         generateReportsExcel()
                     }
 
                     override fun onFailure(
-                            message: String,
-                            errorCode: Int
+                        message: String,
+                        errorCode: Int
                     ) {
 
                     }
@@ -146,7 +149,7 @@ class ReportsViewModel @Inject constructor(
 
     fun generateReportsExcel() {
         viewModelScope.launch(Dispatchers.IO) {
-            val file = getReportFile()
+            val file = getFile()
             val workbook = Workbook()
 
             generateFirstSheet(workbook)
@@ -158,16 +161,17 @@ class ReportsViewModel @Inject constructor(
                 outputStream,
                 FileFormatType.XLSX
             )
+            reportFile = file
             withContext(Dispatchers.Main) {
                 reportsState.value = reportsState.value.copy(
-                    filePath = file.path,
+                    isDone = true,
                     isLoading = false
                 )
             }
         }
     }
 
-    private fun getReportFile(): File {
+    private fun getFile(): File {
         val context = App.getInstance().applicationContext
         val storageDir = File(
             context.filesDir,
@@ -178,7 +182,7 @@ class ReportsViewModel @Inject constructor(
         }
         val child = File(
             storageDir,
-            "grids_report_excel.xlsx"
+            "Sales_Report.xlsx"
         )
         if (!child.exists()) {
             // child.delete()
