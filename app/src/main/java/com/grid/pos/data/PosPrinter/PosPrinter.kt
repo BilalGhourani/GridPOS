@@ -90,6 +90,7 @@ data class PosPrinter(
     @Exclude
     fun getMap(): Map<String, Any?> {
         return mapOf(
+            "pp_id" to posPrinterId,
             "pp_cmp_id" to posPrinterCompId,
             "pp_name" to posPrinterName,
             "pp_host" to posPrinterHost,

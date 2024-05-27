@@ -15,7 +15,7 @@ class PosPrinterRepositoryImpl(
     override suspend fun insert(posPrinter: PosPrinter, callback: OnResult?) {
         if (SettingsModel.loadFromRemote) {
             FirebaseFirestore.getInstance().collection("pos_printer")
-                .add(posPrinter)
+                .add(posPrinter.getMap())
                 .addOnSuccessListener {
                     posPrinter.posPrinterDocumentId = it.id
                     callback?.onSuccess(posPrinter)
