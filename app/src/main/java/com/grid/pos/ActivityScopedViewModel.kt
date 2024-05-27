@@ -20,6 +20,7 @@ import com.grid.pos.data.ThirdParty.ThirdPartyRepository
 import com.grid.pos.data.User.User
 import com.grid.pos.data.User.UserRepository
 import com.grid.pos.interfaces.OnResult
+import com.grid.pos.model.Event
 import com.grid.pos.model.InvoiceItemModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.DataStoreManager
@@ -133,7 +134,7 @@ class ActivityScopedViewModel @Inject constructor(
                             withContext(Dispatchers.Main) {
                                 activityState.value = activityState.value.copy(
                                     isLoggedIn = false,
-                                    warning = SettingsModel.companyAccessWarning,
+                                    warning = Event(SettingsModel.companyAccessWarning) ,
                                     forceLogout = true
                                 )
                             }

@@ -115,7 +115,7 @@ fun UIAlertDialog(
                         onClick = {
                             onDismissRequest()
                         },
-                        modifier = Modifier.padding(8.dp),
+                        modifier = Modifier.weight(1f),
                     ) {
                         Text(
                             negativeBtnText,
@@ -132,7 +132,7 @@ fun UIAlertDialog(
                         onClick = {
                             onConfirmation()
                         },
-                        modifier = Modifier.padding(8.dp),
+                        modifier =  Modifier.weight(1f),
                     ) {
                         Text(
                             positiveBtnText,

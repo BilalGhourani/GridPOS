@@ -1,6 +1,7 @@
 package com.grid.pos.ui.login
 
 import android.annotation.SuppressLint
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -49,6 +50,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.grid.pos.ActivityScopedViewModel
+import com.grid.pos.MainActivity
 import com.grid.pos.R
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.LoadingIndicator
@@ -64,10 +66,11 @@ import kotlinx.coroutines.withContext
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginView(
-        modifier: Modifier = Modifier,
-        navController: NavController? = null,
-        activityScopedViewModel: ActivityScopedViewModel? = null,
-        viewModel: LoginViewModel = hiltViewModel()
+    modifier: Modifier = Modifier,
+    navController: NavController? = null,
+    activityScopedViewModel: ActivityScopedViewModel,
+    mainActivity: MainActivity,
+    viewModel: LoginViewModel = hiltViewModel()
 ) {
     val loginState by viewModel.usersState.collectAsState()
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -101,7 +104,7 @@ fun LoginView(
     LaunchedEffect(loginState.isLoggedIn) {
         if (loginState.isLoggedIn) {
             CoroutineScope(Dispatchers.IO).launch {
-                activityScopedViewModel!!.activityState.value.isLoggedIn = true
+                activityScopedViewModel.activityState.value.isLoggedIn = true
                 activityScopedViewModel.activityState.value.warning = null
                 activityScopedViewModel.initiateValues()
                 withContext(Dispatchers.Main) {
@@ -121,6 +124,9 @@ fun LoginView(
                 }
             }
         }
+    }
+    BackHandler {
+        mainActivity.finish()
     }
     GridPOSTheme {
         Scaffold(containerColor = SettingsModel.backgroundColor,
@@ -174,7 +180,7 @@ fun LoginView(
                             defaultValue = usernameState,
                             label = "Username",
                             placeHolder = "Username",
-                            onAction = { passwordFocusRequester.requestFocus() }) {username->
+                            onAction = { passwordFocusRequester.requestFocus() }) { username ->
                             usernameState = username
                         }
 
@@ -201,7 +207,7 @@ fun LoginView(
                                         tint = SettingsModel.buttonColor
                                     )
                                 }
-                            }) {password->
+                            }) { password ->
                             passwordState = password
                         }
                         UIButton(

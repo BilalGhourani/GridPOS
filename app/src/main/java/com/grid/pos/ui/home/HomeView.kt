@@ -14,15 +14,11 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -34,24 +30,21 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
-import androidx.lifecycle.ViewModel
 import androidx.navigation.NavController
 import com.grid.pos.ActivityScopedViewModel
 import com.grid.pos.ActivityState
 import com.grid.pos.MainActivity
 import com.grid.pos.R
+import com.grid.pos.model.Event
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.UIAlertDialog
 import com.grid.pos.ui.common.UIButton
-import com.grid.pos.ui.company.ManageCompaniesState
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.utils.Utils
 
@@ -76,15 +69,18 @@ fun HomeView(
         activityState.warning
     ) {
         keyboardController?.hide()
-        if (!activityState.warning.isNullOrEmpty()) {
-            isLogoutPopupShown = true
-            activityState.warning = null
+        activityState.warning?.value?.let {
+            if (it.isNotEmpty()) {
+                isLogoutPopupShown = true
+            }
         }
     }
     BackHandler {
-        activityState.warning = "Are you sure you want to logout?"
-        activityState.forceLogout = false
-        isLogoutPopupShown = true
+        if (!isLogoutPopupShown) {
+            activityState.warning = Event("Are you sure you want to logout?")
+            activityState.forceLogout = false
+            isLogoutPopupShown = true
+        }
     }
     GridPOSTheme {
         Scaffold(
@@ -165,7 +161,7 @@ fun HomeView(
                     logout()
                 },
                 dialogTitle = "Alert.",
-                dialogText = activityState.warning ?: SettingsModel.companyAccessWarning,
+                dialogText = activityState.warning?.value ?: SettingsModel.companyAccessWarning,
                 icon = Icons.Default.Info
             )
         }

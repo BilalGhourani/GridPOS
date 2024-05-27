@@ -48,7 +48,8 @@ fun AuthNavGraph(
         composable(route = "LoginView") {
             LoginView(
                 navController = navController,
-                activityScopedViewModel = activityViewModel
+                activityScopedViewModel = activityViewModel,
+                mainActivity = mainActivity
             )
         }
         composable(route = "SettingsView") {

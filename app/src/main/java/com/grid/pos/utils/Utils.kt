@@ -7,6 +7,7 @@ import android.os.Build
 import android.print.PrintAttributes
 import android.print.PrintAttributes.MediaSize
 import android.print.PrintManager
+import android.text.Html
 import android.util.Log
 import android.webkit.WebView
 import androidx.compose.ui.graphics.Color
@@ -322,8 +323,10 @@ object Utils {
                 host,
                 port
             )
+            val str = Html.fromHtml(content, Html.FROM_HTML_MODE_COMPACT).toString()
             val oStream = PrintWriter(sock.getOutputStream(), true)
-            oStream.println(content)
+            oStream.println(str)
+            oStream.println("\n\n\n")
             oStream.close()
             sock.close()
         } catch (e: Exception) {
