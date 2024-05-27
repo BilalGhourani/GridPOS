@@ -34,13 +34,13 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ActivityScopedViewModel @Inject constructor(
-        private val currencyRepository: CurrencyRepository,
-        private val companyRepository: CompanyRepository,
-        private val userRepository: UserRepository,
-        private val thirdPartyRepository: ThirdPartyRepository,
-        private val familyRepository: FamilyRepository,
-        private val itemRepository: ItemRepository,
-        private val posPrinterRepository: PosPrinterRepository,
+    private val currencyRepository: CurrencyRepository,
+    private val companyRepository: CompanyRepository,
+    private val userRepository: UserRepository,
+    private val thirdPartyRepository: ThirdPartyRepository,
+    private val familyRepository: FamilyRepository,
+    private val itemRepository: ItemRepository,
+    private val posPrinterRepository: PosPrinterRepository,
 ) : ViewModel() {
     var posReceipt: PosReceipt = PosReceipt()
     var invoiceHeader: InvoiceHeader = InvoiceHeader()
@@ -96,8 +96,8 @@ class ActivityScopedViewModel @Inject constructor(
                     }
 
                     override fun onFailure(
-                            message: String,
-                            errorCode: Int
+                        message: String,
+                        errorCode: Int
                     ) {
 
                     }
@@ -142,8 +142,8 @@ class ActivityScopedViewModel @Inject constructor(
                 }
 
                 override fun onFailure(
-                        message: String,
-                        errorCode: Int
+                    message: String,
+                    errorCode: Int
                 ) {
 
                 }
@@ -161,8 +161,8 @@ class ActivityScopedViewModel @Inject constructor(
                         }
 
                         override fun onFailure(
-                                message: String,
-                                errorCode: Int
+                            message: String,
+                            errorCode: Int
                         ) {
 
                         }
@@ -182,8 +182,8 @@ class ActivityScopedViewModel @Inject constructor(
             }
 
             override fun onFailure(
-                    message: String,
-                    errorCode: Int
+                message: String,
+                errorCode: Int
             ) {
             }
         })
@@ -200,8 +200,8 @@ class ActivityScopedViewModel @Inject constructor(
             }
 
             override fun onFailure(
-                    message: String,
-                    errorCode: Int
+                message: String,
+                errorCode: Int
             ) {
             }
         })
@@ -218,8 +218,8 @@ class ActivityScopedViewModel @Inject constructor(
             }
 
             override fun onFailure(
-                    message: String,
-                    errorCode: Int
+                message: String,
+                errorCode: Int
             ) {
             }
         })
@@ -236,19 +236,19 @@ class ActivityScopedViewModel @Inject constructor(
             }
 
             override fun onFailure(
-                    message: String,
-                    errorCode: Int
+                message: String,
+                errorCode: Int
             ) {
             }
         })
     }
 
     fun getInvoiceReceiptHtmlContent(
-            context: Context,
-            content: String = Utils.readFileFromAssets(
-                "invoice_receipt.html",
-                context
-            )
+        context: Context,
+        content: String = Utils.readFileFromAssets(
+            "invoice_receipt.html",
+            context
+        )
     ): String {
         var result = content.ifEmpty { Utils.getDefaultReceipt() }
         if (invoiceItemModels.isNotEmpty()) {
@@ -283,14 +283,14 @@ class ActivityScopedViewModel @Inject constructor(
         return result
     }
 
-     fun getItemReceiptHtmlContent(
-            context: Context,
-            content: String = Utils.readFileFromAssets(
-                "item_receipt.html",
-                context
-            ),
-            invoiceHeader: InvoiceHeader,
-            invItemModels: List<InvoiceItemModel>
+    fun getItemReceiptHtmlContent(
+        context: Context,
+        content: String = Utils.readFileFromAssets(
+            "item_receipt.html",
+            context
+        ),
+        invoiceHeader: InvoiceHeader,
+        invItemModels: List<InvoiceItemModel>
     ): String {
         var result = content.ifEmpty { Utils.getDefaultItemReceipt() }
         result = result.replace(
@@ -309,7 +309,11 @@ class ActivityScopedViewModel @Inject constructor(
         result = result.replace(
             "{invoice_time}",
             Utils.getDateinFormat(
-                invoiceHeader.invoiceHeadTimeStamp ?: Date(invoiceHeader.invoiceHeadDateTime.div(1000)),
+                invoiceHeader.invoiceHeadTimeStamp ?: Date(
+                    invoiceHeader.invoiceHeadDateTime.div(
+                        1000
+                    )
+                ),
                 "dd/MM/yyyy hh:mm:ss"
             )
         )
@@ -334,39 +338,39 @@ class ActivityScopedViewModel @Inject constructor(
     }
 
     fun print() {
-        val context = App.getInstance().applicationContext
-        SettingsModel.currentCompany?.companyPrinterId?.let { companyPrinter ->
-            val invoicePrinter = printers.firstOrNull { it.posPrinterId == companyPrinter }
-            if (invoicePrinter != null) {
-                val invoiceContent = getInvoiceReceiptHtmlContent(context = context)
-                Utils.printInvoice(
-                    invoiceContent,
-                    invoicePrinter.posPrinterHost,
-                    invoicePrinter.posPrinterPort
-                )
-            }
-        }
-
-        val itemsPrintersMap = invoiceItemModels.groupBy { it.invoiceItem.itemPrinter ?: "" }
-        itemsPrintersMap.entries.forEach { entry ->
-            if (entry.key.isNotEmpty()) {
-                val itemsPrinter = printers.firstOrNull { it.posPrinterId == entry.key }
-                if (itemsPrinter != null) {
-                    val invoiceContent = getItemReceiptHtmlContent(
-                        context = context,
-                        invoiceHeader = invoiceHeader,
-                        invItemModels = entry.value
-                    )
+        viewModelScope.launch(Dispatchers.IO) {
+            val context = App.getInstance().applicationContext
+            SettingsModel.currentCompany?.companyPrinterId?.let { companyPrinter ->
+                val invoicePrinter = printers.firstOrNull { it.posPrinterId == companyPrinter }
+                if (invoicePrinter != null) {
+                    val invoiceContent = getInvoiceReceiptHtmlContent(context = context)
                     Utils.printInvoice(
                         invoiceContent,
-                        itemsPrinter.posPrinterHost,
-                        itemsPrinter.posPrinterPort
+                        invoicePrinter.posPrinterHost,
+                        invoicePrinter.posPrinterPort
                     )
                 }
             }
+
+            val itemsPrintersMap = invoiceItemModels.groupBy { it.invoiceItem.itemPrinter ?: "" }
+            itemsPrintersMap.entries.forEach { entry ->
+                if (entry.key.isNotEmpty()) {
+                    val itemsPrinter = printers.firstOrNull { it.posPrinterId == entry.key }
+                    if (itemsPrinter != null) {
+                        val invoiceContent = getItemReceiptHtmlContent(
+                            context = context,
+                            invoiceHeader = invoiceHeader,
+                            invItemModels = entry.value
+                        )
+                        Utils.printInvoice(
+                            invoiceContent,
+                            itemsPrinter.posPrinterHost,
+                            itemsPrinter.posPrinterPort
+                        )
+                    }
+                }
+            }
         }
-
-
     }
 
     fun isLoggedIn(): Boolean {
