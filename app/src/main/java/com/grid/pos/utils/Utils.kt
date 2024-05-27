@@ -60,20 +60,20 @@ object Utils {
             "ManageItemsView"
         ),
         HomeSectionModel(
-            "POS",
-            "POSView"
-        ),
-        HomeSectionModel(
-            "Table",
-            "TablesView"
-        ),
-        HomeSectionModel(
             "Printer",
             "POSPrinterView"
         ),
         HomeSectionModel(
             "Reports",
             "ReportsView"
+        ),
+        HomeSectionModel(
+            "POS",
+            "POSView"
+        ),
+        HomeSectionModel(
+            "Table",
+            "TablesView"
         )
     )
 
@@ -82,8 +82,8 @@ object Utils {
     }
 
     fun getDateinFormat(
-        date: Date = Date(),
-        format: String = "MMMM dd, yyyy 'at' hh:mm:ss a 'Z'"
+            date: Date = Date(),
+            format: String = "MMMM dd, yyyy 'at' hh:mm:ss a 'Z'"
     ): String {
         val parserFormat = SimpleDateFormat(
             format,
@@ -94,24 +94,33 @@ object Utils {
     }
 
     fun editDate(
-        date: Date = Date(),
-        hours: Int = 23,
-        minutes: Int = 59,
-        seconds: Int = 59
+            date: Date = Date(),
+            hours: Int = 23,
+            minutes: Int = 59,
+            seconds: Int = 59
     ): Date {
         val calendar = Calendar.getInstance()
         calendar.time = date
 
-        calendar.set(Calendar.HOUR_OF_DAY, hours)
-        calendar.set(Calendar.MINUTE, minutes)
-        calendar.set(Calendar.SECOND, seconds)
+        calendar.set(
+            Calendar.HOUR_OF_DAY,
+            hours
+        )
+        calendar.set(
+            Calendar.MINUTE,
+            minutes
+        )
+        calendar.set(
+            Calendar.SECOND,
+            seconds
+        )
         return calendar.time
     }
 
     fun floatToColor(
-        hue: Float,
-        saturation: Float = 1f,
-        brightness: Float = 1f
+            hue: Float,
+            saturation: Float = 1f,
+            brightness: Float = 1f
     ): Color {
         // Convert HSV to RGB
         val hsv = floatArrayOf(
@@ -123,8 +132,8 @@ object Utils {
     }
 
     fun getDoubleValue(
-        new: String,
-        old: String
+            new: String,
+            old: String
     ): String {
         return if (new.isEmpty()) {
             new
@@ -137,8 +146,8 @@ object Utils {
     }
 
     fun getIntValue(
-        new: String,
-        old: String
+            new: String,
+            old: String
     ): String {
         return if (new.isEmpty()) {
             new
@@ -151,7 +160,7 @@ object Utils {
     }
 
     fun getItemsNumberStr(
-        items: MutableList<InvoiceItemModel>
+            items: MutableList<InvoiceItemModel>
     ): String {
         val size = items.size
         return if (size <= 1) {
@@ -162,8 +171,8 @@ object Utils {
     }
 
     fun printWebPage(
-        webView: WebView?,
-        context: Context
+            webView: WebView?,
+            context: Context
     ) {
         if (webView != null) {
             val printManager = context.getSystemService(Context.PRINT_SERVICE) as PrintManager
@@ -200,8 +209,8 @@ object Utils {
     }
 
     fun readFileFromAssets(
-        fileName: String,
-        context: Context
+            fileName: String,
+            context: Context
     ): String {
         return try {
             val inputStream = context.assets.open(fileName)
@@ -234,10 +243,10 @@ object Utils {
     }
 
     fun getListHeight(
-        listSize: Int = 0,
-        cellHeight: Int,
-        min: Int = 1,
-        max: Int = 8
+            listSize: Int = 0,
+            cellHeight: Int,
+            min: Int = 1,
+            max: Int = 8
     ): Dp {
         var size = listSize
         if (size < min) size = min
@@ -256,10 +265,10 @@ object Utils {
     }
 
     fun saveToInternalStorage(
-        context: Context,
-        parent: String = "family",
-        sourceFilePath: Uri,
-        destName: String
+            context: Context,
+            parent: String = "family",
+            sourceFilePath: Uri,
+            destName: String
     ): String? {
         val storageDir = File(
             context.filesDir,
@@ -314,18 +323,20 @@ object Utils {
     }
 
     fun printInvoice(
-        content: String,
-        host: String = "192.168.1.222",
-        port: Int = 9100
+            content: String,
+            host: String = "192.168.1.222",
+            port: Int = 9100
     ) {
         try {
             val sock = Socket(
                 host,
                 port
             )
-            val str = Html.fromHtml(content, Html.FROM_HTML_MODE_COMPACT).toString()
-            val oStream = PrintWriter(sock.getOutputStream(), true)
-            oStream.print(str)
+            val oStream = PrintWriter(
+                sock.getOutputStream(),
+                true
+            )
+            oStream.print(content)
             oStream.println("\n\n\n")
             oStream.close()
             sock.close()
