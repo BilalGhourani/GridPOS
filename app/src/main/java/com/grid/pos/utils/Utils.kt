@@ -325,7 +325,7 @@ object Utils {
             )
             val str = Html.fromHtml(content, Html.FROM_HTML_MODE_COMPACT).toString()
             val oStream = PrintWriter(sock.getOutputStream(), true)
-            oStream.println(str)
+            oStream.print(str)
             oStream.println("\n\n\n")
             oStream.close()
             sock.close()
