@@ -100,7 +100,7 @@ fun ManageThirdPartiesView(
         if (manageThirdPartiesState.thirdParties.isNotEmpty()) {
             activityScopedViewModel.thirdParties = manageThirdPartiesState.thirdParties
         }
-        navController?.popBackStack()
+        navController?.navigateUp()
     }
     BackHandler {
         handleBack()
@@ -249,7 +249,7 @@ fun ManageThirdPartiesView(
                                     .weight(.33f)
                                     .padding(3.dp), text = "Close"
                             ) {
-                                navController?.popBackStack()
+                                handleBack()
                             }
                         }
                     }

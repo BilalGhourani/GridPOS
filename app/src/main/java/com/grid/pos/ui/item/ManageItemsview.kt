@@ -209,7 +209,7 @@ fun ManageItemsView(
         if (manageItemsState.items.isNotEmpty()) {
             activityScopedViewModel.items = manageItemsState.items
         }
-        navController?.popBackStack()
+        navController?.navigateUp()
     }
     BackHandler {
         handleBack()
@@ -577,7 +577,7 @@ fun ManageItemsView(
                                     .padding(3.dp),
                                 text = "Close"
                             ) {
-                                navController?.popBackStack()
+                               handleBack()
                             }
                         }
                     }

@@ -1,5 +1,6 @@
 package com.grid.pos.ui.currency
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -95,6 +96,13 @@ fun ManageCurrenciesView(navController: NavController? = null, modifier: Modifie
         )
     }
 
+    fun handleBack() {
+        navController?.navigateUp()
+    }
+    BackHandler {
+        handleBack()
+    }
+
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     LaunchedEffect(manageCurrenciesState.warning) {
@@ -115,7 +123,7 @@ fun ManageCurrenciesView(navController: NavController? = null, modifier: Modifie
                 TopAppBar(colors = TopAppBarDefaults.mediumTopAppBarColors(
                     containerColor = SettingsModel.topBarColor
                 ), navigationIcon = {
-                    IconButton(onClick = { navController?.popBackStack() }) {
+                    IconButton(onClick = { handleBack() }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back", tint = SettingsModel.buttonColor
@@ -278,7 +286,7 @@ fun ManageCurrenciesView(navController: NavController? = null, modifier: Modifie
                                     .weight(1f)
                                     .padding(3.dp), text = "Close"
                             ) {
-                                navController?.popBackStack()
+                                handleBack()
                             }
                         }
                     }

@@ -107,21 +107,21 @@ fun LoginView(
                 activityScopedViewModel.activityState.value.isLoggedIn = true
                 activityScopedViewModel.activityState.value.warning = null
                 activityScopedViewModel.initiateValues()
-                withContext(Dispatchers.Main) {
-                    loginState.isLoading = false
-                    SettingsModel.currentUser?.let {
-                        if (it.userPosMode && it.userTableMode) {
-                            navController?.navigate("HomeView")
-                        } else if (it.userPosMode) {
-                            navController?.navigate("POSView")
-                        } else if (it.userTableMode) {
-                            navController?.navigate("TablesView")
-                        } else {
-                            navController?.navigate("HomeView")
-                        }
+            }
+            withContext(Dispatchers.Main) {
+                loginState.isLoading = false
+                SettingsModel.currentUser?.let {
+                    if (it.userPosMode && it.userTableMode) {
+                        navController?.navigate("HomeView")
+                    } else if (it.userPosMode) {
+                        navController?.navigate("POSView")
+                    } else if (it.userTableMode) {
+                        navController?.navigate("TablesView")
+                    } else {
+                        navController?.navigate("HomeView")
                     }
-
                 }
+
             }
         }
     }

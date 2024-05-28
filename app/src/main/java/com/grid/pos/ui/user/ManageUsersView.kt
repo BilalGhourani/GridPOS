@@ -109,7 +109,7 @@ fun ManageUsersView(
         if (manageUsersState.users.isNotEmpty()) {
             activityScopedViewModel.users = manageUsersState.users
         }
-        navController?.popBackStack()
+        navController?.navigateUp()
     }
     BackHandler {
         handleBack()
@@ -285,7 +285,7 @@ fun ManageUsersView(
                                     .padding(3.dp),
                                 text = "Close"
                             ) {
-                                navController?.popBackStack()
+                                handleBack()
                             }
                         }
 

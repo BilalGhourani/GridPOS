@@ -204,7 +204,7 @@ fun POSView(
             if (SettingsModel.currentUser?.userPosMode == true && SettingsModel.currentUser?.userTableMode == false) {
                 mainActivity.finish()
             } else {
-                navController?.popBackStack()
+                navController?.navigateUp()
             }
         }
     }

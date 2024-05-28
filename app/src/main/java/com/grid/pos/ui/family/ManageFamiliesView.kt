@@ -162,7 +162,7 @@ fun ManageFamiliesView(
         if (manageFamiliesState.families.isNotEmpty()) {
             activityScopedViewModel.families = manageFamiliesState.families
         }
-        navController?.popBackStack()
+        navController?.navigateUp()
     }
     BackHandler {
         handleBack()
@@ -286,7 +286,7 @@ fun ManageFamiliesView(
                                 oldImage?.let { old ->
                                     File(old).deleteOnExit()
                                 }
-                                viewModel.saveFamily()
+                                viewModel.saveFamily(manageFamiliesState.selectedFamily)
                             }
 
                             UIButton(
@@ -301,7 +301,7 @@ fun ManageFamiliesView(
                                 if (imageState.isNotEmpty()) {
                                     File(imageState).deleteOnExit()
                                 }
-                                viewModel.deleteSelectedFamily()
+                                viewModel.deleteSelectedFamily(manageFamiliesState.selectedFamily)
                             }
 
                             UIButton(
@@ -310,7 +310,7 @@ fun ManageFamiliesView(
                                     .padding(3.dp),
                                 text = "Close"
                             ) {
-                                navController?.popBackStack()
+                                handleBack()
                             }
                         }
 

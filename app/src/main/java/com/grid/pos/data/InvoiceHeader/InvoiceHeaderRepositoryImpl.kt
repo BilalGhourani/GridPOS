@@ -119,7 +119,7 @@ class InvoiceHeaderRepositoryImpl(
 
         } else {
             invoiceHeaderDao.getLastInvoiceNo(type).collect {
-                callback?.onSuccess(it)
+                callback?.onSuccess(it ?: InvoiceHeader())
             }
         }
     }
@@ -148,26 +148,26 @@ class InvoiceHeaderRepositoryImpl(
 
         } else {
             invoiceHeaderDao.getInvoiceByTable(tableNo).collect {
-                callback?.onSuccess(it)
+                callback?.onSuccess(it ?: InvoiceHeader())
             }
         }
     }
 
     override suspend fun getInvoicesBetween(
-            from: Date,
-            to: Date,
-            callback: OnResult?
+        from: Date,
+        to: Date,
+        callback: OnResult?
     ) {
         if (SettingsModel.loadFromRemote) {
             FirebaseFirestore.getInstance().collection("in_hinvoice")
                 .whereEqualTo("hi_cmp_id", SettingsModel.companyID)
-              /*  .whereGreaterThanOrEqualTo(
-                    "hi_timestamp",
-                    from
-                ).whereLessThan(
-                    "hi_timestamp",
-                    to
-                )*/
+                /*  .whereGreaterThanOrEqualTo(
+                      "hi_timestamp",
+                      from
+                  ).whereLessThan(
+                      "hi_timestamp",
+                      to
+                  )*/
                 .get().addOnSuccessListener { result ->
                     val invoices = mutableListOf<InvoiceHeader>()
                     if (result.size() > 0) {

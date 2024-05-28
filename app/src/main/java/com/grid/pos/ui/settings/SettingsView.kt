@@ -1,6 +1,7 @@
 package com.grid.pos.ui.settings
 
 import android.annotation.SuppressLint
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.tween
@@ -75,7 +76,7 @@ import kotlinx.coroutines.withContext
 fun SettingsView(
     modifier: Modifier = Modifier,
     navController: NavController? = null,
-    activityScopedViewModel:ActivityScopedViewModel
+    activityScopedViewModel: ActivityScopedViewModel
 ) {
     var firebaseApplicationId by remember {
         mutableStateOf(
@@ -115,6 +116,13 @@ fun SettingsView(
     var isLoading by remember { mutableStateOf(false) }
     val isLoggedId = activityScopedViewModel.isLoggedIn()
 
+    fun handleBack() {
+        navController?.navigateUp()
+    }
+    BackHandler {
+        handleBack()
+    }
+
     GridPOSTheme {
         Scaffold(containerColor = SettingsModel.backgroundColor, topBar = {
             Surface(
@@ -123,7 +131,7 @@ fun SettingsView(
                 TopAppBar(colors = TopAppBarDefaults.mediumTopAppBarColors(
                     containerColor = SettingsModel.topBarColor
                 ), navigationIcon = {
-                    IconButton(onClick = { navController?.popBackStack() }) {
+                    IconButton(onClick = { handleBack() }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back", tint = SettingsModel.buttonColor

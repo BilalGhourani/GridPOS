@@ -125,7 +125,7 @@ fun ManageCompaniesView(
         if (manageCompaniesState.companies.isNotEmpty()) {
             activityScopedViewModel.companies = manageCompaniesState.companies
         }
-        navController?.popBackStack()
+        navController?.navigateUp()
     }
     BackHandler {
         handleBack()
@@ -458,7 +458,7 @@ fun ManageCompaniesView(
                                     .padding(3.dp),
                                 text = "Close"
                             ) {
-                                navController?.popBackStack()
+                               handleBack()
                             }
                         }
 

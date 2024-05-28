@@ -106,7 +106,7 @@ fun POSPrinterView(
         if (posPrinterState.printers.isNotEmpty()) {
             activityScopedViewModel.printers = posPrinterState.printers
         }
-        navController?.popBackStack()
+        navController?.navigateUp()
     }
     BackHandler {
         handleBack()
@@ -187,7 +187,7 @@ fun POSPrinterView(
                             placeHolder = "Enter Name",
                             onAction = { hostFocusRequester.requestFocus() }) { name ->
                             nameState = name
-                            posPrinterState.selectedPrinter.posPrinterName = name
+                            posPrinterState.selectedPrinter.posPrinterName = nameState
                         }
 
                         UITextField(modifier = Modifier.padding(10.dp),
@@ -196,7 +196,7 @@ fun POSPrinterView(
                             placeHolder = "ex:127.0.0.1",
                             onAction = { portFocusRequester.requestFocus() }) { host ->
                             hostState = host
-                            posPrinterState.selectedPrinter.posPrinterHost = host
+                            posPrinterState.selectedPrinter.posPrinterHost = hostState
                         }
 
                         UITextField(modifier = Modifier.padding(10.dp),
@@ -218,7 +218,7 @@ fun POSPrinterView(
                             imeAction = ImeAction.Done,
                             onAction = { keyboardController?.hide() }) { type ->
                             typeState = type
-                            posPrinterState.selectedPrinter.posPrinterType = type
+                            posPrinterState.selectedPrinter.posPrinterType = typeState
                         }
 
 
@@ -254,7 +254,7 @@ fun POSPrinterView(
                                     .padding(3.dp),
                                 text = "Close"
                             ) {
-                                navController?.popBackStack()
+                                handleBack()
                             }
                         }
 

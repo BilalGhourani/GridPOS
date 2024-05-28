@@ -123,7 +123,7 @@ class ActivityScopedViewModel @Inject constructor(
                         }
                         listOfCompanies.add(it)
                     }
-
+                    companies = listOfCompanies
                     if (SettingsModel.currentCompany?.companySS == true) {
                         viewModelScope.launch(Dispatchers.IO) {
                             SettingsModel.currentUserId = null
@@ -134,7 +134,7 @@ class ActivityScopedViewModel @Inject constructor(
                             withContext(Dispatchers.Main) {
                                 activityState.value = activityState.value.copy(
                                     isLoggedIn = false,
-                                    warning = Event(SettingsModel.companyAccessWarning) ,
+                                    warning = Event(SettingsModel.companyAccessWarning),
                                     forceLogout = true
                                 )
                             }

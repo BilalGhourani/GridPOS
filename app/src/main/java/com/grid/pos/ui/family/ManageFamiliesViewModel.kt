@@ -74,8 +74,7 @@ class ManageFamiliesViewModel @Inject constructor(
         }
     }
 
-    fun saveFamily() {
-        val family = manageFamiliesState.value.selectedFamily
+    fun saveFamily(family: Family) {
         if (family.familyName.isNullOrEmpty()) {
             manageFamiliesState.value = manageFamiliesState.value.copy(
                 warning = Event("Please fill family name."),
@@ -134,8 +133,7 @@ class ManageFamiliesViewModel @Inject constructor(
         }
     }
 
-    fun deleteSelectedFamily() {
-        val family = manageFamiliesState.value.selectedFamily
+    fun deleteSelectedFamily(family: Family) {
         if (family.familyId.isEmpty()) {
             manageFamiliesState.value = manageFamiliesState.value.copy(
                 warning = Event("Please select an family to delete"),

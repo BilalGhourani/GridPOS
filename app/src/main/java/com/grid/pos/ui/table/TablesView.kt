@@ -101,7 +101,7 @@ fun TablesView(
             if (SettingsModel.currentUser?.userTableMode == true && SettingsModel.currentUser?.userPosMode == false) {
                 mainActivity.finish()
             } else {
-                navController?.popBackStack()
+                navController?.navigateUp()
             }
         }
     }

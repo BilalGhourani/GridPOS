@@ -178,7 +178,7 @@ fun ReportsView(
         if (reportsState.isLoading) {
             isPopupVisible = true
         } else {
-            navController?.popBackStack()
+            navController?.navigateUp()
         }
     }
     BackHandler {

@@ -59,7 +59,7 @@ fun UIWebView(
         activityViewModel.posReceipt = PosReceipt()
         activityViewModel.shouldPrintInvoice = true
         activityViewModel.pendingInvHeadState = null
-        navController?.popBackStack()
+        navController?.navigateUp()
     }
     BackHandler {
         handleBack()
