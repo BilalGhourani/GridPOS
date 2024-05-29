@@ -200,20 +200,18 @@ class ReportsViewModel @Inject constructor(
         val sheet = workbook.worksheets[0]
         sheet.name = "Inventory & Profit Reports"
 
-        var rowIndex = 1
         // Obtaining Worksheet's cells collection
         val cells = sheet.cells
-        cells.get("A$rowIndex").value = "Item Name"
-        cells.get("B$rowIndex").value = "Open Qty"
-        cells.get("C$rowIndex").value = "Qty Sold"
-        cells.get("D$rowIndex").value = "Total Cost"
-        cells.get("E$rowIndex").value = "Total Sales"
-        cells.get("F$rowIndex").value = "Rem.Qty"
-        cells.get("G$rowIndex").value = "Profit"
+        cells.get(0, 0).value = "Item Name"
+        cells.get(0, 1).value = "Open Qty"
+        cells.get(0, 2).value = "Qty Sold"
+        cells.get(0, 3).value = "Total Cost"
+        cells.get(0, 4).value = "Total Sales"
+        cells.get(0, 5).value = "Rem.Qty"
+        cells.get(0, 6).value = "Profit"
 
 
-        itemMap.values.forEach { item ->
-            rowIndex++
+        itemMap.values.forEachIndexed { index,item ->
             val itemInvoices = invoiceItemMap[item.itemId]
             var quantitiesSold = 0.0
             var totalCost = 0.0
@@ -227,21 +225,21 @@ class ReportsViewModel @Inject constructor(
                 quantitiesSold += it.invoiceQuantity
                 totalSale += it.getNetAmount()
             }
-            cells.get("A$rowIndex").value = item.itemName
-            cells.get("B$rowIndex").value = item.itemOpenQty
-            cells.get("C$rowIndex").value = quantitiesSold
-            cells.get("D$rowIndex").value = String.format(
+            cells.get(index+1,0).value = item.itemName
+            cells.get(index+1,1).value = item.itemOpenQty
+            cells.get(index+1,2).value = quantitiesSold
+            cells.get(index+1,3).value = String.format(
                 "%.${currency.currencyName1Dec}f",
                 totalCost
             )
 
-            cells.get("E$rowIndex").value = String.format(
+            cells.get(index+1,4).value = String.format(
                 "%.${currency.currencyName1Dec}f",
                 totalSale
             )
 
-            cells.get("F$rowIndex").value = remQty
-            cells.get("G$rowIndex").value = String.format(
+            cells.get(index+1,5).value = remQty
+            cells.get(index+1,6).value = String.format(
                 "%.${currency.currencyName1Dec}f",
                 totalSale - totalCost
             )
@@ -251,15 +249,13 @@ class ReportsViewModel @Inject constructor(
     private fun generateSecondSheet(workbook: Workbook) {
         val sheet = workbook.worksheets.add("Sales Reports")
 
-        var rowIndex = 1
         // Obtaining Worksheet's cells collection
         val cells = sheet.cells
-        cells.get("A$rowIndex").value = "Name"
-        cells.get("B$rowIndex").value = "Qty Sold"
-        cells.get("C$rowIndex").value = "Total"
+        sheet.cells.get(0, 0).value = "Name"
+        sheet.cells.get(0, 1).value = "Qty Sold"
+        sheet.cells.get(0, 2).value = "Total"
 
-        filteredInvoiceItemMap.keys.forEach { itemId ->
-            rowIndex++
+        filteredInvoiceItemMap.keys.forEachIndexed { index, itemId ->
             val item = itemMap[itemId]
             var quantitiesSold = 0.0
             var totalSale = 0.0
@@ -267,9 +263,9 @@ class ReportsViewModel @Inject constructor(
                 quantitiesSold += it.invoiceQuantity
                 totalSale += it.getNetAmount()
             }
-            cells.get("A$rowIndex").value = item?.itemName ?: "N/A"
-            cells.get("B$rowIndex").value = quantitiesSold
-            cells.get("C$rowIndex").value = totalSale
+            cells.get(index + 1, 0).value = item?.itemName ?: "N/A"
+            cells.get(index + 1, 1).value = quantitiesSold
+            cells.get(index + 1, 2).value = totalSale
         }
     }
 
