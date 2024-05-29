@@ -541,6 +541,7 @@ fun SettingsView(
                         }
                         SettingsModel.currentUser = null
                         SettingsModel.currentUserId = null
+                        activityScopedViewModel.activityState.value.isLoggedIn = false
                         navController?.clearBackStack("LoginView")
                         navController?.navigate("LoginView")
                     }
