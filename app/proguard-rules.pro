@@ -27,3 +27,11 @@
 # the package grid.pos.data Modify
 #-keep class com.grid.pos.data.** { *; }
 -keepclassmembers class com.grid.pos.data.** { *; }
+
+-keep class com.aspose.cells.Workbook { *; }
+-keep class com.aspose.cells.Worksheet { *; }
+-keep class com.aspose.cells.FileFormatType { *; }
+
+
+-dontwarn com.aspose.cells.a.*
+-dontwarn com.aspose.cells.c.*

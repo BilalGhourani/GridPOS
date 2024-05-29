@@ -22,14 +22,13 @@ android {
         applicationId = "com.grid.pos"
         minSdk = 24
         targetSdk = 34
-        versionCode = 1
+        versionCode = 2
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
             useSupportLibrary = true
         }
-        multiDexEnabled = true
     }
 
     buildTypes {
@@ -134,7 +133,7 @@ dependencies {
     implementation(
         group = "com.aspose",
         name = "aspose-cells",
-        version = "21.3",
+        version = "24.3",
         classifier = "android.via.java"
     )
 }
