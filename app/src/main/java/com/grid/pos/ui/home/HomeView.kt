@@ -139,6 +139,7 @@ fun HomeView(
         }
         fun logout() {
             isLogoutPopupShown = false
+            activityState.isLoggedIn = false
             navController?.clearBackStack("LoginView")
             navController?.navigate("LoginView")
         }
