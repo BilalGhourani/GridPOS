@@ -1,12 +1,17 @@
 package com.grid.pos.ui.table
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -43,23 +48,23 @@ import com.grid.pos.MainActivity
 import com.grid.pos.R
 import com.grid.pos.data.InvoiceHeader.InvoiceHeader
 import com.grid.pos.model.SettingsModel
+import com.grid.pos.model.UserType
 import com.grid.pos.ui.common.LoadingIndicator
+import com.grid.pos.ui.common.UIAlertDialog
 import com.grid.pos.ui.common.UIButton
 import com.grid.pos.ui.common.UITextField
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.utils.Utils
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TablesView(
-        modifier: Modifier = Modifier,
-        navController: NavController? = null,
-        activityScopedViewModel: ActivityScopedViewModel,
-        mainActivity: MainActivity,
-        viewModel: TablesViewModel = hiltViewModel()
+    modifier: Modifier = Modifier,
+    navController: NavController? = null,
+    activityScopedViewModel: ActivityScopedViewModel,
+    mainActivity: MainActivity,
+    viewModel: TablesViewModel = hiltViewModel()
 ) {
     val tablesState: TablesState by viewModel.tablesState.collectAsState(
         TablesState()
@@ -72,12 +77,15 @@ fun TablesView(
 
     var tableNameState by remember { mutableStateOf("") }
     var clientsCountState by remember { mutableStateOf("") }
+    var stepState by remember { mutableStateOf(1) }
+
+    var isPopupVisible by remember { mutableStateOf(false) }
 
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
-    LaunchedEffect(tablesState.step) {
-        if (tablesState.step == 1) {
+    LaunchedEffect(stepState) {
+        if (stepState == 1) {
             tableNameFocusRequester.requestFocus()
         } else {
             clientsCountFocusRequester.requestFocus()
@@ -95,11 +103,11 @@ fun TablesView(
     }
 
     fun handleBack() {
-        if (tablesState.step > 1) {
-            tablesState.step = 1
+        if (stepState > 1) {
+            stepState = 1
         } else {
-            if (SettingsModel.currentUser?.userTableMode == true && SettingsModel.currentUser?.userPosMode == false) {
-                mainActivity.finish()
+            if (SettingsModel.getUserType() == UserType.TABLE) {
+                isPopupVisible = true
             } else {
                 navController?.navigateUp()
             }
@@ -151,7 +159,7 @@ fun TablesView(
             Column(
                 modifier = modifier.padding(it)
             ) {
-                if (tablesState.step <= 1) {
+                if (stepState <= 1) {
                     UITextField(modifier = Modifier.padding(10.dp),
                         defaultValue = tableNameState,
                         onFocusChanged = {
@@ -212,7 +220,7 @@ fun TablesView(
                         .padding(10.dp),
                     text = "Submit"
                 ) {
-                    if (tablesState.step <= 1) {
+                    if (stepState <= 1) {
                         viewModel.fetchInvoiceByTable(tableNameState)
                     } else {
                         if (clientsCountState.toIntOrNull() == null) {
@@ -220,7 +228,8 @@ fun TablesView(
                             return@UIButton
                         }
                         tablesState.invoiceHeader.invoiceHeadTaName = tableNameState
-                        tablesState.invoiceHeader.invoiceHeadClientsCount = clientsCountState.toIntOrNull() ?: 1
+                        tablesState.invoiceHeader.invoiceHeadClientsCount =
+                            clientsCountState.toIntOrNull() ?: 1
                         activityScopedViewModel.invoiceHeader = tablesState.invoiceHeader
                         activityScopedViewModel.isFromTable = true
                         tablesState.clear = true
@@ -230,13 +239,44 @@ fun TablesView(
                 }
             }
         }
+
+        AnimatedVisibility(
+            visible = isPopupVisible,
+            enter = fadeIn(
+                initialAlpha = 0.4f
+            ),
+            exit = fadeOut(
+                animationSpec = tween(durationMillis = 250)
+            )
+        ) {
+            UIAlertDialog(
+                onDismissRequest = {
+                    isPopupVisible = false
+                },
+                onConfirmation = {
+                    isPopupVisible = false
+
+                    SettingsModel.currentCurrency = null
+                    SettingsModel.currentUserId = null
+                    activityScopedViewModel.activityState.value.isLoggedIn = false
+                    navController?.clearBackStack("LoginView")
+                    navController?.navigate("LoginView")
+                },
+                dialogTitle = "Alert.",
+                dialogText = "Are you sure you want to logout?",
+                positiveBtnText = "Logout",
+                negativeBtnText = "Cancel",
+                icon = Icons.Default.Info
+            )
+        }
+
         LoadingIndicator(
             show = tablesState.isLoading
         )
 
         if (tablesState.clear) {
             tablesState.invoiceHeader = InvoiceHeader()
-            tablesState.step = 1
+            stepState = 1
             tableNameState = ""
             clientsCountState = ""
             tablesState.clear = false

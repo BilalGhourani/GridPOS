@@ -140,6 +140,8 @@ fun HomeView(
         fun logout() {
             isLogoutPopupShown = false
             activityState.isLoggedIn = false
+            SettingsModel.currentCurrency = null
+            SettingsModel.currentUserId = null
             navController?.clearBackStack("LoginView")
             navController?.navigate("LoginView")
         }

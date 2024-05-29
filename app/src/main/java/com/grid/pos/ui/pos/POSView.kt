@@ -66,6 +66,7 @@ import com.grid.pos.data.InvoiceHeader.InvoiceHeader
 import com.grid.pos.data.PosReceipt.PosReceipt
 import com.grid.pos.model.InvoiceItemModel
 import com.grid.pos.model.SettingsModel
+import com.grid.pos.model.UserType
 import com.grid.pos.ui.common.LoadingIndicator
 import com.grid.pos.ui.common.UIAlertDialog
 import com.grid.pos.ui.pos.components.AddInvoiceItemView
@@ -195,14 +196,15 @@ fun POSView(
         } else if (isPayBottomSheetVisible) {
             isPayBottomSheetVisible = false
         } else if (invoicesState.isNotEmpty()) {
-            popupState = PopupState.BACK_PRESSED
+            popupState = PopupState.DISCARD_INVOICE
             isSavePopupVisible = true
         } else {
             activityViewModel.invoiceItemModels = mutableListOf()
             activityViewModel.invoiceHeader = InvoiceHeader()
             activityViewModel.posReceipt = PosReceipt()
-            if (SettingsModel.currentUser?.userPosMode == true && SettingsModel.currentUser?.userTableMode == false) {
-                mainActivity.finish()
+            if (SettingsModel.getUserType() == UserType.POS) {
+                popupState = PopupState.BACK_PRESSED
+                isSavePopupVisible = true
             } else {
                 navController?.navigateUp()
             }
@@ -506,9 +508,22 @@ fun POSView(
                     isSavePopupVisible = false
                     invoicesState.clear()
                     invoiceHeaderState.value = InvoiceHeader()
+                    activityViewModel.posReceipt = PosReceipt()
+                    activityViewModel.invoiceHeader = invoiceHeaderState.value
+                    activityViewModel.invoiceItemModels.clear()
                     when (popupState) {
                         PopupState.BACK_PRESSED -> {
-                            handleBack()
+                            SettingsModel.currentCurrency = null
+                            SettingsModel.currentUserId = null
+                            activityViewModel.activityState.value.isLoggedIn = false
+                            navController?.clearBackStack("LoginView")
+                            navController?.navigate("LoginView")
+                        }
+
+                        PopupState.DISCARD_INVOICE -> {
+                            if (SettingsModel.getUserType() != UserType.POS) {
+                                handleBack()
+                            }
                         }
 
                         PopupState.CHANGE_INVOICE -> {
@@ -519,8 +534,14 @@ fun POSView(
                     }
                 },
                 dialogTitle = "Alert.",
-                dialogText = "Are you sure you want to discard current invoice?",
-                positiveBtnText = "Discard",
+                dialogText = when (popupState) {
+                    PopupState.BACK_PRESSED -> "Are you sure you want to logout?"
+                    else -> "Are you sure you want to discard current invoice?"
+                },
+                positiveBtnText = when (popupState) {
+                    PopupState.BACK_PRESSED -> "Logout"
+                    else -> "Discard"
+                },
                 negativeBtnText = "Cancel",
                 icon = Icons.Default.Info
             )
@@ -532,5 +553,5 @@ fun POSView(
 }
 
 enum class PopupState(val key: String) {
-    BACK_PRESSED("BACK_PRESSEF"), CHANGE_INVOICE("CHANGE_INVOICE")
+    BACK_PRESSED("BACK_PRESSEF"), DISCARD_INVOICE("DISCARD_INVOICE"), CHANGE_INVOICE("CHANGE_INVOICE")
 }

@@ -32,4 +32,17 @@ object SettingsModel {
     var currentCompany: Company? = null
 
     var companyAccessWarning: String = "You don't have access to this company!"
+
+    fun getUserType(): UserType {
+        if (currentUser?.userPosMode == true && currentUser?.userTableMode == true) {
+            return UserType.BOTH
+        } else if (currentUser?.userPosMode == true) {
+            return UserType.POS
+        }
+        return UserType.TABLE
+    }
+}
+
+enum class UserType(val key: String) {
+    POS("POS"), TABLE("TABLE"), BOTH("BOTH")
 }
