@@ -122,8 +122,13 @@ class ReportsViewModel @Inject constructor(
                             listOfInvoices.add(it as Invoice)
                         }
                         invoiceItemMap = listOfInvoices.groupBy { it.invoiceItemId ?: "" }
-                        val filteredInvoiceItems =
+                        val filteredInvoiceItems = if (SettingsModel.loadFromRemote) {
                             listOfInvoices.filter { from.before(it.invoiceTimeStamp) && to.after(it.invoiceTimeStamp) }
+                        } else {
+                            val startTime = from.time
+                            val endTime = to.time
+                            listOfInvoices.filter { it.invoiceDateTime in (startTime + 1)..<endTime }
+                        }
                         filteredInvoiceItemMap =
                             filteredInvoiceItems.groupBy { it.invoiceItemId ?: "" }
                         generateReportsExcel()
