@@ -8,6 +8,7 @@ import com.google.errorprone.annotations.Keep
 import com.google.firebase.firestore.Exclude
 import com.google.firebase.firestore.PropertyName
 import com.grid.pos.data.DataModel
+import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.Utils
 
 @Entity(tableName = "company")
@@ -164,6 +165,15 @@ data class Company(
     @Exclude
     override fun getName(): String {
         return companyName ?: ""
+    }
+
+    @Exclude
+    override fun isNew(): Boolean {
+        return if (SettingsModel.isConnectedToSqlite()) {
+            companyId.isEmpty()
+        } else {
+            companyDocumentId.isNullOrEmpty()
+        }
     }
 
     @Exclude

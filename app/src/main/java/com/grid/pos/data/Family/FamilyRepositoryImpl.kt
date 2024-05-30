@@ -8,7 +8,7 @@ class FamilyRepositoryImpl(
     private val familyDao: FamilyDao
 ) : FamilyRepository {
     override suspend fun insert(family: Family, callback: OnResult?) {
-        if (SettingsModel.loadFromRemote) {
+        if (SettingsModel.isConnectedToFireStore()) {
             FirebaseFirestore.getInstance().collection("st_family")
                 .add(family)
                 .addOnSuccessListener {
@@ -26,7 +26,7 @@ class FamilyRepositoryImpl(
     }
 
     override suspend fun delete(family: Family, callback: OnResult?) {
-        if (SettingsModel.loadFromRemote) {
+        if (SettingsModel.isConnectedToFireStore()) {
             FirebaseFirestore.getInstance().collection("st_family")
                 .document(family.familyDocumentId!!)
                 .delete()
@@ -43,7 +43,7 @@ class FamilyRepositoryImpl(
     }
 
     override suspend fun update(family: Family, callback: OnResult?) {
-        if (SettingsModel.loadFromRemote) {
+        if (SettingsModel.isConnectedToFireStore()) {
             FirebaseFirestore.getInstance().collection("st_family")
                 .document(family.familyDocumentId!!)
                 .update(family.getMap())
@@ -64,7 +64,7 @@ class FamilyRepositoryImpl(
     }
 
     override suspend fun getAllFamilies(callback: OnResult?) {
-        if (SettingsModel.loadFromRemote) {
+        if (SettingsModel.isConnectedToFireStore()) {
             FirebaseFirestore.getInstance().collection("st_family")
                 .whereEqualTo("fa_cmp_id",SettingsModel.companyID)
                 .get()

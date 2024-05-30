@@ -85,7 +85,7 @@ class POSPrinterViewModel @Inject constructor(
         posPrinterState.value = posPrinterState.value.copy(
             isLoading = true
         )
-        val isInserting = printer.posPrinterDocumentId.isNullOrEmpty()
+        val isInserting = printer.isNew()
         val callback = object : OnResult {
             override fun onSuccess(result: Any) {
                 viewModelScope.launch(Dispatchers.Main) {

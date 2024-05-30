@@ -17,6 +17,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MenuItemColors
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -46,6 +47,8 @@ fun SearchableDropdownMenu(
         label: String = "",
         selectedId: String? = null,
         showSelected: Boolean = true,
+        enableSearch: Boolean = true,
+        color: Color = SettingsModel.backgroundColor,
         leadingIcon: @Composable ((Modifier) -> Unit)? = null,
         onLeadingIconClick: () -> Unit = {},
         onSelectionChange: (DataModel) -> Unit = {},
@@ -76,7 +79,7 @@ fun SearchableDropdownMenu(
     ) {
         ExposedDropdownMenuBox(modifier = Modifier
             .fillMaxWidth()
-            .background(color = SettingsModel.backgroundColor),
+            .background(color = color),
             expanded = expandedState,
             onExpandedChange = {
                 expandedState = !expandedState
@@ -150,33 +153,36 @@ fun SearchableDropdownMenu(
                     onDismissRequest = { expandedState = false },
                     modifier = Modifier
                         .exposedDropdownSize()
-                        .background(color = Color.White)
+                        .background(color = color)
                 ) {
-                    DropdownMenuItem(
-                        text = {
-                            OutlinedTextField(value = searchText,
-                                onValueChange = {
-                                    searchText = it
-                                },
-                                label = {
-                                    Text(
-                                        "Search",
-                                        color = SettingsModel.textColor
-                                    )
-                                })
-                        },
-                        onClick = {},
-                    )
+                    if (enableSearch) {
+                        DropdownMenuItem(
+                            text = {
+                                OutlinedTextField(value = searchText,
+                                    onValueChange = {
+                                        searchText = it
+                                    },
+                                    label = {
+                                        Text(
+                                            "Search",
+                                            color = SettingsModel.textColor
+                                        )
+                                    })
+                            },
+                            onClick = {},
+                        )
+                    }
                     filteredItems.forEach { item ->
                         val text = item.getName()
-                        DropdownMenuItem(text = {
-                            Text(
-                                text = text,
-                                maxLines = 2,
-                                color = SettingsModel.textColor,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                        },
+                        DropdownMenuItem(
+                            text = {
+                                Text(
+                                    text = text,
+                                    maxLines = 2,
+                                    color = SettingsModel.textColor,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            },
                             onClick = {
                                 onSelectionChange(item)
                                 searchText = text

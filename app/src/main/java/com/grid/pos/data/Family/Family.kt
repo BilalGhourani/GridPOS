@@ -75,6 +75,15 @@ data class Family(
     }
 
     @Exclude
+    override fun isNew(): Boolean {
+        return if (SettingsModel.isConnectedToSqlite()) {
+            familyId.isEmpty()
+        } else {
+            familyDocumentId.isNullOrEmpty()
+        }
+    }
+
+    @Exclude
     override fun prepareForInsert() {
         if (familyId.isNullOrEmpty()) {
             familyId = Utils.generateRandomUuidString()

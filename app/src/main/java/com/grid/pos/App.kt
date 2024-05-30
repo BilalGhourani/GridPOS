@@ -5,6 +5,7 @@ import android.util.Log
 import com.google.firebase.FirebaseApp
 import com.google.firebase.FirebaseOptions
 import com.google.firebase.firestore.FirebaseFirestore
+import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.DataStoreManager
 import com.grid.pos.utils.Utils
@@ -40,21 +41,30 @@ class App : Application() {
     }
 
     private fun initAppConfig() {
-        val configString: String = Utils.readFileFromAssets("config.json", this)
+        val configString: String = Utils.readFileFromAssets(
+            "config.json",
+            this
+        )
         if (configString.isNotEmpty()) {
             try {
                 configs = JSONObject(configString)
             } catch (e: JSONException) {
-                Log.e("App", e.message.toString())
+                Log.e(
+                    "App",
+                    e.message.toString()
+                )
             }
         }
     }
 
     fun getConfigValue(
-        key: String,
-        fallback: String
+            key: String,
+            fallback: String
     ): String {
-        return configs?.optString(key, fallback) ?: fallback
+        return configs?.optString(
+            key,
+            fallback
+        ) ?: fallback
     }
 
     fun initFirebase() {
@@ -67,7 +77,10 @@ class App : Application() {
                     .setProjectId(SettingsModel.firebaseProjectId!!).setDatabaseUrl(
                         SettingsModel.firebaseDbPath!!
                     ).build()
-                FirebaseApp.initializeApp(this, options)
+                FirebaseApp.initializeApp(
+                    this,
+                    options
+                )
                 isFirebaseInitialized = true
             }
         } catch (e: Exception) {
@@ -79,7 +92,11 @@ class App : Application() {
     }
 
     fun isFirebaseInitiated(): Boolean {
-       return isFirebaseInitialized
+        return isFirebaseInitialized
+    }
+
+    fun isMissingFirebaseConnection(): Boolean {
+        return SettingsModel.isConnectedToFireStore() && !isFirebaseInitialized
     }
 
 }

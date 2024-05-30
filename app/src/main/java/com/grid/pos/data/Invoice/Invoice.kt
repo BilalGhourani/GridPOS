@@ -172,6 +172,15 @@ data class Invoice(
     }
 
     @Exclude
+    override fun isNew(): Boolean {
+        return if (SettingsModel.isConnectedToSqlite()) {
+            invoiceId.isEmpty()
+        } else {
+            invoiceDocumentId.isNullOrEmpty()
+        }
+    }
+
+    @Exclude
     override fun prepareForInsert() {
         if (invoiceId.isEmpty()) {
             invoiceId = Utils.generateRandomUuidString()

@@ -13,7 +13,7 @@ class PosPrinterRepositoryImpl(
     private val posPrinterDao: PosPrinterDao
 ) : PosPrinterRepository {
     override suspend fun insert(posPrinter: PosPrinter, callback: OnResult?) {
-        if (SettingsModel.loadFromRemote) {
+        if (SettingsModel.isConnectedToFireStore()) {
             FirebaseFirestore.getInstance().collection("pos_printer")
                 .add(posPrinter.getMap())
                 .addOnSuccessListener {
@@ -30,7 +30,7 @@ class PosPrinterRepositoryImpl(
     }
 
     override suspend fun delete(posPrinter: PosPrinter, callback: OnResult?) {
-        if (SettingsModel.loadFromRemote) {
+        if (SettingsModel.isConnectedToFireStore()) {
             FirebaseFirestore.getInstance().collection("pos_printer")
                 .document(posPrinter.posPrinterDocumentId!!)
                 .delete()
@@ -47,7 +47,7 @@ class PosPrinterRepositoryImpl(
     }
 
     override suspend fun update(posPrinter: PosPrinter, callback: OnResult?) {
-        if (SettingsModel.loadFromRemote) {
+        if (SettingsModel.isConnectedToFireStore()) {
             FirebaseFirestore.getInstance().collection("pos_printer")
                 .document(posPrinter.posPrinterDocumentId!!)
                 .update(posPrinter.getMap())
@@ -68,7 +68,7 @@ class PosPrinterRepositoryImpl(
     }
 
     override suspend fun getAllPosPrinters(callback: OnResult?) {
-        if (SettingsModel.loadFromRemote) {
+        if (SettingsModel.isConnectedToFireStore()) {
             FirebaseFirestore.getInstance().collection("pos_printer")
                 .whereEqualTo("pp_cmp_id",SettingsModel.companyID)
                 .get()

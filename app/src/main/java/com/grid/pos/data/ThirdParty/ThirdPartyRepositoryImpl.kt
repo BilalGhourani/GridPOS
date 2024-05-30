@@ -15,7 +15,7 @@ class ThirdPartyRepositoryImpl(
     private val thirdPartyDao: ThirdPartyDao
 ) : ThirdPartyRepository {
     override suspend fun insert(thirdParty: ThirdParty, callback: OnResult?) {
-        if (SettingsModel.loadFromRemote) {
+        if (SettingsModel.isConnectedToFireStore()) {
             FirebaseFirestore.getInstance().collection("thirdParty")
                 .add(thirdParty.getMap())
                 .addOnSuccessListener {
@@ -33,7 +33,7 @@ class ThirdPartyRepositoryImpl(
     }
 
     override suspend fun delete(thirdParty: ThirdParty, callback: OnResult?) {
-        if (SettingsModel.loadFromRemote) {
+        if (SettingsModel.isConnectedToFireStore()) {
             FirebaseFirestore.getInstance().collection("thirdParty")
                 .document(thirdParty.thirdPartyDocumentId!!)
                 .delete()
@@ -50,7 +50,7 @@ class ThirdPartyRepositoryImpl(
     }
 
     override suspend fun update(thirdParty: ThirdParty, callback: OnResult?) {
-        if (SettingsModel.loadFromRemote) {
+        if (SettingsModel.isConnectedToFireStore()) {
             FirebaseFirestore.getInstance().collection("thirdParty")
                 .document(thirdParty.thirdPartyDocumentId!!)
                 .update(thirdParty.getMap())
@@ -71,7 +71,7 @@ class ThirdPartyRepositoryImpl(
     }
 
     override suspend fun getAllThirdParties(callback: OnResult?) {
-        if (SettingsModel.loadFromRemote) {
+        if (SettingsModel.isConnectedToFireStore()) {
             FirebaseFirestore.getInstance().collection("thirdParty")
                 .whereEqualTo("tp_cmp_id",SettingsModel.companyID)
                 .get()

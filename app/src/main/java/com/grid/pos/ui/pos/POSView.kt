@@ -307,7 +307,7 @@ fun POSView(
                             isEditBottomSheetVisible = true
                         },
                         onRemove = { index ->
-                            invoicesState.removeAt(index)
+                            posState.itemsToDelete.add(invoicesState.removeAt(index))
                             activityViewModel.invoiceItemModels = invoicesState
                             invoiceHeaderState.value = POSUtils.refreshValues(
                                 activityViewModel.invoiceItemModels,
@@ -513,9 +513,7 @@ fun POSView(
                     activityViewModel.invoiceItemModels.clear()
                     when (popupState) {
                         PopupState.BACK_PRESSED -> {
-                            SettingsModel.currentCurrency = null
-                            SettingsModel.currentUserId = null
-                            activityViewModel.activityState.value.isLoggedIn = false
+                            activityViewModel.logout()
                             navController?.clearBackStack("LoginView")
                             navController?.navigate("LoginView")
                         }

@@ -133,7 +133,7 @@ class ManageCompaniesViewModel @Inject constructor(
         manageCompaniesState.value = manageCompaniesState.value.copy(
             isLoading = true
         )
-        val isInserting = company.companyDocumentId.isNullOrEmpty()
+        val isInserting = company.isNew()
         val callback = object : OnResult {
             override fun onSuccess(result: Any) {
                 viewModelScope.launch(Dispatchers.Main) {

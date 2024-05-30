@@ -27,9 +27,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ReportsViewModel @Inject constructor(
-    private val invoiceHeaderRepository: InvoiceHeaderRepository,
-    private val invoiceRepository: InvoiceRepository,
-    private val itemRepository: ItemRepository
+        private val invoiceHeaderRepository: InvoiceHeaderRepository,
+        private val invoiceRepository: InvoiceRepository,
+        private val itemRepository: ItemRepository
 ) : ViewModel() {
 
     private var itemMap: Map<String, Item> = mutableMapOf()
@@ -122,7 +122,7 @@ class ReportsViewModel @Inject constructor(
                             listOfInvoices.add(it as Invoice)
                         }
                         invoiceItemMap = listOfInvoices.groupBy { it.invoiceItemId ?: "" }
-                        val filteredInvoiceItems = if (SettingsModel.loadFromRemote) {
+                        val filteredInvoiceItems = if (!SettingsModel.isConnectedToSqlite()) {
                             listOfInvoices.filter { from.before(it.invoiceTimeStamp) && to.after(it.invoiceTimeStamp) }
                         } else {
                             val startTime = from.time

@@ -124,6 +124,15 @@ data class ThirdParty(
     }
 
     @Exclude
+    override fun isNew(): Boolean {
+        return if (SettingsModel.isConnectedToSqlite()) {
+            thirdPartyId.isEmpty()
+        } else {
+            thirdPartyDocumentId.isNullOrEmpty()
+        }
+    }
+
+    @Exclude
     override fun prepareForInsert() {
         if (thirdPartyId.isNullOrEmpty()) {
             thirdPartyId = Utils.generateRandomUuidString()

@@ -70,7 +70,7 @@ class ManageThirdPartiesViewModel @Inject constructor(
         manageThirdPartiesState.value = manageThirdPartiesState.value.copy(
             isLoading = true
         )
-        val isInserting = thirdParty.thirdPartyDocumentId.isNullOrEmpty()
+        val isInserting = thirdParty.isNew()
         val callback = object : OnResult {
             override fun onSuccess(result: Any) {
                 viewModelScope.launch(Dispatchers.Main) {

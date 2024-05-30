@@ -11,7 +11,7 @@ class CompanyRepositoryImpl(
     private val companyDao: CompanyDao
 ) : CompanyRepository {
     override suspend fun insert(company: Company, callback: OnResult?) {
-        if (SettingsModel.loadFromRemote) {
+        if (SettingsModel.isConnectedToFireStore()) {
             FirebaseFirestore.getInstance().collection("company")
                 .add(company)
                 .addOnSuccessListener {
@@ -29,7 +29,7 @@ class CompanyRepositoryImpl(
     }
 
     override suspend fun delete(company: Company, callback: OnResult?) {
-        if (SettingsModel.loadFromRemote) {
+        if (SettingsModel.isConnectedToFireStore()) {
             FirebaseFirestore.getInstance().collection("company")
                 .document(company.companyDocumentId!!)
                 .delete()
@@ -46,7 +46,7 @@ class CompanyRepositoryImpl(
     }
 
     override suspend fun update(company: Company, callback: OnResult?) {
-        if (SettingsModel.loadFromRemote) {
+        if (SettingsModel.isConnectedToFireStore()) {
             FirebaseFirestore.getInstance().collection("company")
                 .document(company.companyDocumentId!!)
                 .update(company.getMap())
@@ -63,7 +63,7 @@ class CompanyRepositoryImpl(
     }
 
     override suspend fun getCompanyById(id: String,callback: OnResult?) {
-        if (SettingsModel.loadFromRemote) {
+        if (SettingsModel.isConnectedToFireStore()) {
             FirebaseFirestore.getInstance().collection("company").whereEqualTo(
                 "cmp_id",
                 id
@@ -88,7 +88,7 @@ class CompanyRepositoryImpl(
     }
 
     override suspend fun getAllCompanies(callback: OnResult?) {
-        if (SettingsModel.loadFromRemote) {
+        if (SettingsModel.isConnectedToFireStore()) {
             FirebaseFirestore.getInstance().collection("company").get()
                 .addOnSuccessListener { result ->
                     val companies = mutableListOf<Company>()

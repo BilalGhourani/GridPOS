@@ -11,7 +11,7 @@ class InvoiceRepositoryImpl(
             invoice: Invoice,
             callback: OnResult?
     ) {
-        if (SettingsModel.loadFromRemote) {
+        if (SettingsModel.isConnectedToFireStore()) {
             FirebaseFirestore.getInstance().collection("in_invoice").add(invoice.getMap())
                 .addOnSuccessListener {
                     invoice.invoiceDocumentId = it.id
@@ -29,7 +29,7 @@ class InvoiceRepositoryImpl(
             invoice: Invoice,
             callback: OnResult?
     ) {
-        if (SettingsModel.loadFromRemote) {
+        if (SettingsModel.isConnectedToFireStore()) {
             FirebaseFirestore.getInstance().collection("in_invoice")
                 .document(invoice.invoiceDocumentId!!).delete().addOnSuccessListener {
                     callback?.onSuccess(invoice)
@@ -46,7 +46,7 @@ class InvoiceRepositoryImpl(
             invoice: Invoice,
             callback: OnResult?
     ) {
-        if (SettingsModel.loadFromRemote) {
+        if (SettingsModel.isConnectedToFireStore()) {
             FirebaseFirestore.getInstance().collection("in_invoice")
                 .document(invoice.invoiceDocumentId!!).update(invoice.getMap())
                 .addOnSuccessListener {
@@ -68,7 +68,7 @@ class InvoiceRepositoryImpl(
             invoiceHeaderId: String,
             callback: OnResult?
     ) {
-        if (SettingsModel.loadFromRemote) {
+        if (SettingsModel.isConnectedToFireStore()) {
             FirebaseFirestore.getInstance().collection("in_invoice").whereEqualTo(
                     "in_hi_id",
                     invoiceHeaderId
@@ -100,7 +100,7 @@ class InvoiceRepositoryImpl(
             ids:List<String>,
             callback: OnResult?
     ) {
-        if (SettingsModel.loadFromRemote) {
+        if (SettingsModel.isConnectedToFireStore()) {
             FirebaseFirestore.getInstance().collection("in_invoice")
                 .whereIn("in_hi_id",ids)
                .get().addOnSuccessListener { result ->

@@ -11,6 +11,7 @@ import com.grid.pos.model.InvoiceItemModel
 import com.grid.pos.model.SettingsModel
 
 data class POSState(
+    val itemsToDelete: MutableList<InvoiceItemModel> = mutableListOf(),
     val families: MutableList<Family> = mutableListOf(),
     val items: MutableList<Item> = mutableListOf(),
     val thirdParties: MutableList<ThirdParty> = mutableListOf(),

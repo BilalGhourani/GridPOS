@@ -13,6 +13,7 @@ import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.grid.pos.App
+import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.SettingsModel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
@@ -187,10 +188,10 @@ object DataStoreManager {
         if (textColor.isNotEmpty()) {
             SettingsModel.textColor = Color(textColor.toColorInt())
         }
-        SettingsModel.loadFromRemote = getBoolean(
-            DataStoreKeys.LOAD_FROM_REMOTE.key,
-            true
-        ) == true
+        SettingsModel.connectionType = getString(
+            DataStoreKeys.CONNECTION_TYPE.key,
+            CONNECTION_TYPE.LOCAL.key
+        )
         SettingsModel.showTax = getBoolean(
             DataStoreKeys.SHOW_TAX.key,
             false
@@ -224,8 +225,8 @@ object DataStoreManager {
             ""
         )
 
-        SettingsModel.invoicePrinter = getString(
-            DataStoreKeys.INVOICE_PRINTER.key,
+        SettingsModel.sqlServerPath = getString(
+            DataStoreKeys.SQL_SERVER_PATH.key,
             ""
         )
     }
@@ -241,9 +242,9 @@ object DataStoreManager {
         ),
         COMPANY_ID("COMPANY_ID"),
 
-        INVOICE_PRINTER("INVOICE_PRINTER"),
+        SQL_SERVER_PATH("SQL_SERVER_PATH"),
 
-        LOAD_FROM_REMOTE("LOAD_FROM_REMOTE"), SHOW_TAX("SHOW_TAX"), SHOW_TAX1(
+        CONNECTION_TYPE("CONNECTION_TYPE"), SHOW_TAX("SHOW_TAX"), SHOW_TAX1(
             "SHOW_TAX1"
         ),
         SHOW_TAX2("SHOW_TAX2"), SHOW_PRICE_IN_ITEM_BTN("SHOW_PRICE_IN_ITEM_BTN"),

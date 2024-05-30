@@ -11,7 +11,7 @@ class PosReceiptRepositoryImpl(
             posReceipt: PosReceipt,
             callback: OnResult?
     ) {
-        if (SettingsModel.loadFromRemote) {
+        if (SettingsModel.isConnectedToFireStore()) {
             FirebaseFirestore.getInstance().collection("pos_receipt").add(posReceipt.getMap())
                 .addOnSuccessListener {
                     posReceipt.posReceiptDocumentId = it.id
@@ -29,7 +29,7 @@ class PosReceiptRepositoryImpl(
             posReceipt: PosReceipt,
             callback: OnResult?
     ) {
-        if (SettingsModel.loadFromRemote) {
+        if (SettingsModel.isConnectedToFireStore()) {
             FirebaseFirestore.getInstance().collection("pos_receipt")
                 .document(posReceipt.posReceiptDocumentId!!).delete().addOnSuccessListener {
                     callback?.onSuccess(posReceipt)
@@ -46,7 +46,7 @@ class PosReceiptRepositoryImpl(
             posReceipt: PosReceipt,
             callback: OnResult?
     ) {
-        if (SettingsModel.loadFromRemote) {
+        if (SettingsModel.isConnectedToFireStore()) {
             FirebaseFirestore.getInstance().collection("pos_receipt")
                 .document(posReceipt.posReceiptDocumentId!!).update(posReceipt.getMap())
                 .addOnSuccessListener {
@@ -65,7 +65,7 @@ class PosReceiptRepositoryImpl(
     }
 
     override suspend fun getAllPosReceipts(callback: OnResult?) {
-        if (SettingsModel.loadFromRemote) {
+        if (SettingsModel.isConnectedToFireStore()) {
             FirebaseFirestore.getInstance().collection("pos_receipt").get()
                 .addOnSuccessListener { result ->
                     val receipts = mutableListOf<PosReceipt>()
@@ -95,7 +95,7 @@ class PosReceiptRepositoryImpl(
             invoiceHeaderId: String,
             callback: OnResult?
     ) {
-        if (SettingsModel.loadFromRemote) {
+        if (SettingsModel.isConnectedToFireStore()) {
             FirebaseFirestore.getInstance().collection("pos_receipt")
                 .whereEqualTo("pr_hi_id", invoiceHeaderId).get().addOnSuccessListener { result ->
                     val document = result.documents.firstOrNull()

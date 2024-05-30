@@ -6,6 +6,7 @@ import com.grid.pos.App
 import com.grid.pos.data.User.User
 import com.grid.pos.data.User.UserRepository
 import com.grid.pos.interfaces.OnResult
+import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.Event
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.DataStoreManager
@@ -31,17 +32,17 @@ class LoginViewModel @Inject constructor(
         if (username.isEmpty() || password.isEmpty()) {
             viewModelScope.launch(Dispatchers.Main) {
                 usersState.value = usersState.value.copy(
-                    warning = Event( "Please fill all inputs"),
+                    warning = Event("Please fill all inputs"),
                     isLoading = false,
                     warningAction = ""
                 )
             }
             return
         }
-        if (SettingsModel.loadFromRemote && !App.getInstance().isFirebaseInitiated()) {
+        if (App.getInstance().isMissingFirebaseConnection()) {
             viewModelScope.launch(Dispatchers.Main) {
                 usersState.value = usersState.value.copy(
-                    warning = Event( "unable to connect to server"),
+                    warning = Event("unable to connect to server"),
                     isLoading = false,
                     warningAction = "Settings"
                 )
@@ -51,7 +52,7 @@ class LoginViewModel @Inject constructor(
         if (SettingsModel.currentCompany?.companySS == true) {
             viewModelScope.launch(Dispatchers.Main) {
                 usersState.value = usersState.value.copy(
-                    warning = Event( SettingsModel.companyAccessWarning),
+                    warning = Event(SettingsModel.companyAccessWarning),
                     isLoading = false,
                     warningAction = ""
                 )
@@ -72,8 +73,8 @@ class LoginViewModel @Inject constructor(
                         viewModelScope.launch(Dispatchers.Main) {
                             usersState.value = usersState.value.copy(
                                 isLoading = false,
-                                warning = Event( "no user found!"),
-                                warningAction = if (!SettingsModel.loadFromRemote) "Register" else ""
+                                warning = Event("no user found!"),
+                                warningAction = if (!SettingsModel.isConnectedToSqlite()) "Register" else ""
                             )
                         }
                     } else {
@@ -90,6 +91,9 @@ class LoginViewModel @Inject constructor(
                                 user = it
                                 SettingsModel.currentUserId = it.userId
                                 SettingsModel.currentUser = it
+                                if (SettingsModel.isConnectedToSqlite()) {
+                                    SettingsModel.companyID = it.userCompanyId
+                                }
                                 viewModelScope.launch(Dispatchers.IO) {
                                     DataStoreManager.putString(
                                         DataStoreManager.DataStoreKeys.CURRENT_USER_ID.key,
@@ -103,7 +107,7 @@ class LoginViewModel @Inject constructor(
                             if (user == null) {
                                 usersState.value = usersState.value.copy(
                                     isLoading = false,
-                                    warning = Event( "Username or Password are incorrect!"),
+                                    warning = Event("Username or Password are incorrect!"),
                                     warningAction = ""
                                 )
                             } else {

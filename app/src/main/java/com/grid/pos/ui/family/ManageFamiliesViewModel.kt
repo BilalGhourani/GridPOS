@@ -85,7 +85,7 @@ class ManageFamiliesViewModel @Inject constructor(
         manageFamiliesState.value = manageFamiliesState.value.copy(
             isLoading = true
         )
-        val isInserting = family.familyDocumentId.isNullOrEmpty()
+        val isInserting = family.isNew()
         val callback = object : OnResult {
             override fun onSuccess(result: Any) {
                 viewModelScope.launch(Dispatchers.Main) {

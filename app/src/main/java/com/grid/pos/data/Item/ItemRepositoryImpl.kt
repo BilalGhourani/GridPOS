@@ -11,7 +11,7 @@ class ItemRepositoryImpl(
     private val itemDao: ItemDao
 ) : ItemRepository {
     override suspend fun insert(item: Item, callback: OnResult?) {
-        if (SettingsModel.loadFromRemote) {
+        if (SettingsModel.isConnectedToFireStore()) {
             FirebaseFirestore.getInstance().collection("st_item")
                 .add(item.getMap())
                 .addOnSuccessListener {
@@ -28,7 +28,7 @@ class ItemRepositoryImpl(
     }
 
     override suspend fun delete(item: Item, callback: OnResult?) {
-        if (SettingsModel.loadFromRemote) {
+        if (SettingsModel.isConnectedToFireStore()) {
             FirebaseFirestore.getInstance().collection("st_item")
                 .document(item.itemDocumentId!!)
                 .delete()
@@ -45,7 +45,7 @@ class ItemRepositoryImpl(
     }
 
     override suspend fun update(item: Item, callback: OnResult?) {
-        if (SettingsModel.loadFromRemote) {
+        if (SettingsModel.isConnectedToFireStore()) {
             FirebaseFirestore.getInstance().collection("st_item")
                 .document(item.itemDocumentId!!)
                 .update(item.getMap())
@@ -66,7 +66,7 @@ class ItemRepositoryImpl(
     }
 
     override suspend fun getAllItems(callback: OnResult?) {
-        if (SettingsModel.loadFromRemote) {
+        if (SettingsModel.isConnectedToFireStore()) {
             FirebaseFirestore.getInstance().collection("st_item")
                 .whereEqualTo("it_cmp_id",SettingsModel.companyID)
                 .get()

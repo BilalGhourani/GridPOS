@@ -72,7 +72,7 @@ class ManageUsersViewModel @Inject constructor(
         manageUsersState.value = manageUsersState.value.copy(
             isLoading = true
         )
-        val isInserting = user.userDocumentId.isNullOrEmpty()
+        val isInserting = user.isNew()
         val callback = object : OnResult {
             override fun onSuccess(result: Any) {
                 viewModelScope.launch(Dispatchers.Main) {

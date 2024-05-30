@@ -104,6 +104,15 @@ data class Currency(
     }
 
     @Exclude
+    override fun isNew(): Boolean {
+        return if (SettingsModel.isConnectedToSqlite()) {
+            currencyId.isEmpty()
+        } else {
+            currencyDocumentId.isNullOrEmpty()
+        }
+    }
+
+    @Exclude
     override fun prepareForInsert() {
         if (currencyId.isNullOrEmpty()) {
             currencyId = Utils.generateRandomUuidString()

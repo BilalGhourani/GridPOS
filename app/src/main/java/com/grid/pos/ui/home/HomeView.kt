@@ -56,7 +56,7 @@ fun HomeView(
     modifier: Modifier = Modifier,
     navController: NavController? = null,
     mainActivity: MainActivity,
-    activityViewModel: ActivityScopedViewModel?,
+    activityViewModel: ActivityScopedViewModel,
 ) {
     val activityState: ActivityState by activityViewModel!!.activityState.collectAsState(
         ActivityState()
@@ -139,9 +139,7 @@ fun HomeView(
         }
         fun logout() {
             isLogoutPopupShown = false
-            activityState.isLoggedIn = false
-            SettingsModel.currentCurrency = null
-            SettingsModel.currentUserId = null
+            activityViewModel.logout()
             navController?.clearBackStack("LoginView")
             navController?.navigate("LoginView")
         }

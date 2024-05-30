@@ -67,7 +67,6 @@ fun POSPrinterView(
         modifier: Modifier = Modifier,
         navController: NavController? = null,
         activityScopedViewModel: ActivityScopedViewModel,
-        mainActivity: MainActivity,
         viewModel: POSPrinterViewModel = hiltViewModel()
 ) {
     val posPrinterState: POSPrinterState by viewModel.posPrinterState.collectAsState(
@@ -176,7 +175,7 @@ fun POSPrinterView(
                             printer as PosPrinter
                             posPrinterState.selectedPrinter = printer
                             nameState = printer.posPrinterName ?: ""
-                            hostState = printer.posPrinterHost ?: ""
+                            hostState = printer.posPrinterHost
                             portState = printer.posPrinterPort.toString()
                             typeState = printer.posPrinterType ?: ""
                         }

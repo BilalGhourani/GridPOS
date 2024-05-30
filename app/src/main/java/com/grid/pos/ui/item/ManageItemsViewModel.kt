@@ -115,7 +115,7 @@ class ManageItemsViewModel @Inject constructor(
         manageItemsState.value = manageItemsState.value.copy(
             isLoading = true
         )
-        val isInserting = item.itemDocumentId.isNullOrEmpty()
+        val isInserting = item.isNew()
         val callback = object : OnResult {
             override fun onSuccess(result: Any) {
                 viewModelScope.launch(Dispatchers.Main) {

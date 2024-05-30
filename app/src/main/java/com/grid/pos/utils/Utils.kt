@@ -13,6 +13,9 @@ import android.webkit.WebView
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.grid.pos.data.DataModel
+import com.grid.pos.model.CONNECTION_TYPE
+import com.grid.pos.model.ConnectionModel
 import com.grid.pos.model.HomeSectionModel
 import com.grid.pos.model.InvoiceItemModel
 import com.grid.pos.model.SettingsModel
@@ -75,6 +78,12 @@ object Utils {
             "Table",
             "TablesView"
         )
+    )
+
+    val connections = mutableListOf<DataModel>(
+        ConnectionModel(CONNECTION_TYPE.LOCAL.key),
+        ConnectionModel(CONNECTION_TYPE.FIRESTORE.key),
+        ConnectionModel(CONNECTION_TYPE.SQL_SERVER.key)
     )
 
     fun generateRandomUuidString(): String {

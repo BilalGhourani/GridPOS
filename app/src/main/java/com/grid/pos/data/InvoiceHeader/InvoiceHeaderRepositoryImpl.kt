@@ -11,7 +11,7 @@ class InvoiceHeaderRepositoryImpl(
     private val invoiceHeaderDao: InvoiceHeaderDao
 ) : InvoiceHeaderRepository {
     override suspend fun insert(invoiceHeader: InvoiceHeader, callback: OnResult?) {
-        if (SettingsModel.loadFromRemote) {
+        if (SettingsModel.isConnectedToFireStore()) {
             FirebaseFirestore.getInstance().collection("in_hinvoice")
                 .add(invoiceHeader.getMap())
                 .addOnSuccessListener {
@@ -28,7 +28,7 @@ class InvoiceHeaderRepositoryImpl(
     }
 
     override suspend fun delete(invoiceHeader: InvoiceHeader, callback: OnResult?) {
-        if (SettingsModel.loadFromRemote) {
+        if (SettingsModel.isConnectedToFireStore()) {
             FirebaseFirestore.getInstance().collection("in_hinvoice")
                 .document(invoiceHeader.invoiceHeadDocumentId!!)
                 .delete()
@@ -45,7 +45,7 @@ class InvoiceHeaderRepositoryImpl(
     }
 
     override suspend fun update(invoiceHeader: InvoiceHeader, callback: OnResult?) {
-        if (SettingsModel.loadFromRemote) {
+        if (SettingsModel.isConnectedToFireStore()) {
             FirebaseFirestore.getInstance().collection("in_hinvoice")
                 .document(invoiceHeader.invoiceHeadDocumentId!!)
                 .update(invoiceHeader.getMap())
@@ -66,7 +66,7 @@ class InvoiceHeaderRepositoryImpl(
     }
 
     override suspend fun getAllInvoiceHeaders(callback: OnResult?) {
-        if (SettingsModel.loadFromRemote) {
+        if (SettingsModel.isConnectedToFireStore()) {
             FirebaseFirestore.getInstance().collection("in_hinvoice")
                 .whereEqualTo("hi_cmp_id", SettingsModel.companyID)
                 .get()
@@ -95,7 +95,7 @@ class InvoiceHeaderRepositoryImpl(
     }
 
     override suspend fun getLastInvoiceTransNo(type: String, callback: OnResult?) {
-        if (SettingsModel.loadFromRemote) {
+        if (SettingsModel.isConnectedToFireStore()) {
             FirebaseFirestore.getInstance().collection("in_hinvoice")
                 .whereEqualTo("hi_cmp_id", SettingsModel.companyID)
                 .whereEqualTo("hi_tt_code", type)
@@ -125,7 +125,7 @@ class InvoiceHeaderRepositoryImpl(
     }
 
     override suspend fun getInvoiceByTable(tableNo: String, callback: OnResult?) {
-        if (SettingsModel.loadFromRemote) {
+        if (SettingsModel.isConnectedToFireStore()) {
             FirebaseFirestore.getInstance().collection("in_hinvoice")
                 .whereEqualTo("hi_cmp_id", SettingsModel.companyID)
                 .whereEqualTo("hi_ta_name", tableNo)
@@ -158,7 +158,7 @@ class InvoiceHeaderRepositoryImpl(
         to: Date,
         callback: OnResult?
     ) {
-        if (SettingsModel.loadFromRemote) {
+        if (SettingsModel.isConnectedToFireStore()) {
             FirebaseFirestore.getInstance().collection("in_hinvoice")
                 .whereEqualTo("hi_cmp_id", SettingsModel.companyID)
                 /*  .whereGreaterThanOrEqualTo(

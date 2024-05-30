@@ -118,8 +118,7 @@ fun AuthNavGraph(
         composable(route = "POSPrinterView") {
             POSPrinterView(
                 navController = navController,
-                activityScopedViewModel = activityViewModel,
-                mainActivity = mainActivity
+                activityScopedViewModel = activityViewModel
             )
         }
         composable(route = "ReportsView") {

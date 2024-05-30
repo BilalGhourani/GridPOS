@@ -80,6 +80,15 @@ data class PosPrinter(
     }
 
     @Exclude
+    override fun isNew(): Boolean {
+        return if (SettingsModel.isConnectedToSqlite()) {
+            posPrinterId.isEmpty()
+        } else {
+            posPrinterDocumentId.isNullOrEmpty()
+        }
+    }
+
+    @Exclude
     override fun prepareForInsert() {
         if (posPrinterId.isNullOrEmpty()) {
             posPrinterId = Utils.generateRandomUuidString()

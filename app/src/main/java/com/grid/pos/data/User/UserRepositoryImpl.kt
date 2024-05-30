@@ -19,7 +19,7 @@ class UserRepositoryImpl(
             user: User,
             callback: OnResult?
     ) {
-        if (SettingsModel.loadFromRemote) {
+        if (SettingsModel.isConnectedToFireStore()) {
             FirebaseFirestore.getInstance().collection("set_users").add(user).addOnSuccessListener {
                 user.userDocumentId = it.id
                 callback?.onSuccess(user)
@@ -36,7 +36,7 @@ class UserRepositoryImpl(
             user: User,
             callback: OnResult?
     ) {
-        if (SettingsModel.loadFromRemote) {
+        if (SettingsModel.isConnectedToFireStore()) {
             FirebaseFirestore.getInstance().collection("set_users").document(user.userDocumentId!!)
                 .delete().addOnSuccessListener {
                 callback?.onSuccess(user)
@@ -53,7 +53,7 @@ class UserRepositoryImpl(
             user: User,
             callback: OnResult?
     ) {
-        if (SettingsModel.loadFromRemote) {
+        if (SettingsModel.isConnectedToFireStore()) {
             FirebaseFirestore.getInstance().collection("set_users").document(user.userDocumentId!!)
                 .update(user.getMap()).addOnSuccessListener {
                 callback?.onSuccess(user)
@@ -70,7 +70,7 @@ class UserRepositoryImpl(
             id: String,
             callback: OnResult?
     ) {
-        if (SettingsModel.loadFromRemote) {
+        if (SettingsModel.isConnectedToFireStore()) {
             FirebaseFirestore.getInstance().collection("set_users").whereEqualTo(
                 "usr_cmp_id", SettingsModel.companyID
             ).whereEqualTo(
@@ -100,7 +100,7 @@ class UserRepositoryImpl(
             password: String,
             callback: OnResult?
     ) {
-        if (SettingsModel.loadFromRemote) {
+        if (SettingsModel.isConnectedToFireStore()) {
             FirebaseFirestore.getInstance().collection("set_users").whereEqualTo(
                 "usr_username", username
             ).whereEqualTo(
@@ -143,7 +143,7 @@ class UserRepositoryImpl(
     }
 
     override suspend fun getAllUsers(callback: OnResult?) {
-        if (SettingsModel.loadFromRemote) {
+        if (SettingsModel.isConnectedToFireStore()) {
             FirebaseFirestore.getInstance().collection("set_users").whereEqualTo(
                 "usr_cmp_id", SettingsModel.companyID
             ).get().addOnSuccessListener { result ->

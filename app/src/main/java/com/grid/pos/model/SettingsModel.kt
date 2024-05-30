@@ -8,14 +8,15 @@ import com.grid.pos.data.User.User
 object SettingsModel {
     var currentUserId: String? = null
 
+    var connectionType: String = CONNECTION_TYPE.LOCAL.key
+
     var firebaseApplicationId: String? = null
     var firebaseApiKey: String? = null
     var firebaseProjectId: String? = null
     var firebaseDbPath: String? = null
     var companyID: String? = null
-    var invoicePrinter: String? = null
+    var sqlServerPath: String? = null
 
-    var loadFromRemote: Boolean = true
     var showTax: Boolean = false
     var showTax1: Boolean = false
     var showTax2: Boolean = false
@@ -40,6 +41,13 @@ object SettingsModel {
             return UserType.POS
         }
         return UserType.TABLE
+    }
+
+    fun isConnectedToSqlite():Boolean{
+        return connectionType == CONNECTION_TYPE.LOCAL.key
+    }
+    fun isConnectedToFireStore():Boolean{
+        return connectionType == CONNECTION_TYPE.FIRESTORE.key
     }
 }
 

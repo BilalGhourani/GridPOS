@@ -89,6 +89,15 @@ data class User(
     }
 
     @Exclude
+    override fun isNew(): Boolean {
+        return if (SettingsModel.isConnectedToSqlite()) {
+            userId.isEmpty()
+        } else {
+            userDocumentId.isNullOrEmpty()
+        }
+    }
+
+    @Exclude
     override fun prepareForInsert() {
         if (userId.isNullOrEmpty()) {
             userId = Utils.generateRandomUuidString()

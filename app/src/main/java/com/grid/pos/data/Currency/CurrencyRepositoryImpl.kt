@@ -10,7 +10,7 @@ class CurrencyRepositoryImpl(
     private val currencyDao: CurrencyDao
 ) : CurrencyRepository {
     override suspend fun insert(currency: Currency, callback: OnResult?) {
-        if (SettingsModel.loadFromRemote) {
+        if (SettingsModel.isConnectedToFireStore()) {
             FirebaseFirestore.getInstance().collection("currency")
                 .add(currency)
                 .addOnSuccessListener {
@@ -27,7 +27,7 @@ class CurrencyRepositoryImpl(
     }
 
     override suspend fun delete(currency: Currency, callback: OnResult?) {
-        if (SettingsModel.loadFromRemote) {
+        if (SettingsModel.isConnectedToFireStore()) {
             FirebaseFirestore.getInstance().collection("currency")
                 .document(currency.currencyDocumentId!!)
                 .delete()
@@ -44,7 +44,7 @@ class CurrencyRepositoryImpl(
     }
 
     override suspend fun update(currency: Currency, callback: OnResult?) {
-        if (SettingsModel.loadFromRemote) {
+        if (SettingsModel.isConnectedToFireStore()) {
             FirebaseFirestore.getInstance().collection("currency")
                 .document(currency.currencyDocumentId!!)
                 .update(currency.getMap())
@@ -65,7 +65,7 @@ class CurrencyRepositoryImpl(
     }
 
     override suspend fun getAllCurrencies(callback: OnResult?) {
-        if (SettingsModel.loadFromRemote) {
+        if (SettingsModel.isConnectedToFireStore()) {
             FirebaseFirestore.getInstance().collection("currency")
                 .whereEqualTo("cur_cmp_id",SettingsModel.companyID)
                 .get()

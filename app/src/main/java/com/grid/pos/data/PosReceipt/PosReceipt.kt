@@ -125,6 +125,15 @@ data class PosReceipt(
     }
 
     @Exclude
+    override fun isNew(): Boolean {
+        return if (SettingsModel.isConnectedToSqlite()) {
+            posReceiptId.isEmpty()
+        } else {
+            posReceiptDocumentId.isNullOrEmpty()
+        }
+    }
+
+    @Exclude
     override fun prepareForInsert() {
         if (posReceiptId.isNullOrEmpty()) {
             posReceiptId = Utils.generateRandomUuidString()

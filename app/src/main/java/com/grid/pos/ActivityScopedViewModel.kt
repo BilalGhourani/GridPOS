@@ -35,13 +35,13 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ActivityScopedViewModel @Inject constructor(
-    private val currencyRepository: CurrencyRepository,
-    private val companyRepository: CompanyRepository,
-    private val userRepository: UserRepository,
-    private val thirdPartyRepository: ThirdPartyRepository,
-    private val familyRepository: FamilyRepository,
-    private val itemRepository: ItemRepository,
-    private val posPrinterRepository: PosPrinterRepository,
+        private val currencyRepository: CurrencyRepository,
+        private val companyRepository: CompanyRepository,
+        private val userRepository: UserRepository,
+        private val thirdPartyRepository: ThirdPartyRepository,
+        private val familyRepository: FamilyRepository,
+        private val itemRepository: ItemRepository,
+        private val posPrinterRepository: PosPrinterRepository,
 ) : ViewModel() {
     var posReceipt: PosReceipt = PosReceipt()
     var invoiceHeader: InvoiceHeader = InvoiceHeader()
@@ -97,8 +97,8 @@ class ActivityScopedViewModel @Inject constructor(
                     }
 
                     override fun onFailure(
-                        message: String,
-                        errorCode: Int
+                            message: String,
+                            errorCode: Int
                     ) {
 
                     }
@@ -143,8 +143,8 @@ class ActivityScopedViewModel @Inject constructor(
                 }
 
                 override fun onFailure(
-                    message: String,
-                    errorCode: Int
+                        message: String,
+                        errorCode: Int
                 ) {
 
                 }
@@ -162,8 +162,8 @@ class ActivityScopedViewModel @Inject constructor(
                         }
 
                         override fun onFailure(
-                            message: String,
-                            errorCode: Int
+                                message: String,
+                                errorCode: Int
                         ) {
 
                         }
@@ -183,8 +183,8 @@ class ActivityScopedViewModel @Inject constructor(
             }
 
             override fun onFailure(
-                message: String,
-                errorCode: Int
+                    message: String,
+                    errorCode: Int
             ) {
             }
         })
@@ -201,8 +201,8 @@ class ActivityScopedViewModel @Inject constructor(
             }
 
             override fun onFailure(
-                message: String,
-                errorCode: Int
+                    message: String,
+                    errorCode: Int
             ) {
             }
         })
@@ -219,8 +219,8 @@ class ActivityScopedViewModel @Inject constructor(
             }
 
             override fun onFailure(
-                message: String,
-                errorCode: Int
+                    message: String,
+                    errorCode: Int
             ) {
             }
         })
@@ -237,19 +237,19 @@ class ActivityScopedViewModel @Inject constructor(
             }
 
             override fun onFailure(
-                message: String,
-                errorCode: Int
+                    message: String,
+                    errorCode: Int
             ) {
             }
         })
     }
 
     fun getInvoiceReceiptHtmlContent(
-        context: Context,
-        content: String = Utils.readFileFromAssets(
-            "invoice_receipt.html",
-            context
-        )
+            context: Context,
+            content: String = Utils.readFileFromAssets(
+                "invoice_receipt.html",
+                context
+            )
     ): String {
         var result = content.ifEmpty { Utils.getDefaultReceipt() }
         if (invoiceItemModels.isNotEmpty()) {
@@ -285,13 +285,13 @@ class ActivityScopedViewModel @Inject constructor(
     }
 
     fun getItemReceiptHtmlContent(
-        context: Context,
-        content: String = Utils.readFileFromAssets(
-            "item_receipt.html",
-            context
-        ),
-        invoiceHeader: InvoiceHeader,
-        invItemModels: List<InvoiceItemModel>
+            context: Context,
+            content: String = Utils.readFileFromAssets(
+                "item_receipt.html",
+                context
+            ),
+            invoiceHeader: InvoiceHeader,
+            invItemModels: List<InvoiceItemModel>
     ): String {
         var result = content.ifEmpty { Utils.getDefaultItemReceipt() }
         result = result.replace(
@@ -376,5 +376,24 @@ class ActivityScopedViewModel @Inject constructor(
 
     fun isLoggedIn(): Boolean {
         return activityState.value.isLoggedIn
+    }
+
+     fun logout() {
+        activityState.value.isLoggedIn = false
+        SettingsModel.currentUser = null
+        SettingsModel.currentUserId = null
+        posReceipt = PosReceipt()
+        invoiceHeader = InvoiceHeader()
+        pendingInvHeadState = null
+        invoiceItemModels.clear()
+        shouldPrintInvoice = false
+        isFromTable = false
+        companies.clear()
+        currencies.clear()
+        users.clear()
+        thirdParties.clear()
+        families.clear()
+        invoiceHeaders.clear()
+        printers.clear()
     }
 }

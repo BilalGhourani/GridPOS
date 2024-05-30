@@ -26,12 +26,12 @@ import javax.inject.Inject
 
 @HiltViewModel
 class POSViewModel @Inject constructor(
-    private val invoiceHeaderRepository: InvoiceHeaderRepository,
-    private val posReceiptRepository: PosReceiptRepository,
-    private val invoiceRepository: InvoiceRepository,
-    private val itemRepository: ItemRepository,
-    private val thirdPartyRepository: ThirdPartyRepository,
-    private val familyRepository: FamilyRepository
+        private val invoiceHeaderRepository: InvoiceHeaderRepository,
+        private val posReceiptRepository: PosReceiptRepository,
+        private val invoiceRepository: InvoiceRepository,
+        private val itemRepository: ItemRepository,
+        private val thirdPartyRepository: ThirdPartyRepository,
+        private val familyRepository: FamilyRepository
 ) : ViewModel() {
 
     private val _posState = MutableStateFlow(POSState())
@@ -158,7 +158,7 @@ class POSViewModel @Inject constructor(
         posState.value = posState.value.copy(
             isLoading = true
         )
-        val isInserting = invoiceHeader.invoiceHeadId.isNullOrEmpty()
+        val isInserting = invoiceHeader.isNew()
         val callback = object : OnResult {
             override fun onSuccess(result: Any) {
                 if (isInserting) {
@@ -302,7 +302,7 @@ class POSViewModel @Inject constructor(
                 }
             }
         }
-        val isInserting = posReceipt.posReceiptId.isNullOrEmpty()
+        val isInserting = posReceipt.isNew()
         CoroutineScope(Dispatchers.IO).launch {
             if (isInserting) {
                 posReceipt.posReceiptInvoiceId = invoiceHeader.invoiceHeadId

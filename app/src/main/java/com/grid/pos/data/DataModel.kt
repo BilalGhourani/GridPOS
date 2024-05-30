@@ -14,6 +14,10 @@ abstract class DataModel {
         return ""
     }
 
+    open fun isNew(): Boolean {
+        return true
+    }
+
     @Exclude
     open fun prepareForInsert() {
     }

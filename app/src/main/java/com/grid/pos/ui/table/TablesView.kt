@@ -256,9 +256,7 @@ fun TablesView(
                 onConfirmation = {
                     isPopupVisible = false
 
-                    SettingsModel.currentCurrency = null
-                    SettingsModel.currentUserId = null
-                    activityScopedViewModel.activityState.value.isLoggedIn = false
+                    activityScopedViewModel.logout()
                     navController?.clearBackStack("LoginView")
                     navController?.navigate("LoginView")
                 },

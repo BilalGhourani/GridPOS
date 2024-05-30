@@ -203,6 +203,15 @@ data class Item(
     }
 
     @Exclude
+    override fun isNew(): Boolean {
+        return if (SettingsModel.isConnectedToSqlite()) {
+            itemId.isEmpty()
+        } else {
+            itemDocumentId.isNullOrEmpty()
+        }
+    }
+
+    @Exclude
     override fun prepareForInsert() {
         if (itemId.isNullOrEmpty()) {
             itemId = Utils.generateRandomUuidString()
