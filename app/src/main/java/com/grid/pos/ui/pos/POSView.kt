@@ -474,6 +474,7 @@ fun POSView(
                             invoiceHeaderState.value,
                             activityViewModel.posReceipt,
                             activityViewModel.invoiceItemModels,
+                            !activityViewModel.isFromTable
                         )
                     },
                     onSaveAndPrint = { change, receipt ->
@@ -483,7 +484,8 @@ fun POSView(
                         viewModel.saveInvoiceHeader(
                             invoiceHeaderState.value,
                             activityViewModel.posReceipt,
-                            activityViewModel.invoiceItemModels
+                            activityViewModel.invoiceItemModels,
+                            !activityViewModel.isFromTable
                         )
                     },
                     onFinishAndPrint = { change, receipt ->
