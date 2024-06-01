@@ -57,12 +57,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.grid.pos.ActivityScopedViewModel
 import com.grid.pos.MainActivity
 import com.grid.pos.R
 import com.grid.pos.data.InvoiceHeader.InvoiceHeader
+import com.grid.pos.data.Item.Item
 import com.grid.pos.data.PosReceipt.PosReceipt
 import com.grid.pos.model.InvoiceItemModel
 import com.grid.pos.model.SettingsModel
@@ -84,11 +86,11 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun POSView(
-    modifier: Modifier = Modifier,
-    navController: NavController? = null,
-    activityViewModel: ActivityScopedViewModel,
-    mainActivity: MainActivity,
-    viewModel: POSViewModel = hiltViewModel()
+        modifier: Modifier = Modifier,
+        navController: NavController? = null,
+        activityViewModel: ActivityScopedViewModel,
+        mainActivity: MainActivity,
+        viewModel: POSViewModel = hiltViewModel()
 ) {
     val posState: POSState by viewModel.posState.collectAsState(POSState())
     val invoicesState = remember { mutableStateListOf<InvoiceItemModel>() }
@@ -134,12 +136,30 @@ fun POSView(
         }
     }
 
-    if (activityViewModel.isFromTable) {
+    if (activityViewModel.shouldLoadInvoice) {
         posState.isLoading = true
-        activityViewModel.isFromTable = false
+        activityViewModel.shouldLoadInvoice = false
         selectInvoice(invoiceHeaderState.value)
     } else if (invoicesState.isEmpty() && activityViewModel.invoiceItemModels.isNotEmpty()) {
         invoicesState.addAll(activityViewModel.invoiceItemModels)
+    }
+
+    var itemsToAdd: List<Item> = listOf()
+    val onItemAdded: () -> Unit = {
+        val invoices = mutableListOf<InvoiceItemModel>()
+        itemsToAdd.forEach { item ->
+            item.selected = false
+            val invoiceItemModel = InvoiceItemModel()
+            invoiceItemModel.setItem(item)
+            invoices.add(invoiceItemModel)
+        }
+        invoicesState.addAll(invoices)
+        activityViewModel.invoiceItemModels = invoicesState
+        invoiceHeaderState.value = POSUtils.refreshValues(
+            activityViewModel.invoiceItemModels,
+            invoiceHeaderState.value
+        )
+        isAddItemBottomSheetVisible = false
     }
 
     LaunchedEffect(configuration) {
@@ -175,6 +195,7 @@ fun POSView(
                 activityViewModel.invoiceHeader = InvoiceHeader()
                 activityViewModel.posReceipt = PosReceipt()
                 activityViewModel.shouldPrintInvoice = true
+                activityViewModel.shouldLoadInvoice = false
                 activityViewModel.pendingInvHeadState = null
                 invoicesState.clear()
                 invoiceHeaderState.value = activityViewModel.invoiceHeader
@@ -190,6 +211,7 @@ fun POSView(
             scope.launch(Dispatchers.IO) {
                 posState.resetItemsSelection()
             }
+            onItemAdded.invoke()
             isAddItemBottomSheetVisible = false
         } else if (isEditBottomSheetVisible) {
             isEditBottomSheetVisible = false
@@ -199,9 +221,7 @@ fun POSView(
             popupState = PopupState.DISCARD_INVOICE
             isSavePopupVisible = true
         } else {
-            activityViewModel.invoiceItemModels = mutableListOf()
-            activityViewModel.invoiceHeader = InvoiceHeader()
-            activityViewModel.posReceipt = PosReceipt()
+            activityViewModel.clearPosValues()
             if (SettingsModel.getUserType() == UserType.POS) {
                 popupState = PopupState.BACK_PRESSED
                 isSavePopupVisible = true
@@ -361,8 +381,7 @@ fun POSView(
                         },
                         onThirdPartySelected = { thirdParty ->
                             posState.selectedThirdParty = thirdParty
-                            invoiceHeaderState.value.invoiceHeadThirdPartyName =
-                                thirdParty.thirdPartyId
+                            invoiceHeaderState.value.invoiceHeadThirdPartyName = thirdParty.thirdPartyId
                         },
                         onInvoiceSelected = { invoiceHeader ->
                             if (invoicesState.isNotEmpty()) {
@@ -413,31 +432,22 @@ fun POSView(
                     animationSpec = tween(durationMillis = 250)
                 )
             ) {
-                AddInvoiceItemView(
-                    categories = posState.families,
+                AddInvoiceItemView(categories = posState.families,
                     items = posState.items,
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(it)
                         .background(
                             color = SettingsModel.backgroundColor
-                        )
-                ) { itemList ->
-                    val invoices = mutableListOf<InvoiceItemModel>()
-                    itemList.forEach { item ->
-                        val invoiceItemModel = InvoiceItemModel()
-                        invoiceItemModel.setItem(item)
-                        invoices.add(invoiceItemModel)
-                    }
-                    invoicesState.addAll(invoices)
-                    activityViewModel.invoiceItemModels = invoicesState
-                    invoiceHeaderState.value = POSUtils.refreshValues(
-                        activityViewModel.invoiceItemModels,
-                        invoiceHeaderState.value
-                    )
-                    isAddItemBottomSheetVisible = false
-                }
+                        ),
+                    onSelectionChanged = { itemList ->
+                        itemsToAdd = itemList
+                    },
+                    onSelect = {
+                        onItemAdded.invoke()
+                    })
             }
+
             AnimatedVisibility(
                 visible = isPayBottomSheetVisible,
                 enter = fadeIn(
@@ -511,6 +521,7 @@ fun POSView(
                     activityViewModel.posReceipt = PosReceipt()
                     activityViewModel.invoiceHeader = invoiceHeaderState.value
                     activityViewModel.invoiceItemModels.clear()
+                    activityViewModel.shouldLoadInvoice = false
                     when (popupState) {
                         PopupState.BACK_PRESSED -> {
                             activityViewModel.logout()

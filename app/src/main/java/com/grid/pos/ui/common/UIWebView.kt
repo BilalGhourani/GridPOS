@@ -54,11 +54,7 @@ fun UIWebView(
     }
 
     fun handleBack() {
-        activityViewModel.invoiceItemModels = mutableListOf()
-        activityViewModel.invoiceHeader = InvoiceHeader()
-        activityViewModel.posReceipt = PosReceipt()
-        activityViewModel.shouldPrintInvoice = true
-        activityViewModel.pendingInvHeadState = null
+        activityViewModel.clearPosValues()
         navController?.navigateUp()
     }
     BackHandler {

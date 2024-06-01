@@ -47,6 +47,7 @@ class ActivityScopedViewModel @Inject constructor(
     var pendingInvHeadState: InvoiceHeader? = null
     var invoiceItemModels: MutableList<InvoiceItemModel> = mutableListOf()
     var shouldPrintInvoice: Boolean = false
+    var shouldLoadInvoice: Boolean = false
     var isFromTable: Boolean = false
     var companies: MutableList<Company> = mutableListOf()
     var localCompanies: MutableList<Company> = mutableListOf()
@@ -150,6 +151,16 @@ class ActivityScopedViewModel @Inject constructor(
 
     private suspend fun fetchPrinters() {
         printers = posPrinterRepository.getAllPosPrinters()
+    }
+
+    fun clearPosValues() {
+        invoiceItemModels = mutableListOf()
+        invoiceHeader = InvoiceHeader()
+        posReceipt = PosReceipt()
+        shouldPrintInvoice = true
+        pendingInvHeadState = null
+        shouldLoadInvoice = false
+        isFromTable = false
     }
 
     fun getInvoiceReceiptHtmlContent(
@@ -295,6 +306,7 @@ class ActivityScopedViewModel @Inject constructor(
         pendingInvHeadState = null
         invoiceItemModels.clear()
         shouldPrintInvoice = false
+        shouldLoadInvoice = false
         isFromTable = false
         companies.clear()
         currencies.clear()

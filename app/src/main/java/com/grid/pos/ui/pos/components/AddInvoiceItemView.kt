@@ -43,12 +43,14 @@ import com.grid.pos.utils.Utils
 
 @Composable
 fun AddInvoiceItemView(
-    categories: MutableList<Family> = mutableListOf(),
-    items: MutableList<Item> = mutableListOf(),
-    modifier: Modifier = Modifier,
-    onSelect: (List<Item>) -> Unit = {},
+        categories: MutableList<Family> = mutableListOf(),
+        items: MutableList<Item> = mutableListOf(),
+        modifier: Modifier = Modifier,
+        onSelectionChanged: (List<Item>) -> Unit = {},
+        onSelect: () -> Unit = {},
 ) {
     val itemsState = remember { mutableStateListOf<Item>() }
+    onSelectionChanged.invoke(itemsState.toList())
     var familyState by remember { mutableStateOf("") }
     LaunchedEffect(true) {
         if (familyState.isEmpty() && categories.size > 0) {
@@ -93,10 +95,7 @@ fun AddInvoiceItemView(
                     .align(Alignment.BottomEnd)
                     .padding(30.dp),
                 onClick = {
-                    itemsState.forEach { item ->
-                        item.selected = false
-                    }
-                    onSelect.invoke(itemsState.toMutableList())
+                    onSelect.invoke()
                 },
                 shape = CircleShape,
                 containerColor = SettingsModel.buttonColor,
@@ -112,8 +111,7 @@ fun AddInvoiceItemView(
                         fontSize = 16.sp
                     ),
                     textAlign = TextAlign.Center,
-                )
-                /*Icon(
+                )/*Icon(
                     Icons.Filled.ArrowBackIosNew,
                     "Submit",
                     modifier = Modifier.rotate(180f)
