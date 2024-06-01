@@ -68,27 +68,25 @@ class POSPrinterViewModel @Inject constructor(
             isLoading = true
         )
         val isInserting = printer.isNew()
-        posPrinterState.value.selectedPrinter.let {
-            CoroutineScope(Dispatchers.IO).launch {
-                if (isInserting) {
-                    it.prepareForInsert()
-                    val addedModel = posPrinterRepository.insert(it)
-                    val printers = posPrinterState.value.printers
-                    printers.add(addedModel)
-                    posPrinterState.value = posPrinterState.value.copy(
-                        printers = printers,
-                        selectedPrinter = PosPrinter(),
-                        isLoading = false,
-                        clear = true,
-                    )
-                } else {
-                    posPrinterRepository.update(it)
-                    posPrinterState.value = posPrinterState.value.copy(
-                        selectedPrinter = PosPrinter(),
-                        isLoading = false,
-                        clear = true,
-                    )
-                }
+        CoroutineScope(Dispatchers.IO).launch {
+            if (isInserting) {
+                printer.prepareForInsert()
+                val addedModel = posPrinterRepository.insert(printer)
+                val printers = posPrinterState.value.printers
+                printers.add(addedModel)
+                posPrinterState.value = posPrinterState.value.copy(
+                    printers = printers,
+                    selectedPrinter = PosPrinter(),
+                    isLoading = false,
+                    clear = true,
+                )
+            } else {
+                posPrinterRepository.update(printer)
+                posPrinterState.value = posPrinterState.value.copy(
+                    selectedPrinter = PosPrinter(),
+                    isLoading = false,
+                    clear = true,
+                )
             }
         }
     }

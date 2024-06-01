@@ -66,11 +66,11 @@ import kotlinx.coroutines.withContext
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginView(
-    modifier: Modifier = Modifier,
-    navController: NavController? = null,
-    activityScopedViewModel: ActivityScopedViewModel,
-    mainActivity: MainActivity,
-    viewModel: LoginViewModel = hiltViewModel()
+        modifier: Modifier = Modifier,
+        navController: NavController? = null,
+        activityScopedViewModel: ActivityScopedViewModel,
+        mainActivity: MainActivity,
+        viewModel: LoginViewModel = hiltViewModel()
 ) {
     val loginState by viewModel.usersState.collectAsState()
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -95,7 +95,8 @@ fun LoginView(
                     SnackbarResult.Dismissed -> {}
                     SnackbarResult.ActionPerformed -> when (loginState.warningAction) {
                         "Register" -> navController?.navigate("ManageUsersView")
-                        "Settings" -> navController?.navigate("SettingsView")
+                        "Create a Company" -> navController?.navigate("ManageCompaniesView")
+                        "Settings" ->  navController?.navigate("SettingsView")
                     }
                 }
             }

@@ -49,6 +49,7 @@ class ActivityScopedViewModel @Inject constructor(
     var shouldPrintInvoice: Boolean = false
     var isFromTable: Boolean = false
     var companies: MutableList<Company> = mutableListOf()
+    var localCompanies: MutableList<Company> = mutableListOf()
     var currencies: MutableList<Currency> = mutableListOf()
     var users: MutableList<User> = mutableListOf()
     var thirdParties: MutableList<ThirdParty> = mutableListOf()
@@ -77,7 +78,7 @@ class ActivityScopedViewModel @Inject constructor(
                 currencies = currencyRepository.getAllCurrencies()
                 currencies.forEach {
                     if (it.currencyCompId.equals(
-                            SettingsModel.companyID,
+                            SettingsModel.getCompanyID(),
                             ignoreCase = true
                         )
                     ) {
@@ -91,12 +92,25 @@ class ActivityScopedViewModel @Inject constructor(
         }
     }
 
+    fun getLocalCompanies(onResult: (MutableList<Company>) -> Unit) {
+        if (localCompanies.isEmpty()) {
+            viewModelScope.launch(Dispatchers.IO) {
+                localCompanies = companyRepository.getLocalCompanies()
+                withContext(Dispatchers.IO) {
+                    onResult.invoke(localCompanies)
+                }
+            }
+        } else {
+            onResult.invoke(localCompanies)
+        }
+    }
+
     private suspend fun fetchCompanies() {
         viewModelScope.launch(Dispatchers.IO) {
             companies = companyRepository.getAllCompanies()
             companies.forEach {
                 if (it.companyId.equals(
-                        SettingsModel.companyID,
+                        SettingsModel.getCompanyID(),
                         ignoreCase = true
                     )
                 ) {

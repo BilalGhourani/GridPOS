@@ -49,7 +49,7 @@ class PosPrinterRepositoryImpl(
             val querySnapshot = FirebaseFirestore.getInstance().collection("pos_printer")
                 .whereEqualTo(
                     "pp_cmp_id",
-                    SettingsModel.companyID
+                    SettingsModel.getCompanyID()
                 ).get().await()
 
             val printers = mutableListOf<PosPrinter>()

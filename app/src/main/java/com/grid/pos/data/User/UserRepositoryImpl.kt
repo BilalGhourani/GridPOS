@@ -3,7 +3,9 @@ package com.grid.pos.data.User
 import com.google.firebase.firestore.FirebaseFirestore
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.Extension.encryptCBC
+import com.grid.pos.utils.Utils
 import kotlinx.coroutines.tasks.await
+import java.util.Date
 
 class UserRepositoryImpl(
         private val userDao: UserDao
@@ -25,8 +27,8 @@ class UserRepositoryImpl(
     ) {
         if (SettingsModel.isConnectedToFireStore()) {
             user.userDocumentId?.let {
-                FirebaseFirestore.getInstance().collection("set_users").document(it)
-                    .delete().await()
+                FirebaseFirestore.getInstance().collection("set_users").document(it).delete()
+                    .await()
             }
         } else {
             userDao.delete(user)
@@ -54,7 +56,7 @@ class UserRepositoryImpl(
             val querySnapshot = FirebaseFirestore.getInstance().collection("set_users")
                 .whereEqualTo(
                     "usr_cmp_id",
-                    SettingsModel.companyID
+                    SettingsModel.getCompanyID()
                 ).whereEqualTo(
                     "usr_id",
                     id
@@ -87,7 +89,7 @@ class UserRepositoryImpl(
                     password
                 ).whereEqualTo(
                     "usr_cmp_id",
-                    SettingsModel.companyID
+                    SettingsModel.getCompanyID()
                 ).get().await()
             if (querySnapshot.size() > 0) {
                 for (document in querySnapshot) {
@@ -123,7 +125,7 @@ class UserRepositoryImpl(
             val querySnapshot = FirebaseFirestore.getInstance().collection("set_users")
                 .whereEqualTo(
                     "usr_cmp_id",
-                    SettingsModel.companyID
+                    SettingsModel.getCompanyID()
                 ).get().await()
 
             val users = mutableListOf<User>()

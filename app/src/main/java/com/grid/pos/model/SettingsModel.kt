@@ -14,7 +14,8 @@ object SettingsModel {
     var firebaseApiKey: String? = null
     var firebaseProjectId: String? = null
     var firebaseDbPath: String? = null
-    var companyID: String? = null
+    var fireStoreCompanyID: String? = null
+    var localCompanyID: String? = null
     var sqlServerPath: String? = null
 
     var showTax: Boolean = false
@@ -43,11 +44,20 @@ object SettingsModel {
         return UserType.TABLE
     }
 
-    fun isConnectedToSqlite():Boolean{
+    fun isConnectedToSqlite(): Boolean {
         return connectionType == CONNECTION_TYPE.LOCAL.key
     }
-    fun isConnectedToFireStore():Boolean{
+
+    fun isConnectedToFireStore(): Boolean {
         return connectionType == CONNECTION_TYPE.FIRESTORE.key
+    }
+
+    fun getCompanyID(): String? {
+        return if (connectionType == CONNECTION_TYPE.FIRESTORE.key) {
+            fireStoreCompanyID
+        } else {
+            localCompanyID
+        }
     }
 }
 

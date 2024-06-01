@@ -3,21 +3,26 @@ package com.grid.pos.ui.login
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.grid.pos.App
+import com.grid.pos.data.Company.Company
+import com.grid.pos.data.Company.CompanyRepository
 import com.grid.pos.data.User.User
 import com.grid.pos.data.User.UserRepository
 import com.grid.pos.model.Event
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.DataStoreManager
 import com.grid.pos.utils.Extension.encryptCBC
+import com.grid.pos.utils.Utils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
+import java.util.Date
 import javax.inject.Inject
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-        private val repository: UserRepository
+        private val repository: UserRepository,
+        private val companyRepository: CompanyRepository
 ) : ViewModel() {
 
     private val _usersState = MutableStateFlow(LoginState())
@@ -28,23 +33,19 @@ class LoginViewModel @Inject constructor(
             password: String
     ) {
         if (username.isEmpty() || password.isEmpty()) {
-            viewModelScope.launch(Dispatchers.Main) {
-                usersState.value = usersState.value.copy(
-                    warning = Event("Please fill all inputs"),
-                    isLoading = false,
-                    warningAction = ""
-                )
-            }
+            usersState.value = usersState.value.copy(
+                warning = Event("Please fill all inputs"),
+                isLoading = false,
+                warningAction = ""
+            )
             return
         }
         if (App.getInstance().isMissingFirebaseConnection()) {
-            viewModelScope.launch(Dispatchers.Main) {
-                usersState.value = usersState.value.copy(
-                    warning = Event("unable to connect to server"),
-                    isLoading = false,
-                    warningAction = "Settings"
-                )
-            }
+            usersState.value = usersState.value.copy(
+                warning = Event("unable to connect to server"),
+                isLoading = false,
+                warningAction = "Settings"
+            )
             return
         }
         if (SettingsModel.currentCompany?.companySS == true) {
@@ -64,14 +65,43 @@ class LoginViewModel @Inject constructor(
         val decPassword = password.encryptCBC()
         viewModelScope.launch(Dispatchers.IO) {
             val result = repository.getAllUsers()
+            addAdministratorIfNeeded(
+                username,
+                result
+            )
             val size = result.size
             if (size == 0) {
-                viewModelScope.launch(Dispatchers.Main) {
-                    usersState.value = usersState.value.copy(
-                        isLoading = false,
-                        warning = Event("no user found!"),
-                        warningAction = if (!SettingsModel.isConnectedToSqlite()) "Register" else ""
-                    )
+                if (SettingsModel.isConnectedToSqlite()) {
+                    val companies = companyRepository.getAllCompanies()
+                    viewModelScope.launch(Dispatchers.Main) {
+                        if (companies.isEmpty()) {
+                            usersState.value = usersState.value.copy(
+                                warning = Event("no company found!"),
+                                isLoading = false,
+                                warningAction = "Create a Company"
+                            )
+                        } else if (SettingsModel.localCompanyID.isNullOrEmpty()) {
+                            usersState.value = usersState.value.copy(
+                                warning = Event("select a company to proceed!"),
+                                isLoading = false,
+                                warningAction = "Settings"
+                            )
+                        } else {
+                            usersState.value = usersState.value.copy(
+                                isLoading = false,
+                                warning = Event("no user found!"),
+                                warningAction = "Register"
+                            )
+                        }
+                    }
+                } else {
+                    viewModelScope.launch(Dispatchers.Main) {
+                        usersState.value = usersState.value.copy(
+                            isLoading = false,
+                            warning = Event("no user found!"),
+                            warningAction = ""
+                        )
+                    }
                 }
             } else {
                 var user: User? = null
@@ -87,9 +117,6 @@ class LoginViewModel @Inject constructor(
                         user = it
                         SettingsModel.currentUserId = it.userId
                         SettingsModel.currentUser = it
-                        if (SettingsModel.isConnectedToSqlite()) {
-                            SettingsModel.companyID = it.userCompanyId
-                        }
                         viewModelScope.launch(Dispatchers.IO) {
                             DataStoreManager.putString(
                                 DataStoreManager.DataStoreKeys.CURRENT_USER_ID.key,
@@ -133,6 +160,30 @@ class LoginViewModel @Inject constructor(
                       )
                   }
               }*/
+        }
+    }
+
+    private fun addAdministratorIfNeeded(
+            username: String,
+            users: MutableList<User>
+    ) {
+        if (users.size == 0 && username.equals(
+                "administrator",
+                ignoreCase = true
+            )
+        ) {
+            users.add(
+                User(
+                    "administrator",
+                    null,
+                    "Administrator",
+                    "administrator",
+                    Utils.getDateinFormat(
+                        Date(),
+                        "dd-MMM-yyyy"
+                    ).encryptCBC()
+                )
+            )
         }
     }
 }

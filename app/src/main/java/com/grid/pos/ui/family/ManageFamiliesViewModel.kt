@@ -10,6 +10,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
@@ -70,21 +71,23 @@ class ManageFamiliesViewModel @Inject constructor(
             isLoading = true
         )
         val isInserting = family.isNew()
-        manageFamiliesState.value.selectedFamily.let {
-            CoroutineScope(Dispatchers.IO).launch {
-                if (isInserting) {
-                    it.prepareForInsert()
-                    val addedModel = familyRepository.insert(it)
-                    val families = manageFamiliesState.value.families
-                    families.add(addedModel)
+        CoroutineScope(Dispatchers.IO).launch {
+            if (isInserting) {
+                family.prepareForInsert()
+                val addedModel = familyRepository.insert(family)
+                val families = manageFamiliesState.value.families
+                families.add(addedModel)
+                withContext(Dispatchers.Main) {
                     manageFamiliesState.value = manageFamiliesState.value.copy(
                         families = families,
                         selectedFamily = Family(),
                         isLoading = false,
                         clear = true,
                     )
-                } else {
-                    familyRepository.update(it)
+                }
+            } else {
+                familyRepository.update(family)
+                withContext(Dispatchers.Main) {
                     manageFamiliesState.value = manageFamiliesState.value.copy(
                         selectedFamily = Family(),
                         isLoading = false,

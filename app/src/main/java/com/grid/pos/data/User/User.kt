@@ -4,7 +4,6 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Ignore
 import androidx.room.PrimaryKey
-import com.google.errorprone.annotations.Keep
 import com.google.firebase.firestore.Exclude
 import com.google.firebase.firestore.PropertyName
 import com.grid.pos.data.DataModel
@@ -99,10 +98,10 @@ data class User(
 
     @Exclude
     override fun prepareForInsert() {
-        if (userId.isNullOrEmpty()) {
+        if (userId.isEmpty()) {
             userId = Utils.generateRandomUuidString()
         }
-        userCompanyId = SettingsModel.companyID
+        userCompanyId = SettingsModel.getCompanyID()
     }
 
     @Exclude

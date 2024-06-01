@@ -57,11 +57,10 @@ class ManageThirdPartiesViewModel @Inject constructor(
             isLoading = true
         )
         val isInserting = thirdParty.isNew()
-        manageThirdPartiesState.value.selectedThirdParty.let {
             CoroutineScope(Dispatchers.IO).launch {
                 if (isInserting) {
-                    it.prepareForInsert()
-                    val addedModel = thirdPartyRepository.insert(it)
+                    thirdParty.prepareForInsert()
+                    val addedModel = thirdPartyRepository.insert(thirdParty)
                     val thirdParties = manageThirdPartiesState.value.thirdParties
                     thirdParties.add(addedModel)
                     viewModelScope.launch(Dispatchers.Main) {
@@ -73,7 +72,7 @@ class ManageThirdPartiesViewModel @Inject constructor(
                         )
                     }
                 } else {
-                    thirdPartyRepository.update(it)
+                    thirdPartyRepository.update(thirdParty)
                     viewModelScope.launch(Dispatchers.Main) {
                         manageThirdPartiesState.value = manageThirdPartiesState.value.copy(
                             selectedThirdParty = thirdParty,
@@ -83,7 +82,6 @@ class ManageThirdPartiesViewModel @Inject constructor(
                     }
                 }
             }
-        }
     }
 
     fun deleteSelectedThirdParty() {

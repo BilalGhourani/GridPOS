@@ -1,6 +1,5 @@
 package com.grid.pos.ui.settings
 
-import android.annotation.SuppressLint
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
@@ -36,6 +35,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -55,6 +55,8 @@ import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
 import com.grid.pos.ActivityScopedViewModel
 import com.grid.pos.App
+import com.grid.pos.data.Company.Company
+import com.grid.pos.data.DataModel
 import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.ColorPickerPopup
@@ -90,8 +92,19 @@ fun SettingsView(
     var firebaseApiKey by remember { mutableStateOf(SettingsModel.firebaseApiKey ?: "") }
     var firebaseProjectId by remember { mutableStateOf(SettingsModel.firebaseProjectId ?: "") }
     var firebaseDbPath by remember { mutableStateOf(SettingsModel.firebaseDbPath ?: "") }
-    var companyID by remember { mutableStateOf(SettingsModel.companyID ?: "") }
+    var fireStoreCompanyID by remember { mutableStateOf(SettingsModel.fireStoreCompanyID ?: "") }
+    var localCompanyID by remember { mutableStateOf(SettingsModel.localCompanyID ?: "") }
+    var localCompanyName by remember { mutableStateOf("") }
     var sqlServerPath by remember { mutableStateOf(SettingsModel.sqlServerPath ?: "") }
+
+    val companies = remember { mutableStateListOf<Company>() }
+    if (companies.isEmpty()) {
+        activityScopedViewModel.getLocalCompanies { comps ->
+            companies.addAll(comps)
+            val selected = comps.firstOrNull { it.companyId.equals(localCompanyID) }
+            localCompanyName = selected?.companyName ?: ""
+        }
+    }
 
     val firebaseApiKeyRequester = remember { FocusRequester() }
     val firebaseProjectIdRequester = remember { FocusRequester() }
@@ -259,12 +272,12 @@ fun SettingsView(
                                 }
 
                                 UITextField(modifier = Modifier.padding(10.dp),
-                                    defaultValue = companyID,
+                                    defaultValue = fireStoreCompanyID,
                                     label = "Company ID",
                                     placeHolder = "Company ID",
                                     focusRequester = companyIdRequester,
                                     onAction = { printerRequester.requestFocus() }) { compId ->
-                                    companyID = compId
+                                    fireStoreCompanyID = compId
                                 }
                             } else if (connectionTypeState == CONNECTION_TYPE.SQL_SERVER.key) {
                                 UITextField(
@@ -276,6 +289,15 @@ fun SettingsView(
                                     imeAction = ImeAction.Done
                                 ) { path ->
                                     sqlServerPath = path
+                                }
+                            } else {
+                                SearchableDropdownMenu(items = companies.toMutableList(),
+                                    modifier = Modifier.padding(10.dp),
+                                    enableSearch = false,
+                                    color = LightGrey,
+                                    label = localCompanyName.ifEmpty { "Select Company" }) { company ->
+                                    company as Company
+                                    localCompanyID = company.companyId
                                 }
                             }
 
@@ -299,45 +321,55 @@ fun SettingsView(
                                         DataStoreManager.DataStoreKeys.CONNECTION_TYPE.key,
                                         connectionTypeState
                                     )
+                                    when (connectionTypeState) {
+                                        CONNECTION_TYPE.FIRESTORE.key -> {
+                                            SettingsModel.firebaseApplicationId = firebaseApplicationId
+                                            DataStoreManager.putString(
+                                                DataStoreManager.DataStoreKeys.FIREBASE_APP_ID.key,
+                                                firebaseApplicationId
+                                            )
 
-                                    SettingsModel.firebaseApplicationId = firebaseApplicationId
-                                    DataStoreManager.putString(
-                                        DataStoreManager.DataStoreKeys.FIREBASE_APP_ID.key,
-                                        firebaseApplicationId
-                                    )
-                                    SettingsModel.firebaseApiKey = firebaseApiKey
-                                    DataStoreManager.putString(
-                                        DataStoreManager.DataStoreKeys.FIREBASE_API_KEY.key,
-                                        firebaseApiKey
-                                    )
-                                    SettingsModel.firebaseProjectId = firebaseProjectId
-                                    DataStoreManager.putString(
-                                        DataStoreManager.DataStoreKeys.FIREBASE_PROJECT_ID.key,
-                                        firebaseProjectId
-                                    )
-                                    SettingsModel.firebaseDbPath = firebaseDbPath
-                                    DataStoreManager.putString(
-                                        DataStoreManager.DataStoreKeys.FIREBASE_DB_PATH.key,
-                                        firebaseDbPath
-                                    )
-                                    SettingsModel.firebaseDbPath = firebaseDbPath
-                                    DataStoreManager.putString(
-                                        DataStoreManager.DataStoreKeys.FIREBASE_DB_PATH.key,
-                                        firebaseDbPath
-                                    )
-                                    SettingsModel.companyID = companyID
-                                    DataStoreManager.putString(
-                                        DataStoreManager.DataStoreKeys.COMPANY_ID.key,
-                                        companyID
-                                    )
+                                            SettingsModel.firebaseApiKey = firebaseApiKey
+                                            DataStoreManager.putString(
+                                                DataStoreManager.DataStoreKeys.FIREBASE_API_KEY.key,
+                                                firebaseApiKey
+                                            )
+                                            SettingsModel.firebaseProjectId = firebaseProjectId
+                                            DataStoreManager.putString(
+                                                DataStoreManager.DataStoreKeys.FIREBASE_PROJECT_ID.key,
+                                                firebaseProjectId
+                                            )
+                                            SettingsModel.firebaseDbPath = firebaseDbPath
+                                            DataStoreManager.putString(
+                                                DataStoreManager.DataStoreKeys.FIREBASE_DB_PATH.key,
+                                                firebaseDbPath
+                                            )
+                                            SettingsModel.fireStoreCompanyID = fireStoreCompanyID
+                                            DataStoreManager.putString(
+                                                DataStoreManager.DataStoreKeys.FIRESTORE_COMPANY_ID.key,
+                                                fireStoreCompanyID
+                                            )
 
-                                    SettingsModel.sqlServerPath = sqlServerPath
-                                    DataStoreManager.putString(
-                                        DataStoreManager.DataStoreKeys.SQL_SERVER_PATH.key,
-                                        sqlServerPath
-                                    )
-                                    if (SettingsModel.isConnectedToFireStore()) {
-                                        App.getInstance().initFirebase()
+                                            if (SettingsModel.isConnectedToFireStore()) {
+                                                App.getInstance().initFirebase()
+                                            }
+                                        }
+
+                                        CONNECTION_TYPE.SQL_SERVER.key -> {
+                                            SettingsModel.sqlServerPath = sqlServerPath
+                                            DataStoreManager.putString(
+                                                DataStoreManager.DataStoreKeys.SQL_SERVER_PATH.key,
+                                                sqlServerPath
+                                            )
+                                        }
+
+                                        CONNECTION_TYPE.LOCAL.key -> {
+                                            SettingsModel.localCompanyID = localCompanyID
+                                            DataStoreManager.putString(
+                                                DataStoreManager.DataStoreKeys.LOCAL_COMPANY_ID.key,
+                                                localCompanyID
+                                            )
+                                        }
                                     }
                                     delay(1000L)
                                     withContext(Dispatchers.Main) {

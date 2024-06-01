@@ -220,8 +220,13 @@ object DataStoreManager {
         }*/
 
 
-        SettingsModel.companyID = getString(
-            DataStoreKeys.COMPANY_ID.key,
+        SettingsModel.fireStoreCompanyID = getString(
+            DataStoreKeys.FIRESTORE_COMPANY_ID.key,
+            ""
+        )
+
+        SettingsModel.localCompanyID = getString(
+            DataStoreKeys.LOCAL_COMPANY_ID.key,
             ""
         )
 
@@ -240,7 +245,7 @@ object DataStoreManager {
         FIREBASE_PROJECT_ID("FIREBASE_PROJECT_ID"), FIREBASE_DB_PATH(
             "FIREBASE_DB_PATH"
         ),
-        COMPANY_ID("COMPANY_ID"),
+        FIRESTORE_COMPANY_ID("FIRESTORE_COMPANY_ID"), LOCAL_COMPANY_ID("LOCAL_COMPANY_ID"),
 
         SQL_SERVER_PATH("SQL_SERVER_PATH"),
 

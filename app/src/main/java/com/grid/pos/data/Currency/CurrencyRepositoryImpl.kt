@@ -51,7 +51,7 @@ class CurrencyRepositoryImpl(
         if (SettingsModel.isConnectedToFireStore()) {
             val querySnapshot = FirebaseFirestore.getInstance().collection("currency").whereEqualTo(
                 "cur_cmp_id",
-                SettingsModel.companyID
+                SettingsModel.getCompanyID()
             ).get().await()
             val currencies = mutableListOf<Currency>()
             if (querySnapshot.size() > 0) {

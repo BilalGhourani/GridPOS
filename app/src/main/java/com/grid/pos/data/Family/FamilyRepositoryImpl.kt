@@ -49,7 +49,7 @@ class FamilyRepositoryImpl(
             val querySnapshot = FirebaseFirestore.getInstance().collection("st_family")
                 .whereEqualTo(
                     "fa_cmp_id",
-                    SettingsModel.companyID
+                    SettingsModel.getCompanyID()
                 ).get().await()
             val families = mutableListOf<Family>()
             if (querySnapshot.size() > 0) {

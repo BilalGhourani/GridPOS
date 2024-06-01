@@ -49,7 +49,7 @@ class ThirdPartyRepositoryImpl(
             val querySnapshot = FirebaseFirestore.getInstance().collection("thirdParty")
                 .whereEqualTo(
                     "tp_cmp_id",
-                    SettingsModel.companyID
+                    SettingsModel.getCompanyID()
                 ).get().await()
             val thirdParties = mutableListOf<ThirdParty>()
             if (querySnapshot.size() > 0) {

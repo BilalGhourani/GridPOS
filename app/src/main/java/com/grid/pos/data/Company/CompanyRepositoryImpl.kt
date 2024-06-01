@@ -83,4 +83,8 @@ class CompanyRepositoryImpl(
             return companyDao.getAllCompanies()
         }
     }
+
+    override suspend fun getLocalCompanies(): MutableList<Company> {
+        return companyDao.getAllCompanies()
+    }
 }

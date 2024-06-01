@@ -4,7 +4,6 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Ignore
 import androidx.room.PrimaryKey
-import com.google.firebase.Timestamp
 import com.google.firebase.firestore.Exclude
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.PropertyName
@@ -134,10 +133,10 @@ data class ThirdParty(
 
     @Exclude
     override fun prepareForInsert() {
-        if (thirdPartyId.isNullOrEmpty()) {
+        if (thirdPartyId.isEmpty()) {
             thirdPartyId = Utils.generateRandomUuidString()
         }
-        thirdPartyCompId = SettingsModel.companyID
+        thirdPartyCompId = SettingsModel.getCompanyID()
         thirdPartyUserStamp = SettingsModel.currentUserId
     }
 

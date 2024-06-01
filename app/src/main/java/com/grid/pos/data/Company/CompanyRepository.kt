@@ -17,6 +17,7 @@ interface CompanyRepository {
 
     // Get all Companies logs as stream.
     suspend fun getAllCompanies(): MutableList<Company>
+    suspend fun getLocalCompanies(): MutableList<Company>
 
 
 }

@@ -56,7 +56,7 @@ class InvoiceHeaderRepositoryImpl(
             val querySnapshot = FirebaseFirestore.getInstance().collection("in_hinvoice")
                 .whereEqualTo(
                     "hi_cmp_id",
-                    SettingsModel.companyID
+                    SettingsModel.getCompanyID()
                 ).get().await()
             val invoices = mutableListOf<InvoiceHeader>()
             if (querySnapshot.size() > 0) {
@@ -81,7 +81,7 @@ class InvoiceHeaderRepositoryImpl(
             val querySnapshot = FirebaseFirestore.getInstance().collection("in_hinvoice")
                 .whereEqualTo(
                     "hi_cmp_id",
-                    SettingsModel.companyID
+                    SettingsModel.getCompanyID()
                 ).whereEqualTo(
                     "hi_tt_code",
                     type
@@ -110,7 +110,7 @@ class InvoiceHeaderRepositoryImpl(
             val querySnapshot = FirebaseFirestore.getInstance().collection("in_hinvoice")
                 .whereEqualTo(
                     "hi_cmp_id",
-                    SettingsModel.companyID
+                    SettingsModel.getCompanyID()
                 ).whereEqualTo(
                     "hi_ta_name",
                     tableNo
@@ -137,7 +137,7 @@ class InvoiceHeaderRepositoryImpl(
             val querySnapshot = FirebaseFirestore.getInstance().collection("in_hinvoice")
                 .whereEqualTo(
                     "hi_cmp_id",
-                    SettingsModel.companyID
+                    SettingsModel.getCompanyID()
                 )/*  .whereGreaterThanOrEqualTo(
                       "hi_timestamp",
                       from

@@ -48,7 +48,7 @@ class ItemRepositoryImpl(
         if (SettingsModel.isConnectedToFireStore()) {
             val querySnapshot = FirebaseFirestore.getInstance().collection("st_item").whereEqualTo(
                 "it_cmp_id",
-                SettingsModel.companyID
+                SettingsModel.getCompanyID()
             ).get().await()
 
             val items = mutableListOf<Item>()

@@ -4,7 +4,6 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Ignore
 import androidx.room.PrimaryKey
-import com.google.errorprone.annotations.Keep
 import com.google.firebase.firestore.Exclude
 import com.google.firebase.firestore.PropertyName
 import com.grid.pos.data.DataModel
@@ -90,10 +89,10 @@ data class PosPrinter(
 
     @Exclude
     override fun prepareForInsert() {
-        if (posPrinterId.isNullOrEmpty()) {
+        if (posPrinterId.isEmpty()) {
             posPrinterId = Utils.generateRandomUuidString()
         }
-        posPrinterCompId = SettingsModel.companyID
+        posPrinterCompId = SettingsModel.getCompanyID()
     }
 
     @Exclude

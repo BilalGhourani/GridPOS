@@ -4,7 +4,6 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Ignore
 import androidx.room.PrimaryKey
-import com.google.firebase.Timestamp
 import com.google.firebase.firestore.Exclude
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.PropertyName
@@ -271,7 +270,7 @@ data class InvoiceHeader(
         if (invoiceHeadId.isEmpty()) {
             invoiceHeadId = Utils.generateRandomUuidString()
         }
-        invoiceHeadCompId = SettingsModel.companyID
+        invoiceHeadCompId = SettingsModel.getCompanyID()
         invoiceHeadUserStamp = SettingsModel.currentUserId
     }
 
