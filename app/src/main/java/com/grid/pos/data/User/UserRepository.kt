@@ -1,25 +1,26 @@
 package com.grid.pos.data.User
 
-import com.grid.pos.interfaces.OnResult
-
 interface UserRepository {
 
     // suspend is a coroutine keyword,
     // instead of having a callback we can just wait till insert is done
-    suspend fun insert(user: User, callback: OnResult? = null)
+    suspend fun insert(user: User): User
 
     // Delete an User
-    suspend fun delete(user: User, callback: OnResult? = null)
+    suspend fun delete(user: User)
 
     // Update an User
-    suspend fun update(user: User, callback: OnResult? = null)
+    suspend fun update(user: User)
 
     // Get User by it's ID
-    suspend fun getUserById(id: String, callback: OnResult?)
+    suspend fun getUserById(id: String): User?
 
     // Get User by it's ID
-    suspend fun getUserByCredentials(username: String, password: String, callback: OnResult?)
+    suspend fun getUserByCredentials(
+            username: String,
+            password: String
+    ): User?
 
     // Get all Users as stream.
-    suspend fun getAllUsers(callback: OnResult? = null)
+    suspend fun getAllUsers(): MutableList<User>
 }

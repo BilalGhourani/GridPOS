@@ -40,6 +40,6 @@ interface PosPrinterDao {
 
     // Get all POS Printers as stream.
     @Query("SELECT * FROM `pos_printer`")
-    fun getAllPosPrinters(): Flow<List<PosPrinter>>
+    fun getAllPosPrinters(): MutableList<PosPrinter>
 
 }

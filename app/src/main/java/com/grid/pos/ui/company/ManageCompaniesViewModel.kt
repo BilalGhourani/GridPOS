@@ -6,9 +6,7 @@ import com.grid.pos.data.Company.Company
 import com.grid.pos.data.Company.CompanyRepository
 import com.grid.pos.data.Currency.Currency
 import com.grid.pos.data.Currency.CurrencyRepository
-import com.grid.pos.data.PosPrinter.PosPrinter
 import com.grid.pos.data.PosPrinter.PosPrinterRepository
-import com.grid.pos.interfaces.OnResult
 import com.grid.pos.model.Event
 import com.grid.pos.model.SettingsModel
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -51,73 +49,30 @@ class ManageCompaniesViewModel @Inject constructor(
     }
 
     private suspend fun fetchCompanies() {
-        companyRepository.getAllCompanies(object : OnResult {
-            override fun onSuccess(result: Any) {
-                val listOfCompanies = mutableListOf<Company>()
-                (result as List<*>).forEach {
-                    listOfCompanies.add(it as Company)
-                }
-                viewModelScope.launch(Dispatchers.Main) {
-                    manageCompaniesState.value = manageCompaniesState.value.copy(
-                        companies = listOfCompanies
-                    )
-                }
-            }
-
-            override fun onFailure(
-                    message: String,
-                    errorCode: Int
-            ) {
-
-            }
-
-        })
+        val companies = companyRepository.getAllCompanies()
+        viewModelScope.launch(Dispatchers.Main) {
+            manageCompaniesState.value = manageCompaniesState.value.copy(
+                companies = companies
+            )
+        }
     }
 
     private suspend fun fetchCurrencies() {
-        currencyRepository.getAllCurrencies(object : OnResult {
-            override fun onSuccess(result: Any) {
-                val listOfCurrencies = mutableListOf<Currency>()
-                (result as List<*>).forEach {
-                    listOfCurrencies.add(it as Currency)
-                }
-                viewModelScope.launch(Dispatchers.Main) {
-                    manageCompaniesState.value = manageCompaniesState.value.copy(
-                        currencies = listOfCurrencies
-                    )
-                }
-            }
-
-            override fun onFailure(
-                    message: String,
-                    errorCode: Int
-            ) {
-
-            }
-
-        })
+        val currencies = currencyRepository.getAllCurrencies()
+        viewModelScope.launch(Dispatchers.Main) {
+            manageCompaniesState.value = manageCompaniesState.value.copy(
+                currencies = currencies
+            )
+        }
     }
 
     private suspend fun fetchPrinters() {
-        posPrinterRepository.getAllPosPrinters(object : OnResult {
-            override fun onSuccess(result: Any) {
-                val listOfPrinters = mutableListOf<PosPrinter>()
-                (result as List<*>).forEach {
-                    listOfPrinters.add(it as PosPrinter)
-                }
-                viewModelScope.launch(Dispatchers.Main) {
-                    manageCompaniesState.value = manageCompaniesState.value.copy(
-                        printers = listOfPrinters
-                    )
-                }
-            }
-
-            override fun onFailure(
-                    message: String,
-                    errorCode: Int
-            ) {
-            }
-        })
+        val listOfPrinters = posPrinterRepository.getAllPosPrinters()
+        viewModelScope.launch(Dispatchers.Main) {
+            manageCompaniesState.value = manageCompaniesState.value.copy(
+                printers = listOfPrinters
+            )
+        }
     }
 
     fun saveCompany(company: Company) {
@@ -134,51 +89,24 @@ class ManageCompaniesViewModel @Inject constructor(
             isLoading = true
         )
         val isInserting = company.isNew()
-        val callback = object : OnResult {
-            override fun onSuccess(result: Any) {
-                viewModelScope.launch(Dispatchers.Main) {
-                    val addedModel = result as Company
-                    if (addedModel.companyId.equals(
-                            SettingsModel.currentCompany?.companyId,
-                            ignoreCase = true
-                        )
-                    ) {
-                        SettingsModel.currentCompany = addedModel
-                    }
-                    val companies = manageCompaniesState.value.companies
-                    if (isInserting) companies.add(addedModel)
-                    manageCompaniesState.value = manageCompaniesState.value.copy(
-                        companies = companies,
-                        selectedCompany = Company(),
-                        isLoading = false,
-                        clear = true
-                    )
-                }
-            }
-
-            override fun onFailure(
-                    message: String,
-                    errorCode: Int
-            ) {
-                viewModelScope.launch(Dispatchers.Main) {
-                    manageCompaniesState.value = manageCompaniesState.value.copy(
-                        isLoading = false
-                    )
-                }
-            }
-
-        }
         CoroutineScope(Dispatchers.IO).launch {
             if (isInserting) {
                 company.prepareForInsert()
-                companyRepository.insert(
-                    company,
-                    callback
+                val addedCompany = companyRepository.insert(company)
+                val companies = manageCompaniesState.value.companies
+                companies.add(addedCompany)
+                manageCompaniesState.value = manageCompaniesState.value.copy(
+                    companies = companies,
+                    selectedCompany = Company(),
+                    isLoading = false,
+                    clear = true
                 )
             } else {
-                companyRepository.update(
-                    company,
-                    callback
+                companyRepository.update(company)
+                manageCompaniesState.value = manageCompaniesState.value.copy(
+                    selectedCompany = company,
+                    isLoading = false,
+                    clear = true
                 )
             }
         }
@@ -199,41 +127,17 @@ class ManageCompaniesViewModel @Inject constructor(
         )
 
         CoroutineScope(Dispatchers.IO).launch {
-            companyRepository.delete(company,
-                object : OnResult {
-                    override fun onSuccess(result: Any) {
-                        val companies = manageCompaniesState.value.companies
-                        val position = companies.indexOfFirst {
-                            company.companyId.equals(
-                                it.companyId,
-                                ignoreCase = true
-                            )
-                        }
-                        if (position >= 0) {
-                            companies.removeAt(position)
-                        }
-                        viewModelScope.launch(Dispatchers.Main) {
-                            manageCompaniesState.value = manageCompaniesState.value.copy(
-                                companies = companies,
-                                selectedCompany = Company(),
-                                isLoading = false,
-                                clear = true
-                            )
-                        }
-                    }
-
-                    override fun onFailure(
-                            message: String,
-                            errorCode: Int
-                    ) {
-                        viewModelScope.launch(Dispatchers.Main) {
-                            manageCompaniesState.value = manageCompaniesState.value.copy(
-                                isLoading = false
-                            )
-                        }
-                    }
-
-                })
+            companyRepository.delete(company)
+            val companies = manageCompaniesState.value.companies
+            companies.remove(company)
+            viewModelScope.launch(Dispatchers.Main) {
+                manageCompaniesState.value = manageCompaniesState.value.copy(
+                    companies = companies,
+                    selectedCompany = Company(),
+                    isLoading = false,
+                    clear = true
+                )
+            }
         }
     }
 

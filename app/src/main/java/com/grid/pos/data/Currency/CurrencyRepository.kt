@@ -1,24 +1,21 @@
 package com.grid.pos.data.Currency
 
-import com.grid.pos.interfaces.OnResult
-import kotlinx.coroutines.flow.Flow
-
 interface CurrencyRepository {
 
     // suspend is a coroutine keyword,
     // instead of having a callback we can just wait till insert is done
-    suspend fun insert(currency: Currency,callback: OnResult? = null)
+    suspend fun insert(currency: Currency): Currency
 
     // Delete a Currency
-    suspend fun delete(currency: Currency,callback: OnResult? = null)
+    suspend fun delete(currency: Currency)
 
     // Update a Currency
-    suspend fun update(currency: Currency,callback: OnResult? = null)
+    suspend fun update(currency: Currency)
 
     // Get Currency by it's ID
-    suspend fun getCurrencyById(id: String): Currency
+    suspend fun getCurrencyById(id: String): Currency?
 
     // Get all Currencies as stream.
-   suspend fun getAllCurrencies(callback: OnResult? = null)
+    suspend fun getAllCurrencies(): MutableList<Currency>
 
 }

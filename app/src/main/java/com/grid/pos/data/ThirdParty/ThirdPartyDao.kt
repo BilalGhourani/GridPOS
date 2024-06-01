@@ -39,9 +39,9 @@ interface ThirdPartyDao {
 
     // Get all Third Parties as stream.
     @Query("SELECT * FROM `thirdparty`")
-    fun getAllThirdParties(): Flow<List<ThirdParty>>
+    fun getAllThirdParties(): MutableList<ThirdParty>
 
     // Get searched Third Parties as stream.
     @Query("SELECT * FROM `thirdparty` WHERE tp_name LIKE '%' || :key || '%'")
-    fun searchForThirdParties(key: String): Flow<List<ThirdParty>>
+    fun searchForThirdParties(key: String): MutableList<ThirdParty>
 }

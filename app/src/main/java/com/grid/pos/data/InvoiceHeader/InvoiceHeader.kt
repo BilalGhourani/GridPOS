@@ -268,7 +268,7 @@ data class InvoiceHeader(
 
     @Exclude
     override fun prepareForInsert() {
-        if (invoiceHeadId.isNullOrEmpty()) {
+        if (invoiceHeadId.isEmpty()) {
             invoiceHeadId = Utils.generateRandomUuidString()
         }
         invoiceHeadCompId = SettingsModel.companyID

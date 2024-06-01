@@ -85,7 +85,7 @@ data class Family(
 
     @Exclude
     override fun prepareForInsert() {
-        if (familyId.isNullOrEmpty()) {
+        if (familyId.isEmpty()) {
             familyId = Utils.generateRandomUuidString()
         }
         familyCompanyId = SettingsModel.companyID

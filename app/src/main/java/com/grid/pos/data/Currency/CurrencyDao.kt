@@ -39,5 +39,5 @@ interface CurrencyDao {
 
     // Get all Currencies as stream.
     @Query("SELECT * FROM `currency`")
-    fun getAllCurrencies(): Flow<List<Currency>>
+    fun getAllCurrencies(): MutableList<Currency>
 }

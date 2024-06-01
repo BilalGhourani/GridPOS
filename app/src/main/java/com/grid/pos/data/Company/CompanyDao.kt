@@ -38,9 +38,9 @@ interface CompanyDao {
 
     // Get all Companies as stream.
     @Query("SELECT * FROM `company`")
-    fun getAllCompanies(): Flow<List<Company>>
+    fun getAllCompanies(): MutableList<Company>
 
     // Get searched Companies as stream.
     @Query("SELECT * FROM `company` WHERE cmp_name LIKE '%' || :key || '%'")
-    fun searchForCompanies(key: String): Flow<List<Company>>
+    fun searchForCompanies(key: String): List<Company>
 }

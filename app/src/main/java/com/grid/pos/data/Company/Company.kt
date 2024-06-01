@@ -178,7 +178,7 @@ data class Company(
 
     @Exclude
     override fun prepareForInsert() {
-        if (companyId.isNullOrEmpty()) {
+        if (companyId.isEmpty()) {
             companyId = Utils.generateRandomUuidString()
         }
     }

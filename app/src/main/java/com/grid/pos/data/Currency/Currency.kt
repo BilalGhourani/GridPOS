@@ -114,7 +114,7 @@ data class Currency(
 
     @Exclude
     override fun prepareForInsert() {
-        if (currencyId.isNullOrEmpty()) {
+        if (currencyId.isEmpty()) {
             currencyId = Utils.generateRandomUuidString()
         }
         currencyCompId = SettingsModel.companyID

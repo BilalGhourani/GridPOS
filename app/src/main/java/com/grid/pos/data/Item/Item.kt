@@ -213,7 +213,7 @@ data class Item(
 
     @Exclude
     override fun prepareForInsert() {
-        if (itemId.isNullOrEmpty()) {
+        if (itemId.isEmpty()) {
             itemId = Utils.generateRandomUuidString()
         }
         itemCompId = SettingsModel.companyID

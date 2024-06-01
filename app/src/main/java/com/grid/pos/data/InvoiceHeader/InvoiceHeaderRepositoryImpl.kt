@@ -2,62 +2,48 @@ package com.grid.pos.data.InvoiceHeader
 
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
-import com.grid.pos.data.Invoice.Invoice
-import com.grid.pos.interfaces.OnResult
 import com.grid.pos.model.SettingsModel
+import kotlinx.coroutines.tasks.await
 import java.util.Date
 
 class InvoiceHeaderRepositoryImpl(
-    private val invoiceHeaderDao: InvoiceHeaderDao
+        private val invoiceHeaderDao: InvoiceHeaderDao
 ) : InvoiceHeaderRepository {
-    override suspend fun insert(invoiceHeader: InvoiceHeader, callback: OnResult?) {
+    override suspend fun insert(invoiceHeader: InvoiceHeader): InvoiceHeader {
         if (SettingsModel.isConnectedToFireStore()) {
-            FirebaseFirestore.getInstance().collection("in_hinvoice")
-                .add(invoiceHeader.getMap())
-                .addOnSuccessListener {
-                    invoiceHeader.invoiceHeadDocumentId = it.id
-                    callback?.onSuccess(invoiceHeader)
-                }
-                .addOnFailureListener { e ->
-                    callback?.onFailure(e.message.toString())
-                }
+            val docRef = FirebaseFirestore.getInstance().collection("in_hinvoice")
+                .add(invoiceHeader.getMap()).await()
+            invoiceHeader.invoiceHeadDocumentId = docRef.id
         } else {
             invoiceHeaderDao.insert(invoiceHeader)
-            callback?.onSuccess(invoiceHeader)
         }
+        return invoiceHeader
     }
 
-    override suspend fun delete(invoiceHeader: InvoiceHeader, callback: OnResult?) {
+    override suspend fun delete(
+            invoiceHeader: InvoiceHeader
+    ) {
         if (SettingsModel.isConnectedToFireStore()) {
-            FirebaseFirestore.getInstance().collection("in_hinvoice")
-                .document(invoiceHeader.invoiceHeadDocumentId!!)
-                .delete()
-                .addOnSuccessListener {
-                    callback?.onSuccess(invoiceHeader)
-                }
-                .addOnFailureListener { e ->
-                    callback?.onFailure(e.message.toString())
-                }
+            invoiceHeader.invoiceHeadDocumentId?.let {
+                FirebaseFirestore.getInstance().collection("in_hinvoice")
+                    .document(it).delete().await()
+            }
         } else {
             invoiceHeaderDao.delete(invoiceHeader)
-            callback?.onSuccess(invoiceHeader)
         }
     }
 
-    override suspend fun update(invoiceHeader: InvoiceHeader, callback: OnResult?) {
+    override suspend fun update(
+            invoiceHeader: InvoiceHeader
+    ) {
         if (SettingsModel.isConnectedToFireStore()) {
-            FirebaseFirestore.getInstance().collection("in_hinvoice")
-                .document(invoiceHeader.invoiceHeadDocumentId!!)
-                .update(invoiceHeader.getMap())
-                .addOnSuccessListener {
-                    callback?.onSuccess(invoiceHeader)
-                }
-                .addOnFailureListener { e ->
-                    callback?.onFailure(e.message.toString())
-                }
+            invoiceHeader.invoiceHeadDocumentId?.let {
+                FirebaseFirestore.getInstance().collection("in_hinvoice")
+                    .document(it).update(invoiceHeader.getMap())
+                    .await()
+            }
         } else {
             invoiceHeaderDao.update(invoiceHeader)
-            callback?.onSuccess(invoiceHeader)
         }
     }
 
@@ -65,133 +51,116 @@ class InvoiceHeaderRepositoryImpl(
         return invoiceHeaderDao.getInvoiceHeaderById(id)
     }
 
-    override suspend fun getAllInvoiceHeaders(callback: OnResult?) {
+    override suspend fun getAllInvoiceHeaders(): MutableList<InvoiceHeader> {
         if (SettingsModel.isConnectedToFireStore()) {
-            FirebaseFirestore.getInstance().collection("in_hinvoice")
-                .whereEqualTo("hi_cmp_id", SettingsModel.companyID)
-                .get()
-                .addOnSuccessListener { result ->
-                    val invoices = mutableListOf<InvoiceHeader>()
-                    if (result.size() > 0) {
-                        for (document in result) {
-                            val obj = document.toObject(InvoiceHeader::class.java)
-                            if (!obj.invoiceHeadId.isNullOrEmpty()) {
-                                obj.invoiceHeadDocumentId = document.id
-                                invoices.add(obj)
-                            }
-                        }
+            val querySnapshot = FirebaseFirestore.getInstance().collection("in_hinvoice")
+                .whereEqualTo(
+                    "hi_cmp_id",
+                    SettingsModel.companyID
+                ).get().await()
+            val invoices = mutableListOf<InvoiceHeader>()
+            if (querySnapshot.size() > 0) {
+                for (document in querySnapshot) {
+                    val obj = document.toObject(InvoiceHeader::class.java)
+                    if (obj.invoiceHeadId.isNotEmpty()) {
+                        obj.invoiceHeadDocumentId = document.id
+                        invoices.add(obj)
                     }
-                    callback?.onSuccess(invoices)
-                }.addOnFailureListener { exception ->
-                    callback?.onFailure(
-                        exception.message ?: "Network error! Can't get items from remote."
-                    )
                 }
-        } else {
-            invoiceHeaderDao.getAllInvoiceHeaders().collect {
-                callback?.onSuccess(it)
             }
+            return invoices
+        } else {
+            return invoiceHeaderDao.getAllInvoiceHeaders()
         }
     }
 
-    override suspend fun getLastInvoiceTransNo(type: String, callback: OnResult?) {
+    override suspend fun getLastInvoiceByType(
+            type: String
+    ): InvoiceHeader? {
         if (SettingsModel.isConnectedToFireStore()) {
-            FirebaseFirestore.getInstance().collection("in_hinvoice")
-                .whereEqualTo("hi_cmp_id", SettingsModel.companyID)
-                .whereEqualTo("hi_tt_code", type)
-                .whereNotEqualTo("hi_orderno", null)
-                .orderBy("hi_orderno", Query.Direction.DESCENDING)
-                .limit(1)
-                .get()
-                .addOnSuccessListener { result ->
-                    val document = result.firstOrNull()
-                    if (document != null) {
-                        val obj = document.toObject(InvoiceHeader::class.java)
-                        callback?.onSuccess(obj)
-                        return@addOnSuccessListener
-                    }
-                    callback?.onSuccess(InvoiceHeader())
-                }.addOnFailureListener { exception ->
-                    callback?.onFailure(
-                        exception.message ?: "Network error."
-                    )
-                }
-
-        } else {
-            invoiceHeaderDao.getLastInvoiceNo(type).collect {
-                callback?.onSuccess(it ?: InvoiceHeader())
+            val querySnapshot = FirebaseFirestore.getInstance().collection("in_hinvoice")
+                .whereEqualTo(
+                    "hi_cmp_id",
+                    SettingsModel.companyID
+                ).whereEqualTo(
+                    "hi_tt_code",
+                    type
+                ).whereNotEqualTo(
+                    "hi_orderno",
+                    null
+                ).orderBy(
+                    "hi_orderno",
+                    Query.Direction.DESCENDING
+                ).limit(1).get().await()
+            val document = querySnapshot.firstOrNull()
+            if (document != null) {
+                val obj = document.toObject(InvoiceHeader::class.java)
+                return obj
             }
+        } else {
+            return invoiceHeaderDao.getLastInvoiceNo(type)
         }
+        return null
     }
 
-    override suspend fun getInvoiceByTable(tableNo: String, callback: OnResult?) {
+    override suspend fun getInvoiceByTable(
+            tableNo: String
+    ): InvoiceHeader? {
         if (SettingsModel.isConnectedToFireStore()) {
-            FirebaseFirestore.getInstance().collection("in_hinvoice")
-                .whereEqualTo("hi_cmp_id", SettingsModel.companyID)
-                .whereEqualTo("hi_ta_name", tableNo)
-                .whereEqualTo("hi_transno", null)
-                .limit(1)
-                .get()
-                .addOnSuccessListener { result ->
-                    val document = result.firstOrNull()
-                    if (document != null) {
-                        val obj = document.toObject(InvoiceHeader::class.java)
-                        callback?.onSuccess(obj)
-                        return@addOnSuccessListener
-                    }
-                    callback?.onSuccess(InvoiceHeader())
-                }.addOnFailureListener { exception ->
-                    callback?.onFailure(
-                        exception.message ?: "Network error."
-                    )
-                }
-
-        } else {
-            invoiceHeaderDao.getInvoiceByTable(tableNo).collect {
-                callback?.onSuccess(it ?: InvoiceHeader())
+            val querySnapshot = FirebaseFirestore.getInstance().collection("in_hinvoice")
+                .whereEqualTo(
+                    "hi_cmp_id",
+                    SettingsModel.companyID
+                ).whereEqualTo(
+                    "hi_ta_name",
+                    tableNo
+                ).whereEqualTo(
+                    "hi_transno",
+                    null
+                ).limit(1).get().await()
+            val document = querySnapshot.firstOrNull()
+            if (document != null) {
+                val obj = document.toObject(InvoiceHeader::class.java)
+                return obj
             }
+            return null
+        } else {
+            return invoiceHeaderDao.getInvoiceByTable(tableNo) ?: InvoiceHeader()
         }
     }
 
     override suspend fun getInvoicesBetween(
-        from: Date,
-        to: Date,
-        callback: OnResult?
-    ) {
+            from: Date,
+            to: Date
+    ): MutableList<InvoiceHeader> {
         if (SettingsModel.isConnectedToFireStore()) {
-            FirebaseFirestore.getInstance().collection("in_hinvoice")
-                .whereEqualTo("hi_cmp_id", SettingsModel.companyID)
-                /*  .whereGreaterThanOrEqualTo(
+            val querySnapshot = FirebaseFirestore.getInstance().collection("in_hinvoice")
+                .whereEqualTo(
+                    "hi_cmp_id",
+                    SettingsModel.companyID
+                )/*  .whereGreaterThanOrEqualTo(
                       "hi_timestamp",
                       from
                   ).whereLessThan(
                       "hi_timestamp",
                       to
-                  )*/
-                .get().addOnSuccessListener { result ->
-                    val invoices = mutableListOf<InvoiceHeader>()
-                    if (result.size() > 0) {
-                        for (document in result) {
-                            val obj = document.toObject(InvoiceHeader::class.java)
-                            if (!obj.invoiceHeadId.isNullOrEmpty()) {
-                                obj.invoiceHeadDocumentId = document.id
-                                invoices.add(obj)
-                            }
-                        }
+                  )*/.get().await()
+            val invoices = mutableListOf<InvoiceHeader>()
+            if (querySnapshot.size() > 0) {
+                for (document in querySnapshot) {
+                    val obj = document.toObject(InvoiceHeader::class.java)
+                    if (obj.invoiceHeadId.isNotEmpty()) {
+                        obj.invoiceHeadDocumentId = document.id
+                        invoices.add(obj)
                     }
-                    callback?.onSuccess(invoices)
-                }.addOnFailureListener { exception ->
-                    callback?.onFailure(
-                        exception.message ?: "Network error! Can't get items from remote."
-                    )
                 }
+            }
+            return invoices
         } else {
-            invoiceHeaderDao.getInvoicesBetween(
+            return invoiceHeaderDao.getInvoicesBetween(
                 from.time * 1000,
                 to.time * 1000
-            ).collect {
-                callback?.onSuccess(it)
-            }
+            )
         }
     }
 }

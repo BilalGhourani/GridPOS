@@ -19,7 +19,6 @@ import com.grid.pos.data.ThirdParty.ThirdParty
 import com.grid.pos.data.ThirdParty.ThirdPartyRepository
 import com.grid.pos.data.User.User
 import com.grid.pos.data.User.UserRepository
-import com.grid.pos.interfaces.OnResult
 import com.grid.pos.model.Event
 import com.grid.pos.model.InvoiceItemModel
 import com.grid.pos.model.SettingsModel
@@ -75,173 +74,68 @@ class ActivityScopedViewModel @Inject constructor(
     private suspend fun fetchCurrencies() {
         if (SettingsModel.currentCurrency == null) {
             viewModelScope.launch(Dispatchers.IO) {
-                currencyRepository.getAllCurrencies(object : OnResult {
-                    override fun onSuccess(result: Any) {
-                        result as List<*>
-                        val listOfCurrencies = mutableListOf<Currency>()
-                        result.forEach {
-                            it as Currency
-                            if (it.currencyCompId.equals(
-                                    SettingsModel.companyID,
-                                    ignoreCase = true
-                                )
-                            ) {
-                                SettingsModel.currentCurrency = it
-                            }
-                            listOfCurrencies.add(it)
-                        }
-                        currencies = listOfCurrencies
-                        if (SettingsModel.currentCurrency == null) {
-                            SettingsModel.currentCurrency = Currency()
-                        }
-                    }
-
-                    override fun onFailure(
-                            message: String,
-                            errorCode: Int
+                currencies = currencyRepository.getAllCurrencies()
+                currencies.forEach {
+                    if (it.currencyCompId.equals(
+                            SettingsModel.companyID,
+                            ignoreCase = true
+                        )
                     ) {
-
+                        SettingsModel.currentCurrency = it
                     }
-                })
+                }
+                if (SettingsModel.currentCurrency == null) {
+                    SettingsModel.currentCurrency = Currency()
+                }
             }
         }
     }
 
     private suspend fun fetchCompanies() {
         viewModelScope.launch(Dispatchers.IO) {
-            companyRepository.getAllCompanies(object : OnResult {
-                override fun onSuccess(result: Any) {
-                    val listOfCompanies = mutableListOf<Company>()
-                    (result as List<*>).forEach {
-                        it as Company
-                        if (it.companyId.equals(
-                                SettingsModel.companyID,
-                                ignoreCase = true
-                            )
-                        ) {
-                            SettingsModel.currentCompany = it
-                        }
-                        listOfCompanies.add(it)
-                    }
-                    companies = listOfCompanies
-                    if (SettingsModel.currentCompany?.companySS == true) {
-                        viewModelScope.launch(Dispatchers.IO) {
-                            SettingsModel.currentUserId = null
-                            SettingsModel.currentUser = null
-                            DataStoreManager.removeKey(
-                                DataStoreManager.DataStoreKeys.CURRENT_USER_ID.key
-                            )
-                            withContext(Dispatchers.Main) {
-                                activityState.value = activityState.value.copy(
-                                    isLoggedIn = false,
-                                    warning = Event(SettingsModel.companyAccessWarning),
-                                    forceLogout = true
-                                )
-                            }
-                        }
-                    }
-                }
-
-                override fun onFailure(
-                        message: String,
-                        errorCode: Int
+            companies = companyRepository.getAllCompanies()
+            companies.forEach {
+                if (it.companyId.equals(
+                        SettingsModel.companyID,
+                        ignoreCase = true
+                    )
                 ) {
-
+                    SettingsModel.currentCompany = it
                 }
-            })
-        }
-    }
-
-    private suspend fun fetchCurrentUser() {
-        if (SettingsModel.currentUser == null && !SettingsModel.currentUserId.isNullOrEmpty()) {
-            viewModelScope.launch(Dispatchers.IO) {
-                userRepository.getUserById(SettingsModel.currentUserId!!,
-                    object : OnResult {
-                        override fun onSuccess(result: Any) {
-                            SettingsModel.currentUser = result as User
-                        }
-
-                        override fun onFailure(
-                                message: String,
-                                errorCode: Int
-                        ) {
-
-                        }
-                    })
+            }
+            if (SettingsModel.currentCompany?.companySS == true) {
+                viewModelScope.launch(Dispatchers.IO) {
+                    SettingsModel.currentUserId = null
+                    SettingsModel.currentUser = null
+                    DataStoreManager.removeKey(
+                        DataStoreManager.DataStoreKeys.CURRENT_USER_ID.key
+                    )
+                    withContext(Dispatchers.Main) {
+                        activityState.value = activityState.value.copy(
+                            isLoggedIn = false,
+                            warning = Event(SettingsModel.companyAccessWarning),
+                            forceLogout = true
+                        )
+                    }
+                }
             }
         }
     }
 
     private suspend fun fetchThirdParties() {
-        thirdPartyRepository.getAllThirdParties(object : OnResult {
-            override fun onSuccess(result: Any) {
-                val listOfThirdParties = mutableListOf<ThirdParty>()
-                (result as List<*>).forEach {
-                    listOfThirdParties.add(it as ThirdParty)
-                }
-                thirdParties = listOfThirdParties
-            }
-
-            override fun onFailure(
-                    message: String,
-                    errorCode: Int
-            ) {
-            }
-        })
+        thirdParties = thirdPartyRepository.getAllThirdParties()
     }
 
     private suspend fun fetchItems() {
-        itemRepository.getAllItems(object : OnResult {
-            override fun onSuccess(result: Any) {
-                val listOfItems = mutableListOf<Item>()
-                (result as List<*>).forEach {
-                    listOfItems.add(it as Item)
-                }
-                items = listOfItems
-            }
-
-            override fun onFailure(
-                    message: String,
-                    errorCode: Int
-            ) {
-            }
-        })
+        items = itemRepository.getAllItems()
     }
 
     private suspend fun fetchFamilies() {
-        familyRepository.getAllFamilies(object : OnResult {
-            override fun onSuccess(result: Any) {
-                val listOfFamilies = mutableListOf<Family>()
-                (result as List<*>).forEach {
-                    listOfFamilies.add(it as Family)
-                }
-                families = listOfFamilies
-            }
-
-            override fun onFailure(
-                    message: String,
-                    errorCode: Int
-            ) {
-            }
-        })
+        families = familyRepository.getAllFamilies()
     }
 
     private suspend fun fetchPrinters() {
-        posPrinterRepository.getAllPosPrinters(object : OnResult {
-            override fun onSuccess(result: Any) {
-                val listOfPrinters = mutableListOf<PosPrinter>()
-                (result as List<*>).forEach {
-                    listOfPrinters.add(it as PosPrinter)
-                }
-                printers = listOfPrinters
-            }
-
-            override fun onFailure(
-                    message: String,
-                    errorCode: Int
-            ) {
-            }
-        })
+        printers = posPrinterRepository.getAllPosPrinters()
     }
 
     fun getInvoiceReceiptHtmlContent(
@@ -378,7 +272,7 @@ class ActivityScopedViewModel @Inject constructor(
         return activityState.value.isLoggedIn
     }
 
-     fun logout() {
+    fun logout() {
         activityState.value.isLoggedIn = false
         SettingsModel.currentUser = null
         SettingsModel.currentUserId = null

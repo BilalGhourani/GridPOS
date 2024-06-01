@@ -39,9 +39,9 @@ interface FamilyDao {
 
     // Get all call logs as stream.
     @Query("SELECT * FROM `st_family`")
-    fun getAllFamilies(): Flow<List<Family>>
+    fun getAllFamilies(): MutableList<Family>
 
     // Get all call logs as stream.
     @Query("SELECT * FROM `st_family` WHERE fa_name LIKE '%' || :key || '%'")
-    fun searchForFamilies(key: String): Flow<List<Family>>
+    fun searchForFamilies(key: String): MutableList<Family>
 }

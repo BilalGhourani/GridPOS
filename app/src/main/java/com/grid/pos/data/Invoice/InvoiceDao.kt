@@ -39,14 +39,14 @@ interface InvoiceDao {
 
     // Get all Invoices as stream.
     @Query("SELECT * FROM `in_invoice`")
-    fun getAllInvoices(): Flow<List<Invoice>>
+    fun getAllInvoices(): List<Invoice>
 
     // Get all Invoices as stream.
     @Query("SELECT * FROM `in_invoice` WHERE in_hi_id = :id")
-    fun getAllInvoiceItems(id: String): Flow<List<Invoice>>
+    fun getAllInvoiceItems(id: String): MutableList<Invoice>
 
     // Get all Invoices as stream.
     @Query("SELECT * FROM `in_invoice` WHERE in_hi_id IN (:ids)")
-    fun getInvoicesByIds(ids:List<String>): Flow<List<Invoice>>
+    fun getInvoicesByIds(ids: List<String>): MutableList<Invoice>
 
 }

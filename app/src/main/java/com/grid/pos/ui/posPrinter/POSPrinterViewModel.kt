@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.grid.pos.data.PosPrinter.PosPrinter
 import com.grid.pos.data.PosPrinter.PosPrinterRepository
-import com.grid.pos.interfaces.OnResult
 import com.grid.pos.model.Event
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -38,27 +37,10 @@ class POSPrinterViewModel @Inject constructor(
     }
 
     private suspend fun fetchPrinters() {
-        posPrinterRepository.getAllPosPrinters(object : OnResult {
-            override fun onSuccess(result: Any) {
-                val listOfPrinters = mutableListOf<PosPrinter>()
-                (result as List<*>).forEach {
-                    listOfPrinters.add(it as PosPrinter)
-                }
-                viewModelScope.launch(Dispatchers.Main) {
-                    posPrinterState.value = posPrinterState.value.copy(
-                        printers = listOfPrinters
-                    )
-                }
-            }
-
-            override fun onFailure(
-                    message: String,
-                    errorCode: Int
-            ) {
-
-            }
-
-        })
+        val listOfPrinters = posPrinterRepository.getAllPosPrinters()
+        posPrinterState.value = posPrinterState.value.copy(
+            printers = listOfPrinters
+        )
     }
 
     fun showWarning(
@@ -86,47 +68,25 @@ class POSPrinterViewModel @Inject constructor(
             isLoading = true
         )
         val isInserting = printer.isNew()
-        val callback = object : OnResult {
-            override fun onSuccess(result: Any) {
-                viewModelScope.launch(Dispatchers.Main) {
-                    val addedModel = result as PosPrinter
+        posPrinterState.value.selectedPrinter.let {
+            CoroutineScope(Dispatchers.IO).launch {
+                if (isInserting) {
+                    it.prepareForInsert()
+                    val addedModel = posPrinterRepository.insert(it)
                     val printers = posPrinterState.value.printers
-                    if (isInserting) {
-                        printers.add(addedModel)
-                    }
+                    printers.add(addedModel)
                     posPrinterState.value = posPrinterState.value.copy(
                         printers = printers,
                         selectedPrinter = PosPrinter(),
                         isLoading = false,
                         clear = true,
                     )
-                }
-            }
-
-            override fun onFailure(
-                    message: String,
-                    errorCode: Int
-            ) {
-                viewModelScope.launch(Dispatchers.Main) {
-                    posPrinterState.value = posPrinterState.value.copy(
-                        isLoading = false
-                    )
-                }
-            }
-
-        }
-        posPrinterState.value.selectedPrinter.let {
-            CoroutineScope(Dispatchers.IO).launch {
-                if (isInserting) {
-                    it.prepareForInsert()
-                    posPrinterRepository.insert(
-                        it,
-                        callback
-                    )
                 } else {
-                    posPrinterRepository.update(
-                        it,
-                        callback
+                    posPrinterRepository.update(it)
+                    posPrinterState.value = posPrinterState.value.copy(
+                        selectedPrinter = PosPrinter(),
+                        isLoading = false,
+                        clear = true,
                     )
                 }
             }
@@ -147,41 +107,17 @@ class POSPrinterViewModel @Inject constructor(
         )
 
         CoroutineScope(Dispatchers.IO).launch {
-            posPrinterRepository.delete(printer,
-                object : OnResult {
-                    override fun onSuccess(result: Any) {
-                        val printers = posPrinterState.value.printers
-                        val position = printers.indexOfFirst {
-                            printer.posPrinterId.equals(
-                                it.posPrinterId,
-                                ignoreCase = true
-                            )
-                        }
-                        if (position >= 0) {
-                            printers.removeAt(position)
-                        }
-                        viewModelScope.launch(Dispatchers.Main) {
-                            posPrinterState.value = posPrinterState.value.copy(
-                                printers = printers,
-                                selectedPrinter = PosPrinter(),
-                                isLoading = false,
-                                clear = true
-                            )
-                        }
-                    }
-
-                    override fun onFailure(
-                            message: String,
-                            errorCode: Int
-                    ) {
-                        viewModelScope.launch(Dispatchers.Main) {
-                            posPrinterState.value = posPrinterState.value.copy(
-                                isLoading = false
-                            )
-                        }
-                    }
-
-                })
+            posPrinterRepository.delete(printer)
+            val printers = posPrinterState.value.printers
+            printers.remove(printer)
+            viewModelScope.launch(Dispatchers.Main) {
+                posPrinterState.value = posPrinterState.value.copy(
+                    printers = printers,
+                    selectedPrinter = PosPrinter(),
+                    isLoading = false,
+                    clear = true
+                )
+            }
         }
     }
 }

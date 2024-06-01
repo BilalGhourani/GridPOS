@@ -1,68 +1,42 @@
 package com.grid.pos.data.ThirdParty
 
-import androidx.lifecycle.asLiveData
-import com.grid.pos.data.Family.Family
-import com.grid.pos.interfaces.OnResult
 import com.google.firebase.firestore.FirebaseFirestore
-import com.grid.pos.data.PosPrinter.PosPrinter
 import com.grid.pos.model.SettingsModel
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 
 class ThirdPartyRepositoryImpl(
-    private val thirdPartyDao: ThirdPartyDao
+        private val thirdPartyDao: ThirdPartyDao
 ) : ThirdPartyRepository {
-    override suspend fun insert(thirdParty: ThirdParty, callback: OnResult?) {
+    override suspend fun insert(thirdParty: ThirdParty): ThirdParty {
         if (SettingsModel.isConnectedToFireStore()) {
-            FirebaseFirestore.getInstance().collection("thirdParty")
-                .add(thirdParty.getMap())
-                .addOnSuccessListener {
-                    thirdParty.thirdPartyDocumentId = it.id
-                    callback?.onSuccess(thirdParty)
-                }
-                .addOnFailureListener { e ->
-                    callback?.onFailure(e.message.toString())
-                }
+            val docRef = FirebaseFirestore.getInstance().collection("thirdParty")
+                .add(thirdParty.getMap()).await()
+            thirdParty.thirdPartyDocumentId = docRef.id
         } else {
             thirdPartyDao.insert(thirdParty)
-            callback?.onSuccess(thirdParty)
         }
-
+        return thirdParty
     }
 
-    override suspend fun delete(thirdParty: ThirdParty, callback: OnResult?) {
+    override suspend fun delete(thirdParty: ThirdParty) {
         if (SettingsModel.isConnectedToFireStore()) {
-            FirebaseFirestore.getInstance().collection("thirdParty")
-                .document(thirdParty.thirdPartyDocumentId!!)
-                .delete()
-                .addOnSuccessListener {
-                    callback?.onSuccess(thirdParty)
-                }
-                .addOnFailureListener { e ->
-                    callback?.onFailure(e.message.toString())
-                }
+            thirdParty.thirdPartyDocumentId?.let {
+                FirebaseFirestore.getInstance().collection("thirdParty")
+                    .document(it).delete().await()
+            }
         } else {
             thirdPartyDao.delete(thirdParty)
-            callback?.onSuccess(thirdParty)
         }
     }
 
-    override suspend fun update(thirdParty: ThirdParty, callback: OnResult?) {
+    override suspend fun update(thirdParty: ThirdParty) {
         if (SettingsModel.isConnectedToFireStore()) {
-            FirebaseFirestore.getInstance().collection("thirdParty")
-                .document(thirdParty.thirdPartyDocumentId!!)
-                .update(thirdParty.getMap())
-                .addOnSuccessListener {
-                    callback?.onSuccess(thirdParty)
-                }
-                .addOnFailureListener { e ->
-                    callback?.onFailure(e.message.toString())
-                }
+            thirdParty.thirdPartyDocumentId?.let {
+                FirebaseFirestore.getInstance().collection("thirdParty")
+                    .document(it).update(thirdParty.getMap()).await()
+            }
         } else {
             thirdPartyDao.update(thirdParty)
-            callback?.onSuccess(thirdParty)
         }
     }
 
@@ -70,34 +44,27 @@ class ThirdPartyRepositoryImpl(
         return thirdPartyDao.getThirdPartyById(id)
     }
 
-    override suspend fun getAllThirdParties(callback: OnResult?) {
+    override suspend fun getAllThirdParties(): MutableList<ThirdParty> {
         if (SettingsModel.isConnectedToFireStore()) {
-            FirebaseFirestore.getInstance().collection("thirdParty")
-                .whereEqualTo("tp_cmp_id",SettingsModel.companyID)
-                .get()
-                .addOnSuccessListener { result ->
-                    val thirdParties = mutableListOf<ThirdParty>()
-                    if (result.size() > 0) {
-                        for (document in result) {
-                            val obj = document.toObject(ThirdParty::class.java)
-                            if (!obj.thirdPartyId.isNullOrEmpty()) {
-                                obj.thirdPartyDocumentId = document.id
-                                thirdParties.add(obj)
-                            }
-                        }
+            val querySnapshot = FirebaseFirestore.getInstance().collection("thirdParty")
+                .whereEqualTo(
+                    "tp_cmp_id",
+                    SettingsModel.companyID
+                ).get().await()
+            val thirdParties = mutableListOf<ThirdParty>()
+            if (querySnapshot.size() > 0) {
+                for (document in querySnapshot) {
+                    val obj = document.toObject(ThirdParty::class.java)
+                    if (obj.thirdPartyId.isNotEmpty()) {
+                        obj.thirdPartyDocumentId = document.id
+                        thirdParties.add(obj)
                     }
-                    callback?.onSuccess(thirdParties)
-                }.addOnFailureListener { exception ->
-                    callback?.onFailure(
-                        exception.message ?: "Network error! Can't get Third Parties from remote."
-                    )
                 }
-        } else {
-            thirdPartyDao.getAllThirdParties().collect {
-                callback?.onSuccess(it)
             }
+            return thirdParties
+        } else {
+            return thirdPartyDao.getAllThirdParties()
         }
-
     }
 
 

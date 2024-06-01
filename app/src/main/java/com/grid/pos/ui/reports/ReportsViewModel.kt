@@ -12,7 +12,6 @@ import com.grid.pos.data.InvoiceHeader.InvoiceHeader
 import com.grid.pos.data.InvoiceHeader.InvoiceHeaderRepository
 import com.grid.pos.data.Item.Item
 import com.grid.pos.data.Item.ItemRepository
-import com.grid.pos.interfaces.OnResult
 import com.grid.pos.model.Event
 import com.grid.pos.model.SettingsModel
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -48,23 +47,8 @@ class ReportsViewModel @Inject constructor(
     }
 
     private suspend fun fetchItems() {
-        itemRepository.getAllItems(object : OnResult {
-            override fun onSuccess(result: Any) {
-                val listOfItems = mutableListOf<Item>()
-                (result as List<*>).forEach {
-                    listOfItems.add(it as Item)
-                }
-                itemMap = listOfItems.map { it.itemId to it }.toMap()
-            }
-
-            override fun onFailure(
-                message: String,
-                errorCode: Int
-            ) {
-
-            }
-
-        })
+        val listOfItems =  itemRepository.getAllItems()
+        itemMap = listOfItems.map { it.itemId to it }.toMap()
     }
 
     fun fetchInvoices(
@@ -75,36 +59,19 @@ class ReportsViewModel @Inject constructor(
             isLoading = true
         )
         viewModelScope.launch(Dispatchers.IO) {
-            invoiceHeaderRepository.getAllInvoiceHeaders(
-                object : OnResult {
-                    override fun onSuccess(result: Any) {
-                        val listOfInvoices = mutableListOf<InvoiceHeader>()
-                        (result as List<*>).forEach {
-                            listOfInvoices.add(it as InvoiceHeader)
-                        }
-                        invoices = listOfInvoices
-                        if (invoices.isNotEmpty()) {
-                            fetchInvoiceItems(
-                                from,
-                                to,
-                                listOfInvoices.map { it.invoiceHeadId })
-                        } else {
-                            reportsState.value = reportsState.value.copy(
-                                warning = Event("no data found in the date range!"),
-                                isLoading = false
-                            )
-                        }
-
-                    }
-
-                    override fun onFailure(
-                        message: String,
-                        errorCode: Int
-                    ) {
-
-                    }
-
-                })
+            val listOfInvoices =  invoiceHeaderRepository.getAllInvoiceHeaders()
+            invoices = listOfInvoices
+            if (invoices.isNotEmpty()) {
+                fetchInvoiceItems(
+                    from,
+                    to,
+                    listOfInvoices.map { it.invoiceHeadId })
+            } else {
+                reportsState.value = reportsState.value.copy(
+                    warning = Event("no data found in the date range!"),
+                    isLoading = false
+                )
+            }
         }
     }
 
@@ -114,34 +81,18 @@ class ReportsViewModel @Inject constructor(
         ids: List<String>
     ) {
         viewModelScope.launch(Dispatchers.IO) {
-            invoiceRepository.getInvoicesByIds(ids,
-                object : OnResult {
-                    override fun onSuccess(result: Any) {
-                        val listOfInvoices = mutableListOf<Invoice>()
-                        (result as List<*>).forEach {
-                            listOfInvoices.add(it as Invoice)
-                        }
-                        invoiceItemMap = listOfInvoices.groupBy { it.invoiceItemId ?: "" }
-                        val filteredInvoiceItems = if (!SettingsModel.isConnectedToSqlite()) {
-                            listOfInvoices.filter { from.before(it.invoiceTimeStamp) && to.after(it.invoiceTimeStamp) }
-                        } else {
-                            val startTime = from.time
-                            val endTime = to.time
-                            listOfInvoices.filter { it.invoiceDateTime in (startTime + 1)..<endTime }
-                        }
-                        filteredInvoiceItemMap =
-                            filteredInvoiceItems.groupBy { it.invoiceItemId ?: "" }
-                        generateReportsExcel()
-                    }
-
-                    override fun onFailure(
-                        message: String,
-                        errorCode: Int
-                    ) {
-
-                    }
-
-                })
+            val listOfInvoices = invoiceRepository.getInvoicesByIds(ids)
+            invoiceItemMap = listOfInvoices.groupBy { it.invoiceItemId ?: "" }
+            val filteredInvoiceItems = if (!SettingsModel.isConnectedToSqlite()) {
+                listOfInvoices.filter { from.before(it.invoiceTimeStamp) && to.after(it.invoiceTimeStamp) }
+            } else {
+                val startTime = from.time
+                val endTime = to.time
+                listOfInvoices.filter { it.invoiceDateTime in (startTime + 1)..<endTime }
+            }
+            filteredInvoiceItemMap =
+                filteredInvoiceItems.groupBy { it.invoiceItemId ?: "" }
+            generateReportsExcel()
         }
     }
 

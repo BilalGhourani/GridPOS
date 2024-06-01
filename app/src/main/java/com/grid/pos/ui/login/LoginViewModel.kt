@@ -5,8 +5,6 @@ import androidx.lifecycle.viewModelScope
 import com.grid.pos.App
 import com.grid.pos.data.User.User
 import com.grid.pos.data.User.UserRepository
-import com.grid.pos.interfaces.OnResult
-import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.Event
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.DataStoreManager
@@ -65,91 +63,76 @@ class LoginViewModel @Inject constructor(
         )
         val decPassword = password.encryptCBC()
         viewModelScope.launch(Dispatchers.IO) {
-            repository.getAllUsers(object : OnResult {
-                override fun onSuccess(result: Any) {
-                    result as List<User>
-                    val size = result.size
-                    if (size == 0) {
-                        viewModelScope.launch(Dispatchers.Main) {
-                            usersState.value = usersState.value.copy(
-                                isLoading = false,
-                                warning = Event("no user found!"),
-                                warningAction = if (!SettingsModel.isConnectedToSqlite()) "Register" else ""
+            val result = repository.getAllUsers()
+            val size = result.size
+            if (size == 0) {
+                viewModelScope.launch(Dispatchers.Main) {
+                    usersState.value = usersState.value.copy(
+                        isLoading = false,
+                        warning = Event("no user found!"),
+                        warningAction = if (!SettingsModel.isConnectedToSqlite()) "Register" else ""
+                    )
+                }
+            } else {
+                var user: User? = null
+                result.forEach {
+                    if (username.equals(
+                            it.userUsername,
+                            ignoreCase = true
+                        ) && decPassword.equals(
+                            it.userPassword,
+                            ignoreCase = true
+                        )
+                    ) {
+                        user = it
+                        SettingsModel.currentUserId = it.userId
+                        SettingsModel.currentUser = it
+                        if (SettingsModel.isConnectedToSqlite()) {
+                            SettingsModel.companyID = it.userCompanyId
+                        }
+                        viewModelScope.launch(Dispatchers.IO) {
+                            DataStoreManager.putString(
+                                DataStoreManager.DataStoreKeys.CURRENT_USER_ID.key,
+                                it.userId
                             )
                         }
-                    } else {
-                        var user: User? = null
-                        result.forEach {
-                            if (username.equals(
-                                    it.userUsername,
-                                    ignoreCase = true
-                                ) && decPassword.equals(
-                                    it.userPassword,
-                                    ignoreCase = true
-                                )
-                            ) {
-                                user = it
-                                SettingsModel.currentUserId = it.userId
-                                SettingsModel.currentUser = it
-                                if (SettingsModel.isConnectedToSqlite()) {
-                                    SettingsModel.companyID = it.userCompanyId
-                                }
-                                viewModelScope.launch(Dispatchers.IO) {
-                                    DataStoreManager.putString(
-                                        DataStoreManager.DataStoreKeys.CURRENT_USER_ID.key,
-                                        it.userId
-                                    )
-                                }
-                                return@forEach
-                            }
-                        }
-                        viewModelScope.launch(Dispatchers.Main) {
-                            if (user == null) {
-                                usersState.value = usersState.value.copy(
-                                    isLoading = false,
-                                    warning = Event("Username or Password are incorrect!"),
-                                    warningAction = ""
-                                )
-                            } else {
-                                usersState.value = usersState.value.copy(
-                                    selectedUser = user!!,/*isLoading = false,*/
-                                    isLoggedIn = true
-                                )
-                            }
-                        }
+                        return@forEach
                     }
                 }
-
-                override fun onFailure(
-                        message: String,
-                        errorCode: Int
-                ) {
-
-                }/*repository.getUserByCredentials(username, password, object : OnResult {
-                    override fun onSuccess(result: Any) {
-                        if (result is User) {
-                            viewModelScope.launch(Dispatchers.Main) {
-                                usersState.value = usersState.value.copy(
-                                    selectedUser = result,
-                                    isLoading = false,
-                                    isLoggedIn = true
-                                )
-                            }
-                        }
+                viewModelScope.launch(Dispatchers.Main) {
+                    if (user == null) {
+                        usersState.value = usersState.value.copy(
+                            isLoading = false,
+                            warning = Event("Username or Password are incorrect!"),
+                            warningAction = ""
+                        )
+                    } else {
+                        usersState.value = usersState.value.copy(
+                            selectedUser = user!!,/*isLoading = false,*/
+                            isLoggedIn = true
+                        )
                     }
+                }
+            }
 
-                    override fun onFailure(message: String, errorCode: Int) {
-                        viewModelScope.launch(Dispatchers.Main) {
-                            usersState.value = usersState.value.copy(
-                                isLoading = false,
-                                warning = message,
-                                warningAction = "Register"
-                            )
-                        }
-                    }
-
-                })*/
-            })
+            /* val user =  repository.getUserByCredentials(username, password)
+              user?.let {
+                  viewModelScope.launch(Dispatchers.Main) {
+                      usersState.value = usersState.value.copy(
+                          selectedUser = it,
+                          isLoading = false,
+                          isLoggedIn = true
+                      )
+                  }
+              }?:run {
+                  viewModelScope.launch(Dispatchers.Main) {
+                      usersState.value = usersState.value.copy(
+                          isLoading = false,
+                          warning = Event("no user fount"),
+                          warningAction = "Register"
+                      )
+                  }
+              }*/
         }
     }
 }

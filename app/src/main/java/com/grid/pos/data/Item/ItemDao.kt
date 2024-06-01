@@ -40,9 +40,9 @@ interface ItemDao {
 
     // Get all Items as stream.
     @Query("SELECT * FROM `st_item`")
-    fun getAllItems(): Flow<List<Item>>
+    fun getAllItems(): MutableList<Item>
 
     // Get searched Items as stream.
     @Query("SELECT * FROM `st_item` WHERE it_name LIKE '%' || :key || '%'")
-    fun searchForItems(key: String): Flow<List<Item>>
+    fun searchForItems(key: String): MutableList<Item>
 }

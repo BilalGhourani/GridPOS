@@ -1,62 +1,48 @@
 package com.grid.pos.data.PosReceipt
 
 import com.google.firebase.firestore.FirebaseFirestore
-import com.grid.pos.interfaces.OnResult
 import com.grid.pos.model.SettingsModel
+import kotlinx.coroutines.tasks.await
 
 class PosReceiptRepositoryImpl(
         private val posReceiptDao: PosReceiptDao
 ) : PosReceiptRepository {
     override suspend fun insert(
-            posReceipt: PosReceipt,
-            callback: OnResult?
-    ) {
+            posReceipt: PosReceipt
+    ): PosReceipt {
         if (SettingsModel.isConnectedToFireStore()) {
-            FirebaseFirestore.getInstance().collection("pos_receipt").add(posReceipt.getMap())
-                .addOnSuccessListener {
-                    posReceipt.posReceiptDocumentId = it.id
-                    callback?.onSuccess(posReceipt)
-                }.addOnFailureListener { e ->
-                    callback?.onFailure(e.message.toString())
-                }
+            val docRef = FirebaseFirestore.getInstance().collection("pos_receipt")
+                .add(posReceipt.getMap()).await()
+            posReceipt.posReceiptDocumentId = docRef.id
         } else {
             posReceiptDao.insert(posReceipt)
-            callback?.onSuccess(posReceipt)
         }
+        return posReceipt
     }
 
     override suspend fun delete(
-            posReceipt: PosReceipt,
-            callback: OnResult?
+            posReceipt: PosReceipt
     ) {
         if (SettingsModel.isConnectedToFireStore()) {
-            FirebaseFirestore.getInstance().collection("pos_receipt")
-                .document(posReceipt.posReceiptDocumentId!!).delete().addOnSuccessListener {
-                    callback?.onSuccess(posReceipt)
-                }.addOnFailureListener { e ->
-                    callback?.onFailure(e.message.toString())
-                }
+            posReceipt.posReceiptDocumentId?.let {
+                FirebaseFirestore.getInstance().collection("pos_receipt").document(it).delete()
+                    .await()
+            }
         } else {
             posReceiptDao.delete(posReceipt)
-            callback?.onSuccess(posReceipt)
         }
     }
 
     override suspend fun update(
-            posReceipt: PosReceipt,
-            callback: OnResult?
+            posReceipt: PosReceipt
     ) {
         if (SettingsModel.isConnectedToFireStore()) {
-            FirebaseFirestore.getInstance().collection("pos_receipt")
-                .document(posReceipt.posReceiptDocumentId!!).update(posReceipt.getMap())
-                .addOnSuccessListener {
-                    callback?.onSuccess(posReceipt)
-                }.addOnFailureListener { e ->
-                    callback?.onFailure(e.message.toString())
-                }
+            posReceipt.posReceiptDocumentId?.let {
+                FirebaseFirestore.getInstance().collection("pos_receipt").document(it)
+                    .update(posReceipt.getMap()).await()
+            }
         } else {
             posReceiptDao.update(posReceipt)
-            callback?.onSuccess(posReceipt)
         }
     }
 
@@ -64,59 +50,46 @@ class PosReceiptRepositoryImpl(
         return posReceiptDao.getPosReceiptById(id)
     }
 
-    override suspend fun getAllPosReceipts(callback: OnResult?) {
+    override suspend fun getAllPosReceipts(): MutableList<PosReceipt> {
         if (SettingsModel.isConnectedToFireStore()) {
-            FirebaseFirestore.getInstance().collection("pos_receipt").get()
-                .addOnSuccessListener { result ->
-                    val receipts = mutableListOf<PosReceipt>()
-                    if (result.size() > 0) {
-                        for (document in result) {
-                            val obj = document.toObject(PosReceipt::class.java)
-                            if (!obj.posReceiptId.isNullOrEmpty()) {
-                                obj.posReceiptDocumentId = document.id
-                                receipts.add(obj)
-                            }
-                        }
+            val querySnapshot = FirebaseFirestore.getInstance().collection("pos_receipt").get()
+                .await()
+            val receipts = mutableListOf<PosReceipt>()
+            if (querySnapshot.size() > 0) {
+                for (document in querySnapshot) {
+                    val obj = document.toObject(PosReceipt::class.java)
+                    if (!obj.posReceiptId.isNullOrEmpty()) {
+                        obj.posReceiptDocumentId = document.id
+                        receipts.add(obj)
                     }
-                    callback?.onSuccess(receipts)
-                }.addOnFailureListener { exception ->
-                    callback?.onFailure(
-                        exception.message ?: "Network error! Can't get receipts from remote."
-                    )
                 }
-        } else {
-            posReceiptDao.getAllPosReceipts().collect {
-                callback?.onSuccess(it)
             }
+            return receipts
+        } else {
+            return posReceiptDao.getAllPosReceipts()
         }
     }
 
     override suspend fun getPosReceiptByInvoice(
-            invoiceHeaderId: String,
-            callback: OnResult?
-    ) {
+            invoiceHeaderId: String
+    ): PosReceipt? {
         if (SettingsModel.isConnectedToFireStore()) {
-            FirebaseFirestore.getInstance().collection("pos_receipt")
-                .whereEqualTo("pr_hi_id", invoiceHeaderId).get().addOnSuccessListener { result ->
-                    val document = result.documents.firstOrNull()
-                    if (document != null) {
-                        val obj = document.toObject(PosReceipt::class.java)
-                        if (obj != null && !obj.posReceiptId.isNullOrEmpty()) {
-                            obj.posReceiptDocumentId = document.id
-                            callback?.onSuccess(obj)
-                            return@addOnSuccessListener
-                        }
-                    }
-                    callback?.onFailure(
-                        "not found."
-                    )
-                }.addOnFailureListener { exception ->
-                    callback?.onFailure(
-                        exception.message ?: "Network error! Can't get items from remote."
-                    )
+            val querySnapshot = FirebaseFirestore.getInstance().collection("pos_receipt")
+                .whereEqualTo(
+                    "pr_hi_id",
+                    invoiceHeaderId
+                ).get().await()
+            val document = querySnapshot.documents.firstOrNull()
+            if (document != null) {
+                val obj = document.toObject(PosReceipt::class.java)
+                if (obj != null && !obj.posReceiptId.isNullOrEmpty()) {
+                    obj.posReceiptDocumentId = document.id
+                    return obj
                 }
+            }
+            return null
         } else {
-            callback?.onSuccess(posReceiptDao.getPosReceiptByInvoice(invoiceHeaderId))
+            return posReceiptDao.getPosReceiptByInvoice(invoiceHeaderId)
         }
     }
 

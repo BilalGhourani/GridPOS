@@ -30,7 +30,7 @@ interface PosReceiptDao {
 
     // Get all POS Receipts as stream.
     @Query("SELECT * FROM `pos_receipt`")
-    fun getAllPosReceipts(): Flow<List<PosReceipt>>
+    fun getAllPosReceipts(): MutableList<PosReceipt>
 
     // Get POS Receipt by it's ID
     @Query("SELECT * FROM pos_receipt WHERE pr_hi_id = :id")

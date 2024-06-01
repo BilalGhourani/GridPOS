@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.grid.pos.data.Currency.Currency
 import com.grid.pos.data.Currency.CurrencyRepository
-import com.grid.pos.interfaces.OnResult
 import com.grid.pos.model.Event
 import com.grid.pos.model.SettingsModel
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -36,28 +35,17 @@ class ManageCurrenciesViewModel @Inject constructor(
                     fillFields = true
                 )
             }
+            return
         }
-        currencyRepository.getAllCurrencies(object : OnResult {
-            override fun onSuccess(result: Any) {
-                result as List<*>
-                val currency = if (result.size > 0) result[0] as Currency else Currency()
-                SettingsModel.currentCurrency = currency
-                viewModelScope.launch(Dispatchers.Main) {
-                    manageCurrenciesState.value = manageCurrenciesState.value.copy(
-                        selectedCurrency = currency,
-                        fillFields = true
-                    )
-                }
-            }
-
-            override fun onFailure(
-                    message: String,
-                    errorCode: Int
-            ) {
-
-            }
-
-        })
+        val currencies = currencyRepository.getAllCurrencies()
+        val currency = if (currencies.size > 0) currencies[0] else Currency()
+        SettingsModel.currentCurrency = currency
+        viewModelScope.launch(Dispatchers.Main) {
+            manageCurrenciesState.value = manageCurrenciesState.value.copy(
+                selectedCurrency = currency,
+                fillFields = true
+            )
+        }
     }
 
     fun saveCurrency(currency: Currency) {
@@ -74,42 +62,28 @@ class ManageCurrenciesViewModel @Inject constructor(
             isLoading = true
         )
         val isInserting = currency.isNew()
-        val callback = object : OnResult {
-            override fun onSuccess(result: Any) {
-                result as Currency
-                SettingsModel.currentCurrency = result
-                viewModelScope.launch(Dispatchers.Main) {
-                    manageCurrenciesState.value = manageCurrenciesState.value.copy(
-                        selectedCurrency = result,
-                        isLoading = false
-                    )
-                }
-            }
-
-            override fun onFailure(
-                    message: String,
-                    errorCode: Int
-            ) {
-                viewModelScope.launch(Dispatchers.Main) {
-                    manageCurrenciesState.value = manageCurrenciesState.value.copy(
-                        isLoading = false
-                    )
-                }
-            }
-
-        }
         CoroutineScope(Dispatchers.IO).launch {
             if (isInserting) {
                 currency.prepareForInsert()
-                currencyRepository.insert(
-                    currency,
-                    callback
-                )
+                val addedCurr = currencyRepository.insert(currency)
+                SettingsModel.currentCurrency = addedCurr
+                viewModelScope.launch(Dispatchers.Main) {
+                    manageCurrenciesState.value = manageCurrenciesState.value.copy(
+                        selectedCurrency = addedCurr,
+                        isLoading = false
+                    )
+                }
             } else {
                 currencyRepository.update(
-                    currency,
-                    callback
+                    currency
                 )
+                SettingsModel.currentCurrency = currency
+                viewModelScope.launch(Dispatchers.Main) {
+                    manageCurrenciesState.value = manageCurrenciesState.value.copy(
+                        selectedCurrency = currency,
+                        isLoading = false
+                    )
+                }
             }
         }
     }

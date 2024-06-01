@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.grid.pos.data.Family.Family
 import com.grid.pos.data.Family.FamilyRepository
-import com.grid.pos.interfaces.OnResult
 import com.grid.pos.model.Event
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -38,27 +37,12 @@ class ManageFamiliesViewModel @Inject constructor(
     }
 
     private suspend fun fetchFamilies() {
-        familyRepository.getAllFamilies(object : OnResult {
-            override fun onSuccess(result: Any) {
-                val listOfFamilies = mutableListOf<Family>()
-                (result as List<*>).forEach {
-                    listOfFamilies.add(it as Family)
-                }
-                viewModelScope.launch(Dispatchers.Main) {
-                    manageFamiliesState.value = manageFamiliesState.value.copy(
-                        families = listOfFamilies
-                    )
-                }
-            }
-
-            override fun onFailure(
-                    message: String,
-                    errorCode: Int
-            ) {
-
-            }
-
-        })
+        val listOfFamilies = familyRepository.getAllFamilies()
+        viewModelScope.launch(Dispatchers.Main) {
+            manageFamiliesState.value = manageFamiliesState.value.copy(
+                families = listOfFamilies
+            )
+        }
     }
 
     fun showWarning(
@@ -86,47 +70,25 @@ class ManageFamiliesViewModel @Inject constructor(
             isLoading = true
         )
         val isInserting = family.isNew()
-        val callback = object : OnResult {
-            override fun onSuccess(result: Any) {
-                viewModelScope.launch(Dispatchers.Main) {
-                    val addedModel = result as Family
+        manageFamiliesState.value.selectedFamily.let {
+            CoroutineScope(Dispatchers.IO).launch {
+                if (isInserting) {
+                    it.prepareForInsert()
+                    val addedModel = familyRepository.insert(it)
                     val families = manageFamiliesState.value.families
-                    if (isInserting) {
-                        families.add(addedModel)
-                    }
+                    families.add(addedModel)
                     manageFamiliesState.value = manageFamiliesState.value.copy(
                         families = families,
                         selectedFamily = Family(),
                         isLoading = false,
                         clear = true,
                     )
-                }
-            }
-
-            override fun onFailure(
-                    message: String,
-                    errorCode: Int
-            ) {
-                viewModelScope.launch(Dispatchers.Main) {
-                    manageFamiliesState.value = manageFamiliesState.value.copy(
-                        isLoading = false
-                    )
-                }
-            }
-
-        }
-        manageFamiliesState.value.selectedFamily.let {
-            CoroutineScope(Dispatchers.IO).launch {
-                if (isInserting) {
-                    it.prepareForInsert()
-                    familyRepository.insert(
-                        it,
-                        callback
-                    )
                 } else {
-                    familyRepository.update(
-                        it,
-                        callback
+                    familyRepository.update(it)
+                    manageFamiliesState.value = manageFamiliesState.value.copy(
+                        selectedFamily = Family(),
+                        isLoading = false,
+                        clear = true,
                     )
                 }
             }
@@ -147,41 +109,17 @@ class ManageFamiliesViewModel @Inject constructor(
         )
 
         CoroutineScope(Dispatchers.IO).launch {
-            familyRepository.delete(family,
-                object : OnResult {
-                    override fun onSuccess(result: Any) {
-                        val families = manageFamiliesState.value.families
-                        val position = families.indexOfFirst {
-                            family.familyId.equals(
-                                it.familyId,
-                                ignoreCase = true
-                            )
-                        }
-                        if (position >= 0) {
-                            families.removeAt(position)
-                        }
-                        viewModelScope.launch(Dispatchers.Main) {
-                            manageFamiliesState.value = manageFamiliesState.value.copy(
-                                families = families,
-                                selectedFamily = Family(),
-                                isLoading = false,
-                                clear = true
-                            )
-                        }
-                    }
-
-                    override fun onFailure(
-                            message: String,
-                            errorCode: Int
-                    ) {
-                        viewModelScope.launch(Dispatchers.Main) {
-                            manageFamiliesState.value = manageFamiliesState.value.copy(
-                                isLoading = false
-                            )
-                        }
-                    }
-
-                })
+            familyRepository.delete(family)
+            val families = manageFamiliesState.value.families
+            families.remove(family)
+            viewModelScope.launch(Dispatchers.Main) {
+                manageFamiliesState.value = manageFamiliesState.value.copy(
+                    families = families,
+                    selectedFamily = Family(),
+                    isLoading = false,
+                    clear = true
+                )
+            }
         }
     }
 }

@@ -1,26 +1,24 @@
 package com.grid.pos.data.Invoice
 
-import com.grid.pos.interfaces.OnResult
-
 interface InvoiceRepository {
 
     // suspend is a coroutine keyword,
     // instead of having a callback we can just wait till insert is done
-    suspend fun insert(invoice: Invoice, callback: OnResult?)
+    suspend fun insert(invoice: Invoice): Invoice
 
     // Delete an Invoice
-    suspend fun delete(invoice: Invoice, callback: OnResult?)
+    suspend fun delete(invoice: Invoice)
 
     // Update an Invoice
-    suspend fun update(invoice: Invoice, callback: OnResult?)
+    suspend fun update(invoice: Invoice)
 
     // Get Invoice by it's ID
-    suspend fun getInvoiceById(id: String): Invoice
+    suspend fun getInvoiceById(id: String): Invoice?
 
     // Get all Invoices logs as stream.
-    suspend fun getAllInvoices(invoiceHeaderId: String, callback: OnResult?)
+    suspend fun getAllInvoices(invoiceHeaderId: String): MutableList<Invoice>
 
     // Get all Invoices between Dates.
-    suspend fun getInvoicesByIds(ids:List<String>, callback: OnResult?)
+    suspend fun getInvoicesByIds(ids: List<String>): MutableList<Invoice>
 
 }

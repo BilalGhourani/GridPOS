@@ -1,63 +1,42 @@
 package com.grid.pos.data.Item
 
-import androidx.lifecycle.asLiveData
-import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
-import com.grid.pos.data.InvoiceHeader.InvoiceHeader
-import com.grid.pos.interfaces.OnResult
 import com.grid.pos.model.SettingsModel
+import kotlinx.coroutines.tasks.await
 
 class ItemRepositoryImpl(
-    private val itemDao: ItemDao
+        private val itemDao: ItemDao
 ) : ItemRepository {
-    override suspend fun insert(item: Item, callback: OnResult?) {
+    override suspend fun insert(item: Item): Item {
         if (SettingsModel.isConnectedToFireStore()) {
-            FirebaseFirestore.getInstance().collection("st_item")
-                .add(item.getMap())
-                .addOnSuccessListener {
-                    item.itemDocumentId = it.id
-                    callback?.onSuccess(item)
-                }
-                .addOnFailureListener { e ->
-                    callback?.onFailure(e.message.toString())
-                }
-        }else{
+            val docRef = FirebaseFirestore.getInstance().collection("st_item").add(item.getMap())
+                .await()
+            item.itemDocumentId = docRef.id
+        } else {
             itemDao.insert(item)
-            callback?.onSuccess(item)
         }
+        return item
     }
 
-    override suspend fun delete(item: Item, callback: OnResult?) {
+    override suspend fun delete(item: Item) {
         if (SettingsModel.isConnectedToFireStore()) {
-            FirebaseFirestore.getInstance().collection("st_item")
-                .document(item.itemDocumentId!!)
-                .delete()
-                .addOnSuccessListener {
-                    callback?.onSuccess(item)
-                }
-                .addOnFailureListener { e ->
-                    callback?.onFailure(e.message.toString())
-                }
-        }else{
+            item.itemDocumentId?.let {
+                FirebaseFirestore.getInstance().collection("st_item").document(it)
+                    .delete().await()
+            }
+        } else {
             itemDao.delete(item)
-            callback?.onSuccess(item)
         }
     }
 
-    override suspend fun update(item: Item, callback: OnResult?) {
+    override suspend fun update(item: Item) {
         if (SettingsModel.isConnectedToFireStore()) {
-            FirebaseFirestore.getInstance().collection("st_item")
-                .document(item.itemDocumentId!!)
-                .update(item.getMap())
-                .addOnSuccessListener {
-                    callback?.onSuccess(item)
-                }
-                .addOnFailureListener { e ->
-                    callback?.onFailure(e.message.toString())
-                }
-        }else{
+            item.itemDocumentId?.let {
+                FirebaseFirestore.getInstance().collection("st_item").document(it)
+                    .update(item.getMap()).await()
+            }
+        } else {
             itemDao.update(item)
-            callback?.onSuccess(item)
         }
     }
 
@@ -65,32 +44,26 @@ class ItemRepositoryImpl(
         return itemDao.getItemById(id)
     }
 
-    override suspend fun getAllItems(callback: OnResult?) {
+    override suspend fun getAllItems(): MutableList<Item> {
         if (SettingsModel.isConnectedToFireStore()) {
-            FirebaseFirestore.getInstance().collection("st_item")
-                .whereEqualTo("it_cmp_id",SettingsModel.companyID)
-                .get()
-                .addOnSuccessListener { result ->
-                    val items = mutableListOf<Item>()
-                    if (result.size() > 0) {
-                        for (document in result) {
-                            val obj = document.toObject(Item::class.java)
-                            if (!obj.itemId.isNullOrEmpty()) {
-                                obj.itemDocumentId = document.id
-                                items.add(obj)
-                            }
-                        }
+            val querySnapshot = FirebaseFirestore.getInstance().collection("st_item").whereEqualTo(
+                "it_cmp_id",
+                SettingsModel.companyID
+            ).get().await()
+
+            val items = mutableListOf<Item>()
+            if (querySnapshot.size() > 0) {
+                for (document in querySnapshot) {
+                    val obj = document.toObject(Item::class.java)
+                    if (obj.itemId.isNotEmpty()) {
+                        obj.itemDocumentId = document.id
+                        items.add(obj)
                     }
-                    callback?.onSuccess(items)
-                }.addOnFailureListener { exception ->
-                    callback?.onFailure(
-                        exception.message ?: "Network error! Can't get items from remote."
-                    )
                 }
-        }else {
-            itemDao.getAllItems().collect {
-                callback?.onSuccess(it)
             }
+            return items
+        } else {
+            return itemDao.getAllItems()
         }
     }
 

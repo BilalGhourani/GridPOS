@@ -2,9 +2,7 @@ package com.grid.pos.ui.table
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.grid.pos.data.InvoiceHeader.InvoiceHeader
 import com.grid.pos.data.InvoiceHeader.InvoiceHeaderRepository
-import com.grid.pos.interfaces.OnResult
 import com.grid.pos.model.Event
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -40,29 +38,16 @@ class TablesViewModel @Inject constructor(
             isLoading = true
         )
         viewModelScope.launch(Dispatchers.IO) {
-            invoiceHeaderRepository.getInvoiceByTable(tableNo,
-                object : OnResult {
-                    override fun onSuccess(result: Any) {
-                        viewModelScope.launch(Dispatchers.Main) {
-                            tablesState.value = tablesState.value.copy(
-                                invoiceHeader = result as InvoiceHeader,
-                                step = 2,
-                                isLoading = false
-                            )
-                        }
-                    }
-
-                    override fun onFailure(
-                            message: String,
-                            errorCode: Int
-                    ) {
-                        viewModelScope.launch(Dispatchers.Main) {
-                            tablesState.value = tablesState.value.copy(
-                                warning = Event("Failed to retrieve related invoice!")
-                            )
-                        }
-                    }
-                })
+            val invoiceHeader = invoiceHeaderRepository.getInvoiceByTable(tableNo)
+            invoiceHeader?.let {
+                viewModelScope.launch(Dispatchers.Main) {
+                    tablesState.value = tablesState.value.copy(
+                        invoiceHeader = it,
+                        step = 2,
+                        isLoading = false
+                    )
+                }
+            }
         }
     }
 }

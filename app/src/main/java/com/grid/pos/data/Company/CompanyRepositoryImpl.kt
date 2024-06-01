@@ -1,116 +1,86 @@
 package com.grid.pos.data.Company
 
-import androidx.lifecycle.asLiveData
 import com.google.firebase.firestore.FirebaseFirestore
-import com.grid.pos.data.User.User
-import com.grid.pos.interfaces.OnResult
 import com.grid.pos.model.SettingsModel
-
+import kotlinx.coroutines.tasks.await
 
 class CompanyRepositoryImpl(
-    private val companyDao: CompanyDao
+        private val companyDao: CompanyDao
 ) : CompanyRepository {
-    override suspend fun insert(company: Company, callback: OnResult?) {
+    override suspend fun insert(
+            company: Company
+    ): Company {
         if (SettingsModel.isConnectedToFireStore()) {
-            FirebaseFirestore.getInstance().collection("company")
-                .add(company)
-                .addOnSuccessListener {
-                    company.companyDocumentId = it.id
-                    callback?.onSuccess(company)
-                }
-                .addOnFailureListener { e ->
-                    callback?.onFailure(e.message.toString())
-                }
+            val docRef = FirebaseFirestore.getInstance().collection("company").add(company).await()
+            company.companyDocumentId = docRef.id
         } else {
             companyDao.insert(company)
-            callback?.onSuccess(company)
         }
-
+        return company
     }
 
-    override suspend fun delete(company: Company, callback: OnResult?) {
+    override suspend fun delete(
+            company: Company
+    ) {
         if (SettingsModel.isConnectedToFireStore()) {
-            FirebaseFirestore.getInstance().collection("company")
-                .document(company.companyDocumentId!!)
-                .delete()
-                .addOnSuccessListener {
-                    callback?.onSuccess(company)
-                }
-                .addOnFailureListener { e ->
-                    callback?.onFailure(e.message.toString())
-                }
+            company.companyDocumentId?.let {
+                FirebaseFirestore.getInstance().collection("company").document(it).delete().await()
+            }
         } else {
             companyDao.delete(company)
-            callback?.onSuccess(company)
         }
     }
 
-    override suspend fun update(company: Company, callback: OnResult?) {
+    override suspend fun update(
+            company: Company
+    ) {
         if (SettingsModel.isConnectedToFireStore()) {
-            FirebaseFirestore.getInstance().collection("company")
-                .document(company.companyDocumentId!!)
-                .update(company.getMap())
-                .addOnSuccessListener {
-                    callback?.onSuccess(company)
-                }
-                .addOnFailureListener { e ->
-                    callback?.onFailure(e.message.toString())
-                }
+            company.companyDocumentId?.let {
+                FirebaseFirestore.getInstance().collection("company")
+                    .document(it).update(company.getMap()).await()
+            }
+
         } else {
             companyDao.update(company)
-            callback?.onSuccess(company)
         }
     }
 
-    override suspend fun getCompanyById(id: String,callback: OnResult?) {
+    override suspend fun getCompanyById(
+            id: String
+    ): Company? {
+        var company: Company? = null
         if (SettingsModel.isConnectedToFireStore()) {
-            FirebaseFirestore.getInstance().collection("company").whereEqualTo(
+            val querySnapshot = FirebaseFirestore.getInstance().collection("company").whereEqualTo(
                 "cmp_id",
                 id
-            ).get().addOnSuccessListener { result ->
-                val document = result.documents.firstOrNull()
-                if (document != null) {
-                    val company = document.toObject(Company::class.java)
-                    if (company != null) {
-                        callback?.onSuccess(company)
-                        return@addOnSuccessListener
-                    }
-                }
-                callback?.onFailure("not found.")
-            }.addOnFailureListener { exception ->
-                callback?.onFailure(
-                    exception.message ?: "Network error! Can't get company from remote."
-                )
+            ).get().await()
+            val document = querySnapshot.documents.firstOrNull()
+            if (document != null) {
+                company = document.toObject(Company::class.java)
             }
+
         } else {
-            callback?.onSuccess(companyDao.getCompanyById(id))
+            company = companyDao.getCompanyById(id)
         }
+        return company
     }
 
-    override suspend fun getAllCompanies(callback: OnResult?) {
+    override suspend fun getAllCompanies(): MutableList<Company> {
         if (SettingsModel.isConnectedToFireStore()) {
-            FirebaseFirestore.getInstance().collection("company").get()
-                .addOnSuccessListener { result ->
-                    val companies = mutableListOf<Company>()
-                    if (result.size() > 0) {
-                        for (document in result) {
-                            val obj = document.toObject(Company::class.java)
-                            if (!obj.companyId.isNullOrEmpty()) {
-                                obj.companyDocumentId = document.id
-                                companies.add(obj)
-                            }
-                        }
+            val querySnapshot = FirebaseFirestore.getInstance().collection("company").get().await()
+            val companies = mutableListOf<Company>()
+            if (querySnapshot.size() > 0) {
+                for (document in querySnapshot) {
+                    val obj = document.toObject(Company::class.java)
+                    if (obj.companyId.isNotEmpty()) {
+                        obj.companyDocumentId = document.id
+                        companies.add(obj)
                     }
-                    callback?.onSuccess(companies)
-                }.addOnFailureListener { exception ->
-                    callback?.onFailure(
-                        exception.message ?: "Network error! Can't get companies from remote."
-                    )
                 }
-        } else {
-            companyDao.getAllCompanies().collect {
-                callback?.onSuccess(it)
             }
+            return companies
+        } else {
+            return companyDao.getAllCompanies()
         }
     }
 }

@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.grid.pos.data.ThirdParty.ThirdParty
 import com.grid.pos.data.ThirdParty.ThirdPartyRepository
-import com.grid.pos.interfaces.OnResult
 import com.grid.pos.model.Event
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -15,12 +14,11 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ManageThirdPartiesViewModel @Inject constructor(
-    private val thirdPartyRepository: ThirdPartyRepository
+        private val thirdPartyRepository: ThirdPartyRepository
 ) : ViewModel() {
 
     private val _manageThirdPartiesState = MutableStateFlow(ManageThirdPartiesState())
-    val manageThirdPartiesState: MutableStateFlow<ManageThirdPartiesState> =
-        _manageThirdPartiesState
+    val manageThirdPartiesState: MutableStateFlow<ManageThirdPartiesState> = _manageThirdPartiesState
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
@@ -39,24 +37,12 @@ class ManageThirdPartiesViewModel @Inject constructor(
     }
 
     private suspend fun fetchThirdParties() {
-        thirdPartyRepository.getAllThirdParties(object : OnResult {
-            override fun onSuccess(result: Any) {
-                val listOfThirdParties = mutableListOf<ThirdParty>()
-                (result as List<*>).forEach {
-                    listOfThirdParties.add(it as ThirdParty)
-                }
-                viewModelScope.launch(Dispatchers.Main) {
-                    manageThirdPartiesState.value = manageThirdPartiesState.value.copy(
-                        thirdParties = listOfThirdParties
-                    )
-                }
-            }
-
-            override fun onFailure(message: String, errorCode: Int) {
-
-            }
-
-        })
+        val listOfThirdParties = thirdPartyRepository.getAllThirdParties()
+        viewModelScope.launch(Dispatchers.Main) {
+            manageThirdPartiesState.value = manageThirdPartiesState.value.copy(
+                thirdParties = listOfThirdParties
+            )
+        }
     }
 
     fun saveThirdParty(thirdParty: ThirdParty) {
@@ -71,37 +57,30 @@ class ManageThirdPartiesViewModel @Inject constructor(
             isLoading = true
         )
         val isInserting = thirdParty.isNew()
-        val callback = object : OnResult {
-            override fun onSuccess(result: Any) {
-                viewModelScope.launch(Dispatchers.Main) {
-                    val addedModel = result as ThirdParty
-                    val thirdParties = manageThirdPartiesState.value.thirdParties
-                    if (isInserting) thirdParties.add(addedModel)
-                    manageThirdPartiesState.value = manageThirdPartiesState.value.copy(
-                        thirdParties = thirdParties,
-                        selectedThirdParty = addedModel,
-                        isLoading = false,
-                        clear = true
-                    )
-                }
-            }
-
-            override fun onFailure(message: String, errorCode: Int) {
-                viewModelScope.launch(Dispatchers.Main) {
-                    manageThirdPartiesState.value = manageThirdPartiesState.value.copy(
-                        isLoading = false
-                    )
-                }
-            }
-
-        }
         manageThirdPartiesState.value.selectedThirdParty.let {
             CoroutineScope(Dispatchers.IO).launch {
                 if (isInserting) {
                     it.prepareForInsert()
-                    thirdPartyRepository.insert(it, callback)
+                    val addedModel = thirdPartyRepository.insert(it)
+                    val thirdParties = manageThirdPartiesState.value.thirdParties
+                    thirdParties.add(addedModel)
+                    viewModelScope.launch(Dispatchers.Main) {
+                        manageThirdPartiesState.value = manageThirdPartiesState.value.copy(
+                            thirdParties = thirdParties,
+                            selectedThirdParty = addedModel,
+                            isLoading = false,
+                            clear = true
+                        )
+                    }
                 } else {
-                    thirdPartyRepository.update(it, callback)
+                    thirdPartyRepository.update(it)
+                    viewModelScope.launch(Dispatchers.Main) {
+                        manageThirdPartiesState.value = manageThirdPartiesState.value.copy(
+                            selectedThirdParty = thirdParty,
+                            isLoading = false,
+                            clear = true
+                        )
+                    }
                 }
             }
         }
@@ -122,38 +101,17 @@ class ManageThirdPartiesViewModel @Inject constructor(
         )
 
         CoroutineScope(Dispatchers.IO).launch {
-            thirdPartyRepository.delete(thirdParty, object : OnResult {
-                override fun onSuccess(result: Any) {
-                    val thirdParties = manageThirdPartiesState.value.thirdParties
-                    val position =
-                        thirdParties.indexOfFirst {
-                            thirdParty.thirdPartyId.equals(
-                                it.thirdPartyId,
-                                ignoreCase = true
-                            )
-                        }
-                    if (position >= 0) {
-                        thirdParties.removeAt(position)
-                    }
-                    viewModelScope.launch(Dispatchers.Main) {
-                        manageThirdPartiesState.value = manageThirdPartiesState.value.copy(
-                            thirdParties = thirdParties,
-                            selectedThirdParty = ThirdParty(),
-                            isLoading = false,
-                            clear = true
-                        )
-                    }
-                }
-
-                override fun onFailure(message: String, errorCode: Int) {
-                    viewModelScope.launch(Dispatchers.Main) {
-                        manageThirdPartiesState.value = manageThirdPartiesState.value.copy(
-                            isLoading = false
-                        )
-                    }
-                }
-
-            })
+            thirdPartyRepository.delete(thirdParty)
+            val thirdParties = manageThirdPartiesState.value.thirdParties
+            thirdParties.remove(thirdParty)
+            viewModelScope.launch(Dispatchers.Main) {
+                manageThirdPartiesState.value = manageThirdPartiesState.value.copy(
+                    thirdParties = thirdParties,
+                    selectedThirdParty = ThirdParty(),
+                    isLoading = false,
+                    clear = true
+                )
+            }
         }
     }
 

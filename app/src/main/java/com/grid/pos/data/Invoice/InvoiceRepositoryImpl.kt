@@ -1,62 +1,50 @@
 package com.grid.pos.data.Invoice
 
 import com.google.firebase.firestore.FirebaseFirestore
-import com.grid.pos.interfaces.OnResult
 import com.grid.pos.model.SettingsModel
+import kotlinx.coroutines.tasks.await
 
 class InvoiceRepositoryImpl(
         private val invoiceDao: InvoiceDao
 ) : InvoiceRepository {
     override suspend fun insert(
-            invoice: Invoice,
-            callback: OnResult?
-    ) {
+            invoice: Invoice
+    ) :Invoice{
         if (SettingsModel.isConnectedToFireStore()) {
-            FirebaseFirestore.getInstance().collection("in_invoice").add(invoice.getMap())
-                .addOnSuccessListener {
-                    invoice.invoiceDocumentId = it.id
-                    callback?.onSuccess(invoice)
-                }.addOnFailureListener { e ->
-                    callback?.onFailure(e.message.toString())
-                }
+          val docRef=  FirebaseFirestore.getInstance().collection("in_invoice").add(invoice.getMap())
+                .await()
+            invoice.invoiceDocumentId = docRef.id
         } else {
             invoiceDao.insert(invoice)
-            callback?.onSuccess(invoice)
         }
+        return invoice
     }
 
     override suspend fun delete(
-            invoice: Invoice,
-            callback: OnResult?
+            invoice: Invoice
     ) {
         if (SettingsModel.isConnectedToFireStore()) {
-            FirebaseFirestore.getInstance().collection("in_invoice")
-                .document(invoice.invoiceDocumentId!!).delete().addOnSuccessListener {
-                    callback?.onSuccess(invoice)
-                }.addOnFailureListener { e ->
-                    callback?.onFailure(e.message.toString())
-                }
+            invoice.invoiceDocumentId?.let {
+                FirebaseFirestore.getInstance().collection("in_invoice")
+                    .document(it).delete().
+                    await()
+            }
         } else {
             invoiceDao.delete(invoice)
-            callback?.onSuccess(invoice)
         }
     }
 
     override suspend fun update(
-            invoice: Invoice,
-            callback: OnResult?
+            invoice: Invoice
     ) {
         if (SettingsModel.isConnectedToFireStore()) {
-            FirebaseFirestore.getInstance().collection("in_invoice")
-                .document(invoice.invoiceDocumentId!!).update(invoice.getMap())
-                .addOnSuccessListener {
-                    callback?.onSuccess(invoice)
-                }.addOnFailureListener { e ->
-                    callback?.onFailure(e.message.toString())
-                }
+            invoice.invoiceDocumentId?.let {
+                FirebaseFirestore.getInstance().collection("in_invoice")
+                    .document(it).update(invoice.getMap())
+                    .await()
+            }
         } else {
             invoiceDao.update(invoice)
-            callback?.onSuccess(invoice)
         }
     }
 
@@ -65,65 +53,50 @@ class InvoiceRepositoryImpl(
     }
 
     override suspend fun getAllInvoices(
-            invoiceHeaderId: String,
-            callback: OnResult?
-    ) {
+            invoiceHeaderId: String
+    ):MutableList<Invoice> {
         if (SettingsModel.isConnectedToFireStore()) {
-            FirebaseFirestore.getInstance().collection("in_invoice").whereEqualTo(
-                    "in_hi_id",
-                    invoiceHeaderId
-                ).get().addOnSuccessListener { result ->
-                    val invoiceItems = mutableListOf<Invoice>()
-                    if (result.size() > 0) {
-                        for (document in result) {
-                            val obj = document.toObject(Invoice::class.java)
-                            if (!obj.invoiceId.isNullOrEmpty()) {
-                                obj.invoiceDocumentId = document.id
-                                invoiceItems.add(obj)
-                            }
+          val querySnapshot =  FirebaseFirestore.getInstance().collection("in_invoice").whereEqualTo(
+                "in_hi_id",
+                invoiceHeaderId
+            ).get().await()
+                val invoiceItems = mutableListOf<Invoice>()
+                if (querySnapshot.size() > 0) {
+                    for (document in querySnapshot) {
+                        val obj = document.toObject(Invoice::class.java)
+                        if (obj.invoiceId.isNotEmpty()) {
+                            obj.invoiceDocumentId = document.id
+                            invoiceItems.add(obj)
                         }
                     }
-                callback?.onSuccess(invoiceItems)
-                }.addOnFailureListener { exception ->
-                    callback?.onFailure(
-                        exception.message ?: "Network error! Can't get items from remote."
-                    )
                 }
+             return invoiceItems
         } else {
-            invoiceDao.getAllInvoiceItems(invoiceHeaderId).collect {
-                callback?.onSuccess(it)
-            }
+            return invoiceDao.getAllInvoiceItems(invoiceHeaderId)
         }
     }
 
     override suspend fun getInvoicesByIds(
-            ids:List<String>,
-            callback: OnResult?
-    ) {
+            ids: List<String>
+    ) :MutableList<Invoice>{
         if (SettingsModel.isConnectedToFireStore()) {
-            FirebaseFirestore.getInstance().collection("in_invoice")
-                .whereIn("in_hi_id",ids)
-               .get().addOnSuccessListener { result ->
+            val querySnapshot =  FirebaseFirestore.getInstance().collection("in_invoice").whereIn(
+                    "in_hi_id",
+                    ids
+                ).get().await()
                     val invoiceItems = mutableListOf<Invoice>()
-                    if (result.size() > 0) {
-                        for (document in result) {
+                    if (querySnapshot.size() > 0) {
+                        for (document in querySnapshot) {
                             val obj = document.toObject(Invoice::class.java)
-                            if (!obj.invoiceId.isNullOrEmpty()) {
+                            if (obj.invoiceId.isNotEmpty()) {
                                 obj.invoiceDocumentId = document.id
                                 invoiceItems.add(obj)
                             }
                         }
                     }
-                    callback?.onSuccess(invoiceItems)
-                }.addOnFailureListener { exception ->
-                    callback?.onFailure(
-                        exception.message ?: "Network error! Can't get items from remote."
-                    )
-                }
+                return invoiceItems
         } else {
-            invoiceDao.getInvoicesByIds(ids).collect {
-                callback?.onSuccess(it)
-            }
+            return invoiceDao.getInvoicesByIds(ids)
         }
     }
 }
