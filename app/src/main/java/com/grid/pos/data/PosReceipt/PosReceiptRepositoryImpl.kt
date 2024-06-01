@@ -46,30 +46,6 @@ class PosReceiptRepositoryImpl(
         }
     }
 
-    override suspend fun getPosReceiptById(id: String): PosReceipt {
-        return posReceiptDao.getPosReceiptById(id)
-    }
-
-    override suspend fun getAllPosReceipts(): MutableList<PosReceipt> {
-        if (SettingsModel.isConnectedToFireStore()) {
-            val querySnapshot = FirebaseFirestore.getInstance().collection("pos_receipt").get()
-                .await()
-            val receipts = mutableListOf<PosReceipt>()
-            if (querySnapshot.size() > 0) {
-                for (document in querySnapshot) {
-                    val obj = document.toObject(PosReceipt::class.java)
-                    if (!obj.posReceiptId.isNullOrEmpty()) {
-                        obj.posReceiptDocumentId = document.id
-                        receipts.add(obj)
-                    }
-                }
-            }
-            return receipts
-        } else {
-            return posReceiptDao.getAllPosReceipts()
-        }
-    }
-
     override suspend fun getPosReceiptByInvoice(
             invoiceHeaderId: String
     ): PosReceipt? {

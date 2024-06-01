@@ -12,9 +12,6 @@ interface FamilyRepository {
     // Update a Family
     suspend fun update(family: Family)
 
-    // Get Family by it's ID
-    suspend fun getFamilyById(id: String): Family?
-
     // Get all Families as stream.
     suspend fun getAllFamilies(): MutableList<Family>
 

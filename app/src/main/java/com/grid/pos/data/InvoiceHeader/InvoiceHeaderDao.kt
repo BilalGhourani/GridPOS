@@ -32,24 +32,30 @@ interface InvoiceHeaderDao {
     @Update
     suspend fun update(invoiceHeader: InvoiceHeader)
 
-    // Get Invoice Header by it's ID
-    @Query("SELECT * FROM in_hinvoice WHERE hi_id = :id")
-    suspend fun getInvoiceHeaderById(id: String): InvoiceHeader
+    // Get all Invoice Headers as stream.
+    @Query("SELECT * FROM `in_hinvoice` WHERE hi_cmp_id=:companyId")
+    fun getAllInvoiceHeaders(companyId: String): MutableList<InvoiceHeader>
 
     // Get all Invoice Headers as stream.
-    @Query("SELECT * FROM `in_hinvoice`")
-    fun getAllInvoiceHeaders(): MutableList<InvoiceHeader>
+    @Query("SELECT * FROM `in_hinvoice` WHERE hi_tt_code = :type AND hi_cmp_id=:companyId ORDER BY hi_orderno DESC LIMIT 1")
+    fun getLastInvoiceNo(
+            type: String,
+            companyId: String
+    ): InvoiceHeader?
 
     // Get all Invoice Headers as stream.
-    @Query("SELECT * FROM `in_hinvoice` WHERE hi_tt_code = :type ORDER BY hi_orderno DESC LIMIT 1")
-    fun getLastInvoiceNo(type:String):InvoiceHeader?
-
-    // Get all Invoice Headers as stream.
-    @Query("SELECT * FROM `in_hinvoice` WHERE hi_ta_name = :tableNo LIMIT 1")
-    fun getInvoiceByTable(tableNo:String):InvoiceHeader?
+    @Query("SELECT * FROM `in_hinvoice` WHERE hi_ta_name = :tableNo AND hi_cmp_id=:companyId LIMIT 1")
+    fun getInvoiceByTable(
+            tableNo: String,
+            companyId: String
+    ): InvoiceHeader?
 
     // Get all Invoices as stream.
-    @Query("SELECT * FROM `in_hinvoice` WHERE hi_datetime >= :from AND hi_datetime<= :to")
-    fun getInvoicesBetween(from: Long,to:Long): MutableList<InvoiceHeader>
+    @Query("SELECT * FROM `in_hinvoice` WHERE hi_datetime >= :from AND hi_datetime<= :to AND hi_cmp_id=:companyId")
+    fun getInvoicesBetween(
+            from: Long,
+            to: Long,
+            companyId: String
+    ): MutableList<InvoiceHeader>
 
 }

@@ -40,10 +40,6 @@ class ItemRepositoryImpl(
         }
     }
 
-    override suspend fun getItemById(id: String): Item {
-        return itemDao.getItemById(id)
-    }
-
     override suspend fun getAllItems(): MutableList<Item> {
         if (SettingsModel.isConnectedToFireStore()) {
             val querySnapshot = FirebaseFirestore.getInstance().collection("st_item").whereEqualTo(
@@ -63,7 +59,7 @@ class ItemRepositoryImpl(
             }
             return items
         } else {
-            return itemDao.getAllItems()
+            return itemDao.getAllItems(SettingsModel.getCompanyID()?:"")
         }
     }
 

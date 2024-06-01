@@ -49,32 +49,6 @@ class UserRepositoryImpl(
         }
     }
 
-    override suspend fun getUserById(
-            id: String
-    ): User? {
-        if (SettingsModel.isConnectedToFireStore()) {
-            val querySnapshot = FirebaseFirestore.getInstance().collection("set_users")
-                .whereEqualTo(
-                    "usr_cmp_id",
-                    SettingsModel.getCompanyID()
-                ).whereEqualTo(
-                    "usr_id",
-                    id
-                ).get().await()
-
-            val document = querySnapshot.documents.firstOrNull()
-            if (document != null) {
-                val user = document.toObject(User::class.java)
-                if (user != null) {
-                    return user
-                }
-            }
-            return null
-        } else {
-            return userDao.getUserById(id)
-        }
-    }
-
     override suspend fun getUserByCredentials(
             username: String,
             password: String
@@ -104,7 +78,8 @@ class UserRepositoryImpl(
         } else {
             val users = userDao.login(
                 username,
-                password
+                password,
+                SettingsModel.getCompanyID()?:""
             )
             return if (users.isNotEmpty()) {
                 users[0]
@@ -140,7 +115,7 @@ class UserRepositoryImpl(
             }
             return users
         } else {
-            return userDao.getAllUsers()
+            return userDao.getAllUsers(SettingsModel.getCompanyID()?:"")
         }
     }
 }

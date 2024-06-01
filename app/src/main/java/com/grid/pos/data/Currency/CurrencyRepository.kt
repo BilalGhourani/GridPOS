@@ -12,9 +12,6 @@ interface CurrencyRepository {
     // Update a Currency
     suspend fun update(currency: Currency)
 
-    // Get Currency by it's ID
-    suspend fun getCurrencyById(id: String): Currency?
-
     // Get all Currencies as stream.
     suspend fun getAllCurrencies(): MutableList<Currency>
 

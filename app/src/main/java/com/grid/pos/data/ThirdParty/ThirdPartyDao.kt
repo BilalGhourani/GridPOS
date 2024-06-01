@@ -33,15 +33,7 @@ interface ThirdPartyDao {
     @Update
     suspend fun update(thirdParty: ThirdParty)
 
-    // Get Third Party by it's ID
-    @Query("SELECT * FROM thirdparty WHERE tp_id = :id")
-    suspend fun getThirdPartyById(id: String): ThirdParty
-
     // Get all Third Parties as stream.
-    @Query("SELECT * FROM `thirdparty`")
-    fun getAllThirdParties(): MutableList<ThirdParty>
-
-    // Get searched Third Parties as stream.
-    @Query("SELECT * FROM `thirdparty` WHERE tp_name LIKE '%' || :key || '%'")
-    fun searchForThirdParties(key: String): MutableList<ThirdParty>
+    @Query("SELECT * FROM `thirdparty` WHERE tp_cmp_id=:companyId")
+    fun getAllThirdParties(companyId: String): MutableList<ThirdParty>
 }

@@ -47,10 +47,6 @@ class InvoiceHeaderRepositoryImpl(
         }
     }
 
-    override suspend fun getInvoiceHeaderById(id: String): InvoiceHeader {
-        return invoiceHeaderDao.getInvoiceHeaderById(id)
-    }
-
     override suspend fun getAllInvoiceHeaders(): MutableList<InvoiceHeader> {
         if (SettingsModel.isConnectedToFireStore()) {
             val querySnapshot = FirebaseFirestore.getInstance().collection("in_hinvoice")
@@ -70,7 +66,7 @@ class InvoiceHeaderRepositoryImpl(
             }
             return invoices
         } else {
-            return invoiceHeaderDao.getAllInvoiceHeaders()
+            return invoiceHeaderDao.getAllInvoiceHeaders(SettingsModel.getCompanyID() ?: "")
         }
     }
 
@@ -98,7 +94,7 @@ class InvoiceHeaderRepositoryImpl(
                 return obj
             }
         } else {
-            return invoiceHeaderDao.getLastInvoiceNo(type)
+            return invoiceHeaderDao.getLastInvoiceNo(type,SettingsModel.getCompanyID() ?: "")
         }
         return null
     }
@@ -125,7 +121,7 @@ class InvoiceHeaderRepositoryImpl(
             }
             return null
         } else {
-            return invoiceHeaderDao.getInvoiceByTable(tableNo) ?: InvoiceHeader()
+            return invoiceHeaderDao.getInvoiceByTable(tableNo,SettingsModel.getCompanyID() ?: "") ?: InvoiceHeader()
         }
     }
 
@@ -159,7 +155,8 @@ class InvoiceHeaderRepositoryImpl(
         } else {
             return invoiceHeaderDao.getInvoicesBetween(
                 from.time * 1000,
-                to.time * 1000
+                to.time * 1000,
+                SettingsModel.getCompanyID() ?: ""
             )
         }
     }

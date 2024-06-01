@@ -8,7 +8,6 @@ import androidx.room.Query
 import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
 
-
 @Dao
 interface UserDao {
 
@@ -33,18 +32,14 @@ interface UserDao {
     @Update
     suspend fun update(user: User)
 
-    // Get user by it's ID
-    @Query("SELECT * FROM set_users WHERE usr_id = :id")
-    suspend fun getUserById(id: String): User
-
     // Get all users as stream.
-    @Query("SELECT * FROM `set_users`")
-    fun getAllUsers(): MutableList<User>
+    @Query("SELECT * FROM `set_users` WHERE usr_cmp_id=:companyId")
+    fun getAllUsers(companyId: String): MutableList<User>
 
-    // Get all users as stream.
-    @Query("SELECT * FROM `set_users` WHERE usr_name LIKE '%' || :key || '%'")
-    fun searchForUsers(key: String): List<User>
-
-    @Query("SELECT * FROM `set_users` WHERE usr_username = :usermame AND usr_password = :password ")
-    fun login(usermame: String, password: String): List<User>
+    @Query("SELECT * FROM `set_users` WHERE usr_username = :usermame AND usr_password = :password AND usr_cmp_id=:companyId")
+    fun login(
+            usermame: String,
+            password: String,
+            companyId: String
+    ): List<User>
 }

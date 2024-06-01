@@ -12,9 +12,6 @@ interface ThirdPartyRepository {
     // Update a ThirdParty
     suspend fun update(thirdParty: ThirdParty)
 
-    // Get ThirdParty by it's ID
-    suspend fun getThirdPartyById(id: String): ThirdParty
-
     // Get all ThirdParties as stream.
     suspend fun getAllThirdParties():MutableList<ThirdParty>
 

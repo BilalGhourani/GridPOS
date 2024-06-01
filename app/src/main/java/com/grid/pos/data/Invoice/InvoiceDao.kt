@@ -33,10 +33,6 @@ interface InvoiceDao {
     @Update
     suspend fun update(invoice: Invoice)
 
-    // Get Invoice by it's ID
-    @Query("SELECT * FROM in_invoice WHERE in_id = :id")
-    suspend fun getInvoiceById(id: String): Invoice
-
     // Get all Invoices as stream.
     @Query("SELECT * FROM `in_invoice`")
     fun getAllInvoices(): List<Invoice>

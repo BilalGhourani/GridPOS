@@ -28,9 +28,6 @@ interface PosReceiptDao {
     @Query("SELECT * FROM pos_receipt WHERE pr_id = :id")
     suspend fun getPosReceiptById(id: String): PosReceipt
 
-    // Get all POS Receipts as stream.
-    @Query("SELECT * FROM `pos_receipt`")
-    fun getAllPosReceipts(): MutableList<PosReceipt>
 
     // Get POS Receipt by it's ID
     @Query("SELECT * FROM pos_receipt WHERE pr_hi_id = :id")

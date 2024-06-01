@@ -40,10 +40,6 @@ class ThirdPartyRepositoryImpl(
         }
     }
 
-    override suspend fun getThirdPartyById(id: String): ThirdParty {
-        return thirdPartyDao.getThirdPartyById(id)
-    }
-
     override suspend fun getAllThirdParties(): MutableList<ThirdParty> {
         if (SettingsModel.isConnectedToFireStore()) {
             val querySnapshot = FirebaseFirestore.getInstance().collection("thirdParty")
@@ -63,7 +59,7 @@ class ThirdPartyRepositoryImpl(
             }
             return thirdParties
         } else {
-            return thirdPartyDao.getAllThirdParties()
+            return thirdPartyDao.getAllThirdParties(SettingsModel.getCompanyID()?:"")
         }
     }
 

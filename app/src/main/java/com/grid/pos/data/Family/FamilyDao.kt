@@ -33,15 +33,8 @@ interface FamilyDao {
     @Update
     suspend fun update(family: Family)
 
-    // Get call log by it's ID
-    @Query("SELECT * FROM st_family WHERE fa_id = :id")
-    suspend fun getFamilyById(id: String): Family
-
     // Get all call logs as stream.
-    @Query("SELECT * FROM `st_family`")
-    fun getAllFamilies(): MutableList<Family>
+    @Query("SELECT * FROM `st_family` WHERE fa_cmp_id = :companyId")
+    fun getAllFamilies(companyId:String): MutableList<Family>
 
-    // Get all call logs as stream.
-    @Query("SELECT * FROM `st_family` WHERE fa_name LIKE '%' || :key || '%'")
-    fun searchForFamilies(key: String): MutableList<Family>
 }

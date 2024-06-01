@@ -40,10 +40,6 @@ class FamilyRepositoryImpl(
         }
     }
 
-    override suspend fun getFamilyById(id: String): Family {
-        return familyDao.getFamilyById(id)
-    }
-
     override suspend fun getAllFamilies(): MutableList<Family> {
         if (SettingsModel.isConnectedToFireStore()) {
             val querySnapshot = FirebaseFirestore.getInstance().collection("st_family")
@@ -63,7 +59,7 @@ class FamilyRepositoryImpl(
             }
             return families
         } else {
-            return familyDao.getAllFamilies()
+            return familyDao.getAllFamilies(SettingsModel.getCompanyID() ?: "")
         }
     }
 

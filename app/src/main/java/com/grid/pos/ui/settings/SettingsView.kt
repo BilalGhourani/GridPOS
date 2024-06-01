@@ -34,6 +34,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -98,13 +99,6 @@ fun SettingsView(
     var sqlServerPath by remember { mutableStateOf(SettingsModel.sqlServerPath ?: "") }
 
     val companies = remember { mutableStateListOf<Company>() }
-    if (companies.isEmpty()) {
-        activityScopedViewModel.getLocalCompanies { comps ->
-            companies.addAll(comps)
-            val selected = comps.firstOrNull { it.companyId.equals(localCompanyID) }
-            localCompanyName = selected?.companyName ?: ""
-        }
-    }
 
     val firebaseApiKeyRequester = remember { FocusRequester() }
     val firebaseProjectIdRequester = remember { FocusRequester() }
@@ -137,6 +131,16 @@ fun SettingsView(
     }
     BackHandler {
         handleBack()
+    }
+
+    LaunchedEffect(Unit) {
+        if (companies.isEmpty()) {
+            activityScopedViewModel.getLocalCompanies { comps ->
+                companies.addAll(comps)
+                val selected = comps.firstOrNull { it.companyId.equals(localCompanyID) }
+                localCompanyName = selected?.companyName ?: ""
+            }
+        }
     }
 
     GridPOSTheme {

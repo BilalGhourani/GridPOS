@@ -7,6 +7,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import com.grid.pos.data.Company.Company
+import com.grid.pos.model.SettingsModel
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -33,11 +34,8 @@ interface CurrencyDao {
     @Update
     suspend fun update(currency: Currency)
 
-    // Get Currency by it's ID
-    @Query("SELECT * FROM `currency` WHERE cur_id = :id")
-    suspend fun getCurrencyById(id: String): Currency
 
     // Get all Currencies as stream.
-    @Query("SELECT * FROM `currency`")
-    fun getAllCurrencies(): MutableList<Currency>
+    @Query("SELECT * FROM `currency` WHERE cur_cmp_id = :companyId")
+    fun getAllCurrencies(companyId:String): MutableList<Currency>
 }

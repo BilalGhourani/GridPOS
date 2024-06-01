@@ -34,12 +34,8 @@ interface PosPrinterDao {
     @Update
     suspend fun update(posPrinter: PosPrinter)
 
-    // Get POS Printer by it's ID
-    @Query("SELECT * FROM pos_printer WHERE pp_id = :id")
-    suspend fun getPosPrinterById(id: String): PosPrinter
-
     // Get all POS Printers as stream.
-    @Query("SELECT * FROM `pos_printer`")
-    fun getAllPosPrinters(): MutableList<PosPrinter>
+    @Query("SELECT * FROM `pos_printer` WHERE pp_cmp_id = :companyId")
+    fun getAllPosPrinters(companyId: String): MutableList<PosPrinter>
 
 }

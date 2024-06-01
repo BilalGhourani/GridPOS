@@ -12,9 +12,6 @@ interface ItemRepository {
     // Update an Item
     suspend fun update(item: Item)
 
-    // Get Item by it's ID
-    suspend fun getItemById(id: String): Item
-
     // Get all Items logs as stream.
     suspend fun getAllItems(): MutableList<Item>
 

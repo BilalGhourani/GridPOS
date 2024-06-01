@@ -35,16 +35,12 @@ class CurrencyRepositoryImpl(
     ) {
         if (SettingsModel.isConnectedToFireStore()) {
             currency.currencyDocumentId?.let {
-                FirebaseFirestore.getInstance().collection("currency")
-                    .document(it).update(currency.getMap()).await()
+                FirebaseFirestore.getInstance().collection("currency").document(it)
+                    .update(currency.getMap()).await()
             }
         } else {
             currencyDao.update(currency)
         }
-    }
-
-    override suspend fun getCurrencyById(id: String): Currency {
-        return currencyDao.getCurrencyById(id)
     }
 
     override suspend fun getAllCurrencies(): MutableList<Currency> {
@@ -65,7 +61,7 @@ class CurrencyRepositoryImpl(
             }
             return currencies
         } else {
-            return currencyDao.getAllCurrencies()
+            return currencyDao.getAllCurrencies(SettingsModel.getCompanyID() ?: "")
         }
 
     }

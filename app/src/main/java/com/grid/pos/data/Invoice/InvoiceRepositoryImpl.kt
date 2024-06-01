@@ -48,10 +48,6 @@ class InvoiceRepositoryImpl(
         }
     }
 
-    override suspend fun getInvoiceById(id: String): Invoice {
-        return invoiceDao.getInvoiceById(id)
-    }
-
     override suspend fun getAllInvoices(
             invoiceHeaderId: String
     ):MutableList<Invoice> {

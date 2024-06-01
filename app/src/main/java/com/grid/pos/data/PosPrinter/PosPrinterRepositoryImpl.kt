@@ -21,8 +21,8 @@ class PosPrinterRepositoryImpl(
     override suspend fun delete(posPrinter: PosPrinter) {
         if (SettingsModel.isConnectedToFireStore()) {
             posPrinter.posPrinterDocumentId?.let {
-                FirebaseFirestore.getInstance().collection("pos_printer")
-                    .document(it).delete().await()
+                FirebaseFirestore.getInstance().collection("pos_printer").document(it).delete()
+                    .await()
             }
         } else {
             posPrinterDao.delete(posPrinter)
@@ -32,16 +32,12 @@ class PosPrinterRepositoryImpl(
     override suspend fun update(posPrinter: PosPrinter) {
         if (SettingsModel.isConnectedToFireStore()) {
             posPrinter.posPrinterDocumentId?.let {
-                FirebaseFirestore.getInstance().collection("pos_printer")
-                    .document(it).update(posPrinter.getMap()).await()
+                FirebaseFirestore.getInstance().collection("pos_printer").document(it)
+                    .update(posPrinter.getMap()).await()
             }
         } else {
             posPrinterDao.update(posPrinter)
         }
-    }
-
-    override suspend fun getPosPrinterById(id: String): PosPrinter {
-        return posPrinterDao.getPosPrinterById(id)
     }
 
     override suspend fun getAllPosPrinters(): MutableList<PosPrinter> {
@@ -65,7 +61,7 @@ class PosPrinterRepositoryImpl(
             return printers
 
         } else {
-            return posPrinterDao.getAllPosPrinters()
+            return posPrinterDao.getAllPosPrinters(SettingsModel.getCompanyID() ?: "")
         }
     }
 

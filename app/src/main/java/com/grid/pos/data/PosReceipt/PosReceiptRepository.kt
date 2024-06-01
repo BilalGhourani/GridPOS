@@ -14,11 +14,6 @@ interface PosReceiptRepository {
             posReceipt: PosReceipt
     )
 
-    // Get POS Receipt by it's ID
-    suspend fun getPosReceiptById(id: String): PosReceipt?
-
-    // Get all POS Receipts as stream.
-    suspend fun getAllPosReceipts(): MutableList<PosReceipt>
 
     suspend fun getPosReceiptByInvoice(
             invoiceHeaderId: String

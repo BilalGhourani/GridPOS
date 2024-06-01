@@ -12,9 +12,6 @@ interface InvoiceRepository {
     // Update an Invoice
     suspend fun update(invoice: Invoice)
 
-    // Get Invoice by it's ID
-    suspend fun getInvoiceById(id: String): Invoice?
-
     // Get all Invoices logs as stream.
     suspend fun getAllInvoices(invoiceHeaderId: String): MutableList<Invoice>
 

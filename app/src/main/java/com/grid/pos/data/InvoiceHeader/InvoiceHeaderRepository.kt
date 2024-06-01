@@ -14,9 +14,6 @@ interface InvoiceHeaderRepository {
     // Update an Invoice Header
     suspend fun update(invoiceHeader: InvoiceHeader)
 
-    // Get Invoice Header by it's ID
-    suspend fun getInvoiceHeaderById(id: String): InvoiceHeader
-
     // Get all Invoice Headers logs as stream.
     suspend fun getAllInvoiceHeaders(): MutableList<InvoiceHeader>
     suspend fun getLastInvoiceByType(type: String): InvoiceHeader?

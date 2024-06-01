@@ -34,15 +34,8 @@ interface ItemDao {
     @Update
     suspend fun update(item: Item)
 
-    // Get Item by it's ID
-    @Query("SELECT * FROM st_item WHERE it_id = :id")
-    suspend fun getItemById(id: String): Item
-
     // Get all Items as stream.
-    @Query("SELECT * FROM `st_item`")
-    fun getAllItems(): MutableList<Item>
+    @Query("SELECT * FROM `st_item` WHERE it_cmp_id =:companyID")
+    fun getAllItems(companyID: String): MutableList<Item>
 
-    // Get searched Items as stream.
-    @Query("SELECT * FROM `st_item` WHERE it_name LIKE '%' || :key || '%'")
-    fun searchForItems(key: String): MutableList<Item>
 }
