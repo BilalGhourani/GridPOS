@@ -158,37 +158,36 @@ class POSViewModel @Inject constructor(
         }
     }
 
-    private fun savePOSReceipt(
+    private suspend fun savePOSReceipt(
             invoiceHeader: InvoiceHeader,
             posReceipt: PosReceipt,
             invoiceItems: MutableList<InvoiceItemModel>
     ) {
         val isInserting = posReceipt.isNew()
-        CoroutineScope(Dispatchers.IO).launch {
-            if (isInserting) {
-                posReceipt.posReceiptInvoiceId = invoiceHeader.invoiceHeadId
-                posReceipt.prepareForInsert()
-                posReceiptRepository.insert(posReceipt)
-                saveInvoiceItems(
-                    invoiceHeader,
-                    invoiceItems
-                )
-            } else {
-                posReceiptRepository.update(posReceipt)
-                saveInvoiceItems(
-                    invoiceHeader,
-                    invoiceItems
-                )
-            }
+        if (isInserting) {
+            posReceipt.posReceiptInvoiceId = invoiceHeader.invoiceHeadId
+            posReceipt.prepareForInsert()
+            posReceiptRepository.insert(posReceipt)
+            saveInvoiceItems(
+                invoiceHeader,
+                invoiceItems
+            )
+        } else {
+            posReceiptRepository.update(posReceipt)
+            saveInvoiceItems(
+                invoiceHeader,
+                invoiceItems
+            )
         }
     }
 
-    private fun saveInvoiceItems(
+    private suspend fun saveInvoiceItems(
             invoiceHeader: InvoiceHeader,
             invoiceItems: MutableList<InvoiceItemModel>
     ) {
         val itemsToInsert = invoiceItems.filter { it.invoice.isNew() }
         val itemsToUpdate = invoiceItems.filter { !it.invoice.isNew() }
+        val itemsToDelete = posState.value.itemsToDelete.filter { !it.invoice.isNew() }
 
         val size = itemsToInsert.size
         itemsToInsert.forEachIndexed { index, invoiceItem ->
@@ -209,27 +208,29 @@ class POSViewModel @Inject constructor(
                 index == size2 - 1
             )
         }
+
+        itemsToDelete.forEach { invoiceItem ->
+            invoiceRepository.delete(invoiceItem.invoice)
+        }
     }
 
-    private fun saveInvoiceItem(
+    private suspend fun saveInvoiceItem(
             invoice: Invoice,
             isInserting: Boolean,
             notify: Boolean = false
     ) {
-        CoroutineScope(Dispatchers.IO).launch {
-            if (isInserting) {
-                invoice.prepareForInsert()
-                invoiceRepository.insert(invoice)
-            } else {
-                invoiceRepository.update(invoice)
-            }
-            if (notify) {
-                viewModelScope.launch(Dispatchers.Main) {
-                    posState.value = posState.value.copy(
-                        isLoading = false,
-                        isSaved = true,
-                    )
-                }
+        if (isInserting) {
+            invoice.prepareForInsert()
+            invoiceRepository.insert(invoice)
+        } else {
+            invoiceRepository.update(invoice)
+        }
+        if (notify) {
+            viewModelScope.launch(Dispatchers.Main) {
+                posState.value = posState.value.copy(
+                    isLoading = false,
+                    isSaved = true,
+                )
             }
         }
     }
@@ -244,7 +245,10 @@ class POSViewModel @Inject constructor(
             result.forEach { inv ->
                 invoices.add(InvoiceItemModel(invoice = inv,
                     invoiceItem = posState.value.items.firstOrNull {
-                        it.itemId.equals(inv.invoiceItemId,ignoreCase = true)
+                        it.itemId.equals(
+                            inv.invoiceItemId,
+                            ignoreCase = true
+                        )
                     } ?: Item()))
             }
             getPosReceipt(
