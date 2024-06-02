@@ -322,11 +322,8 @@ fun POSView(
                         onAddItem = { isAddItemBottomSheetVisible = true },
                         onPay = { isPayBottomSheetVisible = true },
                         onDelete = {
-                            viewModel.deleteInvoiceHeader(
-                                invoiceHeaderState.value,
-                                activityViewModel.posReceipt,
-                                invoicesState.toMutableList()
-                            )
+                            popupState = PopupState.DELETE_INVOICE
+                            isSavePopupVisible = true
                         })
 
                     // Border stroke configuration
@@ -542,12 +539,14 @@ fun POSView(
                 },
                 onConfirmation = {
                     isSavePopupVisible = false
-                    invoicesState.clear()
-                    invoiceHeaderState.value = InvoiceHeader()
-                    activityViewModel.posReceipt = PosReceipt()
-                    activityViewModel.invoiceHeader = invoiceHeaderState.value
-                    activityViewModel.invoiceItemModels.clear()
-                    activityViewModel.shouldLoadInvoice = false
+                    if (popupState != PopupState.DELETE_INVOICE) {
+                        invoicesState.clear()
+                        invoiceHeaderState.value = InvoiceHeader()
+                        activityViewModel.posReceipt = PosReceipt()
+                        activityViewModel.invoiceHeader = invoiceHeaderState.value
+                        activityViewModel.invoiceItemModels.clear()
+                        activityViewModel.shouldLoadInvoice = false
+                    }
                     when (popupState) {
                         PopupState.BACK_PRESSED -> {
                             activityViewModel.logout()
@@ -566,15 +565,25 @@ fun POSView(
                                 selectInvoice(it)
                             }
                         }
+
+                        PopupState.DELETE_INVOICE -> {
+                            viewModel.deleteInvoiceHeader(
+                                invoiceHeaderState.value,
+                                activityViewModel.posReceipt,
+                                invoicesState.toMutableList()
+                            )
+                        }
                     }
                 },
                 dialogTitle = "Alert.",
                 dialogText = when (popupState) {
                     PopupState.BACK_PRESSED -> "Are you sure you want to logout?"
+                    PopupState.DELETE_INVOICE -> "Are you sure you want to Delete this invoice?"
                     else -> "Are you sure you want to discard current invoice?"
                 },
                 positiveBtnText = when (popupState) {
                     PopupState.BACK_PRESSED -> "Logout"
+                    PopupState.DELETE_INVOICE -> "Delete"
                     else -> "Discard"
                 },
                 negativeBtnText = "Cancel",
@@ -588,5 +597,5 @@ fun POSView(
 }
 
 enum class PopupState(val key: String) {
-    BACK_PRESSED("BACK_PRESSEF"), DISCARD_INVOICE("DISCARD_INVOICE"), CHANGE_INVOICE("CHANGE_INVOICE")
+    BACK_PRESSED("BACK_PRESSEF"), DISCARD_INVOICE("DISCARD_INVOICE"), CHANGE_INVOICE("CHANGE_INVOICE"), DELETE_INVOICE("DELETE_INVOICE")
 }
