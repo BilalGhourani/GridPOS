@@ -6,6 +6,7 @@ import com.grid.pos.model.Event
 data class TablesState(
         var invoiceHeader: InvoiceHeader = InvoiceHeader(),
         var step: Int = 1,
+        var moveToPos: Boolean = false,
         val isLoading: Boolean = false,
         var clear: Boolean = false,
         val warning: Event<String>? = null,

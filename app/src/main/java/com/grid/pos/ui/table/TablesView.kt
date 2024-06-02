@@ -60,11 +60,11 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TablesView(
-    modifier: Modifier = Modifier,
-    navController: NavController? = null,
-    activityScopedViewModel: ActivityScopedViewModel,
-    mainActivity: MainActivity,
-    viewModel: TablesViewModel = hiltViewModel()
+        modifier: Modifier = Modifier,
+        navController: NavController? = null,
+        activityScopedViewModel: ActivityScopedViewModel,
+        mainActivity: MainActivity,
+        viewModel: TablesViewModel = hiltViewModel()
 ) {
     val tablesState: TablesState by viewModel.tablesState.collectAsState(
         TablesState()
@@ -84,11 +84,28 @@ fun TablesView(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
-    LaunchedEffect(stepState) {
+    fun moveToPos() {
+        tablesState.invoiceHeader.invoiceHeadTaName = tableNameState
+        tablesState.invoiceHeader.invoiceHeadClientsCount = clientsCountState.toIntOrNull() ?: 1
+        activityScopedViewModel.invoiceHeader = tablesState.invoiceHeader
+        activityScopedViewModel.shouldLoadInvoice = true
+        activityScopedViewModel.isFromTable = true
+        tablesState.clear = true
+        navController?.navigate("POSView")
+    }
+
+    LaunchedEffect(
+        stepState,
+        tablesState.moveToPos
+    ) {
         if (stepState == 1) {
             tableNameFocusRequester.requestFocus()
         } else {
             clientsCountFocusRequester.requestFocus()
+        }
+        if (tablesState.moveToPos) {
+            moveToPos()
+            tablesState.moveToPos = false
         }
     }
     LaunchedEffect(tablesState.warning) {
@@ -100,6 +117,10 @@ fun TablesView(
                 )
             }
         }
+    }
+
+    LaunchedEffect(tablesState.step) {
+        stepState = tablesState.step
     }
 
     fun handleBack() {
@@ -227,14 +248,7 @@ fun TablesView(
                             viewModel.showError("Please enter client counts")
                             return@UIButton
                         }
-                        tablesState.invoiceHeader.invoiceHeadTaName = tableNameState
-                        tablesState.invoiceHeader.invoiceHeadClientsCount =
-                            clientsCountState.toIntOrNull() ?: 1
-                        activityScopedViewModel.invoiceHeader = tablesState.invoiceHeader
-                        activityScopedViewModel.shouldLoadInvoice = true
-                        activityScopedViewModel.isFromTable = true
-                        tablesState.clear = true
-                        navController?.navigate("POSView")
+                        moveToPos()
                     }
 
                 }

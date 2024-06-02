@@ -192,8 +192,8 @@ fun InvoiceCashView(
                 text = "Save & Close",
                 shape = RoundedCornerShape(15.dp)
             ) {
-                posReceipt.posReceiptCash = cashTotalPaid1.toDoubleOrNull() ?: 0.0
-                posReceipt.posReceiptCashs = cashTotalPaid2.toDoubleOrNull() ?: 0.0
+                posReceipt.posReceiptCash = cashCurr1Paid.toDoubleOrNull() ?: 0.0
+                posReceipt.posReceiptCashs = cashCurr2Paid.toDoubleOrNull() ?: 0.0
                 posReceipt.posReceiptDebit = debitCurr1Paid.toDoubleOrNull() ?: 0.0
                 posReceipt.posReceiptDebits = debitCurr2Paid.toDoubleOrNull() ?: 0.0
                 posReceipt.posReceiptCredit = creditCurr1Paid.toDoubleOrNull() ?: 0.0
@@ -210,8 +210,8 @@ fun InvoiceCashView(
                 text = "Save & Print Order",
                 shape = RoundedCornerShape(15.dp)
             ) {
-                posReceipt.posReceiptCash = cashTotalPaid1.toDoubleOrNull() ?: 0.0
-                posReceipt.posReceiptCashs = cashTotalPaid2.toDoubleOrNull() ?: 0.0
+                posReceipt.posReceiptCash = cashCurr1Paid.toDoubleOrNull() ?: 0.0
+                posReceipt.posReceiptCashs = cashCurr2Paid.toDoubleOrNull() ?: 0.0
                 posReceipt.posReceiptDebit = debitCurr1Paid.toDoubleOrNull() ?: 0.0
                 posReceipt.posReceiptDebits = debitCurr2Paid.toDoubleOrNull() ?: 0.0
                 posReceipt.posReceiptCredit = creditCurr1Paid.toDoubleOrNull() ?: 0.0

@@ -121,7 +121,8 @@ class InvoiceHeaderRepositoryImpl(
             }
             return null
         } else {
-            return invoiceHeaderDao.getInvoiceByTable(tableNo,SettingsModel.getCompanyID() ?: "") ?: InvoiceHeader()
+            val inv =invoiceHeaderDao.getInvoiceByTable(tableNo,SettingsModel.getCompanyID() ?: "")
+            return inv
         }
     }
 

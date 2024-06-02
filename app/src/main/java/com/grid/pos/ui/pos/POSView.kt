@@ -120,6 +120,8 @@ fun POSView(
                     activityViewModel.invoiceItemModels = invoiceItems
                     activityViewModel.posReceipt = receipt
                 })
+        } else {
+            posState.isLoading = false
         }
     }
 

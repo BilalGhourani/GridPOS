@@ -2,6 +2,7 @@ package com.grid.pos.ui.table
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.grid.pos.data.InvoiceHeader.InvoiceHeader
 import com.grid.pos.data.InvoiceHeader.InvoiceHeaderRepository
 import com.grid.pos.model.Event
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -39,14 +40,22 @@ class TablesViewModel @Inject constructor(
         )
         viewModelScope.launch(Dispatchers.IO) {
             val invoiceHeader = invoiceHeaderRepository.getInvoiceByTable(tableNo)
-            invoiceHeader?.let {
-                viewModelScope.launch(Dispatchers.Main) {
+            viewModelScope.launch(Dispatchers.Main) {
+                invoiceHeader?.let {
                     tablesState.value = tablesState.value.copy(
                         invoiceHeader = it,
+                        moveToPos = true,
+                        isLoading = false
+                    )
+                } ?: run {
+                    tablesState.value = tablesState.value.copy(
+                        invoiceHeader = InvoiceHeader(),
                         step = 2,
+                        moveToPos = false,
                         isLoading = false
                     )
                 }
+
             }
         }
     }

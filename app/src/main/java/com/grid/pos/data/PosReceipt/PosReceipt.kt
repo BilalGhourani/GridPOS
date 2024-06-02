@@ -135,7 +135,7 @@ data class PosReceipt(
 
     @Exclude
     override fun prepareForInsert() {
-        if (posReceiptId.isNullOrEmpty()) {
+        if (posReceiptId.isEmpty()) {
             posReceiptId = Utils.generateRandomUuidString()
         }
         posReceiptUserStamp = SettingsModel.currentUserId
