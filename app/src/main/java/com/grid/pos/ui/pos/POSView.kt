@@ -108,18 +108,6 @@ fun POSView(
     val isLandscape = orientation == Configuration.ORIENTATION_LANDSCAPE
     val keyboardController = LocalSoftwareKeyboardController.current
 
-    if (posState.items.isEmpty()) {
-        posState.items.addAll(activityViewModel.items)
-    }
-    if (posState.families.isEmpty()) {
-        posState.families.addAll(activityViewModel.families)
-    }
-    if (posState.thirdParties.isEmpty()) {
-        posState.thirdParties.addAll(activityViewModel.thirdParties)
-    }
-    if (posState.invoiceHeaders.isEmpty()) {
-        posState.invoiceHeaders.addAll(activityViewModel.invoiceHeaders)
-    }
 
     fun selectInvoice(invoiceHeader: InvoiceHeader) {
         if (invoiceHeader.invoiceHeadId.isNotEmpty()) {
@@ -136,12 +124,27 @@ fun POSView(
         }
     }
 
-    if (activityViewModel.shouldLoadInvoice) {
-        posState.isLoading = true
-        activityViewModel.shouldLoadInvoice = false
-        selectInvoice(invoiceHeaderState.value)
-    } else if (invoicesState.isEmpty() && activityViewModel.invoiceItemModels.isNotEmpty()) {
-        invoicesState.addAll(activityViewModel.invoiceItemModels)
+    LaunchedEffect(key1 = Unit) {
+        if (posState.items.isEmpty()) {
+            posState.items.addAll(activityViewModel.items)
+        }
+        if (posState.families.isEmpty()) {
+            posState.families.addAll(activityViewModel.families)
+        }
+        if (posState.thirdParties.isEmpty()) {
+            posState.thirdParties.addAll(activityViewModel.thirdParties)
+        }
+        if (posState.invoiceHeaders.isEmpty()) {
+            posState.invoiceHeaders.addAll(activityViewModel.invoiceHeaders)
+        }
+
+        if (activityViewModel.shouldLoadInvoice) {
+            posState.isLoading = true
+            activityViewModel.shouldLoadInvoice = false
+            selectInvoice(invoiceHeaderState.value)
+        } else if (invoicesState.isEmpty() && activityViewModel.invoiceItemModels.isNotEmpty()) {
+            invoicesState.addAll(activityViewModel.invoiceItemModels)
+        }
     }
 
     var itemsToAdd: List<Item> = listOf()

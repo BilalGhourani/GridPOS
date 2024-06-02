@@ -49,6 +49,7 @@ class ActivityScopedViewModel @Inject constructor(
     var shouldPrintInvoice: Boolean = false
     var shouldLoadInvoice: Boolean = false
     var isFromTable: Boolean = false
+    var shouldUpdateLists: Boolean = false
     var companies: MutableList<Company> = mutableListOf()
     var localCompanies: MutableList<Company> = mutableListOf()
     var currencies: MutableList<Currency> = mutableListOf()
