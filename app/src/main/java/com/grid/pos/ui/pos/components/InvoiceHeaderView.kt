@@ -16,8 +16,10 @@ import com.grid.pos.ui.common.UIButton
 fun InvoiceHeaderDetails(
         modifier: Modifier = Modifier,
         isPayEnabled: Boolean = false,
+        isDeleteEnabled: Boolean = false,
         onAddItem: () -> Unit = {},
         onPay: () -> Unit = {},
+        onDelete: () -> Unit = {},
 ) {
     Row(
         modifier = modifier.fillMaxWidth(),
@@ -56,6 +58,25 @@ fun InvoiceHeaderDetails(
             shape = RoundedCornerShape(15.dp)
         ) {
             onPay.invoke()
+        }
+
+        if (isDeleteEnabled) {
+            UIButton(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .weight(1f)
+                    .padding(
+                        3.dp,
+                        5.dp,
+                        3.dp,
+                        5.dp
+                    ),
+                text = "Delete",
+                textAlign = TextAlign.Center,
+                shape = RoundedCornerShape(15.dp)
+            ) {
+                onDelete.invoke()
+            }
         }
     }
 }

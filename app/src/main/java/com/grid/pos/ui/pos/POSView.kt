@@ -108,7 +108,6 @@ fun POSView(
     val isLandscape = orientation == Configuration.ORIENTATION_LANDSCAPE
     val keyboardController = LocalSoftwareKeyboardController.current
 
-
     fun selectInvoice(invoiceHeader: InvoiceHeader) {
         if (invoiceHeader.invoiceHeadId.isNotEmpty()) {
             invoiceHeaderState.value = invoiceHeader
@@ -185,8 +184,21 @@ fun POSView(
             }
         }
     }
+    fun clear() {
+        activityViewModel.invoiceItemModels.clear()
+        activityViewModel.invoiceHeader = InvoiceHeader()
+        activityViewModel.posReceipt = PosReceipt()
+        activityViewModel.shouldPrintInvoice = true
+        activityViewModel.shouldLoadInvoice = false
+        activityViewModel.pendingInvHeadState = null
+        invoicesState.clear()
+        invoiceHeaderState.value = activityViewModel.invoiceHeader
+    }
 
-    LaunchedEffect(posState.isSaved) {
+    LaunchedEffect(
+        posState.isSaved,
+        posState.isDeleted
+    ) {
         if (posState.isSaved) {
             isPayBottomSheetVisible = false
             if (activityViewModel.shouldPrintInvoice) {
@@ -194,16 +206,15 @@ fun POSView(
                 activityViewModel.invoiceHeader = invoiceHeaderState.value
                 navController?.navigate("UIWebView")
             } else {
-                activityViewModel.invoiceItemModels.clear()
-                activityViewModel.invoiceHeader = InvoiceHeader()
-                activityViewModel.posReceipt = PosReceipt()
-                activityViewModel.shouldPrintInvoice = true
-                activityViewModel.shouldLoadInvoice = false
-                activityViewModel.pendingInvHeadState = null
-                invoicesState.clear()
-                invoiceHeaderState.value = activityViewModel.invoiceHeader
+                clear()
             }
             posState.isSaved = false
+        }
+        if (posState.isDeleted) {
+            posState.invoiceHeaders.remove(invoiceHeaderState.value)
+            activityViewModel.invoiceHeaders = posState.invoiceHeaders
+            clear()
+            posState.isDeleted = false
         }
     }
     val isImeVisible = WindowInsets.ime.getBottom(LocalDensity.current) > 0
@@ -305,8 +316,16 @@ fun POSView(
                         .fillMaxWidth()
                         .height(70.dp),
                         isPayEnabled = invoicesState.size > 0,
+                        isDeleteEnabled = !invoiceHeaderState.value.isNew(),
                         onAddItem = { isAddItemBottomSheetVisible = true },
-                        onPay = { isPayBottomSheetVisible = true })
+                        onPay = { isPayBottomSheetVisible = true },
+                        onDelete = {
+                            viewModel.deleteInvoiceHeader(
+                                invoiceHeaderState.value,
+                                activityViewModel.posReceipt,
+                                invoicesState.toMutableList()
+                            )
+                        })
 
                     // Border stroke configuration
                     val borderStroke = BorderStroke(

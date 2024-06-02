@@ -18,6 +18,7 @@ data class POSState(
     val invoiceHeaders: MutableList<InvoiceHeader> = mutableListOf(),
     var selectedThirdParty: ThirdParty = ThirdParty(),
     var isSaved: Boolean = false,
+    var isDeleted: Boolean = false,
     var isLoading: Boolean = false,
     val warning: Event<String>? = null,
 ) {

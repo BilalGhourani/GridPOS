@@ -254,23 +254,31 @@ class POSViewModel @Inject constructor(
         }
     }
 
-    fun deleteInvoiceHeader(invoiceHeader: InvoiceHeader) {
+    fun deleteInvoiceHeader(
+            invoiceHeader: InvoiceHeader,
+            posReceipt: PosReceipt,
+            invoiceItems: MutableList<InvoiceItemModel>
+    ) {
+        if (invoiceHeader.isNew()) {
+            posState.value = posState.value.copy(
+                isDeleted = true,
+                isLoading = false,
+            )
+            return
+        }
+        posState.value = posState.value.copy(
+            isLoading = true
+        )
         viewModelScope.launch(Dispatchers.IO) {
-            val posReceipt = posReceiptRepository.getPosReceiptByInvoice(invoiceHeader.invoiceHeadId)
-            posReceipt?.let {
-                posReceiptRepository.delete(it)
-            }
-            val invoiceToDelete = invoiceRepository.getAllInvoices(invoiceHeader.invoiceHeadId)
-            val size = invoiceToDelete.size
-            invoiceToDelete.forEachIndexed { index, invoice ->
-                invoiceRepository.delete(invoice)
-                if (index == size) {
-                    invoiceHeaderRepository.delete(invoiceHeader)
-                }
+            invoiceHeaderRepository.delete(invoiceHeader)
+            posReceiptRepository.delete(posReceipt)
+            invoiceItems.forEach { invoiceItem ->
+                invoiceRepository.delete(invoiceItem.invoice)
             }
             withContext(Dispatchers.Main) {
                 posState.value = posState.value.copy(
-                    isLoading = false
+                    isLoading = false,
+                    isDeleted = true
                 )
             }
         }
