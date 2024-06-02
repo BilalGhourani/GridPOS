@@ -108,29 +108,20 @@ class POSViewModel @Inject constructor(
                     invoiceHeader.invoiceHeadOrderNo = POSUtils.getInvoiceNo(
                         result?.invoiceHeadOrderNo ?: ""
                     )
-                    invoiceHeader.prepareForInsert()
                     invoiceHeader.invoiceHeadTtCode = if (invoiceHeader.invoiceHeadGrossAmount > 0) "SI" else "RS"
-
-                    val addedInv = invoiceHeaderRepository.insert(invoiceHeader)
-                    posState.value.invoiceHeaders.add(addedInv)
-                    savePOSReceipt(
-                        addedInv,
-                        posReceipt,
-                        invoiceItems
-                    )
                 } else {
                     invoiceHeader.invoiceHeadTtCode = null
-                    invoiceHeader.prepareForInsert()
-                    invoiceHeaderRepository.insert(invoiceHeader)
-                    posState.value.invoiceHeaders.add(invoiceHeader)
-                    savePOSReceipt(
-                        invoiceHeader,
-                        posReceipt,
-                        invoiceItems
-                    )
                 }
+                invoiceHeader.prepareForInsert()
+                val addedInv = invoiceHeaderRepository.insert(invoiceHeader)
+                posState.value.invoiceHeaders.add(addedInv)
+                savePOSReceipt(
+                    addedInv,
+                    posReceipt,
+                    invoiceItems
+                )
             } else {
-                if (invoiceHeader.invoiceHeadTransNo.isNullOrEmpty()) {
+                if (finish && invoiceHeader.invoiceHeadTransNo.isNullOrEmpty()) {
                     val result = invoiceHeaderRepository.getLastInvoiceByType(POSUtils.getInvoiceType(invoiceHeader))
                     invoiceHeader.invoiceHeadTransNo = POSUtils.getInvoiceTransactionNo(
                         result?.invoiceHeadTransNo ?: ""
@@ -140,20 +131,13 @@ class POSViewModel @Inject constructor(
                     )
                     invoiceHeader.prepareForInsert()
                     invoiceHeader.invoiceHeadTtCode = if (invoiceHeader.invoiceHeadGrossAmount > 0) "SI" else "RS"
-                    invoiceHeaderRepository.update(invoiceHeader)
-                    savePOSReceipt(
-                        invoiceHeader,
-                        posReceipt,
-                        invoiceItems
-                    )
-                } else {
-                    invoiceHeaderRepository.update(invoiceHeader)
-                    savePOSReceipt(
-                        invoiceHeader,
-                        posReceipt,
-                        invoiceItems
-                    )
                 }
+                invoiceHeaderRepository.update(invoiceHeader)
+                savePOSReceipt(
+                    invoiceHeader,
+                    posReceipt,
+                    invoiceItems
+                )
             }
         }
     }
@@ -168,17 +152,13 @@ class POSViewModel @Inject constructor(
             posReceipt.posReceiptInvoiceId = invoiceHeader.invoiceHeadId
             posReceipt.prepareForInsert()
             posReceiptRepository.insert(posReceipt)
-            saveInvoiceItems(
-                invoiceHeader,
-                invoiceItems
-            )
         } else {
             posReceiptRepository.update(posReceipt)
-            saveInvoiceItems(
-                invoiceHeader,
-                invoiceItems
-            )
         }
+        saveInvoiceItems(
+            invoiceHeader,
+            invoiceItems
+        )
     }
 
     private suspend fun saveInvoiceItems(
