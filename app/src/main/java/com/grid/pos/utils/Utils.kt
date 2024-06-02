@@ -1,24 +1,32 @@
 package com.grid.pos.utils
 
+import android.app.ActivityManager
 import android.content.Context
+import android.content.Context.ACTIVITY_SERVICE
+import android.content.Intent
 import android.content.res.Configuration
 import android.net.Uri
 import android.os.Build
+import android.os.DeadObjectException
+import android.os.RemoteException
 import android.print.PrintAttributes
 import android.print.PrintAttributes.MediaSize
 import android.print.PrintManager
-import android.text.Html
 import android.util.Log
 import android.webkit.WebView
+import android.widget.Toast
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat.getSystemService
+import androidx.test.core.app.ApplicationProvider.getApplicationContext
+import com.grid.pos.App
+import com.grid.pos.MainActivity
 import com.grid.pos.data.DataModel
 import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.ConnectionModel
 import com.grid.pos.model.HomeSectionModel
 import com.grid.pos.model.InvoiceItemModel
-import com.grid.pos.model.SettingsModel
 import java.io.BufferedReader
 import java.io.File
 import java.io.FileInputStream
@@ -355,6 +363,14 @@ object Utils {
                 e.message.toString()
             )
         }
+    }
+
+     fun openAppStorageSettings() {
+        val context = App.getInstance().applicationContext
+        val intent = Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+            data = Uri.parse("package:${context.packageName}")
+        }
+        context.startActivity(intent)
     }
 
 }

@@ -91,12 +91,13 @@ fun LoginView(
                     duration = SnackbarDuration.Short,
                     actionLabel = loginState.warningAction
                 )
+                loginState.warning = null
                 when (snackbarResult) {
                     SnackbarResult.Dismissed -> {}
                     SnackbarResult.ActionPerformed -> when (loginState.warningAction) {
                         "Register" -> navController?.navigate("ManageUsersView")
                         "Create a Company" -> navController?.navigate("ManageCompaniesView")
-                        "Settings" ->  navController?.navigate("SettingsView")
+                        "Settings" -> navController?.navigate("SettingsView")
                     }
                 }
             }

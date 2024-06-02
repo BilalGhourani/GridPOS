@@ -7,6 +7,6 @@ data class LoginState(
         var selectedUser: User = User(),
         val isLoggedIn: Boolean = false,
         var isLoading: Boolean = false,
-        val warning: Event<String>? = null,
+        var warning: Event<String>? = null,
         val warningAction: String? = null,
 )

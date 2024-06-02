@@ -56,6 +56,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
 import com.grid.pos.ActivityScopedViewModel
 import com.grid.pos.App
+import com.grid.pos.MainActivity
 import com.grid.pos.data.Company.Company
 import com.grid.pos.data.DataModel
 import com.grid.pos.model.CONNECTION_TYPE
@@ -82,7 +83,8 @@ import kotlinx.coroutines.withContext
 fun SettingsView(
         modifier: Modifier = Modifier,
         navController: NavController? = null,
-        activityScopedViewModel: ActivityScopedViewModel
+        activityScopedViewModel: ActivityScopedViewModel,
+        mainActivity: MainActivity
 ) {
     var firebaseApplicationId by remember {
         mutableStateOf(
@@ -624,8 +626,21 @@ fun SettingsView(
                         }
                     }
                 }
+                Spacer(modifier = Modifier.weight(1f))
+                UIButton(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(70.dp)
+                        .padding(10.dp),
+                    text = "Clear App Data",
+                    buttonColor = buttonColorState,
+                    textColor = buttonTextColorState
+                ) {
+                    CoroutineScope(Dispatchers.Main).launch {
+                        Utils.openAppStorageSettings()
+                    }
+                }
                 if (isLoggedId) {
-                    Spacer(modifier = Modifier.weight(1f))
                     UIButton(
                         modifier = Modifier
                             .fillMaxWidth()
