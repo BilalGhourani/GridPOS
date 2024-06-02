@@ -632,12 +632,12 @@ fun SettingsView(
                         .fillMaxWidth()
                         .height(70.dp)
                         .padding(10.dp),
-                    text = "Clear App Data",
+                    text = "App Settings",
                     buttonColor = buttonColorState,
                     textColor = buttonTextColorState
                 ) {
                     CoroutineScope(Dispatchers.Main).launch {
-                        Utils.openAppStorageSettings()
+                        Utils.openAppStorageSettings(mainActivity)
                     }
                 }
                 if (isLoggedId) {

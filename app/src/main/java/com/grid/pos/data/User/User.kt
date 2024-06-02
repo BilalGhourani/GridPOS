@@ -72,7 +72,7 @@ data class User(
     @ColumnInfo(name = "usr_tablemode")
     @set:PropertyName("usr_tablemode")
     @get:PropertyName("usr_tablemode")
-    var userTableMode: Boolean = false,
+    var userTableMode: Boolean = true,
 
     ) : DataModel() {
     constructor() : this("")

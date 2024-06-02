@@ -365,12 +365,11 @@ object Utils {
         }
     }
 
-     fun openAppStorageSettings() {
-        val context = App.getInstance().applicationContext
+     fun openAppStorageSettings(mainActivity: MainActivity) {
         val intent = Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-            data = Uri.parse("package:${context.packageName}")
+            data = Uri.parse("package:${mainActivity.packageName}")
         }
-        context.startActivity(intent)
+         mainActivity.startActivity(intent)
     }
 
 }
