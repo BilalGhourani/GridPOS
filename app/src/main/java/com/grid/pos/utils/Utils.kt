@@ -1,26 +1,25 @@
 package com.grid.pos.utils
 
-import android.app.ActivityManager
+import android.content.ContentValues
 import android.content.Context
-import android.content.Context.ACTIVITY_SERVICE
 import android.content.Intent
 import android.content.res.Configuration
 import android.net.Uri
 import android.os.Build
-import android.os.DeadObjectException
-import android.os.RemoteException
+import android.os.Environment
 import android.print.PrintAttributes
 import android.print.PrintAttributes.MediaSize
 import android.print.PrintManager
+import android.provider.MediaStore
 import android.util.Log
+import android.webkit.MimeTypeMap
 import android.webkit.WebView
-import android.widget.Toast
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat.getSystemService
-import androidx.test.core.app.ApplicationProvider.getApplicationContext
-import com.grid.pos.App
+import androidx.core.net.toFile
+import com.aspose.cells.SaveFormat
+import com.aspose.cells.Workbook
 import com.grid.pos.MainActivity
 import com.grid.pos.data.DataModel
 import com.grid.pos.model.CONNECTION_TYPE
@@ -99,8 +98,8 @@ object Utils {
     }
 
     fun getDateinFormat(
-            date: Date = Date(),
-            format: String = "MMMM dd, yyyy 'at' hh:mm:ss a 'Z'"
+        date: Date = Date(),
+        format: String = "MMMM dd, yyyy 'at' hh:mm:ss a 'Z'"
     ): String {
         val parserFormat = SimpleDateFormat(
             format,
@@ -111,10 +110,10 @@ object Utils {
     }
 
     fun editDate(
-            date: Date = Date(),
-            hours: Int = 23,
-            minutes: Int = 59,
-            seconds: Int = 59
+        date: Date = Date(),
+        hours: Int = 23,
+        minutes: Int = 59,
+        seconds: Int = 59
     ): Date {
         val calendar = Calendar.getInstance()
         calendar.time = date
@@ -135,9 +134,9 @@ object Utils {
     }
 
     fun floatToColor(
-            hue: Float,
-            saturation: Float = 1f,
-            brightness: Float = 1f
+        hue: Float,
+        saturation: Float = 1f,
+        brightness: Float = 1f
     ): Color {
         // Convert HSV to RGB
         val hsv = floatArrayOf(
@@ -149,8 +148,8 @@ object Utils {
     }
 
     fun getDoubleValue(
-            new: String,
-            old: String
+        new: String,
+        old: String
     ): String {
         return if (new.isEmpty()) {
             new
@@ -163,8 +162,8 @@ object Utils {
     }
 
     fun getIntValue(
-            new: String,
-            old: String
+        new: String,
+        old: String
     ): String {
         return if (new.isEmpty()) {
             new
@@ -177,7 +176,7 @@ object Utils {
     }
 
     fun getItemsNumberStr(
-            items: MutableList<InvoiceItemModel>
+        items: MutableList<InvoiceItemModel>
     ): String {
         val size = items.size
         return if (size <= 1) {
@@ -188,8 +187,8 @@ object Utils {
     }
 
     fun printWebPage(
-            webView: WebView?,
-            context: Context
+        webView: WebView?,
+        context: Context
     ) {
         if (webView != null) {
             val printManager = context.getSystemService(Context.PRINT_SERVICE) as PrintManager
@@ -226,8 +225,8 @@ object Utils {
     }
 
     fun readFileFromAssets(
-            fileName: String,
-            context: Context
+        fileName: String,
+        context: Context
     ): String {
         return try {
             val inputStream = context.assets.open(fileName)
@@ -260,10 +259,10 @@ object Utils {
     }
 
     fun getListHeight(
-            listSize: Int = 0,
-            cellHeight: Int,
-            min: Int = 1,
-            max: Int = 8
+        listSize: Int = 0,
+        cellHeight: Int,
+        min: Int = 1,
+        max: Int = 8
     ): Dp {
         var size = listSize
         if (size < min) size = min
@@ -282,10 +281,10 @@ object Utils {
     }
 
     fun saveToInternalStorage(
-            context: Context,
-            parent: String = "family",
-            sourceFilePath: Uri,
-            destName: String
+        context: Context,
+        parent: String = "family",
+        sourceFilePath: Uri,
+        destName: String
     ): String? {
         val storageDir = File(
             context.filesDir,
@@ -339,10 +338,125 @@ object Utils {
         return destinationFile.absolutePath
     }
 
+    fun saveToExternalStorage(
+        context: Context,
+        parent: String = "family",
+        sourceFilePath: Uri,
+        destName: String,
+        type: String = "Image",
+        workbook: Workbook? = null
+    ): String? {
+        val contentValues = ContentValues().apply {
+            put(MediaStore.MediaColumns.DISPLAY_NAME, destName)
+            put(
+                MediaStore.MediaColumns.MIME_TYPE,
+                getMimeTypeFromFileExtension(sourceFilePath.toString(), type)
+            )
+            put(
+                MediaStore.MediaColumns.RELATIVE_PATH,
+                "Android/media/${context.packageName}/$parent"
+            )
+            put(MediaStore.MediaColumns.IS_PENDING, 1)
+        }
+
+        val resolver = context.contentResolver
+        val collection = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            when (type) {
+                "excel" -> MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY);
+                else -> MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
+            }
+        } else {
+            when (type) {
+                "excel" -> {
+                    MediaStore.Files.getContentUri(Environment.DIRECTORY_DOWNLOADS)
+                }
+
+                else -> MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+            }
+
+        }
+
+        val insertedUri: Uri? = resolver.insert(collection, contentValues)
+
+        insertedUri?.let { uri ->
+            try {
+                val contentResolver = context.contentResolver
+                workbook?.let { workbook ->
+                    resolver.openOutputStream(uri)?.use { outputStream ->
+                        workbook.save(
+                            outputStream,
+                            SaveFormat.XLSX
+                        )
+                        outputStream.close()
+                    }
+                } ?: run {
+                    val sourceFile = File(sourceFilePath.toString())
+                    val inputStream: InputStream = if (!sourceFile.exists()) {
+                        // Opening from gallery using content URI
+                        contentResolver.openInputStream(sourceFilePath)!!
+                    } else {
+                        // Opening from internal storage using path
+                        FileInputStream(sourceFile)
+                    }
+                    resolver.openOutputStream(uri)?.use { outputStream ->
+                        val buffer = ByteArray(1024) // Adjust buffer size as needed
+                        var bytesRead: Int
+                        while (inputStream.read(buffer).also { bytesRead = it } > 0) {
+                            outputStream.write(
+                                buffer,
+                                0,
+                                bytesRead
+                            )
+                        }
+                        inputStream.close()
+                        outputStream.close()
+                    }
+                }
+
+            } catch (e: IOException) {
+                Log.e(
+                    "tag",
+                    "Failed to copy image",
+                    e
+                )
+            } finally {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    contentValues.clear()
+                    contentValues.put(MediaStore.MediaColumns.IS_PENDING, 0)
+                    resolver.update(uri, contentValues, null, null)
+                }
+            }
+            return uri.toString()
+        }
+        return null
+    }
+
+    fun getFileFromUri(context: Context, uri: Uri): File {
+        val cursor =
+            context.contentResolver.query(uri, arrayOf(MediaStore.Downloads.DATA), null, null, null)
+        cursor?.use {
+            if (it.moveToFirst()) {
+                val filePath = it.getString(it.getColumnIndexOrThrow(MediaStore.Downloads.DATA))
+                return File(filePath)
+            }
+        }
+        return uri.toFile()
+    }
+
+    fun getMimeTypeFromFileExtension(filePath: String, type: String = "Image"): String {
+        val extension = MimeTypeMap.getFileExtensionFromUrl(filePath)
+        val fallback = when (type) {
+            "excel" -> "application/vnd.ms-excel"
+            else -> "image/jpeg"
+        }
+        return MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension) ?: fallback
+    }
+
+
     fun printInvoice(
-            content: String,
-            host: String = "192.168.1.222",
-            port: Int = 9100
+        content: String,
+        host: String = "192.168.1.222",
+        port: Int = 9100
     ) {
         try {
             val sock = Socket(
@@ -365,11 +479,11 @@ object Utils {
         }
     }
 
-     fun openAppStorageSettings(mainActivity: MainActivity) {
+    fun openAppStorageSettings(mainActivity: MainActivity) {
         val intent = Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
             data = Uri.parse("package:${mainActivity.packageName}")
         }
-         mainActivity.startActivity(intent)
+        mainActivity.startActivity(intent)
     }
 
 }

@@ -152,7 +152,7 @@ fun ManageItemsView(
                     if (uris.isNotEmpty()) {
                         manageItemsState.isLoading = true
                         CoroutineScope(Dispatchers.IO).launch {
-                            val internalPath = Utils.saveToInternalStorage(context = mainActivity,
+                            val internalPath = Utils.saveToExternalStorage(context = mainActivity,
                                 parent = "item",
                                 uris[0],
                                 nameState.trim().replace(

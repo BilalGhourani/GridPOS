@@ -424,7 +424,7 @@ fun ReportsView(
                                     color = LightGreen
                                 )
                             ) {
-                                append("\"Sales_Report.xlsx\"")
+                                append(viewModel.reportFile?.name?:"Sales_Report.xlsx")
                             }
 
                             withStyle(style = SpanStyle(color = SettingsModel.textColor)) {

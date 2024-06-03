@@ -1,5 +1,6 @@
 package com.grid.pos.ui.reports
 
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.aspose.cells.FileFormatType
@@ -14,6 +15,7 @@ import com.grid.pos.data.Item.Item
 import com.grid.pos.data.Item.ItemRepository
 import com.grid.pos.model.Event
 import com.grid.pos.model.SettingsModel
+import com.grid.pos.utils.Utils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -26,9 +28,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ReportsViewModel @Inject constructor(
-        private val invoiceHeaderRepository: InvoiceHeaderRepository,
-        private val invoiceRepository: InvoiceRepository,
-        private val itemRepository: ItemRepository
+    private val invoiceHeaderRepository: InvoiceHeaderRepository,
+    private val invoiceRepository: InvoiceRepository,
+    private val itemRepository: ItemRepository
 ) : ViewModel() {
 
     private var itemMap: Map<String, Item> = mutableMapOf()
@@ -47,7 +49,7 @@ class ReportsViewModel @Inject constructor(
     }
 
     private suspend fun fetchItems() {
-        val listOfItems =  itemRepository.getAllItems()
+        val listOfItems = itemRepository.getAllItems()
         itemMap = listOfItems.map { it.itemId to it }.toMap()
     }
 
@@ -59,7 +61,7 @@ class ReportsViewModel @Inject constructor(
             isLoading = true
         )
         viewModelScope.launch(Dispatchers.IO) {
-            val listOfInvoices =  invoiceHeaderRepository.getAllInvoiceHeaders()
+            val listOfInvoices = invoiceHeaderRepository.getAllInvoiceHeaders()
             invoices = listOfInvoices
             if (invoices.isNotEmpty()) {
                 fetchInvoiceItems(
@@ -105,19 +107,28 @@ class ReportsViewModel @Inject constructor(
 
     fun generateReportsExcel() {
         viewModelScope.launch(Dispatchers.IO) {
-            val file = getFile()
+            //val file = getFile()
             val workbook = Workbook()
 
             generateFirstSheet(workbook)
             generateSecondSheet(workbook)
 
+            val context = App.getInstance().applicationContext
             // Write the workbook to a file
-            val outputStream = FileOutputStream(file)
+            val path = Utils.saveToExternalStorage(
+                context = context,
+                parent = "report",
+                Uri.parse(""),
+                "Sales_Report",
+                "excel",
+                workbook
+            )
+            /*val outputStream = FileOutputStream(file)
             workbook.save(
                 outputStream,
                 FileFormatType.XLSX
-            )
-            reportFile = file
+            )*/
+            reportFile = Utils.getFileFromUri(context, Uri.parse(path))
             withContext(Dispatchers.Main) {
                 reportsState.value = reportsState.value.copy(
                     isDone = true,
@@ -162,7 +173,7 @@ class ReportsViewModel @Inject constructor(
         cells.get(0, 6).value = "Profit"
 
 
-        itemMap.values.forEachIndexed { index,item ->
+        itemMap.values.forEachIndexed { index, item ->
             val itemInvoices = invoiceItemMap[item.itemId]
             var quantitiesSold = 0.0
             var totalCost = 0.0
@@ -176,21 +187,21 @@ class ReportsViewModel @Inject constructor(
                 quantitiesSold += it.invoiceQuantity
                 totalSale += it.getNetAmount()
             }
-            cells.get(index+1,0).value = item.itemName
-            cells.get(index+1,1).value = item.itemOpenQty
-            cells.get(index+1,2).value = quantitiesSold
-            cells.get(index+1,3).value = String.format(
+            cells.get(index + 1, 0).value = item.itemName
+            cells.get(index + 1, 1).value = item.itemOpenQty
+            cells.get(index + 1, 2).value = quantitiesSold
+            cells.get(index + 1, 3).value = String.format(
                 "%.${currency.currencyName1Dec}f",
                 totalCost
             )
 
-            cells.get(index+1,4).value = String.format(
+            cells.get(index + 1, 4).value = String.format(
                 "%.${currency.currencyName1Dec}f",
                 totalSale
             )
 
-            cells.get(index+1,5).value = remQty
-            cells.get(index+1,6).value = String.format(
+            cells.get(index + 1, 5).value = remQty
+            cells.get(index + 1, 6).value = String.format(
                 "%.${currency.currencyName1Dec}f",
                 totalSale - totalCost
             )
