@@ -64,6 +64,7 @@ import com.grid.pos.ui.common.UITextField
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.utils.Extension.getStoragePermissions
 import com.grid.pos.utils.Extension.gotoApplicationSettings
+import com.grid.pos.utils.FileUtils
 import com.grid.pos.utils.Utils
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -104,7 +105,7 @@ fun ManageFamiliesView(
                     if (uris.isNotEmpty()) {
                         manageFamiliesState.isLoading = true
                         CoroutineScope(Dispatchers.IO).launch {
-                            val internalPath = Utils.saveToExternalStorage(context = mainActivity,
+                            val internalPath = FileUtils.saveToExternalStorage(context = mainActivity,
                                 parent = "family",
                                 uris[0],
                                 nameState.trim().replace(

@@ -23,6 +23,7 @@ import com.grid.pos.model.Event
 import com.grid.pos.model.InvoiceItemModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.DataStoreManager
+import com.grid.pos.utils.FileUtils
 import com.grid.pos.utils.Utils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -166,12 +167,12 @@ class ActivityScopedViewModel @Inject constructor(
 
     fun getInvoiceReceiptHtmlContent(
             context: Context,
-            content: String = Utils.readFileFromAssets(
+            content: String = FileUtils.readFileFromAssets(
                 "invoice_receipt.html",
                 context
             )
     ): String {
-        var result = content.ifEmpty { Utils.getDefaultReceipt() }
+        var result = content.ifEmpty { FileUtils.getDefaultReceipt() }
         if (invoiceItemModels.isNotEmpty()) {
             val trs = StringBuilder("")
             invoiceItemModels.forEach { item ->
@@ -206,14 +207,14 @@ class ActivityScopedViewModel @Inject constructor(
 
     fun getItemReceiptHtmlContent(
             context: Context,
-            content: String = Utils.readFileFromAssets(
+            content: String = FileUtils.readFileFromAssets(
                 "item_receipt.html",
                 context
             ),
             invoiceHeader: InvoiceHeader,
             invItemModels: List<InvoiceItemModel>
     ): String {
-        var result = content.ifEmpty { Utils.getDefaultItemReceipt() }
+        var result = content.ifEmpty { FileUtils.getDefaultItemReceipt() }
         result = result.replace(
             "{table_name}",
             invoiceHeader.invoiceHeadTaName ?: ""

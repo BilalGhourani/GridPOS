@@ -8,6 +8,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.DataStoreManager
+import com.grid.pos.utils.FileUtils
 import com.grid.pos.utils.Utils
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineScope
@@ -41,7 +42,7 @@ class App : Application() {
     }
 
     private fun initAppConfig() {
-        val configString: String = Utils.readFileFromAssets(
+        val configString: String = FileUtils.readFileFromAssets(
             "config.json",
             this
         )

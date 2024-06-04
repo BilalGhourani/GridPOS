@@ -15,6 +15,7 @@ import com.grid.pos.data.Item.Item
 import com.grid.pos.data.Item.ItemRepository
 import com.grid.pos.model.Event
 import com.grid.pos.model.SettingsModel
+import com.grid.pos.utils.FileUtils
 import com.grid.pos.utils.Utils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -115,7 +116,7 @@ class ReportsViewModel @Inject constructor(
 
             val context = App.getInstance().applicationContext
             // Write the workbook to a file
-            val path = Utils.saveToExternalStorage(
+            val path = FileUtils.saveToExternalStorage(
                 context = context,
                 parent = "report",
                 Uri.parse(""),
@@ -128,7 +129,7 @@ class ReportsViewModel @Inject constructor(
                 outputStream,
                 FileFormatType.XLSX
             )*/
-            reportFile = Utils.getFileFromUri(context, Uri.parse(path))
+            reportFile = FileUtils.getFileFromUri(context, Uri.parse(path))
             withContext(Dispatchers.Main) {
                 reportsState.value = reportsState.value.copy(
                     isDone = true,
