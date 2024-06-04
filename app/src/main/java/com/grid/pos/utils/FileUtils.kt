@@ -23,15 +23,15 @@ import java.io.FileOutputStream
 import java.io.IOException
 import java.io.InputStream
 import java.io.InputStreamReader
+import java.io.OutputStream
 import java.util.Date
-
 
 object FileUtils {
     fun saveToInternalStorage(
-        context: Context,
-        parent: String = "family",
-        sourceFilePath: Uri,
-        destName: String
+            context: Context,
+            parent: String = "family",
+            sourceFilePath: Uri,
+            destName: String
     ): String? {
         val storageDir = File(
             context.filesDir,
@@ -86,105 +86,145 @@ object FileUtils {
     }
 
     fun saveToExternalStorage(
-        context: Context,
-        parent: String = "family",
-        sourceFilePath: Uri,
-        destName: String,
-        type: String = "Image",
-        workbook: Workbook? = null
+            context: Context,
+            parent: String = "family",
+            sourceFilePath: Uri,
+            destName: String,
+            type: String = "Image",
+            workbook: Workbook? = null
     ): String? {
-        val contentValues = ContentValues().apply {
-            put(MediaStore.MediaColumns.DISPLAY_NAME, destName)
-            put(
-                MediaStore.MediaColumns.MIME_TYPE,
-                getMimeTypeFromFileExtension(sourceFilePath.toString(), type)
-            )
-            put(
-                MediaStore.MediaColumns.RELATIVE_PATH,
-                "Android/media/${context.packageName}/$parent"
-            )
-            put(MediaStore.MediaColumns.IS_PENDING, 1)
-        }
-
         val resolver = context.contentResolver
-        val collection = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            when (type) {
-                "sqlite", "excel" -> MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
-                else -> MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            val contentValues = ContentValues().apply {
+                put(
+                    MediaStore.DownloadColumns.DISPLAY_NAME,
+                    destName
+                )
+                put(
+                    MediaStore.DownloadColumns.MIME_TYPE,
+                    getMimeTypeFromFileExtension(
+                        sourceFilePath.toString(),
+                        type
+                    )
+                )
+                put(
+                    MediaStore.DownloadColumns.RELATIVE_PATH,
+                    "Download/${context.packageName}/$parent"
+                )
+                put(
+                    MediaStore.DownloadColumns.IS_PENDING,
+                    1
+                )
+            }
+
+            val collection = MediaStore.Downloads.getContentUri("external")
+
+            val insertedUri: Uri? = resolver.insert(
+                collection,
+                contentValues
+            )
+
+            insertedUri?.let { uri ->
+                try {
+                    val contentResolver = context.contentResolver
+                    workbook?.let { workbook ->
+                        resolver.openOutputStream(uri)?.use { outputStream ->
+                            workbook.save(
+                                outputStream,
+                                SaveFormat.XLSX
+                            )
+                            outputStream.close()
+                        }
+                    } ?: run {
+                        val sourceFile = File(sourceFilePath.toString())
+                        val inputStream: InputStream = if (!sourceFile.exists()) {
+                            // Opening from gallery using content URI
+                            contentResolver.openInputStream(sourceFilePath)!!
+                        } else {
+                            // Opening from internal storage using path
+                            FileInputStream(sourceFile)
+                        }
+                        resolver.openOutputStream(uri)?.use { outputStream ->
+                            val buffer = ByteArray(1024) // Adjust buffer size as needed
+                            var bytesRead: Int
+                            while (inputStream.read(buffer).also { bytesRead = it } > 0) {
+                                outputStream.write(
+                                    buffer,
+                                    0,
+                                    bytesRead
+                                )
+                            }
+                            inputStream.close()
+                            outputStream.close()
+                        }
+                    }
+
+                } catch (e: IOException) {
+                    Log.e(
+                        "tag",
+                        "Failed to copy image",
+                        e
+                    )
+                } finally {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                        contentValues.clear()
+                        contentValues.put(
+                            MediaStore.DownloadColumns.IS_PENDING,
+                            0
+                        )
+                        resolver.update(
+                            uri,
+                            contentValues,
+                            null,
+                            null
+                        )
+                    }
+                }
+                return uri.toString()
             }
         } else {
-            when (type) {
-                "sqlite", "excel" -> {
-                    MediaStore.Files.getContentUri(Environment.DIRECTORY_DOWNLOADS)
-                }
 
-                else -> MediaStore.Images.Media.EXTERNAL_CONTENT_URI
-            }
-
-        }
-
-        val insertedUri: Uri? = resolver.insert(collection, contentValues)
-
-        insertedUri?.let { uri ->
-            try {
-                val contentResolver = context.contentResolver
-                workbook?.let { workbook ->
-                    resolver.openOutputStream(uri)?.use { outputStream ->
-                        workbook.save(
-                            outputStream,
-                            SaveFormat.XLSX
-                        )
-                        outputStream.close()
-                    }
-                } ?: run {
-                    val sourceFile = File(sourceFilePath.toString())
-                    val inputStream: InputStream = if (!sourceFile.exists()) {
-                        // Opening from gallery using content URI
-                        contentResolver.openInputStream(sourceFilePath)!!
-                    } else {
-                        // Opening from internal storage using path
-                        FileInputStream(sourceFile)
-                    }
-                    resolver.openOutputStream(uri)?.use { outputStream ->
-                        val buffer = ByteArray(1024) // Adjust buffer size as needed
-                        var bytesRead: Int
-                        while (inputStream.read(buffer).also { bytesRead = it } > 0) {
-                            outputStream.write(
-                                buffer,
-                                0,
-                                bytesRead
-                            )
-                        }
-                        inputStream.close()
-                        outputStream.close()
-                    }
-                }
-
-            } catch (e: IOException) {
-                Log.e(
-                    "tag",
-                    "Failed to copy image",
-                    e
+            val mediaDir: File? = context.getExternalFilesDir(null)?.parentFile?.let {
+                File(
+                    it,
+                    "Android/media/${context.packageName}/$parent"
                 )
-            } finally {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    contentValues.clear()
-                    contentValues.put(MediaStore.MediaColumns.IS_PENDING, 0)
-                    resolver.update(uri, contentValues, null, null)
+            }
+
+            if (mediaDir != null && !mediaDir.exists()) {
+                mediaDir.mkdirs()
+            }
+
+            val destFile = File(
+                mediaDir,
+                destName
+            )
+            val outputStream: OutputStream? = resolver.openOutputStream(Uri.fromFile(destFile))
+
+            resolver.openInputStream(sourceFilePath)?.use { inputStream ->
+                outputStream?.use { output ->
+                    inputStream.copyTo(output)
                 }
             }
-            return uri.toString()
+            return destFile.path
         }
         return null
     }
 
-    fun getFileFromUri(context: Context, uri: Uri): File? {
+    fun getFileFromUri(
+            context: Context,
+            uri: Uri
+    ): File? {
         var file: File? = null
         val contentResolver = context.contentResolver
 
         contentResolver.openInputStream(uri)?.use { inputStream ->
             // Create a file in the cache directory or any other directory you have access to
-            val tempFile = File.createTempFile("tempFile", ".tmp", context.cacheDir)
+            val tempFile = File.createTempFile(
+                "tempFile",
+                ".tmp",
+                context.cacheDir
+            )
             tempFile.outputStream().use { outputStream ->
                 inputStream.copyTo(outputStream)
             }
@@ -193,9 +233,15 @@ object FileUtils {
         return file
     }
 
-    fun deleteFile(context: Context, path: String) {
+    fun deleteFile(
+            context: Context,
+            path: String
+    ) {
         if (path.startsWith("content")) {
-            val file: DocumentFile? = DocumentFile.fromSingleUri(context, Uri.parse(path))
+            val file: DocumentFile? = DocumentFile.fromSingleUri(
+                context,
+                Uri.parse(path)
+            )
             file?.delete()
         } else {
             val file = File(path)
@@ -203,7 +249,10 @@ object FileUtils {
         }
     }
 
-    fun getMimeTypeFromFileExtension(filePath: String, type: String = "Image"): String {
+    fun getMimeTypeFromFileExtension(
+            filePath: String,
+            type: String = "Image"
+    ): String {
         val extension = MimeTypeMap.getFileExtensionFromUrl(filePath)
         val fallback = when (type) {
             "excel" -> "application/vnd.ms-excel"
@@ -213,10 +262,9 @@ object FileUtils {
         return MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension) ?: fallback
     }
 
-
     fun readFileFromAssets(
-        fileName: String,
-        context: Context
+            fileName: String,
+            context: Context
     ): String {
         return try {
             val inputStream = context.assets.open(fileName)
@@ -236,11 +284,18 @@ object FileUtils {
         }
     }
 
-    private fun copyFile(fromFile: File, toFile: File) {
+    private fun copyFile(
+            fromFile: File,
+            toFile: File
+    ) {
         try {
             val sourceChannel = FileInputStream(fromFile).channel
             val targetChannel = FileOutputStream(toFile).channel
-            targetChannel.transferFrom(sourceChannel, 0, sourceChannel.size())
+            targetChannel.transferFrom(
+                sourceChannel,
+                0,
+                sourceChannel.size()
+            )
             sourceChannel.close()
             targetChannel.close()
         } catch (e: Exception) {
@@ -250,7 +305,6 @@ object FileUtils {
             )
         }
     }
-
 
     fun getDefaultReceipt(): String {
         return "<!DOCTYPE html>\n" + "<html lang=\"en\">\n" + "<head>\n" + "    <meta charset=\"UTF-8\">\n" + "    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n" + "    <title>Receipt</title>\n" + "    <style>\n" + "        body {\n" + "            font-family: Arial, sans-serif;\n" + "            margin: 0;\n" + "            padding: 20px;\n" + "        }\n" + "        .container {\n" + "            max-width: 400px;\n" + "            margin: 0 auto;\n" + "            border: 1px solid #ccc;\n" + "            padding: 20px;\n" + "            border-radius: 5px;\n" + "        }\n" + "        .receipt-header {\n" + "            text-align: center;\n" + "            margin-bottom: 20px;\n" + "        }\n" + "        .receipt-items {\n" + "            border-collapse: collapse;\n" + "            width: 100%;\n" + "        }\n" + "        .receipt-items th, .receipt-items td {\n" + "            border: 1px solid #ddd;\n" + "            padding: 8px;\n" + "            text-align: left;\n" + "        }\n" + "        .receipt-items th {\n" + "            background-color: #f2f2f2;\n" + "        }\n" + "        .total {\n" + "            margin-top: 20px;\n" + "            text-align: right;\n" + "        }\n" + "    </style>\n" + "</head>\n" + "<body>\n" + "<div class=\"container\">\n" + "    <div class=\"receipt-header\">\n" + "        <h2>Receipt</h2>\n" + "    </div>\n" + "    <table class=\"receipt-items\">\n" + "        <thead>\n" + "        <tr>\n" + "            <th>Item</th>\n" + "            <th>Quantity</th>\n" + "            <th>Price</th>\n" + "        </tr>\n" + "        </thead>\n" + "        <tbody>\n" + "        {rows_content}\n" + "        </tbody>\n" + "    </table>\n" + "    <div class=\"total\">\n" + "        <strong>Total: {total}</strong>\n" + "    </div>\n" + "</div>\n" + "</body>\n" + "</html>"
@@ -269,7 +323,12 @@ object FileUtils {
             context = app.applicationContext,
             parent = "bachup",
             sourceFilePath = dbFile.toUri(),
-            destName = "grids-${Utils.getDateinFormat(Date(), "yyyyMMddhhmmss")}.db",
+            destName = "grids-${
+                Utils.getDateinFormat(
+                    Date(),
+                    "yyyyMMddhhmmss"
+                )
+            }.db",
             type = "sqlite"
         )
     }
@@ -279,7 +338,10 @@ object FileUtils {
         val appDatabase: AppDatabase = AppModule.provideGoChatDatabase(app)
         appDatabase.close()
         val dbFile: File = app.getDatabasePath(Constants.DATABASE_NAME)
-        copyFile(file, dbFile)
+        copyFile(
+            file,
+            dbFile
+        )
     }
 
 }
