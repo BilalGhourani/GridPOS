@@ -5,11 +5,8 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
-import android.content.Intent
 import android.content.pm.PackageManager
-import android.net.Uri
 import android.os.Build
-import android.provider.Settings
 import android.util.Base64
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
@@ -130,7 +127,7 @@ object Extension {
         return shouldShowRequestPermissionRationale(name)
     }
 
-    fun Context.getStoragePermissions(): String {
+    fun getStoragePermissions(): String {
         return when {
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU -> {
                 Manifest.permission.READ_MEDIA_IMAGES
@@ -145,13 +142,6 @@ object Extension {
 
     fun Context.hasPickMediaPermission(): Boolean {
         return isPermissionGranted(getStoragePermissions())
-    }
-
-    fun Context.gotoApplicationSettings() {
-        startActivity(Intent().apply {
-            action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
-            data = Uri.parse("package:${packageName}")
-        })
     }
 
     fun Context.findActivity(): Activity? {

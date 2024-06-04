@@ -264,11 +264,4 @@ object Utils {
         }
     }
 
-    fun openAppStorageSettings(mainActivity: MainActivity) {
-        val intent = Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-            data = Uri.parse("package:${mainActivity.packageName}")
-        }
-        mainActivity.startActivity(intent)
-    }
-
 }

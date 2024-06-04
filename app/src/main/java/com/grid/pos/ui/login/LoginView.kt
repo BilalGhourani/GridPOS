@@ -50,7 +50,6 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.grid.pos.ActivityScopedViewModel
-import com.grid.pos.MainActivity
 import com.grid.pos.R
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.LoadingIndicator
@@ -69,7 +68,6 @@ fun LoginView(
         modifier: Modifier = Modifier,
         navController: NavController? = null,
         activityScopedViewModel: ActivityScopedViewModel,
-        mainActivity: MainActivity,
         viewModel: LoginViewModel = hiltViewModel()
 ) {
     val loginState by viewModel.usersState.collectAsState()
@@ -128,7 +126,7 @@ fun LoginView(
         }
     }
     BackHandler {
-        mainActivity.finish()
+        activityScopedViewModel.finish()
     }
     GridPOSTheme {
         Scaffold(containerColor = SettingsModel.backgroundColor,

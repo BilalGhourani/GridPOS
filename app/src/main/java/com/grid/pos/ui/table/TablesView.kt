@@ -44,7 +44,6 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.grid.pos.ActivityScopedViewModel
-import com.grid.pos.MainActivity
 import com.grid.pos.R
 import com.grid.pos.data.InvoiceHeader.InvoiceHeader
 import com.grid.pos.model.SettingsModel
@@ -63,7 +62,6 @@ fun TablesView(
         modifier: Modifier = Modifier,
         navController: NavController? = null,
         activityScopedViewModel: ActivityScopedViewModel,
-        mainActivity: MainActivity,
         viewModel: TablesViewModel = hiltViewModel()
 ) {
     val tablesState: TablesState by viewModel.tablesState.collectAsState(

@@ -49,6 +49,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
@@ -65,7 +66,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.grid.pos.ActivityScopedViewModel
 import com.grid.pos.BuildConfig
-import com.grid.pos.MainActivity
 import com.grid.pos.R
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.LoadingIndicator
@@ -85,12 +85,14 @@ import java.util.Date
 fun ReportsView(
     modifier: Modifier = Modifier,
     navController: NavController? = null,
-    mainActivity: MainActivity,
+    activityViewModel: ActivityScopedViewModel,
     viewModel: ReportsViewModel = hiltViewModel()
 ) {
     val reportsState: ReportsState by viewModel.reportsState.collectAsState(
         ReportsState()
     )
+
+    val context = LocalContext.current
 
     fun getDateFromState(time: Long): Date {
         return Calendar.getInstance().apply {
@@ -103,7 +105,7 @@ fun ReportsView(
             val shareIntent = Intent()
             shareIntent.setAction(action)
             val attachment = FileProvider.getUriForFile(
-                mainActivity,
+                context,
                 BuildConfig.APPLICATION_ID,
                 file
             )
@@ -113,7 +115,7 @@ fun ReportsView(
             )
             shareIntent.setType("application/vnd.ms-excel")
 
-            mainActivity.startActivity(
+            activityViewModel.startChooserActivity(
                 Intent.createChooser(
                     shareIntent,
                     "send"

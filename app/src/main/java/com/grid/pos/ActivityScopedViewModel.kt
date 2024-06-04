@@ -1,6 +1,8 @@
 package com.grid.pos
 
 import android.content.Context
+import android.content.Intent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.grid.pos.data.Company.Company
@@ -18,7 +20,7 @@ import com.grid.pos.data.PosReceipt.PosReceipt
 import com.grid.pos.data.ThirdParty.ThirdParty
 import com.grid.pos.data.ThirdParty.ThirdPartyRepository
 import com.grid.pos.data.User.User
-import com.grid.pos.data.User.UserRepository
+import com.grid.pos.interfaces.OnGalleryResult
 import com.grid.pos.model.Event
 import com.grid.pos.model.InvoiceItemModel
 import com.grid.pos.model.SettingsModel
@@ -26,8 +28,11 @@ import com.grid.pos.utils.DataStoreManager
 import com.grid.pos.utils.FileUtils
 import com.grid.pos.utils.Utils
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.Date
@@ -35,14 +40,16 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ActivityScopedViewModel @Inject constructor(
-        private val currencyRepository: CurrencyRepository,
-        private val companyRepository: CompanyRepository,
-        private val userRepository: UserRepository,
-        private val thirdPartyRepository: ThirdPartyRepository,
-        private val familyRepository: FamilyRepository,
-        private val itemRepository: ItemRepository,
-        private val posPrinterRepository: PosPrinterRepository,
+    private val currencyRepository: CurrencyRepository,
+    private val companyRepository: CompanyRepository,
+    private val thirdPartyRepository: ThirdPartyRepository,
+    private val familyRepository: FamilyRepository,
+    private val itemRepository: ItemRepository,
+    private val posPrinterRepository: PosPrinterRepository,
 ) : ViewModel() {
+    private val _mainActivityEvent = Channel<ActivityScopedUIEvent>()
+    val mainActivityEvent = _mainActivityEvent.receiveAsFlow()
+
     var posReceipt: PosReceipt = PosReceipt()
     var invoiceHeader: InvoiceHeader = InvoiceHeader()
     var pendingInvHeadState: InvoiceHeader? = null
@@ -166,11 +173,11 @@ class ActivityScopedViewModel @Inject constructor(
     }
 
     fun getInvoiceReceiptHtmlContent(
-            context: Context,
-            content: String = FileUtils.readFileFromAssets(
-                "invoice_receipt.html",
-                context
-            )
+        context: Context,
+        content: String = FileUtils.readFileFromAssets(
+            "invoice_receipt.html",
+            context
+        )
     ): String {
         var result = content.ifEmpty { FileUtils.getDefaultReceipt() }
         if (invoiceItemModels.isNotEmpty()) {
@@ -206,13 +213,13 @@ class ActivityScopedViewModel @Inject constructor(
     }
 
     fun getItemReceiptHtmlContent(
-            context: Context,
-            content: String = FileUtils.readFileFromAssets(
-                "item_receipt.html",
-                context
-            ),
-            invoiceHeader: InvoiceHeader,
-            invItemModels: List<InvoiceItemModel>
+        context: Context,
+        content: String = FileUtils.readFileFromAssets(
+            "item_receipt.html",
+            context
+        ),
+        invoiceHeader: InvoiceHeader,
+        invItemModels: List<InvoiceItemModel>
     ): String {
         var result = content.ifEmpty { FileUtils.getDefaultItemReceipt() }
         result = result.replace(
@@ -292,6 +299,42 @@ class ActivityScopedViewModel @Inject constructor(
                     }
                 }
             }
+        }
+    }
+
+    fun finish() {
+        viewModelScope.launch {
+            _mainActivityEvent.send(ActivityScopedUIEvent.Finish)
+        }
+    }
+
+    fun openAppStorageSettings() {
+        viewModelScope.launch {
+            _mainActivityEvent.send(ActivityScopedUIEvent.OpenAppSettings)
+        }
+    }
+
+    fun launchGalleryPicker(
+        mediaType: ActivityResultContracts.PickVisualMedia.VisualMediaType,
+        delegate: OnGalleryResult,
+        onPermissionDenied: () -> Unit
+    ) {
+        viewModelScope.launch {
+            _mainActivityEvent.send(
+                ActivityScopedUIEvent.LaunchGalleryPicker(
+                    mediaType,
+                    delegate,
+                    onPermissionDenied
+                )
+            )
+        }
+    }
+
+    fun startChooserActivity(
+        intent: Intent
+    ) {
+        viewModelScope.launch {
+            _mainActivityEvent.send(ActivityScopedUIEvent.StartChooserActivity(intent))
         }
     }
 

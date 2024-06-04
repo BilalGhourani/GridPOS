@@ -39,7 +39,6 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.grid.pos.ActivityScopedViewModel
 import com.grid.pos.ActivityState
-import com.grid.pos.MainActivity
 import com.grid.pos.R
 import com.grid.pos.model.Event
 import com.grid.pos.model.SettingsModel
@@ -55,7 +54,6 @@ import com.grid.pos.utils.Utils
 fun HomeView(
     modifier: Modifier = Modifier,
     navController: NavController? = null,
-    mainActivity: MainActivity,
     activityViewModel: ActivityScopedViewModel,
 ) {
     val activityState: ActivityState by activityViewModel!!.activityState.collectAsState(

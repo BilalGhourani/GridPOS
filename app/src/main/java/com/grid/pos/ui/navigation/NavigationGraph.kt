@@ -27,7 +27,6 @@ import com.grid.pos.ui.user.ManageUsersView
 @Composable
 fun AuthNavGraph(
         navController: NavHostController,
-        mainActivity: MainActivity,
         activityViewModel: ActivityScopedViewModel,
         startDestination: String,
         modifier: Modifier = Modifier
@@ -41,22 +40,19 @@ fun AuthNavGraph(
         composable(route = "HomeView") {
             HomeView(
                 navController = navController,
-                mainActivity = mainActivity,
                 activityViewModel = activityViewModel
             )
         }
         composable(route = "LoginView") {
             LoginView(
                 navController = navController,
-                activityScopedViewModel = activityViewModel,
-                mainActivity = mainActivity
+                activityScopedViewModel = activityViewModel
             )
         }
         composable(route = "SettingsView") {
             SettingsView(
                 navController = navController,
-                activityScopedViewModel = activityViewModel,
-                mainActivity =mainActivity
+                activityScopedViewModel = activityViewModel
             )
         }
         composable(route = "ManageCurrenciesView") {
@@ -79,7 +75,6 @@ fun AuthNavGraph(
         composable(route = "ManageFamiliesView") {
             ManageFamiliesView(
                 navController = navController,
-                mainActivity = mainActivity,
                 activityScopedViewModel = activityViewModel,
             )
         }
@@ -92,22 +87,19 @@ fun AuthNavGraph(
         composable(route = "ManageItemsView") {
             ManageItemsView(
                 navController = navController,
-                activityScopedViewModel = activityViewModel,
-                mainActivity = mainActivity
+                activityScopedViewModel = activityViewModel
             )
         }
         composable(route = "POSView") {
             POSView(
                 navController = navController,
-                activityViewModel = activityViewModel,
-                mainActivity = mainActivity
+                activityViewModel = activityViewModel
             )
         }
         composable(route = "TablesView") {
             TablesView(
                 navController = navController,
-                activityScopedViewModel = activityViewModel,
-                mainActivity = mainActivity
+                activityScopedViewModel = activityViewModel
             )
         }
         composable(route = "UIWebView") {
@@ -125,7 +117,7 @@ fun AuthNavGraph(
         composable(route = "ReportsView") {
             ReportsView(
                 navController = navController,
-                mainActivity = mainActivity
+                activityViewModel = activityViewModel
             )
         }
     }

@@ -46,6 +46,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
@@ -59,7 +60,6 @@ import androidx.navigation.NavController
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.grid.pos.ActivityScopedViewModel
-import com.grid.pos.MainActivity
 import com.grid.pos.R
 import com.grid.pos.data.Family.Family
 import com.grid.pos.data.Item.Item
@@ -74,7 +74,6 @@ import com.grid.pos.ui.common.UITextField
 import com.grid.pos.ui.settings.ColorPickerType
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.utils.Extension.getStoragePermissions
-import com.grid.pos.utils.Extension.gotoApplicationSettings
 import com.grid.pos.utils.Extension.toHexCode
 import com.grid.pos.utils.FileUtils
 import com.grid.pos.utils.Utils
@@ -90,11 +89,10 @@ import java.io.File
 )
 @Composable
 fun ManageItemsView(
-        modifier: Modifier = Modifier,
-        navController: NavController? = null,
-        activityScopedViewModel: ActivityScopedViewModel,
-        mainActivity: MainActivity,
-        viewModel: ManageItemsViewModel = hiltViewModel()
+    modifier: Modifier = Modifier,
+    navController: NavController? = null,
+    activityScopedViewModel: ActivityScopedViewModel,
+    viewModel: ManageItemsViewModel = hiltViewModel()
 ) {
     val manageItemsState: ManageItemsState by viewModel.manageItemsState.collectAsState(
         ManageItemsState()
@@ -103,6 +101,8 @@ fun ManageItemsView(
         activityScopedViewModel.items,
         activityScopedViewModel.families
     )
+
+    val context = LocalContext.current
     val keyboardController = LocalSoftwareKeyboardController.current
     val unitPriceFocusRequester = remember { FocusRequester() }
     val taxFocusRequester = remember { FocusRequester() }
@@ -146,48 +146,6 @@ fun ManageItemsView(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
-    fun browseLocalPhotos() {
-        mainActivity.launchGalleryPicker(mediaType = ActivityResultContracts.PickVisualMedia.ImageOnly,
-            object : OnGalleryResult {
-                override fun onGalleryResult(uris: List<Uri>) {
-                    if (uris.isNotEmpty()) {
-                        manageItemsState.isLoading = true
-                        CoroutineScope(Dispatchers.IO).launch {
-                            val internalPath = FileUtils.saveToExternalStorage(context = mainActivity,
-                                parent = "item",
-                                uris[0],
-                                nameState.trim().replace(
-                                    " ",
-                                    "_"
-                                ).ifEmpty { "item" })
-                            withContext(Dispatchers.Main) {
-                                manageItemsState.isLoading = false
-                                if (internalPath != null) {
-                                    oldImage = imageState
-                                    imageState = internalPath
-                                    manageItemsState.selectedItem.itemImage = imageState
-                                }
-                            }
-                        }
-                    }
-                }
-
-            })
-    }
-
-    val storagePermissionState = rememberMultiplePermissionsState(permissions = arrayListOf(mainActivity.getStoragePermissions()))
-    val requestPermissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { isGranted ->
-        if (isGranted) {
-            browseLocalPhotos()
-        } else {
-            viewModel.showWarning(
-                "Permission Denied",
-                "Settings"
-            )
-        }
-    }
     LaunchedEffect(manageItemsState.warning) {
         manageItemsState.warning?.value?.let { message ->
             scope.launch {
@@ -199,7 +157,7 @@ fun ManageItemsView(
                 when (snackBarResult) {
                     SnackbarResult.Dismissed -> {}
                     SnackbarResult.ActionPerformed -> when (manageItemsState.actionLabel) {
-                        "Settings" -> mainActivity.gotoApplicationSettings()
+                        "Settings" -> activityScopedViewModel.openAppStorageSettings()
                     }
                 }
             }
@@ -209,6 +167,9 @@ fun ManageItemsView(
     fun handleBack() {
         if (manageItemsState.items.isNotEmpty()) {
             activityScopedViewModel.items = manageItemsState.items
+        }
+        if (imageState.isNotEmpty()) {
+            FileUtils.deleteFile(context, imageState)
         }
         navController?.navigateUp()
     }
@@ -329,7 +290,8 @@ fun ManageItemsView(
                                 unitPrice,
                                 unitPriceState
                             )
-                            manageItemsState.selectedItem.itemUnitPrice = unitPriceState.toDoubleOrNull() ?: 0.0
+                            manageItemsState.selectedItem.itemUnitPrice =
+                                unitPriceState.toDoubleOrNull() ?: 0.0
                         }
 
                         if (SettingsModel.showTax) {
@@ -354,7 +316,8 @@ fun ManageItemsView(
                                     tax,
                                     taxState
                                 )
-                                manageItemsState.selectedItem.itemTax = taxState.toDoubleOrNull() ?: 0.0
+                                manageItemsState.selectedItem.itemTax =
+                                    taxState.toDoubleOrNull() ?: 0.0
                             }
                         }
                         if (SettingsModel.showTax1) {
@@ -376,7 +339,8 @@ fun ManageItemsView(
                                     tax1,
                                     tax1State
                                 )
-                                manageItemsState.selectedItem.itemTax1 = tax1State.toDoubleOrNull() ?: 0.0
+                                manageItemsState.selectedItem.itemTax1 =
+                                    tax1State.toDoubleOrNull() ?: 0.0
                             }
                         }
                         if (SettingsModel.showTax2) {
@@ -392,7 +356,8 @@ fun ManageItemsView(
                                     tax2,
                                     tax2State
                                 )
-                                manageItemsState.selectedItem.itemTax2 = tax2State.toDoubleOrNull() ?: 0.0
+                                manageItemsState.selectedItem.itemTax2 =
+                                    tax2State.toDoubleOrNull() ?: 0.0
                             }
                         }
                         //barcode
@@ -418,7 +383,8 @@ fun ManageItemsView(
                                 openCost,
                                 openCostState
                             )
-                            manageItemsState.selectedItem.itemOpenCost = openCostState.toDoubleOrNull() ?: 0.0
+                            manageItemsState.selectedItem.itemOpenCost =
+                                openCostState.toDoubleOrNull() ?: 0.0
                         }
 
                         //open quantity
@@ -433,7 +399,8 @@ fun ManageItemsView(
                                 openQty,
                                 openQtyState
                             )
-                            manageItemsState.selectedItem.itemOpenQty = openQtyState.toDoubleOrNull() ?: 0.0
+                            manageItemsState.selectedItem.itemOpenQty =
+                                openQtyState.toDoubleOrNull() ?: 0.0
                         }
 
                         SearchableDropdownMenu(
@@ -512,11 +479,38 @@ fun ManageItemsView(
                             onAction = { keyboardController?.hide() },
                             trailingIcon = {
                                 IconButton(onClick = {
-                                    if (storagePermissionState.allPermissionsGranted) {
-                                        browseLocalPhotos()
-                                    } else {
-                                        requestPermissionLauncher.launch(mainActivity.getStoragePermissions())
-                                    }
+                                    activityScopedViewModel.launchGalleryPicker(mediaType = ActivityResultContracts.PickVisualMedia.ImageOnly,
+                                        object : OnGalleryResult {
+                                            override fun onGalleryResult(uris: List<Uri>) {
+                                                if (uris.isNotEmpty()) {
+                                                    manageItemsState.isLoading = true
+                                                    CoroutineScope(Dispatchers.IO).launch {
+                                                        val internalPath =
+                                                            FileUtils.saveToExternalStorage(context = context,
+                                                                parent = "item",
+                                                                uris[0],
+                                                                nameState.trim().replace(
+                                                                    " ",
+                                                                    "_"
+                                                                ).ifEmpty { "item" })
+                                                        withContext(Dispatchers.Main) {
+                                                            manageItemsState.isLoading = false
+                                                            if (internalPath != null) {
+                                                                oldImage = imageState
+                                                                imageState = internalPath
+                                                                manageItemsState.selectedItem.itemImage =
+                                                                    imageState
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }, onPermissionDenied = {
+                                            viewModel.showWarning(
+                                                "Permission Denied",
+                                                "Settings"
+                                            )
+                                        })
                                 }) {
                                     Icon(
                                         Icons.Default.Image,
@@ -552,7 +546,7 @@ fun ManageItemsView(
                                 text = "Save"
                             ) {
                                 oldImage?.let { old ->
-                                    File(old).deleteOnExit()
+                                    FileUtils.deleteFile(context, old)
                                 }
                                 viewModel.saveItem(manageItemsState.selectedItem)
                             }
@@ -564,10 +558,10 @@ fun ManageItemsView(
                                 text = "Delete"
                             ) {
                                 oldImage?.let { old ->
-                                    File(old).deleteOnExit()
+                                    FileUtils.deleteFile(context, old)
                                 }
                                 if (imageState.isNotEmpty()) {
-                                    File(imageState).deleteOnExit()
+                                    FileUtils.deleteFile(context, imageState)
                                 }
                                 viewModel.deleteSelectedItem(manageItemsState.selectedItem)
                             }
@@ -578,7 +572,7 @@ fun ManageItemsView(
                                     .padding(3.dp),
                                 text = "Close"
                             ) {
-                               handleBack()
+                                handleBack()
                             }
                         }
                     }

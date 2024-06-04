@@ -23,6 +23,7 @@ import com.grid.pos.data.ThirdParty.ThirdPartyRepository
 import com.grid.pos.data.ThirdParty.ThirdPartyRepositoryImpl
 import com.grid.pos.data.User.UserRepository
 import com.grid.pos.data.User.UserRepositoryImpl
+import com.grid.pos.utils.Constants
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -39,7 +40,7 @@ object AppModule {
         return Room.databaseBuilder(
             app,
             AppDatabase::class.java,
-            "collections_db"
+            Constants.DATABASE_NAME
         ).build()
     }
 

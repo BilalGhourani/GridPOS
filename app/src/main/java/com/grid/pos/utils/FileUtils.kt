@@ -2,45 +2,29 @@ package com.grid.pos.utils
 
 import android.content.ContentValues
 import android.content.Context
-import android.content.Intent
-import android.content.res.Configuration
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
-import android.print.PrintAttributes
-import android.print.PrintAttributes.MediaSize
-import android.print.PrintManager
 import android.provider.MediaStore
 import android.util.Log
 import android.webkit.MimeTypeMap
-import android.webkit.WebView
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
 import androidx.core.net.toFile
+import androidx.core.net.toUri
+import androidx.documentfile.provider.DocumentFile
 import com.aspose.cells.SaveFormat
 import com.aspose.cells.Workbook
-import com.grid.pos.MainActivity
-import com.grid.pos.data.DataModel
-import com.grid.pos.model.CONNECTION_TYPE
-import com.grid.pos.model.ConnectionModel
-import com.grid.pos.model.HomeSectionModel
-import com.grid.pos.model.InvoiceItemModel
+import com.grid.pos.App
+import com.grid.pos.data.AppDatabase
+import com.grid.pos.di.AppModule
 import java.io.BufferedReader
 import java.io.File
 import java.io.FileInputStream
+import java.io.FileOutputStream
 import java.io.IOException
 import java.io.InputStream
 import java.io.InputStreamReader
-import java.io.PrintWriter
-import java.net.Socket
-import java.text.SimpleDateFormat
-import java.time.Year
-import java.util.Calendar
 import java.util.Date
-import java.util.Locale
-import java.util.TimeZone
-import java.util.UUID
+
 
 object FileUtils {
     fun saveToInternalStorage(
@@ -125,12 +109,12 @@ object FileUtils {
         val resolver = context.contentResolver
         val collection = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             when (type) {
-                "excel" -> MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY);
+                "sqlite", "excel" -> MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
                 else -> MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
             }
         } else {
             when (type) {
-                "excel" -> {
+                "sqlite", "excel" -> {
                     MediaStore.Files.getContentUri(Environment.DIRECTORY_DOWNLOADS)
                 }
 
@@ -206,10 +190,21 @@ object FileUtils {
         return uri.toFile()
     }
 
+    fun deleteFile(context: Context, path: String) {
+        if (path.startsWith("content")) {
+            val file: DocumentFile? = DocumentFile.fromSingleUri(context, Uri.parse(path))
+            file?.delete()
+        } else {
+            val file = File(path)
+            file.deleteOnExit()
+        }
+    }
+
     fun getMimeTypeFromFileExtension(filePath: String, type: String = "Image"): String {
         val extension = MimeTypeMap.getFileExtensionFromUrl(filePath)
         val fallback = when (type) {
             "excel" -> "application/vnd.ms-excel"
+            "sqlite" -> "application/x-sqlite3"
             else -> "image/jpeg"
         }
         return MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension) ?: fallback
@@ -238,6 +233,21 @@ object FileUtils {
         }
     }
 
+    private fun copyFile(fromFile: File, toFile: File) {
+        try {
+            val sourceChannel = FileInputStream(fromFile).channel
+            val targetChannel = FileOutputStream(toFile).channel
+            targetChannel.transferFrom(sourceChannel, 0, sourceChannel.size())
+            sourceChannel.close()
+            targetChannel.close()
+        } catch (e: Exception) {
+            Log.e(
+                "exception",
+                e.message.toString()
+            )
+        }
+    }
+
 
     fun getDefaultReceipt(): String {
         return "<!DOCTYPE html>\n" + "<html lang=\"en\">\n" + "<head>\n" + "    <meta charset=\"UTF-8\">\n" + "    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n" + "    <title>Receipt</title>\n" + "    <style>\n" + "        body {\n" + "            font-family: Arial, sans-serif;\n" + "            margin: 0;\n" + "            padding: 20px;\n" + "        }\n" + "        .container {\n" + "            max-width: 400px;\n" + "            margin: 0 auto;\n" + "            border: 1px solid #ccc;\n" + "            padding: 20px;\n" + "            border-radius: 5px;\n" + "        }\n" + "        .receipt-header {\n" + "            text-align: center;\n" + "            margin-bottom: 20px;\n" + "        }\n" + "        .receipt-items {\n" + "            border-collapse: collapse;\n" + "            width: 100%;\n" + "        }\n" + "        .receipt-items th, .receipt-items td {\n" + "            border: 1px solid #ddd;\n" + "            padding: 8px;\n" + "            text-align: left;\n" + "        }\n" + "        .receipt-items th {\n" + "            background-color: #f2f2f2;\n" + "        }\n" + "        .total {\n" + "            margin-top: 20px;\n" + "            text-align: right;\n" + "        }\n" + "    </style>\n" + "</head>\n" + "<body>\n" + "<div class=\"container\">\n" + "    <div class=\"receipt-header\">\n" + "        <h2>Receipt</h2>\n" + "    </div>\n" + "    <table class=\"receipt-items\">\n" + "        <thead>\n" + "        <tr>\n" + "            <th>Item</th>\n" + "            <th>Quantity</th>\n" + "            <th>Price</th>\n" + "        </tr>\n" + "        </thead>\n" + "        <tbody>\n" + "        {rows_content}\n" + "        </tbody>\n" + "    </table>\n" + "    <div class=\"total\">\n" + "        <strong>Total: {total}</strong>\n" + "    </div>\n" + "</div>\n" + "</body>\n" + "</html>"
@@ -245,6 +255,28 @@ object FileUtils {
 
     fun getDefaultItemReceipt(): String {
         return "<!DOCTYPE html>\n" + "<html lang=\"en\">\n" + "<head>\n" + "    <meta charset=\"UTF-8\">\n" + "    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n" + "    <title>Receipt</title>\n" + "    <style>\n" + "        body {\n" + "            font-family: Arial, sans-serif;\n" + "            margin: 0;\n" + "            padding: 20px;\n" + "        }\n" + "        .container {\n" + "            max-width: 400px;\n" + "            margin: 0 auto;\n" + "            border: 1px solid #ccc;\n" + "            padding: 20px;\n" + "            border-radius: 5px;\n" + "        }\n" + "        .receipt-header {\n" + "            text-align: center;\n" + "            margin-bottom: 20px;\n" + "        }\n" + "        .receipt-items {\n" + "            border-collapse: collapse;\n" + "            width: 100%;\n" + "        }\n" + "        .receipt-items th, .receipt-items td {\n" + "            border: 1px solid #ddd;\n" + "            padding: 8px;\n" + "            text-align: left;\n" + "        }\n" + "        .receipt-items th {\n" + "            background-color: #f2f2f2;\n" + "        }\n" + "        .total {\n" + "            margin-top: 20px;\n" + "            text-align: right;\n" + "        }\n" + "    </style>\n" + "</head>\n" + "<body>\n" + "<div class=\"container\">\n" + "    <div class=\"receipt-header\">\n" + "        <h2>Receipt</h2>\n" + "    </div>\n" + "    <table class=\"receipt-items\">\n" + "        <thead>\n" + "        <tr>\n" + "            <th>Item</th>\n" + "            <th>Quantity</th>\n" + "            <th>Price</th>\n" + "        </tr>\n" + "        </thead>\n" + "        <tbody>\n" + "        {rows_content}\n" + "        </tbody>\n" + "    </table>\n" + "    <div class=\"total\">\n" + "        <strong>Total: {total}</strong>\n" + "    </div>\n" + "</div>\n" + "</body>\n" + "</html>"
+    }
+
+    fun backup() {
+        val app = App.getInstance()
+        val appDatabase: AppDatabase = AppModule.provideGoChatDatabase(app)
+        appDatabase.close()
+        val dbFile: File = app.getDatabasePath(Constants.DATABASE_NAME)
+        saveToExternalStorage(
+            context = app.applicationContext,
+            parent = "bachup",
+            sourceFilePath = dbFile.toUri(),
+            destName = "grids-${Utils.getDateinFormat(Date(), "yyyyMMddhhmmss")}.db",
+            type = "sqlite"
+        )
+    }
+
+    fun restore(file: File) {
+        val app = App.getInstance()
+        val appDatabase: AppDatabase = AppModule.provideGoChatDatabase(app)
+        appDatabase.close()
+        val dbFile: File = app.getDatabasePath(Constants.DATABASE_NAME)
+        copyFile(file, dbFile)
     }
 
 }

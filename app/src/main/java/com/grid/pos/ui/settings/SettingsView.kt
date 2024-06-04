@@ -56,9 +56,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
 import com.grid.pos.ActivityScopedViewModel
 import com.grid.pos.App
-import com.grid.pos.MainActivity
 import com.grid.pos.data.Company.Company
-import com.grid.pos.data.DataModel
 import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.ColorPickerPopup
@@ -71,6 +69,7 @@ import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.ui.theme.LightGrey
 import com.grid.pos.utils.DataStoreManager
 import com.grid.pos.utils.Extension.toHexCode
+import com.grid.pos.utils.FileUtils
 import com.grid.pos.utils.Utils
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -81,10 +80,9 @@ import kotlinx.coroutines.withContext
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsView(
-        modifier: Modifier = Modifier,
-        navController: NavController? = null,
-        activityScopedViewModel: ActivityScopedViewModel,
-        mainActivity: MainActivity
+    modifier: Modifier = Modifier,
+    navController: NavController? = null,
+    activityScopedViewModel: ActivityScopedViewModel
 ) {
     var firebaseApplicationId by remember {
         mutableStateOf(
@@ -329,7 +327,8 @@ fun SettingsView(
                                     )
                                     when (connectionTypeState) {
                                         CONNECTION_TYPE.FIRESTORE.key -> {
-                                            SettingsModel.firebaseApplicationId = firebaseApplicationId
+                                            SettingsModel.firebaseApplicationId =
+                                                firebaseApplicationId
                                             DataStoreManager.putString(
                                                 DataStoreManager.DataStoreKeys.FIREBASE_APP_ID.key,
                                                 firebaseApplicationId
@@ -636,8 +635,23 @@ fun SettingsView(
                     buttonColor = buttonColorState,
                     textColor = buttonTextColorState
                 ) {
-                    CoroutineScope(Dispatchers.Main).launch {
-                        Utils.openAppStorageSettings(mainActivity)
+                   activityScopedViewModel.openAppStorageSettings()
+                }
+                UIButton(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(70.dp)
+                        .padding(10.dp),
+                    text = "Backup",
+                    buttonColor = buttonColorState,
+                    textColor = buttonTextColorState
+                ) {
+                    isLoading = true
+                    CoroutineScope(Dispatchers.IO).launch {
+                        FileUtils.backup()
+                        withContext(Dispatchers.Main) {
+                            isLoading = false
+                        }
                     }
                 }
                 if (isLoggedId) {
