@@ -178,16 +178,19 @@ object FileUtils {
         return null
     }
 
-    fun getFileFromUri(context: Context, uri: Uri): File {
-        val cursor =
-            context.contentResolver.query(uri, arrayOf(MediaStore.Downloads.DATA), null, null, null)
-        cursor?.use {
-            if (it.moveToFirst()) {
-                val filePath = it.getString(it.getColumnIndexOrThrow(MediaStore.Downloads.DATA))
-                return File(filePath)
+    fun getFileFromUri(context: Context, uri: Uri): File? {
+        var file: File? = null
+        val contentResolver = context.contentResolver
+
+        contentResolver.openInputStream(uri)?.use { inputStream ->
+            // Create a file in the cache directory or any other directory you have access to
+            val tempFile = File.createTempFile("tempFile", ".tmp", context.cacheDir)
+            tempFile.outputStream().use { outputStream ->
+                inputStream.copyTo(outputStream)
             }
+            file = tempFile
         }
-        return uri.toFile()
+        return file
     }
 
     fun deleteFile(context: Context, path: String) {
@@ -204,7 +207,7 @@ object FileUtils {
         val extension = MimeTypeMap.getFileExtensionFromUrl(filePath)
         val fallback = when (type) {
             "excel" -> "application/vnd.ms-excel"
-            "sqlite" -> "application/x-sqlite3"
+            "sqlite" -> "application/octet-stream"
             else -> "image/jpeg"
         }
         return MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension) ?: fallback

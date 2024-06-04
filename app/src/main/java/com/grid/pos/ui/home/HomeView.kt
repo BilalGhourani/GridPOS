@@ -116,7 +116,7 @@ fun HomeView(
                     .wrapContentHeight(),
                 columns = GridCells.Fixed(2)
             ) {
-                Utils.homeSections.forEachIndexed { index, item ->
+                Utils.getHomeList().forEachIndexed { index, item ->
                     item {
                         UIButton(
                             modifier = Modifier

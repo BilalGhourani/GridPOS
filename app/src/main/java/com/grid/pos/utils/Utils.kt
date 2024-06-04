@@ -19,6 +19,7 @@ import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.ConnectionModel
 import com.grid.pos.model.HomeSectionModel
 import com.grid.pos.model.InvoiceItemModel
+import com.grid.pos.model.SettingsModel
 import java.io.PrintWriter
 import java.net.Socket
 import java.text.SimpleDateFormat
@@ -31,54 +32,64 @@ import java.util.UUID
 
 object Utils {
 
-    val homeSections = mutableListOf(
-        HomeSectionModel(
-            "Currency",
-            "ManageCurrenciesView"
-        ),
-        HomeSectionModel(
-            "Company",
-            "ManageCompaniesView"
-        ),
-        HomeSectionModel(
-            "User",
-            "ManageUsersView"
-        ),
-        HomeSectionModel(
-            "Third Party",
-            "ManageThirdPartiesView"
-        ),
-        HomeSectionModel(
-            "Family",
-            "ManageFamiliesView"
-        ),
-        HomeSectionModel(
-            "Item",
-            "ManageItemsView"
-        ),
-        HomeSectionModel(
-            "Printer",
-            "POSPrinterView"
-        ),
-        HomeSectionModel(
-            "Reports",
-            "ReportsView"
-        ),
-        HomeSectionModel(
-            "POS",
-            "POSView"
-        ),
-        HomeSectionModel(
-            "Table",
-            "TablesView"
-        )
-    )
-
     val connections = mutableListOf<DataModel>(
         ConnectionModel(CONNECTION_TYPE.LOCAL.key),
         ConnectionModel(CONNECTION_TYPE.FIRESTORE.key),
         ConnectionModel(CONNECTION_TYPE.SQL_SERVER.key)
     )
+
+    fun getHomeList(): MutableList<HomeSectionModel> {
+        val list = mutableListOf(
+            HomeSectionModel(
+                "Currency",
+                "ManageCurrenciesView"
+            ),
+            HomeSectionModel(
+                "Company",
+                "ManageCompaniesView"
+            ),
+            HomeSectionModel(
+                "User",
+                "ManageUsersView"
+            ),
+            HomeSectionModel(
+                "Third Party",
+                "ManageThirdPartiesView"
+            ),
+            HomeSectionModel(
+                "Family",
+                "ManageFamiliesView"
+            ),
+            HomeSectionModel(
+                "Item",
+                "ManageItemsView"
+            ),
+            HomeSectionModel(
+                "Printer",
+                "POSPrinterView"
+            ),
+            HomeSectionModel(
+                "Reports",
+                "ReportsView"
+            ),
+            HomeSectionModel(
+                "POS",
+                "POSView"
+            ),
+            HomeSectionModel(
+                "Table",
+                "TablesView"
+            ), HomeSectionModel(
+                "Backup",
+                "BackupView"
+            )
+        )
+        return if (SettingsModel.isConnectedToSqlite()) {
+            list
+        } else {
+            list.subList(0, list.size - 2)
+        }
+    }
 
     fun generateRandomUuidString(): String {
         return UUID.randomUUID().toString()

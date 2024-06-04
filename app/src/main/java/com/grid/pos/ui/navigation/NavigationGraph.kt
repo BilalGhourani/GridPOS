@@ -18,6 +18,7 @@ import com.grid.pos.ui.login.LoginView
 import com.grid.pos.ui.pos.POSView
 import com.grid.pos.ui.posPrinter.POSPrinterView
 import com.grid.pos.ui.reports.ReportsView
+import com.grid.pos.ui.settings.BackupView
 import com.grid.pos.ui.settings.SettingsView
 import com.grid.pos.ui.table.TablesView
 import com.grid.pos.ui.theme.White
@@ -116,6 +117,12 @@ fun AuthNavGraph(
         }
         composable(route = "ReportsView") {
             ReportsView(
+                navController = navController,
+                activityViewModel = activityViewModel
+            )
+        }
+        composable(route = "BackupView") {
+            BackupView(
                 navController = navController,
                 activityViewModel = activityViewModel
             )

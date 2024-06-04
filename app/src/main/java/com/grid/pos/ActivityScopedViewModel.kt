@@ -330,6 +330,36 @@ class ActivityScopedViewModel @Inject constructor(
         }
     }
 
+    fun LaunchFilePicker(
+        delegate: OnGalleryResult,
+        onPermissionDenied: () -> Unit
+    ) {
+        viewModelScope.launch {
+            _mainActivityEvent.send(
+                ActivityScopedUIEvent.LaunchFilePicker(
+                    delegate,
+                    onPermissionDenied
+                )
+            )
+        }
+    }
+
+    fun launchFilePicker(
+        mediaType: ActivityResultContracts.PickVisualMedia.VisualMediaType,
+        delegate: OnGalleryResult,
+        onPermissionDenied: () -> Unit
+    ) {
+        viewModelScope.launch {
+            _mainActivityEvent.send(
+                ActivityScopedUIEvent.LaunchGalleryPicker(
+                    mediaType,
+                    delegate,
+                    onPermissionDenied
+                )
+            )
+        }
+    }
+
     fun startChooserActivity(
         intent: Intent
     ) {

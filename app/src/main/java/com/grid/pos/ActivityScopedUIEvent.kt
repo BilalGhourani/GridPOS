@@ -13,6 +13,11 @@ sealed class ActivityScopedUIEvent {
         var onPermissionDenied: () -> Unit
     ) : ActivityScopedUIEvent()
 
+    class LaunchFilePicker(
+        var delegate: OnGalleryResult,
+        var onPermissionDenied: () -> Unit
+    ) : ActivityScopedUIEvent()
+
     class StartChooserActivity(
         var intent: Intent
     ) : ActivityScopedUIEvent()

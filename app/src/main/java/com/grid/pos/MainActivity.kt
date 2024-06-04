@@ -19,10 +19,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
@@ -98,6 +95,15 @@ class MainActivity : ComponentActivity() {
         // Callback is invoked after the user selects a media item or closes the
         // photo picker.
         uri?.let { mGalleryCallBack?.onGalleryResult(listOf(it)) }
+    }
+
+    val startForResult = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == RESULT_OK) {
+            val data = result.data?.data
+            data?.let { mGalleryCallBack?.onGalleryResult(listOf(it)) }
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -207,6 +213,26 @@ class MainActivity : ComponentActivity() {
 
                 }
 
+                is ActivityScopedUIEvent.LaunchFilePicker -> {
+                    if (ContextCompat.checkSelfPermission(
+                            this@MainActivity,
+                            getStoragePermissions()
+                        ) != PackageManager.PERMISSION_GRANTED
+                    ) {
+                        permissionDelegate = { granted ->
+                            if (granted) {
+                                launchFilePicker(sharedEvent.delegate)
+                            } else {
+                                sharedEvent.onPermissionDenied.invoke()
+                            }
+                        }
+                        requestStoragePermission.launch(getStoragePermissions())
+                    } else {
+                        launchFilePicker(sharedEvent.delegate)
+                    }
+
+                }
+
                 is ActivityScopedUIEvent.StartChooserActivity -> {
                     startActivity(sharedEvent.intent)
                 }
@@ -214,4 +240,23 @@ class MainActivity : ComponentActivity() {
         }.launchIn(CoroutineScope(Dispatchers.Main))
     }
 
+    private fun launchFilePicker(delegate: OnGalleryResult) {
+        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+            addCategory(Intent.CATEGORY_OPENABLE)
+            type = "*/*"
+            putExtra(Intent.EXTRA_MIME_TYPES, arrayOf("application/octet-stream", "application/x-sqlite3", "application/vnd.sqlite3", "application/x-sqlite3"))
+
+          /*  val pickerInitialUri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
+            } else {
+                MediaStore.Files.getContentUri(Environment.DIRECTORY_DOWNLOADS)
+
+            }
+            // Optionally, specify a URI for the file that should appear in the
+            // system file picker when it loads.
+            putExtra(DocumentsContract.EXTRA_INITIAL_URI, pickerInitialUri)*/
+        }
+        startForResult.launch(Intent.createChooser(intent, "Select DB File"))
+        mGalleryCallBack = delegate
+    }
 }
