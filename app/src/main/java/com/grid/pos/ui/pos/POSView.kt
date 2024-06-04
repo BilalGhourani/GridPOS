@@ -108,10 +108,8 @@ fun POSView(
     fun selectInvoice(invoiceHeader: InvoiceHeader) {
         if (invoiceHeader.invoiceHeadId.isNotEmpty()) {
             invoiceHeaderState.value = invoiceHeader
-            posState.isLoading = true
             viewModel.loadInvoiceDetails(invoiceHeader,
                 onSuccess = { receipt, invoiceItems ->
-                    posState.isLoading = false
                     invoicesState.clear()
                     invoicesState.addAll(invoiceItems)
                     activityViewModel.invoiceItemModels = invoiceItems
@@ -137,7 +135,6 @@ fun POSView(
         }
 
         if (activityViewModel.shouldLoadInvoice) {
-            posState.isLoading = true
             activityViewModel.shouldLoadInvoice = false
             selectInvoice(invoiceHeaderState.value)
         } else if (invoicesState.isEmpty() && activityViewModel.invoiceItemModels.isNotEmpty()) {

@@ -219,6 +219,9 @@ class POSViewModel @Inject constructor(
             invoiceHeader: InvoiceHeader,
             onSuccess: (PosReceipt, MutableList<InvoiceItemModel>) -> Unit
     ) {
+        posState.value = posState.value.copy(
+            isLoading = true
+        )
         viewModelScope.launch(Dispatchers.IO) {
             val result = invoiceRepository.getAllInvoices(invoiceHeader.invoiceHeadId)
             val invoices = mutableListOf<InvoiceItemModel>()
@@ -247,6 +250,9 @@ class POSViewModel @Inject constructor(
     ) {
         val posReceipt = posReceiptRepository.getPosReceiptByInvoice(invoiceHeaderId)
         viewModelScope.launch(Dispatchers.Main) {
+            posState.value = posState.value.copy(
+                isLoading = false
+            )
             onSuccess.invoke(
                 posReceipt ?: PosReceipt(),
                 invoices
