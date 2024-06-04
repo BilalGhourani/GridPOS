@@ -87,7 +87,7 @@ object Utils {
         return if (SettingsModel.isConnectedToSqlite()) {
             list
         } else {
-            list.subList(0, list.size - 2)
+            list.subList(0, list.size - 1)
         }
     }
 
