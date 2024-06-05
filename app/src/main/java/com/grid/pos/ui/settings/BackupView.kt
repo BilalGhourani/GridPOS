@@ -1,5 +1,6 @@
 package com.grid.pos.ui.settings
 
+import android.app.backup.BackupManager
 import android.net.Uri
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Column
@@ -131,7 +132,9 @@ fun BackupView(
                 ) {
                     isLoading = true
                     CoroutineScope(Dispatchers.IO).launch {
-                        FileUtils.backup()
+//                        FileUtils.backup()
+                        val backupManager = BackupManager(context)
+                        backupManager.dataChanged()
                         withContext(Dispatchers.Main) {
                             isLoading = false
                             warning = Event("Your data has been backed up successfully.")
