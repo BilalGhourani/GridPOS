@@ -2,6 +2,8 @@ package com.grid.pos.di
 
 import android.app.Application
 import androidx.room.Room
+import androidx.room.RoomDatabase
+import androidx.sqlite.db.SupportSQLiteDatabase
 import com.grid.pos.data.AppDatabase
 import com.grid.pos.data.Company.CompanyRepository
 import com.grid.pos.data.Company.CompanyRepositoryImpl
@@ -37,11 +39,17 @@ object AppModule {
     @Provides
     @Singleton
     fun provideGoChatDatabase(app: Application): AppDatabase {
+        val callback = object : RoomDatabase.Callback() {
+            override fun onOpen(db: SupportSQLiteDatabase) {
+                super.onOpen(db)
+                    db.disableWriteAheadLogging()
+            }
+        }
         return Room.databaseBuilder(
             app,
             AppDatabase::class.java,
             Constants.DATABASE_NAME
-        ).build()
+        ).addCallback(callback).build()
     }
 
     @Provides
@@ -84,7 +92,9 @@ object AppModule {
     @Singleton
     fun providePosPrinterRepository(db: AppDatabase): PosPrinterRepository {
         return PosPrinterRepositoryImpl(db.posPrinterDao)
-    }@Provides
+    }
+
+    @Provides
     @Singleton
     fun provideInvoiceRepository(db: AppDatabase): InvoiceRepository {
         return InvoiceRepositoryImpl(db.invoiceDao)

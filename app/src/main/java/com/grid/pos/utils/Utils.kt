@@ -39,7 +39,7 @@ object Utils {
     )
 
     fun getHomeList(): MutableList<HomeSectionModel> {
-        val list = mutableListOf(
+        return mutableListOf(
             HomeSectionModel(
                 "Currency",
                 "ManageCurrenciesView"
@@ -79,16 +79,8 @@ object Utils {
             HomeSectionModel(
                 "Table",
                 "TablesView"
-            ), HomeSectionModel(
-                "Backup",
-                "BackupView"
             )
         )
-        return if (SettingsModel.isConnectedToSqlite()) {
-            list
-        } else {
-            list.subList(0, list.size - 1)
-        }
     }
 
     fun generateRandomUuidString(): String {

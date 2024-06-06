@@ -28,10 +28,10 @@ import java.util.Date
 
 object FileUtils {
     fun saveToInternalStorage(
-            context: Context,
-            parent: String = "family",
-            sourceFilePath: Uri,
-            destName: String
+        context: Context,
+        parent: String = "family",
+        sourceFilePath: Uri,
+        destName: String
     ): String? {
         val storageDir = File(
             context.filesDir,
@@ -86,12 +86,12 @@ object FileUtils {
     }
 
     fun saveToExternalStorage(
-            context: Context,
-            parent: String = "family",
-            sourceFilePath: Uri,
-            destName: String,
-            type: String = "Image",
-            workbook: Workbook? = null
+        context: Context,
+        parent: String = "family",
+        sourceFilePath: Uri,
+        destName: String,
+        type: String = "Image",
+        workbook: Workbook? = null
     ): String? {
         val resolver = context.contentResolver
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -212,8 +212,8 @@ object FileUtils {
     }
 
     fun getFileFromUri(
-            context: Context,
-            uri: Uri
+        context: Context,
+        uri: Uri
     ): File? {
         var file: File? = null
         val contentResolver = context.contentResolver
@@ -234,8 +234,8 @@ object FileUtils {
     }
 
     fun deleteFile(
-            context: Context,
-            path: String
+        context: Context,
+        path: String
     ) {
         if (path.startsWith("content")) {
             val file: DocumentFile? = DocumentFile.fromSingleUri(
@@ -250,8 +250,8 @@ object FileUtils {
     }
 
     fun getMimeTypeFromFileExtension(
-            filePath: String,
-            type: String = "Image"
+        filePath: String,
+        type: String = "Image"
     ): String {
         val extension = MimeTypeMap.getFileExtensionFromUrl(filePath)
         val fallback = when (type) {
@@ -263,8 +263,8 @@ object FileUtils {
     }
 
     fun readFileFromAssets(
-            fileName: String,
-            context: Context
+        fileName: String,
+        context: Context
     ): String {
         return try {
             val inputStream = context.assets.open(fileName)
@@ -285,8 +285,8 @@ object FileUtils {
     }
 
     private fun copyFile(
-            fromFile: File,
-            toFile: File
+        fromFile: File,
+        toFile: File
     ) {
         try {
             val sourceChannel = FileInputStream(fromFile).channel
@@ -298,6 +298,41 @@ object FileUtils {
             )
             sourceChannel.close()
             targetChannel.close()
+        } catch (e: Exception) {
+            Log.e(
+                "exception",
+                e.message.toString()
+            )
+        }
+    }
+
+    private fun copyFile(
+        context: Context,
+        fromFile: Uri,
+        toFile: File
+    ) {
+        try {
+            val contentResolver = context.contentResolver
+            val sourceFile = File(fromFile.toString())
+            val inputStream: InputStream = if (!sourceFile.exists()) {
+                // Opening from gallery using content URI
+                contentResolver.openInputStream(fromFile)!!
+            } else {
+                // Opening from internal storage using path
+                FileInputStream(sourceFile)
+            }
+            val outputStream = toFile.outputStream()
+            val buffer = ByteArray(1024) // Adjust buffer size as needed
+            var bytesRead: Int
+            while (inputStream.read(buffer).also { bytesRead = it } > 0) {
+                outputStream.write(
+                    buffer,
+                    0,
+                    bytesRead
+                )
+            }
+            inputStream.close()
+            outputStream.close()
         } catch (e: Exception) {
             Log.e(
                 "exception",
@@ -333,15 +368,52 @@ object FileUtils {
         )
     }
 
-    fun restore(file: File) {
+    fun restore(context: Context, uri: Uri) {
         val app = App.getInstance()
+        clearAppCache(context)
         val appDatabase: AppDatabase = AppModule.provideGoChatDatabase(app)
         appDatabase.close()
-        val dbFile: File = app.getDatabasePath(Constants.DATABASE_NAME)
+        val dbFile: File = context.getDatabasePath(Constants.DATABASE_NAME)
         copyFile(
-            file,
+            context,
+            uri,
             dbFile
         )
     }
+
+    private fun clearAppCache(context: Context) {
+        try {
+            val cacheDir = context.cacheDir
+            val appCacheDir = File(cacheDir.parent)
+            if (appCacheDir.exists()) {
+                val children = appCacheDir.list()
+                if (children != null) {
+                    for (child in children) {
+                        if (child != "lib") {
+                            deleteDir(File(appCacheDir, child))
+                        }
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    private fun deleteDir(dir: File?): Boolean {
+        if (dir != null && dir.isDirectory) {
+            val children = dir.list()
+            if (children != null) {
+                for (child in children) {
+                    val success = deleteDir(File(dir, child))
+                    if (!success) {
+                        return false
+                    }
+                }
+            }
+        }
+        return dir?.delete() ?: false
+    }
+
 
 }

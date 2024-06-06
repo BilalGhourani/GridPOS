@@ -132,9 +132,9 @@ fun BackupView(
                 ) {
                     isLoading = true
                     CoroutineScope(Dispatchers.IO).launch {
-//                        FileUtils.backup()
-                        val backupManager = BackupManager(context)
-                        backupManager.dataChanged()
+                        FileUtils.backup()
+                        /*val backupManager = BackupManager(context)
+                        backupManager.dataChanged()*/
                         withContext(Dispatchers.Main) {
                             isLoading = false
                             warning = Event("Your data has been backed up successfully.")
@@ -152,26 +152,23 @@ fun BackupView(
                 ) {
                     activityViewModel.LaunchFilePicker(object : OnGalleryResult {
                         override fun onGalleryResult(uris: List<Uri>) {
-                            isLoading = true
-                            CoroutineScope(Dispatchers.IO).launch {
-                                val file = FileUtils.getFileFromUri(context, uris[0])
-                                file?.let {
-                                    FileUtils.restore(it)
+                            if (uris.isNotEmpty()) {
+                                isLoading = true
+                                CoroutineScope(Dispatchers.IO).launch {
+                                    FileUtils.restore(context, uris[0])
                                     withContext(Dispatchers.Main) {
                                         isLoading = false
-                                        warning = Event("Your data has been restored successfully.")
-                                    }
-                                } ?: run {
-                                    withContext(Dispatchers.Main) {
-                                        isLoading = false
-                                        warning = Event("Failed to restore your data.")
+                                        warning =
+                                            Event("Your data has been restored successfully.")
                                     }
                                 }
-
-
+                            } else {
+                                CoroutineScope(Dispatchers.Main).launch {
+                                    isLoading = false
+                                    warning = Event("Failed to restore your data.")
+                                }
                             }
                         }
-
                     }, onPermissionDenied = {
                         warning = Event("Permission Denied")
                         action = "Settings"

@@ -646,13 +646,7 @@ fun SettingsView(
                     buttonColor = buttonColorState,
                     textColor = buttonTextColorState
                 ) {
-                    isLoading = true
-                    CoroutineScope(Dispatchers.IO).launch {
-                        FileUtils.backup()
-                        withContext(Dispatchers.Main) {
-                            isLoading = false
-                        }
-                    }
+                    navController?.navigate("BackupView")
                 }
                 if (isLoggedId) {
                     UIButton(
