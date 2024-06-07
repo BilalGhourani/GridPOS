@@ -10,6 +10,7 @@ import com.grid.pos.data.User.UserRepository
 import com.grid.pos.model.Event
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.DataStoreManager
+import com.grid.pos.utils.DateHelper
 import com.grid.pos.utils.Extension.encryptCBC
 import com.grid.pos.utils.Utils
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -178,7 +179,7 @@ class LoginViewModel @Inject constructor(
                     null,
                     "Administrator",
                     "administrator",
-                    Utils.getDateinFormat(
+                    DateHelper.getDateInFormat(
                         Date(),
                         "dd-MMM-yyyy"
                     ).encryptCBC()

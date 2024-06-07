@@ -16,7 +16,11 @@ object SettingsModel {
     var firebaseDbPath: String? = null
     var fireStoreCompanyID: String? = null
     var localCompanyID: String? = null
-    var sqlServerPath: String? = null
+    var sqlServerPath: String = "127.0.0.1:3100/dbname"//your_server:your_port/your_database;encrypt=false;user=username;password=password;
+    var sqlServerDbUser: String = "admin"
+    var sqlServerDbPassword: String = ""
+
+    var licenseFilePath: String = ""
 
     var showTax: Boolean = false
     var showTax1: Boolean = false
@@ -58,6 +62,10 @@ object SettingsModel {
         } else {
             localCompanyID
         }
+    }
+
+    fun getSqlServerDbPath(): String {
+        return "jdbc:jtds:sqlserver:${sqlServerPath};encrypt=false;user=$sqlServerDbUser;password=$sqlServerDbPassword"
     }
 }
 

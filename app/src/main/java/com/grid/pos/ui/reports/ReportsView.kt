@@ -75,6 +75,7 @@ import com.grid.pos.ui.common.UITextField
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.ui.theme.LightBlue
 import com.grid.pos.ui.theme.LightGreen
+import com.grid.pos.utils.DateHelper
 import com.grid.pos.utils.Utils
 import kotlinx.coroutines.launch
 import java.util.Calendar
@@ -133,7 +134,7 @@ fun ReportsView(
     val toDatePickerState = rememberDatePickerState(initialSelectedDateMillis = initialDate.time)
     var fromDateState by remember {
         mutableStateOf(
-            Utils.getDateinFormat(
+            DateHelper.getDateInFormat(
                 getDateFromState(fromDatePickerState.selectedDateMillis!!),
                 "yyyy-MM-dd"
             )
@@ -141,7 +142,7 @@ fun ReportsView(
     }
     var toDateState by remember {
         mutableStateOf(
-            Utils.getDateinFormat(
+            DateHelper.getDateInFormat(
                 getDateFromState(toDatePickerState.selectedDateMillis!!),
                 "yyyy-MM-dd"
             )
@@ -236,7 +237,7 @@ fun ReportsView(
                     maxLines = 1,
                     readOnly = true,
                     keyboardType = KeyboardType.Text,
-                    placeHolder = Utils.getDateinFormat(
+                    placeHolder = DateHelper.getDateInFormat(
                         initialDate,
                         "yyyy-MM-dd"
                     ),
@@ -293,13 +294,13 @@ fun ReportsView(
                     val from = getDateFromState(fromDatePickerState.selectedDateMillis!!)
                     val to = getDateFromState(toDatePickerState.selectedDateMillis!!)
                     viewModel.fetchInvoices(
-                        Utils.editDate(
+                        DateHelper.editDate(
                             from,
                             0,
                             0,
                             0
                         ),
-                        Utils.editDate(to)
+                        DateHelper.editDate(to)
                     )
                 }
             }
@@ -323,14 +324,14 @@ fun ReportsView(
                                     showDatePicker = true
                                     return@TextButton
                                 }
-                                fromDateState = Utils.getDateinFormat(
+                                fromDateState = DateHelper.getDateInFormat(
                                     fromDate,
                                     "yyyy-MM-dd"
                                 )
                             } else {
                                 val toDate =
                                     getDateFromState(toDatePickerState.selectedDateMillis!!)
-                                toDateState = Utils.getDateinFormat(
+                                toDateState = DateHelper.getDateInFormat(
                                     toDate,
                                     "yyyy-MM-dd"
                                 )

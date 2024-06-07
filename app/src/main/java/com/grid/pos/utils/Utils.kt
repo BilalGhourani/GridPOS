@@ -75,46 +75,10 @@ object Utils {
         return UUID.randomUUID().toString()
     }
 
-    fun getDateinFormat(
-        date: Date = Date(),
-        format: String = "MMMM dd, yyyy 'at' hh:mm:ss a 'Z'"
-    ): String {
-        val parserFormat = SimpleDateFormat(
-            format,
-            Locale.getDefault()
-        )
-        parserFormat.timeZone = TimeZone.getTimeZone("UTC")
-        return parserFormat.format(date)
-    }
-
-    fun editDate(
-        date: Date = Date(),
-        hours: Int = 23,
-        minutes: Int = 59,
-        seconds: Int = 59
-    ): Date {
-        val calendar = Calendar.getInstance()
-        calendar.time = date
-
-        calendar.set(
-            Calendar.HOUR_OF_DAY,
-            hours
-        )
-        calendar.set(
-            Calendar.MINUTE,
-            minutes
-        )
-        calendar.set(
-            Calendar.SECOND,
-            seconds
-        )
-        return calendar.time
-    }
-
     fun floatToColor(
-        hue: Float,
-        saturation: Float = 1f,
-        brightness: Float = 1f
+            hue: Float,
+            saturation: Float = 1f,
+            brightness: Float = 1f
     ): Color {
         // Convert HSV to RGB
         val hsv = floatArrayOf(
@@ -126,8 +90,8 @@ object Utils {
     }
 
     fun getDoubleValue(
-        new: String,
-        old: String
+            new: String,
+            old: String
     ): String {
         return if (new.isEmpty()) {
             new
@@ -140,8 +104,8 @@ object Utils {
     }
 
     fun getIntValue(
-        new: String,
-        old: String
+            new: String,
+            old: String
     ): String {
         return if (new.isEmpty()) {
             new
@@ -154,7 +118,7 @@ object Utils {
     }
 
     fun getItemsNumberStr(
-        items: MutableList<InvoiceItemModel>
+            items: MutableList<InvoiceItemModel>
     ): String {
         val size = items.size
         return if (size <= 1) {
@@ -164,18 +128,15 @@ object Utils {
         }
     }
 
-
-
-
     fun isTablet(configuration: Configuration): Boolean {
         return configuration.screenWidthDp > 840
     }
 
     fun getListHeight(
-        listSize: Int = 0,
-        cellHeight: Int,
-        min: Int = 1,
-        max: Int = 8
+            listSize: Int = 0,
+            cellHeight: Int,
+            min: Int = 1,
+            max: Int = 8
     ): Dp {
         var size = listSize
         if (size < min) size = min
@@ -192,7 +153,6 @@ object Utils {
         }
         return currentYear.toString()
     }
-
 
 
 }

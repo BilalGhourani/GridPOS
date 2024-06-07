@@ -123,7 +123,7 @@ object PrinterUtils {
 
         result = result.replace(
             "{invoice_time}",
-            Utils.getDateinFormat(
+            DateHelper.getDateInFormat(
                 invoiceHeader.invoiceHeadTimeStamp ?: Date(
                     invoiceHeader.invoiceHeadDateTime.div(
                         1000

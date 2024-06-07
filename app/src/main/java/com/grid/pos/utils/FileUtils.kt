@@ -1,14 +1,14 @@
 package com.grid.pos.utils
 
+import android.content.ContentUris
 import android.content.ContentValues
 import android.content.Context
 import android.net.Uri
 import android.os.Build
-import android.os.Environment
+import android.provider.DocumentsContract
 import android.provider.MediaStore
 import android.util.Log
 import android.webkit.MimeTypeMap
-import androidx.core.net.toFile
 import androidx.core.net.toUri
 import androidx.documentfile.provider.DocumentFile
 import com.aspose.cells.SaveFormat
@@ -28,10 +28,10 @@ import java.util.Date
 
 object FileUtils {
     fun saveToInternalStorage(
-        context: Context,
-        parent: String = "family",
-        sourceFilePath: Uri,
-        destName: String
+            context: Context,
+            parent: String = "family",
+            sourceFilePath: Uri,
+            destName: String
     ): String? {
         val storageDir = File(
             context.filesDir,
@@ -86,12 +86,12 @@ object FileUtils {
     }
 
     fun saveToExternalStorage(
-        context: Context,
-        parent: String = "family",
-        sourceFilePath: Uri,
-        destName: String,
-        type: String = "Image",
-        workbook: Workbook? = null
+            context: Context,
+            parent: String = "family",
+            sourceFilePath: Uri,
+            destName: String,
+            type: String = "Image",
+            workbook: Workbook? = null
     ): String? {
         val resolver = context.contentResolver
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -212,8 +212,8 @@ object FileUtils {
     }
 
     fun getFileFromUri(
-        context: Context,
-        uri: Uri
+            context: Context,
+            uri: Uri
     ): File? {
         var file: File? = null
         val contentResolver = context.contentResolver
@@ -234,8 +234,8 @@ object FileUtils {
     }
 
     fun deleteFile(
-        context: Context,
-        path: String
+            context: Context,
+            path: String
     ) {
         if (path.startsWith("content")) {
             val file: DocumentFile? = DocumentFile.fromSingleUri(
@@ -249,9 +249,9 @@ object FileUtils {
         }
     }
 
-    fun getMimeTypeFromFileExtension(
-        filePath: String,
-        type: String = "Image"
+    private fun getMimeTypeFromFileExtension(
+            filePath: String,
+            type: String = "Image"
     ): String {
         val extension = MimeTypeMap.getFileExtensionFromUrl(filePath)
         val fallback = when (type) {
@@ -263,8 +263,8 @@ object FileUtils {
     }
 
     fun readFileFromAssets(
-        fileName: String,
-        context: Context
+            fileName: String,
+            context: Context
     ): String {
         return try {
             val inputStream = context.assets.open(fileName)
@@ -285,8 +285,8 @@ object FileUtils {
     }
 
     private fun copyFile(
-        fromFile: File,
-        toFile: File
+            fromFile: File,
+            toFile: File
     ) {
         try {
             val sourceChannel = FileInputStream(fromFile).channel
@@ -307,9 +307,9 @@ object FileUtils {
     }
 
     private fun copyFile(
-        context: Context,
-        fromFile: Uri,
-        toFile: File
+            context: Context,
+            fromFile: Uri,
+            toFile: File
     ) {
         try {
             val contentResolver = context.contentResolver
@@ -359,7 +359,7 @@ object FileUtils {
             parent = "bachup",
             sourceFilePath = dbFile.toUri(),
             destName = "grids-${
-                Utils.getDateinFormat(
+                DateHelper.getDateInFormat(
                     Date(),
                     "yyyyMMddhhmmss"
                 )
@@ -368,7 +368,10 @@ object FileUtils {
         )
     }
 
-    fun restore(context: Context, uri: Uri) {
+    fun restore(
+            context: Context,
+            uri: Uri
+    ) {
         val app = App.getInstance()
         clearAppCache(context)
         val appDatabase: AppDatabase = AppModule.provideGoChatDatabase(app)
@@ -384,13 +387,18 @@ object FileUtils {
     private fun clearAppCache(context: Context) {
         try {
             val cacheDir = context.cacheDir
-            val appCacheDir = File(cacheDir.parent)
+            val appCacheDir = File(cacheDir.parent!!)
             if (appCacheDir.exists()) {
                 val children = appCacheDir.list()
                 if (children != null) {
                     for (child in children) {
                         if (child != "lib") {
-                            deleteDir(File(appCacheDir, child))
+                            deleteDir(
+                                File(
+                                    appCacheDir,
+                                    child
+                                )
+                            )
                         }
                     }
                 }
@@ -405,7 +413,12 @@ object FileUtils {
             val children = dir.list()
             if (children != null) {
                 for (child in children) {
-                    val success = deleteDir(File(dir, child))
+                    val success = deleteDir(
+                        File(
+                            dir,
+                            child
+                        )
+                    )
                     if (!success) {
                         return false
                     }
@@ -413,6 +426,147 @@ object FileUtils {
             }
         }
         return dir?.delete() ?: false
+    }
+
+    fun getLastWriteTimeFromUri(
+            context: Context,
+            uri: Uri
+    ): Date? {
+        val file = getFileFomUri(
+            context,
+            uri
+        )
+        if (file?.exists() == true) {
+            return Date(file.lastModified())
+        }
+        return null
+    }
+
+    private fun getFileFomUri(
+            context: Context,
+            uri: Uri
+    ): File? {
+        val filePath: String = getFilePathFromUri(
+            context,
+            uri
+        )
+        val file = File(filePath)
+        if (file.exists()) {
+            return file
+        }
+        return null
+    }
+
+    private fun getFilePathFromUri(
+            context: Context,
+            uri: Uri
+    ): String {
+        return if (DocumentsContract.isDocumentUri(
+                context,
+                uri
+            )
+        ) {
+            if (isExternalStorageDocument(uri)) {
+                val docId = DocumentsContract.getDocumentId(uri)
+                val split = docId.split(":").toTypedArray()
+                if ("primary".equals(
+                        split[0],
+                        ignoreCase = true
+                    )
+                ) {
+                    "${context.getExternalFilesDir(null)}/${split[1]}"
+                } else {
+                    uri.toString()
+                }
+            } else if (isDownloadsDocument(uri)) {
+                val id = DocumentsContract.getDocumentId(uri)
+                if (id != null) {
+                    val contentUri = ContentUris.withAppendedId(
+                        Uri.parse("content://downloads/public_downloads"),
+                        id.toLong()
+                    )
+                    getDataColumn(
+                        context,
+                        contentUri,
+                        null,
+                        null
+                    )
+                } else {
+                    uri.toString()
+                }
+            } else if (isMediaDocument(uri)) {
+                val docId = DocumentsContract.getDocumentId(uri)
+                val split = docId.split(":").toTypedArray()
+                val contentUri: Uri = when (split[0]) {
+                    "image" -> MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+                    "video" -> MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+                    "audio" -> MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
+                    else -> return uri.toString()
+                }
+                val selection = "_id=?"
+                val selectionArgs = arrayOf(split[1])
+                getDataColumn(
+                    context,
+                    contentUri,
+                    selection,
+                    selectionArgs
+                )
+            } else {
+                uri.toString()
+            }
+        } else if ("content".equals(
+                uri.scheme,
+                ignoreCase = true
+            )
+        ) {
+            getDataColumn(
+                context,
+                uri,
+                null,
+                null
+            )
+        } else if ("file".equals(
+                uri.scheme,
+                ignoreCase = true
+            )
+        ) {
+            uri.path ?: uri.toString()
+        } else {
+            uri.toString()
+        }
+    }
+
+    private fun getDataColumn(
+            context: Context,
+            uri: Uri,
+            selection: String?,
+            selectionArgs: Array<String>?
+    ): String {
+        context.contentResolver.query(
+            uri,
+            arrayOf("_data"),
+            selection,
+            selectionArgs,
+            null
+        )?.use { cursor ->
+            if (cursor.moveToFirst()) {
+                val columnIndex = cursor.getColumnIndexOrThrow("_data")
+                return cursor.getString(columnIndex)
+            }
+        }
+        return uri.toString()
+    }
+
+    private fun isExternalStorageDocument(uri: Uri): Boolean {
+        return "com.android.externalstorage.documents" == uri.authority
+    }
+
+    private fun isDownloadsDocument(uri: Uri): Boolean {
+        return "com.android.providers.downloads.documents" == uri.authority
+    }
+
+    private fun isMediaDocument(uri: Uri): Boolean {
+        return "com.android.providers.media.documents" == uri.authority
     }
 
 

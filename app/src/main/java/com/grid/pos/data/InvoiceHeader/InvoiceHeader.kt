@@ -10,6 +10,7 @@ import com.google.firebase.firestore.PropertyName
 import com.google.firebase.firestore.ServerTimestamp
 import com.grid.pos.data.DataModel
 import com.grid.pos.model.SettingsModel
+import com.grid.pos.utils.DateHelper
 import com.grid.pos.utils.Utils
 import java.util.Date
 
@@ -42,7 +43,7 @@ data class InvoiceHeader(
         @ColumnInfo(name = "hi_date")
         @set:PropertyName("hi_date")
         @get:PropertyName("hi_date")
-        var invoiceHeadDate: String = Utils.getDateinFormat(),
+        var invoiceHeadDate: String = DateHelper.getDateInFormat(),
 
         /**
          * Invoice Header Order Number
