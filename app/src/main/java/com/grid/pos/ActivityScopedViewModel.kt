@@ -25,18 +25,14 @@ import com.grid.pos.model.Event
 import com.grid.pos.model.InvoiceItemModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.DataStoreManager
-import com.grid.pos.utils.FileUtils
 import com.grid.pos.utils.PrinterUtils
-import com.grid.pos.utils.Utils
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.util.Date
 import javax.inject.Inject
 
 @HiltViewModel
@@ -58,9 +54,8 @@ class ActivityScopedViewModel @Inject constructor(
     var shouldPrintInvoice: Boolean = false
     var shouldLoadInvoice: Boolean = false
     var isFromTable: Boolean = false
-    var shouldUpdateLists: Boolean = false
     var companies: MutableList<Company> = mutableListOf()
-    var localCompanies: MutableList<Company> = mutableListOf()
+    private var localCompanies: MutableList<Company> = mutableListOf()
     var currencies: MutableList<Currency> = mutableListOf()
     var users: MutableList<User> = mutableListOf()
     var thirdParties: MutableList<ThirdParty> = mutableListOf()
@@ -215,29 +210,13 @@ class ActivityScopedViewModel @Inject constructor(
         }
     }
 
-    fun LaunchFilePicker(
+    fun launchFilePicker(
             delegate: OnGalleryResult,
             onPermissionDenied: () -> Unit
     ) {
         viewModelScope.launch {
             _mainActivityEvent.send(
                 ActivityScopedUIEvent.LaunchFilePicker(
-                    delegate,
-                    onPermissionDenied
-                )
-            )
-        }
-    }
-
-    fun launchFilePicker(
-            mediaType: ActivityResultContracts.PickVisualMedia.VisualMediaType,
-            delegate: OnGalleryResult,
-            onPermissionDenied: () -> Unit
-    ) {
-        viewModelScope.launch {
-            _mainActivityEvent.send(
-                ActivityScopedUIEvent.LaunchGalleryPicker(
-                    mediaType,
                     delegate,
                     onPermissionDenied
                 )

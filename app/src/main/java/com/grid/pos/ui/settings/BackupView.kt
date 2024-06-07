@@ -150,7 +150,7 @@ fun BackupView(
                     buttonColor = SettingsModel.buttonColor,
                     textColor = SettingsModel.buttonTextColor
                 ) {
-                    activityViewModel.LaunchFilePicker(object : OnGalleryResult {
+                    activityViewModel.launchFilePicker(object : OnGalleryResult {
                         override fun onGalleryResult(uris: List<Uri>) {
                             if (uris.isNotEmpty()) {
                                 isLoading = true
