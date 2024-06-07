@@ -26,6 +26,7 @@ import com.grid.pos.model.InvoiceItemModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.DataStoreManager
 import com.grid.pos.utils.FileUtils
+import com.grid.pos.utils.PrinterUtils
 import com.grid.pos.utils.Utils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -40,12 +41,12 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ActivityScopedViewModel @Inject constructor(
-    private val currencyRepository: CurrencyRepository,
-    private val companyRepository: CompanyRepository,
-    private val thirdPartyRepository: ThirdPartyRepository,
-    private val familyRepository: FamilyRepository,
-    private val itemRepository: ItemRepository,
-    private val posPrinterRepository: PosPrinterRepository,
+        private val currencyRepository: CurrencyRepository,
+        private val companyRepository: CompanyRepository,
+        private val thirdPartyRepository: ThirdPartyRepository,
+        private val familyRepository: FamilyRepository,
+        private val itemRepository: ItemRepository,
+        private val posPrinterRepository: PosPrinterRepository,
 ) : ViewModel() {
     private val _mainActivityEvent = Channel<ActivityScopedUIEvent>()
     val mainActivityEvent = _mainActivityEvent.receiveAsFlow()
@@ -172,134 +173,18 @@ class ActivityScopedViewModel @Inject constructor(
         isFromTable = false
     }
 
-    fun getInvoiceReceiptHtmlContent(
-        context: Context,
-        content: String = FileUtils.readFileFromAssets(
-            "invoice_receipt.html",
-            context
-        )
-    ): String {
-        var result = content.ifEmpty { FileUtils.getDefaultReceipt() }
-        if (invoiceItemModels.isNotEmpty()) {
-            val trs = StringBuilder("")
-            invoiceItemModels.forEach { item ->
-                trs.append(
-                    "<tr> <td>${item.getName()}</td>  <td>${
-                        String.format(
-                            "%.2f",
-                            item.getQuantity()
-                        )
-                    }</td> <td>$${
-                        String.format(
-                            "%.2f",
-                            item.getNetAmount()
-                        )
-                    }</td>  </tr>"
-                )
-            }
-            result = result.replace(
-                "{rows_content}",
-                trs.toString()
-            )
-            result = result.replace(
-                "{total}",
-                String.format(
-                    "%.2f",
-                    invoiceHeader.invoiceHeadGrossAmount
-                )
-            )
-        }
-        return result
-    }
-
-    fun getItemReceiptHtmlContent(
-        context: Context,
-        content: String = FileUtils.readFileFromAssets(
-            "item_receipt.html",
-            context
-        ),
-        invoiceHeader: InvoiceHeader,
-        invItemModels: List<InvoiceItemModel>
-    ): String {
-        var result = content.ifEmpty { FileUtils.getDefaultItemReceipt() }
-        result = result.replace(
-            "{table_name}",
-            invoiceHeader.invoiceHeadTaName ?: ""
-        )
-        result = result.replace(
-            "{order_no}",
-            invoiceHeader.invoiceHeadOrderNo ?: ""
-        )
-        result = result.replace(
-            "{trans_no}",
-            invoiceHeader.invoiceHeadTransNo ?: ""
-        )
-
-        result = result.replace(
-            "{invoice_time}",
-            Utils.getDateinFormat(
-                invoiceHeader.invoiceHeadTimeStamp ?: Date(
-                    invoiceHeader.invoiceHeadDateTime.div(
-                        1000
-                    )
-                ),
-                "dd/MM/yyyy hh:mm:ss"
-            )
-        )
-        if (invItemModels.isNotEmpty()) {
-            val trs = StringBuilder("")
-            invoiceItemModels.forEach { item ->
-                trs.append(
-                    "<tr> <td>${
-                        String.format(
-                            "%.2f",
-                            item.getQuantity()
-                        )
-                    }</td> <td>${item.getName()}</td>  </tr>"
-                )
-            }
-            result = result.replace(
-                "{rows_content}",
-                trs.toString()
-            )
-        }
-        return result
-    }
-
     fun print() {
         viewModelScope.launch(Dispatchers.IO) {
-            val context = App.getInstance().applicationContext
-            SettingsModel.currentCompany?.companyPrinterId?.let { companyPrinter ->
-                val invoicePrinter = printers.firstOrNull { it.posPrinterId == companyPrinter }
-                if (invoicePrinter != null) {
-                    val invoiceContent = getInvoiceReceiptHtmlContent(context = context)
-                    Utils.printInvoice(
-                        invoiceContent,
-                        invoicePrinter.posPrinterHost,
-                        invoicePrinter.posPrinterPort
-                    )
-                }
-            }
-
-            val itemsPrintersMap = invoiceItemModels.groupBy { it.invoiceItem.itemPrinter ?: "" }
-            itemsPrintersMap.entries.forEach { entry ->
-                if (entry.key.isNotEmpty()) {
-                    val itemsPrinter = printers.firstOrNull { it.posPrinterId == entry.key }
-                    if (itemsPrinter != null) {
-                        val invoiceContent = getItemReceiptHtmlContent(
-                            context = context,
-                            invoiceHeader = invoiceHeader,
-                            invItemModels = entry.value
-                        )
-                        Utils.printInvoice(
-                            invoiceContent,
-                            itemsPrinter.posPrinterHost,
-                            itemsPrinter.posPrinterPort
-                        )
-                    }
-                }
-            }
+            PrinterUtils.print(
+                invoiceHeader,
+                invoiceItemModels,
+                printers
+            )
         }
+    }
+
+    fun getInvoiceReceiptHtmlContent(context: Context): String {
+        return PrinterUtils.getInvoiceReceiptHtmlContent(context, invoiceHeader, invoiceItemModels)
     }
 
     fun finish() {
@@ -315,9 +200,9 @@ class ActivityScopedViewModel @Inject constructor(
     }
 
     fun launchGalleryPicker(
-        mediaType: ActivityResultContracts.PickVisualMedia.VisualMediaType,
-        delegate: OnGalleryResult,
-        onPermissionDenied: () -> Unit
+            mediaType: ActivityResultContracts.PickVisualMedia.VisualMediaType,
+            delegate: OnGalleryResult,
+            onPermissionDenied: () -> Unit
     ) {
         viewModelScope.launch {
             _mainActivityEvent.send(
@@ -331,8 +216,8 @@ class ActivityScopedViewModel @Inject constructor(
     }
 
     fun LaunchFilePicker(
-        delegate: OnGalleryResult,
-        onPermissionDenied: () -> Unit
+            delegate: OnGalleryResult,
+            onPermissionDenied: () -> Unit
     ) {
         viewModelScope.launch {
             _mainActivityEvent.send(
@@ -345,9 +230,9 @@ class ActivityScopedViewModel @Inject constructor(
     }
 
     fun launchFilePicker(
-        mediaType: ActivityResultContracts.PickVisualMedia.VisualMediaType,
-        delegate: OnGalleryResult,
-        onPermissionDenied: () -> Unit
+            mediaType: ActivityResultContracts.PickVisualMedia.VisualMediaType,
+            delegate: OnGalleryResult,
+            onPermissionDenied: () -> Unit
     ) {
         viewModelScope.launch {
             _mainActivityEvent.send(
@@ -361,7 +246,7 @@ class ActivityScopedViewModel @Inject constructor(
     }
 
     fun startChooserActivity(
-        intent: Intent
+            intent: Intent
     ) {
         viewModelScope.launch {
             _mainActivityEvent.send(ActivityScopedUIEvent.StartChooserActivity(intent))

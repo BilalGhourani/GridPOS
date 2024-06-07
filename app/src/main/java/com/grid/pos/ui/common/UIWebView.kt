@@ -27,17 +27,15 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavController
 import com.grid.pos.ActivityScopedViewModel
-import com.grid.pos.data.InvoiceHeader.InvoiceHeader
-import com.grid.pos.data.PosReceipt.PosReceipt
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.theme.GridPOSTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UIWebView(
-        navController: NavController? = null,
-        activityViewModel: ActivityScopedViewModel,
         modifier: Modifier = Modifier,
+        navController: NavController? = null,
+        activityViewModel: ActivityScopedViewModel
 ) {
     val context = LocalContext.current
     val webView = remember {

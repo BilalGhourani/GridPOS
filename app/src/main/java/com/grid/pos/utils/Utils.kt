@@ -1,27 +1,15 @@
 package com.grid.pos.utils
 
-import android.content.Context
-import android.content.Intent
 import android.content.res.Configuration
-import android.net.Uri
 import android.os.Build
-import android.print.PrintAttributes
-import android.print.PrintAttributes.MediaSize
-import android.print.PrintManager
-import android.util.Log
-import android.webkit.WebView
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.grid.pos.MainActivity
 import com.grid.pos.data.DataModel
 import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.ConnectionModel
 import com.grid.pos.model.HomeSectionModel
 import com.grid.pos.model.InvoiceItemModel
-import com.grid.pos.model.SettingsModel
-import java.io.PrintWriter
-import java.net.Socket
 import java.text.SimpleDateFormat
 import java.time.Year
 import java.util.Calendar
@@ -176,43 +164,7 @@ object Utils {
         }
     }
 
-    fun printWebPage(
-        webView: WebView?,
-        context: Context
-    ) {
-        if (webView != null) {
-            val printManager = context.getSystemService(Context.PRINT_SERVICE) as PrintManager
-            val jobName = "webpage_" + System.currentTimeMillis()
-            val printAdapter = webView.createPrintDocumentAdapter(jobName)
 
-            // Define Print Attributes (optional)
-            val printAttributes = PrintAttributes.Builder()
-                .setMediaSize(MediaSize.ISO_A4/*getMediaSize()*/)
-                .setMinMargins(PrintAttributes.Margins.NO_MARGINS).build()
-            printManager.print(
-                jobName,
-                printAdapter,
-                printAttributes
-            )
-        }
-    }
-
-    private fun getMediaSize(): MediaSize {
-        // Define the width and height in inches
-        val widthInches = 3 // Typical width for POS receipt paper
-        val heightInches = 11 // You can adjust this based on your needs
-
-        // Convert inches to micrometers (1 inch = 25400 micrometers)
-        val widthMicrometers = widthInches * 25400
-        val heightMicrometers = heightInches * 25400
-
-        return MediaSize(
-            "POS Receipt",
-            "POS Receipt",
-            widthMicrometers,
-            heightMicrometers
-        )
-    }
 
 
     fun isTablet(configuration: Configuration): Boolean {
@@ -241,30 +193,6 @@ object Utils {
         return currentYear.toString()
     }
 
-    fun printInvoice(
-        content: String,
-        host: String = "192.168.1.222",
-        port: Int = 9100
-    ) {
-        try {
-            val sock = Socket(
-                host,
-                port
-            )
-            val oStream = PrintWriter(
-                sock.getOutputStream(),
-                true
-            )
-            oStream.print(content)
-            oStream.println("\n\n\n")
-            oStream.close()
-            sock.close()
-        } catch (e: Exception) {
-            Log.e(
-                "exception",
-                e.message.toString()
-            )
-        }
-    }
+
 
 }
