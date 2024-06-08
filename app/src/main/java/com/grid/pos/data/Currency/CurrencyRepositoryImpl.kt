@@ -1,6 +1,9 @@
 package com.grid.pos.data.Currency
 
 import com.google.firebase.firestore.FirebaseFirestore
+import com.grid.pos.data.SQLServerWrapper
+import com.grid.pos.data.User.User
+import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.SettingsModel
 import kotlinx.coroutines.tasks.await
 
@@ -44,24 +47,51 @@ class CurrencyRepositoryImpl(
     }
 
     override suspend fun getAllCurrencies(): MutableList<Currency> {
-        if (SettingsModel.isConnectedToFireStore()) {
-            val querySnapshot = FirebaseFirestore.getInstance().collection("currency").whereEqualTo(
-                "cur_cmp_id",
-                SettingsModel.getCompanyID()
-            ).get().await()
-            val currencies = mutableListOf<Currency>()
-            if (querySnapshot.size() > 0) {
-                for (document in querySnapshot) {
-                    val obj = document.toObject(Currency::class.java)
-                    if (obj.currencyId.isNotEmpty()) {
-                        obj.currencyDocumentId = document.id
-                        currencies.add(obj)
+        return when (SettingsModel.connectionType) {
+            CONNECTION_TYPE.FIRESTORE.key -> {
+                val querySnapshot = FirebaseFirestore.getInstance().collection("currency")
+                    .whereEqualTo(
+                        "cur_cmp_id",
+                        SettingsModel.getCompanyID()
+                    ).get().await()
+                val currencies = mutableListOf<Currency>()
+                if (querySnapshot.size() > 0) {
+                    for (document in querySnapshot) {
+                        val obj = document.toObject(Currency::class.java)
+                        if (obj.currencyId.isNotEmpty()) {
+                            obj.currencyDocumentId = document.id
+                            currencies.add(obj)
+                        }
                     }
                 }
+                currencies
             }
-            return currencies
-        } else {
-            return currencyDao.getAllCurrencies(SettingsModel.getCompanyID() ?: "")
+
+            CONNECTION_TYPE.LOCAL.key -> {
+                currencyDao.getAllCurrencies(SettingsModel.getCompanyID() ?: "")
+            }
+
+            else -> {
+                val where = "cur_cmp_id='${SettingsModel.getCompanyID()}'"
+                val dbResult = SQLServerWrapper.getListOf(
+                    "currency",
+                    mutableListOf("*"),
+                    where
+                )
+                val currencies: MutableList<Currency> = mutableListOf()
+                dbResult.forEach { obj ->
+                    currencies.add(Currency().apply {
+                        //currencyId = obj.optString("cur_code")
+                        currencyCode1 = obj.optString("cur_code")
+                        currencyName2 = obj.optString("cur_name")
+                        currencyName1Dec = obj.optInt("cur_decimal")
+                        currencyCode2 = obj.optString("cur_newcode")
+                        //currencyName2Dec = obj.optInt("cur_decimal")
+                        currencyRate = obj.optDouble("cur_round")
+                    })
+                }
+                currencies
+            }
         }
 
     }

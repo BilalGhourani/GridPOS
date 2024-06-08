@@ -16,9 +16,10 @@ object SettingsModel {
     var firebaseDbPath: String? = null
     var fireStoreCompanyID: String? = null
     var localCompanyID: String? = null
-    var sqlServerPath: String = "127.0.0.1:3100/dbname"//your_server:your_port/your_database;encrypt=false;user=username;password=password;
-    var sqlServerDbUser: String = "admin"
-    var sqlServerDbPassword: String = ""
+    var sqlServerPath: String? = null
+    var sqlServerDbUser: String? = null
+    var sqlServerDbPassword: String? = null
+    var sqlServerCompanyId: String? = null
 
     var licenseFilePath: String = ""
 
@@ -60,7 +61,7 @@ object SettingsModel {
         return if (connectionType == CONNECTION_TYPE.FIRESTORE.key) {
             fireStoreCompanyID
         } else if (connectionType == CONNECTION_TYPE.SQL_SERVER.key) {
-            "18f082be-8b13-49d0-87cf-440892778a46"
+            sqlServerCompanyId
         } else {
             localCompanyID
         }

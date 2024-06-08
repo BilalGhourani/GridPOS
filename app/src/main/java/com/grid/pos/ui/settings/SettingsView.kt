@@ -105,6 +105,7 @@ fun SettingsView(
     var sqlServerPath by remember { mutableStateOf(SettingsModel.sqlServerPath ?: "") }
     var sqlServerDbUser by remember { mutableStateOf(SettingsModel.sqlServerDbUser ?: "") }
     var sqlServerDbPassword by remember { mutableStateOf(SettingsModel.sqlServerDbPassword ?: "") }
+    var sqlServerCompanyId by remember { mutableStateOf(SettingsModel.sqlServerCompanyId ?: "") }
     var passwordVisibility by remember { mutableStateOf(false) }
 
     val companies = remember { mutableStateListOf<Company>() }
@@ -115,6 +116,7 @@ fun SettingsView(
     val companyIdRequester = remember { FocusRequester() }
     val sqlServerUserRequester = remember { FocusRequester() }
     val sqlServerPasswordRequester = remember { FocusRequester() }
+    val sqlServerCmpIdRequester = remember { FocusRequester() }
     val keyboardController = LocalSoftwareKeyboardController.current
 
     var showTax by remember { mutableStateOf(SettingsModel.showTax) }
@@ -320,10 +322,10 @@ fun SettingsView(
                                     placeHolder = "password",
                                     focusRequester = sqlServerUserRequester,
                                     keyboardType = KeyboardType.Password,
-                                    imeAction = ImeAction.Done,
+                                    imeAction = ImeAction.Next,
                                     visualTransformation = if (passwordVisibility) VisualTransformation.None else PasswordVisualTransformation(),
                                     onAction = {
-                                        keyboardController?.hide()
+                                        sqlServerCmpIdRequester.requestFocus()
                                     },
                                     trailingIcon = {
                                         IconButton(onClick = { passwordVisibility = !passwordVisibility }) {
@@ -336,6 +338,17 @@ fun SettingsView(
                                     }) { password ->
                                     sqlServerDbPassword = password
                                 }
+
+                                UITextField(modifier = Modifier.padding(10.dp),
+                                    defaultValue = sqlServerCompanyId,
+                                    label = "Company ID",
+                                    placeHolder = "Company ID",
+                                    focusRequester = sqlServerCmpIdRequester,
+                                    imeAction = ImeAction.Done,
+                                    onAction = { keyboardController?.hide() }) { compId ->
+                                    sqlServerCompanyId = compId
+                                }
+
                             } else {
                                 SearchableDropdownMenu(items = companies.toMutableList(),
                                     modifier = Modifier.padding(10.dp),
@@ -414,8 +427,14 @@ fun SettingsView(
                                             )
                                             SettingsModel.sqlServerDbPassword = sqlServerDbPassword
                                             DataStoreManager.putString(
-                                                DataStoreManager.DataStoreKeys.SQL_SERVER__DB_PASSWORD.key,
+                                                DataStoreManager.DataStoreKeys.SQL_SERVER_DB_PASSWORD.key,
                                                 sqlServerDbPassword
+                                            )
+
+                                            SettingsModel.sqlServerCompanyId = sqlServerCompanyId
+                                            DataStoreManager.putString(
+                                                DataStoreManager.DataStoreKeys.SQL_SERVER_COMPANY_ID.key,
+                                                sqlServerCompanyId
                                             )
                                         }
 
