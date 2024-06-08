@@ -10,7 +10,11 @@ import java.sql.ResultSet
 object SQLServerWrapper {
 
     private fun getDatabaseConnection(): Connection {
-        Class.forName("net.sourceforge.jtds.jdbc.Driver")
+        try {
+            Class.forName("net.sourceforge.jtds.jdbc.Driver")
+        } catch (e: ClassNotFoundException) {
+            e.printStackTrace()
+        }
         return DriverManager.getConnection(
             SettingsModel.getSqlServerDbPath(),
             SettingsModel.sqlServerDbUser,
@@ -20,7 +24,7 @@ object SQLServerWrapper {
 
     fun getListOf(
             tableName: String,
-            columns: List<String>,
+            columns: MutableList<String>,
             where: String
     ): List<JSONObject> {
         var connection: Connection? = null
@@ -31,8 +35,21 @@ object SQLServerWrapper {
             connection = getDatabaseConnection()
             val cols = columns.joinToString(", ")
             val whereQuery = if (where.isNotEmpty()) "WHERE $where " else ""
-            statement = connection.prepareStatement("SELECT $cols FROM $tableName $whereQuery")
+            val query = "SELECT $cols FROM $tableName $whereQuery"
+            statement = connection.prepareStatement(query)
             resultSet = statement.executeQuery()
+            if (cols.contains("*")) {
+                // Get the ResultSetMetaData
+                val metaData = resultSet.metaData
+
+                // Get the number of columns
+                val columnCount = metaData.columnCount
+                columns.clear()
+                // Iterate through the columns and print their names
+                for (i in 1..columnCount) {
+                    columns.add(metaData.getColumnName(i))
+                }
+            }
             while (resultSet.next()) {
                 val obj = JSONObject()
                 for (columnName in columns) {

@@ -59,13 +59,15 @@ object SettingsModel {
     fun getCompanyID(): String? {
         return if (connectionType == CONNECTION_TYPE.FIRESTORE.key) {
             fireStoreCompanyID
+        } else if (connectionType == CONNECTION_TYPE.SQL_SERVER.key) {
+            "18f082be-8b13-49d0-87cf-440892778a46"
         } else {
             localCompanyID
         }
     }
 
     fun getSqlServerDbPath(): String {
-        return "jdbc:jtds:sqlserver:${sqlServerPath};encrypt=false;user=$sqlServerDbUser;password=$sqlServerDbPassword"
+        return "jdbc:jtds:sqlserver://${sqlServerPath};encrypt=true"
     }
 }
 

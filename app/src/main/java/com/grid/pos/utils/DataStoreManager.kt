@@ -234,6 +234,14 @@ object DataStoreManager {
             DataStoreKeys.SQL_SERVER_PATH.key,
             ""
         )
+        SettingsModel.sqlServerDbUser = getString(
+            DataStoreKeys.SQL_SERVER_DB_USER.key,
+            ""
+        )
+        SettingsModel.sqlServerDbPassword = getString(
+            DataStoreKeys.SQL_SERVER__DB_PASSWORD.key,
+            ""
+        )
     }
 
     enum class DataStoreKeys(val key: String) {
@@ -247,7 +255,7 @@ object DataStoreManager {
         ),
         FIRESTORE_COMPANY_ID("FIRESTORE_COMPANY_ID"), LOCAL_COMPANY_ID("LOCAL_COMPANY_ID"),
 
-        SQL_SERVER_PATH("SQL_SERVER_PATH"),
+        SQL_SERVER_PATH("SQL_SERVER_PATH"), SQL_SERVER_DB_USER("SQL_SERVER_DB_USER"), SQL_SERVER__DB_PASSWORD("SQL_SERVER__DB_PASSWORD"),
 
         CONNECTION_TYPE("CONNECTION_TYPE"), SHOW_TAX("SHOW_TAX"), SHOW_TAX1(
             "SHOW_TAX1"

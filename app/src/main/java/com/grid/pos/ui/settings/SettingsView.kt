@@ -23,6 +23,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -45,9 +47,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
@@ -80,9 +86,9 @@ import kotlinx.coroutines.withContext
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsView(
-    modifier: Modifier = Modifier,
-    navController: NavController? = null,
-    activityScopedViewModel: ActivityScopedViewModel
+        modifier: Modifier = Modifier,
+        navController: NavController? = null,
+        activityScopedViewModel: ActivityScopedViewModel
 ) {
     var firebaseApplicationId by remember {
         mutableStateOf(
@@ -97,6 +103,9 @@ fun SettingsView(
     var localCompanyID by remember { mutableStateOf(SettingsModel.localCompanyID ?: "") }
     var localCompanyName by remember { mutableStateOf("") }
     var sqlServerPath by remember { mutableStateOf(SettingsModel.sqlServerPath ?: "") }
+    var sqlServerDbUser by remember { mutableStateOf(SettingsModel.sqlServerDbUser ?: "") }
+    var sqlServerDbPassword by remember { mutableStateOf(SettingsModel.sqlServerDbPassword ?: "") }
+    var passwordVisibility by remember { mutableStateOf(false) }
 
     val companies = remember { mutableStateListOf<Company>() }
 
@@ -104,7 +113,9 @@ fun SettingsView(
     val firebaseProjectIdRequester = remember { FocusRequester() }
     val firebaseDbPathRequester = remember { FocusRequester() }
     val companyIdRequester = remember { FocusRequester() }
-    val printerRequester = remember { FocusRequester() }
+    val sqlServerUserRequester = remember { FocusRequester() }
+    val sqlServerPasswordRequester = remember { FocusRequester() }
+    val keyboardController = LocalSoftwareKeyboardController.current
 
     var showTax by remember { mutableStateOf(SettingsModel.showTax) }
     var showTax1 by remember { mutableStateOf(SettingsModel.showTax1) }
@@ -280,19 +291,50 @@ fun SettingsView(
                                     label = "Company ID",
                                     placeHolder = "Company ID",
                                     focusRequester = companyIdRequester,
-                                    onAction = { printerRequester.requestFocus() }) { compId ->
+                                    onAction = { keyboardController?.hide() }) { compId ->
                                     fireStoreCompanyID = compId
                                 }
                             } else if (connectionTypeState == CONNECTION_TYPE.SQL_SERVER.key) {
-                                UITextField(
-                                    modifier = Modifier.padding(10.dp),
+                                UITextField(modifier = Modifier.padding(10.dp),
                                     defaultValue = sqlServerPath,
                                     label = "SQL Server Path",
-                                    placeHolder = "SQL Server Path",
-                                    focusRequester = printerRequester,
-                                    imeAction = ImeAction.Done
-                                ) { path ->
+                                    placeHolder = "host:port/dbname",
+                                    imeAction = ImeAction.Next,
+                                    onAction = { sqlServerUserRequester.requestFocus() }) { path ->
                                     sqlServerPath = path
+                                }
+
+                                UITextField(modifier = Modifier.padding(10.dp),
+                                    defaultValue = sqlServerDbUser,
+                                    label = "Database User",
+                                    placeHolder = "user",
+                                    focusRequester = sqlServerUserRequester,
+                                    imeAction = ImeAction.Next,
+                                    onAction = { sqlServerPasswordRequester.requestFocus() }) { user ->
+                                    sqlServerDbUser = user
+                                }
+
+                                UITextField(modifier = Modifier.padding(10.dp),
+                                    defaultValue = sqlServerDbPassword,
+                                    label = "Database Password",
+                                    placeHolder = "password",
+                                    focusRequester = sqlServerUserRequester,
+                                    keyboardType = KeyboardType.Password,
+                                    imeAction = ImeAction.Done,
+                                    visualTransformation = if (passwordVisibility) VisualTransformation.None else PasswordVisualTransformation(),
+                                    onAction = {
+                                        keyboardController?.hide()
+                                    },
+                                    trailingIcon = {
+                                        IconButton(onClick = { passwordVisibility = !passwordVisibility }) {
+                                            Icon(
+                                                imageVector = if (passwordVisibility) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
+                                                contentDescription = if (passwordVisibility) "Hide password" else "Show password",
+                                                tint = SettingsModel.buttonColor
+                                            )
+                                        }
+                                    }) { password ->
+                                    sqlServerDbPassword = password
                                 }
                             } else {
                                 SearchableDropdownMenu(items = companies.toMutableList(),
@@ -327,8 +369,7 @@ fun SettingsView(
                                     )
                                     when (connectionTypeState) {
                                         CONNECTION_TYPE.FIRESTORE.key -> {
-                                            SettingsModel.firebaseApplicationId =
-                                                firebaseApplicationId
+                                            SettingsModel.firebaseApplicationId = firebaseApplicationId
                                             DataStoreManager.putString(
                                                 DataStoreManager.DataStoreKeys.FIREBASE_APP_ID.key,
                                                 firebaseApplicationId
@@ -365,6 +406,16 @@ fun SettingsView(
                                             DataStoreManager.putString(
                                                 DataStoreManager.DataStoreKeys.SQL_SERVER_PATH.key,
                                                 sqlServerPath
+                                            )
+                                            SettingsModel.sqlServerDbUser = sqlServerDbUser
+                                            DataStoreManager.putString(
+                                                DataStoreManager.DataStoreKeys.SQL_SERVER_DB_USER.key,
+                                                sqlServerDbUser
+                                            )
+                                            SettingsModel.sqlServerDbPassword = sqlServerDbPassword
+                                            DataStoreManager.putString(
+                                                DataStoreManager.DataStoreKeys.SQL_SERVER__DB_PASSWORD.key,
+                                                sqlServerDbPassword
                                             )
                                         }
 
@@ -635,7 +686,7 @@ fun SettingsView(
                     buttonColor = buttonColorState,
                     textColor = buttonTextColorState
                 ) {
-                   activityScopedViewModel.openAppStorageSettings()
+                    activityScopedViewModel.openAppStorageSettings()
                 }
                 UIButton(
                     modifier = Modifier

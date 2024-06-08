@@ -3,7 +3,6 @@ package com.grid.pos.ui.login
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.grid.pos.App
-import com.grid.pos.data.Company.Company
 import com.grid.pos.data.Company.CompanyRepository
 import com.grid.pos.data.User.User
 import com.grid.pos.data.User.UserRepository
@@ -12,7 +11,6 @@ import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.DataStoreManager
 import com.grid.pos.utils.DateHelper
 import com.grid.pos.utils.Extension.encryptCBC
-import com.grid.pos.utils.Utils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow

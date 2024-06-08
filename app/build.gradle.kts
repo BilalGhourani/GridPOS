@@ -130,6 +130,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.1")
     implementation("androidx.datastore:datastore-preferences-rxjava2:1.0.0")
     implementation("androidx.datastore:datastore-preferences-rxjava3:1.0.0")
+    implementation("net.sourceforge.jtds:jtds:1.3.1")
 
     implementation(
         group = "com.aspose",
