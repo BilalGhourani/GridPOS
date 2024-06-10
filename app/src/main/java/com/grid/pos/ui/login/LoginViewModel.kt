@@ -4,20 +4,15 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.grid.pos.App
 import com.grid.pos.data.Company.CompanyRepository
-import com.grid.pos.data.User.User
 import com.grid.pos.data.User.UserRepository
-import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.Event
 import com.grid.pos.model.LoginResponse
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.DataStoreManager
-import com.grid.pos.utils.DateHelper
-import com.grid.pos.utils.Extension.encryptCBC
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
-import java.util.Date
 import javax.inject.Inject
 
 @HiltViewModel
@@ -125,29 +120,4 @@ class LoginViewModel @Inject constructor(
 
         }
     }
-}
-
-private fun addAdministratorIfNeeded(
-    username: String,
-    users: MutableList<User>
-) {
-    if (users.size == 0 && SettingsModel.connectionType != CONNECTION_TYPE.SQL_SERVER.key && username.equals(
-            "administrator",
-            ignoreCase = true
-        )
-    ) {
-        users.add(
-            User(
-                "administrator",
-                null,
-                "Administrator",
-                "administrator",
-                DateHelper.getDateInFormat(
-                    Date(),
-                    "dd-MMM-yyyy"
-                ).encryptCBC()
-            )
-        )
-    }
-}
 }
