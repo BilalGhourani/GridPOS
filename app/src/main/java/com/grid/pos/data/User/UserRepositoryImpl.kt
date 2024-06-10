@@ -4,17 +4,19 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.grid.pos.data.Company.Company
 import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.model.CONNECTION_TYPE
+import com.grid.pos.model.LoginResponse
 import com.grid.pos.model.SettingsModel
+import com.grid.pos.utils.DateHelper
 import com.grid.pos.utils.Extension.encryptCBC
 import com.grid.pos.utils.Utils
 import kotlinx.coroutines.tasks.await
 import java.util.Date
 
 class UserRepositoryImpl(
-        private val userDao: UserDao
+    private val userDao: UserDao
 ) : UserRepository {
     override suspend fun insert(
-            user: User
+        user: User
     ): User {
         if (SettingsModel.isConnectedToFireStore()) {
             val docRef = FirebaseFirestore.getInstance().collection("set_users").add(user).await()
@@ -26,7 +28,7 @@ class UserRepositoryImpl(
     }
 
     override suspend fun delete(
-            user: User
+        user: User
     ) {
         if (SettingsModel.isConnectedToFireStore()) {
             user.userDocumentId?.let {
@@ -39,7 +41,7 @@ class UserRepositoryImpl(
     }
 
     override suspend fun update(
-            user: User
+        user: User
     ) {
         if (SettingsModel.isConnectedToFireStore()) {
             user.userDocumentId?.let {
@@ -53,55 +55,88 @@ class UserRepositoryImpl(
     }
 
     override suspend fun getUserByCredentials(
-            username: String,
-            password: String
-    ): User? {
+        username: String,
+        password: String
+    ): LoginResponse {
+        val encryptedPassword = password.encryptCBC()
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
                 val querySnapshot = FirebaseFirestore.getInstance().collection("set_users")
                     .whereEqualTo(
-                        "usr_username",
-                        username
-                    ).whereEqualTo(
-                        "usr_password",
-                        password
-                    ).whereEqualTo(
                         "usr_cmp_id",
                         SettingsModel.getCompanyID()
                     ).get().await()
-                if (querySnapshot.size() > 0) {
+                val size = querySnapshot.size()
+                val result = LoginResponse(allUsersSize = size)
+                if (size > 0) {
                     for (document in querySnapshot) {
                         val obj = document.toObject(User::class.java)
-                        if (obj.userId.isNotEmpty()) {
+                        if (obj.userId.isNotEmpty()
+                            && username.equals(obj.userUsername, ignoreCase = true)
+                            && encryptedPassword.equals(obj.userPassword, ignoreCase = true)
+                        ) {
                             obj.userDocumentId = document.id
-                            return obj
+                            result.user = obj
+                            return result
                         }
                     }
                 }
-                return null
+                if (username.equals(
+                        "administrator",
+                        ignoreCase = true
+                    )
+                ) {
+                    result.user = User(
+                        "administrator",
+                        null,
+                        "Administrator",
+                        "administrator",
+                        DateHelper.getDateInFormat(
+                            Date(),
+                            "dd-MMM-yyyy"
+                        ).encryptCBC()
+                    )
+                }
+                return result
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
-                val users = userDao.login(
-                    username,
-                    password,
-                    SettingsModel.getCompanyID() ?: ""
-                )
-                return if (users.isNotEmpty()) {
-                    users[0]
-                } else {
-                    User(
-                        "",
+                val users = userDao.getAllUsers(SettingsModel.getCompanyID() ?: "")
+                val size = users.size
+                val result = LoginResponse(allUsersSize = size)
+                users.forEach { user ->
+                    if (username.equals(user.userUsername, ignoreCase = true)
+                        && encryptedPassword.equals(user.userPassword, ignoreCase = true)
+                    ) {
+                        result.user = user
+                        return result
+                    }
+                }
+
+
+                if (username.equals(
+                        "administrator",
+                        ignoreCase = true
+                    )
+                ) {
+                    result.user = User(
+                        "administrator",
                         null,
-                        "temp user",
-                        "user",
-                        "1".encryptCBC()
+                        "Administrator",
+                        "administrator",
+                        DateHelper.getDateInFormat(
+                            Date(),
+                            "dd-MMM-yyyy"
+                        ).encryptCBC()
                     )
                 }
+                return result
+
             }
 
             else -> {
-                val where = "usr_username = $username AND usr_password = $password AND usr_cmp_id='${SettingsModel.getCompanyID()}'"
+                val where =
+                    "usr_username = $username AND usr_password=hashBytes ('SHA2_512', CONVERT(nvarchar(4000),'$password'+cast(usr_salt as nvarchar(36)))) AND usr_cmp_id='${SettingsModel.getCompanyID()}'"
                 val dbResult = SQLServerWrapper.getListOf(
                     "set_users",
                     mutableListOf("*"),
@@ -119,7 +154,10 @@ class UserRepositoryImpl(
                         userTableMode = true
                     })
                 }
-                return if (users.isNotEmpty()) users[0] else null
+                if (users.isNotEmpty()) {
+                    return LoginResponse(allUsersSize = 1, user = users[0])
+                }
+                return LoginResponse(allUsersSize = 1)
             }
         }
     }

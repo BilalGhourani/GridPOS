@@ -1,5 +1,7 @@
 package com.grid.pos.data.User
 
+import com.grid.pos.model.LoginResponse
+
 interface UserRepository {
 
     // suspend is a coroutine keyword,
@@ -16,7 +18,7 @@ interface UserRepository {
     suspend fun getUserByCredentials(
             username: String,
             password: String
-    ): User?
+    ): LoginResponse
 
     // Get all Users as stream.
     suspend fun getAllUsers(): MutableList<User>
