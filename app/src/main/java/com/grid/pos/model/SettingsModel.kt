@@ -21,8 +21,6 @@ object SettingsModel {
     var sqlServerDbPassword: String? = null
     var sqlServerCompanyId: String? = null
 
-    var licenseFilePath: String = ""
-
     var showTax: Boolean = false
     var showTax1: Boolean = false
     var showTax2: Boolean = false

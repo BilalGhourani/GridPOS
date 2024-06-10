@@ -1,7 +1,10 @@
 package com.grid.pos.utils
 
+import android.content.Context
 import android.content.res.Configuration
 import android.os.Build
+import android.provider.Settings
+import android.util.Log
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -154,5 +157,27 @@ object Utils {
         return currentYear.toString()
     }
 
+    fun getDeviceID(context: Context): String {
+        return Settings.Secure.getString(
+            context.contentResolver,
+            Settings.Secure.ANDROID_ID
+        )
+    }
+
+    fun getFirstInstallationTime(context: Context): Long {
+        return try {
+            val packageInfo = context.packageManager.getPackageInfo(
+                context.packageName,
+                0
+            )
+            packageInfo.firstInstallTime
+        } catch (e: Exception) {
+            Log.e(
+                "exception",
+                e.message.toString()
+            )
+            0
+        }
+    }
 
 }

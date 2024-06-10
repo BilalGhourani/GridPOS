@@ -38,6 +38,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
@@ -70,6 +71,7 @@ fun LoginView(
         activityScopedViewModel: ActivityScopedViewModel,
         viewModel: LoginViewModel = hiltViewModel()
 ) {
+    val context = LocalContext.current
     val loginState by viewModel.usersState.collectAsState()
     val keyboardController = LocalSoftwareKeyboardController.current
     val passwordFocusRequester = remember { FocusRequester() }
@@ -194,7 +196,7 @@ fun LoginView(
                             visualTransformation = if (passwordVisibility) VisualTransformation.None else PasswordVisualTransformation(),
                             onAction = {
                                 keyboardController?.hide()
-                                viewModel.login(
+                                viewModel.login(context,
                                     usernameState.trim(),
                                     passwordState.trim()
                                 )
@@ -218,7 +220,7 @@ fun LoginView(
                             text = "Log In"
                         ) {
                             keyboardController?.hide()
-                            viewModel.login(
+                            viewModel.login(context,
                                 usernameState.trim(),
                                 passwordState.trim()
                             )

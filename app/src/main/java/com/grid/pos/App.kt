@@ -59,8 +59,8 @@ class App : Application() {
     }
 
     fun getConfigValue(
-            key: String,
-            fallback: String
+        key: String,
+        fallback: String = ""
     ): String {
         return configs?.optString(
             key,

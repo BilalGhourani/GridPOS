@@ -32,6 +32,10 @@ interface CompanyDao {
     @Update
     suspend fun update(company: Company)
 
+    // Update list of Companies
+    @Update
+    suspend fun updateAll(order: List<Company>)
+
     // Get Company by it's ID
     @Query("SELECT * FROM company WHERE cmp_id = :id")
     suspend fun getCompanyById(id: String): Company

@@ -7,10 +7,10 @@ import com.grid.pos.model.SettingsModel
 import kotlinx.coroutines.tasks.await
 
 class CompanyRepositoryImpl(
-        private val companyDao: CompanyDao
+    private val companyDao: CompanyDao
 ) : CompanyRepository {
     override suspend fun insert(
-            company: Company
+        company: Company
     ): Company {
         if (SettingsModel.isConnectedToFireStore()) {
             val docRef = FirebaseFirestore.getInstance().collection("company").add(company).await()
@@ -22,7 +22,7 @@ class CompanyRepositoryImpl(
     }
 
     override suspend fun delete(
-            company: Company
+        company: Company
     ) {
         if (SettingsModel.isConnectedToFireStore()) {
             company.companyDocumentId?.let {
@@ -34,7 +34,7 @@ class CompanyRepositoryImpl(
     }
 
     override suspend fun update(
-            company: Company
+        company: Company
     ) {
         if (SettingsModel.isConnectedToFireStore()) {
             company.companyDocumentId?.let {
@@ -48,7 +48,7 @@ class CompanyRepositoryImpl(
     }
 
     override suspend fun getCompanyById(
-            id: String
+        id: String
     ): Company? {
         var company: Company? = null
         if (SettingsModel.isConnectedToFireStore()) {
@@ -125,5 +125,66 @@ class CompanyRepositoryImpl(
 
     override suspend fun getLocalCompanies(): MutableList<Company> {
         return companyDao.getAllCompanies()
+    }
+
+    override suspend fun disableCompanies(disabled: Boolean) {
+        when (SettingsModel.connectionType) {
+            CONNECTION_TYPE.FIRESTORE.key -> {
+                val querySnapshot = FirebaseFirestore.getInstance().collection("company")
+                    .whereEqualTo("cmp_id", SettingsModel.getCompanyID())
+                    .get()
+                    .await()
+                if (querySnapshot.size() > 0) {
+                    for (document in querySnapshot) {
+                        val obj = document.toObject(Company::class.java)
+                        if (obj.companyId.isNotEmpty()) {
+                            obj.companyDocumentId = document.id
+                            obj.companySS = disabled
+                            update(obj)
+                        }
+                    }
+                }
+            }
+
+            CONNECTION_TYPE.LOCAL.key -> {
+                val companies = companyDao.getAllCompanies()
+                companies.forEach {
+                    it.companySS = disabled
+                }
+                companyDao.updateAll(companies)
+            }
+
+            else -> {//CONNECTION_TYPE.SQL_SERVER.key
+              /*  val where = "cmp_id='${SettingsModel.getCompanyID()}'"
+                val dbResult = SQLServerWrapper.getListOf(
+                    "company",
+                    mutableListOf("*"),
+                    where
+                )
+                val companies: MutableList<Company> = mutableListOf()
+                dbResult.forEach { obj ->
+                    companies.add(Company().apply {
+                        companyId = obj.optString("cmp_id")
+                        companyName = obj.optString("cmp_name")
+                        companyPhone = obj.optString("cmp_phone")
+                        companyPrinterId = obj.optString("cmp_country")
+                        companyAddress = obj.optString("cmp_address")
+                        companyTaxRegno = obj.optString("cmp_vatregno")
+                        companyTax = obj.optDouble("cmp_vat")
+                        companyCurCodeTax = obj.optString("cmp_cur_codetax")
+                        companyEmail = obj.optString("cmp_email")
+                        companyWeb = obj.optString("cmp_web")
+                        companyLogo = obj.optString("cmp_logo")
+                        companySS = obj.optBoolean("cmp_ss")
+                        companyCountry = obj.optString("cmp_country")
+                        companyTax1 = obj.optDouble("cmp_tax1")
+                        companyTax1Regno = obj.optString("cmp_tax1regno")
+                        companyTax2 = obj.optDouble("cmp_tax2")
+                        companyTax2Regno = obj.optString("cmp_tax2regno")
+                    })
+                }
+                */
+            }
+        }
     }
 }

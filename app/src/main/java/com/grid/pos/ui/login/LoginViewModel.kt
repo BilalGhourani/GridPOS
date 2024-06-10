@@ -1,18 +1,28 @@
 package com.grid.pos.ui.login
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.grid.pos.App
+import com.grid.pos.data.Company.Company
 import com.grid.pos.data.Company.CompanyRepository
 import com.grid.pos.data.User.UserRepository
 import com.grid.pos.model.Event
 import com.grid.pos.model.LoginResponse
 import com.grid.pos.model.SettingsModel
+import com.grid.pos.utils.Constants
+import com.grid.pos.utils.CryptoUtils
 import com.grid.pos.utils.DataStoreManager
+import com.grid.pos.utils.DateHelper
+import com.grid.pos.utils.FileUtils
+import com.grid.pos.utils.Utils
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
+import java.io.File
+import java.util.Date
 import javax.inject.Inject
 
 @HiltViewModel
@@ -25,9 +35,14 @@ class LoginViewModel @Inject constructor(
     val usersState: MutableStateFlow<LoginState> = _usersState
 
     fun login(
+        context: Context,
         username: String,
         password: String
     ) {
+        if (true) {
+            checkLicense(context)
+            return
+        }
         if (username.isEmpty() || password.isEmpty()) {
             usersState.value = usersState.value.copy(
                 warning = Event("Please fill all inputs"),
@@ -118,6 +133,71 @@ class LoginViewModel @Inject constructor(
                 }
             }
 
+        }
+    }
+
+    private fun checkLicense(context: Context) :Boolean {// if license not exist add new screen to take the file
+        val licenseFile = FileUtils.getLicenseFileContent(context)
+        if (licenseFile != null) {
+            val fileContent = licenseFile.readText()
+            val decContent = CryptoUtils.decrypt(
+                fileContent,
+                App.getInstance().getConfigValue("key_for_license")
+            )
+            return checkLicense(context, licenseFile, Company(), Date())
+        } else {
+            return false
+            //FileUtils.saveLicenseContent(context, Constants.LICENSE_FILE_CONTENT)
+        }
+    }
+
+    private fun checkLicense(
+        context: Context,
+        licenseFile: File,
+        currentCompany: Company,
+        lastInvoiceDate: Date
+    ): Boolean {
+        val currentDate = Date()
+        val firstInstallTime = Utils.getFirstInstallationTime(context)
+        val firstInstallDate = Date(firstInstallTime)
+
+        val licCreatedDate = Date(licenseFile.lastModified())
+        if (DateHelper.getDatesDiff(
+                currentDate,
+                licCreatedDate
+            ) < 0 || DateHelper.getDatesDiff(
+                firstInstallDate,
+                currentDate
+            ) < 0 || DateHelper.getDatesDiff(
+                firstInstallDate,
+                licCreatedDate
+            ) < 0
+        ) {
+            CoroutineScope(Dispatchers.IO).launch {
+                companyRepository.disableCompanies(true)
+            }
+            //db.execSQL("UPDATE company SET cmp_ss=1")
+            // Optionally, you might want to shut down the app or handle it appropriately
+            return false
+        } else {
+            if (currentCompany.companySS) {
+                if (currentDate >= lastInvoiceDate || licCreatedDate >= currentDate) {
+                    CoroutineScope(Dispatchers.IO).launch {
+                        companyRepository.disableCompanies(false)
+                    }
+                    //db.execSQL("UPDATE company SET cmp_ss=0")
+                    // Optionally, you might want to shut down the app or handle it appropriately
+                    return true
+                } else {
+                    CoroutineScope(Dispatchers.IO).launch {
+                        companyRepository.disableCompanies(true)
+                    }
+                    //db.execSQL("UPDATE company SET cmp_ss=1")
+                    // Optionally, you might want to shut down the app or handle it appropriately
+                    return false
+                }
+            }
+            return true
         }
     }
 }

@@ -5,6 +5,7 @@ import android.content.ContentValues
 import android.content.Context
 import android.net.Uri
 import android.os.Build
+import android.os.Environment
 import android.provider.DocumentsContract
 import android.provider.MediaStore
 import android.util.Log
@@ -28,10 +29,10 @@ import java.util.Date
 
 object FileUtils {
     fun saveToInternalStorage(
-            context: Context,
-            parent: String = "family",
-            sourceFilePath: Uri,
-            destName: String
+        context: Context,
+        parent: String = "family",
+        sourceFilePath: Uri,
+        destName: String
     ): String? {
         val storageDir = File(
             context.filesDir,
@@ -86,12 +87,12 @@ object FileUtils {
     }
 
     fun saveToExternalStorage(
-            context: Context,
-            parent: String = "family",
-            sourceFilePath: Uri,
-            destName: String,
-            type: String = "Image",
-            workbook: Workbook? = null
+        context: Context,
+        parent: String = "family",
+        sourceFilePath: Uri,
+        destName: String,
+        type: String = "Image",
+        workbook: Workbook? = null
     ): String? {
         val resolver = context.contentResolver
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -211,31 +212,9 @@ object FileUtils {
         return null
     }
 
-    fun getFileFromUri(
-            context: Context,
-            uri: Uri
-    ): File? {
-        var file: File? = null
-        val contentResolver = context.contentResolver
-
-        contentResolver.openInputStream(uri)?.use { inputStream ->
-            // Create a file in the cache directory or any other directory you have access to
-            val tempFile = File.createTempFile(
-                "tempFile",
-                ".tmp",
-                context.cacheDir
-            )
-            tempFile.outputStream().use { outputStream ->
-                inputStream.copyTo(outputStream)
-            }
-            file = tempFile
-        }
-        return file
-    }
-
     fun deleteFile(
-            context: Context,
-            path: String
+        context: Context,
+        path: String
     ) {
         if (path.startsWith("content")) {
             val file: DocumentFile? = DocumentFile.fromSingleUri(
@@ -250,11 +229,12 @@ object FileUtils {
     }
 
     private fun getMimeTypeFromFileExtension(
-            filePath: String,
-            type: String = "Image"
+        filePath: String,
+        type: String = "Image"
     ): String {
         val extension = MimeTypeMap.getFileExtensionFromUrl(filePath)
         val fallback = when (type) {
+            "license" -> "*/*"//"text/plain"
             "excel" -> "application/vnd.ms-excel"
             "sqlite" -> "application/octet-stream"
             else -> "image/jpeg"
@@ -263,8 +243,8 @@ object FileUtils {
     }
 
     fun readFileFromAssets(
-            fileName: String,
-            context: Context
+        fileName: String,
+        context: Context
     ): String {
         return try {
             val inputStream = context.assets.open(fileName)
@@ -285,8 +265,8 @@ object FileUtils {
     }
 
     private fun copyFile(
-            fromFile: File,
-            toFile: File
+        fromFile: File,
+        toFile: File
     ) {
         try {
             val sourceChannel = FileInputStream(fromFile).channel
@@ -307,9 +287,9 @@ object FileUtils {
     }
 
     private fun copyFile(
-            context: Context,
-            fromFile: Uri,
-            toFile: File
+        context: Context,
+        fromFile: Uri,
+        toFile: File
     ) {
         try {
             val contentResolver = context.contentResolver
@@ -369,8 +349,8 @@ object FileUtils {
     }
 
     fun restore(
-            context: Context,
-            uri: Uri
+        context: Context,
+        uri: Uri
     ) {
         val app = App.getInstance()
         clearAppCache(context)
@@ -429,10 +409,10 @@ object FileUtils {
     }
 
     fun getLastWriteTimeFromUri(
-            context: Context,
-            uri: Uri
+        context: Context,
+        uri: Uri
     ): Date? {
-        val file = getFileFomUri(
+        val file = getFileFromUri(
             context,
             uri
         )
@@ -442,9 +422,9 @@ object FileUtils {
         return null
     }
 
-    private fun getFileFomUri(
-            context: Context,
-            uri: Uri
+    fun getFileFromUri(
+        context: Context,
+        uri: Uri
     ): File? {
         val filePath: String = getFilePathFromUri(
             context,
@@ -458,8 +438,8 @@ object FileUtils {
     }
 
     private fun getFilePathFromUri(
-            context: Context,
-            uri: Uri
+        context: Context,
+        uri: Uri
     ): String {
         return if (DocumentsContract.isDocumentUri(
                 context,
@@ -537,10 +517,10 @@ object FileUtils {
     }
 
     private fun getDataColumn(
-            context: Context,
-            uri: Uri,
-            selection: String?,
-            selectionArgs: Array<String>?
+        context: Context,
+        uri: Uri,
+        selection: String?,
+        selectionArgs: Array<String>?
     ): String {
         context.contentResolver.query(
             uri,
@@ -567,6 +547,25 @@ object FileUtils {
 
     private fun isMediaDocument(uri: Uri): Boolean {
         return "com.android.providers.media.documents" == uri.authority
+    }
+
+    fun getLicenseFileContent(context: Context): File? {
+        val downloadDirectory =
+            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+        val licensesFolder = File(downloadDirectory, "${context.packageName}/licenses")
+        val licenseFile = File(licensesFolder, "license")
+
+        if (licenseFile.exists()) {
+            return licenseFile
+        }
+        return null
+    }
+
+    fun saveLicenseContent(context: Context, content: String) {
+        val licenseFile = File(context.filesDir, "license_tmp")
+        licenseFile.writeText(content)
+        saveToExternalStorage(context, "licenses", licenseFile.toUri(), "license", "license")
+
     }
 
 
