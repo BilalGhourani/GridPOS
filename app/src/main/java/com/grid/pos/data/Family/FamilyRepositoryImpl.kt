@@ -76,8 +76,8 @@ class FamilyRepositoryImpl(
                 val families: MutableList<Family> = mutableListOf()
                 dbResult.forEach { obj ->
                     families.add(Family().apply {
-                        //familyId = obj.optString("fa_name")
-                        familyName = obj.optString("fa_name")
+                        familyId = obj.optString("fa_name")
+                        familyName = obj.optString("fa_newname")
                         //familyImage = obj.optString("fa_name")
                         familyCompanyId = obj.optString("fa_cmp_id")
                     })

@@ -81,13 +81,14 @@ class CurrencyRepositoryImpl(
                 val currencies: MutableList<Currency> = mutableListOf()
                 dbResult.forEach { obj ->
                     currencies.add(Currency().apply {
-                        //currencyId = obj.optString("cur_code")
-                        currencyCode1 = obj.optString("cur_code")
-                        currencyName2 = obj.optString("cur_name")
+                        currencyId = obj.optString("cur_code")
+                        currencyCode1 = obj.optString("cur_newcode")
+                        currencyName1 = obj.optString("cur_name")
                         currencyName1Dec = obj.optInt("cur_decimal")
                         currencyCode2 = obj.optString("cur_newcode")
-                        //currencyName2Dec = obj.optInt("cur_decimal")
-                        currencyRate = obj.optDouble("cur_round")
+                        currencyName2 = obj.optString("cur_name")
+                        currencyName2Dec = obj.optInt("cur_decimal")
+                        currencyRate = 1.0//obj.optDouble("cur_round")
                     })
                 }
                 currencies

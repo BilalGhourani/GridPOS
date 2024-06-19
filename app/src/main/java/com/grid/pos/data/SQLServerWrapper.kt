@@ -74,7 +74,7 @@ object SQLServerWrapper {
     fun insert(
             tableName: String,
             columns: List<String>,
-            values: List<String>
+            values: List<Any?>
     ) {
         if (columns.size != values.size) {
             return
@@ -91,7 +91,7 @@ object SQLServerWrapper {
     fun update(
             tableName: String,
             columns: List<String>,
-            values: List<String>,
+            values: List<Any?>,
             where: String
     ) {
         if (columns.size != values.size) {
@@ -120,7 +120,7 @@ object SQLServerWrapper {
 
     private fun runDbQuery(
             query: String,
-            params: List<Any>
+            params: List<Any?>
     ): Boolean {
         var connection: Connection? = null
         var statement: PreparedStatement? = null
