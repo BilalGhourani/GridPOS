@@ -39,10 +39,10 @@ class LoginViewModel @Inject constructor(
         username: String,
         password: String
     ) {
-        if (true) {
+      /*  if (true) {
             checkLicense(context)
             return
-        }
+        }*/
         if (username.isEmpty() || password.isEmpty()) {
             usersState.value = usersState.value.copy(
                 warning = Event("Please fill all inputs"),
@@ -137,11 +137,20 @@ class LoginViewModel @Inject constructor(
     }
 
     private fun checkLicense(context: Context) :Boolean {// if license not exist add new screen to take the file
-        val decContent = CryptoUtils.decrypt(
-            Constants.LICENSE_FILE_CONTENT,
+        val enc1 = CryptoUtils.encrypt(
+            "test",
             App.getInstance().getConfigValue("key_for_license")
         )
-        return decContent.isNotEmpty()
+        val dec1 = CryptoUtils.decrypt(
+            enc1,
+            App.getInstance().getConfigValue("key_for_license")
+        )
+        val enc2 = Constants.LICENSE_FILE_CONTENT
+        val dec2 = CryptoUtils.decrypt(
+            enc2,
+            App.getInstance().getConfigValue("key_for_license")
+        )
+        return dec2.isNotEmpty()
        /* val licenseFile = FileUtils.getLicenseFileContent(context)
         if (licenseFile != null) {
             val fileContent = licenseFile.readText()

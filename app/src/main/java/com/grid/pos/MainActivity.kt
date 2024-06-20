@@ -59,14 +59,14 @@ class MainActivity : ComponentActivity() {
         }
 
         override fun onCapabilitiesChanged(
-            network: Network,
-            networkCapabilities: NetworkCapabilities
+                network: Network,
+                networkCapabilities: NetworkCapabilities
         ) {
         }
 
         override fun onLinkPropertiesChanged(
-            network: Network,
-            linkProperties: LinkProperties
+                network: Network,
+                linkProperties: LinkProperties
         ) {
         }
     }
@@ -132,8 +132,8 @@ class MainActivity : ComponentActivity() {
     }
 
     fun launchActivityForResult(
-        i: Intent,
-        activityResult: OnActivityResult
+            i: Intent,
+            activityResult: OnActivityResult
     ) {
         try {
             mActivityResultCallBack = activityResult
@@ -147,8 +147,8 @@ class MainActivity : ComponentActivity() {
     }
 
     fun launchGalleryPicker(
-        mediaType: ActivityResultContracts.PickVisualMedia.VisualMediaType = ActivityResultContracts.PickVisualMedia.ImageOnly,
-        galleryResult: OnGalleryResult
+            mediaType: ActivityResultContracts.PickVisualMedia.VisualMediaType = ActivityResultContracts.PickVisualMedia.ImageOnly,
+            galleryResult: OnGalleryResult
     ) {
         try {
             mGalleryCallBack = galleryResult
@@ -201,14 +201,20 @@ class MainActivity : ComponentActivity() {
                     ) {
                         permissionDelegate = { granted ->
                             if (granted) {
-                                launchGalleryPicker(sharedEvent.mediaType, sharedEvent.delegate)
+                                launchGalleryPicker(
+                                    sharedEvent.mediaType,
+                                    sharedEvent.delegate
+                                )
                             } else {
                                 sharedEvent.onPermissionDenied.invoke()
                             }
                         }
                         requestStoragePermission.launch(getStoragePermissions())
                     } else {
-                        launchGalleryPicker(sharedEvent.mediaType, sharedEvent.delegate)
+                        launchGalleryPicker(
+                            sharedEvent.mediaType,
+                            sharedEvent.delegate
+                        )
                     }
 
                 }
@@ -244,19 +250,45 @@ class MainActivity : ComponentActivity() {
         val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
             addCategory(Intent.CATEGORY_OPENABLE)
             type = "*/*"
-            putExtra(Intent.EXTRA_MIME_TYPES, arrayOf("application/octet-stream", "application/x-sqlite3", "application/vnd.sqlite3", "application/x-sqlite3"))
+            putExtra(
+                Intent.EXTRA_MIME_TYPES,
+                arrayOf(
+                    "application/octet-stream",
+                    "application/x-sqlite3",
+                    "application/vnd.sqlite3",
+                    "application/x-sqlite3"
+                )
+            )
 
-          /*  val pickerInitialUri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
-            } else {
-                MediaStore.Files.getContentUri(Environment.DIRECTORY_DOWNLOADS)
+            /*  val pickerInitialUri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                  MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
+              } else {
+                  MediaStore.Files.getContentUri(Environment.DIRECTORY_DOWNLOADS)
 
-            }
-            // Optionally, specify a URI for the file that should appear in the
-            // system file picker when it loads.
-            putExtra(DocumentsContract.EXTRA_INITIAL_URI, pickerInitialUri)*/
+              }
+              // Optionally, specify a URI for the file that should appear in the
+              // system file picker when it loads.
+              putExtra(DocumentsContract.EXTRA_INITIAL_URI, pickerInitialUri)*/
         }
-        startForResult.launch(Intent.createChooser(intent, "Select DB File"))
+        startForResult.launch(
+            Intent.createChooser(
+                intent,
+                "Select DB File"
+            )
+        )
         mGalleryCallBack = delegate
     }
 }
+
+/*
+when (SettingsModel.connectionType) {
+    CONNECTION_TYPE.FIRESTORE.key -> {
+
+    }
+    CONNECTION_TYPE.LOCAL.key -> {
+
+    }
+    else ->{
+
+    }
+}*/
