@@ -20,6 +20,7 @@ import com.grid.pos.data.PosReceipt.PosReceipt
 import com.grid.pos.data.ThirdParty.ThirdParty
 import com.grid.pos.data.ThirdParty.ThirdPartyRepository
 import com.grid.pos.data.User.User
+import com.grid.pos.interfaces.OnBarcodeResult
 import com.grid.pos.interfaces.OnGalleryResult
 import com.grid.pos.model.Event
 import com.grid.pos.model.InvoiceItemModel
@@ -229,6 +230,20 @@ class ActivityScopedViewModel @Inject constructor(
     ) {
         viewModelScope.launch {
             _mainActivityEvent.send(ActivityScopedUIEvent.StartChooserActivity(intent))
+        }
+    }
+
+    fun launchBarcodeScanner(
+            delegate: OnBarcodeResult,
+            onPermissionDenied: () -> Unit
+    ) {
+        viewModelScope.launch {
+            _mainActivityEvent.send(
+                ActivityScopedUIEvent.LaunchBarcodeScanner(
+                    delegate,
+                    onPermissionDenied
+                )
+            )
         }
     }
 

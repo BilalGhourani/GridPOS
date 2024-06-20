@@ -2,6 +2,7 @@ package com.grid.pos
 
 import android.content.Intent
 import androidx.activity.result.contract.ActivityResultContracts
+import com.grid.pos.interfaces.OnBarcodeResult
 import com.grid.pos.interfaces.OnGalleryResult
 
 sealed class ActivityScopedUIEvent {
@@ -20,5 +21,10 @@ sealed class ActivityScopedUIEvent {
 
     class StartChooserActivity(
         var intent: Intent
+    ) : ActivityScopedUIEvent()
+
+    class LaunchBarcodeScanner(
+            var delegate: OnBarcodeResult,
+            var onPermissionDenied: () -> Unit
     ) : ActivityScopedUIEvent()
 }

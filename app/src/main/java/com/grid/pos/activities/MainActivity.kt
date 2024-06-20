@@ -1,5 +1,6 @@
-package com.grid.pos
+package com.grid.pos.activities
 
+import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.ConnectivityManager
@@ -15,6 +16,14 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.annotation.OptIn
+import androidx.camera.core.CameraSelector
+import androidx.camera.core.ExperimentalGetImage
+import androidx.camera.core.ImageAnalysis
+import androidx.camera.core.ImageProxy
+import androidx.camera.core.Preview
+import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.camera.view.PreviewView
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -24,7 +33,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.navigation.compose.rememberNavController
+import com.google.mlkit.vision.barcode.BarcodeScanner
+import com.google.mlkit.vision.barcode.BarcodeScanning
+import com.google.mlkit.vision.barcode.common.Barcode
+import com.google.mlkit.vision.common.InputImage
+import com.grid.pos.ActivityScopedUIEvent
+import com.grid.pos.ActivityScopedViewModel
+import com.grid.pos.R
 import com.grid.pos.interfaces.OnActivityResult
+import com.grid.pos.interfaces.OnBarcodeResult
 import com.grid.pos.interfaces.OnGalleryResult
 import com.grid.pos.ui.navigation.AuthNavGraph
 import com.grid.pos.ui.theme.GridPOSTheme
@@ -36,12 +53,14 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import java.util.concurrent.Executors
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     private val activityViewModel: ActivityScopedViewModel by viewModels()
     private var mActivityResultCallBack: OnActivityResult? = null
     private var mGalleryCallBack: OnGalleryResult? = null
+    private var mOnBarcodeResult: OnBarcodeResult? = null
     private var connectivityManager: ConnectivityManager? = null
     private val networkHandler = object : ConnectivityManager.NetworkCallback() {
         override fun onAvailable(network: Network) {
@@ -101,8 +120,16 @@ class MainActivity : ComponentActivity() {
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
         if (result.resultCode == RESULT_OK) {
-            val data = result.data?.data
-            data?.let { mGalleryCallBack?.onGalleryResult(listOf(it)) }
+            if (result.data?.extras?.containsKey("SCANNING_BARCODE") == true) {
+                val result = result.data?.extras!!.getString(
+                    "SCAN_RESULT",
+                    ""
+                )
+                mOnBarcodeResult?.OnBarcodeResult(result)
+            } else {
+                val data = result.data?.data
+                data?.let { mGalleryCallBack?.onGalleryResult(listOf(it)) }
+            }
         }
     }
 
@@ -216,7 +243,6 @@ class MainActivity : ComponentActivity() {
                             sharedEvent.delegate
                         )
                     }
-
                 }
 
                 is ActivityScopedUIEvent.LaunchFilePicker -> {
@@ -241,6 +267,27 @@ class MainActivity : ComponentActivity() {
 
                 is ActivityScopedUIEvent.StartChooserActivity -> {
                     startActivity(sharedEvent.intent)
+                }
+
+                is ActivityScopedUIEvent.LaunchBarcodeScanner -> {
+                    val permission = Manifest.permission.CAMERA
+                    if (ContextCompat.checkSelfPermission(
+                            this@MainActivity,
+                            permission
+                        ) != PackageManager.PERMISSION_GRANTED
+                    ) {
+                        permissionDelegate = { granted ->
+                            if (granted) {
+                                launchCameraActivity(sharedEvent.delegate)
+                            } else {
+                                sharedEvent.onPermissionDenied.invoke()
+                            }
+                        }
+                        requestStoragePermission.launch(permission)
+                    } else {
+                        launchCameraActivity(sharedEvent.delegate)
+                    }
+
                 }
             }
         }.launchIn(CoroutineScope(Dispatchers.Main))
@@ -277,6 +324,15 @@ class MainActivity : ComponentActivity() {
             )
         )
         mGalleryCallBack = delegate
+    }
+
+    private fun launchCameraActivity(delegate: OnBarcodeResult) {
+        mOnBarcodeResult = delegate
+        val intent = Intent(
+            this,
+            BarcodeScannerActivity::class.java
+        )
+        startForResult.launch(intent)
     }
 }
 

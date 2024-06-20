@@ -7,7 +7,6 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.grid.pos.ActivityScopedViewModel
-import com.grid.pos.MainActivity
 import com.grid.pos.ui.common.UIWebView
 import com.grid.pos.ui.company.ManageCompaniesView
 import com.grid.pos.ui.currency.ManageCurrenciesView

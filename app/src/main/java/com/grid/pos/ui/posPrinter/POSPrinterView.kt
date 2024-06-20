@@ -46,7 +46,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.grid.pos.ActivityScopedViewModel
-import com.grid.pos.MainActivity
 import com.grid.pos.R
 import com.grid.pos.data.PosPrinter.PosPrinter
 import com.grid.pos.model.SettingsModel

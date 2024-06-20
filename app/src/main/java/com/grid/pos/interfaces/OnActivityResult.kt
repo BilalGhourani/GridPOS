@@ -18,3 +18,11 @@ interface OnGalleryResult {
     // ------------------------------------------------------------------------
     fun onGalleryResult(uris: List<Uri>)
 }
+
+interface OnBarcodeResult {
+
+    // ------------------------------------------------------------------------
+    // HOOKS INTO ACTIVITY
+    // ------------------------------------------------------------------------
+    fun OnBarcodeResult(value: String)
+}

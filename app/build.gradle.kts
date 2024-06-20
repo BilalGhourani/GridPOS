@@ -138,4 +138,12 @@ dependencies {
         version = "24.3",
         classifier = "android.via.java"
     )
+
+    // ML Kit Barcode Scanning
+    implementation ("com.google.mlkit:barcode-scanning:17.2.0")
+
+    // CameraX dependencies
+    implementation ("androidx.camera:camera-camera2:1.3.4")
+    implementation ("androidx.camera:camera-lifecycle:1.3.4")
+    implementation ("androidx.camera:camera-view:1.3.4")
 }
