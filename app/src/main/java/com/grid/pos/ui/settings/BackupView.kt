@@ -37,7 +37,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.grid.pos.ActivityScopedViewModel
+import com.grid.pos.App
 import com.grid.pos.R
+import com.grid.pos.di.AppModule
 import com.grid.pos.interfaces.OnGalleryResult
 import com.grid.pos.model.Event
 import com.grid.pos.model.SettingsModel
@@ -47,15 +49,16 @@ import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.utils.FileUtils
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BackupView(
-    modifier: Modifier = Modifier,
-    navController: NavController? = null,
-    activityViewModel: ActivityScopedViewModel,
+        modifier: Modifier = Modifier,
+        navController: NavController? = null,
+        activityViewModel: ActivityScopedViewModel,
 ) {
     val context = LocalContext.current
     var isLoading by remember { mutableStateOf(false) }
@@ -85,8 +88,7 @@ fun BackupView(
         navController?.navigateUp()
     }
     GridPOSTheme {
-        Scaffold(
-            containerColor = SettingsModel.backgroundColor,
+        Scaffold(containerColor = SettingsModel.backgroundColor,
             snackbarHost = {
                 SnackbarHost(hostState = snackbarHostState)
             },
@@ -132,8 +134,7 @@ fun BackupView(
                 ) {
                     isLoading = true
                     CoroutineScope(Dispatchers.IO).launch {
-                        FileUtils.backup()
-                        /*val backupManager = BackupManager(context)
+                        FileUtils.backup()/*val backupManager = BackupManager(context)
                         backupManager.dataChanged()*/
                         withContext(Dispatchers.Main) {
                             isLoading = false
@@ -155,11 +156,15 @@ fun BackupView(
                             if (uris.isNotEmpty()) {
                                 isLoading = true
                                 CoroutineScope(Dispatchers.IO).launch {
-                                    FileUtils.restore(context, uris[0])
+                                    FileUtils.restore(
+                                        context,
+                                        uris[0]
+                                    )
                                     withContext(Dispatchers.Main) {
                                         isLoading = false
-                                        warning =
-                                            Event("Your data has been restored successfully.")
+                                        warning = Event("Backup restored successfully! we'll kill the application please open again.")
+                                        delay(1000L)
+                                        App.getInstance().killTheApp()
                                     }
                                 }
                             } else {
@@ -169,10 +174,11 @@ fun BackupView(
                                 }
                             }
                         }
-                    }, onPermissionDenied = {
-                        warning = Event("Permission Denied")
-                        action = "Settings"
-                    })
+                    },
+                        onPermissionDenied = {
+                            warning = Event("Permission Denied")
+                            action = "Settings"
+                        })
 
                 }
             }

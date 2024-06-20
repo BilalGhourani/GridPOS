@@ -38,7 +38,7 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideGoChatDatabase(app: Application): AppDatabase {
+    fun provideDatabase(app: Application): AppDatabase {
         val callback = object : RoomDatabase.Callback() {
             override fun onOpen(db: SupportSQLiteDatabase) {
                 super.onOpen(db)

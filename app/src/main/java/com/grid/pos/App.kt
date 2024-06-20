@@ -1,21 +1,22 @@
 package com.grid.pos
 
+import android.app.ActivityManager
 import android.app.Application
+import android.content.Context
 import android.util.Log
 import com.google.firebase.FirebaseApp
 import com.google.firebase.FirebaseOptions
 import com.google.firebase.firestore.FirebaseFirestore
-import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.DataStoreManager
 import com.grid.pos.utils.FileUtils
-import com.grid.pos.utils.Utils
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.json.JSONException
 import org.json.JSONObject
+import kotlin.system.exitProcess
 
 @HiltAndroidApp
 class App : Application() {
@@ -98,6 +99,13 @@ class App : Application() {
 
     fun isMissingFirebaseConnection(): Boolean {
         return SettingsModel.isConnectedToFireStore() && !isFirebaseInitialized
+    }
+
+    fun killTheApp() {
+        (getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager).appTasks.forEach {
+            it.finishAndRemoveTask()
+        }
+        exitProcess(0)
     }
 
 }
