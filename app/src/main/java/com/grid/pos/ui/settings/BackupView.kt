@@ -3,6 +3,10 @@ package com.grid.pos.ui.settings
 import android.app.backup.BackupManager
 import android.net.Uri
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -10,6 +14,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -44,6 +50,7 @@ import com.grid.pos.interfaces.OnGalleryResult
 import com.grid.pos.model.Event
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.LoadingIndicator
+import com.grid.pos.ui.common.UIAlertDialog
 import com.grid.pos.ui.common.UIButton
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.utils.FileUtils
@@ -64,6 +71,9 @@ fun BackupView(
     var isLoading by remember { mutableStateOf(false) }
     var warning by remember { mutableStateOf(Event("")) }
     var action by remember { mutableStateOf("") }
+    var popupMessage by remember { mutableStateOf(Event("")) }
+    var isPopupShown by remember { mutableStateOf(false) }
+    var shouldKill by remember { mutableStateOf(true) }
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
@@ -134,11 +144,13 @@ fun BackupView(
                 ) {
                     isLoading = true
                     CoroutineScope(Dispatchers.IO).launch {
-                        FileUtils.backup()/*val backupManager = BackupManager(context)
-                        backupManager.dataChanged()*/
+                        FileUtils.backup()
                         withContext(Dispatchers.Main) {
                             isLoading = false
-                            warning = Event("Your data has been backed up successfully.")
+                            popupMessage = Event("Your data has been backed up successfully.")
+                            delay(250L)
+                            shouldKill = false
+                            isPopupShown = true
                         }
                     }
                 }
@@ -162,15 +174,19 @@ fun BackupView(
                                     )
                                     withContext(Dispatchers.Main) {
                                         isLoading = false
-                                        warning = Event("Backup restored successfully! we'll kill the application please open again.")
-                                        delay(1000L)
-                                        App.getInstance().killTheApp()
+                                        popupMessage = Event("To complete the backup restoration process, the application needs to be restarted. Please close and reopen the app.")
+                                        delay(250L)
+                                        shouldKill = true
+                                        isPopupShown = true
                                     }
                                 }
                             } else {
                                 CoroutineScope(Dispatchers.Main).launch {
                                     isLoading = false
-                                    warning = Event("Failed to restore your data.")
+                                    popupMessage = Event("Failed to restore your data.")
+                                    delay(250L)
+                                    shouldKill = false
+                                    isPopupShown = true
                                 }
                             }
                         }
@@ -182,6 +198,33 @@ fun BackupView(
 
                 }
             }
+        }
+        AnimatedVisibility(
+            visible = isPopupShown,
+            enter = fadeIn(
+                initialAlpha = 0.4f
+            ),
+            exit = fadeOut(
+                animationSpec = tween(durationMillis = 250)
+            )
+        ) {
+            UIAlertDialog(
+                onDismissRequest = {
+                    isPopupShown = false
+                },
+                onConfirmation = {
+                    isPopupShown = false
+                    if (shouldKill) {
+                        App.getInstance().killTheApp()
+                    }
+                },
+                dialogTitle = "Alert.",
+                dialogText = popupMessage.value,
+                icon = Icons.Default.Info,
+                positiveBtnText = if (shouldKill) "close" else "ok",
+                negativeBtnText = null,
+                height= if (shouldKill) 250.dp else 200.dp
+            )
         }
         LoadingIndicator(
             show = isLoading

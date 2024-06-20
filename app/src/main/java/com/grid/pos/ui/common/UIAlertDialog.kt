@@ -36,14 +36,14 @@ import com.grid.pos.ui.theme.LightGrey
 
 @Composable
 fun UIAlertDialog(
-    onDismissRequest: () -> Unit,
-    onConfirmation: () -> Unit,
-    dialogTitle: String,
-    dialogText: String,
-    positiveBtnText: String = "OK",
-    negativeBtnText: String = "CANCEL",
-    icon: ImageVector,
-    height: Dp = 200.dp
+        onDismissRequest: () -> Unit,
+        onConfirmation: () -> Unit,
+        dialogTitle: String,
+        dialogText: String,
+        positiveBtnText: String = "OK",
+        negativeBtnText: String? = "CANCEL",
+        icon: ImageVector,
+        height: Dp = 200.dp
 ) {
     Dialog(onDismissRequest = { onDismissRequest() }) {
         Card(
@@ -66,8 +66,7 @@ fun UIAlertDialog(
                 Spacer(modifier = Modifier.height(10.dp))
 
                 Icon(
-                    modifier = Modifier
-                        .size(24.dp),
+                    modifier = Modifier.size(24.dp),
                     imageVector = icon,
                     contentDescription = "Example Icon",
                     tint = SettingsModel.buttonColor
@@ -77,8 +76,7 @@ fun UIAlertDialog(
 
                 Text(
                     text = dialogTitle,
-                    modifier = Modifier
-                        .wrapContentWidth(Alignment.CenterHorizontally),
+                    modifier = Modifier.wrapContentWidth(Alignment.CenterHorizontally),
                     color = SettingsModel.textColor,
                     style = TextStyle(
                         textDecoration = TextDecoration.None,
@@ -92,8 +90,7 @@ fun UIAlertDialog(
 
                 Text(
                     text = dialogText,
-                    modifier = Modifier
-                        .fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth(),
                     color = SettingsModel.textColor,
                     style = TextStyle(
                         textDecoration = TextDecoration.None,
@@ -109,30 +106,32 @@ fun UIAlertDialog(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp),
-                    horizontalArrangement = Arrangement.Center,
+                    horizontalArrangement = Arrangement.End,
                 ) {
-                    TextButton(
-                        onClick = {
-                            onDismissRequest()
-                        },
-                        modifier = Modifier.weight(1f),
-                    ) {
-                        Text(
-                            negativeBtnText,
-                            color = SettingsModel.textColor,
-                            style = TextStyle(
-                                textDecoration = TextDecoration.None,
-                                fontWeight = FontWeight.Normal,
-                                fontSize = 16.sp
+                    if (!negativeBtnText.isNullOrEmpty()) {
+                        TextButton(
+                            onClick = {
+                                onDismissRequest()
+                            },
+                            modifier = Modifier.weight(1f),
+                        ) {
+                            Text(
+                                negativeBtnText,
+                                color = SettingsModel.textColor,
+                                style = TextStyle(
+                                    textDecoration = TextDecoration.None,
+                                    fontWeight = FontWeight.Normal,
+                                    fontSize = 16.sp
+                                )
                             )
-                        )
+                        }
                     }
 
                     TextButton(
                         onClick = {
                             onConfirmation()
                         },
-                        modifier =  Modifier.weight(1f),
+                        modifier = Modifier.weight(1f),
                     ) {
                         Text(
                             positiveBtnText,
