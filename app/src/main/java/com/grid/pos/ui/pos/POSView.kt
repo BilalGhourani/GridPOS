@@ -11,6 +11,8 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -18,12 +20,15 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.QrCode2
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -31,6 +36,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -64,6 +70,7 @@ import com.grid.pos.R
 import com.grid.pos.data.InvoiceHeader.InvoiceHeader
 import com.grid.pos.data.Item.Item
 import com.grid.pos.data.PosReceipt.PosReceipt
+import com.grid.pos.interfaces.OnBarcodeResult
 import com.grid.pos.model.InvoiceItemModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.model.UserType
@@ -173,10 +180,17 @@ fun POSView(
     LaunchedEffect(posState.warning) {
         posState.warning?.value?.let { message ->
             scope.launch {
-                snackbarHostState.showSnackbar(
+                val snackBarResult = snackbarHostState.showSnackbar(
                     message = message,
                     duration = SnackbarDuration.Short,
+                    actionLabel = posState.actionLabel
                 )
+                when (snackBarResult) {
+                    SnackbarResult.Dismissed -> {}
+                    SnackbarResult.ActionPerformed -> when (posState.actionLabel) {
+                        "Settings" -> activityViewModel.openAppStorageSettings()
+                    }
+                }
             }
         }
     }
@@ -349,16 +363,62 @@ fun POSView(
                                 invoiceHeaderState.value
                             )
                         })
-                    Text(
-                        text = Utils.getItemsNumberStr(invoicesState),
-                        modifier = Modifier.wrapContentWidth(),
-                        textAlign = TextAlign.End,
-                        style = TextStyle(
-                            fontWeight = FontWeight.Normal,
-                            fontSize = 12.sp
-                        ),
-                        color = SettingsModel.textColor
-                    )
+                    Row(modifier = Modifier
+                        .fillMaxWidth()
+                        .height(25.dp)) {
+                        IconButton(modifier = Modifier
+                            .size(25.dp),
+                            onClick = {
+                                activityViewModel.launchBarcodeScanner(object : OnBarcodeResult {
+                                    override fun OnBarcodeResult(value: String) {
+                                        if (value.isNotEmpty()) {
+                                            val item = posState.items.firstOrNull {
+                                                value.equals(
+                                                    it.itemBarcode,
+                                                    ignoreCase = true
+                                                )
+                                            }
+                                            item?.let { itm ->
+                                                val invoiceItemModel = InvoiceItemModel()
+                                                invoiceItemModel.setItem(itm)
+                                                invoicesState.add(invoiceItemModel)
+                                                activityViewModel.invoiceItemModels = invoicesState
+                                                invoiceHeaderState.value = POSUtils.refreshValues(
+                                                    activityViewModel.invoiceItemModels,
+                                                    invoiceHeaderState.value
+                                                )
+                                            }
+                                        }
+                                    }
+                                },
+                                    onPermissionDenied = {
+                                        viewModel.showWarning(
+                                            "Permission Denied",
+                                            "Settings"
+                                        )
+                                    })
+                            }) {
+                            Icon(
+                                Icons.Default.QrCode2,
+                                contentDescription = "Barcode",
+                                tint = SettingsModel.buttonColor
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.weight(1f))
+
+                        Text(
+                            text = Utils.getItemsNumberStr(invoicesState),
+                            modifier = Modifier.wrapContentWidth(),
+                            textAlign = TextAlign.End,
+                            style = TextStyle(
+                                fontWeight = FontWeight.Normal,
+                                fontSize = 12.sp
+                            ),
+                            color = SettingsModel.textColor
+                        )
+                    }
+
 
                     InvoiceFooterView(invoiceHeader = invoiceHeaderState.value,
                         items = posState.items,

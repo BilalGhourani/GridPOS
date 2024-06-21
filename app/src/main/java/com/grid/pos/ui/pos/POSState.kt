@@ -21,6 +21,7 @@ data class POSState(
     var isDeleted: Boolean = false,
     var isLoading: Boolean = false,
     val warning: Event<String>? = null,
+    val actionLabel: String? = null,
 ) {
 
     fun resetItemsSelection() {

@@ -80,6 +80,19 @@ class POSViewModel @Inject constructor(
         }
     }
 
+    fun showWarning(
+            warning: String,
+            action: String
+    ) {
+        viewModelScope.launch(Dispatchers.Main) {
+            posState.value = posState.value.copy(
+                warning = Event(warning),
+                actionLabel = action,
+                isLoading = false
+            )
+        }
+    }
+
     fun saveInvoiceHeader(
             invoiceHeader: InvoiceHeader,
             posReceipt: PosReceipt,

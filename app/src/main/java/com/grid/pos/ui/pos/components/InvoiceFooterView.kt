@@ -28,6 +28,7 @@ import com.grid.pos.data.Currency.Currency
 import com.grid.pos.data.InvoiceHeader.InvoiceHeader
 import com.grid.pos.data.Item.Item
 import com.grid.pos.data.ThirdParty.ThirdParty
+import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.SearchableDropdownMenu
 import com.grid.pos.ui.theme.GridPOSTheme
@@ -143,12 +144,14 @@ fun InvoiceFooterView(
                     ),
                     label = "Items",
                     leadingIcon = {
-                        Icon(
-                            Icons.Default.AddCircleOutline,
-                            contentDescription = "add Item",
-                            tint = Color.Black,
-                            modifier = it
-                        )
+                        if(SettingsModel.connectionType!=CONNECTION_TYPE.SQL_SERVER.key) {
+                            Icon(
+                                Icons.Default.AddCircleOutline,
+                                contentDescription = "add Item",
+                                tint = Color.Black,
+                                modifier = it
+                            )
+                        }
                     },
                     onLeadingIconClick = {
                         onAddItem.invoke()
@@ -229,12 +232,14 @@ fun InvoiceFooterView(
                     ),
                     label = "Customers",
                     leadingIcon = {
-                        Icon(
-                            Icons.Default.PersonAdd,
-                            contentDescription = "Add Customer",
-                            tint = Color.Black,
-                            modifier = it
-                        )
+                        if(SettingsModel.connectionType!=CONNECTION_TYPE.SQL_SERVER.key) {
+                            Icon(
+                                Icons.Default.PersonAdd,
+                                contentDescription = "Add Customer",
+                                tint = Color.Black,
+                                modifier = it
+                            )
+                        }
                     },
                     onLeadingIconClick = {
                         onAddThirdParty.invoke()
