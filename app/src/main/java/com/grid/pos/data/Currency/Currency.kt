@@ -23,7 +23,7 @@ data class Currency(
 
     @Ignore
     @get:Exclude
-    var currencyDocumentId: String? = null,
+    var currencyDocumentId: String? = null,//second curr id for sql server
 
     /**
      * Currency company Id

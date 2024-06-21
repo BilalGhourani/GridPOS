@@ -72,26 +72,30 @@ class CurrencyRepositoryImpl(
             }
 
             else -> {
-                val where = "cur_cmp_id='${SettingsModel.getCompanyID()}'"
+                val companyID = SettingsModel.getCompanyID()
+                val where = "cur_cmp_id='$companyID' ORDER BY cur_order ASC"
                 val dbResult = SQLServerWrapper.getListOf(
                     "currency",
-                    mutableListOf("*"),
+                    mutableListOf("TOP 2 *"),
                     where
                 )
-                val currencies: MutableList<Currency> = mutableListOf()
+                val currency = Currency()
+                currency.currencyCompId = companyID
                 dbResult.forEach { obj ->
-                    currencies.add(Currency().apply {
-                        currencyId = obj.optString("cur_code")
-                        currencyCode1 = obj.optString("cur_newcode")
-                        currencyName1 = obj.optString("cur_name")
-                        currencyName1Dec = obj.optInt("cur_decimal")
-                        currencyCode2 = obj.optString("cur_newcode")
-                        currencyName2 = obj.optString("cur_name")
-                        currencyName2Dec = obj.optInt("cur_decimal")
-                        currencyRate = 1.0//obj.optDouble("cur_round")
-                    })
+                    if (obj.optInt("cur_order") == 1) {
+                        currency.currencyId = obj.optString("cur_code")
+                        currency.currencyCode1 = obj.optString("cur_newcode")
+                        currency.currencyName1 = obj.optString("cur_name")
+                        currency.currencyName1Dec = obj.optInt("cur_decimal")
+                        currency.currencyRate = obj.optDouble("cur_round")
+                    } else {
+                        currency.currencyDocumentId = obj.optString("cur_code")
+                        currency.currencyCode2 = obj.optString("cur_newcode")
+                        currency.currencyName2 = obj.optString("cur_name")
+                        currency.currencyName2Dec = obj.optInt("cur_decimal")
+                    }
                 }
-                currencies
+                mutableListOf(currency)
             }
         }
 

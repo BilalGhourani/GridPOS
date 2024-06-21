@@ -113,7 +113,7 @@ class InvoiceHeaderRepositoryImpl(
             }
 
             else -> {
-                val where = "hi_cmp_id='${SettingsModel.getCompanyID()}' ORDER BY hi_orderno DESC LIMIT 1"
+                val where = "hi_cmp_id='${SettingsModel.getCompanyID()}' ORDER BY hi_orderno DESC"
                 val dbResult = SQLServerWrapper.getListOf(
                     "in_hinvoice",
                     mutableListOf("*"),
@@ -159,17 +159,17 @@ class InvoiceHeaderRepositoryImpl(
             }
 
             else -> {
-                val where = "hi_cmp_id='${SettingsModel.getCompanyID()}' AND hi_tt_code = '$type' ORDER BY hi_orderno DESC LIMIT 1"
+                val where = "hi_cmp_id='${SettingsModel.getCompanyID()}' AND hi_tt_code = '$type' ORDER BY hi_orderno DESC"
                 val dbResult = SQLServerWrapper.getListOf(
                     "in_hinvoice",
-                    mutableListOf("*"),
+                    mutableListOf("TOP 1 *"),
                     where
                 )
                 val invoiceHeaders: MutableList<InvoiceHeader> = mutableListOf()
                 dbResult.forEach { obj ->
                     invoiceHeaders.add(fillParams(obj))
                 }
-                return invoiceHeaders[0]
+                return if (invoiceHeaders.size > 0) invoiceHeaders[0] else null
             }
         }
     }
@@ -206,17 +206,17 @@ class InvoiceHeaderRepositoryImpl(
             }
 
             else -> {
-                val where = "hi_cmp_id='${SettingsModel.getCompanyID()}' AND hi_ta_name = '$tableNo' AND (hi_transno IS NULL OR hi_transno = '') LIMIT 1"
+                val where = "hi_cmp_id='${SettingsModel.getCompanyID()}' AND hi_ta_name = '$tableNo' AND (hi_transno IS NULL OR hi_transno = '')"
                 val dbResult = SQLServerWrapper.getListOf(
                     "in_hinvoice",
-                    mutableListOf("*"),
+                    mutableListOf("TOP 1 *"),
                     where
                 )
                 val invoiceHeaders: MutableList<InvoiceHeader> = mutableListOf()
                 dbResult.forEach { obj ->
                     invoiceHeaders.add(fillParams(obj))
                 }
-                return invoiceHeaders[0]
+                return if (invoiceHeaders.size > 0) invoiceHeaders[0] else null
             }
         }
     }

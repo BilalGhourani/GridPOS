@@ -94,7 +94,7 @@ class CompanyRepositoryImpl(
                         companyTax2Regno = obj.optString("cmp_tax2regno")
                     })
                 }
-                companies[0]
+                if (companies.size > 0) companies[0] else null
             }
         }
     }

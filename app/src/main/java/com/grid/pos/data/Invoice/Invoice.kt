@@ -213,11 +213,17 @@ data class Invoice(
 
     @Exclude
     fun getDiscount(): Double {
+        if (invoiceDiscount.isNaN()) {
+            return 0.0
+        }
         return invoiceDiscount
     }
 
     @Exclude
     fun getDiscountAmount(): Double {
+        if (invoiceDiscamt.isNaN()) {
+            return 0.0
+        }
         return invoiceDiscamt
     }
 
@@ -227,23 +233,33 @@ data class Invoice(
     }
 
     @Exclude
-    fun getTax(): Double {
-        return getAmount().times(invoiceTax.div(100.0))
+    fun getTax(amount: Double = getAmount()): Double {
+        if (invoiceTax.isNaN()) {
+            return 0.0
+        }
+        return amount.times(invoiceTax.div(100.0))
     }
 
     @Exclude
-    fun getTax1(): Double {
-        return getAmount().times(invoiceTax1.div(100.0))
+    fun getTax1(amount: Double = getAmount()): Double {
+        if (invoiceTax1.isNaN()) {
+            return 0.0
+        }
+        return amount.times(invoiceTax1.div(100.0))
     }
 
     @Exclude
-    fun getTax2(): Double {
-        return getAmount().times(invoiceTax2.div(100.0))
+    fun getTax2(amount: Double = getAmount()): Double {
+        if (invoiceTax2.isNaN()) {
+            return 0.0
+        }
+        return amount.times(invoiceTax2.div(100.0))
     }
 
     @Exclude
     fun getPriceWithTax(): Double {
-        return getAmount() + getTax() + getTax1() + getTax2()
+        val amount = getAmount()
+        return amount + getTax(amount) + getTax1(amount) + getTax2(amount)
     }
 
     @Exclude

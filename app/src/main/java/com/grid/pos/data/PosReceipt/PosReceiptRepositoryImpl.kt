@@ -124,7 +124,7 @@ class PosReceiptRepositoryImpl(
                 dbResult.forEach { obj ->
                     posReceipts.add(fillParams(obj))
                 }
-                return posReceipts[0]
+                return if (posReceipts.size > 0) posReceipts[0] else null
             }
         }
     }
