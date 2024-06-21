@@ -97,7 +97,7 @@ class ItemRepositoryImpl(
                         itemBtnTextColor = "#000000"
                         val timeStamp = obj.opt("it_timestamp")
                         itemTimeStamp = if (timeStamp is Date) timeStamp else DateHelper.getDateFromString(
-                            obj.optString("tp_timestamp"),
+                            timeStamp as String,
                             "yyyy-MM-dd hh:mm:ss.SSS"
                         )
                         itemDateTime = itemTimeStamp!!.time

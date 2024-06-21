@@ -27,19 +27,18 @@ import javax.inject.Inject
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val repository: UserRepository,
-    private val companyRepository: CompanyRepository
+        private val repository: UserRepository,
+        private val companyRepository: CompanyRepository
 ) : ViewModel() {
 
     private val _usersState = MutableStateFlow(LoginState())
     val usersState: MutableStateFlow<LoginState> = _usersState
 
     fun login(
-        context: Context,
-        username: String,
-        password: String
-    ) {
-      /*  if (true) {
+            context: Context,
+            username: String,
+            password: String
+    ) {/*  if (true) {
             checkLicense(context)
             return
         }*/
@@ -74,7 +73,10 @@ class LoginViewModel @Inject constructor(
             warningAction = ""
         )
         viewModelScope.launch(Dispatchers.IO) {
-            val loginResponse: LoginResponse = repository.getUserByCredentials(username, password)
+            val loginResponse: LoginResponse = repository.getUserByCredentials(
+                username,
+                password
+            )
             loginResponse.user?.let {
                 SettingsModel.currentUserId = it.userId
                 SettingsModel.currentUser = it
@@ -84,7 +86,8 @@ class LoginViewModel @Inject constructor(
                 )
                 viewModelScope.launch(Dispatchers.Main) {
                     usersState.value = usersState.value.copy(
-                        selectedUser = it, isLoading = false,
+                        selectedUser = it,
+                        isLoading = false,
                         isLoggedIn = true
                     )
                 }
@@ -136,7 +139,7 @@ class LoginViewModel @Inject constructor(
         }
     }
 
-    private fun checkLicense(context: Context) :Boolean {// if license not exist add new screen to take the file
+    private fun checkLicense(context: Context) {// if license not exist add new screen to take the file
         val enc1 = CryptoUtils.encrypt(
             "test",
             App.getInstance().getConfigValue("key_for_license")
@@ -150,23 +153,31 @@ class LoginViewModel @Inject constructor(
             enc2,
             App.getInstance().getConfigValue("key_for_license")
         )
-        return dec2.isNotEmpty()
-       /* val licenseFile = FileUtils.getLicenseFileContent(context)
-        if (licenseFile != null) {
-            val fileContent = licenseFile.readText()
-
-            return checkLicense(context, licenseFile, Company(), Date())
-        } else {
-            return false
-            //FileUtils.saveLicenseContent(context, Constants.LICENSE_FILE_CONTENT)
-        }*/
+        val companyID = SettingsModel.getCompanyID()
+        if (!companyID.isNullOrEmpty()) {
+            viewModelScope.launch(Dispatchers.IO) {
+                val licenseFile = FileUtils.getLicenseFileContent(context)
+                if (licenseFile != null) {
+                    val fileContent = licenseFile.readText()
+                    val company = companyRepository.getCompanyById(companyID)
+                     checkLicense(
+                        context,
+                        licenseFile,
+                        Company(),
+                        Date()
+                    )
+                } else {
+                    //FileUtils.saveLicenseContent(context, Constants.LICENSE_FILE_CONTENT)
+                }
+            }
+        }
     }
 
     private fun checkLicense(
-        context: Context,
-        licenseFile: File,
-        currentCompany: Company,
-        lastInvoiceDate: Date
+            context: Context,
+            licenseFile: File,
+            currentCompany: Company,
+            lastInvoiceDate: Date
     ): Boolean {
         val currentDate = Date()
         val firstInstallTime = Utils.getFirstInstallationTime(context)

@@ -89,7 +89,7 @@ class ThirdPartyRepositoryImpl(
                         thirdPartyAddress = obj.optString("tp_address")
                         val timeStamp = obj.opt("tp_timestamp")
                         thirdPartyTimeStamp = if (timeStamp is Date) timeStamp else DateHelper.getDateFromString(
-                            obj.optString("tp_timestamp"),
+                            timeStamp as String,
                             "yyyy-MM-dd hh:mm:ss.SSS"
                         )
                         thirdPartyDateTime = thirdPartyTimeStamp!!.time

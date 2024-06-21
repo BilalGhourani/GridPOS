@@ -50,21 +50,53 @@ class CompanyRepositoryImpl(
     override suspend fun getCompanyById(
             id: String
     ): Company? {
-        var company: Company? = null
-        if (SettingsModel.isConnectedToFireStore()) {
-            val querySnapshot = FirebaseFirestore.getInstance().collection("company").whereEqualTo(
-                "cmp_id",
-                id
-            ).get().await()
-            val document = querySnapshot.documents.firstOrNull()
-            if (document != null) {
-                company = document.toObject(Company::class.java)
+        return when (SettingsModel.connectionType) {
+            CONNECTION_TYPE.FIRESTORE.key -> {
+                val querySnapshot = FirebaseFirestore.getInstance().collection("company")
+                    .whereEqualTo(
+                        "cmp_id",
+                        id
+                    ).get().await()
+                val document = querySnapshot.documents.firstOrNull()
+                document?.toObject(Company::class.java)
             }
 
-        } else {
-            company = companyDao.getCompanyById(id)
+            CONNECTION_TYPE.LOCAL.key -> {
+                companyDao.getCompanyById(id)
+            }
+
+            else -> {//CONNECTION_TYPE.SQL_SERVER.key
+                val where = "cmp_id='${SettingsModel.getCompanyID()}'"
+                val dbResult = SQLServerWrapper.getListOf(
+                    "company",
+                    mutableListOf("*"),
+                    where
+                )
+                val companies: MutableList<Company> = mutableListOf()
+                dbResult.forEach { obj ->
+                    companies.add(Company().apply {
+                        companyId = obj.optString("cmp_id")
+                        companyName = obj.optString("cmp_name")
+                        companyPhone = obj.optString("cmp_phone")
+                        companyPrinterId = obj.optString("cmp_country")
+                        companyAddress = obj.optString("cmp_address")
+                        companyTaxRegno = obj.optString("cmp_vatregno")
+                        companyTax = obj.optDouble("cmp_vat")
+                        companyCurCodeTax = obj.optString("cmp_cur_codetax")
+                        companyEmail = obj.optString("cmp_email")
+                        companyWeb = obj.optString("cmp_web")
+                        companyLogo = obj.optString("cmp_logo")
+                        companySS = obj.optBoolean("cmp_ss")
+                        companyCountry = obj.optString("cmp_country")
+                        companyTax1 = obj.optDouble("cmp_tax1")
+                        companyTax1Regno = obj.optString("cmp_tax1regno")
+                        companyTax2 = obj.optDouble("cmp_tax2")
+                        companyTax2Regno = obj.optString("cmp_tax2regno")
+                    })
+                }
+                companies[0]
+            }
         }
-        return company
     }
 
     override suspend fun getAllCompanies(): MutableList<Company> {

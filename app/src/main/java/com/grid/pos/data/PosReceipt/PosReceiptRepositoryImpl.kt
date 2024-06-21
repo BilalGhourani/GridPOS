@@ -1,11 +1,13 @@
 package com.grid.pos.data.PosReceipt
 
 import com.google.firebase.firestore.FirebaseFirestore
+import com.grid.pos.data.InvoiceHeader.InvoiceHeader
 import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.DateHelper
 import kotlinx.coroutines.tasks.await
+import org.json.JSONObject
 import java.util.Date
 
 class PosReceiptRepositoryImpl(
@@ -28,8 +30,8 @@ class PosReceiptRepositoryImpl(
             else -> {
                 SQLServerWrapper.insert(
                     "pos_receipt",
-                    listOf("pr_id","pr_hi_id","pr_amt","pr_amtf","pr_timestamp","pr_userstamp"),
-                    listOf(posReceipt.posReceiptId,posReceipt.posReceiptInvoiceId,posReceipt.posReceiptCash,posReceipt.posReceiptCashs,posReceipt.posReceiptTimeStamp,posReceipt.posReceiptUserStamp)
+                    getColumns(),
+                    getValues(posReceipt)
                 )
             }
         }
@@ -78,8 +80,8 @@ class PosReceiptRepositoryImpl(
             else -> {
                 SQLServerWrapper.update(
                     "pos_receipt",
-                    listOf("pr_id","pr_hi_id","pr_amt","pr_amtf","pr_timestamp","pr_userstamp"),
-                    listOf(posReceipt.posReceiptId,posReceipt.posReceiptInvoiceId,posReceipt.posReceiptCash,posReceipt.posReceiptCashs,posReceipt.posReceiptTimeStamp,posReceipt.posReceiptUserStamp),
+                    getColumns(),
+                    getValues(posReceipt),
                     "pr_id = ${posReceipt.posReceiptId}"
                 )
             }
@@ -120,26 +122,52 @@ class PosReceiptRepositoryImpl(
                 )
                 val posReceipts: MutableList<PosReceipt> = mutableListOf()
                 dbResult.forEach { obj ->
-                    posReceipts.add(PosReceipt().apply {
-                        posReceiptId = obj.optString("pr_id")
-                        posReceiptInvoiceId = obj.optString("pr_hi_id")
-                        posReceiptCash = obj.optDouble("pr_amt")
-                        posReceiptCashs = obj.optDouble("pr_amtf")/*posReceiptCredit = obj.optDouble("pr_amtf")
-                        posReceiptCzredits = obj.optDouble("pr_amtf")
-                        posReceiptDebit = obj.optDouble("pr_amtf")
-                        posReceiptDebits = obj.optDouble("pr_amtf")*/
-                        val timeStamp = obj.opt("pr_timestamp")
-                        posReceiptTimeStamp = if (timeStamp is Date) timeStamp else DateHelper.getDateFromString(
-                            obj.optString("tp_timestamp"),
-                            "yyyy-MM-dd hh:mm:ss.SSS"
-                        )
-                        posReceiptDateTime = posReceiptTimeStamp!!.time
-                        posReceiptUserStamp = obj.optString("pr_userstamp")
-                    })
+                    posReceipts.add(fillParams(obj))
                 }
                 return posReceipts[0]
             }
         }
+    }
+
+    private fun fillParams(obj: JSONObject): PosReceipt {
+        return PosReceipt().apply {
+            posReceiptId = obj.optString("pr_id")
+            posReceiptInvoiceId = obj.optString("pr_hi_id")
+            posReceiptCash = obj.optDouble("pr_amt")
+            posReceiptCashs = obj.optDouble("pr_amtf")/*posReceiptCredit = obj.optDouble("pr_amtf")
+                        posReceiptCzredits = obj.optDouble("pr_amtf")
+                        posReceiptDebit = obj.optDouble("pr_amtf")
+                        posReceiptDebits = obj.optDouble("pr_amtf")*/
+            val timeStamp = obj.opt("pr_timestamp")
+            posReceiptTimeStamp = if (timeStamp is Date) timeStamp else DateHelper.getDateFromString(
+                timeStamp as String,
+                "yyyy-MM-dd hh:mm:ss.SSS"
+            )
+            posReceiptDateTime = posReceiptTimeStamp!!.time
+            posReceiptUserStamp = obj.optString("pr_userstamp")
+        }
+    }
+
+    private fun getColumns(): List<String> {
+        return listOf(
+            "pr_id",
+            "pr_hi_id",
+            "pr_amt",
+            "pr_amtf",
+            "pr_timestamp",
+            "pr_userstamp",
+        )
+    }
+
+    private fun getValues(posReceipt: PosReceipt): List<Any?> {
+        return listOf(
+            posReceipt.posReceiptId,
+            posReceipt.posReceiptInvoiceId,
+            posReceipt.posReceiptCash,
+            posReceipt.posReceiptCashs,
+            posReceipt.posReceiptTimeStamp,
+            posReceipt.posReceiptUserStamp,
+        )
     }
 
 
