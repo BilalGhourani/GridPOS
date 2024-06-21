@@ -153,10 +153,12 @@ fun HomeView(
             UIAlertDialog(
                 onDismissRequest = {
                     isLogoutPopupShown = false
+                    activityState.warning = null
                     if (activityState.forceLogout) logout()
                 },
                 onConfirmation = {
                     isLogoutPopupShown = false
+                    activityState.warning = null
                     logout()
                 },
                 dialogTitle = "Alert.",
