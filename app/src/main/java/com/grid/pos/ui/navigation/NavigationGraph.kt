@@ -13,6 +13,7 @@ import com.grid.pos.ui.currency.ManageCurrenciesView
 import com.grid.pos.ui.family.ManageFamiliesView
 import com.grid.pos.ui.home.HomeView
 import com.grid.pos.ui.item.ManageItemsView
+import com.grid.pos.ui.license.LicenseView
 import com.grid.pos.ui.login.LoginView
 import com.grid.pos.ui.pos.POSView
 import com.grid.pos.ui.posPrinter.POSPrinterView
@@ -124,6 +125,13 @@ fun AuthNavGraph(
             BackupView(
                 navController = navController,
                 activityViewModel = activityViewModel
+            )
+        }
+
+        composable(route = "LicenseView") {
+            LicenseView(
+                navController = navController,
+                activityScopedViewModel = activityViewModel
             )
         }
     }
