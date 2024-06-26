@@ -25,6 +25,7 @@ import com.grid.pos.data.ThirdParty.ThirdPartyRepository
 import com.grid.pos.data.ThirdParty.ThirdPartyRepositoryImpl
 import com.grid.pos.data.User.UserRepository
 import com.grid.pos.data.User.UserRepositoryImpl
+import com.grid.pos.ui.license.CheckLicenseUseCase
 import com.grid.pos.utils.Constants
 import dagger.Module
 import dagger.Provides
@@ -42,7 +43,7 @@ object AppModule {
         val callback = object : RoomDatabase.Callback() {
             override fun onOpen(db: SupportSQLiteDatabase) {
                 super.onOpen(db)
-                    db.disableWriteAheadLogging()
+                db.disableWriteAheadLogging()
             }
         }
         return Room.databaseBuilder(
@@ -110,6 +111,18 @@ object AppModule {
     @Singleton
     fun providePosReceiptRepository(db: AppDatabase): PosReceiptRepository {
         return PosReceiptRepositoryImpl(db.posReceiptDao)
+    }
+
+    @Provides
+    @Singleton
+    fun provideLicenseUseCase(
+            companyRepository: CompanyRepository,
+            invoiceHeaderRepository: InvoiceHeaderRepository
+    ): CheckLicenseUseCase {
+        return CheckLicenseUseCase(
+            companyRepository,
+            invoiceHeaderRepository
+        )
     }
 
 

@@ -1,6 +1,5 @@
 package com.grid.pos.utils
 
-import android.R.attr
 import android.os.Build
 import android.util.Base64
 import java.nio.charset.StandardCharsets
@@ -100,6 +99,22 @@ object CryptoUtils {
              ex.printStackTrace()
         }
         return ""
+    }
+
+    fun test(key: String){
+        val enc1 = CryptoUtils.encrypt(
+         "test",
+            key
+     )
+     val dec1 = CryptoUtils.decrypt(
+         enc1,
+         key
+     )
+     val enc2 = Constants.LICENSE_FILE_CONTENT
+     val dec2 = CryptoUtils.decrypt(
+         enc2,
+         key
+     )
     }
 
 }

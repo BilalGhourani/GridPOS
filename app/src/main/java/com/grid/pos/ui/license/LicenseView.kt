@@ -5,15 +5,20 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.net.Uri
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -37,6 +42,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
@@ -56,9 +62,11 @@ import androidx.navigation.NavController
 import com.grid.pos.ActivityScopedViewModel
 import com.grid.pos.R
 import com.grid.pos.interfaces.OnGalleryResult
+import com.grid.pos.model.Event
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.model.UserType
 import com.grid.pos.ui.common.LoadingIndicator
+import com.grid.pos.ui.common.UIButton
 import com.grid.pos.ui.common.UITextField
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.ui.theme.LightBlue
@@ -86,11 +94,14 @@ fun LicenseView(
     val keyboardController = LocalSoftwareKeyboardController.current
 
     val deviceIDState by remember { mutableStateOf(Utils.getDeviceID(context)) }
-    var fileState by remember { mutableStateOf("") }
-    var isPopupVisible by remember { mutableStateOf(false) }
+    var fileState by remember { mutableStateOf(state.filePath ?: "") }
 
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+
+    fun handleBack() {
+        navController?.navigateUp()
+    }
 
 
     LaunchedEffect(state.warning) {
@@ -104,13 +115,14 @@ fun LicenseView(
         }
     }
 
-    fun handleBack() {
-        if (SettingsModel.getUserType() == UserType.TABLE) {
-            isPopupVisible = true
-        } else {
-            navController?.navigateUp()
+    LaunchedEffect(state.isDone) {
+        if (state.isDone) {
+            scope.launch {
+                handleBack()
+            }
         }
     }
+
     BackHandler {
         handleBack()
     }
@@ -159,7 +171,16 @@ fun LicenseView(
                 verticalArrangement = Arrangement.Center
             ) {
 
-                Spacer(modifier = Modifier.height(30.dp))
+
+                // Add Image
+                Image(
+                    painter = painterResource(id = R.drawable.contact_administrator), // Replace with your image resource
+                    contentDescription = "Illustration",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(300.dp)
+                )
+
 
                 Text(
                     modifier = Modifier.padding(horizontal = 10.dp),
@@ -176,109 +197,64 @@ fun LicenseView(
 
                 Spacer(modifier = Modifier.height(30.dp))
 
-                Text(
-                    modifier = Modifier.padding(horizontal = 10.dp),
-                    text = "Your Device ID ",
-                    color = SettingsModel.textColor,
-                    style = TextStyle(
-                        textDecoration = TextDecoration.None,
-                        fontWeight = FontWeight.Bold,
-                        fontFamily = FontFamily.Serif,
-                        fontSize = 20.sp
-                    ),
-                    textAlign = TextAlign.Center
-                )
-
-                Text(
-                    modifier = Modifier.padding(horizontal = 10.dp),
-                    text = deviceIDState,
-                    color = deviceIDColor,
-                    style = TextStyle(
-                        textDecoration = TextDecoration.None,
-                        fontWeight = FontWeight.Bold,
-                        fontFamily = FontFamily.Serif,
-                        fontSize = 20.sp
-                    ),
-                    textAlign = TextAlign.Center
-                )
-
-                Spacer(modifier = Modifier.height(3.dp))
-
-                TextButton(
-                    onClick = {
+                Row(
+                    modifier = Modifier.padding(horizontal = 10.dp)
+                ) {
+                    Text(
+                        text = "Device ID: ${deviceIDState}",
+                        color = SettingsModel.textColor,
+                        modifier = Modifier.weight(1f),
+                        style = TextStyle(
+                            textDecoration = TextDecoration.None,
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = FontFamily.Serif,
+                            fontSize = 20.sp
+                        )
+                    )
+                    IconButton(onClick = {
                         val clipboard: ClipboardManager? = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager?
                         val clip = ClipData.newPlainText(
                             "label",
                             deviceIDState
                         )
                         clipboard?.setPrimaryClip(clip)
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 10.dp),
-                    contentPadding = PaddingValues(0.dp),
-                ) {
-                    Text(
-                        "Copy",
-                        color = LightBlue,
-                        style = TextStyle(
-                            textDecoration = TextDecoration.None,
-                            fontWeight = FontWeight.Bold,
-                            fontFamily = FontFamily.Serif,
-                            fontSize = 20.sp
-                        ),
-                        textAlign = TextAlign.Center
-                    )
+                        viewModel.showWarning("Device ID copied to clipboard")
+                    }) {
+                        Icon(
+                            imageVector = Icons.Default.ContentCopy, // Replace with your icon resource
+                            contentDescription = "Copy Icon",
+                            modifier = Modifier.size(24.dp),
+                            tint = SettingsModel.buttonColor
+                        )
+                    }
                 }
+
 
                 Spacer(modifier = Modifier.height(30.dp))
 
-                UITextField(modifier = Modifier.padding(horizontal = 10.dp),
-                    defaultValue = fileState,
-                    label = "License File",
-                    readOnly = true,
-                    placeHolder = "Browse your License File",
-                    imeAction = ImeAction.Done,
-                    onAction = { keyboardController?.hide() },
-                    trailingIcon = {
-                        IconButton(onClick = {
-                            activityScopedViewModel.launchFilePicker(object : OnGalleryResult {
-                                override fun onGalleryResult(uris: List<Uri>) {
-                                    if (uris.isNotEmpty()) {
-                                        state.isLoading = true
-                                        CoroutineScope(Dispatchers.IO).launch {
-                                            val path = FileUtils.saveToExternalStorage(
-                                                context = context,
-                                                parent = "licenses",
-                                                uris[0],
-                                                "license"
-                                            )
-                                            withContext(Dispatchers.Main) {
-                                                state.isLoading = false
-                                                if (path != null) {
-                                                    fileState = path
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-
-                            },
-                                onPermissionDenied = {
-                                    viewModel.showWarning(
-                                        "Permission Denied",
-                                        "Settings"
-                                    )
-                                })
-                        }) {
-                            Icon(
-                                Icons.Default.Image,
-                                contentDescription = "Image",
-                                tint = SettingsModel.buttonColor
-                            )
+                UIButton(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(80.dp)
+                        .padding(10.dp),
+                    text = "Select License File"
+                ) {
+                    activityScopedViewModel.launchFilePicker(object : OnGalleryResult {
+                        override fun onGalleryResult(uris: List<Uri>) {
+                            if (uris.isNotEmpty()) {
+                                viewModel.copyLicenseFile(
+                                    context,
+                                    uris[0]
+                                )
+                            }
                         }
-                    }) { img ->
-                    fileState = img
+                    },
+                        onPermissionDenied = {
+                            viewModel.showWarning(
+                                "Permission Denied",
+                                "Settings"
+                            )
+                        })
                 }
 
             }

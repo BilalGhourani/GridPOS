@@ -103,6 +103,12 @@ fun LoginView(
             }
         }
     }
+    LaunchedEffect(loginState.needLicense) {
+        if (loginState.needLicense) {
+            loginState.needLicense = false
+            navController?.navigate("LicenseView")
+        }
+    }
     LaunchedEffect(loginState.isLoggedIn) {
         if (loginState.isLoggedIn) {
             CoroutineScope(Dispatchers.IO).launch {
@@ -196,7 +202,8 @@ fun LoginView(
                             visualTransformation = if (passwordVisibility) VisualTransformation.None else PasswordVisualTransformation(),
                             onAction = {
                                 keyboardController?.hide()
-                                viewModel.login(context,
+                                viewModel.login(
+                                    context,
                                     usernameState.trim(),
                                     passwordState.trim()
                                 )
@@ -220,7 +227,8 @@ fun LoginView(
                             text = "Log In"
                         ) {
                             keyboardController?.hide()
-                            viewModel.login(context,
+                            viewModel.login(
+                                context,
                                 usernameState.trim(),
                                 passwordState.trim()
                             )

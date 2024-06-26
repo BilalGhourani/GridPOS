@@ -174,6 +174,43 @@ class InvoiceHeaderRepositoryImpl(
         }
     }
 
+    override suspend fun getLastInvoice(): InvoiceHeader? {
+        when (SettingsModel.connectionType) {
+            CONNECTION_TYPE.FIRESTORE.key -> {
+                val querySnapshot = FirebaseFirestore.getInstance().collection("in_hinvoice")
+                    .whereEqualTo(
+                        "hi_cmp_id",
+                        SettingsModel.getCompanyID()
+                    ).orderBy(
+                        "hi_orderno",
+                        Query.Direction.DESCENDING
+                    ).limit(1).get().await()
+                val document = querySnapshot.firstOrNull()
+                return document?.toObject(InvoiceHeader::class.java)
+            }
+
+            CONNECTION_TYPE.LOCAL.key -> {
+                return invoiceHeaderDao.getLastInvoice(
+                    SettingsModel.getCompanyID() ?: ""
+                )
+            }
+
+            else -> {
+                val where = "hi_cmp_id='${SettingsModel.getCompanyID()}' ORDER BY hi_orderno DESC"
+                val dbResult = SQLServerWrapper.getListOf(
+                    "in_hinvoice",
+                    mutableListOf("TOP 1 *"),
+                    where
+                )
+                val invoiceHeaders: MutableList<InvoiceHeader> = mutableListOf()
+                dbResult.forEach { obj ->
+                    invoiceHeaders.add(fillParams(obj))
+                }
+                return if (invoiceHeaders.size > 0) invoiceHeaders[0] else null
+            }
+        }
+    }
+
     override suspend fun getInvoiceByTable(
             tableNo: String
     ): InvoiceHeader? {

@@ -25,33 +25,26 @@ import java.io.IOException
 import java.io.InputStream
 import java.io.InputStreamReader
 import java.io.OutputStream
+import java.nio.charset.StandardCharsets
 import java.util.Date
 
 object FileUtils {
     fun saveToInternalStorage(
             context: Context,
-            parent: String = "family",
+            parent: String,
             sourceFilePath: Uri,
             destName: String
     ): String? {
         val storageDir = File(
             context.filesDir,
-            "images"
+            parent
         )
         if (!storageDir.exists()) {
             storageDir.mkdir()
         }
-        val parentDir = File(
-            storageDir,
-            parent
-        )
-        if (!parentDir.exists()) {
-            parentDir.mkdir()
-        }
-        val name = "$destName.jpg"
         val destinationFile = File(
-            parentDir,
-            name
+            storageDir,
+            destName
         )
 
         val contentResolver = context.contentResolver
@@ -210,6 +203,26 @@ object FileUtils {
             return destFile.path
         }
         return null
+    }
+
+    fun getFileContent(
+            context: Context,
+            uri: Uri
+    ): String {
+        val inputStream: InputStream? = context.contentResolver.openInputStream(uri)
+
+        val size = inputStream?.available() ?: 0
+
+        val bytes = ByteArray(size)
+
+        inputStream?.read(bytes)
+
+        inputStream?.close()
+
+        return String(
+            bytes,
+            StandardCharsets.UTF_8
+        )
     }
 
     fun deleteFile(
@@ -551,7 +564,20 @@ object FileUtils {
     }
 
     fun getLicenseFileContent(context: Context): File? {
-        val downloadDirectory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+        val storageDir = File(
+            context.filesDir,
+            "licenses"
+        )
+        if (storageDir.exists()) {
+            val licenseFile = File(
+                storageDir,
+                "license"
+            )
+            if (licenseFile.exists()) {
+                return licenseFile
+            }
+        }
+       /* val downloadDirectory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
         val licensesFolder = File(
             downloadDirectory,
             "${context.packageName}/licenses"
@@ -563,27 +589,8 @@ object FileUtils {
 
         if (licenseFile.exists()) {
             return licenseFile
-        }
+        }*/
         return null
-    }
-
-    fun saveLicenseContent(
-            context: Context,
-            content: String
-    ) {
-        val licenseFile = File(
-            context.filesDir,
-            "license_tmp"
-        )
-        licenseFile.writeText(content)
-        saveToExternalStorage(
-            context,
-            "licenses",
-            licenseFile.toUri(),
-            "license",
-            "license"
-        )
-
     }
 
 

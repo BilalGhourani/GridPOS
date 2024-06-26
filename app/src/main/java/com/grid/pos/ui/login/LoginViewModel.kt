@@ -4,31 +4,27 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.grid.pos.App
-import com.grid.pos.data.Company.Company
 import com.grid.pos.data.Company.CompanyRepository
+import com.grid.pos.data.InvoiceHeader.InvoiceHeaderRepository
 import com.grid.pos.data.User.UserRepository
 import com.grid.pos.model.Event
 import com.grid.pos.model.LoginResponse
 import com.grid.pos.model.SettingsModel
+import com.grid.pos.ui.license.CheckLicenseUseCase
 import com.grid.pos.utils.Constants
-import com.grid.pos.utils.CryptoUtils
 import com.grid.pos.utils.DataStoreManager
-import com.grid.pos.utils.DateHelper
-import com.grid.pos.utils.FileUtils
-import com.grid.pos.utils.Utils
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
-import java.io.File
-import java.util.Date
 import javax.inject.Inject
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
+        private val checkLicenseUseCase: CheckLicenseUseCase,
         private val repository: UserRepository,
-        private val companyRepository: CompanyRepository
+        private val companyRepository: CompanyRepository,
+        private val invoiceHeaderRepository: InvoiceHeaderRepository,
 ) : ViewModel() {
 
     private val _usersState = MutableStateFlow(LoginState())
@@ -38,10 +34,38 @@ class LoginViewModel @Inject constructor(
             context: Context,
             username: String,
             password: String
-    ) {/*  if (true) {
-            checkLicense(context)
-            return
-        }*/
+    ) {
+        viewModelScope.launch(Dispatchers.IO) {
+            //CryptoUtils.test(App.getInstance().getConfigValue("key_for_license"))
+            checkLicenseUseCase.invoke(context,
+                onResult = { result ->
+                    viewModelScope.launch(Dispatchers.Main) {
+                        when (result) {
+                            Constants.SUCCEEDED -> {
+                                loginNow(
+                                    username,
+                                    password
+                                )
+                            }
+
+                            Constants.LICENSE_NOT_FOUND, Constants.LICENSE_EXPIRED, Constants.LICENSE_ACCESS_DENIED -> {
+                                usersState.value = usersState.value.copy(
+                                    needLicense = true,
+                                    isLoading = false,
+                                    warning = null,
+                                    warningAction = null
+                                )
+                            }
+                        }
+                    }
+                })
+        }
+    }
+
+    private fun loginNow(
+            username: String,
+            password: String
+    ) {
         if (username.isEmpty() || password.isEmpty()) {
             usersState.value = usersState.value.copy(
                 warning = Event("Please fill all inputs"),
@@ -136,90 +160,6 @@ class LoginViewModel @Inject constructor(
                 }
             }
 
-        }
-    }
-
-    private fun checkLicense(context: Context) {// if license not exist add new screen to take the file
-        val enc1 = CryptoUtils.encrypt(
-            "test",
-            App.getInstance().getConfigValue("key_for_license")
-        )
-        val dec1 = CryptoUtils.decrypt(
-            enc1,
-            App.getInstance().getConfigValue("key_for_license")
-        )
-        val enc2 = Constants.LICENSE_FILE_CONTENT
-        val dec2 = CryptoUtils.decrypt(
-            enc2,
-            App.getInstance().getConfigValue("key_for_license")
-        )
-        val companyID = SettingsModel.getCompanyID()
-        if (!companyID.isNullOrEmpty()) {
-            viewModelScope.launch(Dispatchers.IO) {
-                val licenseFile = FileUtils.getLicenseFileContent(context)
-                if (licenseFile != null) {
-                    val fileContent = licenseFile.readText()
-                    val company = companyRepository.getCompanyById(companyID)
-                     checkLicense(
-                        context,
-                        licenseFile,
-                        Company(),
-                        Date()
-                    )
-                } else {
-                    //FileUtils.saveLicenseContent(context, Constants.LICENSE_FILE_CONTENT)
-                }
-            }
-        }
-    }
-
-    private fun checkLicense(
-            context: Context,
-            licenseFile: File,
-            currentCompany: Company,
-            lastInvoiceDate: Date
-    ): Boolean {
-        val currentDate = Date()
-        val firstInstallTime = Utils.getFirstInstallationTime(context)
-        val firstInstallDate = Date(firstInstallTime)
-
-        val licCreatedDate = Date(licenseFile.lastModified())
-        if (DateHelper.getDatesDiff(
-                currentDate,
-                licCreatedDate
-            ) < 0 || DateHelper.getDatesDiff(
-                firstInstallDate,
-                currentDate
-            ) < 0 || DateHelper.getDatesDiff(
-                firstInstallDate,
-                licCreatedDate
-            ) < 0
-        ) {
-            CoroutineScope(Dispatchers.IO).launch {
-                companyRepository.disableCompanies(true)
-            }
-            //db.execSQL("UPDATE company SET cmp_ss=1")
-            // Optionally, you might want to shut down the app or handle it appropriately
-            return false
-        } else {
-            if (currentCompany.companySS) {
-                if (currentDate >= lastInvoiceDate || licCreatedDate >= currentDate) {
-                    CoroutineScope(Dispatchers.IO).launch {
-                        companyRepository.disableCompanies(false)
-                    }
-                    //db.execSQL("UPDATE company SET cmp_ss=0")
-                    // Optionally, you might want to shut down the app or handle it appropriately
-                    return true
-                } else {
-                    CoroutineScope(Dispatchers.IO).launch {
-                        companyRepository.disableCompanies(true)
-                    }
-                    //db.execSQL("UPDATE company SET cmp_ss=1")
-                    // Optionally, you might want to shut down the app or handle it appropriately
-                    return false
-                }
-            }
-            return true
         }
     }
 }

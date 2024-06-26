@@ -43,6 +43,12 @@ interface InvoiceHeaderDao {
             companyId: String
     ): InvoiceHeader?
 
+    // Get last Invoice Headers as stream.
+    @Query("SELECT * FROM `in_hinvoice` WHERE hi_cmp_id=:companyId ORDER BY hi_orderno DESC LIMIT 1")
+    fun getLastInvoice(
+            companyId: String
+    ): InvoiceHeader?
+
     // Get all Invoice Headers as stream.
     @Query("SELECT * FROM `in_hinvoice` WHERE hi_ta_name = :tableNo AND hi_cmp_id=:companyId AND (hi_transno IS NULL OR hi_transno = '') LIMIT 1")
     fun getInvoiceByTable(

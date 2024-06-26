@@ -1,6 +1,8 @@
 package com.grid.pos.utils
 
+import android.os.Build
 import java.text.SimpleDateFormat
+import java.time.temporal.ChronoUnit
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
@@ -55,10 +57,10 @@ object DateHelper {
     }
 
     fun getDatesDiff(
-            date1: Date,
-            date2: Date
+            startDate: Date,
+            endDate: Date
     ): Long {
-        val diff = date1.time - date2.time
+        val diff = endDate.time -  startDate.time
         return diff / (24 * 60 * 60 * 1000)
     }
 }
