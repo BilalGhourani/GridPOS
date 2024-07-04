@@ -7,6 +7,7 @@ import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.DateHelper
+import com.grid.pos.utils.Utils
 import kotlinx.coroutines.tasks.await
 import org.json.JSONObject
 import java.util.Date
@@ -27,6 +28,15 @@ class InvoiceHeaderRepositoryImpl(
             }
 
             else -> {
+                if (invoiceHeader.invoiceHeadTableId.isNullOrEmpty() && !invoiceHeader.invoiceHeadTaName.isNullOrEmpty()) {
+                    val tableId = Utils.generateRandomUuidString()
+                    SQLServerWrapper.insert(
+                        "pos_table",
+                        listOf("ta_name","ta_hiid","ta_status","ta_newname","ta_cmp_id","ta_locked","ta_timestamp","ta_userstamp"),
+                        listOf(tableId,invoiceHeader.invoiceHeadId,"Busy",invoiceHeader.invoiceHeadTaName,SettingsModel.getCompanyID(),"0",DateHelper.getDateInFormat(Date(invoiceHeader.invoiceHeadDateTime),"yyyy-MM-dd hh:mm:ss.SSS"),SettingsModel.currentUser?.userName)
+                    )
+                    invoiceHeader.invoiceHeadTableId = tableId
+                }
                 SQLServerWrapper.insert(
                     "in_hinvoice",
                     getColumns(),
@@ -243,17 +253,23 @@ class InvoiceHeaderRepositoryImpl(
             }
 
             else -> {
-                val where = "hi_cmp_id='${SettingsModel.getCompanyID()}' AND hi_ta_name = '$tableNo' AND (hi_transno IS NULL OR hi_transno = '')"
-                val dbResult = SQLServerWrapper.getListOf(
-                    "in_hinvoice",
-                    mutableListOf("TOP 1 *"),
-                    where
-                )
-                val invoiceHeaders: MutableList<InvoiceHeader> = mutableListOf()
-                dbResult.forEach { obj ->
-                    invoiceHeaders.add(fillParams(obj))
+                val tableId = getTableIdByNumber(tableNo)
+                if (!tableId.isNullOrEmpty()) {
+                    val where = "hi_cmp_id='${SettingsModel.getCompanyID()}' AND hi_ta_name = '$tableId' AND (hi_transno IS NULL OR hi_transno = '')"
+                    val dbResult = SQLServerWrapper.getListOf(
+                        "in_hinvoice",
+                        mutableListOf("TOP 1 *"),
+                        where
+                    )
+                    val invoiceHeaders: MutableList<InvoiceHeader> = mutableListOf()
+                    dbResult.forEach { obj ->
+                        val invoiceHeader = fillParams(obj)
+                        invoiceHeader.invoiceHeadTaName = tableNo
+                        invoiceHeaders.add(invoiceHeader)
+                    }
+                    return if (invoiceHeaders.size > 0) invoiceHeaders[0] else null
                 }
-                return if (invoiceHeaders.size > 0) invoiceHeaders[0] else null
+                return null
             }
         }
     }
@@ -317,7 +333,7 @@ class InvoiceHeaderRepositoryImpl(
             invoiceHeadTotal = obj.optDouble("hi_total")
             invoiceHeadTotal1 = obj.optDouble("hi_total1")
             invoiceHeadRate = obj.optDouble("hi_rates")
-            invoiceHeadTaName = obj.optString("hi_ta_name")
+            invoiceHeadTableId = obj.optString("hi_ta_name")
             invoiceHeadClientsCount = obj.optInt("hi_clientscount")
             invoiceHeadChange = obj.optDouble("hi_change")
             val timeStamp = obj.opt("hi_timestamp")
@@ -383,11 +399,25 @@ class InvoiceHeaderRepositoryImpl(
             invoiceHeader.invoiceHeadTotal,
             invoiceHeader.invoiceHeadTotal1,
             invoiceHeader.invoiceHeadRate,
-            invoiceHeader.invoiceHeadTaName,
+            invoiceHeader.invoiceHeadTableId,
             invoiceHeader.invoiceHeadClientsCount,
             invoiceHeader.invoiceHeadChange,
             invoiceHeader.invoiceHeadTimeStamp,
             invoiceHeader.invoiceHeadUserStamp
         )
+    }
+
+    private fun getTableIdByNumber(tableNo: String): String? {
+        val where = "ta_cmp_id='${SettingsModel.getCompanyID()}' AND ta_newname = '$tableNo' AND ta_status = 'Busy'"
+        val dbResult = SQLServerWrapper.getListOf(
+            "pos_table",
+            mutableListOf("TOP 1 *"),
+            where
+        )
+        if (!dbResult.isNullOrEmpty()) {
+            return dbResult[0].optString("ta_name")
+        }
+
+        return null
     }
 }
