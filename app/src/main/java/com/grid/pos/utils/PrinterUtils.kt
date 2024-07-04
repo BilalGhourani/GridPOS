@@ -205,7 +205,6 @@ object PrinterUtils {
                 host,
                 port
             )
-            val printWriter = PrintWriter(File(""))
             val oStream = PrintWriter(
                 sock.getOutputStream(),
                 true
