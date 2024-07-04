@@ -13,6 +13,7 @@ import com.grid.pos.model.InvoiceItemModel
 import com.grid.pos.model.SettingsModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.io.File
 import java.io.PrintWriter
 import java.net.Socket
 import java.util.Date
@@ -195,7 +196,7 @@ object PrinterUtils {
     }
 
     fun printInvoice(
-            content: String,
+            htmlContent: String,
             host: String = "192.168.1.222",
             port: Int = 9100
     ) {
@@ -204,12 +205,24 @@ object PrinterUtils {
                 host,
                 port
             )
+            val printWriter = PrintWriter(File(""))
             val oStream = PrintWriter(
                 sock.getOutputStream(),
                 true
             )
-            oStream.print(content)
-            oStream.println("\n\n\n")
+            // Construct HTTP request
+            val httpRequest = buildString {
+                append("POST / HTTP/1.1\r\n")
+                append("Host: $host\r\n")
+                append("Content-Type: text/html\r\n")
+                append("Content-Length: ${htmlContent.length}\r\n")
+                append("\r\n")
+                append(htmlContent)
+            }
+
+            // Send HTTP request
+            oStream.println(httpRequest)
+            oStream.flush()
             oStream.close()
             sock.close()
         } catch (e: Exception) {
