@@ -169,9 +169,10 @@ class ActivityScopedViewModel @Inject constructor(
         isFromTable = false
     }
 
-    fun print() {
+    fun print(context: Context) {
         viewModelScope.launch(Dispatchers.IO) {
             PrinterUtils.print(
+                context,
                 invoiceHeader,
                 invoiceItemModels,
                 printers

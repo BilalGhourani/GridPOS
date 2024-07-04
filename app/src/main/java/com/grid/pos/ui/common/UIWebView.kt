@@ -100,7 +100,7 @@ fun UIWebView(
                         .padding(10.dp),
                     text = "Print"
                 ) {
-                    activityViewModel.print()
+                    activityViewModel.print(context)
 //                    Utils.printWebPage(
 //                        webView,
 //                        context

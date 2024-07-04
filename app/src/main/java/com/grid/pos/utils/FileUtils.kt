@@ -5,7 +5,6 @@ import android.content.ContentValues
 import android.content.Context
 import android.net.Uri
 import android.os.Build
-import android.os.Environment
 import android.provider.DocumentsContract
 import android.provider.MediaStore
 import android.util.Log
@@ -31,10 +30,10 @@ import java.util.Date
 
 object FileUtils {
     fun saveToInternalStorage(
-            context: Context,
-            parent: String,
-            sourceFilePath: Uri,
-            destName: String
+        context: Context,
+        parent: String,
+        sourceFilePath: Uri,
+        destName: String
     ): String? {
         val storageDir = File(
             context.filesDir,
@@ -81,12 +80,12 @@ object FileUtils {
     }
 
     fun saveToExternalStorage(
-            context: Context,
-            parent: String = "family",
-            sourceFilePath: Uri,
-            destName: String,
-            type: String = "Image",
-            workbook: Workbook? = null
+        context: Context,
+        parent: String = "family",
+        sourceFilePath: Uri,
+        destName: String,
+        type: String = "Image",
+        workbook: Workbook? = null
     ): String? {
         val resolver = context.contentResolver
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -207,8 +206,8 @@ object FileUtils {
     }
 
     fun getFileContent(
-            context: Context,
-            uri: Uri
+        context: Context,
+        uri: Uri
     ): String {
         val inputStream: InputStream? = context.contentResolver.openInputStream(uri)
 
@@ -227,8 +226,8 @@ object FileUtils {
     }
 
     fun deleteFile(
-            context: Context,
-            path: String
+        context: Context,
+        path: String
     ) {
         if (path.startsWith("content")) {
             val file: DocumentFile? = DocumentFile.fromSingleUri(
@@ -243,8 +242,8 @@ object FileUtils {
     }
 
     private fun getMimeTypeFromFileExtension(
-            filePath: String,
-            type: String = "Image"
+        filePath: String,
+        type: String = "Image"
     ): String {
         val extension = MimeTypeMap.getFileExtensionFromUrl(filePath)
         val fallback = when (type) {
@@ -257,8 +256,8 @@ object FileUtils {
     }
 
     fun readFileFromAssets(
-            fileName: String,
-            context: Context
+        fileName: String,
+        context: Context
     ): String {
         return try {
             val inputStream = context.assets.open(fileName)
@@ -279,8 +278,8 @@ object FileUtils {
     }
 
     private fun copyFile(
-            fromFile: File,
-            toFile: File
+        fromFile: File,
+        toFile: File
     ) {
         try {
             val sourceChannel = FileInputStream(fromFile).channel
@@ -301,9 +300,9 @@ object FileUtils {
     }
 
     private fun copyFile(
-            context: Context,
-            fromFile: Uri,
-            toFile: File
+        context: Context,
+        fromFile: Uri,
+        toFile: File
     ) {
         try {
             val contentResolver = context.contentResolver
@@ -363,8 +362,8 @@ object FileUtils {
     }
 
     fun restore(
-            context: Context,
-            uri: Uri
+        context: Context,
+        uri: Uri
     ) {
         val app = App.getInstance()
         var dbFile: File = context.getDatabasePath(Constants.DATABASE_NAME)
@@ -424,8 +423,8 @@ object FileUtils {
     }
 
     fun getLastWriteTimeFromUri(
-            context: Context,
-            uri: Uri
+        context: Context,
+        uri: Uri
     ): Date? {
         val file = getFileFromUri(
             context,
@@ -438,8 +437,8 @@ object FileUtils {
     }
 
     fun getFileFromUri(
-            context: Context,
-            uri: Uri
+        context: Context,
+        uri: Uri
     ): File? {
         val filePath: String = getFilePathFromUri(
             context,
@@ -453,8 +452,8 @@ object FileUtils {
     }
 
     private fun getFilePathFromUri(
-            context: Context,
-            uri: Uri
+        context: Context,
+        uri: Uri
     ): String {
         return if (DocumentsContract.isDocumentUri(
                 context,
@@ -532,10 +531,10 @@ object FileUtils {
     }
 
     private fun getDataColumn(
-            context: Context,
-            uri: Uri,
-            selection: String?,
-            selectionArgs: Array<String>?
+        context: Context,
+        uri: Uri,
+        selection: String?,
+        selectionArgs: Array<String>?
     ): String {
         context.contentResolver.query(
             uri,
@@ -578,19 +577,19 @@ object FileUtils {
                 return licenseFile
             }
         }
-       /* val downloadDirectory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-        val licensesFolder = File(
-            downloadDirectory,
-            "${context.packageName}/licenses"
-        )
-        val licenseFile = File(
-            licensesFolder,
-            "license"
-        )
+        /* val downloadDirectory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+         val licensesFolder = File(
+             downloadDirectory,
+             "${context.packageName}/licenses"
+         )
+         val licenseFile = File(
+             licensesFolder,
+             "license"
+         )
 
-        if (licenseFile.exists()) {
-            return licenseFile
-        }*/
+         if (licenseFile.exists()) {
+             return licenseFile
+         }*/
         return null
     }
 
@@ -618,6 +617,26 @@ object FileUtils {
         } catch (e: Exception) {
             e.printStackTrace()
         }
+    }
+
+    fun getHtmlFile(context: Context, htmlContent: String): File {
+        val pdfFile = File(
+            context.filesDir,
+            "output.pdf"
+        )
+
+        try {
+            // Use OutputStreamWriter to write the data to the file
+            FileOutputStream(pdfFile).use { outputStream ->
+                OutputStreamWriter(outputStream).use { writer ->
+                    writer.write(htmlContent)
+                }
+                outputStream.close()
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        return pdfFile
     }
 
 

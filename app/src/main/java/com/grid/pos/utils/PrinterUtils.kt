@@ -5,23 +5,19 @@ import android.print.PrintAttributes
 import android.print.PrintManager
 import android.util.Log
 import android.webkit.WebView
-import androidx.lifecycle.viewModelScope
-import com.grid.pos.App
 import com.grid.pos.data.InvoiceHeader.InvoiceHeader
 import com.grid.pos.data.PosPrinter.PosPrinter
 import com.grid.pos.model.InvoiceItemModel
 import com.grid.pos.model.SettingsModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import java.io.File
-import java.io.PrintWriter
+import java.io.FileInputStream
+import java.io.OutputStream
 import java.net.Socket
 import java.util.Date
 
 object PrinterUtils {
     fun printWebPage(
-            webView: WebView?,
-            context: Context
+        webView: WebView?,
+        context: Context
     ) {
         if (webView != null) {
             val printManager = context.getSystemService(Context.PRINT_SERVICE) as PrintManager
@@ -58,13 +54,13 @@ object PrinterUtils {
     }
 
     fun getInvoiceReceiptHtmlContent(
-            context: Context,
-            invoiceHeader: InvoiceHeader,
-            invoiceItemModels: MutableList<InvoiceItemModel>,
-            content: String = FileUtils.readFileFromAssets(
-                "invoice_receipt.html",
-                context
-            )
+        context: Context,
+        invoiceHeader: InvoiceHeader,
+        invoiceItemModels: MutableList<InvoiceItemModel>,
+        content: String = FileUtils.readFileFromAssets(
+            "invoice_receipt.html",
+            context
+        )
     ): String {
         var result = content.ifEmpty { FileUtils.getDefaultReceipt() }
         if (invoiceItemModels.isNotEmpty()) {
@@ -100,13 +96,13 @@ object PrinterUtils {
     }
 
     fun getItemReceiptHtmlContent(
-            context: Context,
-            content: String = FileUtils.readFileFromAssets(
-                "item_receipt.html",
-                context
-            ),
-            invoiceHeader: InvoiceHeader,
-            invItemModels: List<InvoiceItemModel>
+        context: Context,
+        content: String = FileUtils.readFileFromAssets(
+            "item_receipt.html",
+            context
+        ),
+        invoiceHeader: InvoiceHeader,
+        invItemModels: List<InvoiceItemModel>
     ): String {
         var result = content.ifEmpty { FileUtils.getDefaultItemReceipt() }
         result = result.replace(
@@ -154,11 +150,11 @@ object PrinterUtils {
     }
 
     fun print(
-            invoiceHeader: InvoiceHeader,
-            invoiceItemModels: MutableList<InvoiceItemModel>,
-            printers: MutableList<PosPrinter>
+        context:Context,
+        invoiceHeader: InvoiceHeader,
+        invoiceItemModels: MutableList<InvoiceItemModel>,
+        printers: MutableList<PosPrinter>
     ) {
-        val context = App.getInstance().applicationContext
         SettingsModel.currentCompany?.companyPrinterId?.let { companyPrinter ->
             val invoicePrinter = printers.firstOrNull { it.posPrinterId == companyPrinter }
             if (invoicePrinter != null) {
@@ -168,6 +164,7 @@ object PrinterUtils {
                     invoiceItemModels
                 )
                 printInvoice(
+                    context,
                     invoiceContent,
                     invoicePrinter.posPrinterHost,
                     invoicePrinter.posPrinterPort
@@ -186,6 +183,7 @@ object PrinterUtils {
                         invItemModels = entry.value
                     )
                     printInvoice(
+                        context,
                         invoiceContent,
                         itemsPrinter.posPrinterHost,
                         itemsPrinter.posPrinterPort
@@ -196,34 +194,33 @@ object PrinterUtils {
     }
 
     fun printInvoice(
-            htmlContent: String,
-            host: String = "192.168.1.222",
-            port: Int = 9100
+        context: Context,
+        htmlContent: String,
+        host: String = "192.168.1.222",
+        port: Int = 9100
     ) {
         try {
-            val sock = Socket(
-                host,
-                port
-            )
-            val oStream = PrintWriter(
-                sock.getOutputStream(),
-                true
-            )
-            // Construct HTTP request
-            val httpRequest = buildString {
-                append("POST / HTTP/1.1\r\n")
-                append("Host: $host\r\n")
-                append("Content-Type: text/html\r\n")
-                append("Content-Length: ${htmlContent.length}\r\n")
-                append("\r\n")
-                append(htmlContent)
-            }
+            val pdfFile = FileUtils.getHtmlFile(context, htmlContent)
+            Socket(host, port).use { socket ->
+                val outputStream: OutputStream = socket.getOutputStream()
+                FileInputStream(pdfFile).use { fileInputStream ->
+                    val buffer = ByteArray(1024)
+                    var bytesRead: Int
 
-            // Send HTTP request
-            oStream.println(httpRequest)
-            oStream.flush()
-            oStream.close()
-            sock.close()
+                    // Read the PDF file and send its bytes to the printer
+                    while (fileInputStream.read(buffer).also { bytesRead = it } != -1) {
+                        outputStream.write(buffer, 0, bytesRead)
+                    }
+
+                    outputStream.flush()
+                    socket.close()
+                }
+                /*PrintWriter(sock.getOutputStream(), true).use { printWriter ->
+                    printWriter.println(htmlContent.parseAsHtml())
+                    printWriter.flush()
+                    sock.close()
+                }*/
+            }
         } catch (e: Exception) {
             Log.e(
                 "exception",
