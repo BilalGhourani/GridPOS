@@ -35,7 +35,12 @@ class LoginViewModel @Inject constructor(
             username: String,
             password: String
     ) {
-        viewModelScope.launch(Dispatchers.IO) {
+        loginNow(
+            username,
+            password
+        )
+
+        /*viewModelScope.launch(Dispatchers.IO) {
             //CryptoUtils.test(App.getInstance().getConfigValue("key_for_license"))
             checkLicenseUseCase.invoke(context,
                 onResult = { result ->
@@ -59,7 +64,7 @@ class LoginViewModel @Inject constructor(
                         }
                     }
                 })
-        }
+        }*/
     }
 
     private fun loginNow(
