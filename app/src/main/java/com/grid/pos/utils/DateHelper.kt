@@ -1,8 +1,6 @@
 package com.grid.pos.utils
 
-import android.os.Build
 import java.text.SimpleDateFormat
-import java.time.temporal.ChronoUnit
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
@@ -54,6 +52,23 @@ object DateHelper {
             seconds
         )
         return calendar.time
+    }
+
+    fun addDays(
+            initialDate: Date = Date(),
+            days: Int
+    ): Date {
+        val cal = Calendar.getInstance()
+        cal.time = initialDate
+        cal.add(
+            Calendar.DATE,
+            days
+        )
+
+        val date = initialDate.clone() as Date
+        date.time = cal.timeInMillis
+
+        return date
     }
 
     fun getDatesDiff(

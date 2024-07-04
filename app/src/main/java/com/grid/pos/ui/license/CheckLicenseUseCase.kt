@@ -54,26 +54,32 @@ class CheckLicenseUseCase(
                         val segs = decryptContent.split(sep)
                         val segsSize = segs.size
                         val devID = if (segsSize > 0) segs[0] else ""
-                        val expiryDate = if (segsSize > 1) segs[1] else ""
-                        val isRTA = if (segsSize > 2) segs[2] else ""
+                        val expiryDateStr = if (segsSize > 1) segs[1] else ""
+                        val isReadyToActivate = ((if (segsSize > 2) segs[2] else "0").toIntOrNull() ?: 0) == 1
+                        val daysNumber = (if (segsSize > 3) segs[3] else "7").toIntOrNull() ?: 0
                         val sameDeviceID = devID.equals(
                             Utils.getDeviceID(context),
                             ignoreCase = true
                         )
-                        if (sameDeviceID && Date().time < DateHelper.getDateFromString(
-                                expiryDate,
-                                "yyyyMMdd"
-                            ).time
+                        val expiryDate = DateHelper.getDateFromString(expiryDateStr, "yyyyMMdd")
+                        val currDate = Date()
+                        if (sameDeviceID && currDate.time < expiryDate.time && !isReadyToActivate
                         ) {
                             onResult.invoke(Constants.SUCCEEDED)
-                        } else if (sameDeviceID && (isRTA.toIntOrNull() ?: 0) == 1) {
+                        } else if (currDate.time < expiryDate.time && isReadyToActivate) {
                             //would you like to activate
-                          /*  val newExpiryDate = DateHelper.getDateInFormat(
-                                Date(),
+                            val newDate = DateHelper.addDays(
+                                currDate,
+                                daysNumber
+                            )
+                            val newExpiryDate = DateHelper.getDateInFormat(
+                                newDate,
                                 "yyyyMMdd"
                             )
-                            val newContent = "$devID$sep$newExpiryDate$sep"*/
-                        }else{
+                            val newContent = "$devID$sep$newExpiryDate"
+                            FileUtils.saveRtaLicense(context,newContent)
+                            onResult.invoke(Constants.SUCCEEDED)
+                        } else {
                             onResult.invoke(Constants.LICENSE_EXPIRED)
                         }
                     } else {
