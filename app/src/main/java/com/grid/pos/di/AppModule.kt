@@ -21,6 +21,8 @@ import com.grid.pos.data.PosPrinter.PosPrinterRepository
 import com.grid.pos.data.PosPrinter.PosPrinterRepositoryImpl
 import com.grid.pos.data.PosReceipt.PosReceiptRepository
 import com.grid.pos.data.PosReceipt.PosReceiptRepositoryImpl
+import com.grid.pos.data.Settings.SettingsRepository
+import com.grid.pos.data.Settings.SettingsRepositoryImpl
 import com.grid.pos.data.ThirdParty.ThirdPartyRepository
 import com.grid.pos.data.ThirdParty.ThirdPartyRepositoryImpl
 import com.grid.pos.data.User.UserRepository
@@ -51,6 +53,12 @@ object AppModule {
             AppDatabase::class.java,
             Constants.DATABASE_NAME
         ).addCallback(callback).build()
+    }
+
+    @Provides
+    @Singleton
+    fun provideSettingsRepository(): SettingsRepository {
+        return SettingsRepositoryImpl()
     }
 
     @Provides

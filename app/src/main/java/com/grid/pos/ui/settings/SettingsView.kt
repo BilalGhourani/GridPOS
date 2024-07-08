@@ -106,6 +106,7 @@ fun SettingsView(
     var sqlServerDbUser by remember { mutableStateOf(SettingsModel.sqlServerDbUser ?: "") }
     var sqlServerDbPassword by remember { mutableStateOf(SettingsModel.sqlServerDbPassword ?: "") }
     var sqlServerCompanyId by remember { mutableStateOf(SettingsModel.sqlServerCompanyId ?: "") }
+    var isSqlServerWebDb by remember { mutableStateOf(SettingsModel.isSqlServerWebDb) }
     var passwordVisibility by remember { mutableStateOf(false) }
 
     val companies = remember { mutableStateListOf<Company>() }
@@ -349,6 +350,18 @@ fun SettingsView(
                                     sqlServerCompanyId = compId
                                 }
 
+                                UISwitch(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(60.dp)
+                                        .padding(10.dp),
+                                    checked = isSqlServerWebDb,
+                                    text = "Sql Server Web Db",
+                                    textColor = textColorState
+                                ) { isWebDb ->
+                                    isSqlServerWebDb = isWebDb
+                                }
+
                             } else {
                                 SearchableDropdownMenu(items = companies.toMutableList(),
                                     modifier = Modifier.padding(10.dp),
@@ -435,6 +448,12 @@ fun SettingsView(
                                             DataStoreManager.putString(
                                                 DataStoreManager.DataStoreKeys.SQL_SERVER_COMPANY_ID.key,
                                                 sqlServerCompanyId
+                                            )
+
+                                            SettingsModel.isSqlServerWebDb = isSqlServerWebDb
+                                            DataStoreManager.putBoolean(
+                                                DataStoreManager.DataStoreKeys.IS_SQL_SERVER_WEB_DB.key,
+                                                isSqlServerWebDb
                                             )
                                         }
 

@@ -192,7 +192,7 @@ class CompanyRepositoryImpl(
                     "company",
                     listOf("cmp_ss"),
                     listOf(if (disabled) "1" else "0"),
-                    "cmp_id = ${SettingsModel.sqlServerCompanyId}"
+                    "cmp_id = ${SettingsModel.getCompanyID()}"
                 )
             }
         }

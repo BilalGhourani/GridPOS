@@ -17,11 +17,13 @@ import com.grid.pos.data.Item.ItemRepository
 import com.grid.pos.data.PosPrinter.PosPrinter
 import com.grid.pos.data.PosPrinter.PosPrinterRepository
 import com.grid.pos.data.PosReceipt.PosReceipt
+import com.grid.pos.data.Settings.SettingsRepository
 import com.grid.pos.data.ThirdParty.ThirdParty
 import com.grid.pos.data.ThirdParty.ThirdPartyRepository
 import com.grid.pos.data.User.User
 import com.grid.pos.interfaces.OnBarcodeResult
 import com.grid.pos.interfaces.OnGalleryResult
+import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.Event
 import com.grid.pos.model.InvoiceItemModel
 import com.grid.pos.model.SettingsModel
@@ -38,12 +40,13 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ActivityScopedViewModel @Inject constructor(
-    private val currencyRepository: CurrencyRepository,
-    private val companyRepository: CompanyRepository,
-    private val thirdPartyRepository: ThirdPartyRepository,
-    private val familyRepository: FamilyRepository,
-    private val itemRepository: ItemRepository,
-    private val posPrinterRepository: PosPrinterRepository,
+        private val settingsRepository: SettingsRepository,
+        private val currencyRepository: CurrencyRepository,
+        private val companyRepository: CompanyRepository,
+        private val thirdPartyRepository: ThirdPartyRepository,
+        private val familyRepository: FamilyRepository,
+        private val itemRepository: ItemRepository,
+        private val posPrinterRepository: PosPrinterRepository,
 ) : ViewModel() {
     private val _mainActivityEvent = Channel<ActivityScopedUIEvent>()
     val mainActivityEvent = _mainActivityEvent.receiveAsFlow()
@@ -70,6 +73,7 @@ class ActivityScopedViewModel @Inject constructor(
 
     suspend fun initiateValues() {
         if (SettingsModel.currentUser != null) {
+            fetchSettings()
             fetchCompanies()
             fetchCurrencies()
             fetchThirdParties()
@@ -79,22 +83,24 @@ class ActivityScopedViewModel @Inject constructor(
         }
     }
 
+    private suspend fun fetchSettings() {
+        SettingsModel.siTransactionType = settingsRepository.getSalesInvoiceTransType()?:"SI"
+        SettingsModel.rsTransactionType = settingsRepository.getReturnSalesTransType()?:"RS"
+    }
     private suspend fun fetchCurrencies() {
         if (SettingsModel.currentCurrency == null) {
-            viewModelScope.launch(Dispatchers.IO) {
-                currencies = currencyRepository.getAllCurrencies()
-                currencies.forEach {
-                    if (it.currencyCompId.equals(
-                            SettingsModel.getCompanyID(),
-                            ignoreCase = true
-                        )
-                    ) {
-                        SettingsModel.currentCurrency = it
-                    }
+            currencies = currencyRepository.getAllCurrencies()
+            currencies.forEach {
+                if (it.currencyCompId.equals(
+                        SettingsModel.getCompanyID(),
+                        ignoreCase = true
+                    )
+                ) {
+                    SettingsModel.currentCurrency = it
                 }
-                if (SettingsModel.currentCurrency == null) {
-                    SettingsModel.currentCurrency = Currency()
-                }
+            }
+            if (SettingsModel.currentCurrency == null) {
+                SettingsModel.currentCurrency = Currency()
             }
         }
     }
@@ -113,32 +119,28 @@ class ActivityScopedViewModel @Inject constructor(
     }
 
     private suspend fun fetchCompanies() {
-        viewModelScope.launch(Dispatchers.IO) {
-            companies = companyRepository.getAllCompanies()
-            companies.forEach {
-                if (it.companyId.equals(
-                        SettingsModel.getCompanyID(),
-                        ignoreCase = true
-                    )
-                ) {
-                    SettingsModel.currentCompany = it
-                }
+        companies = companyRepository.getAllCompanies()
+        companies.forEach {
+            if (it.companyId.equals(
+                    SettingsModel.getCompanyID(),
+                    ignoreCase = true
+                )
+            ) {
+                SettingsModel.currentCompany = it
             }
-            if (SettingsModel.currentCompany?.companySS == true) {
-                viewModelScope.launch(Dispatchers.IO) {
-                    SettingsModel.currentUserId = null
-                    SettingsModel.currentUser = null
-                    DataStoreManager.removeKey(
-                        DataStoreManager.DataStoreKeys.CURRENT_USER_ID.key
-                    )
-                    withContext(Dispatchers.Main) {
-                        activityState.value = activityState.value.copy(
-                            isLoggedIn = false,
-                            warning = Event(SettingsModel.companyAccessWarning),
-                            forceLogout = true
-                        )
-                    }
-                }
+        }
+        if (SettingsModel.currentCompany?.companySS == true) {
+            SettingsModel.currentUserId = null
+            SettingsModel.currentUser = null
+            DataStoreManager.removeKey(
+                DataStoreManager.DataStoreKeys.CURRENT_USER_ID.key
+            )
+            withContext(Dispatchers.Main) {
+                activityState.value = activityState.value.copy(
+                    isLoggedIn = false,
+                    warning = Event(SettingsModel.companyAccessWarning),
+                    forceLogout = true
+                )
             }
         }
     }
@@ -180,7 +182,11 @@ class ActivityScopedViewModel @Inject constructor(
     }
 
     fun getInvoiceReceiptHtmlContent(context: Context): String {
-        return PrinterUtils.getInvoiceReceiptHtmlContent(context, invoiceHeader, invoiceItemModels)
+        return PrinterUtils.getInvoiceReceiptHtmlContent(
+            context,
+            invoiceHeader,
+            invoiceItemModels
+        )
     }
 
     fun finish() {
@@ -196,9 +202,9 @@ class ActivityScopedViewModel @Inject constructor(
     }
 
     fun launchGalleryPicker(
-        mediaType: ActivityResultContracts.PickVisualMedia.VisualMediaType,
-        delegate: OnGalleryResult,
-        onPermissionDenied: () -> Unit
+            mediaType: ActivityResultContracts.PickVisualMedia.VisualMediaType,
+            delegate: OnGalleryResult,
+            onPermissionDenied: () -> Unit
     ) {
         viewModelScope.launch {
             _mainActivityEvent.send(
@@ -212,8 +218,8 @@ class ActivityScopedViewModel @Inject constructor(
     }
 
     fun launchFilePicker(
-        delegate: OnGalleryResult,
-        onPermissionDenied: () -> Unit
+            delegate: OnGalleryResult,
+            onPermissionDenied: () -> Unit
     ) {
         viewModelScope.launch {
             _mainActivityEvent.send(
@@ -226,7 +232,7 @@ class ActivityScopedViewModel @Inject constructor(
     }
 
     fun startChooserActivity(
-        intent: Intent
+            intent: Intent
     ) {
         viewModelScope.launch {
             _mainActivityEvent.send(ActivityScopedUIEvent.StartChooserActivity(intent))

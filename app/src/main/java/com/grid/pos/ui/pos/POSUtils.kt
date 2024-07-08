@@ -75,6 +75,6 @@ object POSUtils {
     }
 
     fun getInvoiceType(invoiceHeader: InvoiceHeader): String {
-        return invoiceHeader.invoiceHeadTtCode ?: if (invoiceHeader.invoiceHeadTotal > 0) "SI" else "RS"
+        return invoiceHeader.invoiceHeadTtCode ?: SettingsModel.getTransactionType(invoiceHeader.invoiceHeadTotal)
     }
 }

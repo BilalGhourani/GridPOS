@@ -20,6 +20,7 @@ object SettingsModel {
     var sqlServerDbUser: String? = null
     var sqlServerDbPassword: String? = null
     var sqlServerCompanyId: String? = null
+    var isSqlServerWebDb: Boolean = true
 
     var showTax: Boolean = false
     var showTax1: Boolean = false
@@ -37,6 +38,9 @@ object SettingsModel {
     var currentCompany: Company? = null
 
     var companyAccessWarning: String = "You don't have access to this company!"
+
+    var siTransactionType: String = "SI"
+    var rsTransactionType: String = "RS"
 
     fun getUserType(): UserType {
         if (currentUser?.userPosMode == true && currentUser?.userTableMode == true) {
@@ -67,6 +71,10 @@ object SettingsModel {
 
     fun getSqlServerDbPath(): String {
         return "jdbc:jtds:sqlserver://${sqlServerPath};encrypt=true"
+    }
+
+    fun getTransactionType(amount: Double): String {
+        return if (amount > 0) siTransactionType else rsTransactionType
     }
 }
 

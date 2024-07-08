@@ -14,6 +14,7 @@ import com.grid.pos.data.PosReceipt.PosReceiptRepository
 import com.grid.pos.data.ThirdParty.ThirdPartyRepository
 import com.grid.pos.model.Event
 import com.grid.pos.model.InvoiceItemModel
+import com.grid.pos.model.SettingsModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -121,7 +122,7 @@ class POSViewModel @Inject constructor(
                     invoiceHeader.invoiceHeadOrderNo = POSUtils.getInvoiceNo(
                         result?.invoiceHeadOrderNo ?: ""
                     )
-                    invoiceHeader.invoiceHeadTtCode = if (invoiceHeader.invoiceHeadGrossAmount > 0) "SI" else "RS"
+                    invoiceHeader.invoiceHeadTtCode =  SettingsModel.getTransactionType(invoiceHeader.invoiceHeadGrossAmount)
                 } else {
                     invoiceHeader.invoiceHeadTtCode = null
                 }
@@ -143,7 +144,7 @@ class POSViewModel @Inject constructor(
                         result?.invoiceHeadOrderNo ?: ""
                     )
                     invoiceHeader.prepareForInsert()
-                    invoiceHeader.invoiceHeadTtCode = if (invoiceHeader.invoiceHeadGrossAmount > 0) "SI" else "RS"
+                    invoiceHeader.invoiceHeadTtCode = SettingsModel.getTransactionType(invoiceHeader.invoiceHeadGrossAmount)
                 }
                 invoiceHeaderRepository.update(invoiceHeader)
                 savePOSReceipt(
