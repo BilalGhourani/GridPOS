@@ -13,11 +13,14 @@ import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.ConnectionModel
 import com.grid.pos.model.HomeSectionModel
 import com.grid.pos.model.InvoiceItemModel
+import com.grid.pos.model.SettingsModel
+import java.math.BigInteger
 import java.text.SimpleDateFormat
 import java.time.Year
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import java.util.Random
 import java.util.TimeZone
 import java.util.UUID
 
@@ -75,6 +78,10 @@ object Utils {
     }
 
     fun generateRandomUuidString(): String {
+        if (!SettingsModel.isSqlServerWebDb && SettingsModel.connectionType == CONNECTION_TYPE.SQL_SERVER.key) {
+            val random = Random()
+            return (BigInteger(24, random)).toString()
+        }
         return UUID.randomUUID().toString()
     }
 
