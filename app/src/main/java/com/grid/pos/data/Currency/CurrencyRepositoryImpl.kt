@@ -92,7 +92,6 @@ class CurrencyRepositoryImpl(
                         currency.currencyCode1 = obj.optString("cur_newcode")
                         currency.currencyName1 = obj.optString("cur_name")
                         currency.currencyName1Dec = obj.optInt("cur_decimal")
-                        currency.currencyRate = obj.optDouble("cur_round")
                     } else {
                         currency.currencyDocumentId = obj.optString("cur_code")
                         currency.currencyCode2 = obj.optString("cur_newcode")
@@ -100,6 +99,19 @@ class CurrencyRepositoryImpl(
                         currency.currencyName2Dec = obj.optInt("cur_decimal")
                     }
                 }
+
+                val rateWhere =  "rate_cur_code1 = '${currency.currencyId}' AND rate_cur_code2 = '${currency.currencyDocumentId}' ORDER BY rate_date DESC"
+
+                val rateDbResult = SQLServerWrapper.getListOf(
+                    "crate",
+                    mutableListOf("TOP 1 rate_rate"),
+                    rateWhere
+                )
+
+                if(rateDbResult.isNotEmpty()){
+                    currency.currencyRate = rateDbResult[0].optDouble("rate_rate")
+                }
+
                 mutableListOf(currency)
             }
         }

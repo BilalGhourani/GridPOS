@@ -84,9 +84,12 @@ class ActivityScopedViewModel @Inject constructor(
     }
 
     private suspend fun fetchSettings() {
-        SettingsModel.siTransactionType = settingsRepository.getSalesInvoiceTransType()?:"SI"
-        SettingsModel.rsTransactionType = settingsRepository.getReturnSalesTransType()?:"RS"
+        SettingsModel.siTransactionType = settingsRepository.getSalesInvoiceTransType() ?: "SI"
+        SettingsModel.rsTransactionType = settingsRepository.getReturnSalesTransType() ?: "RS"
+        SettingsModel.defaultBranch = settingsRepository.getDefaultBranch()
+        SettingsModel.defaultWarehouse = settingsRepository.getDefaultWarehouse()
     }
+
     private suspend fun fetchCurrencies() {
         if (SettingsModel.currentCurrency == null) {
             currencies = currencyRepository.getAllCurrencies()

@@ -41,6 +41,8 @@ object SettingsModel {
 
     var siTransactionType: String = "SI"
     var rsTransactionType: String = "RS"
+    var defaultBranch: String? = null
+    var defaultWarehouse: String? = null
 
     fun getUserType(): UserType {
         if (currentUser?.userPosMode == true && currentUser?.userTableMode == true) {

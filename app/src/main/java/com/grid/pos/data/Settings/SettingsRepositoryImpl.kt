@@ -80,4 +80,70 @@ class SettingsRepositoryImpl : SettingsRepository {
         }
     }
 
+    override suspend fun getDefaultBranch(): String? {
+        when (SettingsModel.connectionType) {
+            CONNECTION_TYPE.FIRESTORE.key -> {
+                // nothing to do
+                return null
+            }
+
+            CONNECTION_TYPE.LOCAL.key -> {
+                //nothing to do
+                return null
+            }
+
+            else -> {
+                val where = if (SettingsModel.isSqlServerWebDb) {
+                    "bra_default=1 and bra_cmp_id='${SettingsModel.getCompanyID()}'"
+                } else {
+                    "bra_default=1"
+                }
+                val dbResult = SQLServerWrapper.getListOf(
+                    "branch",
+                    mutableListOf(
+                        "bra_name"
+                    ),
+                    where
+                )
+                if (dbResult.isNotEmpty()) {
+                    return dbResult[0].optString("bra_name")
+                }
+                return null
+            }
+        }
+    }
+
+    override suspend fun getDefaultWarehouse(): String? {
+        when (SettingsModel.connectionType) {
+            CONNECTION_TYPE.FIRESTORE.key -> {
+                // nothing to do
+                return null
+            }
+
+            CONNECTION_TYPE.LOCAL.key -> {
+                //nothing to do
+                return null
+            }
+
+            else -> {
+                val where = if (SettingsModel.isSqlServerWebDb) {
+                    "wa_order=1 and wa_cmp_id='${SettingsModel.getCompanyID()}'"
+                } else {
+                    "wa_order=1"
+                }
+                val dbResult = SQLServerWrapper.getListOf(
+                    "warehouse",
+                    mutableListOf(
+                        "wa_name"
+                    ),
+                    where
+                )
+                if (dbResult.isNotEmpty()) {
+                    return dbResult[0].optString("wa_name")
+                }
+                return null
+            }
+        }
+    }
+
 }
