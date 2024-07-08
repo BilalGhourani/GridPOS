@@ -109,10 +109,11 @@ object SQLServerWrapper {
 
     fun delete(
             tableName: String,
-            where: String
+            where: String,
+            innerJoin: String = ""
     ) {
         val whereQuery = if (where.isNotEmpty()) "WHERE $where " else ""
-        val sqlQuery = "DELETE FROM $tableName $whereQuery"
+        val sqlQuery = "DELETE FROM $tableName $innerJoin $whereQuery"
         runDbQuery(
             sqlQuery,
             listOf()

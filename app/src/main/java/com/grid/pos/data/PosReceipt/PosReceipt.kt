@@ -41,6 +41,10 @@ data class PosReceipt(
         @get:Exclude
         var posReceiptCashID: String? = null,
 
+        @Ignore
+        @get:Exclude
+        var posReceiptCashRaID: String? = null,
+
         /**
          *  POS Receipt Cash Amount
          * */
@@ -52,6 +56,10 @@ data class PosReceipt(
         @Ignore
         @get:Exclude
         var posReceiptCashsID: String? = null,
+
+        @Ignore
+        @get:Exclude
+        var posReceiptCashsRaID: String? = null,
 
         /**
          *  POS Receipt Cash Amount 2
@@ -65,6 +73,10 @@ data class PosReceipt(
         @get:Exclude
         var posReceiptCreditID: String? = null,
 
+        @Ignore
+        @get:Exclude
+        var posReceiptCreditRaID: String? = null,
+
         /**
          *  POS Receipt Credit Amount
          * */
@@ -76,6 +88,10 @@ data class PosReceipt(
         @Ignore
         @get:Exclude
         var posReceiptCreditsID: String? = null,
+
+        @Ignore
+        @get:Exclude
+        var posReceiptCreditsRaID: String? = null,
 
         /**
          *  POS Receipt Credit Amounts
@@ -89,6 +105,10 @@ data class PosReceipt(
         @get:Exclude
         var posReceiptDebitID: String? = null,
 
+        @Ignore
+        @get:Exclude
+        var posReceiptDebitRaID: String? = null,
+
         /**
          *  POS Receipt Debit Amount
          * */
@@ -100,6 +120,10 @@ data class PosReceipt(
         @Ignore
         @get:Exclude
         var posReceiptDebitsID: String? = null,
+
+        @Ignore
+        @get:Exclude
+        var posReceiptDebitsRaID: String? = null,
 
         /**
          *  POS Receipt Debit Amount 2

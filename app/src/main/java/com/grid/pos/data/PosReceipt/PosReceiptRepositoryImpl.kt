@@ -127,30 +127,71 @@ class PosReceiptRepositoryImpl(
             }
 
             else -> {
-                SQLServerWrapper.delete(
-                    "pos_receipt",
-                    "pr_id = ${posReceipt.posReceiptCashID}"
-                )
-                SQLServerWrapper.delete(
-                    "pos_receipt",
-                    "pr_id = ${posReceipt.posReceiptCashsID}"
-                )
-                SQLServerWrapper.delete(
-                    "pos_receipt",
-                    "pr_id = ${posReceipt.posReceiptCreditID}"
-                )
-                SQLServerWrapper.delete(
-                    "pos_receipt",
-                    "pr_id = ${posReceipt.posReceiptCreditsID}"
-                )
-                SQLServerWrapper.delete(
-                    "pos_receipt",
-                    "pr_id = ${posReceipt.posReceiptDebitID}"
-                )
-                SQLServerWrapper.delete(
-                    "pos_receipt",
-                    "pr_id = ${posReceipt.posReceiptDebitsID}"
-                )
+                posReceipt.posReceiptCashID?.let {
+                    SQLServerWrapper.delete(
+                        "pos_receiptacc",
+                        "ra_id =  '${ posReceipt.posReceiptCashRaID}'"
+                    )
+                    SQLServerWrapper.delete(
+                        "pos_receipt",
+                        "pr_id = '$it'"
+                    )
+                }
+
+                posReceipt.posReceiptCashsID?.let {
+                    SQLServerWrapper.delete(
+                        "pos_receiptacc",
+                        "ra_id =  '${ posReceipt.posReceiptCashsRaID}'"
+                    )
+                    SQLServerWrapper.delete(
+                        "pos_receipt",
+                        "pr_id = '$it'"
+                    )
+                }
+
+                posReceipt.posReceiptCreditID?.let {
+                    SQLServerWrapper.delete(
+                        "pos_receiptacc",
+                        "ra_id =  '${ posReceipt.posReceiptCreditRaID}'"
+                    )
+                    SQLServerWrapper.delete(
+                        "pos_receipt",
+                        "pr_id = '$it'"
+                    )
+                }
+
+                posReceipt.posReceiptCreditsID?.let {
+                    SQLServerWrapper.delete(
+                        "pos_receiptacc",
+                        "ra_id =  '${ posReceipt.posReceiptCreditsRaID}'"
+                    )
+                    SQLServerWrapper.delete(
+                        "pos_receipt",
+                        "pr_id = '$it'"
+                    )
+                }
+
+                posReceipt.posReceiptDebitID?.let {
+                    SQLServerWrapper.delete(
+                        "pos_receiptacc",
+                        "ra_id =  '${ posReceipt.posReceiptDebitRaID}'"
+                    )
+                    SQLServerWrapper.delete(
+                        "pos_receipt",
+                        "pr_id = '$it'"
+                    )
+                }
+
+                posReceipt.posReceiptDebitsID?.let {
+                    SQLServerWrapper.delete(
+                        "pos_receiptacc",
+                        "ra_id =  '${ posReceipt.posReceiptDebitsRaID}'"
+                    )
+                    SQLServerWrapper.delete(
+                        "pos_receipt",
+                        "pr_id = '$it'"
+                    )
+                }
             }
         }
     }
@@ -383,9 +424,11 @@ class PosReceiptRepositoryImpl(
                             "Cash" -> {
                                 if (ra_order == 1) {
                                     posReceipt.posReceiptCashID = obj.optString("pr_id")
+                                    posReceipt.posReceiptCashRaID = obj.optString("pr_ra_id")
                                     posReceipt.posReceiptCash = obj.optDouble("pr_amt")
                                 } else {
                                     posReceipt.posReceiptCashsID = obj.optString("pr_id")
+                                    posReceipt.posReceiptCashsRaID = obj.optString("pr_ra_id")
                                     posReceipt.posReceiptCashs = obj.optDouble("pr_amt")
                                 }
                             }
@@ -393,9 +436,11 @@ class PosReceiptRepositoryImpl(
                             "Credit" -> {
                                 if (ra_order == 1) {
                                     posReceipt.posReceiptCreditID = obj.optString("pr_id")
+                                    posReceipt.posReceiptCreditRaID = obj.optString("pr_ra_id")
                                     posReceipt.posReceiptCredit = obj.optDouble("pr_amt")
                                 } else {
                                     posReceipt.posReceiptCreditsID = obj.optString("pr_id")
+                                    posReceipt.posReceiptCreditsRaID = obj.optString("pr_ra_id")
                                     posReceipt.posReceiptCredits = obj.optDouble("pr_amt")
                                 }
 
@@ -404,9 +449,11 @@ class PosReceiptRepositoryImpl(
                             "Debit" -> {
                                 if (ra_order == 1) {
                                     posReceipt.posReceiptDebitID = obj.optString("pr_id")
+                                    posReceipt.posReceiptDebitRaID = obj.optString("pr_ra_id")
                                     posReceipt.posReceiptDebit = obj.optDouble("pr_amt")
                                 } else {
                                     posReceipt.posReceiptDebitsID = obj.optString("pr_id")
+                                    posReceipt.posReceiptDebitsRaID = obj.optString("pr_ra_id")
                                     posReceipt.posReceiptDebits = obj.optDouble("pr_amt")
                                 }
 
