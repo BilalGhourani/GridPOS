@@ -372,6 +372,8 @@ class InvoiceHeaderRepositoryImpl(
             "hi_ta_name",
             "hi_clientscount",
             "hi_change",
+            "hi_wa_name",
+            "hi_bra_name",
             "hi_timestamp",
             "hi_userstamp",
         )
@@ -402,6 +404,8 @@ class InvoiceHeaderRepositoryImpl(
             invoiceHeader.invoiceHeadTableId,
             invoiceHeader.invoiceHeadClientsCount,
             invoiceHeader.invoiceHeadChange,
+            SettingsModel.defaultWarehouse,
+            SettingsModel.defaultBranch,
             invoiceHeader.invoiceHeadTimeStamp,
             invoiceHeader.invoiceHeadUserStamp
         )

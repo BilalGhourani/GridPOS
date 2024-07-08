@@ -217,6 +217,7 @@ class InvoiceRepositoryImpl(
             "in_cost",
             "in_remqty",
             "in_extraname",
+            "in_wa_name",
             "in_timestamp",
             "in_userstamp"
         )
@@ -238,6 +239,7 @@ class InvoiceRepositoryImpl(
             invoice.invoiceCost,
             invoice.invoiceRemQty,
             invoice.invoiceExtraName,
+            SettingsModel.defaultWarehouse,
             invoice.invoiceTimeStamp,
             invoice.invoiceUserStamp,
         )

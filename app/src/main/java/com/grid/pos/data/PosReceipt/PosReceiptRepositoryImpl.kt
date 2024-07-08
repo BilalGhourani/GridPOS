@@ -1,6 +1,7 @@
 package com.grid.pos.data.PosReceipt
 
 import com.google.firebase.firestore.FirebaseFirestore
+import com.grid.pos.data.Currency.Currency
 import com.grid.pos.data.InvoiceHeader.InvoiceHeader
 import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.model.CONNECTION_TYPE
@@ -30,12 +31,81 @@ class PosReceiptRepositoryImpl(
 
             else -> {
                 val rate = SettingsModel.currentCurrency?.currencyRate ?: 1.0
-                SQLServerWrapper.insert("pos_receipt", getColumns(), getValues(Utils.generateRandomUuidString(),posReceipt,0,rate))
-                SQLServerWrapper.insert("pos_receipt", getColumns(), getValues(Utils.generateRandomUuidString(),posReceipt,1,rate))
-                SQLServerWrapper.insert("pos_receipt", getColumns(), getValues(Utils.generateRandomUuidString(),posReceipt,2,rate))
-                SQLServerWrapper.insert("pos_receipt", getColumns(), getValues(Utils.generateRandomUuidString(),posReceipt,3,rate))
-                SQLServerWrapper.insert("pos_receipt", getColumns(), getValues(Utils.generateRandomUuidString(),posReceipt,4,rate))
-                SQLServerWrapper.insert("pos_receipt", getColumns(), getValues(Utils.generateRandomUuidString(),posReceipt,5,rate))
+                val currency = SettingsModel.currentCurrency
+                val companyId = SettingsModel.getCompanyID()
+                val columns = getColumns()
+                columns.add("pr_ra_id")
+                if (posReceipt.posReceiptCash > 0.0) {
+                    insertPosReceipt(
+                        columns,
+                        currency,
+                        companyId,
+                        posReceipt,
+                        rate,
+                        1,
+                        0
+                    )
+                }
+
+                if (posReceipt.posReceiptCashs > 0.0) {
+                    insertPosReceipt(
+                        columns,
+                        currency,
+                        companyId,
+                        posReceipt,
+                        rate,
+                        2,
+                        1
+                    )
+                }
+
+                if (posReceipt.posReceiptCredit > 0.0) {
+                    insertPosReceipt(
+                        columns,
+                        currency,
+                        companyId,
+                        posReceipt,
+                        rate,
+                        1,
+                        2
+                    )
+                }
+
+                if (posReceipt.posReceiptCredits > 0.0) {
+                    insertPosReceipt(
+                        columns,
+                        currency,
+                        companyId,
+                        posReceipt,
+                        rate,
+                        2,
+                        3
+                    )
+                }
+
+                if (posReceipt.posReceiptDebit > 0.0) {
+                    insertPosReceipt(
+                        columns,
+                        currency,
+                        companyId,
+                        posReceipt,
+                        rate,
+                        1,
+                        4
+                    )
+                }
+
+                if (posReceipt.posReceiptDebits > 0.0) {
+                    insertPosReceipt(
+                        columns,
+                        currency,
+                        companyId,
+                        posReceipt,
+                        rate,
+                        2,
+                        5
+                    )
+                }
             }
         }
         return posReceipt
@@ -57,12 +127,30 @@ class PosReceiptRepositoryImpl(
             }
 
             else -> {
-                SQLServerWrapper.delete("pos_receipt", "pr_id = ${posReceipt.posReceiptCashID}")
-                SQLServerWrapper.delete("pos_receipt", "pr_id = ${posReceipt.posReceiptCashsID}")
-                SQLServerWrapper.delete("pos_receipt", "pr_id = ${posReceipt.posReceiptCreditID}")
-                SQLServerWrapper.delete("pos_receipt", "pr_id = ${posReceipt.posReceiptCreditsID}")
-                SQLServerWrapper.delete("pos_receipt", "pr_id = ${posReceipt.posReceiptDebitID}")
-                SQLServerWrapper.delete("pos_receipt", "pr_id = ${posReceipt.posReceiptDebitsID}")
+                SQLServerWrapper.delete(
+                    "pos_receipt",
+                    "pr_id = ${posReceipt.posReceiptCashID}"
+                )
+                SQLServerWrapper.delete(
+                    "pos_receipt",
+                    "pr_id = ${posReceipt.posReceiptCashsID}"
+                )
+                SQLServerWrapper.delete(
+                    "pos_receipt",
+                    "pr_id = ${posReceipt.posReceiptCreditID}"
+                )
+                SQLServerWrapper.delete(
+                    "pos_receipt",
+                    "pr_id = ${posReceipt.posReceiptCreditsID}"
+                )
+                SQLServerWrapper.delete(
+                    "pos_receipt",
+                    "pr_id = ${posReceipt.posReceiptDebitID}"
+                )
+                SQLServerWrapper.delete(
+                    "pos_receipt",
+                    "pr_id = ${posReceipt.posReceiptDebitsID}"
+                )
             }
         }
     }
@@ -84,25 +172,157 @@ class PosReceiptRepositoryImpl(
 
             else -> {
                 val rate = SettingsModel.currentCurrency?.currencyRate ?: 1.0
-                if(!posReceipt.posReceiptCashID.isNullOrEmpty()){
-                    SQLServerWrapper.update("pos_receipt", getColumns(), getValues(posReceipt.posReceiptCashID!!,posReceipt,0,rate), "pr_id = ${posReceipt.posReceiptCashID!!}")
+                val defColumns = getColumns()
+                if (!posReceipt.posReceiptCashID.isNullOrEmpty()) {
+                    SQLServerWrapper.update(
+                        "pos_receipt",
+                        defColumns,
+                        getValues(
+                            posReceipt.posReceiptCashID!!,
+                            posReceipt,
+                            0,
+                            rate
+                        ),
+                        "pr_id = ${posReceipt.posReceiptCashID!!}"
+                    )
+                } else if (posReceipt.posReceiptCash > 0.0) {
+                    val columns = getColumns()
+                    columns.add("pr_ra_id")
+                    insertPosReceipt(
+                        columns,
+                        SettingsModel.currentCurrency,
+                        SettingsModel.getCompanyID(),
+                        posReceipt,
+                        rate,
+                        1,
+                        0
+                    )
                 }
-                if(!posReceipt.posReceiptCashsID.isNullOrEmpty()){
-                    SQLServerWrapper.update("pos_receipt", getColumns(), getValues(posReceipt.posReceiptCashsID!!,posReceipt,1,rate), "pr_id = ${posReceipt.posReceiptCashsID!!}")
+                if (!posReceipt.posReceiptCashsID.isNullOrEmpty()) {
+                    SQLServerWrapper.update(
+                        "pos_receipt",
+                        getColumns(),
+                        getValues(
+                            posReceipt.posReceiptCashsID!!,
+                            posReceipt,
+                            1,
+                            rate
+                        ),
+                        "pr_id = ${posReceipt.posReceiptCashsID!!}"
+                    )
+                } else if (posReceipt.posReceiptCashs > 0.0) {
+                    val columns = getColumns()
+                    columns.add("pr_ra_id")
+                    insertPosReceipt(
+                        columns,
+                        SettingsModel.currentCurrency,
+                        SettingsModel.getCompanyID(),
+                        posReceipt,
+                        rate,
+                        2,
+                        1
+                    )
                 }
-                if(!posReceipt.posReceiptCreditID.isNullOrEmpty()){
-                    SQLServerWrapper.update("pos_receipt", getColumns(), getValues(posReceipt.posReceiptCreditID!!,posReceipt,2,rate), "pr_id = ${posReceipt.posReceiptCreditID!!}")
+                if (!posReceipt.posReceiptCreditID.isNullOrEmpty()) {
+                    SQLServerWrapper.update(
+                        "pos_receipt",
+                        getColumns(),
+                        getValues(
+                            posReceipt.posReceiptCreditID!!,
+                            posReceipt,
+                            2,
+                            rate
+                        ),
+                        "pr_id = ${posReceipt.posReceiptCreditID!!}"
+                    )
+                } else if (posReceipt.posReceiptCredit > 0.0) {
+                    val columns = getColumns()
+                    columns.add("pr_ra_id")
+                    insertPosReceipt(
+                        columns,
+                        SettingsModel.currentCurrency,
+                        SettingsModel.getCompanyID(),
+                        posReceipt,
+                        rate,
+                        1,
+                        2
+                    )
                 }
-                if(!posReceipt.posReceiptCreditsID.isNullOrEmpty()){
-                    SQLServerWrapper.update("pos_receipt", getColumns(), getValues(posReceipt.posReceiptCreditsID!!,posReceipt,3,rate), "pr_id = ${posReceipt.posReceiptCreditsID!!}")
+                if (!posReceipt.posReceiptCreditsID.isNullOrEmpty()) {
+                    SQLServerWrapper.update(
+                        "pos_receipt",
+                        getColumns(),
+                        getValues(
+                            posReceipt.posReceiptCreditsID!!,
+                            posReceipt,
+                            3,
+                            rate
+                        ),
+                        "pr_id = ${posReceipt.posReceiptCreditsID!!}"
+                    )
+                } else if (posReceipt.posReceiptCredit > 0.0) {
+                    val columns = getColumns()
+                    columns.add("pr_ra_id")
+                    insertPosReceipt(
+                        columns,
+                        SettingsModel.currentCurrency,
+                        SettingsModel.getCompanyID(),
+                        posReceipt,
+                        rate,
+                        2,
+                        3
+                    )
                 }
-                if(!posReceipt.posReceiptDebitID.isNullOrEmpty()){
-                    SQLServerWrapper.update("pos_receipt", getColumns(), getValues(posReceipt.posReceiptDebitID!!,posReceipt,4,rate), "pr_id = ${posReceipt.posReceiptDebitID!!}")
+                if (!posReceipt.posReceiptDebitID.isNullOrEmpty()) {
+                    SQLServerWrapper.update(
+                        "pos_receipt",
+                        getColumns(),
+                        getValues(
+                            posReceipt.posReceiptDebitID!!,
+                            posReceipt,
+                            4,
+                            rate
+                        ),
+                        "pr_id = ${posReceipt.posReceiptDebitID!!}"
+                    )
+                } else if (posReceipt.posReceiptDebit > 0.0) {
+                    val columns = getColumns()
+                    columns.add("pr_ra_id")
+                    insertPosReceipt(
+                        columns,
+                        SettingsModel.currentCurrency,
+                        SettingsModel.getCompanyID(),
+                        posReceipt,
+                        rate,
+                        1,
+                        4
+                    )
                 }
-                if(!posReceipt.posReceiptDebitsID.isNullOrEmpty()){
-                    SQLServerWrapper.update("pos_receipt", getColumns(), getValues(posReceipt.posReceiptDebitsID!!,posReceipt,5,rate), "pr_id = ${posReceipt.posReceiptDebitsID!!}")
+                if (!posReceipt.posReceiptDebitsID.isNullOrEmpty()) {
+                    SQLServerWrapper.update(
+                        "pos_receipt",
+                        getColumns(),
+                        getValues(
+                            posReceipt.posReceiptDebitsID!!,
+                            posReceipt,
+                            5,
+                            rate
+                        ),
+                        "pr_id = ${posReceipt.posReceiptDebitsID!!}"
+                    )
+                } else if (posReceipt.posReceiptDebits > 0.0) {
+                    val columns = getColumns()
+                    columns.add("pr_ra_id")
+                    insertPosReceipt(
+                        columns,
+                        SettingsModel.currentCurrency,
+                        SettingsModel.getCompanyID(),
+                        posReceipt,
+                        rate,
+                        2,
+                        5
+                    )
                 }
-
             }
         }
     }
@@ -133,11 +353,12 @@ class PosReceiptRepositoryImpl(
             }
 
             else -> {
-                val where = "pr_hi_id='$invoiceHeaderId'"
+                val where = "pr_hi_id='$invoiceHeaderId'  ORDER BY pra.ra_order ASC"
                 val dbResult = SQLServerWrapper.getListOf(
                     "pos_receipt",
                     mutableListOf("*"),
-                    where
+                    where,
+                    " INNER JOIN pos_receiptacc on pr_ra_id = ra_id"
                 )
                 if (dbResult.isNotEmpty()) {
                     val posReceipt = PosReceipt()
@@ -156,35 +377,39 @@ class PosReceiptRepositoryImpl(
                             posReceipt.posReceiptDateTime = posReceipt.posReceiptTimeStamp!!.time
                             posReceipt.posReceiptUserStamp = obj.optString("pr_userstamp")
                         }
-                        when (index) {
-                            0 -> {
-                                posReceipt.posReceiptCashID = obj.optString("pr_id")
-                                posReceipt.posReceiptCash = obj.optDouble("pr_amt")
+                        val ra_type = obj.optString("ra_type")
+                        val ra_order = obj.optInt("ra_order")
+                        when (ra_type) {
+                            "Cash" -> {
+                                if (ra_order == 1) {
+                                    posReceipt.posReceiptCashID = obj.optString("pr_id")
+                                    posReceipt.posReceiptCash = obj.optDouble("pr_amt")
+                                } else {
+                                    posReceipt.posReceiptCashsID = obj.optString("pr_id")
+                                    posReceipt.posReceiptCashs = obj.optDouble("pr_amt")
+                                }
                             }
 
-                            1 -> {
-                                posReceipt.posReceiptCashsID = obj.optString("pr_id")
-                                posReceipt.posReceiptCashs = obj.optDouble("pr_amt")
+                            "Credit" -> {
+                                if (ra_order == 1) {
+                                    posReceipt.posReceiptCreditID = obj.optString("pr_id")
+                                    posReceipt.posReceiptCredit = obj.optDouble("pr_amt")
+                                } else {
+                                    posReceipt.posReceiptCreditsID = obj.optString("pr_id")
+                                    posReceipt.posReceiptCredits = obj.optDouble("pr_amt")
+                                }
+
                             }
 
-                            2 -> {
-                                posReceipt.posReceiptCreditID = obj.optString("pr_id")
-                                posReceipt.posReceiptCredit = obj.optDouble("pr_amt")
-                            }
+                            "Debit" -> {
+                                if (ra_order == 1) {
+                                    posReceipt.posReceiptDebitID = obj.optString("pr_id")
+                                    posReceipt.posReceiptDebit = obj.optDouble("pr_amt")
+                                } else {
+                                    posReceipt.posReceiptDebitsID = obj.optString("pr_id")
+                                    posReceipt.posReceiptDebits = obj.optDouble("pr_amt")
+                                }
 
-                            3 -> {
-                                posReceipt.posReceiptCreditsID = obj.optString("pr_id")
-                                posReceipt.posReceiptCredits = obj.optDouble("pr_amt")
-                            }
-
-                            4 -> {
-                                posReceipt.posReceiptDebitID = obj.optString("pr_id")
-                                posReceipt.posReceiptDebit = obj.optDouble("pr_amt")
-                            }
-
-                            5 -> {
-                                posReceipt.posReceiptDebitsID = obj.optString("pr_id")
-                                posReceipt.posReceiptDebits = obj.optDouble("pr_amt")
                             }
                         }
                     }
@@ -195,8 +420,8 @@ class PosReceiptRepositoryImpl(
         }
     }
 
-    private fun getColumns(): List<String> {
-        return listOf(
+    private fun getColumns(): MutableList<String> {
+        return mutableListOf(
             "pr_id",
             "pr_hi_id",
             "pr_amt",
@@ -209,13 +434,13 @@ class PosReceiptRepositoryImpl(
     }
 
     private fun getValues(
-            id:String,
+            id: String,
             posReceipt: PosReceipt,
             index: Int,
-            rate : Double
-    ): List<Any?> {
+            rate: Double
+    ): MutableList<Any?> {
         return when (index) {
-            0 -> listOf(
+            0 -> mutableListOf(
                 id,
                 posReceipt.posReceiptInvoiceId,
                 posReceipt.posReceiptCash,
@@ -226,7 +451,7 @@ class PosReceiptRepositoryImpl(
                 posReceipt.posReceiptUserStamp,
             )
 
-            1 -> listOf(
+            1 -> mutableListOf(
                 id,
                 posReceipt.posReceiptInvoiceId,
                 posReceipt.posReceiptCashs,
@@ -237,7 +462,7 @@ class PosReceiptRepositoryImpl(
                 posReceipt.posReceiptUserStamp,
             )
 
-            2 -> listOf(
+            2 -> mutableListOf(
                 id,
                 posReceipt.posReceiptInvoiceId,
                 posReceipt.posReceiptCredit,
@@ -248,7 +473,7 @@ class PosReceiptRepositoryImpl(
                 posReceipt.posReceiptUserStamp,
             )
 
-            3 -> listOf(
+            3 -> mutableListOf(
                 id,
                 posReceipt.posReceiptInvoiceId,
                 posReceipt.posReceiptCredits,
@@ -259,7 +484,7 @@ class PosReceiptRepositoryImpl(
                 posReceipt.posReceiptUserStamp,
             )
 
-            4 -> listOf(
+            4 -> mutableListOf(
                 id,
                 posReceipt.posReceiptInvoiceId,
                 posReceipt.posReceiptDebit,
@@ -270,7 +495,7 @@ class PosReceiptRepositoryImpl(
                 posReceipt.posReceiptUserStamp,
             )
 
-            else -> listOf(
+            else -> mutableListOf(
                 id,
                 posReceipt.posReceiptInvoiceId,
                 posReceipt.posReceiptDebits,
@@ -282,6 +507,54 @@ class PosReceiptRepositoryImpl(
             )
 
         }
+    }
+
+    private fun getReceiptAccColumns(): List<String> {
+        return listOf(
+            "ra_id",
+            "ra_cur_code",
+            "ra_name",
+            "ra_order",
+            "ra_type",
+            "ra_cmp_id"
+        )
+    }
+
+    private fun insertPosReceipt(
+            columns: MutableList<String>,
+            currency: Currency?,
+            companyId: String?,
+            posReceipt: PosReceipt,
+            rate: Double,
+            order: Int,
+            index: Int
+    ) {
+        val pr_id = Utils.generateRandomUuidString()
+        val ra_id_cash1 = Utils.generateRandomUuidString()
+        SQLServerWrapper.insert(
+            "pos_receiptacc",
+            getReceiptAccColumns(),
+            listOf(
+                ra_id_cash1,
+                currency?.currencyId,
+                "Cash $order",
+                order,
+                "Cash",
+                companyId
+            )
+        )
+        val values = getValues(
+            pr_id,
+            posReceipt,
+            index,
+            rate
+        )
+        values.add(ra_id_cash1)
+        SQLServerWrapper.insert(
+            "pos_receipt",
+            columns,
+            values
+        )
     }
 
 
