@@ -139,6 +139,7 @@ class UserRepositoryImpl(
                     "usr_username = $username AND usr_password=hashBytes ('SHA2_512', CONVERT(nvarchar(4000),'$password'+cast(usr_salt as nvarchar(36)))) AND usr_cmp_id='${SettingsModel.getCompanyID()}'"
                 val dbResult = SQLServerWrapper.getListOf(
                     "set_users",
+                    "",
                     mutableListOf("*"),
                     where
                 )
@@ -192,6 +193,7 @@ class UserRepositoryImpl(
                 val where = "usr_cmp_id='${SettingsModel.getCompanyID()}'"
                 val dbResult = SQLServerWrapper.getListOf(
                     "set_users",
+                    "",
                     mutableListOf("*"),
                     where
                 )

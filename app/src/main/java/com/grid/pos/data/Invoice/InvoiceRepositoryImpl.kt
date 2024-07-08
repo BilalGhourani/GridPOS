@@ -120,6 +120,7 @@ class InvoiceRepositoryImpl(
                 val where = "in_hi_id = '$invoiceHeaderId'"
                 val dbResult = SQLServerWrapper.getListOf(
                     "in_invoice",
+                    "",
                     mutableListOf("*"),
                     where
                 )
@@ -163,6 +164,7 @@ class InvoiceRepositoryImpl(
                 val where = "in_hi_id IN (${ids.joinToString(", ")})"
                 val dbResult = SQLServerWrapper.getListOf(
                     "in_invoice",
+                    "",
                     mutableListOf("*"),
                     where
                 )

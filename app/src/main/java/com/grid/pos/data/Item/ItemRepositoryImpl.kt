@@ -74,6 +74,7 @@ class ItemRepositoryImpl(
                 val where = "it_cmp_id='${SettingsModel.getCompanyID()}'"
                 val dbResult = SQLServerWrapper.getListOf(
                     "st_item",
+                    "",
                     mutableListOf("*"),
                     where
                 )

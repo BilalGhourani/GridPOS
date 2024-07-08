@@ -74,6 +74,7 @@ class ThirdPartyRepositoryImpl(
                 val where = "tp_cmp_id='${SettingsModel.getCompanyID()}'"
                 val dbResult = SQLServerWrapper.getListOf(
                     "thirdparty",
+                    "",
                     mutableListOf("*"),
                     where
                 )

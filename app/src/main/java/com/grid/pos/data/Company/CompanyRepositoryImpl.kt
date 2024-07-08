@@ -69,6 +69,7 @@ class CompanyRepositoryImpl(
                 val where = "cmp_id='${SettingsModel.getCompanyID()}'"
                 val dbResult = SQLServerWrapper.getListOf(
                     "company",
+                    "",
                     mutableListOf("*"),
                     where
                 )
@@ -125,6 +126,7 @@ class CompanyRepositoryImpl(
                 val where = "cmp_id='${SettingsModel.getCompanyID()}'"
                 val dbResult = SQLServerWrapper.getListOf(
                     "company",
+                    "",
                     mutableListOf("*"),
                     where
                 )

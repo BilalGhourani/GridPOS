@@ -34,6 +34,7 @@ class SettingsRepositoryImpl : SettingsRepository {
 
                 val dbResult = SQLServerWrapper.getListOf(
                     "acc_transactiontype",
+                    "",
                     mutableListOf(
                         "tt_code"
                     ),
@@ -67,6 +68,7 @@ class SettingsRepositoryImpl : SettingsRepository {
                 }
                 val dbResult = SQLServerWrapper.getListOf(
                     "acc_transactiontype",
+                    "",
                     mutableListOf(
                         "tt_code"
                     ),
@@ -100,6 +102,7 @@ class SettingsRepositoryImpl : SettingsRepository {
                 }
                 val dbResult = SQLServerWrapper.getListOf(
                     "branch",
+                    "",
                     mutableListOf(
                         "bra_name"
                     ),
@@ -133,6 +136,7 @@ class SettingsRepositoryImpl : SettingsRepository {
                 }
                 val dbResult = SQLServerWrapper.getListOf(
                     "warehouse",
+                    "",
                     mutableListOf(
                         "wa_name"
                     ),

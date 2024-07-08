@@ -126,6 +126,7 @@ class InvoiceHeaderRepositoryImpl(
                 val where = "hi_cmp_id='${SettingsModel.getCompanyID()}' ORDER BY hi_orderno DESC"
                 val dbResult = SQLServerWrapper.getListOf(
                     "in_hinvoice",
+                    "",
                     mutableListOf("*"),
                     where
                 )
@@ -172,7 +173,8 @@ class InvoiceHeaderRepositoryImpl(
                 val where = "hi_cmp_id='${SettingsModel.getCompanyID()}' AND hi_tt_code = '$type' ORDER BY hi_orderno DESC"
                 val dbResult = SQLServerWrapper.getListOf(
                     "in_hinvoice",
-                    mutableListOf("TOP 1 *"),
+                    "TOP 1",
+                    mutableListOf("*"),
                     where
                 )
                 val invoiceHeaders: MutableList<InvoiceHeader> = mutableListOf()
@@ -209,7 +211,8 @@ class InvoiceHeaderRepositoryImpl(
                 val where = "hi_cmp_id='${SettingsModel.getCompanyID()}' ORDER BY hi_orderno DESC"
                 val dbResult = SQLServerWrapper.getListOf(
                     "in_hinvoice",
-                    mutableListOf("TOP 1 *"),
+                    "TOP 1",
+                    mutableListOf("*"),
                     where
                 )
                 val invoiceHeaders: MutableList<InvoiceHeader> = mutableListOf()
@@ -258,7 +261,8 @@ class InvoiceHeaderRepositoryImpl(
                     val where = "hi_cmp_id='${SettingsModel.getCompanyID()}' AND hi_ta_name = '$tableId' AND (hi_transno IS NULL OR hi_transno = '')"
                     val dbResult = SQLServerWrapper.getListOf(
                         "in_hinvoice",
-                        mutableListOf("TOP 1 *"),
+                        "TOP 1",
+                        mutableListOf("*"),
                         where
                     )
                     val invoiceHeaders: MutableList<InvoiceHeader> = mutableListOf()
@@ -415,7 +419,8 @@ class InvoiceHeaderRepositoryImpl(
         val where = "ta_cmp_id='${SettingsModel.getCompanyID()}' AND ta_newname = '$tableNo' AND ta_status = 'Busy'"
         val dbResult = SQLServerWrapper.getListOf(
             "pos_table",
-            mutableListOf("TOP 1 *"),
+            "TOP 1",
+            mutableListOf("*"),
             where
         )
         if (!dbResult.isNullOrEmpty()) {

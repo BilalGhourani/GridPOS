@@ -24,6 +24,7 @@ object SQLServerWrapper {
 
     fun getListOf(
             tableName: String,
+            colPrefix: String = "",
             columns: MutableList<String>,
             where: String,
             joinSubQuery: String = "",
@@ -36,7 +37,7 @@ object SQLServerWrapper {
             connection = getDatabaseConnection()
             val cols = columns.joinToString(", ")
             val whereQuery = if (where.isNotEmpty()) "WHERE $where " else ""
-            val query = "SELECT $cols FROM $tableName $joinSubQuery $whereQuery"
+            val query = "SELECT $colPrefix $cols FROM $tableName $joinSubQuery $whereQuery"
             statement = connection.prepareStatement(query)
             resultSet = statement.executeQuery()
             if (cols.contains("*")) {

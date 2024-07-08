@@ -70,6 +70,7 @@ class FamilyRepositoryImpl(
                 val where = "fa_cmp_id='${SettingsModel.getCompanyID()}'"
                 val dbResult = SQLServerWrapper.getListOf(
                     "st_family",
+                    "",
                     mutableListOf("*"),
                     where
                 )

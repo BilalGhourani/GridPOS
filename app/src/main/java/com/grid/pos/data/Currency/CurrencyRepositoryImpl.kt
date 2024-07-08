@@ -81,7 +81,8 @@ class CurrencyRepositoryImpl(
 
                 val dbResult = SQLServerWrapper.getListOf(
                     "currency",
-                    mutableListOf("TOP 2 *"),
+                    "TOP 2",
+                    mutableListOf("*"),
                     where
                 )
                 val currency = Currency()
@@ -104,7 +105,8 @@ class CurrencyRepositoryImpl(
 
                 val rateDbResult = SQLServerWrapper.getListOf(
                     "crate",
-                    mutableListOf("TOP 1 rate_rate"),
+                    "TOP 1",
+                    mutableListOf("rate_rate"),
                     rateWhere
                 )
 
