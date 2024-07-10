@@ -5,7 +5,12 @@ import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.data.User.User
 import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.SettingsModel
+import com.grid.pos.utils.DateHelper
 import kotlinx.coroutines.tasks.await
+import org.threeten.bp.LocalDateTime
+import org.threeten.bp.format.DateTimeFormatter
+import java.sql.Timestamp
+import java.util.Date
 
 class CurrencyRepositoryImpl(
         private val currencyDao: CurrencyDao
@@ -73,9 +78,9 @@ class CurrencyRepositoryImpl(
 
             else -> {
                 val companyID = SettingsModel.getCompanyID()
-                val where =  if(SettingsModel.isSqlServerWebDb){
+                val where = if (SettingsModel.isSqlServerWebDb) {
                     "cur_cmp_id='$companyID' ORDER BY cur_order ASC"
-                }else{
+                } else {
                     "(cur_order='1' OR cur_order = '2') ORDER BY cur_order ASC"
                 }
 
@@ -101,17 +106,32 @@ class CurrencyRepositoryImpl(
                     }
                 }
 
-                val rateWhere =  "rate_cur_code1 = '${currency.currencyId}' AND rate_cur_code2 = '${currency.currencyDocumentId}' ORDER BY rate_date DESC"
+                /*val rateWhere =  "rate_cur_code1 = '${currency.currencyId}' AND rate_cur_code2 = '${currency.currencyDocumentId}' ORDER BY rate_date DESC"
 
                 val rateDbResult = SQLServerWrapper.getListOf(
                     "crate",
                     "TOP 1",
                     mutableListOf("rate_rate"),
                     rateWhere
-                )
-
-                if(rateDbResult.isNotEmpty()){
-                    currency.currencyRate = rateDbResult[0].optDouble("rate_rate")
+                )*/
+                if (currency.currencyId.isNotEmpty() && !currency.currencyDocumentId.isNullOrEmpty()) {
+                   val timestamp =  Timestamp.valueOf(
+                       DateHelper.getDateInFormat(
+                           Date(),
+                           "yyyy-MM-dd HH:mm:ss"
+                       )
+                   )
+                    val rateDbResult = SQLServerWrapper.executeProcedure(
+                        "getrate",
+                        listOf(
+                            "'${currency.currencyId}'",
+                            "'${currency.currencyDocumentId!!}'",
+                            "'$timestamp'"
+                        )
+                    )
+                    if (rateDbResult.isNotEmpty()) {
+                        currency.currencyRate = rateDbResult[0].optDouble("getrate")
+                    }
                 }
 
                 mutableListOf(currency)

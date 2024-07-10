@@ -1,11 +1,17 @@
 package com.grid.pos.data
 
 import com.grid.pos.model.SettingsModel
+import com.grid.pos.utils.DateHelper
 import org.json.JSONObject
+import org.threeten.bp.LocalDateTime
+import java.sql.CallableStatement
 import java.sql.Connection
 import java.sql.DriverManager
 import java.sql.PreparedStatement
 import java.sql.ResultSet
+import java.sql.Timestamp
+import java.text.SimpleDateFormat
+import java.util.Date
 
 object SQLServerWrapper {
 
@@ -63,6 +69,44 @@ object SQLServerWrapper {
                 }
                 result.add(obj)
             }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        } finally {
+            resultSet?.close()
+            statement?.close()
+            connection?.close()
+        }
+        return result
+    }
+
+    fun executeProcedure(
+            procedureName: String,
+            params: List<Any>,
+    ): List<JSONObject> {
+        var connection: Connection? = null
+        var statement: PreparedStatement? = null
+        var resultSet: ResultSet? = null
+        val result = mutableListOf<JSONObject>()
+        try {
+            connection = getDatabaseConnection()
+
+            val parameters = params.joinToString(", ")
+            // Prepare the stored procedure call
+            val query = "select dbo.$procedureName($parameters) as $procedureName" // Modify with your procedure and parameters
+            statement = connection.prepareStatement(query)
+            resultSet = statement.executeQuery()
+
+            while (resultSet.next()) {
+                val obj = JSONObject()
+                val value = resultSet.getString(procedureName) // Replace with actual column names
+                obj.put(
+                    procedureName,
+                    value
+                )
+                result.add(obj)
+            }
+
+
         } catch (e: Exception) {
             e.printStackTrace()
         } finally {
@@ -137,8 +181,8 @@ object SQLServerWrapper {
                     param
                 )
             }
-
-            statement.executeUpdate() > 0
+            val executeVal = statement.executeUpdate()
+            executeVal > 0
         } catch (e: Exception) {
             e.printStackTrace()
             false

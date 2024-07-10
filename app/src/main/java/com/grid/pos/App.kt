@@ -10,6 +10,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.DataStoreManager
 import com.grid.pos.utils.FileUtils
+import com.jakewharton.threetenabp.AndroidThreeTen
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -34,6 +35,7 @@ class App : Application() {
     override fun onCreate() {
         super.onCreate()
         instance = this
+        AndroidThreeTen.init(this);
         CoroutineScope(Dispatchers.IO).launch {
             initAppConfig()
             DataStoreManager.initValues()

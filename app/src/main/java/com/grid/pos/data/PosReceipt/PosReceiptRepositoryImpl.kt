@@ -130,7 +130,7 @@ class PosReceiptRepositoryImpl(
                 posReceipt.posReceiptCashID?.let {
                     SQLServerWrapper.delete(
                         "pos_receiptacc",
-                        "ra_id =  '${ posReceipt.posReceiptCashRaID}'"
+                        "ra_id =  '${posReceipt.posReceiptCashRaID}'"
                     )
                     SQLServerWrapper.delete(
                         "pos_receipt",
@@ -141,7 +141,7 @@ class PosReceiptRepositoryImpl(
                 posReceipt.posReceiptCashsID?.let {
                     SQLServerWrapper.delete(
                         "pos_receiptacc",
-                        "ra_id =  '${ posReceipt.posReceiptCashsRaID}'"
+                        "ra_id =  '${posReceipt.posReceiptCashsRaID}'"
                     )
                     SQLServerWrapper.delete(
                         "pos_receipt",
@@ -152,7 +152,7 @@ class PosReceiptRepositoryImpl(
                 posReceipt.posReceiptCreditID?.let {
                     SQLServerWrapper.delete(
                         "pos_receiptacc",
-                        "ra_id =  '${ posReceipt.posReceiptCreditRaID}'"
+                        "ra_id =  '${posReceipt.posReceiptCreditRaID}'"
                     )
                     SQLServerWrapper.delete(
                         "pos_receipt",
@@ -163,7 +163,7 @@ class PosReceiptRepositoryImpl(
                 posReceipt.posReceiptCreditsID?.let {
                     SQLServerWrapper.delete(
                         "pos_receiptacc",
-                        "ra_id =  '${ posReceipt.posReceiptCreditsRaID}'"
+                        "ra_id =  '${posReceipt.posReceiptCreditsRaID}'"
                     )
                     SQLServerWrapper.delete(
                         "pos_receipt",
@@ -174,7 +174,7 @@ class PosReceiptRepositoryImpl(
                 posReceipt.posReceiptDebitID?.let {
                     SQLServerWrapper.delete(
                         "pos_receiptacc",
-                        "ra_id =  '${ posReceipt.posReceiptDebitRaID}'"
+                        "ra_id =  '${posReceipt.posReceiptDebitRaID}'"
                     )
                     SQLServerWrapper.delete(
                         "pos_receipt",
@@ -185,7 +185,7 @@ class PosReceiptRepositoryImpl(
                 posReceipt.posReceiptDebitsID?.let {
                     SQLServerWrapper.delete(
                         "pos_receiptacc",
-                        "ra_id =  '${ posReceipt.posReceiptDebitsRaID}'"
+                        "ra_id =  '${posReceipt.posReceiptDebitsRaID}'"
                     )
                     SQLServerWrapper.delete(
                         "pos_receipt",
@@ -560,6 +560,7 @@ class PosReceiptRepositoryImpl(
     private fun getReceiptAccColumns(): List<String> {
         return listOf(
             "ra_id",
+            "ra_chcode",
             "ra_cur_code",
             "ra_name",
             "ra_order",
@@ -584,6 +585,7 @@ class PosReceiptRepositoryImpl(
             getReceiptAccColumns(),
             listOf(
                 ra_id_cash1,
+                530,
                 currency?.currencyId,
                 "Cash $order",
                 order,
