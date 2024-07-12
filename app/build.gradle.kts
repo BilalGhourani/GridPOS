@@ -147,6 +147,4 @@ dependencies {
     implementation ("androidx.camera:camera-lifecycle:1.3.4")
     implementation ("androidx.camera:camera-view:1.3.4")
 
-    // local date time for all android apis
-    implementation ("com.jakewharton.threetenabp:threetenabp:1.2.1")
 }
