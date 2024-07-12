@@ -10,6 +10,7 @@ import com.grid.pos.utils.DateHelper
 import com.grid.pos.utils.Utils
 import kotlinx.coroutines.tasks.await
 import org.json.JSONObject
+import java.sql.Timestamp
 import java.util.Date
 
 class InvoiceHeaderRepositoryImpl(
@@ -359,7 +360,6 @@ class InvoiceHeaderRepositoryImpl(
             "hi_tt_code",
             "hi_transno",
             "hi_status",
-            "hi_status",
             "hi_note",
             "hi_tp_name",
             "hi_cashname",
@@ -370,7 +370,6 @@ class InvoiceHeaderRepositoryImpl(
             "hi_taxamt",
             "hi_tax1amt",
             "hi_tax2amt",
-            "hi_total",
             "hi_total1",
             "hi_rates",
             "hi_ta_name",
@@ -384,10 +383,16 @@ class InvoiceHeaderRepositoryImpl(
     }
 
     private fun getValues(invoiceHeader: InvoiceHeader): List<Any?> {
+       val dateTime =  Timestamp.valueOf(
+            DateHelper.getDateInFormat(
+                Date(),
+                "yyyy-MM-dd HH:mm:ss"
+            )
+        )
         return listOf(
             invoiceHeader.invoiceHeadId,
             invoiceHeader.invoiceHeadCompId,
-            invoiceHeader.invoiceHeadDate,
+            dateTime,
             invoiceHeader.invoiceHeadOrderNo,
             invoiceHeader.invoiceHeadTtCode,
             invoiceHeader.invoiceHeadTransNo,
@@ -402,7 +407,6 @@ class InvoiceHeaderRepositoryImpl(
             invoiceHeader.invoiceHeadTaxAmt,
             invoiceHeader.invoiceHeadTax1Amt,
             invoiceHeader.invoiceHeadTax2Amt,
-            invoiceHeader.invoiceHeadTotal,
             invoiceHeader.invoiceHeadTotal1,
             invoiceHeader.invoiceHeadRate,
             invoiceHeader.invoiceHeadTableId,
@@ -410,7 +414,7 @@ class InvoiceHeaderRepositoryImpl(
             invoiceHeader.invoiceHeadChange,
             SettingsModel.defaultWarehouse,
             SettingsModel.defaultBranch,
-            invoiceHeader.invoiceHeadTimeStamp,
+            dateTime,
             invoiceHeader.invoiceHeadUserStamp
         )
     }
