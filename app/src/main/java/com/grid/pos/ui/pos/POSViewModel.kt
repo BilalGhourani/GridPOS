@@ -122,12 +122,15 @@ class POSViewModel @Inject constructor(
                     invoiceHeader.invoiceHeadOrderNo = POSUtils.getInvoiceNo(
                         result?.invoiceHeadOrderNo ?: ""
                     )
-                    invoiceHeader.invoiceHeadTtCode =  SettingsModel.getTransactionType(invoiceHeader.invoiceHeadGrossAmount)
+                    invoiceHeader.invoiceHeadTtCode = SettingsModel.getTransactionType(invoiceHeader.invoiceHeadGrossAmount)
                 } else {
                     invoiceHeader.invoiceHeadTtCode = null
                 }
                 invoiceHeader.prepareForInsert()
-                val addedInv = invoiceHeaderRepository.insert(invoiceHeader)
+                val addedInv = invoiceHeaderRepository.insert(
+                    invoiceHeader,
+                    finish
+                )
                 posState.value.invoiceHeaders.add(addedInv)
                 savePOSReceipt(
                     addedInv,
@@ -146,7 +149,7 @@ class POSViewModel @Inject constructor(
                     invoiceHeader.prepareForInsert()
                     invoiceHeader.invoiceHeadTtCode = SettingsModel.getTransactionType(invoiceHeader.invoiceHeadGrossAmount)
                 }
-                invoiceHeaderRepository.update(invoiceHeader)
+                invoiceHeaderRepository.update(invoiceHeader,finish)
                 savePOSReceipt(
                     invoiceHeader,
                     posReceipt,

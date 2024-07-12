@@ -16,7 +16,10 @@ import java.util.Date
 class InvoiceHeaderRepositoryImpl(
         private val invoiceHeaderDao: InvoiceHeaderDao
 ) : InvoiceHeaderRepository {
-    override suspend fun insert(invoiceHeader: InvoiceHeader): InvoiceHeader {
+    override suspend fun insert(
+            invoiceHeader: InvoiceHeader,
+            isFinished: Boolean
+    ): InvoiceHeader {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
                 val docRef = FirebaseFirestore.getInstance().collection("in_hinvoice")
@@ -33,8 +36,29 @@ class InvoiceHeaderRepositoryImpl(
                     val tableId = Utils.generateRandomUuidString()
                     SQLServerWrapper.insert(
                         "pos_table",
-                        listOf("ta_name","ta_hiid","ta_status","ta_newname","ta_cmp_id","ta_locked","ta_timestamp","ta_userstamp"),
-                        listOf(tableId,invoiceHeader.invoiceHeadId,"Busy",invoiceHeader.invoiceHeadTaName,SettingsModel.getCompanyID(),"0",DateHelper.getDateInFormat(Date(invoiceHeader.invoiceHeadDateTime),"yyyy-MM-dd hh:mm:ss.SSS"),SettingsModel.currentUser?.userName)
+                        listOf(
+                            "ta_name",
+                            "ta_hiid",
+                            "ta_status",
+                            "ta_newname",
+                            "ta_cmp_id",
+                            "ta_locked",
+                            "ta_timestamp",
+                            "ta_userstamp"
+                        ),
+                        listOf(
+                            tableId,
+                            invoiceHeader.invoiceHeadId,
+                            if (isFinished) "Completed" else "Busy",
+                            invoiceHeader.invoiceHeadTaName,
+                            SettingsModel.getCompanyID(),
+                            if (isFinished) "0" else "1",
+                            DateHelper.getDateInFormat(
+                                Date(invoiceHeader.invoiceHeadDateTime),
+                                "yyyy-MM-dd hh:mm:ss.SSS"
+                            ),
+                            SettingsModel.currentUser?.userName
+                        )
                     )
                     invoiceHeader.invoiceHeadTableId = tableId
                 }
@@ -73,7 +97,8 @@ class InvoiceHeaderRepositoryImpl(
     }
 
     override suspend fun update(
-            invoiceHeader: InvoiceHeader
+            invoiceHeader: InvoiceHeader,
+            isFinished: Boolean
     ) {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
@@ -88,6 +113,27 @@ class InvoiceHeaderRepositoryImpl(
             }
 
             else -> {
+                if (!invoiceHeader.invoiceHeadTableId.isNullOrEmpty()) {
+                    SQLServerWrapper.update(
+                        "pos_table",
+                        listOf(
+                            "ta_status",
+                            "ta_locked",
+                            "ta_timestamp",
+                            "ta_userstamp"
+                        ),
+                        listOf(
+                            if (isFinished) "Completed" else "Busy",
+                            if (isFinished) "0" else "1",
+                            DateHelper.getDateInFormat(
+                                Date(invoiceHeader.invoiceHeadDateTime),
+                                "yyyy-MM-dd hh:mm:ss.SSS"
+                            ),
+                            SettingsModel.currentUser?.userName
+                        ),
+                        "ta_name = '${invoiceHeader.invoiceHeadTableId}'"
+                    )
+                }
                 SQLServerWrapper.update(
                     "in_hinvoice",
                     getColumns(),
@@ -383,7 +429,7 @@ class InvoiceHeaderRepositoryImpl(
     }
 
     private fun getValues(invoiceHeader: InvoiceHeader): List<Any?> {
-       val dateTime =  Timestamp.valueOf(
+        val dateTime = Timestamp.valueOf(
             DateHelper.getDateInFormat(
                 Date(),
                 "yyyy-MM-dd HH:mm:ss"
