@@ -11,6 +11,7 @@ import com.grid.pos.data.Item.Item
 import com.grid.pos.data.Item.ItemRepository
 import com.grid.pos.data.PosReceipt.PosReceipt
 import com.grid.pos.data.PosReceipt.PosReceiptRepository
+import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.data.ThirdParty.ThirdPartyRepository
 import com.grid.pos.model.Event
 import com.grid.pos.model.InvoiceItemModel
@@ -38,10 +39,17 @@ class POSViewModel @Inject constructor(
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
+            val isConnectedToSQLServer = SettingsModel.isConnectedToSqlServer()
+            if (isConnectedToSQLServer) {
+                SQLServerWrapper.openConnection()
+            }
             fetchItems()
             fetchFamilies()
             fetchThirdParties()
             fetchInvoices()
+            if (isConnectedToSQLServer) {
+                SQLServerWrapper.closeConnection()
+            }
         }
     }
 
@@ -149,7 +157,10 @@ class POSViewModel @Inject constructor(
                     invoiceHeader.prepareForInsert()
                     invoiceHeader.invoiceHeadTtCode = SettingsModel.getTransactionType(invoiceHeader.invoiceHeadGrossAmount)
                 }
-                invoiceHeaderRepository.update(invoiceHeader,finish)
+                invoiceHeaderRepository.update(
+                    invoiceHeader,
+                    finish
+                )
                 savePOSReceipt(
                     invoiceHeader,
                     posReceipt,

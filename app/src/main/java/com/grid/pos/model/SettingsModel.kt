@@ -53,6 +53,10 @@ object SettingsModel {
         return UserType.TABLE
     }
 
+    fun isConnectedToSqlServer(): Boolean {
+        return connectionType == CONNECTION_TYPE.LOCAL.key
+    }
+
     fun isConnectedToSqlite(): Boolean {
         return connectionType == CONNECTION_TYPE.LOCAL.key
     }

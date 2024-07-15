@@ -17,6 +17,7 @@ import com.grid.pos.data.Item.ItemRepository
 import com.grid.pos.data.PosPrinter.PosPrinter
 import com.grid.pos.data.PosPrinter.PosPrinterRepository
 import com.grid.pos.data.PosReceipt.PosReceipt
+import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.data.Settings.SettingsRepository
 import com.grid.pos.data.ThirdParty.ThirdParty
 import com.grid.pos.data.ThirdParty.ThirdPartyRepository
@@ -73,6 +74,10 @@ class ActivityScopedViewModel @Inject constructor(
 
     suspend fun initiateValues() {
         if (SettingsModel.currentUser != null) {
+            val isConnectedToSQLServer = SettingsModel.isConnectedToSqlServer()
+            if (isConnectedToSQLServer) {
+                SQLServerWrapper.openConnection()
+            }
             fetchSettings()
             fetchCompanies()
             fetchCurrencies()
@@ -80,6 +85,9 @@ class ActivityScopedViewModel @Inject constructor(
             fetchFamilies()
             fetchItems()
             fetchPrinters()
+            if (isConnectedToSQLServer) {
+                SQLServerWrapper.closeConnection()
+            }
         }
     }
 

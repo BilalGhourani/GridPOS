@@ -1,19 +1,15 @@
 package com.grid.pos.data
 
 import com.grid.pos.model.SettingsModel
-import com.grid.pos.utils.DateHelper
 import org.json.JSONObject
-import org.threeten.bp.LocalDateTime
-import java.sql.CallableStatement
 import java.sql.Connection
 import java.sql.DriverManager
 import java.sql.PreparedStatement
 import java.sql.ResultSet
-import java.sql.Timestamp
-import java.text.SimpleDateFormat
-import java.util.Date
 
 object SQLServerWrapper {
+
+    private var mConnection: Connection? = null
 
     private fun getDatabaseConnection(): Connection {
         try {
@@ -28,6 +24,22 @@ object SQLServerWrapper {
         )
     }
 
+    fun openConnection() {
+        try {
+            mConnection = getDatabaseConnection()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    fun closeConnection() {
+        try {
+            mConnection?.close()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
     fun getListOf(
             tableName: String,
             colPrefix: String = "",
@@ -40,7 +52,7 @@ object SQLServerWrapper {
         var resultSet: ResultSet? = null
         val result = mutableListOf<JSONObject>()
         try {
-            connection = getDatabaseConnection()
+            connection = mConnection ?: getDatabaseConnection()
             val cols = columns.joinToString(", ")
             val whereQuery = if (where.isNotEmpty()) "WHERE $where " else ""
             val query = "SELECT $colPrefix $cols FROM $tableName $joinSubQuery $whereQuery"
@@ -74,7 +86,9 @@ object SQLServerWrapper {
         } finally {
             resultSet?.close()
             statement?.close()
-            connection?.close()
+            if (mConnection == null) {
+                connection?.close()
+            }
         }
         return result
     }
@@ -88,7 +102,7 @@ object SQLServerWrapper {
         var resultSet: ResultSet? = null
         val result = mutableListOf<JSONObject>()
         try {
-            connection = getDatabaseConnection()
+            connection = mConnection ?: getDatabaseConnection()
 
             val parameters = params.joinToString(", ")
             // Prepare the stored procedure call
@@ -112,7 +126,9 @@ object SQLServerWrapper {
         } finally {
             resultSet?.close()
             statement?.close()
-            connection?.close()
+            if (mConnection == null) {
+                connection?.close()
+            }
         }
         return result
     }
@@ -172,7 +188,7 @@ object SQLServerWrapper {
         var connection: Connection? = null
         var statement: PreparedStatement? = null
         return try {
-            connection = getDatabaseConnection()
+            connection = mConnection ?: getDatabaseConnection()
             statement = connection.prepareStatement(query)
 
             params.forEachIndexed { index, param ->
@@ -188,7 +204,9 @@ object SQLServerWrapper {
             false
         } finally {
             statement?.close()
-            connection?.close()
+            if (mConnection == null) {
+                connection?.close()
+            }
         }
     }
 }

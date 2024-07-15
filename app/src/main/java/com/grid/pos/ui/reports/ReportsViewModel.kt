@@ -13,6 +13,7 @@ import com.grid.pos.data.InvoiceHeader.InvoiceHeader
 import com.grid.pos.data.InvoiceHeader.InvoiceHeaderRepository
 import com.grid.pos.data.Item.Item
 import com.grid.pos.data.Item.ItemRepository
+import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.model.Event
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.FileUtils
@@ -62,6 +63,10 @@ class ReportsViewModel @Inject constructor(
             isLoading = true
         )
         viewModelScope.launch(Dispatchers.IO) {
+            val isConnectedToSQLServer = SettingsModel.isConnectedToSqlServer()
+            if (isConnectedToSQLServer) {
+                SQLServerWrapper.openConnection()
+            }
             val listOfInvoices = invoiceHeaderRepository.getAllInvoiceHeaders()
             invoices = listOfInvoices
             if (invoices.isNotEmpty()) {
@@ -96,6 +101,10 @@ class ReportsViewModel @Inject constructor(
             filteredInvoiceItemMap =
                 filteredInvoiceItems.groupBy { it.invoiceItemId ?: "" }
             generateReportsExcel()
+            val isConnectedToSQLServer = SettingsModel.isConnectedToSqlServer()
+            if (isConnectedToSQLServer) {
+                SQLServerWrapper.closeConnection()
+            }
         }
     }
 
