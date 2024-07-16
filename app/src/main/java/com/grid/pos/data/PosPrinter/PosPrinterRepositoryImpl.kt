@@ -1,6 +1,8 @@
 package com.grid.pos.data.PosPrinter
 
 import com.google.firebase.firestore.FirebaseFirestore
+import com.grid.pos.data.SQLServerWrapper
+import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.SettingsModel
 import kotlinx.coroutines.tasks.await
 
@@ -41,28 +43,79 @@ class PosPrinterRepositoryImpl(
     }
 
     override suspend fun getAllPosPrinters(): MutableList<PosPrinter> {
-        if (SettingsModel.isConnectedToFireStore()) {
-            val querySnapshot = FirebaseFirestore.getInstance().collection("pos_printer")
-                .whereEqualTo(
-                    "pp_cmp_id",
-                    SettingsModel.getCompanyID()
-                ).get().await()
+       return when (SettingsModel.connectionType) {
+            CONNECTION_TYPE.FIRESTORE.key -> {
+                val querySnapshot = FirebaseFirestore.getInstance().collection("pos_printer")
+                    .whereEqualTo(
+                        "pp_cmp_id",
+                        SettingsModel.getCompanyID()
+                    ).get().await()
 
-            val printers = mutableListOf<PosPrinter>()
-            if (querySnapshot.size() > 0) {
-                for (document in querySnapshot) {
-                    val obj = document.toObject(PosPrinter::class.java)
-                    if (obj.posPrinterId.isNotEmpty()) {
-                        obj.posPrinterDocumentId = document.id
-                        printers.add(obj)
+                val printers = mutableListOf<PosPrinter>()
+                if (querySnapshot.size() > 0) {
+                    for (document in querySnapshot) {
+                        val obj = document.toObject(PosPrinter::class.java)
+                        if (obj.posPrinterId.isNotEmpty()) {
+                            obj.posPrinterDocumentId = document.id
+                            printers.add(obj)
+                        }
                     }
                 }
+                printers
             }
-            return printers
 
-        } else {
-            return posPrinterDao.getAllPosPrinters(SettingsModel.getCompanyID() ?: "")
-        }
+            CONNECTION_TYPE.LOCAL.key -> {
+                posPrinterDao.getAllPosPrinters(SettingsModel.getCompanyID() ?: "")
+            }
+
+            CONNECTION_TYPE.SQL_SERVER.key -> {
+                val printers: MutableList<PosPrinter> = mutableListOf()
+                if(SettingsModel.isSqlServerWebDb) {
+                    val where = "dia_di_name=di_name and di_cmp_id='${SettingsModel.getCompanyID()}'"
+                    val dbResult = SQLServerWrapper.getListOf(
+                        "pos_displayaux,pos_display",
+                        "",
+                        mutableListOf("*"),
+                        where
+                    )
+                    dbResult.forEach { obj ->
+                        printers.add(PosPrinter().apply {
+                            posPrinterId = obj.optString("di_name")
+                            posPrinterCompId = obj.optString("di_cmp_id")
+                            posPrinterName = obj.optString("di_printer")
+                            val dia_appprinters = obj.optString("dia_appprinter").split(":")
+                            posPrinterHost = if (dia_appprinters.size > 0) dia_appprinters[0] else ""
+                            val port = if (dia_appprinters.size > 1) dia_appprinters[1] else "0"
+                            posPrinterPort = port.toIntOrNull() ?: 0
+                            posPrinterType = obj.optString("usr_cmp_id")
+                        })
+                    }
+                }else{
+                    val dbResult = SQLServerWrapper.getListOf(
+                        "pos_display",
+                        "",
+                        mutableListOf("*"),
+                        ""
+                    )
+                    dbResult.forEach { obj ->
+                        printers.add(PosPrinter().apply {
+                            posPrinterId = obj.optString("di_name")
+                            posPrinterCompId = obj.optString("di_bra_name")//branch
+                            posPrinterName = obj.optString("di_printer")
+                            val dia_appprinters = obj.optString("di_appprinter").split(":")
+                            posPrinterHost = if (dia_appprinters.size > 0) dia_appprinters[0] else ""
+                            val port = if (dia_appprinters.size > 1) dia_appprinters[1] else "0"
+                            posPrinterPort = port.toIntOrNull() ?: 0
+                        })
+                    }
+                }
+                printers
+            }
+
+           else -> {
+               mutableListOf()
+           }
+       }
     }
 
 }
