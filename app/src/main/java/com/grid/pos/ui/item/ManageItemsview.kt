@@ -2,7 +2,6 @@ package com.grid.pos.ui.item
 
 import android.net.Uri
 import androidx.activity.compose.BackHandler
-import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
@@ -58,8 +57,6 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.grid.pos.ActivityScopedViewModel
 import com.grid.pos.R
 import com.grid.pos.data.Family.Family
@@ -75,7 +72,6 @@ import com.grid.pos.ui.common.UISwitch
 import com.grid.pos.ui.common.UITextField
 import com.grid.pos.ui.settings.ColorPickerType
 import com.grid.pos.ui.theme.GridPOSTheme
-import com.grid.pos.utils.Extension.getStoragePermissions
 import com.grid.pos.utils.Extension.toHexCode
 import com.grid.pos.utils.FileUtils
 import com.grid.pos.utils.Utils
@@ -83,11 +79,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.File
 
 @OptIn(
-    ExperimentalMaterial3Api::class,
-    ExperimentalPermissionsApi::class
+    ExperimentalMaterial3Api::class
 )
 @Composable
 fun ManageItemsView(

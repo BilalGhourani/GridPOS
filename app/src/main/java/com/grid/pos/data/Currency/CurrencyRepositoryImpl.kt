@@ -2,13 +2,10 @@ package com.grid.pos.data.Currency
 
 import com.google.firebase.firestore.FirebaseFirestore
 import com.grid.pos.data.SQLServerWrapper
-import com.grid.pos.data.User.User
 import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.DateHelper
 import kotlinx.coroutines.tasks.await
-import org.threeten.bp.LocalDateTime
-import org.threeten.bp.format.DateTimeFormatter
 import java.sql.Timestamp
 import java.util.Date
 
