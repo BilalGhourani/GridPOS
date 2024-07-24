@@ -304,8 +304,8 @@ class InvoiceHeaderRepositoryImpl(
 
             else -> {
                 val tableId = getTableIdByNumber(tableNo)
-                val hi_ta_name = if (!tableId.isNullOrEmpty()) tableId else tableNo
-                val where = "hi_cmp_id='${SettingsModel.getCompanyID()}' AND hi_ta_name = '$hi_ta_name' AND (hi_transno IS NULL OR hi_transno = '')"
+                val subQuery = if (!tableId.isNullOrEmpty()) "(hi_ta_name = '$tableId' OR hi_ta_name = '$tableNo')" else "hi_ta_name = '$tableNo'"
+                val where = "hi_cmp_id='${SettingsModel.getCompanyID()}' AND $subQuery AND (hi_transno IS NULL OR hi_transno = '')"
                 val dbResult = SQLServerWrapper.getListOf(
                     "in_hinvoice",
                     "TOP 1",
