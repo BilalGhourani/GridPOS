@@ -32,7 +32,7 @@ class InvoiceHeaderRepositoryImpl(
             }
 
             else -> {
-                if (invoiceHeader.invoiceHeadTableId.isNullOrEmpty() && !invoiceHeader.invoiceHeadTaName.isNullOrEmpty()) {
+                if (!invoiceHeader.invoiceHeadTableId.isNullOrEmpty()/* && !invoiceHeader.invoiceHeadTaName.isNullOrEmpty()*/) {
                     val tableId = Utils.generateRandomUuidString()
                     SQLServerWrapper.insert(
                         "pos_table",
@@ -304,22 +304,22 @@ class InvoiceHeaderRepositoryImpl(
 
             else -> {
                 val tableId = getTableIdByNumber(tableNo)
-                if (!tableId.isNullOrEmpty()) {
-                    val where = "hi_cmp_id='${SettingsModel.getCompanyID()}' AND hi_ta_name = '$tableId' AND (hi_transno IS NULL OR hi_transno = '')"
-                    val dbResult = SQLServerWrapper.getListOf(
-                        "in_hinvoice",
-                        "TOP 1",
-                        mutableListOf("*"),
-                        where
-                    )
-                    val invoiceHeaders: MutableList<InvoiceHeader> = mutableListOf()
-                    dbResult.forEach { obj ->
-                        val invoiceHeader = fillParams(obj)
-                        invoiceHeader.invoiceHeadTaName = tableNo
-                        invoiceHeaders.add(invoiceHeader)
-                    }
-                    return if (invoiceHeaders.size > 0) invoiceHeaders[0] else null
+                val hi_ta_name = if (!tableId.isNullOrEmpty()) tableId else tableNo
+                val where = "hi_cmp_id='${SettingsModel.getCompanyID()}' AND hi_ta_name = '$hi_ta_name' AND (hi_transno IS NULL OR hi_transno = '')"
+                val dbResult = SQLServerWrapper.getListOf(
+                    "in_hinvoice",
+                    "TOP 1",
+                    mutableListOf("*"),
+                    where
+                )
+                val invoiceHeaders: MutableList<InvoiceHeader> = mutableListOf()
+                dbResult.forEach { obj ->
+                    val invoiceHeader = fillParams(obj)
+                    invoiceHeader.invoiceHeadTaName = tableNo
+                    invoiceHeaders.add(invoiceHeader)
                 }
+                return if (invoiceHeaders.size > 0) invoiceHeaders[0] else null
+
                 return null
             }
         }
@@ -455,7 +455,7 @@ class InvoiceHeaderRepositoryImpl(
             invoiceHeader.invoiceHeadTax2Amt,
             invoiceHeader.invoiceHeadTotal1,
             invoiceHeader.invoiceHeadRate,
-            invoiceHeader.invoiceHeadTableId,
+            invoiceHeader.invoiceHeadTableId ?: invoiceHeader.invoiceHeadTaName,
             invoiceHeader.invoiceHeadClientsCount,
             invoiceHeader.invoiceHeadChange,
             SettingsModel.defaultWarehouse,
