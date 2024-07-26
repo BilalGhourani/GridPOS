@@ -75,10 +75,10 @@ data class Family(
 
     @Exclude
     override fun isNew(): Boolean {
-        return if (SettingsModel.isConnectedToSqlite()) {
-            familyId.isEmpty()
-        } else {
+        return if (SettingsModel.isConnectedToFireStore()) {
             familyDocumentId.isNullOrEmpty()
+        } else {
+            familyId.isEmpty()
         }
     }
 

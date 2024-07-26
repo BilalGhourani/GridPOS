@@ -203,10 +203,10 @@ data class Item(
 
     @Exclude
     override fun isNew(): Boolean {
-        return if (SettingsModel.isConnectedToSqlite()) {
-            itemId.isEmpty()
-        } else {
+        return if (SettingsModel.isConnectedToFireStore()) {
             itemDocumentId.isNullOrEmpty()
+        } else {
+            itemId.isEmpty()
         }
     }
 

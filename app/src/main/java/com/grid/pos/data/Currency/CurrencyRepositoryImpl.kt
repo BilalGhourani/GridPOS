@@ -92,12 +92,12 @@ class CurrencyRepositoryImpl(
                 dbResult.forEach { obj ->
                     if (obj.optInt("cur_order") == 1) {
                         currency.currencyId = obj.optString("cur_code")
-                        currency.currencyCode1 = obj.optString("cur_newcode")
+                        currency.currencyCode1 = if(SettingsModel.isSqlServerWebDb) obj.optString("cur_newcode") else obj.optString("cur_code")
                         currency.currencyName1 = obj.optString("cur_name")
                         currency.currencyName1Dec = obj.optInt("cur_decimal")
                     } else {
                         currency.currencyDocumentId = obj.optString("cur_code")
-                        currency.currencyCode2 = obj.optString("cur_newcode")
+                        currency.currencyCode2 = if(SettingsModel.isSqlServerWebDb) obj.optString("cur_newcode") else obj.optString("cur_code")
                         currency.currencyName2 = obj.optString("cur_name")
                         currency.currencyName2Dec = obj.optInt("cur_decimal")
                     }

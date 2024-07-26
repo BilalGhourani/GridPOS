@@ -269,11 +269,19 @@ data class InvoiceHeader(
     }
 
     @Exclude
+    fun getTotalNetAmount(): Double {
+        if(invoiceHeadTotalNetAmount.isNaN()){
+            return 0.0
+        }
+        return invoiceHeadTotalNetAmount
+    }
+
+    @Exclude
     override fun isNew(): Boolean {
-        return if (SettingsModel.isConnectedToSqlite()) {
-            invoiceHeadId.isEmpty()
-        } else {
+        return if (SettingsModel.isConnectedToFireStore()) {
             invoiceHeadDocumentId.isNullOrEmpty()
+        } else {
+            invoiceHeadId.isEmpty()
         }
     }
 

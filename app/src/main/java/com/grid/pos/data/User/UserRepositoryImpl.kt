@@ -13,10 +13,10 @@ import kotlinx.coroutines.tasks.await
 import java.util.Date
 
 class UserRepositoryImpl(
-    private val userDao: UserDao
+        private val userDao: UserDao
 ) : UserRepository {
     override suspend fun insert(
-        user: User
+            user: User
     ): User {
         if (SettingsModel.isConnectedToFireStore()) {
             val docRef = FirebaseFirestore.getInstance().collection("set_users").add(user).await()
@@ -28,7 +28,7 @@ class UserRepositoryImpl(
     }
 
     override suspend fun delete(
-        user: User
+            user: User
     ) {
         if (SettingsModel.isConnectedToFireStore()) {
             user.userDocumentId?.let {
@@ -41,7 +41,7 @@ class UserRepositoryImpl(
     }
 
     override suspend fun update(
-        user: User
+            user: User
     ) {
         if (SettingsModel.isConnectedToFireStore()) {
             user.userDocumentId?.let {
@@ -55,8 +55,8 @@ class UserRepositoryImpl(
     }
 
     override suspend fun getUserByCredentials(
-        username: String,
-        password: String
+            username: String,
+            password: String
     ): LoginResponse {
         val encryptedPassword = password.encryptCBC()
         when (SettingsModel.connectionType) {
@@ -71,9 +71,13 @@ class UserRepositoryImpl(
                 if (size > 0) {
                     for (document in querySnapshot) {
                         val obj = document.toObject(User::class.java)
-                        if (obj.userId.isNotEmpty()
-                            && username.equals(obj.userUsername, ignoreCase = true)
-                            && encryptedPassword.equals(obj.userPassword, ignoreCase = true)
+                        if (obj.userId.isNotEmpty() && username.equals(
+                                obj.userUsername,
+                                ignoreCase = true
+                            ) && encryptedPassword.equals(
+                                obj.userPassword,
+                                ignoreCase = true
+                            )
                         ) {
                             obj.userDocumentId = document.id
                             result.user = obj
@@ -105,8 +109,13 @@ class UserRepositoryImpl(
                 val size = users.size
                 val result = LoginResponse(allUsersSize = size)
                 users.forEach { user ->
-                    if (username.equals(user.userUsername, ignoreCase = true)
-                        && encryptedPassword.equals(user.userPassword, ignoreCase = true)
+                    if (username.equals(
+                            user.userUsername,
+                            ignoreCase = true
+                        ) && encryptedPassword.equals(
+                            user.userPassword,
+                            ignoreCase = true
+                        )
                     ) {
                         result.user = user
                         return result
@@ -135,30 +144,61 @@ class UserRepositoryImpl(
             }
 
             else -> {
-                val where =
-                    "usr_username = $username AND usr_password=hashBytes ('SHA2_512', CONVERT(nvarchar(4000),'$password'+cast(usr_salt as nvarchar(36)))) AND usr_cmp_id='${SettingsModel.getCompanyID()}'"
-                val dbResult = SQLServerWrapper.getListOf(
-                    "set_users",
-                    "",
-                    mutableListOf("*"),
-                    where
-                )
-                val users: MutableList<User> = mutableListOf()
-                dbResult.forEach { obj ->
-                    users.add(User().apply {
-                        userId = obj.optString("usr_id")
-                        userName = obj.optString("usr_name")
-                        userUsername = obj.optString("usr_username")
-                        userPassword = obj.optString("usr_password")
-                        userCompanyId = obj.optString("usr_cmp_id")
-                        userPosMode = true
-                        userTableMode = true
-                    })
+                if (SettingsModel.isSqlServerWebDb) {
+                    val where = "usr_username = '$username' AND usr_password=hashBytes ('SHA2_512', CONVERT(nvarchar(4000),'$password'+cast(usr_salt as nvarchar(36)))) AND usr_expiry > getdate() AND usr_cmp_id='${SettingsModel.getCompanyID()}'"
+                    val dbResult = SQLServerWrapper.getListOf(
+                        "set_users",
+                        "",
+                        mutableListOf("*"),
+                        where
+                    )
+                    val users: MutableList<User> = mutableListOf()
+                    dbResult.forEach { obj ->
+                        users.add(User().apply {
+                            userId = obj.optString("usr_id")
+                            userName = obj.optString("usr_name")
+                            userUsername = obj.optString("usr_username")
+                            userPassword = obj.optString("usr_password")
+                            userCompanyId = obj.optString("usr_cmp_id")
+                            userPosMode = true
+                            userTableMode = true
+                        })
+                    }
+                    if (users.isNotEmpty()) {
+                        return LoginResponse(
+                            allUsersSize = 1,
+                            user = users[0]
+                        )
+                    }
+                    return LoginResponse(allUsersSize = 1)
+                } else {
+                    val where = "emp_username = '$username' AND emp_password=HashBytes('SHA', '$password') and (emp_inactive IS NULL or emp_inactive = 0)"
+                    val dbResult = SQLServerWrapper.getListOf(
+                        "pay_employees",
+                        "",
+                        mutableListOf("*"),
+                        where
+                    )
+                    val users: MutableList<User> = mutableListOf()
+                    dbResult.forEach { obj ->
+                        users.add(User().apply {
+                            userId = obj.optString("emp_id")
+                            userName = obj.optString("emp_name")
+                            userUsername = obj.optString("emp_username")
+                            userPassword = obj.optString("emp_password")
+                            userCompanyId = SettingsModel.getCompanyID()//obj.optString("usr_cmp_id")
+                            userPosMode = true
+                            userTableMode = true
+                        })
+                    }
+                    if (users.isNotEmpty()) {
+                        return LoginResponse(
+                            allUsersSize = 1,
+                            user = users[0]
+                        )
+                    }
+                    return LoginResponse(allUsersSize = 1)
                 }
-                if (users.isNotEmpty()) {
-                    return LoginResponse(allUsersSize = 1, user = users[0])
-                }
-                return LoginResponse(allUsersSize = 1)
             }
         }
     }
@@ -190,26 +230,48 @@ class UserRepositoryImpl(
             }
 
             else -> {//CONNECTION_TYPE.SQL_SERVER.key
-                val where = "usr_cmp_id='${SettingsModel.getCompanyID()}'"
-                val dbResult = SQLServerWrapper.getListOf(
-                    "set_users",
-                    "",
-                    mutableListOf("*"),
-                    where
-                )
-                val users: MutableList<User> = mutableListOf()
-                dbResult.forEach { obj ->
-                    users.add(User().apply {
-                        userId = obj.optString("usr_id")
-                        userName = obj.optString("usr_name")
-                        userUsername = obj.optString("usr_username")
-                        userPassword = obj.optString("usr_password")
-                        userCompanyId = obj.optString("usr_cmp_id")
-                        userPosMode = true
-                        userTableMode = true
-                    })
+                if (SettingsModel.isSqlServerWebDb) {
+                    val where = "usr_cmp_id='${SettingsModel.getCompanyID()}'"
+                    val dbResult = SQLServerWrapper.getListOf(
+                        "set_users",
+                        "",
+                        mutableListOf("*"),
+                        where
+                    )
+                    val users: MutableList<User> = mutableListOf()
+                    dbResult.forEach { obj ->
+                        users.add(User().apply {
+                            userId = obj.optString("usr_id")
+                            userName = obj.optString("usr_name")
+                            userUsername = obj.optString("usr_username")
+                            userPassword = obj.optString("usr_password")
+                            userCompanyId = obj.optString("usr_cmp_id")
+                            userPosMode = true
+                            userTableMode = true
+                        })
+                    }
+                    users
+                } else {
+                    val dbResult = SQLServerWrapper.getListOf(
+                        "pay_employees",
+                        "",
+                        mutableListOf("*"),
+                        ""
+                    )
+                    val users: MutableList<User> = mutableListOf()
+                    dbResult.forEach { obj ->
+                        users.add(User().apply {
+                            userId = obj.optString("emp_id")
+                            userName = obj.optString("emp_name")
+                            userUsername = obj.optString("emp_username")
+                            userPassword = obj.optString("emp_password")
+                            userCompanyId = SettingsModel.getCompanyID()//obj.optString("usr_cmp_id")
+                            userPosMode = true
+                            userTableMode = true
+                        })
+                    }
+                    users
                 }
-                users
             }
         }
 

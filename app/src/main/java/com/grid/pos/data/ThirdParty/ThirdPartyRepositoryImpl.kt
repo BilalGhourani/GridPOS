@@ -71,7 +71,7 @@ class ThirdPartyRepositoryImpl(
             }
 
             else -> {
-                val where = "tp_cmp_id='${SettingsModel.getCompanyID()}'"
+                val where = if(SettingsModel.isSqlServerWebDb) "tp_cmp_id='${SettingsModel.getCompanyID()}'" else ""
                 val dbResult = SQLServerWrapper.getListOf(
                     "thirdparty",
                     "",
@@ -82,9 +82,9 @@ class ThirdPartyRepositoryImpl(
                 dbResult.forEach { obj ->
                     thirdParties.add(ThirdParty().apply {
                         thirdPartyId = obj.optString("tp_name")
-                        thirdPartyName = obj.optString("tp_newname")
+                        thirdPartyName = if(SettingsModel.isSqlServerWebDb) obj.optString("tp_newname") else obj.optString("tp_name")
                         thirdPartyFn = obj.optString("tp_fn")
-                        thirdPartyCompId = obj.optString("tp_cmp_id")
+                        thirdPartyCompId = if(SettingsModel.isSqlServerWebDb) obj.optString("tp_cmp_id") else SettingsModel.getCompanyID()
                         thirdPartyPhone1 = obj.optString("tp_phone1")
                         thirdPartyPhone2 = obj.optString("tp_phone2")
                         thirdPartyAddress = obj.optString("tp_address")

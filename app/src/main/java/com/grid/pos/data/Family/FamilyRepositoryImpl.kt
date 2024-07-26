@@ -67,7 +67,7 @@ class FamilyRepositoryImpl(
                 familyDao.getAllFamilies(SettingsModel.getCompanyID() ?: "")
             }
             else ->{
-                val where = "fa_cmp_id='${SettingsModel.getCompanyID()}'"
+                val where = if(SettingsModel.isSqlServerWebDb) "fa_cmp_id='${SettingsModel.getCompanyID()}'" else ""
                 val dbResult = SQLServerWrapper.getListOf(
                     "st_family",
                     "",
@@ -78,9 +78,9 @@ class FamilyRepositoryImpl(
                 dbResult.forEach { obj ->
                     families.add(Family().apply {
                         familyId = obj.optString("fa_name")
-                        familyName = obj.optString("fa_newname")
+                        familyName = if(SettingsModel.isSqlServerWebDb) obj.optString("fa_newname") else obj.optString("fa_name")
                         //familyImage = obj.optString("fa_name")
-                        familyCompanyId = obj.optString("fa_cmp_id")
+                        familyCompanyId = if(SettingsModel.isSqlServerWebDb) obj.optString("fa_cmp_id") else SettingsModel.getCompanyID()
                     })
                 }
                 families

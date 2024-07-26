@@ -124,10 +124,10 @@ data class ThirdParty(
 
     @Exclude
     override fun isNew(): Boolean {
-        return if (SettingsModel.isConnectedToSqlite()) {
-            thirdPartyId.isEmpty()
-        } else {
+        return if (SettingsModel.isConnectedToFireStore()) {
             thirdPartyDocumentId.isNullOrEmpty()
+        } else {
+            thirdPartyId.isEmpty()
         }
     }
 

@@ -135,7 +135,7 @@ class SettingsRepositoryImpl : SettingsRepository {
                     "wa_order=1"
                 }
                 val dbResult = SQLServerWrapper.getListOf(
-                    "warehouse",
+                    if (SettingsModel.isSqlServerWebDb) "warehouse" else "st_warehouse",
                     "",
                     mutableListOf(
                         "wa_name"

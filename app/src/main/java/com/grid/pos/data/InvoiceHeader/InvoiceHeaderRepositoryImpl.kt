@@ -33,34 +33,59 @@ class InvoiceHeaderRepositoryImpl(
 
             else -> {
                 if (!invoiceHeader.invoiceHeadTableId.isNullOrEmpty()/* && !invoiceHeader.invoiceHeadTaName.isNullOrEmpty()*/) {
-                    val tableId = Utils.generateRandomUuidString()
-                    SQLServerWrapper.insert(
-                        "pos_table",
-                        listOf(
-                            "ta_name",
-                            "ta_hiid",
-                            "ta_status",
-                            "ta_newname",
-                            "ta_cmp_id",
-                            "ta_locked",
-                            "ta_timestamp",
-                            "ta_userstamp"
-                        ),
-                        listOf(
-                            tableId,
-                            invoiceHeader.invoiceHeadId,
-                            if (isFinished) "Completed" else "Busy",
-                            invoiceHeader.invoiceHeadTaName,
-                            SettingsModel.getCompanyID(),
-                            if (isFinished) "0" else "1",
-                            DateHelper.getDateInFormat(
-                                Date(invoiceHeader.invoiceHeadDateTime),
-                                "yyyy-MM-dd hh:mm:ss.SSS"
+                    if (SettingsModel.isSqlServerWebDb) {
+                        val tableId = Utils.generateRandomUuidString()
+                        SQLServerWrapper.insert(
+                            "pos_table",
+                            listOf(
+                                "ta_name",
+                                "ta_hiid",
+                                "ta_status",
+                                "ta_newname",
+                                "ta_cmp_id",
+                                "ta_locked",
+                                "ta_timestamp",
+                                "ta_userstamp"
                             ),
-                            SettingsModel.currentUser?.userName
+                            listOf(
+                                tableId,
+                                invoiceHeader.invoiceHeadId,
+                                if (isFinished) "Completed" else "Busy",
+                                invoiceHeader.invoiceHeadTaName,
+                                SettingsModel.getCompanyID(),
+                                if (isFinished) "0" else "1",
+                                DateHelper.getDateInFormat(
+                                    Date(invoiceHeader.invoiceHeadDateTime),
+                                    "yyyy-MM-dd hh:mm:ss.SSS"
+                                ),
+                                SettingsModel.currentUser?.userName
+                            )
                         )
-                    )
-                    invoiceHeader.invoiceHeadTableId = tableId
+                        invoiceHeader.invoiceHeadTableId = tableId
+                    } else {
+                        SQLServerWrapper.insert(
+                            "pos_table",
+                            listOf(
+                                "ta_name",
+                                "ta_hiid",
+                                "ta_status",
+                                "ta_locked",
+                                "ta_timestamp",
+                                "ta_userstamp"
+                            ),
+                            listOf(
+                                invoiceHeader.invoiceHeadTaName,
+                                invoiceHeader.invoiceHeadId,
+                                if (isFinished) "Completed" else "Busy",
+                                if (isFinished) "0" else "1",
+                                DateHelper.getDateInFormat(
+                                    Date(invoiceHeader.invoiceHeadDateTime),
+                                    "yyyy-MM-dd hh:mm:ss.SSS"
+                                ),
+                                SettingsModel.currentUser?.userName
+                            )
+                        )
+                    }
                 }
                 SQLServerWrapper.insert(
                     "in_hinvoice",
@@ -131,7 +156,11 @@ class InvoiceHeaderRepositoryImpl(
                             ),
                             SettingsModel.currentUser?.userName
                         ),
-                        "ta_name = '${invoiceHeader.invoiceHeadTableId}'"
+                        if (SettingsModel.isSqlServerWebDb) {
+                            "ta_name = '${invoiceHeader.invoiceHeadTableId}'"
+                        } else {
+                            "ta_name = '${invoiceHeader.invoiceHeadTaName}'"
+                        }
                     )
                 }
                 SQLServerWrapper.update(
@@ -384,7 +413,11 @@ class InvoiceHeaderRepositoryImpl(
             invoiceHeadTotal = obj.optDouble("hi_total")
             invoiceHeadTotal1 = obj.optDouble("hi_total1")
             invoiceHeadRate = obj.optDouble("hi_rates")
-            invoiceHeadTableId = obj.optString("hi_ta_name")
+            if (SettingsModel.isSqlServerWebDb) {
+                invoiceHeadTableId = obj.optString("hi_ta_name")
+            } else {
+                invoiceHeadTaName = obj.optString("hi_ta_name")
+            }
             invoiceHeadClientsCount = obj.optInt("hi_clientscount")
             invoiceHeadChange = obj.optDouble("hi_change")
             val timeStamp = obj.opt("hi_timestamp")
@@ -398,34 +431,64 @@ class InvoiceHeaderRepositoryImpl(
     }
 
     private fun getColumns(): List<String> {
-        return listOf(
-            "hi_id",
-            "hi_cmp_id",
-            "hi_date",
-            "hi_orderno",
-            "hi_tt_code",
-            "hi_transno",
-            "hi_status",
-            "hi_note",
-            "hi_tp_name",
-            "hi_cashname",
-            "hi_total",
-            "hi_netamt",
-            "hi_disc",
-            "hi_discamt",
-            "hi_taxamt",
-            "hi_tax1amt",
-            "hi_tax2amt",
-            "hi_total1",
-            "hi_rates",
-            "hi_ta_name",
-            "hi_clientscount",
-            "hi_change",
-            "hi_wa_name",
-            "hi_bra_name",
-            "hi_timestamp",
-            "hi_userstamp",
-        )
+        return if(SettingsModel.isSqlServerWebDb){
+            listOf(
+                "hi_id",
+                "hi_cmp_id",
+                "hi_date",
+                "hi_orderno",
+                "hi_tt_code",
+                "hi_transno",
+                "hi_status",
+                "hi_note",
+                "hi_tp_name",
+                "hi_cashname",
+                "hi_total",
+                "hi_netamt",
+                "hi_disc",
+                "hi_discamt",
+                "hi_taxamt",
+                "hi_tax1amt",
+                "hi_tax2amt",
+                "hi_total1",
+                "hi_rates",
+                "hi_ta_name",
+                "hi_clientscount",
+                "hi_change",
+                "hi_wa_name",
+                "hi_bra_name",
+                "hi_timestamp",
+                "hi_userstamp",
+            )
+        }else{
+            listOf(
+                "hi_id",
+                "hi_cmp_id",
+                "hi_date",
+                "hi_orderno",
+                "hi_tt_code",
+                "hi_transno",
+                "hi_status",
+                "hi_note",
+                "hi_tp_name",
+                "hi_cashname",
+                "hi_netamt",
+                "hi_disc",
+                "hi_discamt",
+                "hi_taxamt",
+                "hi_tax1amt",
+                "hi_tax2amt",
+                "hi_total1",
+                "hi_rates",
+                "hi_ta_name",
+                "hi_clientscount",
+                "hi_change",
+                "hi_wa_name",
+                "hi_bra_name",
+                "hi_timestamp",
+                "hi_userstamp",
+            )
+        }
     }
 
     private fun getValues(invoiceHeader: InvoiceHeader): List<Any?> {
@@ -435,38 +498,69 @@ class InvoiceHeaderRepositoryImpl(
                 "yyyy-MM-dd HH:mm:ss"
             )
         )
-        return listOf(
-            invoiceHeader.invoiceHeadId,
-            invoiceHeader.invoiceHeadCompId,
-            dateTime,
-            invoiceHeader.invoiceHeadOrderNo,
-            invoiceHeader.invoiceHeadTtCode,
-            invoiceHeader.invoiceHeadTransNo,
-            invoiceHeader.invoiceHeadStatus,
-            invoiceHeader.invoiceHeadNote,
-            invoiceHeader.invoiceHeadThirdPartyName,
-            invoiceHeader.invoiceHeadCashName,
-            invoiceHeader.invoiceHeadTotalNetAmount,
-            invoiceHeader.invoiceHeadGrossAmount,
-            invoiceHeader.invoiceHeadDiscount,
-            invoiceHeader.invoiceHeadDiscountAmount,
-            invoiceHeader.invoiceHeadTaxAmt,
-            invoiceHeader.invoiceHeadTax1Amt,
-            invoiceHeader.invoiceHeadTax2Amt,
-            invoiceHeader.invoiceHeadTotal1,
-            invoiceHeader.invoiceHeadRate,
-            invoiceHeader.invoiceHeadTableId ?: invoiceHeader.invoiceHeadTaName,
-            invoiceHeader.invoiceHeadClientsCount,
-            invoiceHeader.invoiceHeadChange,
-            SettingsModel.defaultWarehouse,
-            SettingsModel.defaultBranch,
-            dateTime,
-            invoiceHeader.invoiceHeadUserStamp
-        )
+        return if(SettingsModel.isSqlServerWebDb){
+            listOf(
+                invoiceHeader.invoiceHeadId,
+                invoiceHeader.invoiceHeadCompId,
+                dateTime,
+                invoiceHeader.invoiceHeadOrderNo,
+                invoiceHeader.invoiceHeadTtCode,
+                invoiceHeader.invoiceHeadTransNo,
+                invoiceHeader.invoiceHeadStatus,
+                invoiceHeader.invoiceHeadNote,
+                invoiceHeader.invoiceHeadThirdPartyName,
+                invoiceHeader.invoiceHeadCashName,
+                invoiceHeader.getTotalNetAmount(),
+                invoiceHeader.invoiceHeadGrossAmount,
+                invoiceHeader.invoiceHeadDiscount,
+                invoiceHeader.invoiceHeadDiscountAmount,
+                invoiceHeader.invoiceHeadTaxAmt,
+                invoiceHeader.invoiceHeadTax1Amt,
+                invoiceHeader.invoiceHeadTax2Amt,
+                invoiceHeader.invoiceHeadTotal1,
+                invoiceHeader.invoiceHeadRate,
+                invoiceHeader.invoiceHeadTableId ?: invoiceHeader.invoiceHeadTaName,
+                invoiceHeader.invoiceHeadClientsCount,
+                invoiceHeader.invoiceHeadChange,
+                SettingsModel.defaultWarehouse,
+                SettingsModel.defaultBranch,
+                dateTime,
+                invoiceHeader.invoiceHeadUserStamp
+            )
+        }else{
+            listOf(
+                invoiceHeader.invoiceHeadId,
+                invoiceHeader.invoiceHeadCompId,
+                dateTime,
+                invoiceHeader.invoiceHeadOrderNo,
+                invoiceHeader.invoiceHeadTtCode,
+                invoiceHeader.invoiceHeadTransNo,
+                invoiceHeader.invoiceHeadStatus,
+                invoiceHeader.invoiceHeadNote,
+                invoiceHeader.invoiceHeadThirdPartyName,
+                invoiceHeader.invoiceHeadCashName,
+                invoiceHeader.invoiceHeadGrossAmount,
+                invoiceHeader.invoiceHeadDiscount,
+                invoiceHeader.invoiceHeadDiscountAmount,
+                invoiceHeader.invoiceHeadTaxAmt,
+                invoiceHeader.invoiceHeadTax1Amt,
+                invoiceHeader.invoiceHeadTax2Amt,
+                invoiceHeader.invoiceHeadTotal1,
+                invoiceHeader.invoiceHeadRate,
+                invoiceHeader.invoiceHeadTableId ?: invoiceHeader.invoiceHeadTaName,
+                invoiceHeader.invoiceHeadClientsCount,
+                invoiceHeader.invoiceHeadChange,
+                SettingsModel.defaultWarehouse,
+                SettingsModel.defaultBranch,
+                dateTime,
+                invoiceHeader.invoiceHeadUserStamp
+            )
+        }
     }
 
     private fun getTableIdByNumber(tableNo: String): String? {
-        val where = "ta_cmp_id='${SettingsModel.getCompanyID()}' AND ta_newname = '$tableNo' AND ta_status = 'Busy'"
+        val where = if (SettingsModel.isSqlServerWebDb) "ta_cmp_id='${SettingsModel.getCompanyID()}' AND ta_newname = '$tableNo' AND ta_status = 'Busy'"
+        else "ta_name = '$tableNo' AND ta_status = 'Busy'"
         val dbResult = SQLServerWrapper.getListOf(
             "pos_table",
             "TOP 1",

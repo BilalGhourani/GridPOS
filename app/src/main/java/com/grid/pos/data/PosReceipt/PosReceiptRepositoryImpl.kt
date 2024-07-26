@@ -558,15 +558,26 @@ class PosReceiptRepositoryImpl(
     }
 
     private fun getReceiptAccColumns(): List<String> {
-        return listOf(
-            "ra_id",
-            "ra_chcode",
-            "ra_cur_code",
-            "ra_name",
-            "ra_order",
-            "ra_type",
-            "ra_cmp_id"
-        )
+        return if (SettingsModel.isSqlServerWebDb) {
+            listOf(
+                "ra_id",
+                "ra_chcode",
+                "ra_cur_code",
+                "ra_name",
+                "ra_order",
+                "ra_type",
+                "ra_cmp_id"
+            )
+        } else {
+            listOf(
+                "ra_id",
+                "ra_chcode",
+                "ra_cur_code",
+                "ra_name",
+                "ra_order",
+                "ra_type"
+            )
+        }
     }
 
     private fun insertPosReceipt(
@@ -583,15 +594,26 @@ class PosReceiptRepositoryImpl(
         SQLServerWrapper.insert(
             "pos_receiptacc",
             getReceiptAccColumns(),
-            listOf(
-                ra_id_cash1,
-                530,
-                currency?.currencyId,
-                "Cash $order",
-                order,
-                "Cash",
-                companyId
-            )
+            if (SettingsModel.isSqlServerWebDb) {
+                listOf(
+                    ra_id_cash1,
+                    530,
+                    currency?.currencyId,
+                    "Cash $order",
+                    order,
+                    "Cash",
+                    companyId
+                )
+            } else {
+                listOf(
+                    ra_id_cash1,
+                    530,
+                    currency?.currencyId,
+                    "Cash $order",
+                    order,
+                    "Cash"
+                )
+            }
         )
         val values = getValues(
             pr_id,

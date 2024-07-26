@@ -80,10 +80,10 @@ data class PosPrinter(
 
     @Exclude
     override fun isNew(): Boolean {
-        return if (SettingsModel.isConnectedToSqlite()) {
-            posPrinterId.isEmpty()
-        } else {
+        return if (SettingsModel.isConnectedToFireStore()) {
             posPrinterDocumentId.isNullOrEmpty()
+        } else {
+            posPrinterId.isEmpty()
         }
     }
 

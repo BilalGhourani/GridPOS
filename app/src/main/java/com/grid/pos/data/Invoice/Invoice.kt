@@ -173,10 +173,10 @@ data class Invoice(
 
     @Exclude
     override fun isNew(): Boolean {
-        return if (SettingsModel.isConnectedToSqlite()) {
-            invoiceId.isEmpty()
-        } else {
+        return if (SettingsModel.isConnectedToFireStore()) {
             invoiceDocumentId.isNullOrEmpty()
+        } else {
+            invoiceId.isEmpty()
         }
     }
 
