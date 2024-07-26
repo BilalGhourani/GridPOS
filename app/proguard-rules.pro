@@ -35,3 +35,5 @@
 
 -dontwarn com.aspose.cells.a.*
 -dontwarn com.aspose.cells.c.*
+
+-dontwarn net.sourceforge.jtds.**
