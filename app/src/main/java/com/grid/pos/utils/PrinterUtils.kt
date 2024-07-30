@@ -72,7 +72,7 @@ object PrinterUtils {
                             "%.2f",
                             item.getQuantity()
                         )
-                    }</td> <td>$${
+                    }</td> <td>${
                         String.format(
                             "%.2f",
                             item.getNetAmount()
