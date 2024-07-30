@@ -99,7 +99,7 @@ fun ManageCompaniesView(
     var taxRegnoState by remember { mutableStateOf("") }
     var taxState by remember { mutableStateOf("") }
     var curCodeTaxState by remember { mutableStateOf("") }
-    var printerState by remember { mutableStateOf("") }
+    //var printerState by remember { mutableStateOf("") }
     var emailState by remember { mutableStateOf("") }
     var webState by remember { mutableStateOf("") }
     var logoState by remember { mutableStateOf("") }
@@ -204,7 +204,7 @@ fun ManageCompaniesView(
                             taxRegnoState = company.companyTaxRegno ?: ""
                             taxState = company.companyTax.toString()
                             curCodeTaxState = company.companyCurCodeTax ?: ""
-                            printerState = company.companyPrinterId ?: ""
+                            //printerState = company.companyPrinterId ?: ""
                             emailState = company.companyEmail ?: ""
                             webState = company.companyWeb ?: ""
                             logoState = company.companyLogo ?: ""
@@ -380,7 +380,7 @@ fun ManageCompaniesView(
                             }
                         }
 
-                        SearchableDropdownMenu(
+                        /*SearchableDropdownMenu(
                             items = manageCompaniesState.printers.toMutableList(),
                             modifier = Modifier.padding(10.dp),
                             label = "Select Printer",
@@ -389,7 +389,7 @@ fun ManageCompaniesView(
                             printer as PosPrinter
                             printerState = printer.posPrinterId
                             manageCompaniesState.selectedCompany.companyPrinterId = printerState
-                        }
+                        }*/
 
                         //email
                         UITextField(modifier = Modifier.padding(10.dp),

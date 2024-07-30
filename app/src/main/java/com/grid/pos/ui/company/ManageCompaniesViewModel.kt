@@ -30,7 +30,7 @@ class ManageCompaniesViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             fetchCompanies()
             fetchCurrencies()
-            fetchPrinters()
+            //fetchPrinters()
         }
     }
 

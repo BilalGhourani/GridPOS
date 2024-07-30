@@ -120,6 +120,7 @@ fun SettingsView(
     val sqlServerCmpIdRequester = remember { FocusRequester() }
     val keyboardController = LocalSoftwareKeyboardController.current
 
+    var cashPrinterState by remember { mutableStateOf(SettingsModel.cashPrinter ?: "") }
     var showTax by remember { mutableStateOf(SettingsModel.showTax) }
     var showTax1 by remember { mutableStateOf(SettingsModel.showTax1) }
     var showTax2 by remember { mutableStateOf(SettingsModel.showTax2) }
@@ -373,6 +374,15 @@ fun SettingsView(
                                 }
                             }
 
+                            UITextField(modifier = Modifier.padding(10.dp),
+                                defaultValue = cashPrinterState,
+                                label = "Cash Printer",
+                                placeHolder = "ex. 127.0.0.1:9100",
+                                focusRequester = sqlServerCmpIdRequester,
+                                imeAction = ImeAction.Done,
+                                onAction = { keyboardController?.hide() }) { cashPrinter ->
+                                cashPrinterState = cashPrinter
+                            }
 
                             UIButton(
                                 modifier = Modifier
@@ -392,6 +402,11 @@ fun SettingsView(
                                     DataStoreManager.putString(
                                         DataStoreManager.DataStoreKeys.CONNECTION_TYPE.key,
                                         connectionTypeState
+                                    )
+                                    SettingsModel.cashPrinter = cashPrinterState
+                                    DataStoreManager.putString(
+                                        DataStoreManager.DataStoreKeys.CASH_PRINTER.key,
+                                        cashPrinterState
                                     )
                                     when (connectionTypeState) {
                                         CONNECTION_TYPE.FIRESTORE.key -> {

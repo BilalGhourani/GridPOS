@@ -155,7 +155,7 @@ object PrinterUtils {
         invoiceItemModels: MutableList<InvoiceItemModel>,
         printers: MutableList<PosPrinter>
     ) {
-        SettingsModel.currentCompany?.companyPrinterId?.let { companyPrinter ->
+        SettingsModel.cashPrinter?.let { companyPrinter ->
             val invoicePrinter = printers.firstOrNull { it.posPrinterId == companyPrinter }
             if (invoicePrinter != null) {
                 val invoiceContent = getInvoiceReceiptHtmlContent(

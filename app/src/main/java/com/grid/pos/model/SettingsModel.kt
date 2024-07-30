@@ -22,6 +22,8 @@ object SettingsModel {
     var sqlServerCompanyId: String? = null
     var isSqlServerWebDb: Boolean = true
 
+    var cashPrinter: String? = null
+
     var showTax: Boolean = false
     var showTax1: Boolean = false
     var showTax2: Boolean = false

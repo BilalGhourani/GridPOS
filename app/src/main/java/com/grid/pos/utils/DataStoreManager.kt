@@ -251,6 +251,11 @@ object DataStoreManager {
             DataStoreKeys.IS_SQL_SERVER_WEB_DB.key,
             true
         )
+
+        SettingsModel.cashPrinter = getString(
+            DataStoreKeys.CASH_PRINTER.key,
+            ""
+        )
     }
 
     enum class DataStoreKeys(val key: String) {
@@ -267,6 +272,7 @@ object DataStoreManager {
         SQL_SERVER_PATH("SQL_SERVER_PATH"), SQL_SERVER_DB_USER("SQL_SERVER_DB_USER"), SQL_SERVER_DB_PASSWORD("SQL_SERVER_DB_PASSWORD"),
         SQL_SERVER_COMPANY_ID("SQL_SERVER_COMPANY_ID"),
         IS_SQL_SERVER_WEB_DB("IS_SQL_SERVER_WEB_DB"),
+        CASH_PRINTER("CASH_PRINTER"),
 
         CONNECTION_TYPE("CONNECTION_TYPE"), SHOW_TAX("SHOW_TAX"), SHOW_TAX1(
             "SHOW_TAX1"
