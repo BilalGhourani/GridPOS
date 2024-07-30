@@ -210,7 +210,7 @@ fun ReportsView(
                         },
                         title = {
                             Text(
-                                text = "Tables",
+                                text = "Reports",
                                 color = SettingsModel.textColor,
                                 fontSize = 16.sp,
                                 textAlign = TextAlign.Center
