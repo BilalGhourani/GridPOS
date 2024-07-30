@@ -70,7 +70,8 @@ class ManageCurrenciesViewModel @Inject constructor(
                 viewModelScope.launch(Dispatchers.Main) {
                     manageCurrenciesState.value = manageCurrenciesState.value.copy(
                         selectedCurrency = addedCurr,
-                        isLoading = false
+                        isLoading = false,
+                        warning = Event("Currency saved successfully."),
                     )
                 }
             } else {
@@ -81,6 +82,7 @@ class ManageCurrenciesViewModel @Inject constructor(
                 viewModelScope.launch(Dispatchers.Main) {
                     manageCurrenciesState.value = manageCurrenciesState.value.copy(
                         selectedCurrency = currency,
+                        warning = Event("Currency saved successfully."),
                         isLoading = false
                     )
                 }

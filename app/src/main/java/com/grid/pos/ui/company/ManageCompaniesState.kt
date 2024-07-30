@@ -10,7 +10,8 @@ data class ManageCompaniesState(
         val currencies: MutableList<Currency> = mutableListOf(),
         val printers: MutableList<PosPrinter> = mutableListOf(),
         var selectedCompany: Company = Company(),
-        val isLoading: Boolean = false,
+        var isLoading: Boolean = false,
         var clear: Boolean = false,
         val warning: Event<String>? = null,
+        val actionLabel: String? = null,
 )

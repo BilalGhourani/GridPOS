@@ -78,6 +78,7 @@ class POSPrinterViewModel @Inject constructor(
                     printers = printers,
                     selectedPrinter = PosPrinter(),
                     isLoading = false,
+                    warning = Event("Printer saved successfully."),
                     clear = true,
                 )
             } else {
@@ -85,6 +86,7 @@ class POSPrinterViewModel @Inject constructor(
                 posPrinterState.value = posPrinterState.value.copy(
                     selectedPrinter = PosPrinter(),
                     isLoading = false,
+                    warning = Event("Printer saved successfully."),
                     clear = true,
                 )
             }
@@ -113,6 +115,7 @@ class POSPrinterViewModel @Inject constructor(
                     printers = printers,
                     selectedPrinter = PosPrinter(),
                     isLoading = false,
+                    warning = Event("successfully deleted."),
                     clear = true
                 )
             }

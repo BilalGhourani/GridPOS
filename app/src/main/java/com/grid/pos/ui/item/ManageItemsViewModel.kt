@@ -100,6 +100,7 @@ class ManageItemsViewModel @Inject constructor(
                         items = items,
                         selectedItem = addedModel,
                         isLoading = false,
+                        warning = Event("Item saved successfully."),
                         clear = true
                     )
                 }
@@ -109,6 +110,7 @@ class ManageItemsViewModel @Inject constructor(
                     manageItemsState.value = manageItemsState.value.copy(
                         selectedItem = item,
                         isLoading = false,
+                        warning = Event("Item saved successfully."),
                         clear = true
                     )
                 }
@@ -138,6 +140,7 @@ class ManageItemsViewModel @Inject constructor(
                     items = items,
                     selectedItem = Item(),
                     isLoading = false,
+                    warning = Event("successfully deleted."),
                     clear = true
                 )
             }

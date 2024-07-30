@@ -82,6 +82,7 @@ class ManageFamiliesViewModel @Inject constructor(
                         families = families,
                         selectedFamily = Family(),
                         isLoading = false,
+                        warning = Event("Family saved successfully."),
                         clear = true,
                     )
                 }
@@ -91,6 +92,7 @@ class ManageFamiliesViewModel @Inject constructor(
                     manageFamiliesState.value = manageFamiliesState.value.copy(
                         selectedFamily = Family(),
                         isLoading = false,
+                        warning = Event("Family saved successfully."),
                         clear = true,
                     )
                 }
@@ -120,6 +122,7 @@ class ManageFamiliesViewModel @Inject constructor(
                     families = families,
                     selectedFamily = Family(),
                     isLoading = false,
+                    warning = Event("successfully deleted."),
                     clear = true
                 )
             }

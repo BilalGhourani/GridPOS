@@ -68,6 +68,7 @@ class ManageThirdPartiesViewModel @Inject constructor(
                             thirdParties = thirdParties,
                             selectedThirdParty = addedModel,
                             isLoading = false,
+                            warning = Event("Third Party saved successfully."),
                             clear = true
                         )
                     }
@@ -77,6 +78,7 @@ class ManageThirdPartiesViewModel @Inject constructor(
                         manageThirdPartiesState.value = manageThirdPartiesState.value.copy(
                             selectedThirdParty = thirdParty,
                             isLoading = false,
+                            warning = Event("Third Party saved successfully."),
                             clear = true
                         )
                     }
@@ -107,6 +109,7 @@ class ManageThirdPartiesViewModel @Inject constructor(
                     thirdParties = thirdParties,
                     selectedThirdParty = ThirdParty(),
                     isLoading = false,
+                    warning = Event("successfully deleted."),
                     clear = true
                 )
             }

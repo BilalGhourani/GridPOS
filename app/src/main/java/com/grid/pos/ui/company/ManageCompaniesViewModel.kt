@@ -34,6 +34,19 @@ class ManageCompaniesViewModel @Inject constructor(
         }
     }
 
+    fun showWarning(
+            warning: String,
+            action: String
+    ) {
+        viewModelScope.launch(Dispatchers.Main) {
+            manageCompaniesState.value = manageCompaniesState.value.copy(
+                warning = Event(warning),
+                actionLabel = action,
+                isLoading = false
+            )
+        }
+    }
+
     fun fillCachedCompanies(
             companies: MutableList<Company> = mutableListOf(),
             currencies: MutableList<Currency> = mutableListOf()
@@ -99,6 +112,7 @@ class ManageCompaniesViewModel @Inject constructor(
                     companies = companies,
                     selectedCompany = Company(),
                     isLoading = false,
+                    warning = Event("Company saved successfully."),
                     clear = true
                 )
             } else {
@@ -106,6 +120,7 @@ class ManageCompaniesViewModel @Inject constructor(
                 manageCompaniesState.value = manageCompaniesState.value.copy(
                     selectedCompany = company,
                     isLoading = false,
+                    warning = Event("Company saved successfully."),
                     clear = true
                 )
             }
@@ -135,6 +150,7 @@ class ManageCompaniesViewModel @Inject constructor(
                     companies = companies,
                     selectedCompany = Company(),
                     isLoading = false,
+                    warning = Event("successfully deleted."),
                     clear = true
                 )
             }

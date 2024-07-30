@@ -70,6 +70,7 @@ class ManageUsersViewModel @Inject constructor(
                         users = users,
                         selectedUser = addedModel,
                         isLoading = false,
+                        warning = Event("User saved successfully."),
                         clear = true
                     )
                 }
@@ -79,6 +80,7 @@ class ManageUsersViewModel @Inject constructor(
                     manageUsersState.value = manageUsersState.value.copy(
                         selectedUser = user,
                         isLoading = false,
+                        warning = Event("User saved successfully."),
                         clear = true
                     )
                 }
@@ -108,6 +110,7 @@ class ManageUsersViewModel @Inject constructor(
                     users = users,
                     selectedUser = User(),
                     isLoading = false,
+                    warning = Event("successfully deleted."),
                     clear = true
                 )
             }

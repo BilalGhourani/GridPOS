@@ -238,6 +238,7 @@ class POSViewModel @Inject constructor(
                 posState.value = posState.value.copy(
                     isLoading = false,
                     isSaved = true,
+                    warning = Event("Invoice saved successfully."),
                 )
             }
         }
@@ -312,6 +313,7 @@ class POSViewModel @Inject constructor(
             withContext(Dispatchers.Main) {
                 posState.value = posState.value.copy(
                     isLoading = false,
+                    warning = Event("successfully deleted."),
                     isDeleted = true
                 )
             }
