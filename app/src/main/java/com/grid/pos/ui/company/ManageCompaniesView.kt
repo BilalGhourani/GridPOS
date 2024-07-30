@@ -1,7 +1,9 @@
 package com.grid.pos.ui.company
 
 import android.annotation.SuppressLint
+import android.net.Uri
 import androidx.activity.compose.BackHandler
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,6 +16,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Image
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -21,6 +24,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -37,6 +41,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
@@ -51,16 +56,19 @@ import com.grid.pos.R
 import com.grid.pos.data.Company.Company
 import com.grid.pos.data.Currency.Currency
 import com.grid.pos.data.PosPrinter.PosPrinter
+import com.grid.pos.interfaces.OnGalleryResult
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.LoadingIndicator
 import com.grid.pos.ui.common.SearchableDropdownMenu
 import com.grid.pos.ui.common.UIButton
 import com.grid.pos.ui.common.UITextField
 import com.grid.pos.ui.theme.GridPOSTheme
+import com.grid.pos.utils.FileUtils
 import com.grid.pos.utils.Utils
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @SuppressLint("CoroutineCreationDuringComposition")
 @OptIn(ExperimentalMaterial3Api::class)
@@ -78,6 +86,7 @@ fun ManageCompaniesView(
         activityScopedViewModel.companies,
         activityScopedViewModel.currencies
     )
+    val context = LocalContext.current
     val keyboardController = LocalSoftwareKeyboardController.current
     val phoneFocusRequester = remember { FocusRequester() }
     val addressFocusRequester = remember { FocusRequester() }
@@ -108,15 +117,23 @@ fun ManageCompaniesView(
     var tax2State by remember { mutableStateOf("") }
     var tax2RegnoState by remember { mutableStateOf("") }
 
+    var oldImage: String? = null
+
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     LaunchedEffect(manageCompaniesState.warning) {
         manageCompaniesState.warning?.value?.let { message ->
             scope.launch {
-                snackbarHostState.showSnackbar(
+                val snackBarResult = snackbarHostState.showSnackbar(
                     message = message,
                     duration = SnackbarDuration.Short,
                 )
+                when (snackBarResult) {
+                    SnackbarResult.Dismissed -> {}
+                    SnackbarResult.ActionPerformed -> when (manageCompaniesState.actionLabel) {
+                        "Settings" -> activityScopedViewModel.openAppStorageSettings()
+                    }
+                }
             }
         }
     }
@@ -420,7 +437,48 @@ fun ManageCompaniesView(
                             placeHolder = "Enter Logo",
                             focusRequester = logoFocusRequester,
                             imeAction = ImeAction.Done,
-                            onAction = { keyboardController?.hide() }) { logo ->
+                            onAction = { keyboardController?.hide() },
+                            trailingIcon = {
+                                IconButton(onClick = {
+                                    activityScopedViewModel.launchGalleryPicker(mediaType = ActivityResultContracts.PickVisualMedia.ImageOnly,
+                                        object : OnGalleryResult {
+                                            override fun onGalleryResult(uris: List<Uri>) {
+                                                if (uris.isNotEmpty()) {
+                                                    manageCompaniesState.isLoading = true
+                                                    CoroutineScope(Dispatchers.IO).launch {
+                                                        val internalPath = FileUtils.saveToExternalStorage(context = context,
+                                                            parent = "item",
+                                                            uris[0],
+                                                            nameState.trim().replace(
+                                                                " ",
+                                                                "_"
+                                                            ).ifEmpty { "item" })
+                                                        withContext(Dispatchers.Main) {
+                                                            manageCompaniesState.isLoading = false
+                                                            if (internalPath != null) {
+                                                                oldImage = logoState
+                                                                logoState = internalPath
+                                                                manageCompaniesState.selectedCompany.companyLogo = logoState
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        onPermissionDenied = {
+                                            viewModel.showWarning(
+                                                "Permission Denied",
+                                                "Settings"
+                                            )
+                                        })
+                                }) {
+                                    Icon(
+                                        Icons.Default.Image,
+                                        contentDescription = "Image",
+                                        tint = SettingsModel.buttonColor
+                                    )
+                                }
+                            }) { logo ->
                             logoState = logo
                             manageCompaniesState.selectedCompany.companyLogo = logo
                         }
@@ -438,6 +496,12 @@ fun ManageCompaniesView(
                                     .padding(3.dp),
                                 text = "Save"
                             ) {
+                                oldImage?.let { old ->
+                                    FileUtils.deleteFile(
+                                        context,
+                                        old
+                                    )
+                                }
                                 viewModel.saveCompany(manageCompaniesState.selectedCompany)
                             }
 
@@ -447,6 +511,18 @@ fun ManageCompaniesView(
                                     .padding(3.dp),
                                 text = "Delete"
                             ) {
+                                oldImage?.let { old ->
+                                    FileUtils.deleteFile(
+                                        context,
+                                        old
+                                    )
+                                }
+                                if (logoState.isNotEmpty()) {
+                                    FileUtils.deleteFile(
+                                        context,
+                                        logoState
+                                    )
+                                }
                                 viewModel.deleteSelectedCompany(
                                     manageCompaniesState.selectedCompany
                                 )
@@ -458,7 +534,7 @@ fun ManageCompaniesView(
                                     .padding(3.dp),
                                 text = "Close"
                             ) {
-                               handleBack()
+                                handleBack()
                             }
                         }
 
