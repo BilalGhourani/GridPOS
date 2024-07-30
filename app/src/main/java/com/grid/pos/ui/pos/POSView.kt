@@ -211,7 +211,10 @@ fun POSView(
     ) {
         if (posState.isSaved) {
             isPayBottomSheetVisible = false
-            if (activityViewModel.shouldPrintInvoice) {
+            if (activityViewModel.isFromTable) {
+                clear()
+                navController?.navigateUp()
+            } else if (activityViewModel.shouldPrintInvoice) {
                 activityViewModel.invoiceItemModels = invoicesState
                 activityViewModel.invoiceHeader = invoiceHeaderState.value
                 navController?.navigate("UIWebView")
@@ -225,6 +228,9 @@ fun POSView(
             activityViewModel.invoiceHeaders = posState.invoiceHeaders
             clear()
             posState.isDeleted = false
+            if (activityViewModel.isFromTable) {
+                navController?.navigateUp()
+            }
         }
     }
     val isImeVisible = WindowInsets.ime.getBottom(LocalDensity.current) > 0
@@ -363,11 +369,12 @@ fun POSView(
                                 invoiceHeaderState.value
                             )
                         })
-                    Row(modifier = Modifier
-                        .fillMaxWidth()
-                        .height(25.dp)) {
-                        IconButton(modifier = Modifier
-                            .size(25.dp),
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(25.dp)
+                    ) {
+                        IconButton(modifier = Modifier.size(25.dp),
                             onClick = {
                                 activityViewModel.launchBarcodeScanner(object : OnBarcodeResult {
                                     override fun OnBarcodeResult(value: String) {

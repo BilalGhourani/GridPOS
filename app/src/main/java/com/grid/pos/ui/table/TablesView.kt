@@ -89,6 +89,8 @@ fun TablesView(
         activityScopedViewModel.shouldLoadInvoice = true
         activityScopedViewModel.isFromTable = true
         tablesState.clear = true
+        stepState = 1
+        tablesState.step = 1
         navController?.navigate("POSView")
     }
 
