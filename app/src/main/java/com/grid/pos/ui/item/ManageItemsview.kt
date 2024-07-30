@@ -164,12 +164,6 @@ fun ManageItemsView(
         if (manageItemsState.items.isNotEmpty()) {
             activityScopedViewModel.items = manageItemsState.items
         }
-        if (imageState.isNotEmpty()) {
-            FileUtils.deleteFile(
-                context,
-                imageState
-            )
-        }
         navController?.navigateUp()
     }
     BackHandler {

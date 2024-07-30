@@ -112,9 +112,6 @@ fun ManageFamiliesView(
         if (manageFamiliesState.families.isNotEmpty()) {
             activityScopedViewModel.families = manageFamiliesState.families
         }
-        if (imageState.isNotEmpty()) {
-            FileUtils.deleteFile(context, imageState)
-        }
         navController?.navigateUp()
     }
     BackHandler {
