@@ -257,6 +257,22 @@ data class Invoice(
     }
 
     @Exclude
+    fun getInvoiceCostOrZero(): Double {
+        if (invoiceCost.isNaN()) {
+            return 0.0
+        }
+        return invoiceCost
+    }
+
+    @Exclude
+    fun getRemainingQtyOrZero(): Double {
+        if (invoiceRemQty.isNaN()) {
+            return 0.0
+        }
+        return invoiceRemQty
+    }
+
+    @Exclude
     fun getPriceWithTax(): Double {
         val amount = getAmount()
         return amount + getTax(amount) + getTax1(amount) + getTax2(amount)
