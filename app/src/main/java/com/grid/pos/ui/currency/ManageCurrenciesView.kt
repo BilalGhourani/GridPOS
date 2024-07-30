@@ -76,15 +76,15 @@ fun ManageCurrenciesView(navController: NavController? = null, modifier: Modifie
     val curName2DecFocusRequester = remember { FocusRequester() }
     val rateFocusRequester = remember { FocusRequester() }
 
-    var curCode1State by remember { mutableStateOf("") }
-    var curName1State by remember { mutableStateOf("") }
+    var curCode1State by remember { mutableStateOf(SettingsModel.currentCurrency?.currencyCode1?:"") }
+    var curName1State by remember { mutableStateOf(SettingsModel.currentCurrency?.currencyName1?:"") }
     var curName1DecState by remember {
         mutableStateOf(
             manageCurrenciesState.selectedCurrency.currencyName1Dec.toString()
         )
     }
-    var curCode2State by remember { mutableStateOf("") }
-    var curName2State by remember { mutableStateOf("") }
+    var curCode2State by remember { mutableStateOf(SettingsModel.currentCurrency?.currencyCode2?:"") }
+    var curName2State by remember { mutableStateOf(SettingsModel.currentCurrency?.currencyName2?:"") }
     var curName2DecState by remember {
         mutableStateOf(
             manageCurrenciesState.selectedCurrency.currencyName2Dec.toString()
