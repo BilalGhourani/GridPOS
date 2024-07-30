@@ -363,6 +363,7 @@ fun ManageItemsView(
                                         override fun OnBarcodeResult(value: String) {
                                             if (value.isNotEmpty()) {
                                                 barcodeState = value
+                                                manageItemsState.selectedItem.itemBarcode = value
                                             }
                                         }
                                     },
