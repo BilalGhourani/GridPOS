@@ -52,7 +52,7 @@ object SQLServerWrapper {
         var resultSet: ResultSet? = null
         val result = mutableListOf<JSONObject>()
         try {
-            connection = mConnection ?: getDatabaseConnection()
+            connection = getConnection()
             val cols = columns.joinToString(", ")
             val whereQuery = if (where.isNotEmpty()) "WHERE $where " else ""
             val query = "SELECT $colPrefix $cols FROM $tableName $joinSubQuery $whereQuery"
@@ -102,7 +102,7 @@ object SQLServerWrapper {
         var resultSet: ResultSet? = null
         val result = mutableListOf<JSONObject>()
         try {
-            connection = mConnection ?: getDatabaseConnection()
+            connection = getConnection()
 
             val parameters = params.joinToString(", ")
             // Prepare the stored procedure call
@@ -188,7 +188,7 @@ object SQLServerWrapper {
         var connection: Connection? = null
         var statement: PreparedStatement? = null
         return try {
-            connection = mConnection ?: getDatabaseConnection()
+            connection = getConnection()
             statement = connection.prepareStatement(query)
 
             params.forEachIndexed { index, param ->
@@ -208,5 +208,12 @@ object SQLServerWrapper {
                 connection?.close()
             }
         }
+    }
+
+    private fun getConnection(): Connection {
+        if (mConnection != null && !mConnection!!.isClosed) {
+            return mConnection!!
+        }
+        return getDatabaseConnection()
     }
 }

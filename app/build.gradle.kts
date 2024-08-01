@@ -20,7 +20,7 @@ android {
     compileSdk = 34
     defaultConfig {
         applicationId = "com.grid.pos"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 34
         versionCode = 3
         versionName = "1.0"
@@ -67,7 +67,16 @@ android {
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            excludes += "META-INF/DEPENDENCIES"
         }
+    }
+}
+configurations {
+    all {
+        exclude(
+            group = "stax",
+            module = "stax-api"
+        )
     }
 }
 
@@ -100,7 +109,6 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
     implementation("androidx.activity:activity-ktx:1.9.0")
 
-
     //Dagger - Hilt
     implementation("com.google.dagger:hilt-android:2.48")
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
@@ -131,19 +139,31 @@ dependencies {
     implementation("androidx.datastore:datastore-preferences-rxjava3:1.0.0")
     implementation("net.sourceforge.jtds:jtds:1.3.1")
 
-    implementation(
-        group = "com.aspose",
-        name = "aspose-cells",
-        version = "24.3",
-        classifier = "android.via.java"
-    )
+    /*  implementation(
+          group = "com.aspose",
+          name = "aspose-cells",
+          version = "24.3",
+          classifier = "android.via.java"
+      )*/
+
+    implementation("org.apache.poi:poi:5.2.3") // Update to the latest version if necessary
+    implementation("org.apache.poi:poi-ooxml:5.2.3") {
+        exclude(
+            group = "org.apache.poi",
+            module = "poi-ooxml-lite"
+        )
+    }
+    // For working with .xlsx files
+    implementation("org.apache.poi:poi-ooxml:5.2.3") // For XML schemas
+    implementation("org.apache.xmlbeans:xmlbeans:5.2.0") // For XML processing
+    implementation("org.apache.commons:commons-collections4:4.4") // Commons collections
 
     // ML Kit Barcode Scanning
-    implementation ("com.google.mlkit:barcode-scanning:17.2.0")
+    implementation("com.google.mlkit:barcode-scanning:17.2.0")
 
     // CameraX dependencies
-    implementation ("androidx.camera:camera-camera2:1.3.4")
-    implementation ("androidx.camera:camera-lifecycle:1.3.4")
-    implementation ("androidx.camera:camera-view:1.3.4")
+    implementation("androidx.camera:camera-camera2:1.3.4")
+    implementation("androidx.camera:camera-lifecycle:1.3.4")
+    implementation("androidx.camera:camera-view:1.3.4")
 
 }

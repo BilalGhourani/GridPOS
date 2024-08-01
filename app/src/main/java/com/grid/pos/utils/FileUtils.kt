@@ -11,11 +11,10 @@ import android.util.Log
 import android.webkit.MimeTypeMap
 import androidx.core.net.toUri
 import androidx.documentfile.provider.DocumentFile
-import com.aspose.cells.SaveFormat
-import com.aspose.cells.Workbook
 import com.grid.pos.App
 import com.grid.pos.data.AppDatabase
 import com.grid.pos.di.AppModule
+import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import java.io.BufferedReader
 import java.io.File
 import java.io.FileInputStream
@@ -85,7 +84,7 @@ object FileUtils {
         sourceFilePath: Uri,
         destName: String,
         type: String = "Image",
-        workbook: Workbook? = null
+        workbook: XSSFWorkbook? = null
     ): String? {
         val resolver = context.contentResolver
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -123,9 +122,8 @@ object FileUtils {
                     val contentResolver = context.contentResolver
                     workbook?.let { workbook ->
                         resolver.openOutputStream(uri)?.use { outputStream ->
-                            workbook.save(
-                                outputStream,
-                                SaveFormat.XLSX
+                            workbook.write(
+                                outputStream
                             )
                             outputStream.close()
                         }

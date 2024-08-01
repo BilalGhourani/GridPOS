@@ -56,7 +56,7 @@ object SettingsModel {
     }
 
     fun isConnectedToSqlServer(): Boolean {
-        return connectionType == CONNECTION_TYPE.LOCAL.key
+        return connectionType == CONNECTION_TYPE.SQL_SERVER.key
     }
 
     fun isConnectedToSqlite(): Boolean {
