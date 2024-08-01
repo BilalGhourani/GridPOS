@@ -1,6 +1,8 @@
 package com.grid.pos.ui.pos.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -38,6 +40,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -57,12 +60,12 @@ import com.grid.pos.utils.Utils
 
 @Composable
 fun EditInvoiceItemView(
-    modifier: Modifier = Modifier,
-    invoices: MutableList<InvoiceItemModel>,
-    invHeader: InvoiceHeader,
-    invoiceIndex: Int = 0,
-    onSave: (InvoiceHeader, InvoiceItemModel) -> Unit = { _, _ -> },
-    onClose: () -> Unit = {},
+        modifier: Modifier = Modifier,
+        invoices: MutableList<InvoiceItemModel>,
+        invHeader: InvoiceHeader,
+        invoiceIndex: Int = 0,
+        onSave: (InvoiceHeader, InvoiceItemModel) -> Unit = { _, _ -> },
+        onClose: () -> Unit = {},
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
     val rDiscount1FocusRequester = remember { FocusRequester() }
@@ -143,8 +146,7 @@ fun EditInvoiceItemView(
         if (itemDiscount == 0.0 && itemDiscountAmount == 0.0) {
             return
         }
-        val itemPrice =
-            ((price.toDoubleOrNull() ?: 0.0).times(qty)) + invoiceItemModel.getTotalTax()
+        val itemPrice = ((price.toDoubleOrNull() ?: 0.0).times(qty)) + invoiceItemModel.getTotalTax()
         if (isPercentageChanged) {
             val disc = itemPrice.times(itemDiscount.div(100.0))
             rDiscount2 = String.format(
@@ -175,24 +177,21 @@ fun EditInvoiceItemView(
             invoiceHeader.invoiceHeadDiscountAmount = invoiceHeader.invoiceHeadTotalNetAmount.times(
                 invoiceHeader.invoiceHeadDiscount.div(100.0)
             )
-            discount2 = String.format(
+            discount2 = if (invoiceHeader.invoiceHeadDiscountAmount == 0.0) "" else String.format(
                 "%.${curr2Decimal}f",
                 invoiceHeader.invoiceHeadDiscountAmount
             )
-            invHeader.invoiceHeadGrossAmount =
-                invoiceHeader.invoiceHeadTotalNetAmount - invoiceHeader.invoiceHeadDiscountAmount
+            invHeader.invoiceHeadGrossAmount = invoiceHeader.invoiceHeadTotalNetAmount - invoiceHeader.invoiceHeadDiscountAmount
         } else {
             invoiceHeader.invoiceHeadDiscountAmount = discount2.toDoubleOrNull() ?: 0.0
-            invoiceHeader.invoiceHeadDiscount =
-                (invoiceHeader.invoiceHeadDiscountAmount.div(invoiceHeader.invoiceHeadTotalNetAmount)).times(
-                    100.0
-                )
+            invoiceHeader.invoiceHeadDiscount = (invoiceHeader.invoiceHeadDiscountAmount.div(invoiceHeader.invoiceHeadTotalNetAmount)).times(
+                100.0
+            )
             discount1 = String.format(
                 "%.${curr1Decimal}f",
                 invoiceHeader.invoiceHeadDiscount
             )
-            invHeader.invoiceHeadGrossAmount =
-                invoiceHeader.invoiceHeadTotalNetAmount - invoiceHeader.invoiceHeadDiscountAmount
+            invHeader.invoiceHeadGrossAmount = invoiceHeader.invoiceHeadTotalNetAmount - invoiceHeader.invoiceHeadDiscountAmount
         }
     }
 
@@ -200,7 +199,10 @@ fun EditInvoiceItemView(
         modifier = modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(16.dp),
+            .padding(16.dp)
+            .pointerInput(Unit) {
+                detectTapGestures(onTap = {})
+            },
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Row(
@@ -634,8 +636,7 @@ fun EditInvoiceItemView(
                 invoiceHeader.invoiceHeadDiscount = discount1.toDoubleOrNull() ?: 0.0
                 invoiceHeader.invoiceHeadDiscountAmount = discount2.toDoubleOrNull() ?: 0.0
 
-                invoiceItemModel.invoice.invoicePrice =
-                    price.toDoubleOrNull() ?: invoiceItemModel.invoiceItem.itemUnitPrice
+                invoiceItemModel.invoice.invoicePrice = price.toDoubleOrNull() ?: invoiceItemModel.invoiceItem.itemUnitPrice
                 invoiceItemModel.invoice.invoiceTax = taxState.toDoubleOrNull() ?: 0.0
                 invoiceItemModel.invoice.invoiceTax1 = tax1State.toDoubleOrNull() ?: 0.0
                 invoiceItemModel.invoice.invoiceTax2 = tax2State.toDoubleOrNull() ?: 0.0
