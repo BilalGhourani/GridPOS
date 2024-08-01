@@ -56,7 +56,10 @@ fun SearchableDropdownMenu(
     var expandedState by remember { mutableStateOf(false) }
     var searchText by remember { mutableStateOf(label) }
     var selectedItemState by remember { mutableStateOf(label) }
-    LaunchedEffect(selectedId) {
+    LaunchedEffect(
+        selectedId,
+        label
+    ) {
         if (showSelected && !selectedId.isNullOrEmpty()) {
             items.forEach {
                 if (it.getId().equals(
@@ -174,15 +177,14 @@ fun SearchableDropdownMenu(
                     }
                     filteredItems.forEach { item ->
                         val text = item.getName()
-                        DropdownMenuItem(
-                            text = {
-                                Text(
-                                    text = text,
-                                    maxLines = 2,
-                                    color = SettingsModel.textColor,
-                                    overflow = TextOverflow.Ellipsis
-                                )
-                            },
+                        DropdownMenuItem(text = {
+                            Text(
+                                text = text,
+                                maxLines = 2,
+                                color = SettingsModel.textColor,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        },
                             onClick = {
                                 onSelectionChange(item)
                                 searchText = text
