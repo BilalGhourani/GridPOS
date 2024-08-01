@@ -27,11 +27,11 @@ class CheckLicenseUseCase(
             context: Context,
             onResult: (Int) -> Unit
     ) {// if license not exist add new screen to take the file
-        val companyID = SettingsModel.getCompanyID()
-        if (!companyID.isNullOrEmpty()) {
-            try {
-                val licenseFile = FileUtils.getLicenseFileContent(context)
-                if (licenseFile != null) {
+        try {
+            val licenseFile = FileUtils.getLicenseFileContent(context)
+            if (licenseFile != null) {
+                val companyID = SettingsModel.getCompanyID()
+                if (!companyID.isNullOrEmpty()) {
                     val company = companyRepository.getCompanyById(companyID)
                     val lastInvoice = invoiceHeaderRepository.getLastInvoice()
                     val lastInvoiceDate = lastInvoice?.invoiceHeadTimeStamp ?: lastInvoice?.invoiceHeadDateTime?.let { Date(it) }
@@ -61,10 +61,12 @@ class CheckLicenseUseCase(
                             Utils.getDeviceID(context),
                             ignoreCase = true
                         )
-                        val expiryDate = DateHelper.getDateFromString(expiryDateStr, "yyyyMMdd")
+                        val expiryDate = DateHelper.getDateFromString(
+                            expiryDateStr,
+                            "yyyyMMdd"
+                        )
                         val currDate = Date()
-                        if (sameDeviceID && currDate.time < expiryDate.time && !isReadyToActivate
-                        ) {
+                        if (sameDeviceID && currDate.time < expiryDate.time && !isReadyToActivate) {
                             onResult.invoke(Constants.SUCCEEDED)
                         } else if (currDate.time < expiryDate.time && isReadyToActivate) {
                             //would you like to activate
@@ -77,7 +79,10 @@ class CheckLicenseUseCase(
                                 "yyyyMMdd"
                             )
                             val newContent = "$devID$sep$newExpiryDate"
-                            FileUtils.saveRtaLicense(context,newContent)
+                            FileUtils.saveRtaLicense(
+                                context,
+                                newContent
+                            )
                             onResult.invoke(Constants.SUCCEEDED)
                         } else {
                             onResult.invoke(Constants.LICENSE_EXPIRED)
@@ -85,13 +90,15 @@ class CheckLicenseUseCase(
                     } else {
                         onResult.invoke(Constants.LICENSE_EXPIRED)
                     }
-                } else {
-                    onResult.invoke(Constants.LICENSE_NOT_FOUND)
+                } else if (SettingsModel.isConnectedToSqlite()) {
+                    onResult.invoke(Constants.SUCCEEDED)
                 }
-            } catch (e: Exception) {
-                e.printStackTrace()
-                onResult.invoke(Constants.LICENSE_ACCESS_DENIED)
+            } else {
+                onResult.invoke(Constants.LICENSE_NOT_FOUND)
             }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            onResult.invoke(Constants.LICENSE_ACCESS_DENIED)
         }
     }
 
@@ -122,7 +129,7 @@ class CheckLicenseUseCase(
             0
         )
         if (DateHelper.getDatesDiff(
-                licCreatedDate ,
+                licCreatedDate,
                 currentDate
             ) < 0 || DateHelper.getDatesDiff(
                 firstInstallDate,
