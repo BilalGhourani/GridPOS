@@ -11,6 +11,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -351,7 +352,8 @@ fun POSView(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(25.dp)
+                            .height(25.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         IconButton(modifier = Modifier.size(25.dp),
                             onClick = {
@@ -391,7 +393,16 @@ fun POSView(
                             )
                         }
 
-                        Spacer(modifier = Modifier.weight(1f))
+                        Text(
+                            text = "Discount: ${invoiceHeaderState.value.invoiceHeadDiscount}%",
+                            modifier = Modifier.wrapContentWidth(),
+                            textAlign = TextAlign.End,
+                            style = TextStyle(
+                                fontWeight = FontWeight.Normal,
+                                fontSize = 12.sp
+                            ),
+                            color = SettingsModel.textColor
+                        )
 
                         Text(
                             text = Utils.getItemsNumberStr(invoicesState),
