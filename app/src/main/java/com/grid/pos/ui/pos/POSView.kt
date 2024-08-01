@@ -150,24 +150,6 @@ fun POSView(
         }
     }
 
-    var itemsToAdd: List<Item> = listOf()
-    val onItemAdded: () -> Unit = {
-        val invoices = mutableListOf<InvoiceItemModel>()
-        itemsToAdd.forEach { item ->
-            item.selected = false
-            val invoiceItemModel = InvoiceItemModel()
-            invoiceItemModel.setItem(item)
-            invoices.add(invoiceItemModel)
-        }
-        invoicesState.addAll(invoices)
-        activityViewModel.invoiceItemModels = invoicesState
-        invoiceHeaderState.value = POSUtils.refreshValues(
-            activityViewModel.invoiceItemModels,
-            invoiceHeaderState.value
-        )
-        isAddItemBottomSheetVisible = false
-    }
-
     LaunchedEffect(configuration) {
         snapshotFlow { configuration.orientation }.collect {
             orientation = it
@@ -239,10 +221,6 @@ fun POSView(
         if (isImeVisible) {
             keyboardController?.hide()
         } else if (isAddItemBottomSheetVisible) {
-            scope.launch(Dispatchers.IO) {
-                posState.resetItemsSelection()
-            }
-            onItemAdded.invoke()
             isAddItemBottomSheetVisible = false
         } else if (isEditBottomSheetVisible) {
             isEditBottomSheetVisible = false
@@ -522,15 +500,24 @@ fun POSView(
                         .padding(it)
                         .background(
                             color = SettingsModel.backgroundColor
-                        ).pointerInput(Unit) {
+                        )
+                        .pointerInput(Unit) {
                             detectTapGestures(onTap = {})
-                        },
-                    onSelectionChanged = { itemList ->
-                        itemsToAdd = itemList
-                    },
-                    onSelect = {
-                        onItemAdded.invoke()
-                    })
+                        }) { itemList ->
+                    val invoices = mutableListOf<InvoiceItemModel>()
+                    itemList.forEach { item ->
+                        val invoiceItemModel = InvoiceItemModel()
+                        invoiceItemModel.setItem(item)
+                        invoices.add(invoiceItemModel)
+                    }
+                    invoicesState.addAll(invoices)
+                    activityViewModel.invoiceItemModels = invoicesState
+                    invoiceHeaderState.value = POSUtils.refreshValues(
+                        activityViewModel.invoiceItemModels,
+                        invoiceHeaderState.value
+                    )
+                    isAddItemBottomSheetVisible = false
+                }
             }
 
             AnimatedVisibility(

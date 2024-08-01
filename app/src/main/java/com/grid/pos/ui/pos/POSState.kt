@@ -22,11 +22,4 @@ data class POSState(
     var isLoading: Boolean = false,
     val warning: Event<String>? = null,
     val actionLabel: String? = null,
-) {
-
-    fun resetItemsSelection() {
-        items.forEach { item ->
-            item.selected = false
-        }
-    }
-}
+)

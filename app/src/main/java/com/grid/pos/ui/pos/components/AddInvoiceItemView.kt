@@ -1,5 +1,6 @@
 package com.grid.pos.ui.pos.components
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,6 +22,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -40,18 +42,32 @@ import com.grid.pos.ui.item.ItemListCell
 import com.grid.pos.ui.family.CategoryListCell
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.utils.Utils
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 @Composable
 fun AddInvoiceItemView(
         categories: MutableList<Family> = mutableListOf(),
         items: MutableList<Item> = mutableListOf(),
         modifier: Modifier = Modifier,
-        onSelectionChanged: (List<Item>) -> Unit = {},
-        onSelect: () -> Unit = {},
+        onSelect: (List<Item>) -> Unit = {},
 ) {
     val itemsState = remember { mutableStateListOf<Item>() }
-    onSelectionChanged.invoke(itemsState.toList())
     var familyState by remember { mutableStateOf("") }
+    val scope = rememberCoroutineScope()
+    fun saveAndBack() {
+        scope.launch(Dispatchers.IO) {
+            itemsState.forEach { item ->
+                item.selected = false
+            }
+        }
+        onSelect.invoke(itemsState.toMutableList())
+    }
+
+    BackHandler {
+        saveAndBack()
+    }
+
     LaunchedEffect(true) {
         if (familyState.isEmpty() && categories.size > 0) {
             familyState = categories[0].familyId
@@ -95,7 +111,7 @@ fun AddInvoiceItemView(
                     .align(Alignment.BottomEnd)
                     .padding(30.dp),
                 onClick = {
-                    onSelect.invoke()
+                    saveAndBack()
                 },
                 shape = CircleShape,
                 containerColor = SettingsModel.buttonColor,
