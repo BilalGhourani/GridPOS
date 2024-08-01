@@ -122,8 +122,8 @@ class CheckLicenseUseCase(
             0
         )
         if (DateHelper.getDatesDiff(
-                currentDate,
-                licCreatedDate
+                licCreatedDate ,
+                currentDate
             ) < 0 || DateHelper.getDatesDiff(
                 firstInstallDate,
                 currentDate
