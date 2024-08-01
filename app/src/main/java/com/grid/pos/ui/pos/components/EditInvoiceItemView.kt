@@ -1,5 +1,6 @@
 package com.grid.pos.ui.pos.components
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -193,6 +194,31 @@ fun EditInvoiceItemView(
             )
             invHeader.invoiceHeadGrossAmount = invoiceHeader.invoiceHeadTotalNetAmount - invoiceHeader.invoiceHeadDiscountAmount
         }
+    }
+
+    fun backAndSave() {
+        invoiceHeader.invoiceHeadNote = invoiceNote
+        invoiceHeader.invoiceHeadCashName = clientExtraName
+        invoiceHeader.invoiceHeadDiscount = discount1.toDoubleOrNull() ?: 0.0
+        invoiceHeader.invoiceHeadDiscountAmount = discount2.toDoubleOrNull() ?: 0.0
+
+        invoiceItemModel.invoice.invoicePrice = price.toDoubleOrNull() ?: invoiceItemModel.invoiceItem.itemUnitPrice
+        invoiceItemModel.invoice.invoiceTax = taxState.toDoubleOrNull() ?: 0.0
+        invoiceItemModel.invoice.invoiceTax1 = tax1State.toDoubleOrNull() ?: 0.0
+        invoiceItemModel.invoice.invoiceTax2 = tax2State.toDoubleOrNull() ?: 0.0
+        invoiceItemModel.invoice.invoiceDiscount = rDiscount1.toDoubleOrNull() ?: 0.0
+        invoiceItemModel.invoice.invoiceDiscamt = rDiscount2.toDoubleOrNull() ?: 0.0
+        invoiceItemModel.invoice.invoiceQuantity = qty.toDouble()
+        invoiceItemModel.invoice.invoiceExtraName = itemExtraName
+        invoiceItemModel.invoice.invoiceNote = itemNote
+        onSave.invoke(
+            invoiceHeader,
+            invoiceItemModel
+        )
+    }
+
+    BackHandler {
+        backAndSave()
     }
 
     Column(
@@ -617,7 +643,7 @@ fun EditInvoiceItemView(
             }
         }
 
-        Row(
+        /*Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(60.dp)
@@ -631,24 +657,7 @@ fun EditInvoiceItemView(
                 text = "Save",
                 shape = RoundedCornerShape(15.dp)
             ) {
-                invoiceHeader.invoiceHeadNote = invoiceNote
-                invoiceHeader.invoiceHeadCashName = clientExtraName
-                invoiceHeader.invoiceHeadDiscount = discount1.toDoubleOrNull() ?: 0.0
-                invoiceHeader.invoiceHeadDiscountAmount = discount2.toDoubleOrNull() ?: 0.0
-
-                invoiceItemModel.invoice.invoicePrice = price.toDoubleOrNull() ?: invoiceItemModel.invoiceItem.itemUnitPrice
-                invoiceItemModel.invoice.invoiceTax = taxState.toDoubleOrNull() ?: 0.0
-                invoiceItemModel.invoice.invoiceTax1 = tax1State.toDoubleOrNull() ?: 0.0
-                invoiceItemModel.invoice.invoiceTax2 = tax2State.toDoubleOrNull() ?: 0.0
-                invoiceItemModel.invoice.invoiceDiscount = rDiscount1.toDoubleOrNull() ?: 0.0
-                invoiceItemModel.invoice.invoiceDiscamt = rDiscount2.toDoubleOrNull() ?: 0.0
-                invoiceItemModel.invoice.invoiceQuantity = qty.toDouble()
-                invoiceItemModel.invoice.invoiceExtraName = itemExtraName
-                invoiceItemModel.invoice.invoiceNote = itemNote
-                onSave.invoke(
-                    invoiceHeader,
-                    invoiceItemModel
-                )
+                backAndSave()
             }
 
             UIButton(
@@ -679,7 +688,7 @@ fun EditInvoiceItemView(
             ) {
                 onClose.invoke()
             }
-        }
+        }*/
 
     }
 }
