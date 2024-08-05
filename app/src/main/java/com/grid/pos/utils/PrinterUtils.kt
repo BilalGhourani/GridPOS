@@ -134,6 +134,7 @@ object PrinterUtils {
             .replace("{taxregno}",  company?.companyTaxRegno?:"")
             .replace("{taxregno1}",  company?.companyTax1Regno?:"")
             .replace("{taxregno2}",  company?.companyTax2Regno?:"")
+            .replace("{invoicenotevalue}",  invoiceHeader.invoiceHeadNote?:"")
 
         if(!invoiceHeader.invoiceHeadTransNo.isNullOrEmpty()){
             val barcodeBitmap = generateBarcode(invoiceHeader.invoiceHeadTransNo!!)
