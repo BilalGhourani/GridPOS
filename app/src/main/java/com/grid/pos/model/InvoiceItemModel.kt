@@ -4,8 +4,8 @@ import com.grid.pos.data.Invoice.Invoice
 import com.grid.pos.data.Item.Item
 
 data class InvoiceItemModel(
-    val invoice: Invoice = Invoice(),
-    var invoiceItem: Item = Item(),
+        val invoice: Invoice = Invoice(),
+        var invoiceItem: Item = Item(),
 ) {
 
     fun setItem(item: Item) {
@@ -27,6 +27,17 @@ data class InvoiceItemModel(
             invoiceItem.itemName ?: "Item"
         } else {
             (invoiceItem.itemName ?: "Item") + " - " + invoice.invoiceExtraName
+        }
+    }
+
+    fun getFullName(): String {
+        val disc = getDiscount()
+        val discountVal = if (disc > 0.0) "-%${disc.toInt()}" else ""
+        val taxableVal = if (getTotalTax() > 0.0) "*" else ""
+        return if (invoice.invoiceExtraName.isNullOrEmpty()) {
+            "${invoiceItem.itemName ?: "Item"}$taxableVal $discountVal"
+        } else {
+            "${invoiceItem.itemName ?: "Item"}-${invoice.invoiceExtraName}$taxableVal $discountVal"
         }
     }
 
@@ -67,10 +78,10 @@ data class InvoiceItemModel(
     }
 
     fun getAmount(): Double {
-       return invoice.getAmount()
+        return invoice.getAmount()
     }
 
     fun getNetAmount(): Double {
-        return  invoice.getNetAmount()
+        return invoice.getNetAmount()
     }
 }

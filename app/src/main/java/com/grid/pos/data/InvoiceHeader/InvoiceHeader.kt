@@ -29,6 +29,10 @@ data class InvoiceHeader(
         @get:Exclude
         var invoiceHeadDocumentId: String? = null,
 
+        @Ignore
+        @get:Exclude
+        var invoiceHeadPrint: Int = 1,
+
         /**
          * related Invoice header id
          * */

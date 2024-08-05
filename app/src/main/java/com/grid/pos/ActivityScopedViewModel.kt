@@ -24,7 +24,6 @@ import com.grid.pos.data.ThirdParty.ThirdPartyRepository
 import com.grid.pos.data.User.User
 import com.grid.pos.interfaces.OnBarcodeResult
 import com.grid.pos.interfaces.OnGalleryResult
-import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.Event
 import com.grid.pos.model.InvoiceItemModel
 import com.grid.pos.model.SettingsModel
@@ -184,20 +183,48 @@ class ActivityScopedViewModel @Inject constructor(
 
     fun print(context: Context) {
         viewModelScope.launch(Dispatchers.IO) {
+            val defaultThirdParty = if (invoiceHeader.invoiceHeadThirdPartyName.isNullOrEmpty()) {
+                thirdParties.firstOrNull { it.thirdPartyDefault }
+            } else {
+                thirdParties.firstOrNull {
+                    it.thirdPartyId.equals(
+                        invoiceHeader.invoiceHeadThirdPartyName,
+                        ignoreCase = true
+                    )
+                }
+            }
             PrinterUtils.print(
                 context,
                 invoiceHeader,
                 invoiceItemModels,
+                posReceipt,
+                defaultThirdParty,
+                SettingsModel.currentUser,
+                SettingsModel.currentCompany,
                 printers
             )
         }
     }
 
     fun getInvoiceReceiptHtmlContent(context: Context): String {
+        val defaultThirdParty = if (invoiceHeader.invoiceHeadThirdPartyName.isNullOrEmpty()) {
+            thirdParties.firstOrNull { it.thirdPartyDefault }
+        } else {
+            thirdParties.firstOrNull {
+                it.thirdPartyId.equals(
+                    invoiceHeader.invoiceHeadThirdPartyName,
+                    ignoreCase = true
+                )
+            }
+        }
         return PrinterUtils.getInvoiceReceiptHtmlContent(
             context,
             invoiceHeader,
-            invoiceItemModels
+            invoiceItemModels,
+            posReceipt,
+            defaultThirdParty,
+            SettingsModel.currentUser,
+            SettingsModel.currentCompany
         )
     }
 

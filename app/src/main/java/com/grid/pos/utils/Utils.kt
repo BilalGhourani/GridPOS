@@ -80,7 +80,10 @@ object Utils {
     fun generateRandomUuidString(): String {
         if (!SettingsModel.isSqlServerWebDb && SettingsModel.connectionType == CONNECTION_TYPE.SQL_SERVER.key) {
             val random = Random()
-            return (BigInteger(24, random)).toString()
+            return (BigInteger(
+                24,
+                random
+            )).toString()
         }
         return UUID.randomUUID().toString()
     }
@@ -124,6 +127,16 @@ object Utils {
                 null -> old //old value
                 else -> new  //new value
             }
+        }
+    }
+
+    fun getDoubleOrZero(
+            value: Double?
+    ): Double {
+        return if (value?.isNaN() == true) {
+            0.0
+        } else {
+            value ?: 0.0
         }
     }
 
