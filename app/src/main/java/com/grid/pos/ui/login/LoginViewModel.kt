@@ -35,10 +35,11 @@ class LoginViewModel @Inject constructor(
             username: String,
             password: String
     ) {
-     /*   loginNow(
-            username,
-            password
-        )*/
+        usersState.value = usersState.value.copy(
+            isLoading = true,
+            warning = null,
+            warningAction = null
+        )
 
         viewModelScope.launch(Dispatchers.IO) {
             //CryptoUtils.test(App.getInstance().getConfigValue("key_for_license"))

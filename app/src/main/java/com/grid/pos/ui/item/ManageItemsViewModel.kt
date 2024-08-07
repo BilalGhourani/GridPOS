@@ -6,6 +6,7 @@ import com.grid.pos.data.Family.Family
 import com.grid.pos.data.Family.FamilyRepository
 import com.grid.pos.data.Item.Item
 import com.grid.pos.data.Item.ItemRepository
+import com.grid.pos.data.PosPrinter.PosPrinterRepository
 import com.grid.pos.model.Event
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -18,7 +19,8 @@ import javax.inject.Inject
 @HiltViewModel
 class ManageItemsViewModel @Inject constructor(
         private val itemRepository: ItemRepository,
-        private val familyRepository: FamilyRepository
+        private val familyRepository: FamilyRepository,
+        private val posPrinterRepository: PosPrinterRepository
 ) : ViewModel() {
 
     private val _manageItemsState = MutableStateFlow(ManageItemsState())
@@ -28,6 +30,7 @@ class ManageItemsViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             fetchItems()
             fetchFamilies()
+            fetchPrinters()
         }
     }
 
@@ -59,6 +62,14 @@ class ManageItemsViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.Main) {
             manageItemsState.value = manageItemsState.value.copy(
                 families = listOfFamilies
+            )
+        }
+    }
+    private suspend fun fetchPrinters() {
+        val listOfPrinters = posPrinterRepository.getAllPosPrinters()
+        viewModelScope.launch(Dispatchers.Main) {
+            manageItemsState.value = manageItemsState.value.copy(
+                printers = listOfPrinters
             )
         }
     }

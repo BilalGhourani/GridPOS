@@ -46,6 +46,7 @@ import com.grid.pos.ui.theme.GridPOSTheme
 fun ItemCell(
         item: Item,
         modifier: Modifier = Modifier,
+        notifyDirectly: Boolean = false,
         onClick: () -> Unit = {}
 ) {
 
@@ -85,8 +86,10 @@ fun ItemCell(
             contentPadding = PaddingValues(0.dp),
             shape = RoundedCornerShape(15.dp),
             onClick = {
-                itemSelected = !itemSelected
-                item.selected = itemSelected
+                if (!notifyDirectly) {
+                    itemSelected = !itemSelected
+                    item.selected = itemSelected
+                }
                 onClick.invoke()
             }) {
             Column(

@@ -16,6 +16,7 @@ import com.grid.pos.utils.Utils
 fun ItemListCell(
         modifier: Modifier = Modifier,
         items: MutableList<Item>,
+        notifyDirectly:Boolean = false,
         onClick: (Item) -> Unit = { _ -> }
 ) {
     LazyVerticalGrid(
@@ -28,6 +29,7 @@ fun ItemListCell(
             item {
                 ItemCell(
                     item = item,
+                    notifyDirectly=notifyDirectly,
                     modifier = Modifier
                 ) {
                     onClick(

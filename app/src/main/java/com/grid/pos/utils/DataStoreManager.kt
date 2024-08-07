@@ -192,6 +192,10 @@ object DataStoreManager {
             DataStoreKeys.CONNECTION_TYPE.key,
             CONNECTION_TYPE.LOCAL.key
         )
+        SettingsModel.showItemsInPOS = getBoolean(
+            DataStoreKeys.SHOW_ITEMS_IN_POS.key,
+            false
+        ) == true
         SettingsModel.showTax = getBoolean(
             DataStoreKeys.SHOW_TAX.key,
             false
@@ -274,7 +278,7 @@ object DataStoreManager {
         IS_SQL_SERVER_WEB_DB("IS_SQL_SERVER_WEB_DB"),
         CASH_PRINTER("CASH_PRINTER"),
 
-        CONNECTION_TYPE("CONNECTION_TYPE"), SHOW_TAX("SHOW_TAX"), SHOW_TAX1(
+        CONNECTION_TYPE("CONNECTION_TYPE"), SHOW_ITEMS_IN_POS("SHOW_ITEMS_IN_POS"),SHOW_TAX("SHOW_TAX"), SHOW_TAX1(
             "SHOW_TAX1"
         ),
         SHOW_TAX2("SHOW_TAX2"), SHOW_PRICE_IN_ITEM_BTN("SHOW_PRICE_IN_ITEM_BTN"),

@@ -24,6 +24,7 @@ object SettingsModel {
 
     var cashPrinter: String? = null
 
+    var showItemsInPOS: Boolean = false
     var showTax: Boolean = false
     var showTax1: Boolean = false
     var showTax2: Boolean = false

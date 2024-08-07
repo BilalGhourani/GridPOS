@@ -10,11 +10,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -26,7 +23,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -38,10 +34,9 @@ import androidx.compose.ui.unit.sp
 import com.grid.pos.data.Family.Family
 import com.grid.pos.data.Item.Item
 import com.grid.pos.model.SettingsModel
-import com.grid.pos.ui.item.ItemListCell
 import com.grid.pos.ui.family.CategoryListCell
+import com.grid.pos.ui.item.ItemListCell
 import com.grid.pos.ui.theme.GridPOSTheme
-import com.grid.pos.utils.Utils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -50,6 +45,7 @@ fun AddInvoiceItemView(
         categories: MutableList<Family> = mutableListOf(),
         items: MutableList<Item> = mutableListOf(),
         modifier: Modifier = Modifier,
+        notifyDirectly: Boolean = false,
         onSelect: (List<Item>) -> Unit = {},
 ) {
     val itemsState = remember { mutableStateListOf<Item>() }
@@ -63,9 +59,10 @@ fun AddInvoiceItemView(
         }
         onSelect.invoke(itemsState.toMutableList())
     }
-
-    BackHandler {
-        saveAndBack()
+    if (!notifyDirectly) {
+        BackHandler {
+            saveAndBack()
+        }
     }
 
     LaunchedEffect(true) {
@@ -77,7 +74,11 @@ fun AddInvoiceItemView(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(10.dp)
+                .padding(
+                    start = 10.dp,
+                    top = 10.dp,
+                    end = 10.dp
+                )
         ) {
             CategoryListCell(modifier = Modifier,
                 categories = categories,
@@ -97,15 +98,20 @@ fun AddInvoiceItemView(
             }
 
             ItemListCell(items = familyItems.toMutableList(),
+                notifyDirectly = notifyDirectly,
                 onClick = { item ->
-                    if (item.selected) {
-                        itemsState.add(item)
+                    if (notifyDirectly) {
+                        onSelect.invoke(listOf(item))
                     } else {
-                        itemsState.remove(item)
+                        if (item.selected) {
+                            itemsState.add(item)
+                        } else {
+                            itemsState.remove(item)
+                        }
                     }
                 })
         }
-        if (itemsState.isNotEmpty()) {
+        if (!notifyDirectly && itemsState.isNotEmpty()) {
             FloatingActionButton(
                 modifier = Modifier
                     .align(Alignment.BottomEnd)

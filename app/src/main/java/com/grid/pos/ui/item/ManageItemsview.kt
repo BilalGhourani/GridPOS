@@ -61,6 +61,7 @@ import com.grid.pos.ActivityScopedViewModel
 import com.grid.pos.R
 import com.grid.pos.data.Family.Family
 import com.grid.pos.data.Item.Item
+import com.grid.pos.data.PosPrinter.PosPrinter
 import com.grid.pos.interfaces.OnBarcodeResult
 import com.grid.pos.interfaces.OnGalleryResult
 import com.grid.pos.model.SettingsModel
@@ -472,13 +473,14 @@ fun ManageItemsView(
                             manageItemsState.selectedItem.itemBtnTextColor = btnTextColor
                         }
 
-                        UITextField(modifier = Modifier.padding(10.dp),
-                            defaultValue = printerState,
-                            label = "Item Printer",
-                            placeHolder = "Printer name",
-                            focusRequester = openQtyFocusRequester,
-                            onAction = { btnColorFocusRequester.requestFocus() }) { printer ->
-                            printerState = printer
+                        SearchableDropdownMenu(
+                            items = manageItemsState.printers.toMutableList(),
+                            modifier = Modifier.padding(10.dp),
+                            label = "Select Printer",
+                            selectedId = printerState
+                        ) { printer ->
+                            printer as PosPrinter
+                            printerState = printer.posPrinterId
                             manageItemsState.selectedItem.itemPrinter = printerState
                         }
 
@@ -620,6 +622,7 @@ fun ManageItemsView(
             btnTextColorState = ""
             printerState = ""
             imageState = ""
+            itemPOSState = false
             manageItemsState.clear = false
         }
 

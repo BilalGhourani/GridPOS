@@ -111,7 +111,7 @@ fun POSView(
     var orientation by remember { mutableIntStateOf(Configuration.ORIENTATION_PORTRAIT) }
     val configuration = LocalConfiguration.current
     val isTablet = Utils.isTablet(LocalConfiguration.current)
-    val isLandscape = orientation == Configuration.ORIENTATION_LANDSCAPE
+    var isLandscape by remember { mutableStateOf(orientation == Configuration.ORIENTATION_LANDSCAPE) }
     val keyboardController = LocalSoftwareKeyboardController.current
 
     fun selectInvoice(invoiceHeader: InvoiceHeader) {
@@ -153,6 +153,7 @@ fun POSView(
 
     LaunchedEffect(configuration) {
         snapshotFlow { configuration.orientation }.collect {
+            isLandscape = it == Configuration.ORIENTATION_LANDSCAPE
             orientation = it
             isEditBottomSheetVisible = false
             isAddItemBottomSheetVisible = false
@@ -257,35 +258,43 @@ fun POSView(
                         containerColor = SettingsModel.topBarColor
                     ),
                         navigationIcon = {
-                            IconButton(onClick = {
-                                handleBack()
-                            }) {
-                                Icon(
-                                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                    contentDescription = "Back",
-                                    tint = SettingsModel.buttonColor
-                                )
+                            if (isEditBottomSheetVisible || isAddItemBottomSheetVisible || isPayBottomSheetVisible) {
+                                null
+                            } else {
+                                IconButton(onClick = {
+                                    handleBack()
+                                }) {
+                                    Icon(
+                                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                        contentDescription = "Back",
+                                        tint = SettingsModel.buttonColor
+                                    )
+                                }
                             }
                         },
                         title = {
                             Text(
-                                text = "POS",
+                                text = if (isEditBottomSheetVisible) "Edit Item" else if (isAddItemBottomSheetVisible) "Add Items" else if (isPayBottomSheetVisible) "Pay" else "POS",
                                 color = SettingsModel.textColor,
                                 fontSize = 16.sp,
                                 textAlign = TextAlign.Center
                             )
                         },
                         actions = {
-                            IconButton(onClick = {
-                                activityViewModel.invoiceItemModels = invoicesState
-                                activityViewModel.invoiceHeader = invoiceHeaderState.value
-                                navController?.navigate("SettingsView")
-                            }) {
-                                Icon(
-                                    painterResource(R.drawable.ic_settings),
-                                    contentDescription = "Back",
-                                    tint = SettingsModel.buttonColor
-                                )
+                            if (isEditBottomSheetVisible || isAddItemBottomSheetVisible || isPayBottomSheetVisible) {
+                                null
+                            } else {
+                                IconButton(onClick = {
+                                    activityViewModel.invoiceItemModels = invoicesState
+                                    activityViewModel.invoiceHeader = invoiceHeaderState.value
+                                    navController?.navigate("SettingsView")
+                                }) {
+                                    Icon(
+                                        painterResource(R.drawable.ic_settings),
+                                        contentDescription = "Back",
+                                        tint = SettingsModel.buttonColor
+                                    )
+                                }
                             }
                         })
                 }
@@ -297,173 +306,202 @@ fun POSView(
                     .padding(it),
                 color = SettingsModel.backgroundColor
             ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .verticalScroll(
-                            rememberScrollState()
-                        )
-                        .padding(
-                            horizontal = 10.dp,
-                            vertical = 10.dp
-                        ),
+                Row(
+                    modifier = Modifier.fillMaxSize()
                 ) {
-                    InvoiceHeaderDetails(modifier = Modifier
-                        .fillMaxWidth()
-                        .height(70.dp),
-                        isPayEnabled = invoicesState.size > 0,
-                        isDeleteEnabled = !invoiceHeaderState.value.isNew(),
-                        onAddItem = { isAddItemBottomSheetVisible = true },
-                        onPay = { isPayBottomSheetVisible = true },
-                        onDelete = {
-                            popupState = PopupState.DELETE_INVOICE
-                            isSavePopupVisible = true
-                        })
-
-                    // Border stroke configuration
-                    val borderStroke = BorderStroke(
-                        1.dp,
-                        Color.Black
-                    )
-
-                    InvoiceBodyDetails(invoices = invoicesState,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(
-                                Utils.getListHeight(
-                                    invoicesState.size,
-                                    50
-                                )
+                    Column(
+                        modifier = (if (isLandscape && SettingsModel.showItemsInPOS) Modifier.fillMaxWidth(.6f)
+                        else Modifier.fillMaxWidth())
+                            .verticalScroll(
+                                rememberScrollState()
                             )
-                            .border(borderStroke),
-                        isLandscape = isTablet || isLandscape,
-                        onEdit = { index ->
-                            itemIndexToEdit = index
-                            isEditBottomSheetVisible = true
-                        },
-                        onRemove = { index ->
-                            posState.itemsToDelete.add(invoicesState.removeAt(index))
-                            activityViewModel.invoiceItemModels = invoicesState
-                            invoiceHeaderState.value = POSUtils.refreshValues(
-                                activityViewModel.invoiceItemModels,
-                                invoiceHeaderState.value
-                            )
-                        })
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(25.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween
+                            .padding(
+                                horizontal = 10.dp,
+                                vertical = 10.dp
+                            ),
                     ) {
-                        IconButton(modifier = Modifier.size(25.dp),
-                            onClick = {
-                                activityViewModel.launchBarcodeScanner(object : OnBarcodeResult {
-                                    override fun OnBarcodeResult(value: String) {
-                                        if (value.isNotEmpty()) {
-                                            val item = posState.items.firstOrNull {
-                                                value.equals(
-                                                    it.itemBarcode,
-                                                    ignoreCase = true
-                                                )
-                                            }
-                                            item?.let { itm ->
-                                                val invoiceItemModel = InvoiceItemModel()
-                                                invoiceItemModel.setItem(itm)
-                                                invoicesState.add(invoiceItemModel)
-                                                activityViewModel.invoiceItemModels = invoicesState
-                                                invoiceHeaderState.value = POSUtils.refreshValues(
-                                                    activityViewModel.invoiceItemModels,
-                                                    invoiceHeaderState.value
-                                                )
+                        InvoiceHeaderDetails(modifier = Modifier
+                            .fillMaxWidth()
+                            .height(70.dp),
+                            isPayEnabled = invoicesState.size > 0,
+                            isDeleteEnabled = !invoiceHeaderState.value.isNew(),
+                            onAddItem = { isAddItemBottomSheetVisible = true },
+                            onPay = { isPayBottomSheetVisible = true },
+                            onDelete = {
+                                popupState = PopupState.DELETE_INVOICE
+                                isSavePopupVisible = true
+                            })
+
+                        // Border stroke configuration
+                        val borderStroke = BorderStroke(
+                            1.dp,
+                            Color.Black
+                        )
+
+                        InvoiceBodyDetails(invoices = invoicesState,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(
+                                    Utils.getListHeight(
+                                        invoicesState.size,
+                                        50
+                                    )
+                                )
+                                .border(borderStroke),
+                            isLandscape = isTablet || isLandscape,
+                            onEdit = { index ->
+                                itemIndexToEdit = index
+                                isEditBottomSheetVisible = true
+                            },
+                            onRemove = { index ->
+                                posState.itemsToDelete.add(invoicesState.removeAt(index))
+                                activityViewModel.invoiceItemModels = invoicesState
+                                invoiceHeaderState.value = POSUtils.refreshValues(
+                                    activityViewModel.invoiceItemModels,
+                                    invoiceHeaderState.value
+                                )
+                            })
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(25.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            IconButton(modifier = Modifier.size(25.dp),
+                                onClick = {
+                                    activityViewModel.launchBarcodeScanner(object :
+                                        OnBarcodeResult {
+                                        override fun OnBarcodeResult(value: String) {
+                                            if (value.isNotEmpty()) {
+                                                val item = posState.items.firstOrNull {
+                                                    value.equals(
+                                                        it.itemBarcode,
+                                                        ignoreCase = true
+                                                    )
+                                                }
+                                                item?.let { itm ->
+                                                    val invoiceItemModel = InvoiceItemModel()
+                                                    invoiceItemModel.setItem(itm)
+                                                    invoicesState.add(invoiceItemModel)
+                                                    activityViewModel.invoiceItemModels = invoicesState
+                                                    invoiceHeaderState.value = POSUtils.refreshValues(
+                                                        activityViewModel.invoiceItemModels,
+                                                        invoiceHeaderState.value
+                                                    )
+                                                }
                                             }
                                         }
-                                    }
-                                },
-                                    onPermissionDenied = {
-                                        viewModel.showWarning(
-                                            "Permission Denied",
-                                            "Settings"
-                                        )
-                                    })
-                            }) {
-                            Icon(
-                                Icons.Default.QrCode2,
-                                contentDescription = "Barcode",
-                                tint = SettingsModel.buttonColor
+                                    },
+                                        onPermissionDenied = {
+                                            viewModel.showWarning(
+                                                "Permission Denied",
+                                                "Settings"
+                                            )
+                                        })
+                                }) {
+                                Icon(
+                                    Icons.Default.QrCode2,
+                                    contentDescription = "Barcode",
+                                    tint = SettingsModel.buttonColor
+                                )
+                            }
+
+                            Text(
+                                text = "Discount: ${invoiceHeaderState.value.invoiceHeadDiscount}%",
+                                modifier = Modifier.wrapContentWidth(),
+                                textAlign = TextAlign.End,
+                                style = TextStyle(
+                                    fontWeight = FontWeight.Normal,
+                                    fontSize = 12.sp
+                                ),
+                                color = SettingsModel.textColor
+                            )
+
+                            Text(
+                                text = Utils.getItemsNumberStr(invoicesState),
+                                modifier = Modifier.wrapContentWidth(),
+                                textAlign = TextAlign.End,
+                                style = TextStyle(
+                                    fontWeight = FontWeight.Normal,
+                                    fontSize = 12.sp
+                                ),
+                                color = SettingsModel.textColor
                             )
                         }
 
-                        Text(
-                            text = "Discount: ${invoiceHeaderState.value.invoiceHeadDiscount}%",
-                            modifier = Modifier.wrapContentWidth(),
-                            textAlign = TextAlign.End,
-                            style = TextStyle(
-                                fontWeight = FontWeight.Normal,
-                                fontSize = 12.sp
-                            ),
-                            color = SettingsModel.textColor
-                        )
 
-                        Text(
-                            text = Utils.getItemsNumberStr(invoicesState),
-                            modifier = Modifier.wrapContentWidth(),
-                            textAlign = TextAlign.End,
-                            style = TextStyle(
-                                fontWeight = FontWeight.Normal,
-                                fontSize = 12.sp
-                            ),
-                            color = SettingsModel.textColor
-                        )
+                        InvoiceFooterView(invoiceHeader = invoiceHeaderState.value,
+                            items = posState.items,
+                            thirdParties = posState.thirdParties.toMutableList(),
+                            invoiceHeaders = posState.invoiceHeaders,
+                            modifier = Modifier
+                                .wrapContentWidth()
+                                .height(350.dp),
+                            onAddItem = {
+                                activityViewModel.invoiceItemModels = invoicesState
+                                activityViewModel.invoiceHeader = invoiceHeaderState.value
+                                navController?.navigate(
+                                    "ManageItemsView"
+                                )
+                                posState.items.clear()
+                            },
+                            onAddThirdParty = {
+                                activityViewModel.invoiceItemModels = invoicesState
+                                activityViewModel.invoiceHeader = invoiceHeaderState.value
+                                navController?.navigate(
+                                    "ManageThirdPartiesView"
+                                )
+                                posState.thirdParties.clear()
+                            },
+                            onItemSelected = { item ->
+                                val invoiceItemModel = InvoiceItemModel()
+                                invoiceItemModel.setItem(item)
+                                invoicesState.add(invoiceItemModel)
+                                activityViewModel.invoiceItemModels = invoicesState
+                                invoiceHeaderState.value = POSUtils.refreshValues(
+                                    activityViewModel.invoiceItemModels,
+                                    invoiceHeaderState.value
+                                )
+                                isAddItemBottomSheetVisible = false
+                            },
+                            onThirdPartySelected = { thirdParty ->
+                                posState.selectedThirdParty = thirdParty
+                                invoiceHeaderState.value.invoiceHeadThirdPartyName = thirdParty.thirdPartyId
+                            },
+                            onInvoiceSelected = { invoiceHeader ->
+                                if (invoicesState.isNotEmpty()) {
+                                    activityViewModel.pendingInvHeadState = invoiceHeader
+                                    popupState = PopupState.CHANGE_INVOICE
+                                    isSavePopupVisible = true
+                                } else {
+                                    selectInvoice(invoiceHeader)
+                                }
+                            })
                     }
-
-
-                    InvoiceFooterView(invoiceHeader = invoiceHeaderState.value,
-                        items = posState.items,
-                        thirdParties = posState.thirdParties.toMutableList(),
-                        invoiceHeaders = posState.invoiceHeaders,
-                        modifier = Modifier
-                            .wrapContentWidth()
-                            .height(350.dp),
-                        onAddItem = {
-                            activityViewModel.invoiceItemModels = invoicesState
-                            activityViewModel.invoiceHeader = invoiceHeaderState.value
-                            navController?.navigate(
-                                "ManageItemsView"
-                            )
-                            posState.items.clear()
-                        },
-                        onAddThirdParty = {
-                            activityViewModel.invoiceItemModels = invoicesState
-                            activityViewModel.invoiceHeader = invoiceHeaderState.value
-                            navController?.navigate(
-                                "ManageThirdPartiesView"
-                            )
-                            posState.thirdParties.clear()
-                        },
-                        onItemSelected = { item ->
-                            val invoiceItemModel = InvoiceItemModel()
-                            invoiceItemModel.setItem(item)
-                            invoicesState.add(invoiceItemModel)
+                    if (isLandscape && SettingsModel.showItemsInPOS) {
+                        AddInvoiceItemView(
+                            categories = posState.families,
+                            items = posState.items,
+                            notifyDirectly = true,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .fillMaxHeight()
+                        ) { itemList ->
+                            val invoices = mutableListOf<InvoiceItemModel>()
+                            itemList.forEach { item ->
+                                val invoiceItemModel = InvoiceItemModel()
+                                invoiceItemModel.setItem(item)
+                                invoices.add(invoiceItemModel)
+                            }
+                            invoicesState.addAll(invoices)
                             activityViewModel.invoiceItemModels = invoicesState
                             invoiceHeaderState.value = POSUtils.refreshValues(
                                 activityViewModel.invoiceItemModels,
                                 invoiceHeaderState.value
                             )
                             isAddItemBottomSheetVisible = false
-                        },
-                        onThirdPartySelected = { thirdParty ->
-                            posState.selectedThirdParty = thirdParty
-                            invoiceHeaderState.value.invoiceHeadThirdPartyName = thirdParty.thirdPartyId
-                        },
-                        onInvoiceSelected = { invoiceHeader ->
-                            if (invoicesState.isNotEmpty()) {
-                                activityViewModel.pendingInvHeadState = invoiceHeader
-                                popupState = PopupState.CHANGE_INVOICE
-                                isSavePopupVisible = true
-                            } else {
-                                selectInvoice(invoiceHeader)
-                            }
-                        })
+                        }
+                    }
                 }
             }
             AnimatedVisibility(

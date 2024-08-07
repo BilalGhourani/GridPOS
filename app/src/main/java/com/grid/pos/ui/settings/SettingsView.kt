@@ -121,6 +121,7 @@ fun SettingsView(
     val keyboardController = LocalSoftwareKeyboardController.current
 
     var cashPrinterState by remember { mutableStateOf(SettingsModel.cashPrinter ?: "") }
+    var showItemsInPOS by remember { mutableStateOf(SettingsModel.showItemsInPOS) }
     var showTax by remember { mutableStateOf(SettingsModel.showTax) }
     var showTax1 by remember { mutableStateOf(SettingsModel.showTax1) }
     var showTax2 by remember { mutableStateOf(SettingsModel.showTax2) }
@@ -539,6 +540,25 @@ fun SettingsView(
                     }
 
                     if (isAppSettingsSectionExpanded) {
+                        UISwitch(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(60.dp)
+                                .padding(10.dp),
+                            checked = showItemsInPOS,
+                            text = "Show Items in POS",
+                            textColor = textColorState
+                        ) { showitems ->
+                            showItemsInPOS = showitems
+                            SettingsModel.showItemsInPOS = showItemsInPOS
+                            CoroutineScope(Dispatchers.IO).launch {
+                                DataStoreManager.putBoolean(
+                                    DataStoreManager.DataStoreKeys.SHOW_ITEMS_IN_POS.key,
+                                    showItemsInPOS
+                                )
+                            }
+                        }
+
                         UISwitch(
                             modifier = Modifier
                                 .fillMaxWidth()
