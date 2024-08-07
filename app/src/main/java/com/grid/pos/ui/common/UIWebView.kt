@@ -29,6 +29,7 @@ import androidx.navigation.NavController
 import com.grid.pos.ActivityScopedViewModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.theme.GridPOSTheme
+import com.grid.pos.utils.PrinterUtils
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -101,10 +102,10 @@ fun UIWebView(
                     text = "Print"
                 ) {
                     activityViewModel.print(context)
-//                    Utils.printWebPage(
-//                        webView,
-//                        context
-//                    )
+                    /*PrinterUtils.printWebPage(
+                        webView,
+                        context
+                    )*/
                 }
             }
         }

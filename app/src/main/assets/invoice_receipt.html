@@ -8,6 +8,11 @@
         border-bottom: 1px dotted #00000056
     }
 
+    .spacer {
+        height: 10px;
+        width: 100%;
+    }
+
     .name {
         width: 90px;
         background-color: lightgrey;
@@ -41,16 +46,21 @@
     }
 
     hr.dashed {
-        border-top: 5px dotted #000;
-        width: 200px;
+        border-top: 1px dashed; #000;
+        width: 100%;
     }
 
     .text1 {
+        font-weight: Normal;
+        font-size: 16px;
+    }
+    .text2 {
         font-weight: bold;
         font-size: 16px;
     }
     .barcode {
-        width:300px;
+        width:100%;
+        margin: 20px !important;
         height:100px;
     }
 </style>
@@ -58,7 +68,7 @@
 <body>
 <div style="display: flex; align-items: center; justify-content: center; flex-direction: column;">
     <div style="display: flex; align-items: center; justify-content: center; flex-direction: column">
-        <img src="companylogovalue" width="50px" height="50px"/>
+        {company_logo}
         <div class="title">{company_name}</div>
     </div>
     <div style="display: flex; align-items: center; justify-content: center; flex-direction: column;">
@@ -68,8 +78,8 @@
         <div class="text1">{invoicedatevalue}</div>
     </div>
     <hr class="dashed">
-    <div style="display: flex; align-items: start; justify-content: start; flex-direction: column;">
-        <div class="text1">Client: {clientnamevalue} {invoicecashnamevalue}</div>
+    <div style="width: 100%;display: flex; align-items: start; justify-content: start; flex-direction: column;">
+        <div class="text1">Client: {clientnamevalue}</div>
         <div class="text1">F/N: {clientfnvalue}</div>
         <div class="text1">Phone: {clientphonevalue}</div>
         <div class="text1">Addr: {clientaddressvalue}</div>
@@ -77,40 +87,33 @@
     </div>
     {reprinted}
     <hr class="dashed">
-    <table style="width: 200px">
+    <table style="width: 100%">
         {tableinvoiceitemsvalue}
     </table>
     <hr class="dashed">
-    <div style="display: flex; align-items: start; justify-content: start; flex-direction: column;">
-        <div class="text1">Disc Amount: {invoicediscamtvalue}</div>
-        <div class="text1">Tax({vatcompanyvalue}%): {invoicetaxamtvalue}</div>
-        <div class="text1">Tax1({tax1companyvalue}%): {invoicetax1amtvalue}</div>
-        <div class="text1">Tax2({tax2companyvalue}%): {invoicetax2amtvalue}</div>
-        <div class="text1">T.Tax: {invoicevatamtvalue}</div>
-        <div class="text1">Total {firstcurrencyvalue}: {invoicetotalvalue}</div>
-        <div class="text1">Total {secondcurrencyvalue}: {invoicetotal1value}</div>
-    </div>
+    <table style="width: 100%">
+        {tableinvoiceAmountvalue}
+    </table>
     <hr class="dashed">
-    <div style="display: flex; align-items: start; justify-content: start;">
+    <div style="width: 100%;display: flex; align-items: start; justify-content: start;">
         <div>Number Of Items: {numberofitemsvalue}</div>
     </div>
     <hr class="dashed">
-    <div style="display: flex; align-items: start; justify-content: start; flex-direction: column;">
+    <div style="width: 100%;display: flex; align-items: start; justify-content: start; flex-direction: column;">
         <div class="text1">Cash {firstcurrencyvalue} {pr_cash}</div>
         <div class="text1">Cash {secondcurrencyvalue} {pr_cashs}</div>
         <div class="text1">Change {hi_change}{firstcurrencyvalue}</div>
     </div>
-    <hr class="dashed">
-    <div style="display: flex; align-items: center; justify-content: center; flex-direction: column;">
-        <div class="text1">{invoicenotevalue}</div>
+    {invoicenotevalue}
+    {taxdashed}
+    <div style="width: 100%;display: flex; align-items: start; justify-content: start; flex-direction: column;">
+        {taxregno}
+        {taxregno1}
+        {taxregno2}
     </div>
-    <hr class="dashed">
-    <div style="display: flex; align-items: start; justify-content: start; flex-direction: column;">
-        <div class="text1">Tax No:{taxregno}</div>
-        <div class="text1">Tax1 No:{taxregno1}</div>
-        <div class="text1">Tax2 No:{taxregno2}</div>
-    </div>
+    <div class="spacer"></div>
     {barcodeContent}
+    <div class="spacer"></div>
     <div style="display: flex; align-items: center; justify-content: center; flex-direction: column;">
         <div class="text1">THANK YOU</div>
         <div>GRIDS Software - www.gridsco.com</div>

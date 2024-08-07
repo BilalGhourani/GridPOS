@@ -1,8 +1,11 @@
 package com.grid.pos.utils
 
+import android.content.ContentResolver
 import android.content.ContentUris
 import android.content.ContentValues
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.ImageDecoder
 import android.net.Uri
 import android.os.Build
 import android.provider.DocumentsContract
@@ -29,10 +32,10 @@ import java.util.Date
 
 object FileUtils {
     fun saveToInternalStorage(
-        context: Context,
-        parent: String,
-        sourceFilePath: Uri,
-        destName: String
+            context: Context,
+            parent: String,
+            sourceFilePath: Uri,
+            destName: String
     ): String? {
         val storageDir = File(
             context.filesDir,
@@ -79,12 +82,12 @@ object FileUtils {
     }
 
     fun saveToExternalStorage(
-        context: Context,
-        parent: String = "family",
-        sourceFilePath: Uri,
-        destName: String,
-        type: String = "Image",
-        workbook: XSSFWorkbook? = null
+            context: Context,
+            parent: String = "family",
+            sourceFilePath: Uri,
+            destName: String,
+            type: String = "Image",
+            workbook: XSSFWorkbook? = null
     ): String? {
         val resolver = context.contentResolver
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -204,8 +207,8 @@ object FileUtils {
     }
 
     fun getFileContent(
-        context: Context,
-        uri: Uri
+            context: Context,
+            uri: Uri
     ): String {
         val inputStream: InputStream? = context.contentResolver.openInputStream(uri)
 
@@ -224,8 +227,8 @@ object FileUtils {
     }
 
     fun deleteFile(
-        context: Context,
-        path: String
+            context: Context,
+            path: String
     ) {
         if (path.startsWith("content")) {
             val file: DocumentFile? = DocumentFile.fromSingleUri(
@@ -240,8 +243,8 @@ object FileUtils {
     }
 
     private fun getMimeTypeFromFileExtension(
-        filePath: String,
-        type: String = "Image"
+            filePath: String,
+            type: String = "Image"
     ): String {
         val extension = MimeTypeMap.getFileExtensionFromUrl(filePath)
         val fallback = when (type) {
@@ -254,8 +257,8 @@ object FileUtils {
     }
 
     fun readFileFromAssets(
-        fileName: String,
-        context: Context
+            fileName: String,
+            context: Context
     ): String {
         return try {
             val inputStream = context.assets.open(fileName)
@@ -276,8 +279,8 @@ object FileUtils {
     }
 
     private fun copyFile(
-        fromFile: File,
-        toFile: File
+            fromFile: File,
+            toFile: File
     ) {
         try {
             val sourceChannel = FileInputStream(fromFile).channel
@@ -298,9 +301,9 @@ object FileUtils {
     }
 
     private fun copyFile(
-        context: Context,
-        fromFile: Uri,
-        toFile: File
+            context: Context,
+            fromFile: Uri,
+            toFile: File
     ) {
         try {
             val contentResolver = context.contentResolver
@@ -360,8 +363,8 @@ object FileUtils {
     }
 
     fun restore(
-        context: Context,
-        uri: Uri
+            context: Context,
+            uri: Uri
     ) {
         val app = App.getInstance()
         var dbFile: File = context.getDatabasePath(Constants.DATABASE_NAME)
@@ -421,8 +424,8 @@ object FileUtils {
     }
 
     fun getLastWriteTimeFromUri(
-        context: Context,
-        uri: Uri
+            context: Context,
+            uri: Uri
     ): Date? {
         val file = getFileFromUri(
             context,
@@ -435,8 +438,8 @@ object FileUtils {
     }
 
     fun getFileFromUri(
-        context: Context,
-        uri: Uri
+            context: Context,
+            uri: Uri
     ): File? {
         val filePath: String = getFilePathFromUri(
             context,
@@ -450,8 +453,8 @@ object FileUtils {
     }
 
     private fun getFilePathFromUri(
-        context: Context,
-        uri: Uri
+            context: Context,
+            uri: Uri
     ): String {
         return if (DocumentsContract.isDocumentUri(
                 context,
@@ -529,10 +532,10 @@ object FileUtils {
     }
 
     private fun getDataColumn(
-        context: Context,
-        uri: Uri,
-        selection: String?,
-        selectionArgs: Array<String>?
+            context: Context,
+            uri: Uri,
+            selection: String?,
+            selectionArgs: Array<String>?
     ): String {
         context.contentResolver.query(
             uri,
@@ -574,8 +577,7 @@ object FileUtils {
             if (licenseFile.exists()) {
                 return licenseFile
             }
-        }
-        /* val downloadDirectory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+        }/* val downloadDirectory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
          val licensesFolder = File(
              downloadDirectory,
              "${context.packageName}/licenses"
@@ -591,7 +593,10 @@ object FileUtils {
         return null
     }
 
-    fun saveRtaLicense(context: Context, licenseStr: String) {
+    fun saveRtaLicense(
+            context: Context,
+            licenseStr: String
+    ) {
         val storageDir = File(
             context.filesDir,
             "licenses"
@@ -617,7 +622,10 @@ object FileUtils {
         }
     }
 
-    fun getHtmlFile(context: Context, htmlContent: String): File {
+    fun getHtmlFile(
+            context: Context,
+            htmlContent: String
+    ): File {
         val pdfFile = File(
             context.filesDir,
             "output.pdf"
@@ -635,6 +643,30 @@ object FileUtils {
             e.printStackTrace()
         }
         return pdfFile
+    }
+
+    fun getBitmapFromPath(
+            context: Context,
+            path: Uri
+    ): Bitmap? {
+        val contentResolver: ContentResolver = context.contentResolver
+        try {
+            return if (Build.VERSION.SDK_INT < 28) {
+                MediaStore.Images.Media.getBitmap(
+                    contentResolver,
+                    path
+                )
+            } else {
+                val source = ImageDecoder.createSource(
+                    contentResolver,
+                    path
+                )
+                ImageDecoder.decodeBitmap(source)
+            }
+        } catch (e: java.lang.Exception) {
+            e.printStackTrace()
+        }
+        return null
     }
 
 

@@ -2,6 +2,7 @@ package com.grid.pos.utils
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.net.Uri
 import android.print.PrintAttributes
 import android.print.PrintManager
 import android.util.Base64
@@ -87,6 +88,15 @@ object PrinterUtils {
             .replace("{invoicenumbervalue}", invoiceHeader.invoiceHeadTransNo ?: "")
             .replace("{invoicedatevalue}", DateHelper.getDateInFormat(invDate, "dd/MM/yyyy hh:mm:ss"))
 
+        if(!company?.companyLogo.isNullOrEmpty()){
+            val barcodeBitmap = FileUtils.getBitmapFromPath(context,Uri.parse(company?.companyLogo))
+            val base64Barcode = convertBitmapToBase64(barcodeBitmap)
+            result = result.replace("{company_logo}","<img src=\"data:image/png;base64,$base64Barcode\" width=\"50px\" height=\"50px\"/>")
+        }else{
+            result = result.replace("{company_logo}","")
+        }
+
+
         result = result.replace("{clientnamevalue}", "${thirdParty?.thirdPartyName ?: ""} ${invoiceHeader.invoiceHeadCashName ?: ""}")
             .replace("{clientfnvalue}", thirdParty?.thirdPartyFn ?: "")
             .replace("{clientphonevalue}", thirdParty?.thirdPartyPhone1 ?: thirdParty?.thirdPartyPhone2 ?: "")
@@ -97,6 +107,11 @@ object PrinterUtils {
             result = result.replace(
                 "{reprinted}",
                 "<hr class=\"dashed\"> <div style=\"display: flex; align-items: center; justify-content: center;\">\n" + "            <div style=\"font-size: 30px; font-weight: bold;\"> * * REPRINTED * * </div>\n" + "        </div>"
+            )
+        }else{
+            result = result.replace(
+                "{reprinted}",
+                ""
             )
         }
         if (invoiceItemModels.isNotEmpty()) {
@@ -109,32 +124,82 @@ object PrinterUtils {
                 trs.append("<td>${String.format("%.2f", item.getNetAmount())}</td>")
                 trs.append("</tr>")
             }
-            result = result.replace(
-                "{tableinvoiceitemsvalue}",
-                trs.toString()
-            )
+            result = result.replace("{tableinvoiceitemsvalue}", trs.toString())
+                .replace("{numberofitemsvalue}", "${invoiceItemModels.size}")
         }
-        result = result
-            .replace("{invoicediscamtvalue}", String.format("%.2f", Utils.getDoubleOrZero(invoiceHeader.invoiceHeadDiscountAmount)))
-            .replace("{vatcompanyvalue}", String.format("%.0f",Utils.getDoubleOrZero(company?.companyTax)))
-            .replace("{invoicetaxamtvalue}", String.format("%.2f", Utils.getDoubleOrZero(invoiceHeader.invoiceHeadTaxAmt)))
-            .replace("{tax1companyvalue}", String.format("%.0f",Utils.getDoubleOrZero(company?.companyTax1)))
-            .replace("{invoicetax1amtvalue}", String.format("%.2f", Utils.getDoubleOrZero(invoiceHeader.invoiceHeadTax1Amt)))
-            .replace("{tax2companyvalue}", String.format("%.0f",Utils.getDoubleOrZero(company?.companyTax2)))
-            .replace("{invoicetax2amtvalue}", String.format("%.2f", Utils.getDoubleOrZero(invoiceHeader.invoiceHeadTax2Amt)))
-            .replace("{invoicevatamtvalue}", String.format("%.2f", Utils.getDoubleOrZero(invoiceHeader.invoiceHeadTotalTax)))
-            .replace("{firstcurrencyvalue}", currency?.currencyName1?:"")
-            .replace("{invoicetotalvalue}", String.format("%.2f", Utils.getDoubleOrZero(invoiceHeader.invoiceHeadGrossAmount)))
-            .replace("{secondcurrencyvalue}", currency?.currencyName2?:"")
-            .replace("{invoicetotal1value}", String.format("%.2f", Utils.getDoubleOrZero(invoiceHeader.invoiceHeadGrossAmount) * (currency?.currencyRate?:1.0)))
+        val invAmountVal = StringBuilder("")
+        invAmountVal.append("<tr>")
+        invAmountVal.append("<td>Disc Amount:</td> ")
+        invAmountVal.append("<td>${String.format("%.2f", Utils.getDoubleOrZero(invoiceHeader.invoiceHeadDiscountAmount))}</td>")
+        invAmountVal.append("</tr>")
+
+        if(SettingsModel.showTax) {
+            invAmountVal.append("<tr>")
+            invAmountVal.append("<td>Tax(${String.format("%.0f",Utils.getDoubleOrZero(company?.companyTax))}%):</td> ")
+            invAmountVal.append("<td>${String.format("%.2f", Utils.getDoubleOrZero(invoiceHeader.invoiceHeadTaxAmt))}</td>")
+            invAmountVal.append("</tr>")
+            result = result
+                .replace("{taxregno}", "<div class=\"text1\">Tax No:${company?.companyTaxRegno ?: ""}</div>")
+        }else{
+            result = result.replace("{taxregno}", "")
+        }
+        if(SettingsModel.showTax1) {
+            invAmountVal.append("<tr>")
+            invAmountVal.append("<td>Tax1(${String.format("%.0f",Utils.getDoubleOrZero(company?.companyTax1))}%):</td> ")
+            invAmountVal.append("<td>${String.format("%.2f", Utils.getDoubleOrZero(invoiceHeader.invoiceHeadTax1Amt))}</td>")
+            invAmountVal.append("</tr>")
+            result = result
+                .replace("{taxregno1}", "<div class=\"text1\">Tax1 No:${company?.companyTax1Regno ?: ""}</div>")
+        }else{
+            result = result.replace("{taxregno1}", "")
+        }
+        if(SettingsModel.showTax2) {
+            invAmountVal.append("<tr>")
+            invAmountVal.append("<td>Tax2(${String.format("%.0f",Utils.getDoubleOrZero(company?.companyTax2))}%):</td> ")
+            invAmountVal.append("<td>${String.format("%.2f", Utils.getDoubleOrZero(invoiceHeader.invoiceHeadTax2Amt))}</td>")
+            invAmountVal.append("</tr>")
+            result = result
+                .replace("{taxregno2}", "<div class=\"text1\">Tax2 No:${company?.companyTax2Regno ?: ""}</div>")
+        }else{
+            result = result.replace("{taxregno2}", "")
+        }
+        if(SettingsModel.showTax2||SettingsModel.showTax2||SettingsModel.showTax2) {
+            invAmountVal.append("<tr>")
+            invAmountVal.append("<td>T.Tax:</td> ")
+            invAmountVal.append("<td>${ String.format("%.2f", Utils.getDoubleOrZero(invoiceHeader.invoiceHeadTotalTax))}</td>")
+            invAmountVal.append("</tr>")
+            result = result.replace("{taxdashed}", "<hr class=\"dashed\">")
+        }else{
+            result = result.replace("{taxdashed}", "")
+        }
+
+        invAmountVal.append("<tr>")
+        invAmountVal.append("<td class=\"text2\">Total {${currency?.currencyCode1?:""}}:</td> ")
+        invAmountVal.append("<td class=\"text2\">${String.format("%.2f", Utils.getDoubleOrZero(invoiceHeader.invoiceHeadGrossAmount))}</td>")
+        invAmountVal.append("</tr>")
+
+        invAmountVal.append("<tr>")
+        invAmountVal.append("<td class=\"text2\">Total {${currency?.currencyCode2?:""}}:</td> ")
+        invAmountVal.append("<td class=\"text2\">${String.format("%.2f", Utils.getDoubleOrZero(invoiceHeader.invoiceHeadGrossAmount) * (currency?.currencyRate?:1.0))}</td>")
+        invAmountVal.append("</tr>")
+
+        result = result.replace("{tableinvoiceAmountvalue}", invAmountVal.toString())
+            .replace("{firstcurrencyvalue}", currency?.currencyCode1?:"")
+            .replace("{secondcurrencyvalue}", currency?.currencyCode2?:"")
 
         result = result.replace("{pr_cash}", String.format("%.2f",Utils.getDoubleOrZero(posReceipt.posReceiptCash)))
             .replace("{pr_cashs}",  String.format("%.2f",Utils.getDoubleOrZero(posReceipt.posReceiptCashs)))
             .replace("{hi_change}",  String.format("%.2f",Utils.getDoubleOrZero(invoiceHeader.invoiceHeadChange)))
-            .replace("{taxregno}",  company?.companyTaxRegno?:"")
-            .replace("{taxregno1}",  company?.companyTax1Regno?:"")
-            .replace("{taxregno2}",  company?.companyTax2Regno?:"")
-            .replace("{invoicenotevalue}",  invoiceHeader.invoiceHeadNote?:"")
+        if(!invoiceHeader.invoiceHeadNote.isNullOrEmpty()) {
+            result = result.replace(
+                "{invoicenotevalue}",
+                "<hr class=\"dashed\">\n" + "    <div style=\"width: 100%;display: flex; align-items: start; justify-content: start; flex-direction: column;\">\n" + "        <div class=\"text1\">${invoiceHeader.invoiceHeadNote}</div>\n" + "    </div>"
+            )
+        }else{
+            result = result.replace(
+                "{invoicenotevalue}", ""
+            )
+        }
 
         if(!invoiceHeader.invoiceHeadTransNo.isNullOrEmpty()){
             val barcodeBitmap = generateBarcode(invoiceHeader.invoiceHeadTransNo!!)
