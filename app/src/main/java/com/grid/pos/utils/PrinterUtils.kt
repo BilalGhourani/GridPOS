@@ -174,12 +174,12 @@ object PrinterUtils {
         }
 
         invAmountVal.append("<tr>")
-        invAmountVal.append("<td class=\"text2\">Total {${currency?.currencyCode1?:""}}:</td> ")
+        invAmountVal.append("<td class=\"text2\">Total ${currency?.currencyCode1?:""}:</td> ")
         invAmountVal.append("<td class=\"text2\">${String.format("%.2f", Utils.getDoubleOrZero(invoiceHeader.invoiceHeadGrossAmount))}</td>")
         invAmountVal.append("</tr>")
 
         invAmountVal.append("<tr>")
-        invAmountVal.append("<td class=\"text2\">Total {${currency?.currencyCode2?:""}}:</td> ")
+        invAmountVal.append("<td class=\"text2\">Total ${currency?.currencyCode2?:""}:</td> ")
         invAmountVal.append("<td class=\"text2\">${String.format("%.2f", Utils.getDoubleOrZero(invoiceHeader.invoiceHeadGrossAmount) * (currency?.currencyRate?:1.0))}</td>")
         invAmountVal.append("</tr>")
 
