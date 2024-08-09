@@ -447,7 +447,7 @@ fun ManageCompaniesView(
                                                     manageCompaniesState.isLoading = true
                                                     CoroutineScope(Dispatchers.IO).launch {
                                                         val internalPath = FileUtils.saveToExternalStorage(context = context,
-                                                            parent = "item",
+                                                            parent = "company logo",
                                                             uris[0],
                                                             nameState.trim().replace(
                                                                 " ",
