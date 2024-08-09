@@ -209,7 +209,7 @@ fun InvoiceFooterView(
                 }
 
                 val defaultThirdParty = if (invoiceHeader.invoiceHeadThirdPartyName.isNullOrEmpty()) {
-                    thirdParties.firstOrNull { it.thirdPartyDefault }
+                    thirdParties.firstOrNull()// { it.thirdPartyDefault }
                 } else {
                     thirdParties.firstOrNull {
                         it.thirdPartyId.equals(
