@@ -152,7 +152,7 @@ object Utils {
     }
 
     fun isTablet(configuration: Configuration): Boolean {
-        return configuration.screenWidthDp > 840
+        return configuration.smallestScreenWidthDp >= 600
     }
 
     fun getListHeight(
