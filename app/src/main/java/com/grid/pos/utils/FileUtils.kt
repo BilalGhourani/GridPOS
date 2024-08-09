@@ -5,7 +5,7 @@ import android.content.ContentUris
 import android.content.ContentValues
 import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.ImageDecoder
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Build
 import android.provider.DocumentsContract
@@ -649,20 +649,19 @@ object FileUtils {
             context: Context,
             path: Uri
     ): Bitmap? {
-        val contentResolver: ContentResolver = context.contentResolver
+        val image = getFileFromUri(context,path)
         try {
-            return if (Build.VERSION.SDK_INT < 28) {
-                MediaStore.Images.Media.getBitmap(
-                    contentResolver,
-                    path
-                )
-            } else {
-                val source = ImageDecoder.createSource(
-                    contentResolver,
-                    path
-                )
-                ImageDecoder.decodeBitmap(source)
-            }
+            val bmOptions = BitmapFactory.Options()
+            val bitmap = BitmapFactory.decodeFile(
+                image?.absolutePath,
+                bmOptions
+            )
+            return Bitmap.createScaledBitmap(
+                bitmap!!,
+                200,
+                200,
+                true
+            )
         } catch (e: java.lang.Exception) {
             e.printStackTrace()
         }
