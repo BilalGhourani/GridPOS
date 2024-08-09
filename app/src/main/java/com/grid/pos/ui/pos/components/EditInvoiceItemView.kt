@@ -90,7 +90,7 @@ fun EditInvoiceItemView(
 
     var price by remember {
         mutableStateOf(
-            invoiceItemModel.invoice.invoicePrice.toString()
+            if (invoiceItemModel.invoice.invoicePrice > 0.0) invoiceItemModel.invoice.invoiceDiscount.toString() else ""
         )
     }
     var qty by remember {
@@ -142,11 +142,13 @@ fun EditInvoiceItemView(
     }
 
     fun calculateItemDiscount() {
+        invoiceItemModel.invoice.invoicePrice = price.toDoubleOrNull() ?: 0.0
+        invoiceItemModel.invoice.invoiceRemQty = qty.toDouble()
+        invoiceItemModel.invoice.invoiceTax = taxState.toDoubleOrNull() ?: 0.0
+        invoiceItemModel.invoice.invoiceTax1 = tax1State.toDoubleOrNull() ?: 0.0
+        invoiceItemModel.invoice.invoiceTax2 = tax2State.toDoubleOrNull() ?: 0.0
         val itemDiscount = rDiscount1.toDoubleOrNull() ?: 0.0
         val itemDiscountAmount = rDiscount2.toDoubleOrNull() ?: 0.0
-        if (itemDiscount == 0.0 && itemDiscountAmount == 0.0) {
-            return
-        }
         val itemPrice = ((price.toDoubleOrNull() ?: 0.0).times(qty)) + invoiceItemModel.getTotalTax()
         if (isPercentageChanged) {
             val disc = itemPrice.times(itemDiscount.div(100.0))
