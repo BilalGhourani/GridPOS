@@ -63,6 +63,10 @@
         margin: 20px !important;
         height:100px;
     }
+    .receipt_table{
+       margin-left: 0;
+       margin-right: auto;
+    }
 </style>
 
 <body>
@@ -79,11 +83,11 @@
     </div>
     <hr class="dashed">
     <div style="width: 100%;display: flex; align-items: start; justify-content: start; flex-direction: column;">
-        <div class="text1">Client: {clientnamevalue}</div>
-        <div class="text1">F/N: {clientfnvalue}</div>
-        <div class="text1">Phone: {clientphonevalue}</div>
-        <div class="text1">Addr: {clientaddressvalue}</div>
-        <div class="text1">Served By: {invoiceuservalue}</div>
+        {clientnamevalue}
+        {clientfnvalue}
+        {clientphonevalue}
+        {clientaddressvalue}
+        {invoiceuservalue}
     </div>
     {reprinted}
     <hr class="dashed">
@@ -99,11 +103,9 @@
         <div>Number Of Items: {numberofitemsvalue}</div>
     </div>
     <hr class="dashed">
-    <div style="width: 100%;display: flex; align-items: start; justify-content: start; flex-direction: column;">
-        <div class="text1">Cash {firstcurrencyvalue} {pr_cash}</div>
-        <div class="text1">Cash {secondcurrencyvalue} {pr_cashs}</div>
-        <div class="text1">Change {hi_change}{firstcurrencyvalue}</div>
-    </div>
+    <table class="receipt_table">
+        {posReceiptValues}
+    </table>
     {invoicenotevalue}
     {taxdashed}
     <div style="width: 100%;display: flex; align-items: start; justify-content: start; flex-direction: column;">

@@ -96,12 +96,35 @@ object PrinterUtils {
             result = result.replace("{company_logo}","")
         }
 
+        if (!thirdParty?.thirdPartyName.isNullOrEmpty() || !invoiceHeader.invoiceHeadCashName.isNullOrEmpty()) {
+            result = result.replace("{clientnamevalue}", "<div class=\"text1\">Client: ${thirdParty?.thirdPartyName ?: ""} ${invoiceHeader.invoiceHeadCashName ?: ""}</div>")
+        } else {
+            result = result.replace("{clientnamevalue}", "")
+        }
 
-        result = result.replace("{clientnamevalue}", "${thirdParty?.thirdPartyName ?: ""} ${invoiceHeader.invoiceHeadCashName ?: ""}")
-            .replace("{clientfnvalue}", thirdParty?.thirdPartyFn ?: "")
-            .replace("{clientphonevalue}", thirdParty?.thirdPartyPhone1 ?: thirdParty?.thirdPartyPhone2 ?: "")
-            .replace("{clientaddressvalue}", thirdParty?.thirdPartyAddress ?: "")
-            .replace("{invoiceuservalue}", user?.userName ?: "")
+        if (!thirdParty?.thirdPartyFn.isNullOrEmpty()) {
+            result = result.replace("{clientfnvalue}",  "<div class=\"text1\">F/N: ${thirdParty?.thirdPartyFn}</div>")
+        } else {
+            result = result.replace("{clientfnvalue}", "")
+        }
+
+        if (!thirdParty?.thirdPartyPhone1.isNullOrEmpty() || !thirdParty?.thirdPartyPhone2.isNullOrEmpty()) {
+            result = result.replace("{clientphonevalue}", "<div class=\"text1\">Phone: ${thirdParty?.thirdPartyPhone1 ?: thirdParty?.thirdPartyPhone2}</div>")
+        } else {
+            result = result.replace("{clientphonevalue}", "")
+        }
+
+        if (!thirdParty?.thirdPartyAddress.isNullOrEmpty()) {
+            result = result.replace("{clientaddressvalue}", "<div class=\"text1\">Addr: ${thirdParty?.thirdPartyAddress}</div>")
+        } else {
+            result = result.replace("{clientaddressvalue}", "")
+        }
+
+        if (!user?.userName.isNullOrEmpty()) {
+            result = result.replace("{invoiceuservalue}",  "<div class=\"text1\">Served By: ${user?.userName}</div>")
+        } else {
+            result = result.replace("{invoiceuservalue}", "")
+        }
 
         if (invoiceHeader.invoiceHeadPrint > 1) {
             result = result.replace(
@@ -139,7 +162,7 @@ object PrinterUtils {
             invAmountVal.append("<td>${String.format("%.2f", Utils.getDoubleOrZero(invoiceHeader.invoiceHeadTaxAmt))}</td>")
             invAmountVal.append("</tr>")
             result = result
-                .replace("{taxregno}", "<div class=\"text1\">Tax No:${company?.companyTaxRegno ?: ""}</div>")
+                .replace("{taxregno}", "<div class=\"text1\">Tax &nbsp; No:${company?.companyTaxRegno ?: ""}</div>")
         }else{
             result = result.replace("{taxregno}", "")
         }
@@ -184,12 +207,71 @@ object PrinterUtils {
         invAmountVal.append("</tr>")
 
         result = result.replace("{tableinvoiceAmountvalue}", invAmountVal.toString())
-            .replace("{firstcurrencyvalue}", currency?.currencyCode1?:"")
-            .replace("{secondcurrencyvalue}", currency?.currencyCode2?:"")
 
-        result = result.replace("{pr_cash}", String.format("%.2f",Utils.getDoubleOrZero(posReceipt.posReceiptCash)))
-            .replace("{pr_cashs}",  String.format("%.2f",Utils.getDoubleOrZero(posReceipt.posReceiptCashs)))
-            .replace("{hi_change}",  String.format("%.2f",Utils.getDoubleOrZero(invoiceHeader.invoiceHeadChange)))
+
+        val posReceiptValues = StringBuilder("")
+
+
+        val pr_cash = Utils.getDoubleOrZero(posReceipt.posReceiptCash)
+        if( pr_cash > 0.0 ) {
+            posReceiptValues.append("<tr>")
+            posReceiptValues.append("<td>Cash</td> ")
+            posReceiptValues.append("<td>${currency?.currencyCode1?:""}</td>")
+            posReceiptValues.append("<td>${String.format("%.2f",pr_cash)}</td>")
+            posReceiptValues.append("</tr>")
+        }
+        val pr_cashs = Utils.getDoubleOrZero(posReceipt.posReceiptCashs)
+        if( pr_cashs > 0.0 ) {
+            posReceiptValues.append("<tr>")
+            posReceiptValues.append("<td>Cash</td> ")
+            posReceiptValues.append("<td>${currency?.currencyCode2?:""}</td>")
+            posReceiptValues.append("<td>${String.format("%.2f",pr_cashs)}</td>")
+            posReceiptValues.append("</tr>")
+        }
+
+        val pr_credit = Utils.getDoubleOrZero(posReceipt.posReceiptCredit)
+        if( pr_credit > 0.0 ) {
+            posReceiptValues.append("<tr>")
+            posReceiptValues.append("<td>Credit</td> ")
+            posReceiptValues.append("<td>${currency?.currencyCode1?:""}</td>")
+            posReceiptValues.append("<td>${String.format("%.2f",pr_credit)}</td>")
+            posReceiptValues.append("</tr>")
+        }
+        val pr_credits = Utils.getDoubleOrZero(posReceipt.posReceiptCredits)
+        if( pr_credits > 0.0 ) {
+            posReceiptValues.append("<tr>")
+            posReceiptValues.append("<td>Credit</td> ")
+            posReceiptValues.append("<td>${currency?.currencyCode2?:""}</td>")
+            posReceiptValues.append("<td>${String.format("%.2f",pr_credits)}</td>")
+            posReceiptValues.append("</tr>")
+        }
+
+        val pr_debit = Utils.getDoubleOrZero(posReceipt.posReceiptDebit)
+        if( pr_debit > 0.0 ) {
+            posReceiptValues.append("<tr>")
+            posReceiptValues.append("<td>Debit</td> ")
+            posReceiptValues.append("<td>${currency?.currencyCode1?:""}</td>")
+            posReceiptValues.append("<td>${String.format("%.2f",pr_debit)}</td>")
+            posReceiptValues.append("</tr>")
+        }
+        val pr_debits = Utils.getDoubleOrZero(posReceipt.posReceiptDebits)
+        if( pr_debits > 0.0 ) {
+            posReceiptValues.append("<tr>")
+            posReceiptValues.append("<td>Debit</td> ")
+            posReceiptValues.append("<td>${currency?.currencyCode2?:""}</td>")
+            posReceiptValues.append("<td>${String.format("%.2f",pr_debits)}</td>")
+            posReceiptValues.append("</tr>")
+        }
+
+        posReceiptValues.append("<tr>")
+        posReceiptValues.append("<td>Change</td> ")
+        posReceiptValues.append("<td>${String.format("%.2f",Utils.getDoubleOrZero(invoiceHeader.invoiceHeadChange))}</td>")
+        posReceiptValues.append("<td>${currency?.currencyCode2?:""}</td>")
+        posReceiptValues.append("</tr>")
+
+        result = result.replace("{posReceiptValues}",posReceiptValues.toString())
+
+
         if(!invoiceHeader.invoiceHeadNote.isNullOrEmpty()) {
             result = result.replace(
                 "{invoicenotevalue}",
