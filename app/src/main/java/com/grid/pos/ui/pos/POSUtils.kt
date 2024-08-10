@@ -49,27 +49,24 @@ object POSUtils {
             invHeader: InvoiceHeader
     ): InvoiceHeader {
         val currency = SettingsModel.currentCurrency ?: Currency()
-        var tax = 0.0
-        var tax1 = 0.0
-        var tax2 = 0.0
-        var total = 0.0
-        var netTotal = 0.0
-        invoiceList.forEach {
-            tax += it.getTax()
-            tax1 += it.getTax1()
-            tax2 += it.getTax2()
-            total += it.getPriceWithTax()
-            netTotal += it.getNetAmount()
-        }
-        invHeader.invoiceHeadTaxAmt = tax
-        invHeader.invoiceHeadTax1Amt = tax1
-        invHeader.invoiceHeadTax2Amt = tax2
-        invHeader.invoiceHeadTotalTax = tax + tax1 + tax2
+        val tax = SettingsModel.currentCompany?.companyTax?:0.0
+        val tax1 = SettingsModel.currentCompany?.companyTax1?:0.0
+        val tax2 = SettingsModel.currentCompany?.companyTax2?:0.0
+
+        val total = invoiceList.sumOf {it.getNetAmount() }
+        val discamt = total.times(invHeader.invoiceHeadDiscount.div(100.0))
+        val netTotal = total - discamt
+
         invHeader.invoiceHeadTotal = total
         invHeader.invoiceHeadTotal1 = total.times(currency.currencyRate)
         invHeader.invoiceHeadTotalNetAmount = netTotal
-        val discamt = netTotal.times(invHeader.invoiceHeadDiscount.div(100.0))
-        invHeader.invoiceHeadGrossAmount = netTotal - discamt
+
+        invHeader.invoiceHeadTaxAmt = netTotal.times(tax.div(100.0))
+        invHeader.invoiceHeadTax1Amt = netTotal.times(tax1.div(100.0))
+        invHeader.invoiceHeadTax2Amt = netTotal.times(tax2.div(100.0))
+        invHeader.invoiceHeadTotalTax = invHeader.invoiceHeadTaxAmt  + invHeader.invoiceHeadTax1Amt  + invHeader.invoiceHeadTax2Amt
+
+        invHeader.invoiceHeadGrossAmount = netTotal + invHeader.invoiceHeadTotalTax
         invHeader.invoiceHeadRate = currency.currencyRate
         return invHeader
     }

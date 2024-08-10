@@ -90,7 +90,7 @@ fun EditInvoiceItemView(
 
     var price by remember {
         mutableStateOf(
-            if (invoiceItemModel.invoice.invoicePrice > 0.0) invoiceItemModel.invoice.invoiceDiscount.toString() else ""
+            if (invoiceItemModel.invoice.invoicePrice > 0.0) invoiceItemModel.invoice.invoicePrice.toString() else ""
         )
     }
     var qty by remember {
@@ -143,13 +143,13 @@ fun EditInvoiceItemView(
 
     fun calculateItemDiscount() {
         invoiceItemModel.invoice.invoicePrice = price.toDoubleOrNull() ?: 0.0
-        invoiceItemModel.invoice.invoiceRemQty = qty.toDouble()
+        invoiceItemModel.invoice.invoiceQuantity = qty.toDouble()
         invoiceItemModel.invoice.invoiceTax = taxState.toDoubleOrNull() ?: 0.0
         invoiceItemModel.invoice.invoiceTax1 = tax1State.toDoubleOrNull() ?: 0.0
         invoiceItemModel.invoice.invoiceTax2 = tax2State.toDoubleOrNull() ?: 0.0
         val itemDiscount = rDiscount1.toDoubleOrNull() ?: 0.0
         val itemDiscountAmount = rDiscount2.toDoubleOrNull() ?: 0.0
-        val itemPrice = ((price.toDoubleOrNull() ?: 0.0).times(qty)) + invoiceItemModel.getTotalTax()
+        val itemPrice = ((price.toDoubleOrNull() ?: 0.0).times(qty))
         if (isPercentageChanged) {
             val disc = itemPrice.times(itemDiscount.div(100.0))
             rDiscount2 = String.format(
@@ -177,24 +177,22 @@ fun EditInvoiceItemView(
         )
         if (isPercentageChanged) {
             invoiceHeader.invoiceHeadDiscount = discount1.toDoubleOrNull() ?: 0.0
-            invoiceHeader.invoiceHeadDiscountAmount = invoiceHeader.invoiceHeadTotalNetAmount.times(
+            invoiceHeader.invoiceHeadDiscountAmount = invoiceHeader.invoiceHeadTotal.times(
                 invoiceHeader.invoiceHeadDiscount.div(100.0)
             )
             discount2 = if (invoiceHeader.invoiceHeadDiscountAmount == 0.0) "" else String.format(
                 "%.${curr2Decimal}f",
                 invoiceHeader.invoiceHeadDiscountAmount
             )
-            invHeader.invoiceHeadGrossAmount = invoiceHeader.invoiceHeadTotalNetAmount - invoiceHeader.invoiceHeadDiscountAmount
         } else {
             invoiceHeader.invoiceHeadDiscountAmount = discount2.toDoubleOrNull() ?: 0.0
-            invoiceHeader.invoiceHeadDiscount = (invoiceHeader.invoiceHeadDiscountAmount.div(invoiceHeader.invoiceHeadTotalNetAmount)).times(
+            invoiceHeader.invoiceHeadDiscount = (invoiceHeader.invoiceHeadDiscountAmount.div(invoiceHeader.invoiceHeadTotal)).times(
                 100.0
             )
             discount1 = String.format(
                 "%.${curr1Decimal}f",
                 invoiceHeader.invoiceHeadDiscount
             )
-            invHeader.invoiceHeadGrossAmount = invoiceHeader.invoiceHeadTotalNetAmount - invoiceHeader.invoiceHeadDiscountAmount
         }
     }
 
@@ -203,6 +201,11 @@ fun EditInvoiceItemView(
         invoiceHeader.invoiceHeadCashName = clientExtraName
         invoiceHeader.invoiceHeadDiscount = discount1.toDoubleOrNull() ?: 0.0
         invoiceHeader.invoiceHeadDiscountAmount = discount2.toDoubleOrNull() ?: 0.0
+
+        invoiceHeader = POSUtils.refreshValues(
+            invoices,
+            invoiceHeader
+        )
 
         invoiceItemModel.invoice.invoicePrice = price.toDoubleOrNull() ?: invoiceItemModel.invoiceItem.itemUnitPrice
         invoiceItemModel.invoice.invoiceTax = taxState.toDoubleOrNull() ?: 0.0

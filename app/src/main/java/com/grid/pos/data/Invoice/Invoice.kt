@@ -280,6 +280,7 @@ data class Invoice(
 
     @Exclude
     fun getNetAmount(): Double {
-        return getPriceWithTax() - getDiscountAmount()
+        val amount = getAmount() - getDiscountAmount()
+        return amount + getTax(amount) + getTax1(amount) + getTax2(amount)
     }
 }

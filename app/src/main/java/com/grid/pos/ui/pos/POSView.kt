@@ -526,6 +526,7 @@ fun POSView(
                         invoicesState[itemIndexToEdit] = itemModel
                         activityViewModel.invoiceItemModels = invoicesState
                         invoiceHeaderState.value = invHeader
+                        activityViewModel.invoiceHeader = invHeader
                         isEditBottomSheetVisible = false
                     },
                     onClose = {
@@ -565,6 +566,7 @@ fun POSView(
                         activityViewModel.invoiceItemModels,
                         invoiceHeaderState.value
                     )
+                    activityViewModel.invoiceHeader = invoiceHeaderState.value
                     isAddItemBottomSheetVisible = false
                 }
             }
