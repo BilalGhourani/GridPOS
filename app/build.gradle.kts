@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.plugin.mpp.pm20.util.archivesName
+
 plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.jetbrainsKotlinAndroid)
@@ -22,8 +24,9 @@ android {
         applicationId = "com.grid.pos"
         minSdk = 26
         targetSdk = 34
-        versionCode = 3
-        versionName = "1.0"
+        versionCode = 4
+        versionName = "1.0.1"
+        archivesName = "grid_pos_release(${versionName}(${versionCode}))"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
