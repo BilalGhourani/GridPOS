@@ -232,7 +232,8 @@ fun ManageItemsView(
                         SearchableDropdownMenu(
                             items = manageItemsState.items.toMutableList(),
                             modifier = Modifier.padding(10.dp),
-                            label = nameState.ifEmpty { "Select Item" },
+                            label = "Select Item" ,
+                            selectedId = manageItemsState.selectedItem.itemId
                         ) { item ->
                             item as Item
                             manageItemsState.selectedItem = item

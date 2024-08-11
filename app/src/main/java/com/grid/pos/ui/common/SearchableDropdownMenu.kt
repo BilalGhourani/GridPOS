@@ -57,8 +57,7 @@ fun SearchableDropdownMenu(
     var searchText by remember { mutableStateOf(label) }
     var selectedItemState by remember { mutableStateOf(label) }
     LaunchedEffect(
-        selectedId,
-        label
+        selectedId
     ) {
         if (showSelected && !selectedId.isNullOrEmpty()) {
             items.forEach {

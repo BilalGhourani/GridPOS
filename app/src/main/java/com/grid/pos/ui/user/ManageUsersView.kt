@@ -115,8 +115,7 @@ fun ManageUsersView(
         handleBack()
     }
     GridPOSTheme {
-        Scaffold(
-            containerColor = SettingsModel.backgroundColor,
+        Scaffold(containerColor = SettingsModel.backgroundColor,
             snackbarHost = {
                 SnackbarHost(hostState = snackbarHostState)
             },
@@ -175,7 +174,8 @@ fun ManageUsersView(
                         SearchableDropdownMenu(
                             items = manageUsersState.users.toMutableList(),
                             modifier = Modifier.padding(10.dp),
-                            label = usernameState.ifEmpty { "Select User" },
+                            label = "Select User",
+                            selectedId = manageUsersState.selectedUser.userId
                         ) { selectedUser ->
                             selectedUser as User
                             manageUsersState.selectedUser = selectedUser

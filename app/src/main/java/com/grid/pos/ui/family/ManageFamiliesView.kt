@@ -70,10 +70,10 @@ import kotlinx.coroutines.withContext
 )
 @Composable
 fun ManageFamiliesView(
-    modifier: Modifier = Modifier,
-    navController: NavController? = null,
-    activityScopedViewModel: ActivityScopedViewModel,
-    viewModel: ManageFamiliesViewModel = hiltViewModel()
+        modifier: Modifier = Modifier,
+        navController: NavController? = null,
+        activityScopedViewModel: ActivityScopedViewModel,
+        viewModel: ManageFamiliesViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
     val manageFamiliesState: ManageFamiliesState by viewModel.manageFamiliesState.collectAsState(
@@ -177,7 +177,8 @@ fun ManageFamiliesView(
                         SearchableDropdownMenu(
                             items = manageFamiliesState.families.toMutableList(),
                             modifier = Modifier.padding(10.dp),
-                            label = nameState.ifEmpty { "Select Family" },
+                            label = "Select Family",
+                            selectedId = manageFamiliesState.selectedFamily.familyId
                         ) { family ->
                             family as Family
                             manageFamiliesState.selectedFamily = family
@@ -209,28 +210,27 @@ fun ManageFamiliesView(
                                                 if (uris.isNotEmpty()) {
                                                     manageFamiliesState.isLoading = true
                                                     CoroutineScope(Dispatchers.IO).launch {
-                                                        val internalPath =
-                                                            FileUtils.saveToExternalStorage(context = context,
-                                                                parent = "family",
-                                                                uris[0],
-                                                                nameState.trim().replace(
-                                                                    " ",
-                                                                    "_"
-                                                                ).ifEmpty { "family" })
+                                                        val internalPath = FileUtils.saveToExternalStorage(context = context,
+                                                            parent = "family",
+                                                            uris[0],
+                                                            nameState.trim().replace(
+                                                                " ",
+                                                                "_"
+                                                            ).ifEmpty { "family" })
                                                         withContext(Dispatchers.Main) {
                                                             manageFamiliesState.isLoading = false
                                                             if (internalPath != null) {
                                                                 oldImage = imageState
                                                                 imageState = internalPath
-                                                                manageFamiliesState.selectedFamily.familyImage =
-                                                                    imageState
+                                                                manageFamiliesState.selectedFamily.familyImage = imageState
                                                             }
                                                         }
                                                     }
                                                 }
                                             }
 
-                                        }, onPermissionDenied = {
+                                        },
+                                        onPermissionDenied = {
                                             viewModel.showWarning(
                                                 "Permission Denied",
                                                 "Settings"
@@ -262,7 +262,10 @@ fun ManageFamiliesView(
                                 text = "Save"
                             ) {
                                 oldImage?.let { old ->
-                                    FileUtils.deleteFile(context, old)
+                                    FileUtils.deleteFile(
+                                        context,
+                                        old
+                                    )
                                 }
                                 viewModel.saveFamily(manageFamiliesState.selectedFamily)
                             }
@@ -274,10 +277,16 @@ fun ManageFamiliesView(
                                 text = "Delete"
                             ) {
                                 oldImage?.let { old ->
-                                    FileUtils.deleteFile(context, old)
+                                    FileUtils.deleteFile(
+                                        context,
+                                        old
+                                    )
                                 }
                                 if (imageState.isNotEmpty()) {
-                                    FileUtils.deleteFile(context, imageState)
+                                    FileUtils.deleteFile(
+                                        context,
+                                        imageState
+                                    )
                                 }
                                 viewModel.deleteSelectedFamily(manageFamiliesState.selectedFamily)
                             }

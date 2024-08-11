@@ -210,7 +210,8 @@ fun ManageCompaniesView(
                         SearchableDropdownMenu(
                             items = manageCompaniesState.companies.toMutableList(),
                             modifier = Modifier.padding(10.dp),
-                            label = nameState.ifEmpty { "Select Company" },
+                            label = "Select Company",
+                            selectedId = manageCompaniesState.selectedCompany.companyId
                         ) { company ->
                             company as Company
                             manageCompaniesState.selectedCompany = company

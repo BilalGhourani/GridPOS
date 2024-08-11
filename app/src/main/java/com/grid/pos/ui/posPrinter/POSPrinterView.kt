@@ -167,7 +167,8 @@ fun POSPrinterView(
                         SearchableDropdownMenu(
                             items = posPrinterState.printers.toMutableList(),
                             modifier = Modifier.padding(10.dp),
-                            label = nameState.ifEmpty { "Select Printer" },
+                            label = "Select Printer" ,
+                            selectedId =posPrinterState.selectedPrinter.posPrinterId
                         ) { printer ->
                             printer as PosPrinter
                             posPrinterState.selectedPrinter = printer

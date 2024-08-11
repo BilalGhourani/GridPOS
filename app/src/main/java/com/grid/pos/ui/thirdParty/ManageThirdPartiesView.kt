@@ -107,8 +107,7 @@ fun ManageThirdPartiesView(
         handleBack()
     }
     GridPOSTheme {
-        Scaffold(
-            containerColor = SettingsModel.backgroundColor,
+        Scaffold(containerColor = SettingsModel.backgroundColor,
             snackbarHost = {
                 SnackbarHost(hostState = snackbarHostState)
             },
@@ -167,7 +166,8 @@ fun ManageThirdPartiesView(
                         SearchableDropdownMenu(
                             items = manageThirdPartiesState.thirdParties.toMutableList(),
                             modifier = Modifier.padding(10.dp),
-                            label = nameState.ifEmpty { "Select Third Party" },
+                            label = "Select Third Party",
+                            selectedId = manageThirdPartiesState.selectedThirdParty.thirdPartyId
                         ) { thirdParty ->
                             thirdParty as ThirdParty
                             manageThirdPartiesState.selectedThirdParty = thirdParty
