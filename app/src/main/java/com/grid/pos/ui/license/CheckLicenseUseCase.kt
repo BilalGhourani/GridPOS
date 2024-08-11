@@ -5,6 +5,7 @@ import androidx.core.net.toUri
 import com.grid.pos.App
 import com.grid.pos.data.Company.Company
 import com.grid.pos.data.Company.CompanyRepository
+import com.grid.pos.data.InvoiceHeader.InvoiceHeader
 import com.grid.pos.data.InvoiceHeader.InvoiceHeaderRepository
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.Constants
@@ -33,7 +34,11 @@ class CheckLicenseUseCase(
                 val companyID = SettingsModel.getCompanyID()
                 if (!companyID.isNullOrEmpty()) {
                     val company = companyRepository.getCompanyById(companyID)
-                    val lastInvoice = invoiceHeaderRepository.getLastInvoice()
+                    val lastInvoice = try {
+                        invoiceHeaderRepository.getLastInvoice()
+                    }catch (e:Exception){
+                        InvoiceHeader()
+                    }
                     val lastInvoiceDate = lastInvoice?.invoiceHeadTimeStamp ?: lastInvoice?.invoiceHeadDateTime?.let { Date(it) }
                     val isLicensed = checkLicenseFile(
                         context,
