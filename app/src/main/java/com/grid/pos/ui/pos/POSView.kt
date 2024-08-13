@@ -57,6 +57,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
@@ -109,8 +110,10 @@ fun POSView(
     var popupState by remember { mutableStateOf(PopupState.BACK_PRESSED) }
     val snackbarHostState = remember { SnackbarHostState() }
     var orientation by remember { mutableIntStateOf(Configuration.ORIENTATION_PORTRAIT) }
+    val context = LocalContext.current
     val configuration = LocalConfiguration.current
     val isTablet = Utils.isTablet(LocalConfiguration.current)
+    val isDeviceLargerThan7Inches = Utils.isDeviceLargerThan7Inches(context)
     var isLandscape by remember { mutableStateOf(orientation == Configuration.ORIENTATION_LANDSCAPE) }
     val keyboardController = LocalSoftwareKeyboardController.current
 
@@ -348,7 +351,7 @@ fun POSView(
                                     )
                                 )
                                 .border(borderStroke),
-                            isLandscape = isTablet || isLandscape,
+                            isLandscape = isTablet || isDeviceLargerThan7Inches || isLandscape,
                             onEdit = { index ->
                                 itemIndexToEdit = index
                                 isEditBottomSheetVisible = true

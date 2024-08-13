@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.res.Configuration
 import android.os.Build
 import android.provider.Settings
+import android.util.DisplayMetrics
 import android.util.Log
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
@@ -25,6 +26,8 @@ import java.util.Locale
 import java.util.Random
 import java.util.TimeZone
 import java.util.UUID
+import kotlin.math.pow
+import kotlin.math.sqrt
 
 object Utils {
 
@@ -39,6 +42,9 @@ object Utils {
         OrientationModel(ORIENTATION_TYPE.LANDSCAPE.key),
         OrientationModel(ORIENTATION_TYPE.DEVICE_SENSOR.key)
     )
+
+    var isTablet: Boolean? = null;
+    var isDeviceLargerThan7Inches: Boolean? = null;
 
     fun getHomeList(): MutableList<HomeSectionModel> {
         return mutableListOf(
@@ -160,7 +166,31 @@ object Utils {
     }
 
     fun isTablet(configuration: Configuration): Boolean {
-        return configuration.smallestScreenWidthDp >= 600
+        if (isTablet!=null){
+            return isTablet!!
+        }
+        isTablet = configuration.smallestScreenWidthDp >= 600
+        return isTablet!!
+    }
+
+    fun isDeviceLargerThan7Inches(
+            context: Context
+    ): Boolean {
+        if (isDeviceLargerThan7Inches != null) {
+            return isDeviceLargerThan7Inches!!
+        }
+        val displayMetrics: DisplayMetrics = context.resources.displayMetrics
+
+        // Calculate the screen width and height in inches
+        val screenWidthInches = displayMetrics.widthPixels / displayMetrics.xdpi
+        val screenHeightInches = displayMetrics.heightPixels / displayMetrics.ydpi
+
+        // Calculate the diagonal screen size in inches
+        val screenSizeInches = sqrt(screenWidthInches.pow(2) + screenHeightInches.pow(2))
+
+        // Check if the screen size is greater than or equal to 7 inches
+        isDeviceLargerThan7Inches = screenSizeInches >= 7.0
+        return isDeviceLargerThan7Inches!!
     }
 
     fun getListHeight(
