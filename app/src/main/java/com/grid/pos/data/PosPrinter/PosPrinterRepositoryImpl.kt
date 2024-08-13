@@ -85,8 +85,8 @@ class PosPrinterRepositoryImpl(
                             posPrinterName = obj.optString("di_printer")
                             val dia_appprinters = obj.optString("dia_appprinter").split(":")
                             posPrinterHost = if (dia_appprinters.size > 0) dia_appprinters[0] else ""
-                            val port = if (dia_appprinters.size > 1) dia_appprinters[1] else "0"
-                            posPrinterPort = port.toIntOrNull() ?: 0
+                            val port = if (dia_appprinters.size > 1) dia_appprinters[1] else "-1"
+                            posPrinterPort = port.toIntOrNull() ?: -1
                             posPrinterType = obj.optString("usr_cmp_id")
                         })
                     }
@@ -104,8 +104,8 @@ class PosPrinterRepositoryImpl(
                             posPrinterName = obj.optString("di_printer")
                             val dia_appprinters = obj.optString("di_appprinter").split(":")
                             posPrinterHost = if (dia_appprinters.size > 0) dia_appprinters[0] else ""
-                            val port = if (dia_appprinters.size > 1) dia_appprinters[1] else "0"
-                            posPrinterPort = port.toIntOrNull() ?: 0
+                            val port = if (dia_appprinters.size > 1) dia_appprinters[1] else "-1"
+                            posPrinterPort = port.toIntOrNull() ?: -1
                         })
                     }
                 }

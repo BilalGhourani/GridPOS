@@ -47,7 +47,7 @@ data class PosPrinter(
         @ColumnInfo(name = "pp_host")
         @set:PropertyName("pp_host")
         @get:PropertyName("pp_host")
-        var posPrinterHost: String = "127.0.0.1",
+        var posPrinterHost: String = "",
 
         /**
          *   POS Printer printer
