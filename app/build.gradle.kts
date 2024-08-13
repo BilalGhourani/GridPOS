@@ -24,7 +24,7 @@ android {
         applicationId = "com.grid.pos"
         minSdk = 26
         targetSdk = 34
-        versionCode = 4
+        versionCode = 5
         versionName = "1.0.1"
         archivesName = "grid_pos_release(${versionName}(${versionCode}))"
 
@@ -172,5 +172,8 @@ dependencies {
     // generate the barcode image
     implementation ("com.google.zxing:core:3.4.1")
     implementation ("com.journeyapps:zxing-android-embedded:4.3.0")
+
+
+    implementation ("org.jsoup:jsoup:1.15.3")
 
 }
