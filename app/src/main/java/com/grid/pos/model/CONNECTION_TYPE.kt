@@ -13,3 +13,15 @@ data class ConnectionModel(
         return connectionName
     }
 }
+
+enum class ORIENTATION_TYPE(val key: String) {
+    PORTRAIT("Portrait"), LANDSCAPE("Landscape"), DEVICE_SENSOR("Device Sensor")
+}
+
+data class OrientationModel(
+        val orientatioName: String
+) : DataModel() {
+    override fun getName(): String {
+        return orientatioName
+    }
+}

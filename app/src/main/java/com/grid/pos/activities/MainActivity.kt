@@ -2,6 +2,7 @@ package com.grid.pos.activities
 
 import android.Manifest
 import android.content.Intent
+import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.net.ConnectivityManager
 import android.net.LinkProperties
@@ -16,14 +17,6 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
-import androidx.annotation.OptIn
-import androidx.camera.core.CameraSelector
-import androidx.camera.core.ExperimentalGetImage
-import androidx.camera.core.ImageAnalysis
-import androidx.camera.core.ImageProxy
-import androidx.camera.core.Preview
-import androidx.camera.lifecycle.ProcessCameraProvider
-import androidx.camera.view.PreviewView
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -33,16 +26,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.navigation.compose.rememberNavController
-import com.google.mlkit.vision.barcode.BarcodeScanner
-import com.google.mlkit.vision.barcode.BarcodeScanning
-import com.google.mlkit.vision.barcode.common.Barcode
-import com.google.mlkit.vision.common.InputImage
 import com.grid.pos.ActivityScopedUIEvent
 import com.grid.pos.ActivityScopedViewModel
 import com.grid.pos.R
 import com.grid.pos.interfaces.OnActivityResult
 import com.grid.pos.interfaces.OnBarcodeResult
 import com.grid.pos.interfaces.OnGalleryResult
+import com.grid.pos.model.ORIENTATION_TYPE
+import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.navigation.AuthNavGraph
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.ui.theme.White
@@ -53,7 +44,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import java.util.concurrent.Executors
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -194,6 +184,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
+        changeOrientationType(SettingsModel.orientationType)
         connectivityManager?.registerDefaultNetworkCallback(networkHandler)
     }
 
@@ -289,8 +280,29 @@ class MainActivity : ComponentActivity() {
                     }
 
                 }
+
+                is ActivityScopedUIEvent.ChangeAppOrientation -> {
+                    changeOrientationType(sharedEvent.orientationType)
+                }
             }
         }.launchIn(CoroutineScope(Dispatchers.Main))
+    }
+
+    private fun changeOrientationType(orientationType: String){
+        val orientation = when(orientationType){
+            ORIENTATION_TYPE.PORTRAIT.key->{
+                ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+            }
+
+            ORIENTATION_TYPE.LANDSCAPE.key->{
+                ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+            }
+
+            else -> {
+                ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+            }
+        }
+        requestedOrientation = orientation
     }
 
     private fun launchFilePicker(delegate: OnGalleryResult) {

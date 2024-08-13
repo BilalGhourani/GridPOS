@@ -27,4 +27,8 @@ sealed class ActivityScopedUIEvent {
             var delegate: OnBarcodeResult,
             var onPermissionDenied: () -> Unit
     ) : ActivityScopedUIEvent()
+
+    class ChangeAppOrientation(
+            var orientationType: String
+    ) : ActivityScopedUIEvent()
 }

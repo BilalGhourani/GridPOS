@@ -75,7 +75,6 @@ import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.ui.theme.LightGrey
 import com.grid.pos.utils.DataStoreManager
 import com.grid.pos.utils.Extension.toHexCode
-import com.grid.pos.utils.FileUtils
 import com.grid.pos.utils.Utils
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -120,6 +119,7 @@ fun SettingsView(
     val sqlServerCmpIdRequester = remember { FocusRequester() }
     val keyboardController = LocalSoftwareKeyboardController.current
 
+    var orientationType by remember { mutableStateOf(SettingsModel.orientationType) }
     var cashPrinterState by remember { mutableStateOf(SettingsModel.cashPrinter ?: "") }
     var showItemsInPOS by remember { mutableStateOf(SettingsModel.showItemsInPOS) }
     var showTax by remember { mutableStateOf(SettingsModel.showTax) }
@@ -255,123 +255,124 @@ fun SettingsView(
                             ) { type ->
                                 connectionTypeState = type.getName()
                             }
-                            if (connectionTypeState == CONNECTION_TYPE.FIRESTORE.key) {
-                                UITextField(modifier = Modifier.padding(10.dp),
-                                    defaultValue = firebaseApplicationId,
-                                    label = "Application ID",
-                                    placeHolder = "Application ID",
-                                    onAction = { firebaseApiKeyRequester.requestFocus() }) { appId ->
-                                    firebaseApplicationId = appId
-                                }
+                            when (connectionTypeState) {
+                                CONNECTION_TYPE.FIRESTORE.key -> {
+                                    UITextField(modifier = Modifier.padding(10.dp),
+                                        defaultValue = firebaseApplicationId,
+                                        label = "Application ID",
+                                        placeHolder = "Application ID",
+                                        onAction = { firebaseApiKeyRequester.requestFocus() }) { appId ->
+                                        firebaseApplicationId = appId
+                                    }
 
-                                UITextField(modifier = Modifier.padding(10.dp),
-                                    defaultValue = firebaseApiKey,
-                                    label = "Api Key",
-                                    placeHolder = "Api Key",
-                                    focusRequester = firebaseApiKeyRequester,
-                                    onAction = { firebaseProjectIdRequester.requestFocus() }) { apiKey ->
-                                    firebaseApiKey = apiKey
-                                }
+                                    UITextField(modifier = Modifier.padding(10.dp),
+                                        defaultValue = firebaseApiKey,
+                                        label = "Api Key",
+                                        placeHolder = "Api Key",
+                                        focusRequester = firebaseApiKeyRequester,
+                                        onAction = { firebaseProjectIdRequester.requestFocus() }) { apiKey ->
+                                        firebaseApiKey = apiKey
+                                    }
 
-                                UITextField(modifier = Modifier.padding(10.dp),
-                                    defaultValue = firebaseProjectId,
-                                    label = "Project ID",
-                                    placeHolder = "Project ID",
-                                    focusRequester = firebaseProjectIdRequester,
-                                    onAction = { firebaseDbPathRequester.requestFocus() }) { projectID ->
-                                    firebaseProjectId = projectID
-                                }
+                                    UITextField(modifier = Modifier.padding(10.dp),
+                                        defaultValue = firebaseProjectId,
+                                        label = "Project ID",
+                                        placeHolder = "Project ID",
+                                        focusRequester = firebaseProjectIdRequester,
+                                        onAction = { firebaseDbPathRequester.requestFocus() }) { projectID ->
+                                        firebaseProjectId = projectID
+                                    }
 
-                                UITextField(modifier = Modifier.padding(10.dp),
-                                    defaultValue = firebaseDbPath,
-                                    label = "Database Path",
-                                    placeHolder = "Database Path",
-                                    focusRequester = firebaseDbPathRequester,
-                                    onAction = { companyIdRequester.requestFocus() }) { dbPath ->
-                                    firebaseDbPath = dbPath
-                                }
+                                    UITextField(modifier = Modifier.padding(10.dp),
+                                        defaultValue = firebaseDbPath,
+                                        label = "Database Path",
+                                        placeHolder = "Database Path",
+                                        focusRequester = firebaseDbPathRequester,
+                                        onAction = { companyIdRequester.requestFocus() }) { dbPath ->
+                                        firebaseDbPath = dbPath
+                                    }
 
-                                UITextField(modifier = Modifier.padding(10.dp),
-                                    defaultValue = fireStoreCompanyID,
-                                    label = "Company ID",
-                                    placeHolder = "Company ID",
-                                    focusRequester = companyIdRequester,
-                                    onAction = { keyboardController?.hide() }) { compId ->
-                                    fireStoreCompanyID = compId
+                                    UITextField(modifier = Modifier.padding(10.dp),
+                                        defaultValue = fireStoreCompanyID,
+                                        label = "Company ID",
+                                        placeHolder = "Company ID",
+                                        focusRequester = companyIdRequester,
+                                        onAction = { keyboardController?.hide() }) { compId ->
+                                        fireStoreCompanyID = compId
+                                    }
                                 }
-                            } else if (connectionTypeState == CONNECTION_TYPE.SQL_SERVER.key) {
-                                UITextField(modifier = Modifier.padding(10.dp),
-                                    defaultValue = sqlServerPath,
-                                    label = "SQL Server Path",
-                                    placeHolder = "host:port/dbname",
-                                    imeAction = ImeAction.Next,
-                                    onAction = { sqlServerUserRequester.requestFocus() }) { path ->
-                                    sqlServerPath = path
-                                }
+                                CONNECTION_TYPE.SQL_SERVER.key -> {
+                                    UITextField(modifier = Modifier.padding(10.dp),
+                                        defaultValue = sqlServerPath,
+                                        label = "SQL Server Path",
+                                        placeHolder = "host:port/dbname",
+                                        imeAction = ImeAction.Next,
+                                        onAction = { sqlServerUserRequester.requestFocus() }) { path ->
+                                        sqlServerPath = path
+                                    }
 
-                                UITextField(modifier = Modifier.padding(10.dp),
-                                    defaultValue = sqlServerDbUser,
-                                    label = "Database User",
-                                    placeHolder = "user",
-                                    focusRequester = sqlServerUserRequester,
-                                    imeAction = ImeAction.Next,
-                                    onAction = { sqlServerPasswordRequester.requestFocus() }) { user ->
-                                    sqlServerDbUser = user
-                                }
+                                    UITextField(modifier = Modifier.padding(10.dp),
+                                        defaultValue = sqlServerDbUser,
+                                        label = "Database User",
+                                        placeHolder = "user",
+                                        focusRequester = sqlServerUserRequester,
+                                        imeAction = ImeAction.Next,
+                                        onAction = { sqlServerPasswordRequester.requestFocus() }) { user ->
+                                        sqlServerDbUser = user
+                                    }
 
-                                UITextField(modifier = Modifier.padding(10.dp),
-                                    defaultValue = sqlServerDbPassword,
-                                    label = "Database Password",
-                                    placeHolder = "password",
-                                    focusRequester = sqlServerUserRequester,
-                                    keyboardType = KeyboardType.Password,
-                                    imeAction = ImeAction.Next,
-                                    visualTransformation = if (passwordVisibility) VisualTransformation.None else PasswordVisualTransformation(),
-                                    onAction = {
-                                        sqlServerCmpIdRequester.requestFocus()
-                                    },
-                                    trailingIcon = {
-                                        IconButton(onClick = { passwordVisibility = !passwordVisibility }) {
-                                            Icon(
-                                                imageVector = if (passwordVisibility) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
-                                                contentDescription = if (passwordVisibility) "Hide password" else "Show password",
-                                                tint = SettingsModel.buttonColor
-                                            )
-                                        }
-                                    }) { password ->
-                                    sqlServerDbPassword = password
-                                }
+                                    UITextField(modifier = Modifier.padding(10.dp),
+                                        defaultValue = sqlServerDbPassword,
+                                        label = "Database Password",
+                                        placeHolder = "password",
+                                        focusRequester = sqlServerUserRequester,
+                                        keyboardType = KeyboardType.Password,
+                                        imeAction = ImeAction.Next,
+                                        visualTransformation = if (passwordVisibility) VisualTransformation.None else PasswordVisualTransformation(),
+                                        onAction = {
+                                            sqlServerCmpIdRequester.requestFocus()
+                                        },
+                                        trailingIcon = {
+                                            IconButton(onClick = { passwordVisibility = !passwordVisibility }) {
+                                                Icon(
+                                                    imageVector = if (passwordVisibility) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
+                                                    contentDescription = if (passwordVisibility) "Hide password" else "Show password",
+                                                    tint = SettingsModel.buttonColor
+                                                )
+                                            }
+                                        }) { password ->
+                                        sqlServerDbPassword = password
+                                    }
 
-                                UITextField(modifier = Modifier.padding(10.dp),
-                                    defaultValue = sqlServerCompanyId,
-                                    label = "Company ID",
-                                    placeHolder = "Company ID",
-                                    focusRequester = sqlServerCmpIdRequester,
-                                    imeAction = ImeAction.Done,
-                                    onAction = { keyboardController?.hide() }) { compId ->
-                                    sqlServerCompanyId = compId
-                                }
+                                    UITextField(modifier = Modifier.padding(10.dp),
+                                        defaultValue = sqlServerCompanyId,
+                                        label = "Company ID",
+                                        placeHolder = "Company ID",
+                                        focusRequester = sqlServerCmpIdRequester,
+                                        imeAction = ImeAction.Done,
+                                        onAction = { keyboardController?.hide() }) { compId ->
+                                        sqlServerCompanyId = compId
+                                    }
 
-                                UISwitch(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(60.dp)
-                                        .padding(10.dp),
-                                    checked = isSqlServerWebDb,
-                                    text = "Sql Server Web Db",
-                                    textColor = textColorState
-                                ) { isWebDb ->
-                                    isSqlServerWebDb = isWebDb
-                                }
+                                    UISwitch(
+                                        modifier = Modifier.fillMaxWidth().height(60.dp).padding(10.dp),
+                                        checked = isSqlServerWebDb,
+                                        text = "Sql Server Web Db",
+                                        textColor = textColorState
+                                    ) { isWebDb ->
+                                        isSqlServerWebDb = isWebDb
+                                    }
 
-                            } else {
-                                SearchableDropdownMenu(items = companies.toMutableList(),
-                                    modifier = Modifier.padding(10.dp),
-                                    enableSearch = false,
-                                    color = LightGrey,
-                                    label = localCompanyName.ifEmpty { "Select Company" }) { company ->
-                                    company as Company
-                                    localCompanyID = company.companyId
+                                }
+                                else -> {
+                                    SearchableDropdownMenu(items = companies.toMutableList(),
+                                        modifier = Modifier.padding(10.dp),
+                                        enableSearch = false,
+                                        color = LightGrey,
+                                        label = localCompanyName.ifEmpty { "Select Company" }) { company ->
+                                        company as Company
+                                        localCompanyID = company.companyId
+                                    }
                                 }
                             }
 
@@ -540,6 +541,24 @@ fun SettingsView(
                     }
 
                     if (isAppSettingsSectionExpanded) {
+                        SearchableDropdownMenu(
+                            items = Utils.orientations,
+                            modifier = Modifier.padding(10.dp),
+                            enableSearch = false,
+                            color = LightGrey,
+                            label = orientationType.ifEmpty { "Select Type" },
+                        ) { type ->
+                            orientationType = type.getName()
+                            SettingsModel.orientationType = orientationType
+                            CoroutineScope(Dispatchers.IO).launch {
+                                DataStoreManager.putString(
+                                    DataStoreManager.DataStoreKeys.ORIENTATION_TYPE.key,
+                                    orientationType
+                                )
+                                activityScopedViewModel.changeAppOrientation(orientationType)
+                            }
+                        }
+
                         UISwitch(
                             modifier = Modifier
                                 .fillMaxWidth()

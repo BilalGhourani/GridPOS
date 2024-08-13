@@ -292,6 +292,16 @@ class ActivityScopedViewModel @Inject constructor(
         }
     }
 
+    fun changeAppOrientation(orientationType: String) {
+        viewModelScope.launch {
+            _mainActivityEvent.send(
+                ActivityScopedUIEvent.ChangeAppOrientation(
+                    orientationType
+                )
+            )
+        }
+    }
+
     fun isLoggedIn(): Boolean {
         return activityState.value.isLoggedIn
     }
