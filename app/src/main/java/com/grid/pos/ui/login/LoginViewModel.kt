@@ -35,6 +35,13 @@ class LoginViewModel @Inject constructor(
             username: String,
             password: String
     ) {
+        if (true) {
+            loginNow(
+                username,
+                password
+            )
+            return
+        }
         usersState.value = usersState.value.copy(
             isLoading = true,
             warning = null,
