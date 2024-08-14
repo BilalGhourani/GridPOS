@@ -243,6 +243,14 @@ object DataStoreManager {
             DataStoreKeys.SQL_SERVER_PATH.key,
             ""
         )
+        SettingsModel.sqlServerName = getString(
+            DataStoreKeys.SQL_SERVER_NAME.key,
+            ""
+        )
+        SettingsModel.sqlServerDbName = getString(
+            DataStoreKeys.SQL_SERVER_DB_NAME.key,
+            ""
+        )
         SettingsModel.sqlServerDbUser = getString(
             DataStoreKeys.SQL_SERVER_DB_USER.key,
             ""
@@ -278,7 +286,8 @@ object DataStoreManager {
         ),
         FIRESTORE_COMPANY_ID("FIRESTORE_COMPANY_ID"), LOCAL_COMPANY_ID("LOCAL_COMPANY_ID"),
 
-        SQL_SERVER_PATH("SQL_SERVER_PATH"), SQL_SERVER_DB_USER("SQL_SERVER_DB_USER"), SQL_SERVER_DB_PASSWORD("SQL_SERVER_DB_PASSWORD"), SQL_SERVER_COMPANY_ID("SQL_SERVER_COMPANY_ID"), IS_SQL_SERVER_WEB_DB("IS_SQL_SERVER_WEB_DB"), CASH_PRINTER("CASH_PRINTER"),
+        SQL_SERVER_PATH("SQL_SERVER_PATH"), SQL_SERVER_NAME("SQL_SERVER_NAME"),SQL_SERVER_DB_NAME("SQL_SERVER_DB_NAME"),
+        SQL_SERVER_DB_USER("SQL_SERVER_DB_USER"), SQL_SERVER_DB_PASSWORD("SQL_SERVER_DB_PASSWORD"), SQL_SERVER_COMPANY_ID("SQL_SERVER_COMPANY_ID"), IS_SQL_SERVER_WEB_DB("IS_SQL_SERVER_WEB_DB"), CASH_PRINTER("CASH_PRINTER"),
 
         CONNECTION_TYPE("CONNECTION_TYPE"), SHOW_ITEMS_IN_POS("SHOW_ITEMS_IN_POS"), ORIENTATION_TYPE("ORIENTATION_TYPE"), SHOW_TAX("SHOW_TAX"), SHOW_TAX1(
             "SHOW_TAX1"

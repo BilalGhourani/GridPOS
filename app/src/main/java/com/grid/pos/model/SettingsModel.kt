@@ -17,6 +17,8 @@ object SettingsModel {
     var fireStoreCompanyID: String? = null
     var localCompanyID: String? = null
     var sqlServerPath: String? = null
+    var sqlServerName: String? = null
+    var sqlServerDbName: String? = null
     var sqlServerDbUser: String? = null
     var sqlServerDbPassword: String? = null
     var sqlServerCompanyId: String? = null
@@ -80,7 +82,7 @@ object SettingsModel {
     }
 
     fun getSqlServerDbPath(): String {
-        return "jdbc:jtds:sqlserver://${sqlServerPath};encrypt=true"
+        return "jdbc:jtds:sqlserver://${sqlServerPath}/$sqlServerDbName;instance=$sqlServerName;encrypt=true"
     }
 
     fun getTransactionType(amount: Double): String {
