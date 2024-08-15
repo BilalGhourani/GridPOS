@@ -6,7 +6,6 @@ import android.bluetooth.BluetoothManager
 import android.bluetooth.BluetoothSocket
 import android.content.Context
 import android.content.pm.PackageManager
-import android.graphics.Bitmap
 import android.os.Build
 import android.util.Log
 import androidx.core.app.ActivityCompat
@@ -17,7 +16,7 @@ import java.util.UUID
 class BluetoothPrinter {
 
     private var bluetoothSocket: BluetoothSocket? = null
-    private var outputStream: OutputStream? = null
+    var outputStream: OutputStream? = null
 
     fun connectToPrinter(context: Context,printerName: String): Boolean {
         val bluetoothManager = context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager

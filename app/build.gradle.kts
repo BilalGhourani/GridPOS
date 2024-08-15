@@ -142,13 +142,7 @@ dependencies {
     implementation("androidx.datastore:datastore-preferences-rxjava3:1.0.0")
     implementation("net.sourceforge.jtds:jtds:1.3.1")
 
-    /*  implementation(
-          group = "com.aspose",
-          name = "aspose-cells",
-          version = "24.3",
-          classifier = "android.via.java"
-      )*/
-
+    // For working with .xlsx files
     implementation("org.apache.poi:poi:5.2.3") // Update to the latest version if necessary
     implementation("org.apache.poi:poi-ooxml:5.2.3") {
         exclude(
@@ -156,7 +150,6 @@ dependencies {
             module = "poi-ooxml-lite"
         )
     }
-    // For working with .xlsx files
     implementation("org.apache.poi:poi-ooxml:5.2.3") // For XML schemas
     implementation("org.apache.xmlbeans:xmlbeans:5.2.0") // For XML processing
     implementation("org.apache.commons:commons-collections4:4.4") // Commons collections
@@ -173,7 +166,5 @@ dependencies {
     implementation ("com.google.zxing:core:3.4.1")
     implementation ("com.journeyapps:zxing-android-embedded:4.3.0")
 
-
-    implementation ("org.jsoup:jsoup:1.15.3")
 
 }
