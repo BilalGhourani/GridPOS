@@ -57,7 +57,7 @@ class POSPrinterViewModel @Inject constructor(
     }
 
     fun savePrinter(printer: PosPrinter) {
-        if (printer.posPrinterName.isNullOrEmpty() || printer.posPrinterHost.isEmpty() || printer.posPrinterPort == -1) {
+        if (printer.posPrinterName.isNullOrEmpty()) {
             posPrinterState.value = posPrinterState.value.copy(
                 warning = Event("Please fill Printer name, host and port"),
                 isLoading = false
