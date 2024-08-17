@@ -75,6 +75,14 @@ data class Company(
         var companyCurCodeTax: String? = null,
 
         /**
+         * Company currency code tax
+         * */
+        @ColumnInfo(name = "cmp_upwithtax")
+        @set:PropertyName("cmp_upwithtax")
+        @get:PropertyName("cmp_upwithtax")
+        var companyUpWithTax: Boolean = false,
+
+        /**
          * Company Printer
          * */
         @ColumnInfo(name = "cmp_pp_id")

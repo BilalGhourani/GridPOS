@@ -54,13 +54,12 @@ import androidx.navigation.NavController
 import com.grid.pos.ActivityScopedViewModel
 import com.grid.pos.R
 import com.grid.pos.data.Company.Company
-import com.grid.pos.data.Currency.Currency
-import com.grid.pos.data.PosPrinter.PosPrinter
 import com.grid.pos.interfaces.OnGalleryResult
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.LoadingIndicator
 import com.grid.pos.ui.common.SearchableDropdownMenu
 import com.grid.pos.ui.common.UIButton
+import com.grid.pos.ui.common.UISwitch
 import com.grid.pos.ui.common.UITextField
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.utils.FileUtils
@@ -107,7 +106,7 @@ fun ManageCompaniesView(
     var countryState by remember { mutableStateOf("") }
     var taxRegnoState by remember { mutableStateOf("") }
     var taxState by remember { mutableStateOf("") }
-    var curCodeTaxState by remember { mutableStateOf("") }
+    var upWithTaxState by remember { mutableStateOf(false) }
     //var printerState by remember { mutableStateOf("") }
     var emailState by remember { mutableStateOf("") }
     var webState by remember { mutableStateOf("") }
@@ -221,7 +220,7 @@ fun ManageCompaniesView(
                             countryState = company.companyCountry ?: ""
                             taxRegnoState = company.companyTaxRegno ?: ""
                             taxState = company.companyTax.toString()
-                            curCodeTaxState = company.companyCurCodeTax ?: ""
+                            upWithTaxState = company.companyUpWithTax
                             //printerState = company.companyPrinterId ?: ""
                             emailState = company.companyEmail ?: ""
                             webState = company.companyWeb ?: ""
@@ -287,115 +286,6 @@ fun ManageCompaniesView(
                             }) { country ->
                             countryState = country
                             manageCompaniesState.selectedCompany.companyCountry = countryState
-                        }
-
-                        if (SettingsModel.showTax) {
-                            //tax reg no
-                            UITextField(modifier = Modifier.padding(10.dp),
-                                defaultValue = taxRegnoState,
-                                label = "Tax Reg. No",
-                                focusRequester = taxRegNoFocusRequester,
-                                placeHolder = "Enter Tax Reg. No",
-                                onAction = { taxFocusRequester.requestFocus() }) { taxRegno ->
-                                taxRegnoState = taxRegno
-                                manageCompaniesState.selectedCompany.companyTaxRegno = taxRegno
-                            }
-
-                            //tax
-                            UITextField(modifier = Modifier.padding(10.dp),
-                                defaultValue = taxState,
-                                label = "Tax",
-                                focusRequester = taxFocusRequester,
-                                keyboardType = KeyboardType.Decimal,
-                                placeHolder = "Enter Tax",
-                                onAction = {
-                                    if (SettingsModel.showTax1) {
-                                        tax1RegNoFocusRequester.requestFocus()
-                                    } else if (SettingsModel.showTax2) {
-                                        tax2RegNoFocusRequester.requestFocus()
-                                    } else {
-                                        emailFocusRequester.requestFocus()
-                                    }
-                                }) { tax ->
-                                taxState = Utils.getDoubleValue(
-                                    tax,
-                                    taxState
-                                )
-                                manageCompaniesState.selectedCompany.companyTax = taxState.toDoubleOrNull() ?: 0.0
-                            }
-                        }
-                        if (SettingsModel.showTax || SettingsModel.showTax1 || SettingsModel.showTax2) {
-                            SearchableDropdownMenu(
-                                items = manageCompaniesState.currencies.toMutableList(),
-                                modifier = Modifier.padding(10.dp),
-                                label = "Select Tax Currency",
-                                selectedId = curCodeTaxState
-                            ) { currency ->
-                                currency as Currency
-                                curCodeTaxState = currency.currencyId
-                                manageCompaniesState.selectedCompany.companyCurCodeTax = currency.currencyId
-                            }
-
-                        }
-                        if (SettingsModel.showTax1) {
-                            //tax1 reg no
-                            UITextField(modifier = Modifier.padding(10.dp),
-                                defaultValue = tax1RegnoState,
-                                label = "Tax1 Reg. No",
-                                placeHolder = "Enter Tax1 Reg. No",
-                                focusRequester = tax1RegNoFocusRequester,
-                                onAction = { tax1FocusRequester.requestFocus() }) { tax1Regno ->
-                                tax1RegnoState = tax1Regno
-                                manageCompaniesState.selectedCompany.companyTax1Regno = tax1Regno
-                            }
-
-                            //tax1
-                            UITextField(modifier = Modifier.padding(10.dp),
-                                defaultValue = tax1State,
-                                label = "Tax1",
-                                keyboardType = KeyboardType.Decimal,
-                                placeHolder = "Enter Tax1",
-                                focusRequester = tax1FocusRequester,
-                                onAction = {
-                                    if (SettingsModel.showTax2) {
-                                        tax2RegNoFocusRequester.requestFocus()
-                                    } else {
-                                        emailFocusRequester.requestFocus()
-                                    }
-                                }) { tax1 ->
-                                tax1State = Utils.getDoubleValue(
-                                    tax1,
-                                    tax1State
-                                )
-                                manageCompaniesState.selectedCompany.companyTax1 = tax1State.toDoubleOrNull() ?: 0.0
-                            }
-                        }
-                        if (SettingsModel.showTax2) {
-                            //tax2 reg no
-                            UITextField(modifier = Modifier.padding(10.dp),
-                                defaultValue = tax2RegnoState,
-                                label = "Tax2 Reg. No",
-                                placeHolder = "Enter Tax2 Reg. No",
-                                focusRequester = tax2RegNoFocusRequester,
-                                onAction = { tax2FocusRequester.requestFocus() }) { tax2Regno ->
-                                tax2RegnoState = tax2Regno
-                                manageCompaniesState.selectedCompany.companyTax2Regno = tax2Regno
-                            }
-
-                            //tax2
-                            UITextField(modifier = Modifier.padding(10.dp),
-                                defaultValue = tax2State,
-                                label = "Tax2",
-                                keyboardType = KeyboardType.Decimal,
-                                placeHolder = "Enter Tax2",
-                                focusRequester = tax2FocusRequester,
-                                onAction = { emailFocusRequester.requestFocus() }) { tax2 ->
-                                tax2State = Utils.getDoubleValue(
-                                    tax2,
-                                    tax2State
-                                )
-                                manageCompaniesState.selectedCompany.companyTax2 = tax2State.toDoubleOrNull() ?: 0.0
-                            }
                         }
 
                         /*SearchableDropdownMenu(
@@ -484,6 +374,113 @@ fun ManageCompaniesView(
                             manageCompaniesState.selectedCompany.companyLogo = logo
                         }
 
+                        if (SettingsModel.showTax) {
+                            //tax reg no
+                            UITextField(modifier = Modifier.padding(10.dp),
+                                defaultValue = taxRegnoState,
+                                label = "Tax Reg. No",
+                                focusRequester = taxRegNoFocusRequester,
+                                placeHolder = "Enter Tax Reg. No",
+                                onAction = { taxFocusRequester.requestFocus() }) { taxRegno ->
+                                taxRegnoState = taxRegno
+                                manageCompaniesState.selectedCompany.companyTaxRegno = taxRegno
+                            }
+
+                            //tax
+                            UITextField(modifier = Modifier.padding(10.dp),
+                                defaultValue = taxState,
+                                label = "Tax",
+                                focusRequester = taxFocusRequester,
+                                keyboardType = KeyboardType.Decimal,
+                                placeHolder = "Enter Tax",
+                                onAction = {
+                                    if (SettingsModel.showTax1) {
+                                        tax1RegNoFocusRequester.requestFocus()
+                                    } else if (SettingsModel.showTax2) {
+                                        tax2RegNoFocusRequester.requestFocus()
+                                    } else {
+                                        emailFocusRequester.requestFocus()
+                                    }
+                                }) { tax ->
+                                taxState = Utils.getDoubleValue(
+                                    tax,
+                                    taxState
+                                )
+                                manageCompaniesState.selectedCompany.companyTax = taxState.toDoubleOrNull() ?: 0.0
+                            }
+                        }
+                        if (SettingsModel.showTax1) {
+                            //tax1 reg no
+                            UITextField(modifier = Modifier.padding(10.dp),
+                                defaultValue = tax1RegnoState,
+                                label = "Tax1 Reg. No",
+                                placeHolder = "Enter Tax1 Reg. No",
+                                focusRequester = tax1RegNoFocusRequester,
+                                onAction = { tax1FocusRequester.requestFocus() }) { tax1Regno ->
+                                tax1RegnoState = tax1Regno
+                                manageCompaniesState.selectedCompany.companyTax1Regno = tax1Regno
+                            }
+
+                            //tax1
+                            UITextField(modifier = Modifier.padding(10.dp),
+                                defaultValue = tax1State,
+                                label = "Tax1",
+                                keyboardType = KeyboardType.Decimal,
+                                placeHolder = "Enter Tax1",
+                                focusRequester = tax1FocusRequester,
+                                onAction = {
+                                    if (SettingsModel.showTax2) {
+                                        tax2RegNoFocusRequester.requestFocus()
+                                    } else {
+                                        emailFocusRequester.requestFocus()
+                                    }
+                                }) { tax1 ->
+                                tax1State = Utils.getDoubleValue(
+                                    tax1,
+                                    tax1State
+                                )
+                                manageCompaniesState.selectedCompany.companyTax1 = tax1State.toDoubleOrNull() ?: 0.0
+                            }
+                        }
+                        if (SettingsModel.showTax2) {
+                            //tax2 reg no
+                            UITextField(modifier = Modifier.padding(10.dp),
+                                defaultValue = tax2RegnoState,
+                                label = "Tax2 Reg. No",
+                                placeHolder = "Enter Tax2 Reg. No",
+                                focusRequester = tax2RegNoFocusRequester,
+                                onAction = { tax2FocusRequester.requestFocus() }) { tax2Regno ->
+                                tax2RegnoState = tax2Regno
+                                manageCompaniesState.selectedCompany.companyTax2Regno = tax2Regno
+                            }
+
+                            //tax2
+                            UITextField(modifier = Modifier.padding(10.dp),
+                                defaultValue = tax2State,
+                                label = "Tax2",
+                                keyboardType = KeyboardType.Decimal,
+                                placeHolder = "Enter Tax2",
+                                focusRequester = tax2FocusRequester,
+                                onAction = { emailFocusRequester.requestFocus() }) { tax2 ->
+                                tax2State = Utils.getDoubleValue(
+                                    tax2,
+                                    tax2State
+                                )
+                                manageCompaniesState.selectedCompany.companyTax2 = tax2State.toDoubleOrNull() ?: 0.0
+                            }
+                        }
+
+                        if (SettingsModel.showTax || SettingsModel.showTax1 || SettingsModel.showTax2) {
+                            UISwitch(
+                                modifier = Modifier.padding(10.dp),
+                                checked = upWithTaxState,
+                                text = "Unit price with tax",
+                            ) { unitPriceWithTax ->
+                                upWithTaxState = unitPriceWithTax
+                                manageCompaniesState.selectedCompany.companyUpWithTax = unitPriceWithTax
+                            }
+                        }
+
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -503,6 +500,8 @@ fun ManageCompaniesView(
                                         old
                                     )
                                 }
+                                val firstCurr = manageCompaniesState.currencies.firstOrNull()
+                                manageCompaniesState.selectedCompany.companyCurCodeTax = firstCurr?.currencyId
                                 viewModel.saveCompany(manageCompaniesState.selectedCompany)
                             }
 
@@ -555,7 +554,7 @@ fun ManageCompaniesView(
             countryState = ""
             taxRegnoState = ""
             taxState = ""
-            curCodeTaxState = ""
+            upWithTaxState = false
             emailState = ""
             webState = ""
             logoState = ""
