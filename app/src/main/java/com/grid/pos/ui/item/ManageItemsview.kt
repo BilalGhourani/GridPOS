@@ -114,9 +114,17 @@ fun ManageItemsView(
 
     var nameState by remember { mutableStateOf("") }
     var unitPriceState by remember { mutableStateOf("") }
-    var taxState by remember { mutableStateOf("") }
-    var tax1State by remember { mutableStateOf("") }
-    var tax2State by remember { mutableStateOf("") }
+    var taxState by remember { mutableStateOf(SettingsModel.currentCompany?.companyTax.toString()) }
+    var tax1State by remember {
+        mutableStateOf(
+            SettingsModel.currentCompany?.companyTax1.toString()
+        )
+    }
+    var tax2State by remember {
+        mutableStateOf(
+            SettingsModel.currentCompany?.companyTax2.toString()
+        )
+    }
     var barcodeState by remember { mutableStateOf("") }
     var openCostState by remember { mutableStateOf("") }
     var openQtyState by remember { mutableStateOf("") }
