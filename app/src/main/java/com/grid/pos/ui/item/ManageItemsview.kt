@@ -114,17 +114,9 @@ fun ManageItemsView(
 
     var nameState by remember { mutableStateOf("") }
     var unitPriceState by remember { mutableStateOf("") }
-    var taxState by remember { mutableStateOf(SettingsModel.currentCompany?.companyTax.toString()) }
-    var tax1State by remember {
-        mutableStateOf(
-            SettingsModel.currentCompany?.companyTax1.toString()
-        )
-    }
-    var tax2State by remember {
-        mutableStateOf(
-            SettingsModel.currentCompany?.companyTax2.toString()
-        )
-    }
+    var taxState by remember { mutableStateOf("") }
+    var tax1State by remember { mutableStateOf("") }
+    var tax2State by remember { mutableStateOf("") }
     var barcodeState by remember { mutableStateOf("") }
     var openCostState by remember { mutableStateOf("") }
     var openQtyState by remember { mutableStateOf("") }
@@ -232,7 +224,7 @@ fun ManageItemsView(
                         SearchableDropdownMenu(
                             items = manageItemsState.items.toMutableList(),
                             modifier = Modifier.padding(10.dp),
-                            label = "Select Item" ,
+                            label = "Select Item",
                             selectedId = manageItemsState.selectedItem.itemId
                         ) { item ->
                             item as Item
