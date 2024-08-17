@@ -55,8 +55,10 @@ object SettingsModel {
             return UserType.BOTH
         } else if (currentUser?.userPosMode == true) {
             return UserType.POS
+        }else if (currentUser?.userTableMode == true) {
+            return UserType.TABLE
         }
-        return UserType.TABLE
+        return UserType.BOTH
     }
 
     fun isConnectedToSqlServer(): Boolean {
