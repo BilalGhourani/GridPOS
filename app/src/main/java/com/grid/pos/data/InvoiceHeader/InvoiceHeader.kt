@@ -263,16 +263,6 @@ data class InvoiceHeader(
     }
 
     @Exclude
-    fun getCashName(pref: String = ""): String {
-        return if (invoiceHeadCashName.isNullOrEmpty()) "" else "$pref $invoiceHeadCashName"
-    }
-
-    @Exclude
-    fun getNetAmount(discamt: Double? = null): Double {
-        return (invoiceHeadTotal + invoiceHeadTotalTax) - (discamt ?: invoiceHeadDiscountAmount)
-    }
-
-    @Exclude
     fun getTotalNetAmount(): Double {
         if(invoiceHeadTotalNetAmount.isNaN()){
             return 0.0

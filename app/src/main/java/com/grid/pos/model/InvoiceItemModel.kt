@@ -31,7 +31,7 @@ data class InvoiceItemModel(
     }
 
     fun getFullName(): String {
-        val disc = getDiscount()
+        val disc = invoice.getDiscount()
         val discountVal = if (disc > 0.0) "-%${disc.toInt()}" else ""
         val taxableVal = if (getTotalTax() > 0.0) "*" else ""
         return if (invoice.invoiceExtraName.isNullOrEmpty()) {
@@ -41,47 +41,7 @@ data class InvoiceItemModel(
         }
     }
 
-    fun getQuantity(): Double {
-        return invoice.invoiceQuantity
-    }
-
-    fun getPrice(): Double {
-        return invoice.invoicePrice
-    }
-
-    fun getTotalTax(): Double {
-        return getTax() + getTax1() + getTax2()
-    }
-
-    fun getPriceWithTax(): Double {
-        return getAmount() + getTax() + getTax1() + getTax2()
-    }
-
-    fun getDiscount(): Double {
-        return invoice.getDiscount()
-    }
-
-    fun getDiscountAmount(): Double {
-        return invoice.getDiscountAmount()
-    }
-
-    fun getTax(): Double {
-        return invoice.getTax()
-    }
-
-    fun getTax1(): Double {
-        return invoice.getTax1()
-    }
-
-    fun getTax2(): Double {
-        return invoice.getTax2()
-    }
-
-    fun getAmount(): Double {
-        return invoice.getAmount()
-    }
-
-    fun getNetAmount(): Double {
-        return invoice.getNetAmount()
+    private fun getTotalTax(): Double {
+        return invoice.getTax() + invoice.getTax1() + invoice.getTax2()
     }
 }

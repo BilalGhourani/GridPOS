@@ -212,6 +212,14 @@ data class Invoice(
     }
 
     @Exclude
+    fun getPrice(): Double {
+        if (invoicePrice.isNaN()) {
+            return 0.0
+        }
+        return invoicePrice
+    }
+
+    @Exclude
     fun getDiscount(): Double {
         if (invoiceDiscount.isNaN()) {
             return 0.0
@@ -233,27 +241,41 @@ data class Invoice(
     }
 
     @Exclude
-    fun getTax(amount: Double = getAmount()): Double {
+    fun getTax(): Double {
         if (invoiceTax.isNaN()) {
             return 0.0
         }
-        return amount.times(invoiceTax.div(100.0))
+        return invoiceTax
     }
 
     @Exclude
-    fun getTax1(amount: Double = getAmount()): Double {
+    fun getTaxValue(amount: Double = getAmount()): Double {
+        return amount.times(getTax().div(100.0))
+    }
+
+    @Exclude
+    fun getTax1(): Double {
         if (invoiceTax1.isNaN()) {
             return 0.0
         }
-        return amount.times(invoiceTax1.div(100.0))
+        return invoiceTax1
+    }
+    @Exclude
+    fun getTax1Value(amount: Double = getAmount()): Double {
+        return amount.times(getTax1().div(100.0))
     }
 
     @Exclude
-    fun getTax2(amount: Double = getAmount()): Double {
+    fun getTax2(): Double {
         if (invoiceTax2.isNaN()) {
             return 0.0
         }
-        return amount.times(invoiceTax2.div(100.0))
+        return invoiceTax2
+    }
+
+    @Exclude
+    fun getTax2Value(amount: Double = getAmount()): Double {
+        return amount.times(getTax2().div(100.0))
     }
 
     @Exclude
@@ -272,15 +294,10 @@ data class Invoice(
         return invoiceRemQty
     }
 
-    @Exclude
-    fun getPriceWithTax(): Double {
-        val amount = getAmount()
-        return amount + getTax(amount) + getTax1(amount) + getTax2(amount)
-    }
 
     @Exclude
     fun getNetAmount(): Double {
         val amount = getAmount() - getDiscountAmount()
-        return amount + getTax(amount) + getTax1(amount) + getTax2(amount)
+        return amount + getTaxValue(amount) + getTax1Value(amount) + getTax2Value(amount)
     }
 }

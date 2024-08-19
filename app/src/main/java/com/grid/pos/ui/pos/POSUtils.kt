@@ -49,24 +49,33 @@ object POSUtils {
             invHeader: InvoiceHeader
     ): InvoiceHeader {
         val currency = SettingsModel.currentCurrency ?: Currency()
-        val tax = SettingsModel.currentCompany?.companyTax?:0.0
-        val tax1 = SettingsModel.currentCompany?.companyTax1?:0.0
-        val tax2 = SettingsModel.currentCompany?.companyTax2?:0.0
+        var totalTax = 0.0
+        var totalTax1 = 0.0
+        var totalTax2 = 0.0
+        var totalAmount = 0.0
+        var netTotal = 0.0
+        invoiceList.forEach {
+            val amount = it.invoice.getAmount()
+            val tax = it.invoice.getTaxValue(amount)
+            val tax1 = it.invoice.getTax1Value(amount)
+            val tax2 = it.invoice.getTax2Value(amount)
+            totalTax += tax
+            totalTax1 += tax1
+            totalTax2 += tax2
+            totalAmount += amount
+            netTotal += it.invoice.getNetAmount()
+        }
 
-        val total = invoiceList.sumOf {it.getNetAmount() }
-        val discamt = total.times(invHeader.invoiceHeadDiscount.div(100.0))
-        val netTotal = total - discamt
+        invHeader.invoiceHeadTaxAmt = totalTax
+        invHeader.invoiceHeadTax1Amt = totalTax1
+        invHeader.invoiceHeadTax2Amt = totalTax2
+        invHeader.invoiceHeadTotalTax = totalTax + totalTax1 + totalTax2
 
-        invHeader.invoiceHeadTotal = total
-        invHeader.invoiceHeadTotal1 = total.times(currency.currencyRate)
+        invHeader.invoiceHeadTotal = totalAmount
+        invHeader.invoiceHeadTotal1 = totalAmount.times(currency.currencyRate)
         invHeader.invoiceHeadTotalNetAmount = netTotal
-
-        invHeader.invoiceHeadTaxAmt = netTotal.times(tax.div(100.0))
-        invHeader.invoiceHeadTax1Amt = netTotal.times(tax1.div(100.0))
-        invHeader.invoiceHeadTax2Amt = netTotal.times(tax2.div(100.0))
-        invHeader.invoiceHeadTotalTax = invHeader.invoiceHeadTaxAmt  + invHeader.invoiceHeadTax1Amt  + invHeader.invoiceHeadTax2Amt
-
-        invHeader.invoiceHeadGrossAmount = netTotal + invHeader.invoiceHeadTotalTax
+        val discountAmount = netTotal.times(invHeader.invoiceHeadDiscount.div(100.0))
+        invHeader.invoiceHeadGrossAmount = netTotal - discountAmount
         invHeader.invoiceHeadRate = currency.currencyRate
         return invHeader
     }

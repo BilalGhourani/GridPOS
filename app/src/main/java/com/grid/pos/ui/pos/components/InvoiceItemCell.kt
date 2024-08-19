@@ -123,7 +123,7 @@ fun InvoiceItemCell(
             modifier = dividerModifier
         )
         Text(
-            text = if (isHeader) "Qty" else invoiceItemModel.getQuantity().toString(),
+            text = if (isHeader) "Qty" else invoiceItemModel.invoice.invoiceQuantity.toString(),
             modifier = qtyModifier,
             textAlign = TextAlign.Center,
             style = textStyle,
@@ -137,7 +137,7 @@ fun InvoiceItemCell(
             text = if (isHeader) "Price" else
                 String.format(
                     "%.${SettingsModel.currentCurrency?.currencyName1Dec ?: 2}f",
-                    invoiceItemModel.getPrice()
+                    invoiceItemModel.invoice.getPrice()
                 ),
             modifier = textModifier,
             textAlign = TextAlign.Center,
@@ -151,7 +151,7 @@ fun InvoiceItemCell(
         Text(
             text = if (isHeader) "Amount" else String.format(
                 "%.${SettingsModel.currentCurrency?.currencyName1Dec ?: 2}f",
-                invoiceItemModel.getNetAmount()
+                invoiceItemModel.invoice.getNetAmount()
             ),
             modifier = textModifier,
             textAlign = TextAlign.Center,
