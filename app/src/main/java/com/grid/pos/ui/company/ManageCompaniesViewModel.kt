@@ -89,7 +89,7 @@ class ManageCompaniesViewModel @Inject constructor(
     }
 
     fun saveCompany(company: Company) {
-        if (company.companyName.isNullOrEmpty() || ((SettingsModel.showTax || SettingsModel.showTax1 || SettingsModel.showTax2) && company.companyCurCodeTax.isNullOrEmpty())) {
+        if (company.companyName.isNullOrEmpty()) {
             viewModelScope.launch(Dispatchers.Main) {
                 manageCompaniesState.value = manageCompaniesState.value.copy(
                     warning = Event("Please fill company name and Currency."),
