@@ -73,9 +73,47 @@ fun BackupView(
     var action by remember { mutableStateOf("") }
     var popupMessage by remember { mutableStateOf(Event("")) }
     var isPopupShown by remember { mutableStateOf(false) }
+    var isRestoreWarningPopup by remember { mutableStateOf(false) }
     var shouldKill by remember { mutableStateOf(true) }
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+
+    fun restoreDbNow() {
+        activityViewModel.launchFilePicker(object : OnGalleryResult {
+            override fun onGalleryResult(uris: List<Uri>) {
+                if (uris.isNotEmpty()) {
+                    isLoading = true
+                    CoroutineScope(Dispatchers.IO).launch {
+                        FileUtils.restore(
+                            context,
+                            uris[0]
+                        )
+                        withContext(Dispatchers.Main) {
+                            isLoading = false
+                            popupMessage = Event("To complete the backup restoration process, the application needs to be restarted. Please close and reopen the app.")
+                            delay(250L)
+                            shouldKill = true
+                            isPopupShown = true
+                            isRestoreWarningPopup = false
+                        }
+                    }
+                } else {
+                    CoroutineScope(Dispatchers.Main).launch {
+                        isLoading = false
+                        popupMessage = Event("Failed to restore your data.")
+                        delay(250L)
+                        shouldKill = false
+                        isPopupShown = true
+                        isRestoreWarningPopup = false
+                    }
+                }
+            }
+        },
+            onPermissionDenied = {
+                warning = Event("Permission Denied")
+                action = "Settings"
+            })
+    }
 
     LaunchedEffect(warning) {
         if (warning.value.isNotEmpty()) {
@@ -151,6 +189,7 @@ fun BackupView(
                             delay(250L)
                             shouldKill = false
                             isPopupShown = true
+                            isRestoreWarningPopup = false
                         }
                     }
                 }
@@ -163,38 +202,10 @@ fun BackupView(
                     buttonColor = SettingsModel.buttonColor,
                     textColor = SettingsModel.buttonTextColor
                 ) {
-                    activityViewModel.launchFilePicker(object : OnGalleryResult {
-                        override fun onGalleryResult(uris: List<Uri>) {
-                            if (uris.isNotEmpty()) {
-                                isLoading = true
-                                CoroutineScope(Dispatchers.IO).launch {
-                                    FileUtils.restore(
-                                        context,
-                                        uris[0]
-                                    )
-                                    withContext(Dispatchers.Main) {
-                                        isLoading = false
-                                        popupMessage = Event("To complete the backup restoration process, the application needs to be restarted. Please close and reopen the app.")
-                                        delay(250L)
-                                        shouldKill = true
-                                        isPopupShown = true
-                                    }
-                                }
-                            } else {
-                                CoroutineScope(Dispatchers.Main).launch {
-                                    isLoading = false
-                                    popupMessage = Event("Failed to restore your data.")
-                                    delay(250L)
-                                    shouldKill = false
-                                    isPopupShown = true
-                                }
-                            }
-                        }
-                    },
-                        onPermissionDenied = {
-                            warning = Event("Permission Denied")
-                            action = "Settings"
-                        })
+                    popupMessage = Event("Are you sure you want to restore, this will overwrite completely your current db and cannot be restored, continue?")
+                    shouldKill = false
+                    isPopupShown = true
+                    isRestoreWarningPopup = true
 
                 }
             }
@@ -214,16 +225,18 @@ fun BackupView(
                 },
                 onConfirmation = {
                     isPopupShown = false
-                    if (shouldKill) {
+                    if (isRestoreWarningPopup) {
+                        restoreDbNow()
+                    } else if (shouldKill) {
                         App.getInstance().killTheApp()
                     }
                 },
                 dialogTitle = "Alert.",
                 dialogText = popupMessage.value,
                 icon = Icons.Default.Info,
-                positiveBtnText = if (shouldKill) "close" else "ok",
-                negativeBtnText = null,
-                height= if (shouldKill) 250.dp else 200.dp
+                positiveBtnText = if (isRestoreWarningPopup) "Restore" else if (shouldKill) "Close" else "Ok",
+                negativeBtnText = if (isRestoreWarningPopup) "Cancel" else null,
+                height = if (shouldKill) 250.dp else 200.dp
             )
         }
         LoadingIndicator(
