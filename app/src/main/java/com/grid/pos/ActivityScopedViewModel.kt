@@ -279,12 +279,14 @@ class ActivityScopedViewModel @Inject constructor(
     }
 
     fun launchBarcodeScanner(
+            justOnce: Boolean,
             delegate: OnBarcodeResult,
             onPermissionDenied: () -> Unit
     ) {
         viewModelScope.launch {
             _mainActivityEvent.send(
                 ActivityScopedUIEvent.LaunchBarcodeScanner(
+                    justOnce,
                     delegate,
                     onPermissionDenied
                 )

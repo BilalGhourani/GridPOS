@@ -111,11 +111,10 @@ class MainActivity : ComponentActivity() {
     ) { result ->
         if (result.resultCode == RESULT_OK) {
             if (result.data?.extras?.containsKey("SCANNING_BARCODE") == true) {
-                val result = result.data?.extras!!.getString(
-                    "SCAN_RESULT",
-                    ""
-                )
-                mOnBarcodeResult?.OnBarcodeResult(result)
+                val barcodes = result.data?.extras?.getStringArrayList(
+                    "SCAN_RESULTS"
+                )?: listOf()
+                mOnBarcodeResult?.OnBarcodeResult(barcodes)
             } else {
                 val data = result.data?.data
                 data?.let { mGalleryCallBack?.onGalleryResult(listOf(it)) }
@@ -269,14 +268,20 @@ class MainActivity : ComponentActivity() {
                     ) {
                         permissionDelegate = { granted ->
                             if (granted) {
-                                launchCameraActivity(sharedEvent.delegate)
+                                launchCameraActivity(
+                                    sharedEvent.justOnce,
+                                    sharedEvent.delegate
+                                )
                             } else {
                                 sharedEvent.onPermissionDenied.invoke()
                             }
                         }
                         requestStoragePermission.launch(permission)
                     } else {
-                        launchCameraActivity(sharedEvent.delegate)
+                        launchCameraActivity(
+                            sharedEvent.justOnce,
+                            sharedEvent.delegate
+                        )
                     }
 
                 }
@@ -288,13 +293,13 @@ class MainActivity : ComponentActivity() {
         }.launchIn(CoroutineScope(Dispatchers.Main))
     }
 
-    private fun changeOrientationType(orientationType: String){
-        val orientation = when(orientationType){
-            ORIENTATION_TYPE.PORTRAIT.key->{
+    private fun changeOrientationType(orientationType: String) {
+        val orientation = when (orientationType) {
+            ORIENTATION_TYPE.PORTRAIT.key -> {
                 ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
             }
 
-            ORIENTATION_TYPE.LANDSCAPE.key->{
+            ORIENTATION_TYPE.LANDSCAPE.key -> {
                 ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
             }
 
@@ -338,12 +343,16 @@ class MainActivity : ComponentActivity() {
         mGalleryCallBack = delegate
     }
 
-    private fun launchCameraActivity(delegate: OnBarcodeResult) {
+    private fun launchCameraActivity(
+            justOnce: Boolean,
+            delegate: OnBarcodeResult
+    ) {
         mOnBarcodeResult = delegate
         val intent = Intent(
             this,
             BarcodeScannerActivity::class.java
         )
+        intent.putExtra("justOnce",justOnce)
         startForResult.launch(intent)
     }
 }

@@ -360,12 +360,12 @@ fun ManageItemsView(
                             onAction = { openCostFocusRequester.requestFocus() },
                             trailingIcon = {
                                 IconButton(onClick = {
-                                    activityScopedViewModel.launchBarcodeScanner(object :
+                                    activityScopedViewModel.launchBarcodeScanner(true,object :
                                         OnBarcodeResult {
-                                        override fun OnBarcodeResult(value: String) {
-                                            if (value.isNotEmpty()) {
-                                                barcodeState = value
-                                                manageItemsState.selectedItem.itemBarcode = value
+                                        override fun OnBarcodeResult(barcodesList: List<String>) {
+                                            if (barcodesList.isNotEmpty()) {
+                                                barcodeState = barcodesList[0]
+                                                manageItemsState.selectedItem.itemBarcode = barcodeState
                                             }
                                         }
                                     },

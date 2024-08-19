@@ -24,5 +24,5 @@ interface OnBarcodeResult {
     // ------------------------------------------------------------------------
     // HOOKS INTO ACTIVITY
     // ------------------------------------------------------------------------
-    fun OnBarcodeResult(value: String)
+    fun OnBarcodeResult(barcodesList: List<String>)
 }

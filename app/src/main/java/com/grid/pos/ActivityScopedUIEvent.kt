@@ -24,6 +24,7 @@ sealed class ActivityScopedUIEvent {
     ) : ActivityScopedUIEvent()
 
     class LaunchBarcodeScanner(
+            var justOnce : Boolean,
             var delegate: OnBarcodeResult,
             var onPermissionDenied: () -> Unit
     ) : ActivityScopedUIEvent()

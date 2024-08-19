@@ -372,29 +372,37 @@ fun POSView(
                         ) {
                             IconButton(modifier = Modifier.size(25.dp),
                                 onClick = {
-                                    activityViewModel.launchBarcodeScanner(object :
-                                        OnBarcodeResult {
-                                        override fun OnBarcodeResult(value: String) {
-                                            if (value.isNotEmpty()) {
-                                                val item = posState.items.firstOrNull {
-                                                    value.equals(
-                                                        it.itemBarcode,
-                                                        ignoreCase = true
-                                                    )
-                                                }
-                                                item?.let { itm ->
-                                                    val invoiceItemModel = InvoiceItemModel()
-                                                    invoiceItemModel.setItem(itm)
-                                                    invoicesState.add(invoiceItemModel)
-                                                    activityViewModel.invoiceItemModels = invoicesState
-                                                    invoiceHeaderState.value = POSUtils.refreshValues(
-                                                        activityViewModel.invoiceItemModels,
-                                                        invoiceHeaderState.value
-                                                    )
+                                    activityViewModel.launchBarcodeScanner(false,
+                                        object : OnBarcodeResult {
+                                            override fun OnBarcodeResult(barcodesList: List<String>) {
+                                                if (barcodesList.isNotEmpty()) {
+                                                    val map: Map<String, Int> = barcodesList.groupingBy { barcode-> barcode }
+                                                        .eachCount()
+                                                    val barcodes = barcodesList.joinToString(",")
+                                                    val items = posState.items.filter { item ->
+                                                        item.itemBarcode?.let { barcode ->
+                                                            barcodes.contains(
+                                                                barcode,
+                                                                ignoreCase = true
+                                                            )
+                                                        } ?: false
+                                                    }
+                                                    items.forEach { itm ->
+                                                        val count = itm.itemBarcode?.let { map[it] } ?: 1
+                                                        for (i in 0 until count) {
+                                                            val invoiceItemModel = InvoiceItemModel()
+                                                            invoiceItemModel.setItem(itm)
+                                                            invoicesState.add(invoiceItemModel)
+                                                            activityViewModel.invoiceItemModels = invoicesState
+                                                            invoiceHeaderState.value = POSUtils.refreshValues(
+                                                                activityViewModel.invoiceItemModels,
+                                                                invoiceHeaderState.value
+                                                            )
+                                                        }
+                                                    }
                                                 }
                                             }
-                                        }
-                                    },
+                                        },
                                         onPermissionDenied = {
                                             viewModel.showWarning(
                                                 "Permission Denied",
