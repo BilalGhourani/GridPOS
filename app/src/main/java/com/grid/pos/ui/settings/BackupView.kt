@@ -236,7 +236,7 @@ fun BackupView(
                 icon = Icons.Default.Info,
                 positiveBtnText = if (isRestoreWarningPopup) "Restore" else if (shouldKill) "Close" else "Ok",
                 negativeBtnText = if (isRestoreWarningPopup) "Cancel" else null,
-                height = if (shouldKill) 250.dp else 200.dp
+                height = if(isRestoreWarningPopup) 300.dp else if (shouldKill) 250.dp else 200.dp
             )
         }
         LoadingIndicator(
