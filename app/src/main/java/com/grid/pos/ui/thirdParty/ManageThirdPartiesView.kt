@@ -83,7 +83,7 @@ fun ManageThirdPartiesView(
     var phone1State by remember { mutableStateOf("") }
     var phone2State by remember { mutableStateOf("") }
     var addressState by remember { mutableStateOf("") }
-    // var isDefaultState by remember { mutableStateOf(false) }
+    var isDefaultState by remember { mutableStateOf(false) }
 
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -176,7 +176,7 @@ fun ManageThirdPartiesView(
                             phone1State = thirdParty.thirdPartyPhone1 ?: ""
                             phone2State = thirdParty.thirdPartyPhone2 ?: ""
                             addressState = thirdParty.thirdPartyAddress ?: ""
-                            //isDefaultState = thirdParty.thirdPartyDefault
+                            isDefaultState = thirdParty.thirdPartyDefault
                         }
 
                         //name
@@ -239,14 +239,15 @@ fun ManageThirdPartiesView(
                             manageThirdPartiesState.selectedThirdParty.thirdPartyAddress = address
                         }
 
-                        /*  UISwitch(
-                              modifier = Modifier.padding(10.dp),
-                              checked = isDefaultState,
-                              text = "POS Default",
-                          ) { isDefault ->
-                              isDefaultState = isDefault
-                              manageThirdPartiesState.selectedThirdParty.thirdPartyDefault = isDefaultState
-                          }*/
+                        UISwitch(
+                            modifier = Modifier.padding(10.dp),
+                            checked = isDefaultState,
+                            enabled = manageThirdPartiesState.enableIsDefault,
+                            text = "POS Default",
+                        ) { isDefault ->
+                            isDefaultState = isDefault
+                            manageThirdPartiesState.selectedThirdParty.thirdPartyDefault = isDefaultState
+                        }
 
                         Row(
                             modifier = Modifier
@@ -297,6 +298,7 @@ fun ManageThirdPartiesView(
             phone1State = ""
             phone2State = ""
             addressState = ""
+            isDefaultState = false
             manageThirdPartiesState.clear = false
         }
     }

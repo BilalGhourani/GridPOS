@@ -144,7 +144,7 @@ fun InvoiceFooterView(
                     ),
                     label = "Items",
                     leadingIcon = {
-                        if(SettingsModel.connectionType!=CONNECTION_TYPE.SQL_SERVER.key) {
+                        if (SettingsModel.connectionType != CONNECTION_TYPE.SQL_SERVER.key) {
                             Icon(
                                 Icons.Default.AddCircleOutline,
                                 contentDescription = "add Item",
@@ -209,7 +209,7 @@ fun InvoiceFooterView(
                 }
 
                 val defaultThirdParty = if (invoiceHeader.invoiceHeadThirdPartyName.isNullOrEmpty()) {
-                    thirdParties.firstOrNull()// { it.thirdPartyDefault }
+                    thirdParties.firstOrNull { it.thirdPartyDefault }
                 } else {
                     thirdParties.firstOrNull {
                         it.thirdPartyId.equals(
@@ -232,7 +232,7 @@ fun InvoiceFooterView(
                     ),
                     label = "Customers",
                     leadingIcon = {
-                        if(SettingsModel.connectionType!=CONNECTION_TYPE.SQL_SERVER.key) {
+                        if (SettingsModel.connectionType != CONNECTION_TYPE.SQL_SERVER.key) {
                             Icon(
                                 Icons.Default.PersonAdd,
                                 contentDescription = "Add Customer",

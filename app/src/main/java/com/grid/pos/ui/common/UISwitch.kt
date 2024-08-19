@@ -18,6 +18,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -28,14 +29,15 @@ import com.grid.pos.model.SettingsModel
 
 @Composable
 fun UISwitch(
-    modifier: Modifier = Modifier,
-    text: String = "Checked",
-    textColor: Color = SettingsModel.textColor,
-    checked: Boolean = false,
-    onCheckedChange: ((Boolean) -> Unit)?
+        modifier: Modifier = Modifier,
+        text: String = "Checked",
+        textColor: Color = SettingsModel.textColor,
+        enabled: Boolean = true,
+        checked: Boolean = false,
+        onCheckedChange: ((Boolean) -> Unit)?
 ) {
     Row(
-        modifier = modifier,
+        modifier = modifier.alpha(if (enabled) 1f else .5f),
         horizontalArrangement = Arrangement.spacedBy(5.dp)
     ) {
         Text(
@@ -52,13 +54,13 @@ fun UISwitch(
             color = textColor
         )
 
-        Switch(
-            modifier = Modifier
-                .wrapContentWidth()
-                .height(60.dp)
-                .wrapContentHeight(align = Alignment.CenterVertically),
+        Switch(modifier = Modifier
+            .wrapContentWidth()
+            .height(60.dp)
+            .wrapContentHeight(align = Alignment.CenterVertically),
             checked = checked,
             onCheckedChange = onCheckedChange,
+            enabled = enabled,
             thumbContent = if (checked) {
                 {
                     Icon(
@@ -69,7 +71,6 @@ fun UISwitch(
                 }
             } else {
                 null
-            }
-        )
+            })
     }
 }

@@ -38,9 +38,11 @@ class ManageThirdPartiesViewModel @Inject constructor(
 
     private suspend fun fetchThirdParties() {
         val listOfThirdParties = thirdPartyRepository.getAllThirdParties()
+        val isDefaultEnabled = listOfThirdParties.none { it.thirdPartyDefault }
         viewModelScope.launch(Dispatchers.Main) {
             manageThirdPartiesState.value = manageThirdPartiesState.value.copy(
-                thirdParties = listOfThirdParties
+                thirdParties = listOfThirdParties,
+                enableIsDefault = isDefaultEnabled
             )
         }
     }
@@ -57,33 +59,37 @@ class ManageThirdPartiesViewModel @Inject constructor(
             isLoading = true
         )
         val isInserting = thirdParty.isNew()
-            CoroutineScope(Dispatchers.IO).launch {
-                if (isInserting) {
-                    thirdParty.prepareForInsert()
-                    val addedModel = thirdPartyRepository.insert(thirdParty)
-                    val thirdParties = manageThirdPartiesState.value.thirdParties
-                    thirdParties.add(addedModel)
-                    viewModelScope.launch(Dispatchers.Main) {
-                        manageThirdPartiesState.value = manageThirdPartiesState.value.copy(
-                            thirdParties = thirdParties,
-                            selectedThirdParty = addedModel,
-                            isLoading = false,
-                            warning = Event("Third Party saved successfully."),
-                            clear = true
-                        )
-                    }
-                } else {
-                    thirdPartyRepository.update(thirdParty)
-                    viewModelScope.launch(Dispatchers.Main) {
-                        manageThirdPartiesState.value = manageThirdPartiesState.value.copy(
-                            selectedThirdParty = thirdParty,
-                            isLoading = false,
-                            warning = Event("Third Party saved successfully."),
-                            clear = true
-                        )
-                    }
+        CoroutineScope(Dispatchers.IO).launch {
+            if (isInserting) {
+                thirdParty.prepareForInsert()
+                val addedModel = thirdPartyRepository.insert(thirdParty)
+                val thirdParties = manageThirdPartiesState.value.thirdParties
+                thirdParties.add(addedModel)
+                val isDefaultEnabled = thirdParties.none { it.thirdPartyDefault }
+                viewModelScope.launch(Dispatchers.Main) {
+                    manageThirdPartiesState.value = manageThirdPartiesState.value.copy(
+                        thirdParties = thirdParties,
+                        enableIsDefault = isDefaultEnabled,
+                        selectedThirdParty = addedModel,
+                        isLoading = false,
+                        warning = Event("Third Party saved successfully."),
+                        clear = true
+                    )
+                }
+            } else {
+                thirdPartyRepository.update(thirdParty)
+                val isDefaultEnabled = manageThirdPartiesState.value.thirdParties.none { it.thirdPartyDefault }
+                viewModelScope.launch(Dispatchers.Main) {
+                    manageThirdPartiesState.value = manageThirdPartiesState.value.copy(
+                        selectedThirdParty = thirdParty,
+                        enableIsDefault = isDefaultEnabled,
+                        isLoading = false,
+                        warning = Event("Third Party saved successfully."),
+                        clear = true
+                    )
                 }
             }
+        }
     }
 
     fun deleteSelectedThirdParty() {
@@ -104,10 +110,12 @@ class ManageThirdPartiesViewModel @Inject constructor(
             thirdPartyRepository.delete(thirdParty)
             val thirdParties = manageThirdPartiesState.value.thirdParties
             thirdParties.remove(thirdParty)
+            val isDefaultEnabled = thirdParties.none { it.thirdPartyDefault }
             viewModelScope.launch(Dispatchers.Main) {
                 manageThirdPartiesState.value = manageThirdPartiesState.value.copy(
                     thirdParties = thirdParties,
                     selectedThirdParty = ThirdParty(),
+                    enableIsDefault = isDefaultEnabled,
                     isLoading = false,
                     warning = Event("successfully deleted."),
                     clear = true
