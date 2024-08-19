@@ -16,7 +16,6 @@ object DateHelper {
             format,
             Locale.getDefault()
         )
-        parserFormat.timeZone = TimeZone.getTimeZone("UTC")
         return parserFormat.format(date)
     }
 
@@ -50,6 +49,10 @@ object DateHelper {
         calendar.set(
             Calendar.SECOND,
             seconds
+        )
+        calendar.set(
+            Calendar.MILLISECOND,
+            0
         )
         return calendar.time
     }

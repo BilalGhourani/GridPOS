@@ -6,11 +6,14 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -20,6 +23,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.DatePickerDialog
@@ -34,10 +39,13 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TimePicker
+import androidx.compose.material3.TimePickerState
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -46,8 +54,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -61,6 +69,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -76,29 +85,42 @@ import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.ui.theme.LightBlue
 import com.grid.pos.ui.theme.LightGreen
 import com.grid.pos.utils.DateHelper
-import com.grid.pos.utils.Utils
 import kotlinx.coroutines.launch
 import java.util.Calendar
 import java.util.Date
+import java.util.TimeZone
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReportsView(
-    modifier: Modifier = Modifier,
-    navController: NavController? = null,
-    activityViewModel: ActivityScopedViewModel,
-    viewModel: ReportsViewModel = hiltViewModel()
+        modifier: Modifier = Modifier,
+        navController: NavController? = null,
+        activityViewModel: ActivityScopedViewModel,
+        viewModel: ReportsViewModel = hiltViewModel()
 ) {
     val reportsState: ReportsState by viewModel.reportsState.collectAsState(
         ReportsState()
     )
 
     val context = LocalContext.current
+    val currentTime = Calendar.getInstance()
+    currentTime.timeZone = TimeZone.getDefault()
+    val initialDate = currentTime.time
+    val dateFormat = "yyyy-MM-dd hh:mm"
 
-    fun getDateFromState(time: Long): Date {
-        return Calendar.getInstance().apply {
+    fun getDateFromState(
+            time: Long,
+            timePickerState: TimePickerState
+    ): Date {
+        val date = currentTime.apply {
             timeInMillis = time
         }.time
+        return DateHelper.editDate(
+            date,
+            timePickerState.hour,
+            timePickerState.minute,
+            0
+        )
     }
 
     fun shareExcelSheet(action: String) {
@@ -125,31 +147,44 @@ fun ReportsView(
         }
     }
 
-    val initialDate = Date()
-
-    val toDateFocusRequester = remember { FocusRequester() }
-
     var datePickerPopupState by remember { mutableStateOf(DatePickerPopupState.FROM) }
     val fromDatePickerState = rememberDatePickerState(initialSelectedDateMillis = initialDate.time)
+    val fromTimePickerState = rememberTimePickerState(
+        initialHour = currentTime.get(Calendar.HOUR_OF_DAY),
+        initialMinute = currentTime.get(Calendar.MINUTE),
+        is24Hour = false,
+    )
     val toDatePickerState = rememberDatePickerState(initialSelectedDateMillis = initialDate.time)
+    val toTimePickerState = rememberTimePickerState(
+        initialHour = currentTime.get(Calendar.HOUR_OF_DAY),
+        initialMinute = currentTime.get(Calendar.MINUTE),
+        is24Hour = false,
+    )
     var fromDateState by remember {
         mutableStateOf(
             DateHelper.getDateInFormat(
-                getDateFromState(fromDatePickerState.selectedDateMillis!!),
-                "yyyy-MM-dd"
+                getDateFromState(
+                    fromDatePickerState.selectedDateMillis!!,
+                    fromTimePickerState
+                ),
+                dateFormat
             )
         )
     }
     var toDateState by remember {
         mutableStateOf(
             DateHelper.getDateInFormat(
-                getDateFromState(toDatePickerState.selectedDateMillis!!),
-                "yyyy-MM-dd"
+                getDateFromState(
+                    toDatePickerState.selectedDateMillis!!,
+                    toTimePickerState
+                ),
+                dateFormat
             )
         )
     }
 
     var showDatePicker by remember { mutableStateOf(false) }
+    var showTimePicker by remember { mutableStateOf(false) }
     var isPopupVisible by remember { mutableStateOf(false) }
     var isBottomSheetVisible by remember { mutableStateOf(false) }
     val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -239,11 +274,8 @@ fun ReportsView(
                     keyboardType = KeyboardType.Text,
                     placeHolder = DateHelper.getDateInFormat(
                         initialDate,
-                        "yyyy-MM-dd"
+                        dateFormat
                     ),
-                    onAction = {
-                        toDateFocusRequester.requestFocus()
-                    },
                     trailingIcon = {
                         IconButton(onClick = {
                             datePickerPopupState = DatePickerPopupState.FROM
@@ -265,10 +297,7 @@ fun ReportsView(
                     maxLines = 1,
                     readOnly = true,
                     keyboardType = KeyboardType.Text,
-                    placeHolder = "yyyy-MM-dd",
-                    onAction = {
-                        toDateFocusRequester.requestFocus()
-                    },
+                    placeHolder = dateFormat,
                     trailingIcon = {
                         IconButton(onClick = {
                             datePickerPopupState = DatePickerPopupState.TO
@@ -291,16 +320,17 @@ fun ReportsView(
                         .padding(10.dp),
                     text = "Generate"
                 ) {
-                    val from = getDateFromState(fromDatePickerState.selectedDateMillis!!)
-                    val to = getDateFromState(toDatePickerState.selectedDateMillis!!)
+                    val from = getDateFromState(
+                        fromDatePickerState.selectedDateMillis!!,
+                        fromTimePickerState
+                    )
+                    val to = getDateFromState(
+                        toDatePickerState.selectedDateMillis!!,
+                        toTimePickerState
+                    )
                     viewModel.fetchInvoices(
-                        DateHelper.editDate(
-                            from,
-                            0,
-                            0,
-                            0
-                        ),
-                        DateHelper.editDate(to)
+                        from,
+                        to
                     )
                 }
             }
@@ -308,17 +338,18 @@ fun ReportsView(
 
         // date picker component
         if (showDatePicker) {
-            DatePickerDialog(
-                colors = DatePickerDefaults.colors(
-                    containerColor = SettingsModel.backgroundColor
-                ),
+            DatePickerDialog(colors = DatePickerDefaults.colors(
+                containerColor = SettingsModel.backgroundColor
+            ),
                 onDismissRequest = { showDatePicker = false },
                 confirmButton = {
                     TextButton(
                         onClick = {
                             if (datePickerPopupState == DatePickerPopupState.FROM) {
-                                val fromDate =
-                                    getDateFromState(fromDatePickerState.selectedDateMillis!!)
+                                val fromDate = getDateFromState(
+                                    fromDatePickerState.selectedDateMillis!!,
+                                    fromTimePickerState
+                                )
                                 if (fromDate.after(Date())) {
                                     viewModel.showError("From date should be today or before, please select again")
                                     showDatePicker = true
@@ -326,19 +357,22 @@ fun ReportsView(
                                 }
                                 fromDateState = DateHelper.getDateInFormat(
                                     fromDate,
-                                    "yyyy-MM-dd"
+                                    dateFormat
                                 )
                             } else {
-                                val toDate =
-                                    getDateFromState(toDatePickerState.selectedDateMillis!!)
+                                val toDate = getDateFromState(
+                                    toDatePickerState.selectedDateMillis!!,
+                                    toTimePickerState
+                                )
                                 toDateState = DateHelper.getDateInFormat(
                                     toDate,
-                                    "yyyy-MM-dd"
+                                    dateFormat
                                 )
                             }
                             showDatePicker = false
+                            showTimePicker = true
                         },
-                        modifier = Modifier.padding(8.dp),
+                        modifier = Modifier.padding(horizontal = 8.dp),
                     ) {
                         Text(
                             "Submit",
@@ -356,7 +390,7 @@ fun ReportsView(
                         onClick = {
                             showDatePicker = false
                         },
-                        modifier = Modifier.padding(8.dp),
+                        modifier = Modifier.padding(horizontal = 8.dp),
                     ) {
                         Text(
                             "Cancel",
@@ -381,7 +415,7 @@ fun ReportsView(
                         titleContentColor = SettingsModel.textColor,
                         headlineContentColor = SettingsModel.textColor,
                         subheadContentColor = SettingsModel.textColor,
-                       // dayInSelectionRangeContentColor = SettingsModel.textColor,
+                        // dayInSelectionRangeContentColor = SettingsModel.textColor,
                         selectedDayContainerColor = LightBlue,
                         selectedDayContentColor = Color.White,
                         selectedYearContainerColor = LightBlue,
@@ -390,6 +424,86 @@ fun ReportsView(
                         todayDateBorderColor = LightBlue
                     )
                 )
+            }
+        }
+        if (showTimePicker) {
+            Dialog(onDismissRequest = { showTimePicker = false }) {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .fillMaxHeight(.6f),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = SettingsModel.backgroundColor,
+                    )
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = 16.dp),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        TimePicker(
+                            state = if (datePickerPopupState == DatePickerPopupState.FROM) fromTimePickerState else toTimePickerState,
+                        )
+                        Row {
+                            TextButton(
+                                onClick = {
+                                    showTimePicker = false
+                                },
+                                modifier = Modifier.padding(8.dp),
+                            ) {
+                                Text(
+                                    "Cancel",
+                                    color = SettingsModel.textColor,
+                                    style = TextStyle(
+                                        textDecoration = TextDecoration.None,
+                                        fontWeight = FontWeight.Normal,
+                                        fontSize = 16.sp
+                                    )
+                                )
+                            }
+
+                            TextButton(
+                                onClick = {
+                                    if (datePickerPopupState == DatePickerPopupState.FROM) {
+                                        val fromDate = getDateFromState(
+                                            fromDatePickerState.selectedDateMillis!!,
+                                            fromTimePickerState
+                                        )
+                                        fromDateState = DateHelper.getDateInFormat(
+                                            fromDate,
+                                            dateFormat
+                                        )
+                                    } else {
+                                        val toDate = getDateFromState(
+                                            toDatePickerState.selectedDateMillis!!,
+                                            toTimePickerState
+                                        )
+                                        toDateState = DateHelper.getDateInFormat(
+                                            toDate,
+                                            dateFormat
+                                        )
+                                    }
+                                    showTimePicker = false
+                                },
+                                modifier = Modifier.padding(8.dp),
+                            ) {
+                                Text(
+                                    "Submit",
+                                    color = SettingsModel.textColor,
+                                    style = TextStyle(
+                                        textDecoration = TextDecoration.None,
+                                        fontWeight = FontWeight.Normal,
+                                        fontSize = 16.sp
+                                    )
+                                )
+                            }
+                        }
+
+                    }
+                }
             }
         }
 
@@ -404,7 +518,12 @@ fun ReportsView(
                 shape = RoundedCornerShape(15.dp),
                 dragHandle = null,
                 scrimColor = Color.Black.copy(alpha = .5f),
-                windowInsets = WindowInsets(0, 0, 0, 0)
+                windowInsets = WindowInsets(
+                    0,
+                    0,
+                    0,
+                    0
+                )
             ) {
                 Column(
                     modifier = Modifier
@@ -427,7 +546,7 @@ fun ReportsView(
                                     color = LightGreen
                                 )
                             ) {
-                                append(viewModel.reportFile?.name?:"Sales_Report.xlsx")
+                                append(viewModel.reportFile?.name ?: "Sales_Report.xlsx")
                             }
 
                             withStyle(style = SpanStyle(color = SettingsModel.textColor)) {
