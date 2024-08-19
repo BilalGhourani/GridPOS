@@ -199,10 +199,7 @@ fun POSView(
     ) {
         if (posState.isSaved) {
             isPayBottomSheetVisible = false
-            if (activityViewModel.isFromTable) {
-                clear()
-                navController?.navigateUp()
-            } else if (activityViewModel.shouldPrintInvoice) {
+            if (activityViewModel.shouldPrintInvoice) {
                 activityViewModel.invoiceItemModels = invoicesState
                 activityViewModel.invoiceHeader = invoiceHeaderState.value
                 navController?.navigate("UIWebView")
