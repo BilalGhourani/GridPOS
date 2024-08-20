@@ -50,6 +50,7 @@ import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.common.InputImage
 import com.grid.pos.R
+import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.UIAlertDialog
 import com.grid.pos.ui.theme.GridPOSTheme
@@ -142,11 +143,13 @@ class BarcodeScannerActivity : ComponentActivity() {
                                 isPopupShown = false
                                 stopScanning = false
                             },
-                            dialogTitle = "Alert.",
-                            dialogText = "Do you want to scan more?",
-                            icon = Icons.Default.Info,
-                            positiveBtnText = "Scan",
-                            negativeBtnText = "Exit",
+                            PopupModel().apply {
+                                dialogTitle = "Alert."
+                                dialogText = "Do you want to scan more?"
+                                icon = Icons.Default.Info
+                                positiveBtnText = "Scan"
+                                negativeBtnText = "Exit"
+                            }
                         )
                     }
                 }
@@ -190,8 +193,8 @@ class BarcodeScannerActivity : ComponentActivity() {
 
     @Composable
     fun CameraPreviewView(
-            cameraExecutor: java.util.concurrent.ExecutorService,
-            onResult: (String) -> Unit
+        cameraExecutor: java.util.concurrent.ExecutorService,
+        onResult: (String) -> Unit
     ) {
         val context = LocalContext.current
         val cameraProviderFuture = remember { ProcessCameraProvider.getInstance(context) }
@@ -248,9 +251,9 @@ class BarcodeScannerActivity : ComponentActivity() {
 
     @OptIn(ExperimentalGetImage::class)
     private fun processImageProxy(
-            barcodeScanner: com.google.mlkit.vision.barcode.BarcodeScanner,
-            imageProxy: ImageProxy,
-            onResult: (String) -> Unit
+        barcodeScanner: com.google.mlkit.vision.barcode.BarcodeScanner,
+        imageProxy: ImageProxy,
+        onResult: (String) -> Unit
     ) {
         val mediaImage = imageProxy.image
         if (mediaImage != null) {

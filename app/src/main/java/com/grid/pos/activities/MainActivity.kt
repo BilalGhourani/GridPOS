@@ -17,15 +17,16 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
@@ -37,8 +38,10 @@ import com.grid.pos.interfaces.OnActivityResult
 import com.grid.pos.interfaces.OnBarcodeResult
 import com.grid.pos.interfaces.OnGalleryResult
 import com.grid.pos.model.ORIENTATION_TYPE
+import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.LoadingIndicator
+import com.grid.pos.ui.common.UIAlertDialog
 import com.grid.pos.ui.navigation.AuthNavGraph
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.ui.theme.White
@@ -85,7 +88,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    var permissionDelegate: ((Boolean) -> Unit)? = null
+    private var permissionDelegate: ((Boolean) -> Unit)? = null
 
     private val requestStoragePermission = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -103,7 +106,7 @@ class MainActivity : ComponentActivity() {
         mActivityResultCallBack = null
     }
 
-    val pickSingleMedia = registerForActivityResult(
+    private val pickSingleMedia = registerForActivityResult(
         ActivityResultContracts.PickVisualMedia()
     ) { uri ->
         // Callback is invoked after the user selects a media item or closes the
@@ -111,7 +114,7 @@ class MainActivity : ComponentActivity() {
         uri?.let { mGalleryCallBack?.onGalleryResult(listOf(it)) }
     }
 
-    val startForResult = registerForActivityResult(
+    private val startForResult = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
         if (result.resultCode == RESULT_OK) {
@@ -127,6 +130,8 @@ class MainActivity : ComponentActivity() {
         }
     }
     private val loadingState = mutableStateOf(false)
+    private val popupState = mutableStateOf(false)
+    private var popupModel: PopupModel? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -147,6 +152,27 @@ class MainActivity : ComponentActivity() {
                         activityViewModel = activityViewModel,
                         startDestination = "LoginView" /*if (SettingsModel.currentUserId.isNullOrEmpty()) "LoginView" else "HomeView"*/
                     )
+                    AnimatedVisibility(
+                        visible = popupState.value,
+                        enter = fadeIn(
+                            initialAlpha = 0.4f
+                        ),
+                        exit = fadeOut(
+                            animationSpec = tween(durationMillis = 250)
+                        )
+                    ) {
+                        UIAlertDialog(
+                            onConfirmation = {
+                                popupState.value = false
+                                popupModel?.onConfirmation?.invoke()
+                            },
+                            onDismissRequest = {
+                                popupState.value = false
+                                popupModel?.onDismissRequest?.invoke()
+                            },
+                            popupModel = popupModel ?: PopupModel()
+                        )
+                    }
                     LoadingIndicator(
                         show = loadingState.value
                     )
@@ -171,7 +197,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    fun launchGalleryPicker(
+    private fun launchGalleryPicker(
         mediaType: ActivityResultContracts.PickVisualMedia.VisualMediaType = ActivityResultContracts.PickVisualMedia.ImageOnly,
         galleryResult: OnGalleryResult
     ) {
@@ -201,7 +227,7 @@ class MainActivity : ComponentActivity() {
         connectivityManager?.unregisterNetworkCallback(networkHandler)
     }
 
-    fun openAppStorageSettings() {
+    private fun openAppStorageSettings() {
         val intent = Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
             data = Uri.parse("package:${packageName}")
         }
@@ -217,6 +243,13 @@ class MainActivity : ComponentActivity() {
 
                 is ActivityScopedUIEvent.ShowLoading -> {
                     loadingState.value = sharedEvent.show
+                }
+
+                is ActivityScopedUIEvent.ShowPopup -> {
+                    if (popupState.value != sharedEvent.show) {
+                        popupModel = sharedEvent.popupModel
+                        popupState.value = sharedEvent.show
+                    }
                 }
 
                 is ActivityScopedUIEvent.OpenAppSettings -> {

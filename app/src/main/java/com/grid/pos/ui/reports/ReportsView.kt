@@ -2,10 +2,6 @@ package com.grid.pos.ui.reports
 
 import android.content.Intent
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -76,8 +72,8 @@ import androidx.navigation.NavController
 import com.grid.pos.ActivityScopedViewModel
 import com.grid.pos.BuildConfig
 import com.grid.pos.R
+import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
-import com.grid.pos.ui.common.UIAlertDialog
 import com.grid.pos.ui.common.UIButton
 import com.grid.pos.ui.common.UITextField
 import com.grid.pos.ui.theme.GridPOSTheme
@@ -92,10 +88,10 @@ import java.util.TimeZone
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReportsView(
-        modifier: Modifier = Modifier,
-        navController: NavController? = null,
-        activityViewModel: ActivityScopedViewModel,
-        viewModel: ReportsViewModel = hiltViewModel()
+    modifier: Modifier = Modifier,
+    navController: NavController? = null,
+    activityViewModel: ActivityScopedViewModel,
+    viewModel: ReportsViewModel = hiltViewModel()
 ) {
     val reportsState: ReportsState by viewModel.reportsState.collectAsState(
         ReportsState()
@@ -108,8 +104,8 @@ fun ReportsView(
     val dateFormat = "yyyy-MM-dd hh:mm"
 
     fun getDateFromState(
-            time: Long,
-            timePickerState: TimePickerState
+        time: Long,
+        timePickerState: TimePickerState
     ): Date {
         val date = currentTime.apply {
             timeInMillis = time
@@ -222,6 +218,26 @@ fun ReportsView(
             navController?.navigateUp()
         }
     }
+
+    LaunchedEffect(isPopupVisible) {
+        activityViewModel.showPopup(isPopupVisible, if (!isPopupVisible) null else PopupModel().apply {
+            onDismissRequest = {
+                isPopupVisible = false
+            }
+            onConfirmation = {
+                reportsState.isLoading = false
+                isPopupVisible = false
+                handleBack()
+            }
+            dialogTitle = "Alert."
+            dialogText = "Are you sure you want to cancel the reports?"
+            positiveBtnText = "Cancel"
+            negativeBtnText = "Close"
+            icon = Icons.Default.Info
+            height = 230.dp
+        })
+    }
+
     BackHandler {
         handleBack()
     }
@@ -609,33 +625,6 @@ fun ReportsView(
                 }
             }
 
-        }
-
-        AnimatedVisibility(
-            visible = isPopupVisible,
-            enter = fadeIn(
-                initialAlpha = 0.4f
-            ),
-            exit = fadeOut(
-                animationSpec = tween(durationMillis = 250)
-            )
-        ) {
-            UIAlertDialog(
-                onDismissRequest = {
-                    isPopupVisible = false
-                },
-                onConfirmation = {
-                    reportsState.isLoading = false
-                    isPopupVisible = false
-                    handleBack()
-                },
-                dialogTitle = "Alert.",
-                dialogText = "Are you sure you want to cancel the reports?",
-                positiveBtnText = "Cancel",
-                negativeBtnText = "Close",
-                icon = Icons.Default.Info,
-                height = 230.dp
-            )
         }
 
         if (reportsState.clear) {

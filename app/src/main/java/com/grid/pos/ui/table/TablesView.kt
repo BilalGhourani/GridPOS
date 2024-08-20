@@ -1,10 +1,6 @@
 package com.grid.pos.ui.table
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -28,6 +24,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -46,9 +43,9 @@ import androidx.navigation.NavController
 import com.grid.pos.ActivityScopedViewModel
 import com.grid.pos.R
 import com.grid.pos.data.InvoiceHeader.InvoiceHeader
+import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.model.UserType
-import com.grid.pos.ui.common.UIAlertDialog
 import com.grid.pos.ui.common.UIButton
 import com.grid.pos.ui.common.UITextField
 import com.grid.pos.ui.theme.GridPOSTheme
@@ -58,10 +55,10 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TablesView(
-        modifier: Modifier = Modifier,
-        navController: NavController? = null,
-        activityScopedViewModel: ActivityScopedViewModel,
-        viewModel: TablesViewModel = hiltViewModel()
+    modifier: Modifier = Modifier,
+    navController: NavController? = null,
+    activityScopedViewModel: ActivityScopedViewModel,
+    viewModel: TablesViewModel = hiltViewModel()
 ) {
     val tablesState: TablesState by viewModel.tablesState.collectAsState(
         TablesState()
@@ -74,7 +71,7 @@ fun TablesView(
 
     var tableNameState by remember { mutableStateOf("") }
     var clientsCountState by remember { mutableStateOf("") }
-    var stepState by remember { mutableStateOf(1) }
+    var stepState by remember { mutableIntStateOf(1) }
 
     var isPopupVisible by remember { mutableStateOf(false) }
 
@@ -120,6 +117,28 @@ fun TablesView(
 
     LaunchedEffect(tablesState.isLoading) {
         activityScopedViewModel.showLoading(tablesState.isLoading)
+    }
+
+    LaunchedEffect(isPopupVisible) {
+        activityScopedViewModel.showPopup(
+            isPopupVisible,
+            if (!isPopupVisible) null else PopupModel().apply {
+                onDismissRequest = {
+                    isPopupVisible = false
+                }
+                onConfirmation = {
+                    isPopupVisible = false
+
+                    activityScopedViewModel.logout()
+                    navController?.clearBackStack("LoginView")
+                    navController?.navigate("LoginView")
+                }
+                dialogTitle = "Alert."
+                dialogText = "Are you sure you want to logout?"
+                positiveBtnText = "Logout"
+                negativeBtnText = "Cancel"
+                icon = Icons.Default.Info
+            })
     }
 
     LaunchedEffect(tablesState.step) {
@@ -186,8 +205,8 @@ fun TablesView(
                 if (stepState <= 1) {
                     UITextField(modifier = Modifier.padding(10.dp),
                         defaultValue = tableNameState,
-                        onFocusChanged = {
-                            if (it.hasFocus) {
+                        onFocusChanged = {focusState->
+                            if (focusState.hasFocus) {
                                 keyboardController?.show()
                             }
                         },
@@ -217,8 +236,8 @@ fun TablesView(
                 } else {
                     UITextField(modifier = Modifier.padding(10.dp),
                         defaultValue = clientsCountState,
-                        onFocusChanged = {
-                            if (it.hasFocus) {
+                        onFocusChanged = {focusState->
+                            if (focusState.hasFocus) {
                                 keyboardController?.show()
                             }
                         },
@@ -256,34 +275,6 @@ fun TablesView(
 
                 }
             }
-        }
-
-        AnimatedVisibility(
-            visible = isPopupVisible,
-            enter = fadeIn(
-                initialAlpha = 0.4f
-            ),
-            exit = fadeOut(
-                animationSpec = tween(durationMillis = 250)
-            )
-        ) {
-            UIAlertDialog(
-                onDismissRequest = {
-                    isPopupVisible = false
-                },
-                onConfirmation = {
-                    isPopupVisible = false
-
-                    activityScopedViewModel.logout()
-                    navController?.clearBackStack("LoginView")
-                    navController?.navigate("LoginView")
-                },
-                dialogTitle = "Alert.",
-                dialogText = "Are you sure you want to logout?",
-                positiveBtnText = "Logout",
-                negativeBtnText = "Cancel",
-                icon = Icons.Default.Info
-            )
         }
 
 

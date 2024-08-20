@@ -2,10 +2,6 @@ package com.grid.pos.ui.settings
 
 import android.net.Uri
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -46,8 +42,8 @@ import com.grid.pos.App
 import com.grid.pos.R
 import com.grid.pos.interfaces.OnGalleryResult
 import com.grid.pos.model.Event
+import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
-import com.grid.pos.ui.common.UIAlertDialog
 import com.grid.pos.ui.common.UIButton
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.utils.FileUtils
@@ -60,9 +56,9 @@ import kotlinx.coroutines.withContext
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BackupView(
-        modifier: Modifier = Modifier,
-        navController: NavController? = null,
-        activityViewModel: ActivityScopedViewModel,
+    modifier: Modifier = Modifier,
+    navController: NavController? = null,
+    activityViewModel: ActivityScopedViewModel,
 ) {
     val context = LocalContext.current
     var isLoading by remember { mutableStateOf(false) }
@@ -87,7 +83,8 @@ fun BackupView(
                         )
                         withContext(Dispatchers.Main) {
                             isLoading = false
-                            popupMessage = Event("To complete the backup restoration process, the application needs to be restarted. Please close and reopen the app.")
+                            popupMessage =
+                                Event("To complete the backup restoration process, the application needs to be restarted. Please close and reopen the app.")
                             delay(250L)
                             shouldKill = true
                             isPopupShown = true
@@ -131,6 +128,29 @@ fun BackupView(
     }
     LaunchedEffect(isLoading) {
         activityViewModel.showLoading(isLoading)
+    }
+
+    LaunchedEffect(isPopupShown) {
+        activityViewModel.showPopup(isPopupShown, if (!isPopupShown) null else PopupModel().apply {
+            onDismissRequest = {
+                isPopupShown = false
+            }
+            onConfirmation = {
+                isPopupShown = false
+                if (isRestoreWarningPopup) {
+                    restoreDbNow()
+                } else if (shouldKill) {
+                    App.getInstance().killTheApp()
+                }
+            }
+            dialogTitle = "Alert."
+            dialogText = popupMessage.value
+            icon = Icons.Default.Info
+            positiveBtnText =
+                if (isRestoreWarningPopup) "Restore" else if (shouldKill) "Close" else "Ok"
+            negativeBtnText = if (isRestoreWarningPopup) "Cancel" else null
+            height = if (shouldKill || isRestoreWarningPopup) 250.dp else 200.dp
+        })
     }
     BackHandler {
         navController?.navigateUp()
@@ -202,42 +222,14 @@ fun BackupView(
                     buttonColor = SettingsModel.buttonColor,
                     textColor = SettingsModel.buttonTextColor
                 ) {
-                    popupMessage = Event("Are you sure you want to restore, this will overwrite completely your current db and cannot be restored, continue?")
+                    popupMessage =
+                        Event("Are you sure you want to restore, this will overwrite completely your current db and cannot be restored, continue?")
                     shouldKill = false
                     isPopupShown = true
                     isRestoreWarningPopup = true
 
                 }
             }
-        }
-        AnimatedVisibility(
-            visible = isPopupShown,
-            enter = fadeIn(
-                initialAlpha = 0.4f
-            ),
-            exit = fadeOut(
-                animationSpec = tween(durationMillis = 250)
-            )
-        ) {
-            UIAlertDialog(
-                onDismissRequest = {
-                    isPopupShown = false
-                },
-                onConfirmation = {
-                    isPopupShown = false
-                    if (isRestoreWarningPopup) {
-                        restoreDbNow()
-                    } else if (shouldKill) {
-                        App.getInstance().killTheApp()
-                    }
-                },
-                dialogTitle = "Alert.",
-                dialogText = popupMessage.value,
-                icon = Icons.Default.Info,
-                positiveBtnText = if (isRestoreWarningPopup) "Restore" else if (shouldKill) "Close" else "Ok",
-                negativeBtnText = if (isRestoreWarningPopup) "Cancel" else null,
-                height = if (shouldKill || isRestoreWarningPopup) 250.dp else 200.dp
-            )
         }
     }
 }

@@ -1,10 +1,6 @@
 package com.grid.pos.ui.home
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -41,8 +37,8 @@ import com.grid.pos.ActivityScopedViewModel
 import com.grid.pos.ActivityState
 import com.grid.pos.R
 import com.grid.pos.model.Event
+import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
-import com.grid.pos.ui.common.UIAlertDialog
 import com.grid.pos.ui.common.UIButton
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.utils.Utils
@@ -56,7 +52,7 @@ fun HomeView(
     navController: NavController? = null,
     activityViewModel: ActivityScopedViewModel,
 ) {
-    val activityState: ActivityState by activityViewModel!!.activityState.collectAsState(
+    val activityState: ActivityState by activityViewModel.activityState.collectAsState(
         ActivityState()
     )
     var isLogoutPopupShown by remember { mutableStateOf(false) }
@@ -72,6 +68,31 @@ fun HomeView(
                 isLogoutPopupShown = true
             }
         }
+    }
+    fun logout() {
+        isLogoutPopupShown = false
+        activityViewModel.logout()
+        navController?.clearBackStack("LoginView")
+        navController?.navigate("LoginView")
+    }
+    LaunchedEffect(isLogoutPopupShown) {
+        activityViewModel.showPopup(
+            isLogoutPopupShown,
+            if (!isLogoutPopupShown) null else PopupModel().apply {
+                onDismissRequest = {
+                    isLogoutPopupShown = false
+                    activityState.warning = null
+                    if (activityState.forceLogout) logout()
+                }
+                onConfirmation = {
+                    isLogoutPopupShown = false
+                    activityState.warning = null
+                    logout()
+                }
+                dialogTitle = "Alert."
+                dialogText = activityState.warning?.value ?: SettingsModel.companyAccessWarning
+                icon = Icons.Default.Info
+            })
     }
     BackHandler {
         if (!isLogoutPopupShown) {
@@ -116,7 +137,7 @@ fun HomeView(
                     .wrapContentHeight(),
                 columns = GridCells.Fixed(2)
             ) {
-                Utils.getHomeList().forEachIndexed { index, item ->
+                Utils.getHomeList().forEach { item ->
                     item {
                         UIButton(
                             modifier = Modifier
@@ -134,37 +155,6 @@ fun HomeView(
                     }
                 }
             }
-        }
-        fun logout() {
-            isLogoutPopupShown = false
-            activityViewModel.logout()
-            navController?.clearBackStack("LoginView")
-            navController?.navigate("LoginView")
-        }
-        AnimatedVisibility(
-            visible = isLogoutPopupShown,
-            enter = fadeIn(
-                initialAlpha = 0.4f
-            ),
-            exit = fadeOut(
-                animationSpec = tween(durationMillis = 250)
-            )
-        ) {
-            UIAlertDialog(
-                onDismissRequest = {
-                    isLogoutPopupShown = false
-                    activityState.warning = null
-                    if (activityState.forceLogout) logout()
-                },
-                onConfirmation = {
-                    isLogoutPopupShown = false
-                    activityState.warning = null
-                    logout()
-                },
-                dialogTitle = "Alert.",
-                dialogText = activityState.warning?.value ?: SettingsModel.companyAccessWarning,
-                icon = Icons.Default.Info
-            )
         }
     }
 }

@@ -4,10 +4,12 @@ import android.content.Intent
 import androidx.activity.result.contract.ActivityResultContracts
 import com.grid.pos.interfaces.OnBarcodeResult
 import com.grid.pos.interfaces.OnGalleryResult
+import com.grid.pos.model.PopupModel
 
 sealed class ActivityScopedUIEvent {
     data object Finish : ActivityScopedUIEvent()
     class ShowLoading(var show:Boolean) : ActivityScopedUIEvent()
+    class ShowPopup(var show:Boolean,var popupModel: PopupModel?) : ActivityScopedUIEvent()
     data object OpenAppSettings : ActivityScopedUIEvent()
     class LaunchGalleryPicker(
         var mediaType: ActivityResultContracts.PickVisualMedia.VisualMediaType,

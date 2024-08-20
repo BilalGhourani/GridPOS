@@ -73,9 +73,9 @@ import com.grid.pos.data.InvoiceHeader.InvoiceHeader
 import com.grid.pos.data.PosReceipt.PosReceipt
 import com.grid.pos.interfaces.OnBarcodeResult
 import com.grid.pos.model.InvoiceItemModel
+import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.model.UserType
-import com.grid.pos.ui.common.UIAlertDialog
 import com.grid.pos.ui.pos.components.AddInvoiceItemView
 import com.grid.pos.ui.pos.components.EditInvoiceItemView
 import com.grid.pos.ui.pos.components.InvoiceBodyDetails
@@ -90,10 +90,10 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun POSView(
-        modifier: Modifier = Modifier,
-        navController: NavController? = null,
-        activityViewModel: ActivityScopedViewModel,
-        viewModel: POSViewModel = hiltViewModel()
+    modifier: Modifier = Modifier,
+    navController: NavController? = null,
+    activityViewModel: ActivityScopedViewModel,
+    viewModel: POSViewModel = hiltViewModel()
 ) {
     val posState: POSState by viewModel.posState.collectAsState(POSState())
     val invoicesState = remember { mutableStateListOf<InvoiceItemModel>() }
@@ -241,6 +241,66 @@ fun POSView(
             }
         }
     }
+    LaunchedEffect(isSavePopupVisible) {
+        activityViewModel.showPopup(
+            isSavePopupVisible,
+            if (!isSavePopupVisible) null else PopupModel().apply {
+                onDismissRequest = {
+                    isSavePopupVisible = false
+                }
+                onConfirmation = {
+                    isSavePopupVisible = false
+                    if (popupState != PopupState.DELETE_INVOICE) {
+                        invoicesState.clear()
+                        invoiceHeaderState.value = InvoiceHeader()
+                        activityViewModel.posReceipt = PosReceipt()
+                        activityViewModel.invoiceHeader = invoiceHeaderState.value
+                        activityViewModel.invoiceItemModels.clear()
+                        activityViewModel.shouldLoadInvoice = false
+                    }
+                    when (popupState) {
+                        PopupState.BACK_PRESSED -> {
+                            activityViewModel.logout()
+                            navController?.clearBackStack("LoginView")
+                            navController?.navigate("LoginView")
+                        }
+
+                        PopupState.DISCARD_INVOICE -> {
+                            if (SettingsModel.getUserType() != UserType.POS) {
+                                handleBack()
+                            }
+                        }
+
+                        PopupState.CHANGE_INVOICE -> {
+                            activityViewModel.pendingInvHeadState?.let {
+                                selectInvoice(it)
+                            }
+                        }
+
+                        PopupState.DELETE_INVOICE -> {
+                            viewModel.deleteInvoiceHeader(
+                                invoiceHeaderState.value,
+                                activityViewModel.posReceipt,
+                                invoicesState.toMutableList()
+                            )
+                        }
+                    }
+                }
+                dialogTitle = "Alert."
+                dialogText = when (popupState) {
+                    PopupState.BACK_PRESSED -> "Are you sure you want to logout?"
+                    PopupState.DELETE_INVOICE -> "Are you sure you want to Delete this invoice?"
+                    else -> "Are you sure you want to discard current invoice?"
+                }
+                positiveBtnText = when (popupState) {
+                    PopupState.BACK_PRESSED -> "Logout"
+                    PopupState.DELETE_INVOICE -> "Delete"
+                    else -> "Discard"
+                }
+                negativeBtnText = "Cancel"
+                icon = Icons.Default.Info
+            })
+    }
     BackHandler {
         handleBack()
     }
@@ -310,7 +370,9 @@ fun POSView(
                     modifier = Modifier.fillMaxSize()
                 ) {
                     Column(
-                        modifier = (if (isLandscape && SettingsModel.showItemsInPOS) Modifier.fillMaxWidth(.6f)
+                        modifier = (if (isLandscape && SettingsModel.showItemsInPOS) Modifier.fillMaxWidth(
+                            .6f
+                        )
                         else Modifier.fillMaxWidth())
                             .verticalScroll(
                                 rememberScrollState()
@@ -373,8 +435,9 @@ fun POSView(
                                         object : OnBarcodeResult {
                                             override fun OnBarcodeResult(barcodesList: List<String>) {
                                                 if (barcodesList.isNotEmpty()) {
-                                                    val map: Map<String, Int> = barcodesList.groupingBy { barcode-> barcode }
-                                                        .eachCount()
+                                                    val map: Map<String, Int> =
+                                                        barcodesList.groupingBy { barcode -> barcode }
+                                                            .eachCount()
                                                     val barcodes = barcodesList.joinToString(",")
                                                     val items = posState.items.filter { item ->
                                                         item.itemBarcode?.let { barcode ->
@@ -385,16 +448,20 @@ fun POSView(
                                                         } ?: false
                                                     }
                                                     items.forEach { itm ->
-                                                        val count = itm.itemBarcode?.let { map[it] } ?: 1
+                                                        val count =
+                                                            itm.itemBarcode?.let { map[it] } ?: 1
                                                         for (i in 0 until count) {
-                                                            val invoiceItemModel = InvoiceItemModel()
+                                                            val invoiceItemModel =
+                                                                InvoiceItemModel()
                                                             invoiceItemModel.setItem(itm)
                                                             invoicesState.add(invoiceItemModel)
-                                                            activityViewModel.invoiceItemModels = invoicesState
-                                                            invoiceHeaderState.value = POSUtils.refreshValues(
-                                                                activityViewModel.invoiceItemModels,
-                                                                invoiceHeaderState.value
-                                                            )
+                                                            activityViewModel.invoiceItemModels =
+                                                                invoicesState
+                                                            invoiceHeaderState.value =
+                                                                POSUtils.refreshValues(
+                                                                    activityViewModel.invoiceItemModels,
+                                                                    invoiceHeaderState.value
+                                                                )
                                                         }
                                                     }
                                                 }
@@ -474,7 +541,8 @@ fun POSView(
                             },
                             onThirdPartySelected = { thirdParty ->
                                 posState.selectedThirdParty = thirdParty
-                                invoiceHeaderState.value.invoiceHeadThirdPartyName = thirdParty.thirdPartyId
+                                invoiceHeaderState.value.invoiceHeadThirdPartyName =
+                                    thirdParty.thirdPartyId
                             },
                             onInvoiceSelected = { invoiceHeader ->
                                 if (invoicesState.isNotEmpty()) {
@@ -633,76 +701,11 @@ fun POSView(
                 )
             }
         }
-
-        AnimatedVisibility(
-            visible = isSavePopupVisible,
-            enter = fadeIn(
-                initialAlpha = 0.4f
-            ),
-            exit = fadeOut(
-                animationSpec = tween(durationMillis = 250)
-            )
-        ) {
-            UIAlertDialog(
-                onDismissRequest = {
-                    isSavePopupVisible = false
-                },
-                onConfirmation = {
-                    isSavePopupVisible = false
-                    if (popupState != PopupState.DELETE_INVOICE) {
-                        invoicesState.clear()
-                        invoiceHeaderState.value = InvoiceHeader()
-                        activityViewModel.posReceipt = PosReceipt()
-                        activityViewModel.invoiceHeader = invoiceHeaderState.value
-                        activityViewModel.invoiceItemModels.clear()
-                        activityViewModel.shouldLoadInvoice = false
-                    }
-                    when (popupState) {
-                        PopupState.BACK_PRESSED -> {
-                            activityViewModel.logout()
-                            navController?.clearBackStack("LoginView")
-                            navController?.navigate("LoginView")
-                        }
-
-                        PopupState.DISCARD_INVOICE -> {
-                            if (SettingsModel.getUserType() != UserType.POS) {
-                                handleBack()
-                            }
-                        }
-
-                        PopupState.CHANGE_INVOICE -> {
-                            activityViewModel.pendingInvHeadState?.let {
-                                selectInvoice(it)
-                            }
-                        }
-
-                        PopupState.DELETE_INVOICE -> {
-                            viewModel.deleteInvoiceHeader(
-                                invoiceHeaderState.value,
-                                activityViewModel.posReceipt,
-                                invoicesState.toMutableList()
-                            )
-                        }
-                    }
-                },
-                dialogTitle = "Alert.",
-                dialogText = when (popupState) {
-                    PopupState.BACK_PRESSED -> "Are you sure you want to logout?"
-                    PopupState.DELETE_INVOICE -> "Are you sure you want to Delete this invoice?"
-                    else -> "Are you sure you want to discard current invoice?"
-                },
-                positiveBtnText = when (popupState) {
-                    PopupState.BACK_PRESSED -> "Logout"
-                    PopupState.DELETE_INVOICE -> "Delete"
-                    else -> "Discard"
-                },
-                negativeBtnText = "Cancel",
-                icon = Icons.Default.Info
-            )
-        }
     }
 }
 
 enum class PopupState(val key: String) {
-    BACK_PRESSED("BACK_PRESSEF"), DISCARD_INVOICE("DISCARD_INVOICE"), CHANGE_INVOICE("CHANGE_INVOICE"), DELETE_INVOICE("DELETE_INVOICE")
+    BACK_PRESSED("BACK_PRESSEF"), DISCARD_INVOICE("DISCARD_INVOICE"), CHANGE_INVOICE("CHANGE_INVOICE"), DELETE_INVOICE(
+        "DELETE_INVOICE"
+    )
 }

@@ -26,6 +26,7 @@ import com.grid.pos.interfaces.OnBarcodeResult
 import com.grid.pos.interfaces.OnGalleryResult
 import com.grid.pos.model.Event
 import com.grid.pos.model.InvoiceItemModel
+import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.DataStoreManager
 import com.grid.pos.utils.PrinterUtils
@@ -40,13 +41,13 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ActivityScopedViewModel @Inject constructor(
-        private val settingsRepository: SettingsRepository,
-        private val currencyRepository: CurrencyRepository,
-        private val companyRepository: CompanyRepository,
-        private val thirdPartyRepository: ThirdPartyRepository,
-        private val familyRepository: FamilyRepository,
-        private val itemRepository: ItemRepository,
-        private val posPrinterRepository: PosPrinterRepository,
+    private val settingsRepository: SettingsRepository,
+    private val currencyRepository: CurrencyRepository,
+    private val companyRepository: CompanyRepository,
+    private val thirdPartyRepository: ThirdPartyRepository,
+    private val familyRepository: FamilyRepository,
+    private val itemRepository: ItemRepository,
+    private val posPrinterRepository: PosPrinterRepository,
 ) : ViewModel() {
     private val _mainActivityEvent = Channel<ActivityScopedUIEvent>()
     val mainActivityEvent = _mainActivityEvent.receiveAsFlow()
@@ -234,9 +235,15 @@ class ActivityScopedViewModel @Inject constructor(
         }
     }
 
-    fun showLoading(show:Boolean) {
+    fun showLoading(show: Boolean) {
         viewModelScope.launch {
             _mainActivityEvent.send(ActivityScopedUIEvent.ShowLoading(show))
+        }
+    }
+
+    fun showPopup(show: Boolean, popupModel: PopupModel?) {
+        viewModelScope.launch {
+            _mainActivityEvent.send(ActivityScopedUIEvent.ShowPopup(show, popupModel))
         }
     }
 
@@ -247,9 +254,9 @@ class ActivityScopedViewModel @Inject constructor(
     }
 
     fun launchGalleryPicker(
-            mediaType: ActivityResultContracts.PickVisualMedia.VisualMediaType,
-            delegate: OnGalleryResult,
-            onPermissionDenied: () -> Unit
+        mediaType: ActivityResultContracts.PickVisualMedia.VisualMediaType,
+        delegate: OnGalleryResult,
+        onPermissionDenied: () -> Unit
     ) {
         viewModelScope.launch {
             _mainActivityEvent.send(
@@ -263,8 +270,8 @@ class ActivityScopedViewModel @Inject constructor(
     }
 
     fun launchFilePicker(
-            delegate: OnGalleryResult,
-            onPermissionDenied: () -> Unit
+        delegate: OnGalleryResult,
+        onPermissionDenied: () -> Unit
     ) {
         viewModelScope.launch {
             _mainActivityEvent.send(
@@ -277,7 +284,7 @@ class ActivityScopedViewModel @Inject constructor(
     }
 
     fun startChooserActivity(
-            intent: Intent
+        intent: Intent
     ) {
         viewModelScope.launch {
             _mainActivityEvent.send(ActivityScopedUIEvent.StartChooserActivity(intent))
@@ -285,9 +292,9 @@ class ActivityScopedViewModel @Inject constructor(
     }
 
     fun launchBarcodeScanner(
-            justOnce: Boolean,
-            delegate: OnBarcodeResult,
-            onPermissionDenied: () -> Unit
+        justOnce: Boolean,
+        delegate: OnBarcodeResult,
+        onPermissionDenied: () -> Unit
     ) {
         viewModelScope.launch {
             _mainActivityEvent.send(
