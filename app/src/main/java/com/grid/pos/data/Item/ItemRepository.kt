@@ -15,4 +15,8 @@ interface ItemRepository {
     // Get all Items logs as stream.
     suspend fun getAllItems(): MutableList<Item>
 
+    suspend fun getOneItemByPrinter(printerID: String): Item?
+
+    suspend fun getOneItemByFamily(familyId: String): Item?
+
 }

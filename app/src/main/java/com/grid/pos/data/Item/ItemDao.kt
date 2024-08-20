@@ -38,4 +38,12 @@ interface ItemDao {
     @Query("SELECT * FROM `st_item` WHERE it_cmp_id =:companyID")
     fun getAllItems(companyID: String): MutableList<Item>
 
+    // Get One Item By Printer as stream.
+    @Query("SELECT * FROM `st_item` WHERE it_fa_id =:familyId LIMIT 1")
+    fun getOneItemByFamily(familyId: String): Item?
+
+    // Get One Item By Printer as stream.
+    @Query("SELECT * FROM `st_item` WHERE it_printer =:printerID LIMIT 1")
+    fun getOneItemByPrinter(printerID: String): Item?
+
 }

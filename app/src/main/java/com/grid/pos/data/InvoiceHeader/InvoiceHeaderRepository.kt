@@ -24,4 +24,7 @@ interface InvoiceHeaderRepository {
             to: Date
     ): MutableList<InvoiceHeader>
 
+    suspend fun getOneInvoiceByUserID(userId: String): InvoiceHeader?
+
+    suspend fun getOneInvoiceByClientID(clientId: String): InvoiceHeader?
 }

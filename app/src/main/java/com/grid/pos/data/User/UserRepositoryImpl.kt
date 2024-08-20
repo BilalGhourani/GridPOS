@@ -2,6 +2,7 @@ package com.grid.pos.data.User
 
 import com.google.firebase.firestore.FirebaseFirestore
 import com.grid.pos.data.Company.Company
+import com.grid.pos.data.Family.Family
 import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.LoginResponse
@@ -13,10 +14,10 @@ import kotlinx.coroutines.tasks.await
 import java.util.Date
 
 class UserRepositoryImpl(
-        private val userDao: UserDao
+    private val userDao: UserDao
 ) : UserRepository {
     override suspend fun insert(
-            user: User
+        user: User
     ): User {
         if (SettingsModel.isConnectedToFireStore()) {
             val docRef = FirebaseFirestore.getInstance().collection("set_users").add(user).await()
@@ -28,7 +29,7 @@ class UserRepositoryImpl(
     }
 
     override suspend fun delete(
-            user: User
+        user: User
     ) {
         if (SettingsModel.isConnectedToFireStore()) {
             user.userDocumentId?.let {
@@ -41,7 +42,7 @@ class UserRepositoryImpl(
     }
 
     override suspend fun update(
-            user: User
+        user: User
     ) {
         if (SettingsModel.isConnectedToFireStore()) {
             user.userDocumentId?.let {
@@ -55,8 +56,8 @@ class UserRepositoryImpl(
     }
 
     override suspend fun getUserByCredentials(
-            username: String,
-            password: String
+        username: String,
+        password: String
     ): LoginResponse {
         val encryptedPassword = password.encryptCBC()
         when (SettingsModel.connectionType) {
@@ -145,7 +146,8 @@ class UserRepositoryImpl(
 
             else -> {
                 if (SettingsModel.isSqlServerWebDb) {
-                    val where = "usr_username = '$username' AND usr_password=hashBytes ('SHA2_512', CONVERT(nvarchar(4000),'$password'+cast(usr_salt as nvarchar(36)))) AND usr_expiry > getdate() AND usr_cmp_id='${SettingsModel.getCompanyID()}'"
+                    val where =
+                        "usr_username = '$username' AND usr_password=hashBytes ('SHA2_512', CONVERT(nvarchar(4000),'$password'+cast(usr_salt as nvarchar(36)))) AND usr_expiry > getdate() AND usr_cmp_id='${SettingsModel.getCompanyID()}'"
                     val dbResult = SQLServerWrapper.getListOf(
                         "set_users",
                         "",
@@ -172,7 +174,8 @@ class UserRepositoryImpl(
                     }
                     return LoginResponse(allUsersSize = 1)
                 } else {
-                    val where = "emp_username = '$username' AND emp_password=HashBytes('SHA', '$password') and (emp_inactive IS NULL or emp_inactive = 0)"
+                    val where =
+                        "emp_username = '$username' AND emp_password=HashBytes('SHA', '$password') and (emp_inactive IS NULL or emp_inactive = 0)"
                     val dbResult = SQLServerWrapper.getListOf(
                         "pay_employees",
                         "",
@@ -186,7 +189,8 @@ class UserRepositoryImpl(
                             userName = obj.optString("emp_name")
                             userUsername = obj.optString("emp_username")
                             userPassword = obj.optString("emp_password")
-                            userCompanyId = SettingsModel.getCompanyID()//obj.optString("usr_cmp_id")
+                            userCompanyId =
+                                SettingsModel.getCompanyID()//obj.optString("usr_cmp_id")
                             userPosMode = true
                             userTableMode = true
                         })
@@ -265,7 +269,8 @@ class UserRepositoryImpl(
                             userName = obj.optString("emp_name")
                             userUsername = obj.optString("emp_username")
                             userPassword = obj.optString("emp_password")
-                            userCompanyId = SettingsModel.getCompanyID()//obj.optString("usr_cmp_id")
+                            userCompanyId =
+                                SettingsModel.getCompanyID()//obj.optString("usr_cmp_id")
                             userPosMode = true
                             userTableMode = true
                         })
@@ -274,6 +279,76 @@ class UserRepositoryImpl(
                 }
             }
         }
+    }
 
+    override suspend fun getOneUser(companyId: String): User? {
+        when (SettingsModel.connectionType) {
+            CONNECTION_TYPE.FIRESTORE.key -> {
+                val querySnapshot = FirebaseFirestore.getInstance().collection("set_users")
+                    .whereEqualTo(
+                        "usr_cmp_id",
+                        companyId
+                    ).limit(1).get().await()
+                if (querySnapshot.size() > 0) {
+                    for (document in querySnapshot) {
+                        val obj = document.toObject(User::class.java)
+                        if (obj.userId.isNotEmpty()) {
+                            obj.userDocumentId = document.id
+                            return obj
+                        }
+                    }
+                }
+                return null
+            }
+
+            CONNECTION_TYPE.LOCAL.key -> {
+                return userDao.getOneUser(companyId)
+            }
+
+            else -> {//CONNECTION_TYPE.SQL_SERVER.key
+                if (SettingsModel.isSqlServerWebDb) {
+                    val where = "usr_cmp_id='$companyId'"
+                    val dbResult = SQLServerWrapper.getListOf(
+                        "set_users",
+                        "TOP 1",
+                        mutableListOf("*"),
+                        where
+                    )
+
+                    dbResult.forEach { obj ->
+                        return User().apply {
+                            userId = obj.optString("usr_id")
+                            userName = obj.optString("usr_name")
+                            userUsername = obj.optString("usr_username")
+                            userPassword = obj.optString("usr_password")
+                            userCompanyId = obj.optString("usr_cmp_id")
+                            userPosMode = true
+                            userTableMode = true
+                        }
+                    }
+                    return null
+                } else {
+                    val dbResult = SQLServerWrapper.getListOf(
+                        "pay_employees",
+                        "TOP 1",
+                        mutableListOf("*"),
+                        ""
+                    )
+                    dbResult.forEach { obj ->
+                        return User().apply {
+                            userId = obj.optString("emp_id")
+                            userName = obj.optString("emp_name")
+                            userUsername = obj.optString("emp_username")
+                            userPassword = obj.optString("emp_password")
+                            userCompanyId =
+                                SettingsModel.getCompanyID()//obj.optString("usr_cmp_id")
+                            userPosMode = true
+                            userTableMode = true
+                        }
+                    }
+                    return null
+                }
+            }
+        }
     }
 }

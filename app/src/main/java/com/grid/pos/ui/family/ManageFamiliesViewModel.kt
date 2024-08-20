@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.grid.pos.data.Family.Family
 import com.grid.pos.data.Family.FamilyRepository
+import com.grid.pos.data.Item.ItemRepository
 import com.grid.pos.model.Event
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -15,7 +16,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ManageFamiliesViewModel @Inject constructor(
-        private val familyRepository: FamilyRepository
+        private val familyRepository: FamilyRepository,
+        private val itemRepository: ItemRepository
 ) : ViewModel() {
 
     private val _manageFamiliesState = MutableStateFlow(ManageFamiliesState())
@@ -114,6 +116,15 @@ class ManageFamiliesViewModel @Inject constructor(
         )
 
         CoroutineScope(Dispatchers.IO).launch {
+            if (hasRelations(family.familyId)) {
+                withContext(Dispatchers.Main) {
+                    manageFamiliesState.value = manageFamiliesState.value.copy(
+                        warning = Event("You can't delete this Family ,because it has related data!"),
+                        isLoading = false
+                    )
+                }
+                return@launch
+            }
             familyRepository.delete(family)
             val families = manageFamiliesState.value.families
             families.remove(family)
@@ -127,5 +138,12 @@ class ManageFamiliesViewModel @Inject constructor(
                 )
             }
         }
+    }
+
+    private suspend fun hasRelations(familyId: String): Boolean {
+        if (itemRepository.getOneItemByFamily(familyId) != null)
+            return true
+
+        return false
     }
 }

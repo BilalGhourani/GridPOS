@@ -38,4 +38,8 @@ interface PosPrinterDao {
     @Query("SELECT * FROM `pos_printer` WHERE pp_cmp_id = :companyId")
     fun getAllPosPrinters(companyId: String): MutableList<PosPrinter>
 
+    // Get One POS Printer as stream.
+    @Query("SELECT * FROM `pos_printer` WHERE pp_cmp_id = :companyId LIMIT 1")
+    fun getOnePosPrinter(companyId: String): PosPrinter?
+
 }

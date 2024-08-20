@@ -4,10 +4,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.grid.pos.data.Family.Family
 import com.grid.pos.data.Family.FamilyRepository
+import com.grid.pos.data.Invoice.InvoiceRepository
 import com.grid.pos.data.Item.Item
 import com.grid.pos.data.Item.ItemRepository
 import com.grid.pos.data.PosPrinter.PosPrinterRepository
 import com.grid.pos.model.Event
+import com.grid.pos.model.SettingsModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -20,7 +22,8 @@ import javax.inject.Inject
 class ManageItemsViewModel @Inject constructor(
         private val itemRepository: ItemRepository,
         private val familyRepository: FamilyRepository,
-        private val posPrinterRepository: PosPrinterRepository
+        private val posPrinterRepository: PosPrinterRepository,
+        private val invoiceRepository: InvoiceRepository
 ) : ViewModel() {
 
     private val _manageItemsState = MutableStateFlow(ManageItemsState())
@@ -143,6 +146,15 @@ class ManageItemsViewModel @Inject constructor(
         )
 
         CoroutineScope(Dispatchers.IO).launch {
+            if (hasRelations(item.itemId)) {
+                withContext(Dispatchers.Main) {
+                    manageItemsState.value = manageItemsState.value.copy(
+                        warning = Event("You can't delete this Item,because it has related data!"),
+                        isLoading = false
+                    )
+                }
+                return@launch
+            }
             itemRepository.delete(item)
             val items = manageItemsState.value.items
             items.remove(item)
@@ -158,4 +170,10 @@ class ManageItemsViewModel @Inject constructor(
         }
     }
 
+    private suspend fun hasRelations(itemId: String): Boolean {
+        if (invoiceRepository.getOneInvoiceByItemID(itemId) != null)
+            return true
+
+        return false
+    }
 }

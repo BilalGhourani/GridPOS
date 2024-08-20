@@ -2,19 +2,23 @@ package com.grid.pos.ui.thirdParty
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.grid.pos.data.InvoiceHeader.InvoiceHeaderRepository
 import com.grid.pos.data.ThirdParty.ThirdParty
 import com.grid.pos.data.ThirdParty.ThirdPartyRepository
 import com.grid.pos.model.Event
+import com.grid.pos.model.SettingsModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
 class ManageThirdPartiesViewModel @Inject constructor(
-        private val thirdPartyRepository: ThirdPartyRepository
+        private val thirdPartyRepository: ThirdPartyRepository,
+        private val invoiceHeaderRepository: InvoiceHeaderRepository
 ) : ViewModel() {
 
     private val _manageThirdPartiesState = MutableStateFlow(ManageThirdPartiesState())
@@ -107,6 +111,15 @@ class ManageThirdPartiesViewModel @Inject constructor(
         )
 
         CoroutineScope(Dispatchers.IO).launch {
+            if (hasRelations(thirdParty.thirdPartyId)) {
+                withContext(Dispatchers.Main) {
+                    manageThirdPartiesState.value = manageThirdPartiesState.value.copy(
+                        warning = Event("You can't delete this Third Party,because it has related data!"),
+                        isLoading = false
+                    )
+                }
+                return@launch
+            }
             thirdPartyRepository.delete(thirdParty)
             val thirdParties = manageThirdPartiesState.value.thirdParties
             thirdParties.remove(thirdParty)
@@ -122,6 +135,13 @@ class ManageThirdPartiesViewModel @Inject constructor(
                 )
             }
         }
+    }
+
+    private suspend fun hasRelations(clientID: String): Boolean {
+        if (invoiceHeaderRepository.getOneInvoiceByClientID(clientID) != null)
+            return true
+
+        return false
     }
 
 }

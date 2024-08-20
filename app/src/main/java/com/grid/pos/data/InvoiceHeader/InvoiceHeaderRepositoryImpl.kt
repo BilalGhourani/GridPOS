@@ -390,6 +390,58 @@ class InvoiceHeaderRepositoryImpl(
         }
     }
 
+    override suspend fun getOneInvoiceByUserID(userId: String): InvoiceHeader? {
+        when (SettingsModel.connectionType) {
+            CONNECTION_TYPE.FIRESTORE.key -> {
+                val querySnapshot = FirebaseFirestore.getInstance().collection("in_hinvoice")
+                    .whereEqualTo(
+                        "hi_userstamp",
+                        userId
+                    ).limit(1).get().await()
+                val document = querySnapshot.firstOrNull()
+                if (document != null) {
+                    val obj = document.toObject(InvoiceHeader::class.java)
+                    return obj
+                }
+                return null
+            }
+
+            CONNECTION_TYPE.LOCAL.key -> {
+                return invoiceHeaderDao.getOneInvoiceByUserId(userId )
+            }
+
+            else -> {
+                return null
+            }
+        }
+    }
+
+    override suspend fun getOneInvoiceByClientID(clientId: String): InvoiceHeader? {
+        when (SettingsModel.connectionType) {
+            CONNECTION_TYPE.FIRESTORE.key -> {
+                val querySnapshot = FirebaseFirestore.getInstance().collection("in_hinvoice")
+                    .whereEqualTo(
+                        "hi_tp_name",
+                        clientId
+                    ).limit(1).get().await()
+                val document = querySnapshot.firstOrNull()
+                if (document != null) {
+                    val obj = document.toObject(InvoiceHeader::class.java)
+                    return obj
+                }
+                return null
+            }
+
+            CONNECTION_TYPE.LOCAL.key -> {
+                return invoiceHeaderDao.getOneInvoiceByClientId(clientId )
+            }
+
+            else -> {
+                return null
+            }
+        }
+    }
+
     private fun fillParams(obj: JSONObject): InvoiceHeader {
         return InvoiceHeader().apply {
             invoiceHeadId = obj.optString("hi_id")

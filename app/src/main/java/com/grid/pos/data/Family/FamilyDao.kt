@@ -33,8 +33,12 @@ interface FamilyDao {
     @Update
     suspend fun update(family: Family)
 
-    // Get all call logs as stream.
+    // Get all Families as stream.
     @Query("SELECT * FROM `st_family` WHERE fa_cmp_id = :companyId")
     fun getAllFamilies(companyId:String): MutableList<Family>
+
+    // Get one Family as stream.
+    @Query("SELECT * FROM `st_family` WHERE fa_cmp_id = :companyId LIMIT 1")
+    fun getOneFamily(companyId:String): Family?
 
 }

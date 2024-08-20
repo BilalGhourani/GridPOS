@@ -2,20 +2,26 @@ package com.grid.pos.ui.user
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.grid.pos.data.InvoiceHeader.InvoiceHeaderRepository
+import com.grid.pos.data.ThirdParty.ThirdPartyRepository
 import com.grid.pos.data.User.User
 import com.grid.pos.data.User.UserRepository
 import com.grid.pos.model.Event
+import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.Extension.encryptCBC
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
 class ManageUsersViewModel @Inject constructor(
-        private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val thirdPartyRepository: ThirdPartyRepository,
+    private val invoiceHeaderRepository: InvoiceHeaderRepository
 ) : ViewModel() {
 
     private val _manageUsersState = MutableStateFlow(ManageUsersState())
@@ -38,7 +44,7 @@ class ManageUsersViewModel @Inject constructor(
     }
 
     private suspend fun fetchUsers() {
-        val listOfUsers =  userRepository.getAllUsers()
+        val listOfUsers = userRepository.getAllUsers()
         viewModelScope.launch(Dispatchers.Main) {
             manageUsersState.value = manageUsersState.value.copy(
                 users = listOfUsers
@@ -102,6 +108,15 @@ class ManageUsersViewModel @Inject constructor(
         )
 
         CoroutineScope(Dispatchers.IO).launch {
+            if (hasRelations(user.userId)) {
+                withContext(Dispatchers.Main) {
+                    manageUsersState.value = manageUsersState.value.copy(
+                        warning = Event("You can't delete this User,because it has related data!"),
+                        isLoading = false
+                    )
+                }
+                return@launch
+            }
             userRepository.delete(user)
             val users = manageUsersState.value.users
             users.remove(user)
@@ -117,4 +132,16 @@ class ManageUsersViewModel @Inject constructor(
         }
     }
 
+    private suspend fun hasRelations(userID: String): Boolean {
+        if (userID.equals(SettingsModel.currentUserId))
+            return true
+
+        if (thirdPartyRepository.getOneThirdPartyByUserID(userID) != null)
+            return true
+
+        if (invoiceHeaderRepository.getOneInvoiceByUserID(userID) != null)
+            return true
+
+        return false
+    }
 }

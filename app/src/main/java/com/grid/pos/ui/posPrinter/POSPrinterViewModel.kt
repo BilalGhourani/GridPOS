@@ -2,6 +2,7 @@ package com.grid.pos.ui.posPrinter
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.grid.pos.data.Item.ItemRepository
 import com.grid.pos.data.PosPrinter.PosPrinter
 import com.grid.pos.data.PosPrinter.PosPrinterRepository
 import com.grid.pos.model.Event
@@ -10,11 +11,13 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
 class POSPrinterViewModel @Inject constructor(
-        private val posPrinterRepository: PosPrinterRepository
+        private val posPrinterRepository: PosPrinterRepository,
+        private val itemRepository: ItemRepository
 ) : ViewModel() {
 
     private val _posPrinterState = MutableStateFlow(POSPrinterState())
@@ -107,6 +110,15 @@ class POSPrinterViewModel @Inject constructor(
         )
 
         CoroutineScope(Dispatchers.IO).launch {
+            if (hasRelations(printer.posPrinterId)) {
+                withContext(Dispatchers.Main) {
+                    posPrinterState.value = posPrinterState.value.copy(
+                        warning = Event("You can't delete this Printer ,because it has related data!"),
+                        isLoading = false
+                    )
+                }
+                return@launch
+            }
             posPrinterRepository.delete(printer)
             val printers = posPrinterState.value.printers
             printers.remove(printer)
@@ -120,5 +132,12 @@ class POSPrinterViewModel @Inject constructor(
                 )
             }
         }
+    }
+
+    private suspend fun hasRelations(printerId: String): Boolean {
+        if (itemRepository.getOneItemByPrinter(printerId) != null)
+            return true
+
+        return false
     }
 }

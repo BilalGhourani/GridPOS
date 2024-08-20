@@ -16,5 +16,7 @@ interface PosPrinterRepository {
     // Get all POS Receipts as stream.
     suspend fun getAllPosPrinters(): MutableList<PosPrinter>
 
+    suspend fun getOnePosPrinter(companyId: String): PosPrinter?
+
 
 }

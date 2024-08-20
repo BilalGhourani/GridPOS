@@ -22,4 +22,6 @@ interface UserRepository {
 
     // Get all Users as stream.
     suspend fun getAllUsers(): MutableList<User>
+
+    suspend fun getOneUser(companyId: String): User?
 }

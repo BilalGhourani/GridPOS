@@ -6,21 +6,27 @@ import com.grid.pos.data.Company.Company
 import com.grid.pos.data.Company.CompanyRepository
 import com.grid.pos.data.Currency.Currency
 import com.grid.pos.data.Currency.CurrencyRepository
+import com.grid.pos.data.Family.FamilyRepository
 import com.grid.pos.data.PosPrinter.PosPrinterRepository
+import com.grid.pos.data.ThirdParty.ThirdPartyRepository
+import com.grid.pos.data.User.UserRepository
 import com.grid.pos.model.Event
-import com.grid.pos.model.SettingsModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
 class ManageCompaniesViewModel @Inject constructor(
-        private val companyRepository: CompanyRepository,
-        private val currencyRepository: CurrencyRepository,
-        private val posPrinterRepository: PosPrinterRepository
+    private val companyRepository: CompanyRepository,
+    private val currencyRepository: CurrencyRepository,
+    private val posPrinterRepository: PosPrinterRepository,
+    private val familyRepository: FamilyRepository,
+    private val thirdPartyRepository: ThirdPartyRepository,
+    private val userRepository: UserRepository
 ) : ViewModel() {
 
     private val _manageCompaniesState = MutableStateFlow(ManageCompaniesState())
@@ -35,8 +41,8 @@ class ManageCompaniesViewModel @Inject constructor(
     }
 
     fun showWarning(
-            warning: String,
-            action: String
+        warning: String,
+        action: String
     ) {
         viewModelScope.launch(Dispatchers.Main) {
             manageCompaniesState.value = manageCompaniesState.value.copy(
@@ -48,8 +54,8 @@ class ManageCompaniesViewModel @Inject constructor(
     }
 
     fun fillCachedCompanies(
-            companies: MutableList<Company> = mutableListOf(),
-            currencies: MutableList<Currency> = mutableListOf()
+        companies: MutableList<Company> = mutableListOf(),
+        currencies: MutableList<Currency> = mutableListOf()
     ) {
         if (manageCompaniesState.value.companies.isEmpty()) {
             viewModelScope.launch(Dispatchers.Main) {
@@ -142,6 +148,15 @@ class ManageCompaniesViewModel @Inject constructor(
         )
 
         CoroutineScope(Dispatchers.IO).launch {
+            if (hasRelations(company.companyId)) {
+                withContext(Dispatchers.Main) {
+                    manageCompaniesState.value = manageCompaniesState.value.copy(
+                        warning = Event("You can't delete this Company,because it has related data!"),
+                        isLoading = false
+                    )
+                }
+                return@launch
+            }
             companyRepository.delete(company)
             val companies = manageCompaniesState.value.companies
             companies.remove(company)
@@ -155,6 +170,21 @@ class ManageCompaniesViewModel @Inject constructor(
                 )
             }
         }
+    }
+
+    private suspend fun hasRelations(companyID: String): Boolean {
+        if (familyRepository.getOneFamily(companyID) != null)
+            return true
+        if (userRepository.getOneUser(companyID) != null) {
+            return true
+        }
+        if (thirdPartyRepository.getOneThirdPartyByCompanyID(companyID) != null) {
+            return true
+        }
+        if (posPrinterRepository.getOnePosPrinter(companyID) != null) {
+            return true
+        }
+        return false
     }
 
 }

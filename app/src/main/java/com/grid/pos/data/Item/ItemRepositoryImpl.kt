@@ -10,7 +10,7 @@ import kotlinx.coroutines.tasks.await
 import java.util.Date
 
 class ItemRepositoryImpl(
-        private val itemDao: ItemDao
+    private val itemDao: ItemDao
 ) : ItemRepository {
     override suspend fun insert(item: Item): Item {
         if (SettingsModel.isConnectedToFireStore()) {
@@ -97,10 +97,11 @@ class ItemRepositoryImpl(
                         itemBtnColor = obj.optString("it_color")
                         itemBtnTextColor = "#000000"
                         val timeStamp = obj.opt("it_timestamp")
-                        itemTimeStamp = if (timeStamp is Date) timeStamp else DateHelper.getDateFromString(
-                            timeStamp as String,
-                            "yyyy-MM-dd hh:mm:ss.SSS"
-                        )
+                        itemTimeStamp =
+                            if (timeStamp is Date) timeStamp else DateHelper.getDateFromString(
+                                timeStamp as String,
+                                "yyyy-MM-dd hh:mm:ss.SSS"
+                            )
                         itemDateTime = itemTimeStamp!!.time
                         itemUserStamp = obj.optString("it_userstamp")
                     })
@@ -109,6 +110,68 @@ class ItemRepositoryImpl(
             }
         }
 
+    }
+
+    override suspend fun getOneItemByPrinter(printerID: String): Item? {
+        when (SettingsModel.connectionType) {
+            CONNECTION_TYPE.FIRESTORE.key -> {
+                val querySnapshot = FirebaseFirestore.getInstance().collection("st_item")
+                    .whereEqualTo(
+                        "it_printer",
+                        printerID
+                    ).limit(1).get().await()
+
+                if (querySnapshot.size() > 0) {
+                    for (document in querySnapshot) {
+                        val obj = document.toObject(Item::class.java)
+                        if (obj.itemId.isNotEmpty()) {
+                            obj.itemDocumentId = document.id
+                            return obj
+                        }
+                    }
+                }
+                return null
+            }
+
+            CONNECTION_TYPE.LOCAL.key -> {
+                return itemDao.getOneItemByPrinter(printerID)
+            }
+
+            else -> {
+                return null
+            }
+        }
+    }
+
+    override suspend fun getOneItemByFamily(familyId: String): Item? {
+        when (SettingsModel.connectionType) {
+            CONNECTION_TYPE.FIRESTORE.key -> {
+                val querySnapshot = FirebaseFirestore.getInstance().collection("st_item")
+                    .whereEqualTo(
+                        "it_fa_id",
+                        familyId
+                    ).limit(1).get().await()
+
+                if (querySnapshot.size() > 0) {
+                    for (document in querySnapshot) {
+                        val obj = document.toObject(Item::class.java)
+                        if (obj.itemId.isNotEmpty()) {
+                            obj.itemDocumentId = document.id
+                            return obj
+                        }
+                    }
+                }
+                return null
+            }
+
+            CONNECTION_TYPE.LOCAL.key -> {
+                return itemDao.getOneItemByFamily(familyId)
+            }
+
+            else -> {
+                return null
+            }
+        }
     }
 
 }

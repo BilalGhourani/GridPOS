@@ -11,10 +11,10 @@ import org.json.JSONObject
 import java.util.Date
 
 class InvoiceRepositoryImpl(
-        private val invoiceDao: InvoiceDao
+    private val invoiceDao: InvoiceDao
 ) : InvoiceRepository {
     override suspend fun insert(
-            invoice: Invoice
+        invoice: Invoice
     ): Invoice {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
@@ -40,7 +40,7 @@ class InvoiceRepositoryImpl(
     }
 
     override suspend fun delete(
-            invoice: Invoice
+        invoice: Invoice
     ) {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
@@ -64,7 +64,7 @@ class InvoiceRepositoryImpl(
     }
 
     override suspend fun update(
-            invoice: Invoice
+        invoice: Invoice
     ) {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
@@ -90,7 +90,7 @@ class InvoiceRepositoryImpl(
     }
 
     override suspend fun getAllInvoices(
-            invoiceHeaderId: String
+        invoiceHeaderId: String
     ): MutableList<Invoice> {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
@@ -134,7 +134,7 @@ class InvoiceRepositoryImpl(
     }
 
     override suspend fun getInvoicesByIds(
-            ids: List<String>
+        ids: List<String>
     ): MutableList<Invoice> {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
@@ -173,6 +173,36 @@ class InvoiceRepositoryImpl(
                     invoices.add(fillParams(obj))
                 }
                 return invoices
+            }
+        }
+    }
+
+    override suspend fun getOneInvoiceByItemID(itemId: String): Invoice? {
+        when (SettingsModel.connectionType) {
+            CONNECTION_TYPE.FIRESTORE.key -> {
+                val querySnapshot = FirebaseFirestore.getInstance().collection("in_invoice")
+                    .whereEqualTo(
+                        "in_it_id",
+                        itemId
+                    ).limit(1).get().await()
+                if (querySnapshot.size() > 0) {
+                    for (document in querySnapshot) {
+                        val obj = document.toObject(Invoice::class.java)
+                        if (obj.invoiceId.isNotEmpty()) {
+                            obj.invoiceDocumentId = document.id
+                            return obj
+                        }
+                    }
+                }
+                return null
+            }
+
+            CONNECTION_TYPE.LOCAL.key -> {
+                return invoiceDao.getOneInvoiceByItemId(itemId)
+            }
+
+            else -> {
+                return null
             }
         }
     }

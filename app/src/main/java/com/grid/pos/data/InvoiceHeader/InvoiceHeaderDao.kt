@@ -64,4 +64,10 @@ interface InvoiceHeaderDao {
             companyId: String
     ): MutableList<InvoiceHeader>
 
+    @Query("SELECT * FROM `in_hinvoice` WHERE hi_userstamp = :userID LIMIT 1")
+    fun getOneInvoiceByUserId(userID: String): InvoiceHeader?
+
+    @Query("SELECT * FROM `in_hinvoice` WHERE hi_tp_name = :clientID LIMIT 1")
+    fun getOneInvoiceByClientId(clientID: String): InvoiceHeader?
+
 }

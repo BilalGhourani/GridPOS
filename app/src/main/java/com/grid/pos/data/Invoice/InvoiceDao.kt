@@ -6,6 +6,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
+import com.grid.pos.data.InvoiceHeader.InvoiceHeader
 import com.grid.pos.data.Item.Item
 import kotlinx.coroutines.flow.Flow
 
@@ -44,5 +45,8 @@ interface InvoiceDao {
     // Get all Invoices as stream.
     @Query("SELECT * FROM `in_invoice` WHERE in_hi_id IN (:ids)")
     fun getInvoicesByIds(ids: List<String>): MutableList<Invoice>
+
+    @Query("SELECT * FROM `in_invoice` WHERE in_it_id = :itemId LIMIT 1")
+    fun getOneInvoiceByItemId(itemId: String): Invoice?
 
 }

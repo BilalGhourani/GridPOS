@@ -6,8 +6,6 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
-import com.grid.pos.data.Family.Family
-import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ThirdPartyDao {
@@ -36,4 +34,12 @@ interface ThirdPartyDao {
     // Get all Third Parties as stream.
     @Query("SELECT * FROM `thirdparty` WHERE tp_cmp_id=:companyId")
     fun getAllThirdParties(companyId: String): MutableList<ThirdParty>
+
+    // Get one Third Party as stream.
+    @Query("SELECT * FROM `thirdparty` WHERE tp_cmp_id=:companyId LIMIT 1")
+    fun getOneThirdPartyByCompanyID(companyId: String): ThirdParty?
+
+    // Get one Third Party as stream.
+    @Query("SELECT * FROM `thirdparty` WHERE tp_userstamp=:userID LIMIT 1")
+    fun getOneThirdPartyByUserID(userID: String): ThirdParty?
 }
