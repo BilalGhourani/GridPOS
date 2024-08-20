@@ -306,11 +306,3 @@ fun ManageCurrenciesView(navController: NavController? = null, modifier: Modifie
         }
     }
 }
-
-@Preview(showBackground = true)
-@Composable
-fun ManageCurrenciesViewPreview() {
-    GridPOSTheme {
-        ManageCurrenciesView()
-    }
-}
