@@ -31,6 +31,7 @@ class ManageCompaniesViewModel @Inject constructor(
 
     private val _manageCompaniesState = MutableStateFlow(ManageCompaniesState())
     val manageCompaniesState: MutableStateFlow<ManageCompaniesState> = _manageCompaniesState
+    var currentCompany: Company? = null
 
     init {
         viewModelScope.launch(Dispatchers.IO) {

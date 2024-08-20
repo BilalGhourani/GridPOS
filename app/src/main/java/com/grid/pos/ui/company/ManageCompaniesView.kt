@@ -17,6 +17,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -55,6 +56,7 @@ import com.grid.pos.ActivityScopedViewModel
 import com.grid.pos.R
 import com.grid.pos.data.Company.Company
 import com.grid.pos.interfaces.OnGalleryResult
+import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.SearchableDropdownMenu
 import com.grid.pos.ui.common.UIButton
@@ -72,10 +74,10 @@ import kotlinx.coroutines.withContext
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ManageCompaniesView(
-        modifier: Modifier = Modifier,
-        navController: NavController? = null,
-        activityScopedViewModel: ActivityScopedViewModel,
-        viewModel: ManageCompaniesViewModel = hiltViewModel()
+    modifier: Modifier = Modifier,
+    navController: NavController? = null,
+    activityScopedViewModel: ActivityScopedViewModel,
+    viewModel: ManageCompaniesViewModel = hiltViewModel()
 ) {
     val manageCompaniesState: ManageCompaniesState by viewModel.manageCompaniesState.collectAsState(
         ManageCompaniesState()
@@ -140,7 +142,43 @@ fun ManageCompaniesView(
         activityScopedViewModel.showLoading(manageCompaniesState.isLoading)
     }
 
+    fun saveCompany() {
+        oldImage?.let { old ->
+            FileUtils.deleteFile(
+                context,
+                old
+            )
+        }
+        val firstCurr = manageCompaniesState.currencies.firstOrNull()
+        manageCompaniesState.selectedCompany.companyCurCodeTax =
+            firstCurr?.currencyId
+        viewModel.saveCompany(manageCompaniesState.selectedCompany)
+    }
+
+    var saveAndBack by remember { mutableStateOf(false) }
     fun handleBack() {
+        if (viewModel.currentCompany != null && manageCompaniesState.selectedCompany.didChanged(
+                viewModel.currentCompany!!
+            )
+        ) {
+            activityScopedViewModel.showPopup(
+                true, PopupModel().apply {
+                    onDismissRequest = {
+                        viewModel.currentCompany = null
+                        handleBack()
+                    }
+                    onConfirmation = {
+                        saveAndBack = true
+                        saveCompany()
+                    }
+                    dialogTitle = "Alert."
+                    dialogText = "Do you want to save your changes"
+                    positiveBtnText = "Save"
+                    negativeBtnText = "Close"
+                    icon = Icons.Default.Info
+                })
+            return
+        }
         if (manageCompaniesState.companies.isNotEmpty()) {
             activityScopedViewModel.companies = manageCompaniesState.companies
         }
@@ -216,6 +254,7 @@ fun ManageCompaniesView(
                             selectedId = manageCompaniesState.selectedCompany.companyId
                         ) { company ->
                             company as Company
+                            viewModel.currentCompany = company
                             manageCompaniesState.selectedCompany = company
                             nameState = company.companyName ?: ""
                             phoneState = company.companyPhone ?: ""
@@ -340,19 +379,21 @@ fun ManageCompaniesView(
                                                 if (uris.isNotEmpty()) {
                                                     manageCompaniesState.isLoading = true
                                                     CoroutineScope(Dispatchers.IO).launch {
-                                                        val internalPath = FileUtils.saveToExternalStorage(context = context,
-                                                            parent = "company logo",
-                                                            uris[0],
-                                                            nameState.trim().replace(
-                                                                " ",
-                                                                "_"
-                                                            ).ifEmpty { "item" })
+                                                        val internalPath =
+                                                            FileUtils.saveToExternalStorage(context = context,
+                                                                parent = "company logo",
+                                                                uris[0],
+                                                                nameState.trim().replace(
+                                                                    " ",
+                                                                    "_"
+                                                                ).ifEmpty { "item" })
                                                         withContext(Dispatchers.Main) {
                                                             manageCompaniesState.isLoading = false
                                                             if (internalPath != null) {
                                                                 oldImage = logoState
                                                                 logoState = internalPath
-                                                                manageCompaniesState.selectedCompany.companyLogo = logoState
+                                                                manageCompaniesState.selectedCompany.companyLogo =
+                                                                    logoState
                                                             }
                                                         }
                                                     }
@@ -409,7 +450,8 @@ fun ManageCompaniesView(
                                     tax,
                                     taxState
                                 )
-                                manageCompaniesState.selectedCompany.companyTax = taxState.toDoubleOrNull() ?: 0.0
+                                manageCompaniesState.selectedCompany.companyTax =
+                                    taxState.toDoubleOrNull() ?: 0.0
                             }
                         }
                         if (SettingsModel.showTax1) {
@@ -442,7 +484,8 @@ fun ManageCompaniesView(
                                     tax1,
                                     tax1State
                                 )
-                                manageCompaniesState.selectedCompany.companyTax1 = tax1State.toDoubleOrNull() ?: 0.0
+                                manageCompaniesState.selectedCompany.companyTax1 =
+                                    tax1State.toDoubleOrNull() ?: 0.0
                             }
                         }
                         if (SettingsModel.showTax2) {
@@ -469,7 +512,8 @@ fun ManageCompaniesView(
                                     tax2,
                                     tax2State
                                 )
-                                manageCompaniesState.selectedCompany.companyTax2 = tax2State.toDoubleOrNull() ?: 0.0
+                                manageCompaniesState.selectedCompany.companyTax2 =
+                                    tax2State.toDoubleOrNull() ?: 0.0
                             }
                         }
 
@@ -480,7 +524,8 @@ fun ManageCompaniesView(
                                 text = "Unit price with tax",
                             ) { unitPriceWithTax ->
                                 upWithTaxState = unitPriceWithTax
-                                manageCompaniesState.selectedCompany.companyUpWithTax = unitPriceWithTax
+                                manageCompaniesState.selectedCompany.companyUpWithTax =
+                                    unitPriceWithTax
                             }
                         }
 
@@ -497,15 +542,7 @@ fun ManageCompaniesView(
                                     .padding(3.dp),
                                 text = "Save"
                             ) {
-                                oldImage?.let { old ->
-                                    FileUtils.deleteFile(
-                                        context,
-                                        old
-                                    )
-                                }
-                                val firstCurr = manageCompaniesState.currencies.firstOrNull()
-                                manageCompaniesState.selectedCompany.companyCurCodeTax = firstCurr?.currencyId
-                                viewModel.saveCompany(manageCompaniesState.selectedCompany)
+                                saveCompany()
                             }
 
                             UIButton(
@@ -563,6 +600,10 @@ fun ManageCompaniesView(
             tax2RegnoState = ""
             tax2State = ""
             manageCompaniesState.clear = false
+            if (saveAndBack) {
+                viewModel.currentCompany = null
+                handleBack()
+            }
         }
     }
 }
