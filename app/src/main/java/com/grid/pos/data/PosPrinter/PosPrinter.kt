@@ -7,6 +7,7 @@ import androidx.room.PrimaryKey
 import com.google.firebase.firestore.Exclude
 import com.google.firebase.firestore.PropertyName
 import com.grid.pos.data.DataModel
+import com.grid.pos.data.User.User
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.Utils
 
@@ -93,6 +94,14 @@ data class PosPrinter(
             posPrinterId = Utils.generateRandomUuidString()
         }
         posPrinterCompId = SettingsModel.getCompanyID()
+    }
+
+    @Exclude
+    fun didChanged(posPrinter: PosPrinter): Boolean {
+        return !posPrinter.posPrinterName.equals(posPrinterName)
+                || !posPrinter.posPrinterHost.equals(posPrinterHost)
+                || !posPrinter.posPrinterPort.equals(posPrinterPort)
+                || !posPrinter.posPrinterType.equals(posPrinterType)
     }
 
     @Exclude

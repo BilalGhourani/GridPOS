@@ -9,6 +9,7 @@ import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.PropertyName
 import com.google.firebase.firestore.ServerTimestamp
 import com.grid.pos.data.DataModel
+import com.grid.pos.data.User.User
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.Utils
 import java.util.Date
@@ -138,6 +139,15 @@ data class ThirdParty(
         }
         thirdPartyCompId = SettingsModel.getCompanyID()
         thirdPartyUserStamp = SettingsModel.currentUserId
+    }
+
+    @Exclude
+    fun didChanged(thirdParty: ThirdParty): Boolean {
+        return !thirdParty.thirdPartyName.equals(thirdPartyName)
+                || !thirdParty.thirdPartyFn.equals(thirdPartyFn)
+                || !thirdParty.thirdPartyAddress.equals(thirdPartyAddress)
+                || !thirdParty.thirdPartyPhone1.equals(thirdPartyPhone1)
+                || !thirdParty.thirdPartyPhone2.equals(thirdPartyPhone2)
     }
 
     @Exclude

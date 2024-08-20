@@ -23,6 +23,7 @@ class ManageThirdPartiesViewModel @Inject constructor(
 
     private val _manageThirdPartiesState = MutableStateFlow(ManageThirdPartiesState())
     val manageThirdPartiesState: MutableStateFlow<ManageThirdPartiesState> = _manageThirdPartiesState
+    var currentThirdParty: ThirdParty? = null
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
@@ -138,8 +139,7 @@ class ManageThirdPartiesViewModel @Inject constructor(
     }
 
     private suspend fun hasRelations(clientID: String): Boolean {
-        if (invoiceHeaderRepository.getOneInvoiceByClientID(clientID) != null)
-            return true
+        if (invoiceHeaderRepository.getOneInvoiceByClientID(clientID) != null) return true
 
         return false
     }

@@ -13,6 +13,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -47,6 +48,7 @@ import androidx.navigation.NavController
 import com.grid.pos.ActivityScopedViewModel
 import com.grid.pos.R
 import com.grid.pos.data.PosPrinter.PosPrinter
+import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.SearchableDropdownMenu
 import com.grid.pos.ui.common.UIButton
@@ -101,7 +103,30 @@ fun POSPrinterView(
         activityScopedViewModel.showLoading(posPrinterState.isLoading)
     }
 
+    var saveAndBack by remember { mutableStateOf(false) }
     fun handleBack() {
+        if (viewModel.currentPrinter != null && posPrinterState.selectedPrinter.didChanged(
+                viewModel.currentPrinter!!
+            )
+        ) {
+            activityScopedViewModel.showPopup(true,
+                PopupModel().apply {
+                    onDismissRequest = {
+                        viewModel.currentPrinter = null
+                        handleBack()
+                    }
+                    onConfirmation = {
+                        saveAndBack = true
+                        viewModel.savePrinter(posPrinterState.selectedPrinter)
+                    }
+                    dialogTitle = "Alert."
+                    dialogText = "Do you want to save your changes"
+                    positiveBtnText = "Save"
+                    negativeBtnText = "Close"
+                    icon = Icons.Default.Info
+                })
+            return
+        }
         if (posPrinterState.printers.isNotEmpty()) {
             activityScopedViewModel.printers = posPrinterState.printers
         }
@@ -174,6 +199,7 @@ fun POSPrinterView(
                             selectedId = posPrinterState.selectedPrinter.posPrinterId
                         ) { printer ->
                             printer as PosPrinter
+                            viewModel.currentPrinter = printer.copy()
                             posPrinterState.selectedPrinter = printer
                             nameState = printer.posPrinterName ?: ""
                             hostState = printer.posPrinterHost
@@ -270,6 +296,10 @@ fun POSPrinterView(
             portState = ""
             typeState = ""
             posPrinterState.clear = false
+            if (saveAndBack) {
+                viewModel.currentPrinter = null
+                handleBack()
+            }
         }
     }
 }

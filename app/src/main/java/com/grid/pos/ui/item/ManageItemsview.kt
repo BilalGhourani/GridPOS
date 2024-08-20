@@ -21,6 +21,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ColorLens
 import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.QrCode2
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -64,6 +65,7 @@ import com.grid.pos.data.Item.Item
 import com.grid.pos.data.PosPrinter.PosPrinter
 import com.grid.pos.interfaces.OnBarcodeResult
 import com.grid.pos.interfaces.OnGalleryResult
+import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.ColorPickerPopup
 import com.grid.pos.ui.common.SearchableDropdownMenu
@@ -164,7 +166,40 @@ fun ManageItemsView(
         activityScopedViewModel.showLoading(manageItemsState.isLoading)
     }
 
+    fun saveItem() {
+        oldImage?.let { old ->
+            FileUtils.deleteFile(
+                context,
+                old
+            )
+        }
+        viewModel.saveItem(manageItemsState.selectedItem)
+    }
+
+    var saveAndBack by remember { mutableStateOf(false) }
     fun handleBack() {
+        if (viewModel.currentITem != null && manageItemsState.selectedItem.didChanged(
+                viewModel.currentITem!!
+            )
+        ) {
+            activityScopedViewModel.showPopup(true,
+                PopupModel().apply {
+                    onDismissRequest = {
+                        viewModel.currentITem = null
+                        handleBack()
+                    }
+                    onConfirmation = {
+                        saveAndBack = true
+                        saveItem()
+                    }
+                    dialogTitle = "Alert."
+                    dialogText = "Do you want to save your changes"
+                    positiveBtnText = "Save"
+                    negativeBtnText = "Close"
+                    icon = Icons.Default.Info
+                })
+            return
+        }
         if (manageItemsState.items.isNotEmpty()) {
             activityScopedViewModel.items = manageItemsState.items
         }
@@ -239,6 +274,7 @@ fun ManageItemsView(
                             selectedId = manageItemsState.selectedItem.itemId
                         ) { item ->
                             item as Item
+                            viewModel.currentITem = item.copy()
                             manageItemsState.selectedItem = item
                             nameState = item.itemName ?: ""
                             unitPriceState = item.itemUnitPrice.toString()
@@ -363,15 +399,15 @@ fun ManageItemsView(
                             onAction = { openCostFocusRequester.requestFocus() },
                             trailingIcon = {
                                 IconButton(onClick = {
-                                    activityScopedViewModel.launchBarcodeScanner(true,object :
-                                        OnBarcodeResult {
-                                        override fun OnBarcodeResult(barcodesList: List<String>) {
-                                            if (barcodesList.isNotEmpty()) {
-                                                barcodeState = barcodesList[0]
-                                                manageItemsState.selectedItem.itemBarcode = barcodeState
+                                    activityScopedViewModel.launchBarcodeScanner(true,
+                                        object : OnBarcodeResult {
+                                            override fun OnBarcodeResult(barcodesList: List<String>) {
+                                                if (barcodesList.isNotEmpty()) {
+                                                    barcodeState = barcodesList[0]
+                                                    manageItemsState.selectedItem.itemBarcode = barcodeState
+                                                }
                                             }
-                                        }
-                                    },
+                                        },
                                         onPermissionDenied = {
                                             viewModel.showWarning(
                                                 "Permission Denied",
@@ -562,13 +598,7 @@ fun ManageItemsView(
                                     .padding(3.dp),
                                 text = "Save"
                             ) {
-                                oldImage?.let { old ->
-                                    FileUtils.deleteFile(
-                                        context,
-                                        old
-                                    )
-                                }
-                                viewModel.saveItem(manageItemsState.selectedItem)
+                                saveItem()
                             }
 
                             UIButton(
@@ -625,6 +655,10 @@ fun ManageItemsView(
             imageState = ""
             itemPOSState = false
             manageItemsState.clear = false
+            if (saveAndBack) {
+                viewModel.currentITem = null
+                handleBack()
+            }
         }
 
         AnimatedVisibility(

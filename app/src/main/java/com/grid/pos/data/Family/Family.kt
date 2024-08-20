@@ -6,6 +6,7 @@ import androidx.room.Ignore
 import androidx.room.PrimaryKey
 import com.google.firebase.firestore.Exclude
 import com.google.firebase.firestore.PropertyName
+import com.grid.pos.data.Currency.Currency
 import com.grid.pos.data.DataModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.Utils
@@ -88,6 +89,12 @@ data class Family(
             familyId = Utils.generateRandomUuidString()
         }
         familyCompanyId = SettingsModel.getCompanyID()
+    }
+
+    @Exclude
+    fun didChanged(family: Family): Boolean {
+        return !family.familyName.equals(familyName)
+                || !family.familyImage.equals(familyImage)
     }
 
     @Exclude

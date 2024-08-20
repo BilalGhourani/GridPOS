@@ -22,6 +22,7 @@ class ManageFamiliesViewModel @Inject constructor(
 
     private val _manageFamiliesState = MutableStateFlow(ManageFamiliesState())
     val manageFamiliesState: MutableStateFlow<ManageFamiliesState> = _manageFamiliesState
+    var currentFamily: Family? = null
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
@@ -141,8 +142,7 @@ class ManageFamiliesViewModel @Inject constructor(
     }
 
     private suspend fun hasRelations(familyId: String): Boolean {
-        if (itemRepository.getOneItemByFamily(familyId) != null)
-            return true
+        if (itemRepository.getOneItemByFamily(familyId) != null) return true
 
         return false
     }

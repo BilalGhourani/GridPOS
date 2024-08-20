@@ -15,6 +15,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -51,6 +52,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.grid.pos.ActivityScopedViewModel
 import com.grid.pos.R
+import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.UIButton
 import com.grid.pos.ui.common.UITextField
@@ -58,11 +60,17 @@ import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.utils.Utils
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
+@OptIn(
+    ExperimentalMaterial3Api::class,
+    ExperimentalComposeUiApi::class
+)
 @Composable
-fun ManageCurrenciesView(navController: NavController? = null, modifier: Modifier = Modifier,
-                         activityScopedViewModel: ActivityScopedViewModel,
-                         viewModel: ManageCurrenciesViewModel = hiltViewModel()) {
+fun ManageCurrenciesView(
+        navController: NavController? = null,
+        modifier: Modifier = Modifier,
+        activityScopedViewModel: ActivityScopedViewModel,
+        viewModel: ManageCurrenciesViewModel = hiltViewModel()
+) {
     val manageCurrenciesState: ManageCurrenciesState by viewModel.manageCurrenciesState.collectAsState(
         ManageCurrenciesState()
     )
@@ -74,15 +82,15 @@ fun ManageCurrenciesView(navController: NavController? = null, modifier: Modifie
     val curName2DecFocusRequester = remember { FocusRequester() }
     val rateFocusRequester = remember { FocusRequester() }
 
-    var curCode1State by remember { mutableStateOf(SettingsModel.currentCurrency?.currencyCode1?:"") }
-    var curName1State by remember { mutableStateOf(SettingsModel.currentCurrency?.currencyName1?:"") }
+    var curCode1State by remember { mutableStateOf(SettingsModel.currentCurrency?.currencyCode1 ?: "") }
+    var curName1State by remember { mutableStateOf(SettingsModel.currentCurrency?.currencyName1 ?: "") }
     var curName1DecState by remember {
         mutableStateOf(
             manageCurrenciesState.selectedCurrency.currencyName1Dec.toString()
         )
     }
-    var curCode2State by remember { mutableStateOf(SettingsModel.currentCurrency?.currencyCode2?:"") }
-    var curName2State by remember { mutableStateOf(SettingsModel.currentCurrency?.currencyName2?:"") }
+    var curCode2State by remember { mutableStateOf(SettingsModel.currentCurrency?.currencyCode2 ?: "") }
+    var curName2State by remember { mutableStateOf(SettingsModel.currentCurrency?.currencyName2 ?: "") }
     var curName2DecState by remember {
         mutableStateOf(
             manageCurrenciesState.selectedCurrency.currencyName2Dec.toString()
@@ -94,7 +102,30 @@ fun ManageCurrenciesView(navController: NavController? = null, modifier: Modifie
         )
     }
 
+    var saveAndBack by remember { mutableStateOf(false) }
     fun handleBack() {
+        if (viewModel.currentCurrency != null && manageCurrenciesState.selectedCurrency.didChanged(
+                viewModel.currentCurrency!!
+            )
+        ) {
+            activityScopedViewModel.showPopup(true,
+                PopupModel().apply {
+                    onDismissRequest = {
+                        viewModel.currentCurrency = null
+                        handleBack()
+                    }
+                    onConfirmation = {
+                        saveAndBack = true
+                        viewModel.saveCurrency(manageCurrenciesState.selectedCurrency)
+                    }
+                    dialogTitle = "Alert."
+                    dialogText = "Do you want to save your changes"
+                    positiveBtnText = "Save"
+                    negativeBtnText = "Close"
+                    icon = Icons.Default.Info
+                })
+            return
+        }
         navController?.navigateUp()
     }
     BackHandler {
@@ -116,37 +147,53 @@ fun ManageCurrenciesView(navController: NavController? = null, modifier: Modifie
     LaunchedEffect(manageCurrenciesState.isLoading) {
         activityScopedViewModel.showLoading(manageCurrenciesState.isLoading)
     }
+    LaunchedEffect(manageCurrenciesState.isSaved) {
+        if (manageCurrenciesState.isSaved && saveAndBack) {
+            viewModel.currentCurrency = null
+            handleBack()
+        }
+    }
     GridPOSTheme {
-        Scaffold(containerColor = SettingsModel.backgroundColor, snackbarHost = {
-            SnackbarHost(hostState = snackbarHostState)
-        }, topBar = {
-            Surface(shadowElevation = 3.dp, color = SettingsModel.backgroundColor) {
-                TopAppBar(colors = TopAppBarDefaults.mediumTopAppBarColors(
-                    containerColor = SettingsModel.topBarColor
-                ), navigationIcon = {
-                    IconButton(onClick = { handleBack() }) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back", tint = SettingsModel.buttonColor
-                        )
-                    }
-                }, title = {
-                    Text(
-                        text = "Manage Currencies", color = SettingsModel.textColor,
-                        fontSize = 16.sp, textAlign = TextAlign.Center
-                    )
-                },
-                    actions = {
-                        IconButton(onClick = { navController?.navigate("SettingsView") }) {
-                            Icon(
-                                painterResource(R.drawable.ic_settings),
-                                contentDescription = "Back",
-                                tint = SettingsModel.buttonColor
+        Scaffold(containerColor = SettingsModel.backgroundColor,
+            snackbarHost = {
+                SnackbarHost(hostState = snackbarHostState)
+            },
+            topBar = {
+                Surface(
+                    shadowElevation = 3.dp,
+                    color = SettingsModel.backgroundColor
+                ) {
+                    TopAppBar(colors = TopAppBarDefaults.mediumTopAppBarColors(
+                        containerColor = SettingsModel.topBarColor
+                    ),
+                        navigationIcon = {
+                            IconButton(onClick = { handleBack() }) {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                    contentDescription = "Back",
+                                    tint = SettingsModel.buttonColor
+                                )
+                            }
+                        },
+                        title = {
+                            Text(
+                                text = "Manage Currencies",
+                                color = SettingsModel.textColor,
+                                fontSize = 16.sp,
+                                textAlign = TextAlign.Center
                             )
-                        }
-                    })
-            }
-        }) {
+                        },
+                        actions = {
+                            IconButton(onClick = { navController?.navigate("SettingsView") }) {
+                                Icon(
+                                    painterResource(R.drawable.ic_settings),
+                                    contentDescription = "Back",
+                                    tint = SettingsModel.buttonColor
+                                )
+                            }
+                        })
+                }
+            }) {
             Box(
                 modifier = modifier
                     .fillMaxSize()
@@ -154,7 +201,8 @@ fun ManageCurrenciesView(navController: NavController? = null, modifier: Modifie
                     .background(color = Color.Transparent)
             ) {
                 Box(
-                    modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.TopCenter
                 ) {
                     Column(
                         modifier = Modifier
@@ -175,7 +223,9 @@ fun ManageCurrenciesView(navController: NavController? = null, modifier: Modifie
                                 .weight(.3f)
                                 .padding(
                                     horizontal = 5.dp
-                                ), defaultValue = curCode1State, label = "Cur1 Code",
+                                ),
+                                defaultValue = curCode1State,
+                                label = "Cur1 Code",
                                 placeHolder = "Code",
                                 onAction = { curName1FocusRequester.requestFocus() }) { curCode1 ->
                                 curCode1State = curCode1
@@ -187,8 +237,11 @@ fun ManageCurrenciesView(navController: NavController? = null, modifier: Modifie
                                 .weight(.5f)
                                 .padding(
                                     horizontal = 5.dp
-                                ), defaultValue = curName1State, label = "Cur1 Name",
-                                placeHolder = "Name", focusRequester = curName1FocusRequester,
+                                ),
+                                defaultValue = curName1State,
+                                label = "Cur1 Name",
+                                placeHolder = "Name",
+                                focusRequester = curName1FocusRequester,
                                 onAction = { curName1DecFocusRequester.requestFocus() }) { curName1 ->
                                 curName1State = curName1
                                 manageCurrenciesState.selectedCurrency.currencyName1 = curName1
@@ -199,12 +252,15 @@ fun ManageCurrenciesView(navController: NavController? = null, modifier: Modifie
                                 .weight(.2f)
                                 .padding(
                                     horizontal = 5.dp
-                                ), defaultValue = curName1DecState,
-                                keyboardType = KeyboardType.Decimal, label = "Decimal",
+                                ),
+                                defaultValue = curName1DecState,
+                                keyboardType = KeyboardType.Decimal,
+                                label = "Decimal",
                                 focusRequester = curName1DecFocusRequester,
                                 onAction = { curCode2FocusRequester.requestFocus() }) { curName1Dec ->
                                 curName1DecState = Utils.getIntValue(
-                                    curName1Dec, curName1DecState
+                                    curName1Dec,
+                                    curName1DecState
                                 )
                                 manageCurrenciesState.selectedCurrency.currencyName1Dec = curName1DecState.toIntOrNull() ?: 0
                             }
@@ -222,8 +278,11 @@ fun ManageCurrenciesView(navController: NavController? = null, modifier: Modifie
                                 .weight(.3f)
                                 .padding(
                                     horizontal = 5.dp
-                                ), defaultValue = curCode2State, label = "Cur2 Code",
-                                placeHolder = "Code", focusRequester = curCode2FocusRequester,
+                                ),
+                                defaultValue = curCode2State,
+                                label = "Cur2 Code",
+                                placeHolder = "Code",
+                                focusRequester = curCode2FocusRequester,
                                 onAction = { curName2FocusRequester.requestFocus() }) { curCode2 ->
                                 curCode2State = curCode2
                                 manageCurrenciesState.selectedCurrency.currencyCode2 = curCode2
@@ -234,8 +293,11 @@ fun ManageCurrenciesView(navController: NavController? = null, modifier: Modifie
                                 .weight(.5f)
                                 .padding(
                                     horizontal = 5.dp
-                                ), defaultValue = curName2State, label = "Cur2 Name",
-                                placeHolder = "Name", focusRequester = curName2FocusRequester,
+                                ),
+                                defaultValue = curName2State,
+                                label = "Cur2 Name",
+                                placeHolder = "Name",
+                                focusRequester = curName2FocusRequester,
                                 onAction = { curName2DecFocusRequester.requestFocus() }) { curName2 ->
                                 curName2State = curName2
                                 manageCurrenciesState.selectedCurrency.currencyName2 = curName2
@@ -246,23 +308,32 @@ fun ManageCurrenciesView(navController: NavController? = null, modifier: Modifie
                                 .weight(.2f)
                                 .padding(
                                     horizontal = 5.dp
-                                ), defaultValue = curName2DecState,
-                                keyboardType = KeyboardType.Decimal, label = "Decimal",
+                                ),
+                                defaultValue = curName2DecState,
+                                keyboardType = KeyboardType.Decimal,
+                                label = "Decimal",
                                 focusRequester = curName2DecFocusRequester,
                                 onAction = { rateFocusRequester.requestFocus() }) { curName2Dec ->
                                 curName2DecState = Utils.getIntValue(
-                                    curName2Dec, curName2DecState
+                                    curName2Dec,
+                                    curName2DecState
                                 )
                                 manageCurrenciesState.selectedCurrency.currencyName2Dec = curName2DecState.toIntOrNull() ?: 0
                             }
                         }
 
-                        UITextField(modifier = Modifier.padding(10.dp), defaultValue = rateState,
-                            keyboardType = KeyboardType.Decimal, label = "Rate",
-                            placeHolder = "Enter Rate", focusRequester = rateFocusRequester,
+                        UITextField(modifier = Modifier.padding(10.dp),
+                            defaultValue = rateState,
+                            keyboardType = KeyboardType.Decimal,
+                            label = "Rate",
+                            placeHolder = "Enter Rate",
+                            focusRequester = rateFocusRequester,
                             imeAction = ImeAction.Done,
                             onAction = { keyboardController?.hide() }) { rateStr ->
-                            rateState = Utils.getDoubleValue(rateStr, rateState)
+                            rateState = Utils.getDoubleValue(
+                                rateStr,
+                                rateState
+                            )
                             manageCurrenciesState.selectedCurrency.currencyRate = rateState.toDoubleOrNull() ?: 0.0
                         }
 
@@ -277,7 +348,8 @@ fun ManageCurrenciesView(navController: NavController? = null, modifier: Modifie
                             UIButton(
                                 modifier = Modifier
                                     .weight(1f)
-                                    .padding(3.dp), text = "Save"
+                                    .padding(3.dp),
+                                text = "Save"
                             ) {
                                 viewModel.saveCurrency(manageCurrenciesState.selectedCurrency)
                             }
@@ -285,7 +357,8 @@ fun ManageCurrenciesView(navController: NavController? = null, modifier: Modifie
                             UIButton(
                                 modifier = Modifier
                                     .weight(1f)
-                                    .padding(3.dp), text = "Close"
+                                    .padding(3.dp),
+                                text = "Close"
                             ) {
                                 handleBack()
                             }
@@ -295,6 +368,7 @@ fun ManageCurrenciesView(navController: NavController? = null, modifier: Modifie
             }
         }
         if (manageCurrenciesState.fillFields) {
+            viewModel.currentCurrency = manageCurrenciesState.selectedCurrency
             curCode1State = manageCurrenciesState.selectedCurrency.currencyCode1 ?: ""
             curName1State = manageCurrenciesState.selectedCurrency.currencyName1 ?: ""
             curName1DecState = manageCurrenciesState.selectedCurrency.currencyName1Dec.toString()

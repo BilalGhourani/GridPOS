@@ -13,6 +13,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -47,6 +48,7 @@ import androidx.navigation.NavController
 import com.grid.pos.ActivityScopedViewModel
 import com.grid.pos.R
 import com.grid.pos.data.ThirdParty.ThirdParty
+import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.SearchableDropdownMenu
 import com.grid.pos.ui.common.UIButton
@@ -98,7 +100,31 @@ fun ManageThirdPartiesView(
     LaunchedEffect(manageThirdPartiesState.isLoading) {
         activityScopedViewModel.showLoading(manageThirdPartiesState.isLoading)
     }
+
+    var saveAndBack by remember { mutableStateOf(false) }
     fun handleBack() {
+        if (viewModel.currentThirdParty != null && manageThirdPartiesState.selectedThirdParty.didChanged(
+                viewModel.currentThirdParty!!
+            )
+        ) {
+            activityScopedViewModel.showPopup(true,
+                PopupModel().apply {
+                    onDismissRequest = {
+                        viewModel.currentThirdParty = null
+                        handleBack()
+                    }
+                    onConfirmation = {
+                        saveAndBack = true
+                        viewModel.saveThirdParty(manageThirdPartiesState.selectedThirdParty)
+                    }
+                    dialogTitle = "Alert."
+                    dialogText = "Do you want to save your changes"
+                    positiveBtnText = "Save"
+                    negativeBtnText = "Close"
+                    icon = Icons.Default.Info
+                })
+            return
+        }
         if (manageThirdPartiesState.thirdParties.isNotEmpty()) {
             activityScopedViewModel.thirdParties = manageThirdPartiesState.thirdParties
         }
@@ -171,6 +197,7 @@ fun ManageThirdPartiesView(
                             selectedId = manageThirdPartiesState.selectedThirdParty.thirdPartyId
                         ) { thirdParty ->
                             thirdParty as ThirdParty
+                            viewModel.currentThirdParty = thirdParty.copy()
                             manageThirdPartiesState.selectedThirdParty = thirdParty
                             nameState = thirdParty.thirdPartyName ?: ""
                             fnState = thirdParty.thirdPartyFn ?: ""
@@ -298,6 +325,10 @@ fun ManageThirdPartiesView(
             addressState = ""
             isDefaultState = false
             manageThirdPartiesState.clear = false
+            if(saveAndBack){
+                viewModel.currentThirdParty = null
+                handleBack()
+            }
         }
     }
 }

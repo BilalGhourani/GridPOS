@@ -104,6 +104,16 @@ data class User(
     }
 
     @Exclude
+    fun didChanged(user: User): Boolean {
+        return !user.userName.equals(userName)
+                || !user.userUsername.equals(userUsername)
+                || !user.userPassword.equals(userPassword)
+                || !user.userPosMode.equals(userPosMode)
+                || !user.userTableMode.equals(userTableMode)
+    }
+
+
+    @Exclude
     fun getMap(): Map<String, Any?> {
         return mapOf(
             "usr_name" to userName,

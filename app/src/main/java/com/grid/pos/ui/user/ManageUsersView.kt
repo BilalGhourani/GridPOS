@@ -13,6 +13,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -35,7 +36,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
@@ -53,6 +53,7 @@ import androidx.navigation.NavController
 import com.grid.pos.ActivityScopedViewModel
 import com.grid.pos.R
 import com.grid.pos.data.User.User
+import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.SearchableDropdownMenu
 import com.grid.pos.ui.common.UIButton
@@ -63,8 +64,7 @@ import com.grid.pos.utils.Extension.decryptCBC
 import kotlinx.coroutines.launch
 
 @OptIn(
-    ExperimentalMaterial3Api::class,
-    ExperimentalComposeUiApi::class
+    ExperimentalMaterial3Api::class
 )
 @Composable
 fun ManageUsersView(
@@ -106,7 +106,35 @@ fun ManageUsersView(
         activityScopedViewModel.showLoading(manageUsersState.isLoading)
     }
 
+    fun saveUser() {
+        manageUsersState.selectedUser.userPassword = passwordState
+        viewModel.saveUser(manageUsersState.selectedUser)
+    }
+
+    var saveAndBack by remember { mutableStateOf(false) }
     fun handleBack() {
+        if (viewModel.currentUser != null && manageUsersState.selectedUser.didChanged(
+                viewModel.currentUser!!
+            )
+        ) {
+            activityScopedViewModel.showPopup(true,
+                PopupModel().apply {
+                    onDismissRequest = {
+                        viewModel.currentUser = null
+                        handleBack()
+                    }
+                    onConfirmation = {
+                        saveAndBack = true
+                        saveUser()
+                    }
+                    dialogTitle = "Alert."
+                    dialogText = "Do you want to save your changes"
+                    positiveBtnText = "Save"
+                    negativeBtnText = "Close"
+                    icon = Icons.Default.Info
+                })
+            return
+        }
         if (manageUsersState.users.isNotEmpty()) {
             activityScopedViewModel.users = manageUsersState.users
         }
@@ -179,6 +207,7 @@ fun ManageUsersView(
                             selectedId = manageUsersState.selectedUser.userId
                         ) { selectedUser ->
                             selectedUser as User
+                            viewModel.currentUser = selectedUser.copy()
                             manageUsersState.selectedUser = selectedUser
                             nameState = selectedUser.userName ?: ""
                             usernameState = selectedUser.userUsername ?: ""
@@ -267,8 +296,7 @@ fun ManageUsersView(
                                     .padding(3.dp),
                                 text = "Save"
                             ) {
-                                manageUsersState.selectedUser.userPassword = passwordState
-                                viewModel.saveUser(manageUsersState.selectedUser)
+                                saveUser()
                             }
 
                             UIButton(
@@ -304,6 +332,10 @@ fun ManageUsersView(
             posModeState = true
             tableModeState = true
             manageUsersState.clear = false
+            if (saveAndBack) {
+                viewModel.currentUser = null
+                handleBack()
+            }
         }
     }
 }

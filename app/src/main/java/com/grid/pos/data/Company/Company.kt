@@ -193,19 +193,19 @@ data class Company(
 
     @Exclude
     fun didChanged(company: Company): Boolean {
-        return company.companyName.equals(companyName)
-                || company.companyPhone.equals(companyPhone)
-                || company.companyAddress.equals(companyAddress)
-                || company.companyCountry.equals(companyCountry)
-                || company.companyEmail.equals(companyEmail)
-                || company.companyWeb.equals(companyWeb)
-                || company.companyLogo.equals(companyLogo)
-                || company.companyTaxRegno.equals(companyTaxRegno)
-                || company.companyTax.equals(companyTax)
-                || company.companyTax1Regno.equals(companyTax1Regno)
-                || company.companyTax1.equals(companyTax1)
-                || company.companyTax2Regno.equals(companyTax2Regno)
-                || company.companyTax2.equals(companyTax2)
+        return !company.companyName.equals(companyName)
+                || !company.companyPhone.equals(companyPhone)
+                || !company.companyAddress.equals(companyAddress)
+                || !company.companyCountry.equals(companyCountry)
+                || !company.companyEmail.equals(companyEmail)
+                || !company.companyWeb.equals(companyWeb)
+                || !company.companyLogo.equals(companyLogo)
+                || !company.companyTaxRegno.equals(companyTaxRegno)
+                || !company.companyTax.equals(companyTax)
+                || !company.companyTax1Regno.equals(companyTax1Regno)
+                || !company.companyTax1.equals(companyTax1)
+                || !company.companyTax2Regno.equals(companyTax2Regno)
+                || !company.companyTax2.equals(companyTax2)
     }
 
     @Exclude

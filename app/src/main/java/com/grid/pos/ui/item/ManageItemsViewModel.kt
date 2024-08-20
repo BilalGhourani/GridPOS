@@ -28,6 +28,7 @@ class ManageItemsViewModel @Inject constructor(
 
     private val _manageItemsState = MutableStateFlow(ManageItemsState())
     val manageItemsState: MutableStateFlow<ManageItemsState> = _manageItemsState
+    var currentITem: Item? = null
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
@@ -68,6 +69,7 @@ class ManageItemsViewModel @Inject constructor(
             )
         }
     }
+
     private suspend fun fetchPrinters() {
         val listOfPrinters = posPrinterRepository.getAllPosPrinters()
         viewModelScope.launch(Dispatchers.Main) {
@@ -171,8 +173,7 @@ class ManageItemsViewModel @Inject constructor(
     }
 
     private suspend fun hasRelations(itemId: String): Boolean {
-        if (invoiceRepository.getOneInvoiceByItemID(itemId) != null)
-            return true
+        if (invoiceRepository.getOneInvoiceByItemID(itemId) != null) return true
 
         return false
     }

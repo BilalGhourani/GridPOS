@@ -22,6 +22,7 @@ class POSPrinterViewModel @Inject constructor(
 
     private val _posPrinterState = MutableStateFlow(POSPrinterState())
     val posPrinterState: MutableStateFlow<POSPrinterState> = _posPrinterState
+    var currentPrinter: PosPrinter? = null
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
@@ -135,8 +136,7 @@ class POSPrinterViewModel @Inject constructor(
     }
 
     private suspend fun hasRelations(printerId: String): Boolean {
-        if (itemRepository.getOneItemByPrinter(printerId) != null)
-            return true
+        if (itemRepository.getOneItemByPrinter(printerId) != null) return true
 
         return false
     }

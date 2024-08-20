@@ -16,6 +16,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -53,6 +54,7 @@ import com.grid.pos.ActivityScopedViewModel
 import com.grid.pos.R
 import com.grid.pos.data.Family.Family
 import com.grid.pos.interfaces.OnGalleryResult
+import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.SearchableDropdownMenu
 import com.grid.pos.ui.common.UIButton
@@ -111,7 +113,40 @@ fun ManageFamiliesView(
         activityScopedViewModel.showLoading(manageFamiliesState.isLoading)
     }
 
+    fun saveFamily() {
+        oldImage?.let { old ->
+            FileUtils.deleteFile(
+                context,
+                old
+            )
+        }
+        viewModel.saveFamily(manageFamiliesState.selectedFamily)
+    }
+
+    var saveAndBack by remember { mutableStateOf(false) }
     fun handleBack() {
+        if (viewModel.currentFamily != null && manageFamiliesState.selectedFamily.didChanged(
+                viewModel.currentFamily!!
+            )
+        ) {
+            activityScopedViewModel.showPopup(true,
+                PopupModel().apply {
+                    onDismissRequest = {
+                        viewModel.currentFamily = null
+                        handleBack()
+                    }
+                    onConfirmation = {
+                        saveAndBack = true
+                        saveFamily()
+                    }
+                    dialogTitle = "Alert."
+                    dialogText = "Do you want to save your changes"
+                    positiveBtnText = "Save"
+                    negativeBtnText = "Close"
+                    icon = Icons.Default.Info
+                })
+            return
+        }
         if (manageFamiliesState.families.isNotEmpty()) {
             activityScopedViewModel.families = manageFamiliesState.families
         }
@@ -184,6 +219,7 @@ fun ManageFamiliesView(
                             selectedId = manageFamiliesState.selectedFamily.familyId
                         ) { family ->
                             family as Family
+                            viewModel.currentFamily = family.copy()
                             manageFamiliesState.selectedFamily = family
                             nameState = family.familyName ?: ""
                             imageState = family.familyImage ?: ""
@@ -264,13 +300,7 @@ fun ManageFamiliesView(
                                     .padding(3.dp),
                                 text = "Save"
                             ) {
-                                oldImage?.let { old ->
-                                    FileUtils.deleteFile(
-                                        context,
-                                        old
-                                    )
-                                }
-                                viewModel.saveFamily(manageFamiliesState.selectedFamily)
+                                saveFamily()
                             }
 
                             UIButton(
@@ -314,6 +344,10 @@ fun ManageFamiliesView(
             nameState = ""
             imageState = ""
             manageFamiliesState.clear = false
+            if (saveAndBack) {
+                viewModel.currentFamily = null
+                handleBack()
+            }
         }
     }
 }

@@ -119,6 +119,16 @@ data class Currency(
     }
 
     @Exclude
+    fun didChanged(currency: Currency): Boolean {
+        return !currency.currencyCode1.equals(currencyCode1)
+                || !currency.currencyName1.equals(currencyName1)
+                || !currency.currencyName1Dec.equals(currencyName1Dec)
+                || !currency.currencyCode2.equals(currencyCode2)
+                || !currency.currencyName2.equals(currencyName2)
+                || !currency.currencyName2Dec.equals(currencyName2Dec)
+    }
+
+    @Exclude
     fun getMap(): Map<String, Any?> {
         return mapOf(
             "cur_cmp_id" to currencyCompId,

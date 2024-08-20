@@ -7,5 +7,6 @@ data class ManageCurrenciesState(
         var selectedCurrency: Currency = Currency(),
         val isLoading: Boolean = false,
         var fillFields: Boolean = false,
+        var isSaved: Boolean = false,
         val warning: Event<String>? = null,
     )

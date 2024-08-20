@@ -19,13 +19,14 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ManageUsersViewModel @Inject constructor(
-    private val userRepository: UserRepository,
-    private val thirdPartyRepository: ThirdPartyRepository,
-    private val invoiceHeaderRepository: InvoiceHeaderRepository
+        private val userRepository: UserRepository,
+        private val thirdPartyRepository: ThirdPartyRepository,
+        private val invoiceHeaderRepository: InvoiceHeaderRepository
 ) : ViewModel() {
 
     private val _manageUsersState = MutableStateFlow(ManageUsersState())
     val manageUsersState: MutableStateFlow<ManageUsersState> = _manageUsersState
+    var currentUser: User? = null
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
@@ -133,14 +134,11 @@ class ManageUsersViewModel @Inject constructor(
     }
 
     private suspend fun hasRelations(userID: String): Boolean {
-        if (userID.equals(SettingsModel.currentUserId))
-            return true
+        if (userID.equals(SettingsModel.currentUserId)) return true
 
-        if (thirdPartyRepository.getOneThirdPartyByUserID(userID) != null)
-            return true
+        if (thirdPartyRepository.getOneThirdPartyByUserID(userID) != null) return true
 
-        if (invoiceHeaderRepository.getOneInvoiceByUserID(userID) != null)
-            return true
+        if (invoiceHeaderRepository.getOneInvoiceByUserID(userID) != null) return true
 
         return false
     }

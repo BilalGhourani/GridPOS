@@ -9,6 +9,7 @@ import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.PropertyName
 import com.google.firebase.firestore.ServerTimestamp
 import com.grid.pos.data.DataModel
+import com.grid.pos.data.User.User
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.Utils
 import java.util.Date
@@ -217,6 +218,24 @@ data class Item(
         }
         itemCompId = SettingsModel.getCompanyID()
         itemUserStamp = SettingsModel.currentUserId
+    }
+
+    @Exclude
+    fun didChanged(item:Item): Boolean {
+        return !item.itemName.equals(itemName)
+                || !item.itemFaId.equals(itemFaId)
+                || !item.itemBarcode.equals(itemBarcode)
+                || !item.itemUnitPrice.equals(itemUnitPrice)
+                || !item.itemTax.equals(itemTax)
+                || !item.itemTax1.equals(itemTax1)
+                || !item.itemTax2.equals(itemTax2)
+                || !item.itemPrinter.equals(itemPrinter)
+                || !item.itemOpenQty.equals(itemOpenQty)
+                || !item.itemOpenCost.equals(itemOpenCost)
+                || !item.itemPos.equals(itemPos)
+                || !item.itemImage.equals(itemImage)
+                || !item.itemBtnColor.equals(itemBtnColor)
+                || !item.itemBtnTextColor.equals(itemBtnTextColor)
     }
 
     @Exclude

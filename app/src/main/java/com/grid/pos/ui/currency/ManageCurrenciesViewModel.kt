@@ -20,6 +20,7 @@ class ManageCurrenciesViewModel @Inject constructor(
 
     private val _manageCurrenciesState = MutableStateFlow(ManageCurrenciesState())
     val manageCurrenciesState: MutableStateFlow<ManageCurrenciesState> = _manageCurrenciesState
+    var currentCurrency: Currency? = null
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
@@ -71,6 +72,7 @@ class ManageCurrenciesViewModel @Inject constructor(
                     manageCurrenciesState.value = manageCurrenciesState.value.copy(
                         selectedCurrency = addedCurr,
                         isLoading = false,
+                        isSaved = true,
                         warning = Event("Currency saved successfully."),
                     )
                 }
@@ -83,6 +85,7 @@ class ManageCurrenciesViewModel @Inject constructor(
                     manageCurrenciesState.value = manageCurrenciesState.value.copy(
                         selectedCurrency = currency,
                         warning = Event("Currency saved successfully."),
+                        isSaved = true,
                         isLoading = false
                     )
                 }
