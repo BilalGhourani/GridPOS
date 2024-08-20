@@ -48,14 +48,11 @@ import com.grid.pos.ActivityScopedViewModel
 import com.grid.pos.R
 import com.grid.pos.data.ThirdParty.ThirdParty
 import com.grid.pos.model.SettingsModel
-import com.grid.pos.ui.common.LoadingIndicator
 import com.grid.pos.ui.common.SearchableDropdownMenu
 import com.grid.pos.ui.common.UIButton
 import com.grid.pos.ui.common.UISwitch
 import com.grid.pos.ui.common.UITextField
 import com.grid.pos.ui.theme.GridPOSTheme
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @OptIn(
@@ -96,6 +93,10 @@ fun ManageThirdPartiesView(
                 )
             }
         }
+    }
+
+    LaunchedEffect(manageThirdPartiesState.isLoading) {
+        activityScopedViewModel.showLoading(manageThirdPartiesState.isLoading)
     }
     fun handleBack() {
         if (manageThirdPartiesState.thirdParties.isNotEmpty()) {
@@ -287,9 +288,6 @@ fun ManageThirdPartiesView(
                 }
             }
         }
-        LoadingIndicator(
-            show = manageThirdPartiesState.isLoading
-        )
         if (manageThirdPartiesState.clear) {
             manageThirdPartiesState.selectedThirdParty = ThirdParty()
             manageThirdPartiesState.selectedThirdParty.thirdPartyCompId = ""

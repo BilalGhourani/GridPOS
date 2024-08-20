@@ -234,6 +234,12 @@ class ActivityScopedViewModel @Inject constructor(
         }
     }
 
+    fun showLoading(show:Boolean) {
+        viewModelScope.launch {
+            _mainActivityEvent.send(ActivityScopedUIEvent.ShowLoading(show))
+        }
+    }
+
     fun openAppStorageSettings() {
         viewModelScope.launch {
             _mainActivityEvent.send(ActivityScopedUIEvent.OpenAppSettings)

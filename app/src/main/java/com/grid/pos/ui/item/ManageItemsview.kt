@@ -66,7 +66,6 @@ import com.grid.pos.interfaces.OnBarcodeResult
 import com.grid.pos.interfaces.OnGalleryResult
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.ColorPickerPopup
-import com.grid.pos.ui.common.LoadingIndicator
 import com.grid.pos.ui.common.SearchableDropdownMenu
 import com.grid.pos.ui.common.UIButton
 import com.grid.pos.ui.common.UISwitch
@@ -159,6 +158,10 @@ fun ManageItemsView(
                 }
             }
         }
+    }
+
+    LaunchedEffect(manageItemsState.isLoading) {
+        activityScopedViewModel.showLoading(manageItemsState.isLoading)
     }
 
     fun handleBack() {
@@ -602,9 +605,6 @@ fun ManageItemsView(
                 }
             }
         }
-        LoadingIndicator(
-            show = manageItemsState.isLoading
-        )
 
         if (manageItemsState.clear) {
             manageItemsState.selectedItem = Item()

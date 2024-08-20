@@ -7,6 +7,7 @@ import com.grid.pos.interfaces.OnGalleryResult
 
 sealed class ActivityScopedUIEvent {
     data object Finish : ActivityScopedUIEvent()
+    class ShowLoading(var show:Boolean) : ActivityScopedUIEvent()
     data object OpenAppSettings : ActivityScopedUIEvent()
     class LaunchGalleryPicker(
         var mediaType: ActivityResultContracts.PickVisualMedia.VisualMediaType,

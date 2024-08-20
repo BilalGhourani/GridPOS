@@ -58,7 +58,8 @@ fun AuthNavGraph(
         }
         composable(route = "ManageCurrenciesView") {
             ManageCurrenciesView(
-                navController = navController
+                navController = navController,
+                activityScopedViewModel = activityViewModel
             )
         }
         composable(route = "ManageCompaniesView") {

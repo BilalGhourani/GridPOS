@@ -14,7 +14,6 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -71,13 +70,11 @@ import androidx.navigation.NavController
 import com.grid.pos.ActivityScopedViewModel
 import com.grid.pos.R
 import com.grid.pos.data.InvoiceHeader.InvoiceHeader
-import com.grid.pos.data.Item.Item
 import com.grid.pos.data.PosReceipt.PosReceipt
 import com.grid.pos.interfaces.OnBarcodeResult
 import com.grid.pos.model.InvoiceItemModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.model.UserType
-import com.grid.pos.ui.common.LoadingIndicator
 import com.grid.pos.ui.common.UIAlertDialog
 import com.grid.pos.ui.pos.components.AddInvoiceItemView
 import com.grid.pos.ui.pos.components.EditInvoiceItemView
@@ -87,7 +84,6 @@ import com.grid.pos.ui.pos.components.InvoiceFooterView
 import com.grid.pos.ui.pos.components.InvoiceHeaderDetails
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.utils.Utils
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @SuppressLint("MutableCollectionMutableState")
@@ -162,6 +158,10 @@ fun POSView(
             isAddItemBottomSheetVisible = false
             isPayBottomSheetVisible = false
         }
+    }
+
+    LaunchedEffect(posState.isLoading) {
+        activityViewModel.showLoading(posState.isLoading)
     }
 
     val scope = rememberCoroutineScope()
@@ -700,9 +700,6 @@ fun POSView(
                 icon = Icons.Default.Info
             )
         }
-        LoadingIndicator(
-            show = posState.isLoading
-        )
     }
 }
 

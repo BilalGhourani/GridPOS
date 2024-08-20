@@ -48,7 +48,6 @@ import com.grid.pos.R
 import com.grid.pos.data.InvoiceHeader.InvoiceHeader
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.model.UserType
-import com.grid.pos.ui.common.LoadingIndicator
 import com.grid.pos.ui.common.UIAlertDialog
 import com.grid.pos.ui.common.UIButton
 import com.grid.pos.ui.common.UITextField
@@ -117,6 +116,10 @@ fun TablesView(
                 )
             }
         }
+    }
+
+    LaunchedEffect(tablesState.isLoading) {
+        activityScopedViewModel.showLoading(tablesState.isLoading)
     }
 
     LaunchedEffect(tablesState.step) {
@@ -283,9 +286,6 @@ fun TablesView(
             )
         }
 
-        LoadingIndicator(
-            show = tablesState.isLoading
-        )
 
         if (tablesState.clear) {
             tablesState.invoiceHeader = InvoiceHeader()

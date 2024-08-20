@@ -54,15 +54,12 @@ import com.grid.pos.ActivityScopedViewModel
 import com.grid.pos.R
 import com.grid.pos.data.User.User
 import com.grid.pos.model.SettingsModel
-import com.grid.pos.ui.common.LoadingIndicator
 import com.grid.pos.ui.common.SearchableDropdownMenu
 import com.grid.pos.ui.common.UIButton
 import com.grid.pos.ui.common.UITextField
 import com.grid.pos.ui.common.UiVerticalCheckBox
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.utils.Extension.decryptCBC
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @OptIn(
@@ -103,6 +100,10 @@ fun ManageUsersView(
                 )
             }
         }
+    }
+
+    LaunchedEffect(manageUsersState.isLoading) {
+        activityScopedViewModel.showLoading(manageUsersState.isLoading)
     }
 
     fun handleBack() {
@@ -293,9 +294,6 @@ fun ManageUsersView(
                 }
             }
         }
-        LoadingIndicator(
-            show = manageUsersState.isLoading
-        )
 
         if (manageUsersState.clear) {
             manageUsersState.selectedUser = User()

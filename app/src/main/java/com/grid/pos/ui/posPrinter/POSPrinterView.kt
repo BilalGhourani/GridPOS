@@ -48,7 +48,6 @@ import com.grid.pos.ActivityScopedViewModel
 import com.grid.pos.R
 import com.grid.pos.data.PosPrinter.PosPrinter
 import com.grid.pos.model.SettingsModel
-import com.grid.pos.ui.common.LoadingIndicator
 import com.grid.pos.ui.common.SearchableDropdownMenu
 import com.grid.pos.ui.common.UIButton
 import com.grid.pos.ui.common.UITextField
@@ -96,6 +95,10 @@ fun POSPrinterView(
                 )
             }
         }
+    }
+
+    LaunchedEffect(posPrinterState.isLoading) {
+        activityScopedViewModel.showLoading(posPrinterState.isLoading)
     }
 
     fun handleBack() {
@@ -259,9 +262,6 @@ fun POSPrinterView(
                 }
             }
         }
-        LoadingIndicator(
-            show = posPrinterState.isLoading
-        )
         if (posPrinterState.clear) {
             posPrinterState.selectedPrinter = PosPrinter()
             posPrinterState.selectedPrinter.posPrinterCompId = ""

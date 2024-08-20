@@ -30,7 +30,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -50,20 +49,19 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.grid.pos.ActivityScopedViewModel
 import com.grid.pos.R
 import com.grid.pos.model.SettingsModel
-import com.grid.pos.ui.common.LoadingIndicator
 import com.grid.pos.ui.common.UIButton
 import com.grid.pos.ui.common.UITextField
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.utils.Utils
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
 fun ManageCurrenciesView(navController: NavController? = null, modifier: Modifier = Modifier,
+                         activityScopedViewModel: ActivityScopedViewModel,
                          viewModel: ManageCurrenciesViewModel = hiltViewModel()) {
     val manageCurrenciesState: ManageCurrenciesState by viewModel.manageCurrenciesState.collectAsState(
         ManageCurrenciesState()
@@ -114,6 +112,9 @@ fun ManageCurrenciesView(navController: NavController? = null, modifier: Modifie
                 )
             }
         }
+    }
+    LaunchedEffect(manageCurrenciesState.isLoading) {
+        activityScopedViewModel.showLoading(manageCurrenciesState.isLoading)
     }
     GridPOSTheme {
         Scaffold(containerColor = SettingsModel.backgroundColor, snackbarHost = {
@@ -293,9 +294,6 @@ fun ManageCurrenciesView(navController: NavController? = null, modifier: Modifie
                 }
             }
         }
-        LoadingIndicator(
-            show = manageCurrenciesState.isLoading
-        )
         if (manageCurrenciesState.fillFields) {
             curCode1State = manageCurrenciesState.selectedCurrency.currencyCode1 ?: ""
             curName1State = manageCurrenciesState.selectedCurrency.currencyName1 ?: ""

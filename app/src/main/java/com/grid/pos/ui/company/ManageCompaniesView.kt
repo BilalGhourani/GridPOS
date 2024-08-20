@@ -56,7 +56,6 @@ import com.grid.pos.R
 import com.grid.pos.data.Company.Company
 import com.grid.pos.interfaces.OnGalleryResult
 import com.grid.pos.model.SettingsModel
-import com.grid.pos.ui.common.LoadingIndicator
 import com.grid.pos.ui.common.SearchableDropdownMenu
 import com.grid.pos.ui.common.UIButton
 import com.grid.pos.ui.common.UISwitch
@@ -135,6 +134,10 @@ fun ManageCompaniesView(
                 }
             }
         }
+    }
+
+    LaunchedEffect(manageCompaniesState.isLoading) {
+        activityScopedViewModel.showLoading(manageCompaniesState.isLoading)
     }
 
     fun handleBack() {
@@ -542,9 +545,6 @@ fun ManageCompaniesView(
                 }
             }
         }
-        LoadingIndicator(
-            show = manageCompaniesState.isLoading
-        )
         if (manageCompaniesState.clear) {
             manageCompaniesState.selectedCompany = Company()
             manageCompaniesState.selectedCompany.companyCurCodeTax = ""

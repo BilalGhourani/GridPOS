@@ -66,7 +66,6 @@ import com.grid.pos.data.Company.Company
 import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.ColorPickerPopup
-import com.grid.pos.ui.common.LoadingIndicator
 import com.grid.pos.ui.common.SearchableDropdownMenu
 import com.grid.pos.ui.common.UIButton
 import com.grid.pos.ui.common.UISwitch
@@ -161,6 +160,9 @@ fun SettingsView(
                 localCompanyName = selected?.companyName ?: ""
             }
         }
+    }
+    LaunchedEffect(isLoading) {
+        activityScopedViewModel.showLoading(isLoading)
     }
 
     GridPOSTheme {
@@ -927,9 +929,6 @@ fun SettingsView(
 
             }
         }
-        LoadingIndicator(
-            show = isLoading
-        )
     }
 }
 

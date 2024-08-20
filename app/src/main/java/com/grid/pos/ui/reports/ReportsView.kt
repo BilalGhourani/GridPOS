@@ -77,7 +77,6 @@ import com.grid.pos.ActivityScopedViewModel
 import com.grid.pos.BuildConfig
 import com.grid.pos.R
 import com.grid.pos.model.SettingsModel
-import com.grid.pos.ui.common.LoadingIndicator
 import com.grid.pos.ui.common.UIAlertDialog
 import com.grid.pos.ui.common.UIButton
 import com.grid.pos.ui.common.UITextField
@@ -210,6 +209,10 @@ fun ReportsView(
             isBottomSheetVisible = true
             reportsState.isDone = false
         }
+    }
+
+    LaunchedEffect(reportsState.isLoading) {
+        activityViewModel.showLoading(reportsState.isLoading)
     }
 
     fun handleBack() {
@@ -634,9 +637,6 @@ fun ReportsView(
                 height = 230.dp
             )
         }
-        LoadingIndicator(
-            show = reportsState.isLoading
-        )
 
         if (reportsState.clear) {
             reportsState.clear = false

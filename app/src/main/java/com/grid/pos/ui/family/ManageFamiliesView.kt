@@ -54,7 +54,6 @@ import com.grid.pos.R
 import com.grid.pos.data.Family.Family
 import com.grid.pos.interfaces.OnGalleryResult
 import com.grid.pos.model.SettingsModel
-import com.grid.pos.ui.common.LoadingIndicator
 import com.grid.pos.ui.common.SearchableDropdownMenu
 import com.grid.pos.ui.common.UIButton
 import com.grid.pos.ui.common.UITextField
@@ -106,6 +105,10 @@ fun ManageFamiliesView(
                 }
             }
         }
+    }
+
+    LaunchedEffect(manageFamiliesState.isLoading) {
+        activityScopedViewModel.showLoading(manageFamiliesState.isLoading)
     }
 
     fun handleBack() {
@@ -305,9 +308,6 @@ fun ManageFamiliesView(
                 }
             }
         }
-        LoadingIndicator(
-            show = manageFamiliesState.isLoading
-        )
         if (manageFamiliesState.clear) {
             manageFamiliesState.selectedFamily = Family()
             manageFamiliesState.selectedFamily.familyCompanyId = ""

@@ -23,8 +23,7 @@ import javax.inject.Inject
 class LoginViewModel @Inject constructor(
         private val checkLicenseUseCase: CheckLicenseUseCase,
         private val repository: UserRepository,
-        private val companyRepository: CompanyRepository,
-        private val invoiceHeaderRepository: InvoiceHeaderRepository,
+        private val companyRepository: CompanyRepository
 ) : ViewModel() {
 
     private val _usersState = MutableStateFlow(LoginState())

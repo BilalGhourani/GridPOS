@@ -22,6 +22,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
@@ -34,6 +38,7 @@ import com.grid.pos.interfaces.OnBarcodeResult
 import com.grid.pos.interfaces.OnGalleryResult
 import com.grid.pos.model.ORIENTATION_TYPE
 import com.grid.pos.model.SettingsModel
+import com.grid.pos.ui.common.LoadingIndicator
 import com.grid.pos.ui.navigation.AuthNavGraph
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.ui.theme.White
@@ -68,14 +73,14 @@ class MainActivity : ComponentActivity() {
         }
 
         override fun onCapabilitiesChanged(
-                network: Network,
-                networkCapabilities: NetworkCapabilities
+            network: Network,
+            networkCapabilities: NetworkCapabilities
         ) {
         }
 
         override fun onLinkPropertiesChanged(
-                network: Network,
-                linkProperties: LinkProperties
+            network: Network,
+            linkProperties: LinkProperties
         ) {
         }
     }
@@ -113,7 +118,7 @@ class MainActivity : ComponentActivity() {
             if (result.data?.extras?.containsKey("SCANNING_BARCODE") == true) {
                 val barcodes = result.data?.extras?.getStringArrayList(
                     "SCAN_RESULTS"
-                )?: listOf()
+                ) ?: listOf()
                 mOnBarcodeResult?.OnBarcodeResult(barcodes)
             } else {
                 val data = result.data?.data
@@ -121,6 +126,7 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+    private val loadingState = mutableStateOf(false)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -141,6 +147,9 @@ class MainActivity : ComponentActivity() {
                         activityViewModel = activityViewModel,
                         startDestination = "LoginView" /*if (SettingsModel.currentUserId.isNullOrEmpty()) "LoginView" else "HomeView"*/
                     )
+                    LoadingIndicator(
+                        show = loadingState.value
+                    )
                 }
             }
         }
@@ -148,8 +157,8 @@ class MainActivity : ComponentActivity() {
     }
 
     fun launchActivityForResult(
-            i: Intent,
-            activityResult: OnActivityResult
+        i: Intent,
+        activityResult: OnActivityResult
     ) {
         try {
             mActivityResultCallBack = activityResult
@@ -163,8 +172,8 @@ class MainActivity : ComponentActivity() {
     }
 
     fun launchGalleryPicker(
-            mediaType: ActivityResultContracts.PickVisualMedia.VisualMediaType = ActivityResultContracts.PickVisualMedia.ImageOnly,
-            galleryResult: OnGalleryResult
+        mediaType: ActivityResultContracts.PickVisualMedia.VisualMediaType = ActivityResultContracts.PickVisualMedia.ImageOnly,
+        galleryResult: OnGalleryResult
     ) {
         try {
             mGalleryCallBack = galleryResult
@@ -204,6 +213,10 @@ class MainActivity : ComponentActivity() {
             when (sharedEvent) {
                 is ActivityScopedUIEvent.Finish -> {
                     this@MainActivity.finish()
+                }
+
+                is ActivityScopedUIEvent.ShowLoading -> {
+                    loadingState.value = sharedEvent.show
                 }
 
                 is ActivityScopedUIEvent.OpenAppSettings -> {
@@ -344,15 +357,15 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun launchCameraActivity(
-            justOnce: Boolean,
-            delegate: OnBarcodeResult
+        justOnce: Boolean,
+        delegate: OnBarcodeResult
     ) {
         mOnBarcodeResult = delegate
         val intent = Intent(
             this,
             BarcodeScannerActivity::class.java
         )
-        intent.putExtra("justOnce",justOnce)
+        intent.putExtra("justOnce", justOnce)
         startForResult.launch(intent)
     }
 }

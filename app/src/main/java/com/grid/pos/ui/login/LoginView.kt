@@ -53,7 +53,6 @@ import androidx.navigation.NavController
 import com.grid.pos.ActivityScopedViewModel
 import com.grid.pos.R
 import com.grid.pos.model.SettingsModel
-import com.grid.pos.ui.common.LoadingIndicator
 import com.grid.pos.ui.common.UIButton
 import com.grid.pos.ui.common.UITextField
 import com.grid.pos.ui.theme.GridPOSTheme
@@ -66,10 +65,10 @@ import kotlinx.coroutines.withContext
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginView(
-        modifier: Modifier = Modifier,
-        navController: NavController? = null,
-        activityScopedViewModel: ActivityScopedViewModel,
-        viewModel: LoginViewModel = hiltViewModel()
+    modifier: Modifier = Modifier,
+    navController: NavController? = null,
+    activityScopedViewModel: ActivityScopedViewModel,
+    viewModel: LoginViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
     val loginState by viewModel.usersState.collectAsState()
@@ -102,6 +101,9 @@ fun LoginView(
                 }
             }
         }
+    }
+    LaunchedEffect(loginState.isLoading) {
+        activityScopedViewModel.showLoading(loginState.isLoading)
     }
     LaunchedEffect(loginState.needLicense) {
         if (loginState.needLicense) {
@@ -237,8 +239,5 @@ fun LoginView(
                 }
             }
         }
-        LoadingIndicator(
-            show = loginState.isLoading
-        )
     }
 }

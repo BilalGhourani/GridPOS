@@ -1,6 +1,5 @@
 package com.grid.pos.ui.settings
 
-import android.app.backup.BackupManager
 import android.net.Uri
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
@@ -45,11 +44,9 @@ import androidx.navigation.NavController
 import com.grid.pos.ActivityScopedViewModel
 import com.grid.pos.App
 import com.grid.pos.R
-import com.grid.pos.di.AppModule
 import com.grid.pos.interfaces.OnGalleryResult
 import com.grid.pos.model.Event
 import com.grid.pos.model.SettingsModel
-import com.grid.pos.ui.common.LoadingIndicator
 import com.grid.pos.ui.common.UIAlertDialog
 import com.grid.pos.ui.common.UIButton
 import com.grid.pos.ui.theme.GridPOSTheme
@@ -131,6 +128,9 @@ fun BackupView(
                 }
             }
         }
+    }
+    LaunchedEffect(isLoading) {
+        activityViewModel.showLoading(isLoading)
     }
     BackHandler {
         navController?.navigateUp()
@@ -239,8 +239,5 @@ fun BackupView(
                 height = if (shouldKill || isRestoreWarningPopup) 250.dp else 200.dp
             )
         }
-        LoadingIndicator(
-            show = isLoading
-        )
     }
 }
