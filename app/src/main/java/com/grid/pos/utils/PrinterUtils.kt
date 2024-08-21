@@ -242,7 +242,7 @@ object PrinterUtils {
                     "<td>${
                         String.format(
                             "%.2f",
-                            item.invoice.getNetAmount()
+                            item.invoice.getAmount()
                         )
                     }</td>"
                 )
