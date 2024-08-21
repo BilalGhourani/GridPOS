@@ -262,6 +262,7 @@ fun POSPrinterView(
                                     .padding(3.dp),
                                 text = "Save"
                             ) {
+                                viewModel.currentPrinter = null
                                 viewModel.savePrinter(posPrinterState.selectedPrinter)
                             }
 

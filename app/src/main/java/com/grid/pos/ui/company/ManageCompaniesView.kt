@@ -542,6 +542,7 @@ fun ManageCompaniesView(
                                     .padding(3.dp),
                                 text = "Save"
                             ) {
+                                viewModel.currentCompany = null
                                 saveCompany()
                             }
 

@@ -598,6 +598,7 @@ fun ManageItemsView(
                                     .padding(3.dp),
                                 text = "Save"
                             ) {
+                                viewModel.currentITem = null
                                 saveItem()
                             }
 

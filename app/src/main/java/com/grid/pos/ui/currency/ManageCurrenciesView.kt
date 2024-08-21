@@ -351,6 +351,7 @@ fun ManageCurrenciesView(
                                     .padding(3.dp),
                                 text = "Save"
                             ) {
+                                viewModel.currentCurrency = null
                                 viewModel.saveCurrency(manageCurrenciesState.selectedCurrency)
                             }
 

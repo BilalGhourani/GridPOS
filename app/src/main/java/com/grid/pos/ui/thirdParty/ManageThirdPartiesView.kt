@@ -290,6 +290,7 @@ fun ManageThirdPartiesView(
                                     .padding(3.dp),
                                 text = "Save"
                             ) {
+                                viewModel.currentThirdParty = null
                                 viewModel.saveThirdParty(manageThirdPartiesState.selectedThirdParty)
                             }
 

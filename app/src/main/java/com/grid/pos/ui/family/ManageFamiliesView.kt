@@ -300,6 +300,7 @@ fun ManageFamiliesView(
                                     .padding(3.dp),
                                 text = "Save"
                             ) {
+                                viewModel.currentFamily = null
                                 saveFamily()
                             }
 

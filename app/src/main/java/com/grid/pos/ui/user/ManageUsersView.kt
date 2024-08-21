@@ -296,6 +296,7 @@ fun ManageUsersView(
                                     .padding(3.dp),
                                 text = "Save"
                             ) {
+                                viewModel.currentUser = null
                                 saveUser()
                             }
 
