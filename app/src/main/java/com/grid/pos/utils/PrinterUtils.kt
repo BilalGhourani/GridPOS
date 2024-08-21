@@ -416,7 +416,7 @@ object PrinterUtils {
             "<td class=\"text2\">${
                 String.format(
                     "%.2f",
-                    Utils.getDoubleOrZero(invoiceHeader.invoiceHeadGrossAmount)
+                    Utils.getDoubleOrZero(invoiceHeader.invoiceHeadTotal)
                 )
             }</td>"
         )
@@ -428,7 +428,7 @@ object PrinterUtils {
             "<td class=\"text2\">${
                 String.format(
                     "%.2f",
-                    Utils.getDoubleOrZero(invoiceHeader.invoiceHeadGrossAmount) * (currency?.currencyRate ?: 1.0)
+                    Utils.getDoubleOrZero(invoiceHeader.invoiceHeadTotal1)
                 )
             }</td>"
         )
@@ -794,7 +794,7 @@ object PrinterUtils {
             ("Total ${currency?.currencyCode1 ?: ""}: \t ${
                 String.format(
                     "%.2f",
-                    Utils.getDoubleOrZero(invoiceHeader.invoiceHeadGrossAmount)
+                    Utils.getDoubleOrZero(invoiceHeader.invoiceHeadTotal)
                 )
             } \n").toByteArray()
         )
@@ -803,7 +803,7 @@ object PrinterUtils {
             ("Total ${currency?.currencyCode2 ?: ""}: \t ${
                 String.format(
                     "%.2f",
-                    Utils.getDoubleOrZero(invoiceHeader.invoiceHeadGrossAmount) * (currency?.currencyRate ?: 1.0)
+                    Utils.getDoubleOrZero(invoiceHeader.invoiceHeadTotal1)
                 )
             } \n").toByteArray()
         )

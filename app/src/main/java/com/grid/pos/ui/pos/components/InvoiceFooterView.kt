@@ -68,11 +68,11 @@ fun InvoiceFooterView(
     )*/
     val totalState = String.format(
         "%.${curr1Decimal}f",
-        invoiceHeader.invoiceHeadGrossAmount
+        invoiceHeader.invoiceHeadTotal
     )
     val totalCur2State = String.format(
         "%.${curr2Decimal}f",
-        (invoiceHeader.invoiceHeadGrossAmount).times(currency.currencyRate)
+        invoiceHeader.invoiceHeadTotal1
     )
 
     val tableNoState = invoiceHeader.invoiceHeadTaName ?: ""

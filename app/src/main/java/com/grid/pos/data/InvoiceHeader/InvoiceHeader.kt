@@ -257,9 +257,9 @@ data class InvoiceHeader(
         val transNo = if (invoiceHeadTtCode.isNullOrEmpty()) "" else "Trans No: $invoiceHeadTtCode$invoiceHeadTransNo $invoiceHeadOrderNo"
         val total = String.format(
             "%.${SettingsModel.currentCurrency?.currencyName1Dec ?: 1}f",
-            invoiceHeadGrossAmount
+            invoiceHeadTotal
         )
-        return "Total: $total $table $transNo"
+        return "$total $table $transNo"
     }
 
     @Exclude
