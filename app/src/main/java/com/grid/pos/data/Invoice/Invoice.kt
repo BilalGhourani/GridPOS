@@ -254,6 +254,12 @@ data class Invoice(
     }
 
     @Exclude
+    fun getIncludedTaxPerc(amount: Double = getAmount()): Double {
+        val netAmount = amount.div(1 + (getTax().div(100.0)))
+        return amount - netAmount
+    }
+
+    @Exclude
     fun getTax1(): Double {
         if (invoiceTax1.isNaN()) {
             return 0.0
@@ -264,6 +270,13 @@ data class Invoice(
     fun getTax1Value(amount: Double = getAmount()): Double {
         return amount.times(getTax1().div(100.0))
     }
+
+    @Exclude
+    fun getIncludedTax1Perc(amount: Double = getAmount()): Double {
+        val netAmount = amount.div(1 + (getTax1().div(100.0)))
+        return amount - netAmount
+    }
+
 
     @Exclude
     fun getTax2(): Double {
@@ -277,6 +290,13 @@ data class Invoice(
     fun getTax2Value(amount: Double = getAmount()): Double {
         return amount.times(getTax2().div(100.0))
     }
+
+    @Exclude
+    fun getIncludedTax2Perc(amount: Double = getAmount()): Double {
+        val netAmount = amount.div(1 + (getTax2().div(100.0)))
+        return amount - netAmount
+    }
+
 
     @Exclude
     fun getInvoiceCostOrZero(): Double {
