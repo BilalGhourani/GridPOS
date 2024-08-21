@@ -3,11 +3,8 @@ package com.grid.pos.utils
 import android.content.Context
 import android.graphics.Bitmap
 import android.net.Uri
-import android.print.PrintAttributes
-import android.print.PrintManager
 import android.util.Base64
 import android.util.Log
-import android.webkit.WebView
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.WriterException
 import com.google.zxing.common.BitMatrix
@@ -21,8 +18,6 @@ import com.grid.pos.data.User.User
 import com.grid.pos.model.InvoiceItemModel
 import com.grid.pos.model.SettingsModel
 import com.journeyapps.barcodescanner.BarcodeEncoder
-import kotlinx.coroutines.async
-import kotlinx.coroutines.runBlocking
 import java.io.ByteArrayOutputStream
 import java.io.OutputStream
 import java.net.Socket
@@ -94,43 +89,6 @@ object PrinterUtils {
         0x42
     ) // Example for ESC/POS
 
-    fun printWebPage(
-            webView: WebView?,
-            context: Context
-    ) {
-        if (webView != null) {
-            val printManager = context.getSystemService(Context.PRINT_SERVICE) as PrintManager
-            val jobName = "webpage_" + System.currentTimeMillis()
-            val printAdapter = webView.createPrintDocumentAdapter(jobName)
-
-            // Define Print Attributes (optional)
-            val printAttributes = PrintAttributes.Builder()
-                .setMediaSize(PrintAttributes.MediaSize.ISO_A4/*getMediaSize()*/)
-                .setMinMargins(PrintAttributes.Margins.NO_MARGINS).build()
-            printManager.print(
-                jobName,
-                printAdapter,
-                printAttributes
-            )
-        }
-    }
-
-    private fun getMediaSize(): PrintAttributes.MediaSize {
-        // Define the width and height in inches
-        val widthInches = 3 // Typical width for POS receipt paper
-        val heightInches = 11 // You can adjust this based on your needs
-
-        // Convert inches to micrometers (1 inch = 25400 micrometers)
-        val widthMicrometers = widthInches * 25400
-        val heightMicrometers = heightInches * 25400
-
-        return PrintAttributes.MediaSize(
-            "POS Receipt",
-            "POS Receipt",
-            widthMicrometers,
-            heightMicrometers
-        )
-    }
 
     fun getInvoiceReceiptHtmlContent(
             context: Context,
@@ -312,90 +270,117 @@ object PrinterUtils {
         invAmountVal.append("</tr>")
 
         var showTotalTax = false
-        if (SettingsModel.showTax && invoiceHeader.invoiceHeadTaxAmt > 0) {
-            showTotalTax = true
-            invAmountVal.append("<tr>")
-            invAmountVal.append(
-                "<td>Tax(${
-                    String.format(
-                        "%.0f",
-                        Utils.getDoubleOrZero(company?.companyTax)
-                    )
-                }%):</td> "
-            )
-            invAmountVal.append(
-                "<td>${
-                    String.format(
-                        "%.2f",
-                        Utils.getDoubleOrZero(invoiceHeader.invoiceHeadTaxAmt)
-                    )
-                }</td>"
-            )
-            invAmountVal.append("</tr>")
-            result = result.replace(
-                "{taxregno}",
-                "<div class=\"text1\">Tax &nbsp; No:${company?.companyTaxRegno ?: ""}</div>"
-            )
+        if (SettingsModel.showTax) {
+            if (invoiceHeader.invoiceHeadTaxAmt > 0) {
+                showTotalTax = true
+                invAmountVal.append("<tr>")
+                invAmountVal.append(
+                    "<td>Tax(${
+                        String.format(
+                            "%.0f",
+                            Utils.getDoubleOrZero(company?.companyTax)
+                        )
+                    }%):</td> "
+                )
+                invAmountVal.append(
+                    "<td>${
+                        String.format(
+                            "%.2f",
+                            Utils.getDoubleOrZero(invoiceHeader.invoiceHeadTaxAmt)
+                        )
+                    }</td>"
+                )
+                invAmountVal.append("</tr>")
+            }
+            result = if (!company?.companyTaxRegno.isNullOrEmpty()) {
+                result.replace(
+                    "{taxregno}",
+                    "<div class=\"text1\">Tax &nbsp; No:${company?.companyTaxRegno ?: ""}</div>"
+                )
+            } else {
+                result.replace(
+                    "{taxregno}",
+                    ""
+                )
+            }
         } else {
             result = result.replace(
                 "{taxregno}",
                 ""
             )
         }
-        if (SettingsModel.showTax1 && invoiceHeader.invoiceHeadTax1Amt > 0) {
-            showTotalTax = true
-            invAmountVal.append("<tr>")
-            invAmountVal.append(
-                "<td>Tax1(${
-                    String.format(
-                        "%.0f",
-                        Utils.getDoubleOrZero(company?.companyTax1)
-                    )
-                }%):</td> "
-            )
-            invAmountVal.append(
-                "<td>${
-                    String.format(
-                        "%.2f",
-                        Utils.getDoubleOrZero(invoiceHeader.invoiceHeadTax1Amt)
-                    )
-                }</td>"
-            )
-            invAmountVal.append("</tr>")
-            result = result.replace(
-                "{taxregno1}",
-                "<div class=\"text1\">Tax1 No:${company?.companyTax1Regno ?: ""}</div>"
-            )
+        if (SettingsModel.showTax1) {
+            if (invoiceHeader.invoiceHeadTax1Amt > 0) {
+                showTotalTax = true
+                invAmountVal.append("<tr>")
+                invAmountVal.append(
+                    "<td>Tax1(${
+                        String.format(
+                            "%.0f",
+                            Utils.getDoubleOrZero(company?.companyTax1)
+                        )
+                    }%):</td> "
+                )
+                invAmountVal.append(
+                    "<td>${
+                        String.format(
+                            "%.2f",
+                            Utils.getDoubleOrZero(invoiceHeader.invoiceHeadTax1Amt)
+                        )
+                    }</td>"
+                )
+                invAmountVal.append("</tr>")
+            }
+            result = if (!company?.companyTax1Regno.isNullOrEmpty()) {
+                result.replace(
+                    "{taxregno1}",
+                    "<div class=\"text1\">Tax1 No:${company?.companyTax1Regno ?: ""}</div>"
+                )
+            } else {
+                result.replace(
+                    "{taxregno1}",
+                    ""
+                )
+            }
         } else {
             result = result.replace(
                 "{taxregno1}",
                 ""
             )
         }
-        if (SettingsModel.showTax2 && invoiceHeader.invoiceHeadTax2Amt > 0) {
-            showTotalTax = true
-            invAmountVal.append("<tr>")
-            invAmountVal.append(
-                "<td>Tax2(${
-                    String.format(
-                        "%.0f",
-                        Utils.getDoubleOrZero(company?.companyTax2)
-                    )
-                }%):</td> "
-            )
-            invAmountVal.append(
-                "<td>${
-                    String.format(
-                        "%.2f",
-                        Utils.getDoubleOrZero(invoiceHeader.invoiceHeadTax2Amt)
-                    )
-                }</td>"
-            )
-            invAmountVal.append("</tr>")
-            result = result.replace(
-                "{taxregno2}",
-                "<div class=\"text1\">Tax2 No:${company?.companyTax2Regno ?: ""}</div>"
-            )
+        if (SettingsModel.showTax2) {
+            if (invoiceHeader.invoiceHeadTax2Amt > 0) {
+                showTotalTax = true
+                invAmountVal.append("<tr>")
+                invAmountVal.append(
+                    "<td>Tax2(${
+                        String.format(
+                            "%.0f",
+                            Utils.getDoubleOrZero(company?.companyTax2)
+                        )
+                    }%):</td> "
+                )
+                invAmountVal.append(
+                    "<td>${
+                        String.format(
+                            "%.2f",
+                            Utils.getDoubleOrZero(invoiceHeader.invoiceHeadTax2Amt)
+                        )
+                    }</td>"
+                )
+                invAmountVal.append("</tr>")
+            }
+            result = if (!company?.companyTax2Regno.isNullOrEmpty()) {
+                result.replace(
+                    "{taxregno2}",
+                    "<div class=\"text1\">Tax2 No:${company?.companyTax2Regno ?: ""}</div>"
+                )
+            } else {
+                result.replace(
+                    "{taxregno2}",
+                    ""
+                )
+            }
         } else {
             result = result.replace(
                 "{taxregno2}",
@@ -456,8 +441,8 @@ object PrinterUtils {
 
         val posReceiptValues = StringBuilder("")
 
-        val pr_cash = Utils.getDoubleOrZero(posReceipt.posReceiptCash)
-        if (pr_cash > 0.0) {
+        val prCash = Utils.getDoubleOrZero(posReceipt.posReceiptCash)
+        if (prCash > 0.0) {
             posReceiptValues.append("<tr>")
             posReceiptValues.append("<td>Cash</td> ")
             posReceiptValues.append("<td>${currency?.currencyCode1 ?: ""}</td>")
@@ -465,14 +450,14 @@ object PrinterUtils {
                 "<td>${
                     String.format(
                         "%.2f",
-                        pr_cash
+                        prCash
                     )
                 }</td>"
             )
             posReceiptValues.append("</tr>")
         }
-        val pr_cashs = Utils.getDoubleOrZero(posReceipt.posReceiptCashs)
-        if (pr_cashs > 0.0) {
+        val prCashs = Utils.getDoubleOrZero(posReceipt.posReceiptCashs)
+        if (prCashs > 0.0) {
             posReceiptValues.append("<tr>")
             posReceiptValues.append("<td>Cash</td> ")
             posReceiptValues.append("<td>${currency?.currencyCode2 ?: ""}</td>")
@@ -480,15 +465,15 @@ object PrinterUtils {
                 "<td>${
                     String.format(
                         "%.2f",
-                        pr_cashs
+                        prCashs
                     )
                 }</td>"
             )
             posReceiptValues.append("</tr>")
         }
 
-        val pr_credit = Utils.getDoubleOrZero(posReceipt.posReceiptCredit)
-        if (pr_credit > 0.0) {
+        val prCredit = Utils.getDoubleOrZero(posReceipt.posReceiptCredit)
+        if (prCredit > 0.0) {
             posReceiptValues.append("<tr>")
             posReceiptValues.append("<td>Credit</td> ")
             posReceiptValues.append("<td>${currency?.currencyCode1 ?: ""}</td>")
@@ -496,14 +481,14 @@ object PrinterUtils {
                 "<td>${
                     String.format(
                         "%.2f",
-                        pr_credit
+                        prCredit
                     )
                 }</td>"
             )
             posReceiptValues.append("</tr>")
         }
-        val pr_credits = Utils.getDoubleOrZero(posReceipt.posReceiptCredits)
-        if (pr_credits > 0.0) {
+        val prCredits = Utils.getDoubleOrZero(posReceipt.posReceiptCredits)
+        if (prCredits > 0.0) {
             posReceiptValues.append("<tr>")
             posReceiptValues.append("<td>Credit</td> ")
             posReceiptValues.append("<td>${currency?.currencyCode2 ?: ""}</td>")
@@ -511,15 +496,15 @@ object PrinterUtils {
                 "<td>${
                     String.format(
                         "%.2f",
-                        pr_credits
+                        prCredits
                     )
                 }</td>"
             )
             posReceiptValues.append("</tr>")
         }
 
-        val pr_debit = Utils.getDoubleOrZero(posReceipt.posReceiptDebit)
-        if (pr_debit > 0.0) {
+        val prDebit = Utils.getDoubleOrZero(posReceipt.posReceiptDebit)
+        if (prDebit > 0.0) {
             posReceiptValues.append("<tr>")
             posReceiptValues.append("<td>Debit</td> ")
             posReceiptValues.append("<td>${currency?.currencyCode1 ?: ""}</td>")
@@ -527,14 +512,14 @@ object PrinterUtils {
                 "<td>${
                     String.format(
                         "%.2f",
-                        pr_debit
+                        prDebit
                     )
                 }</td>"
             )
             posReceiptValues.append("</tr>")
         }
-        val pr_debits = Utils.getDoubleOrZero(posReceipt.posReceiptDebits)
-        if (pr_debits > 0.0) {
+        val prDebits = Utils.getDoubleOrZero(posReceipt.posReceiptDebits)
+        if (prDebits > 0.0) {
             posReceiptValues.append("<tr>")
             posReceiptValues.append("<td>Debit</td> ")
             posReceiptValues.append("<td>${currency?.currencyCode2 ?: ""}</td>")
@@ -542,7 +527,7 @@ object PrinterUtils {
                 "<td>${
                     String.format(
                         "%.2f",
-                        pr_debits
+                        prDebits
                     )
                 }</td>"
             )
@@ -568,13 +553,13 @@ object PrinterUtils {
         )
 
 
-        if (!invoiceHeader.invoiceHeadNote.isNullOrEmpty()) {
-            result = result.replace(
+        result = if (!invoiceHeader.invoiceHeadNote.isNullOrEmpty()) {
+            result.replace(
                 "{invoicenotevalue}",
                 "<hr class=\"dashed\">\n" + "    <div style=\"width: 100%;display: flex; align-items: start; justify-content: start; flex-direction: column;\">\n" + "        <div class=\"text1\">${invoiceHeader.invoiceHeadNote}</div>\n" + "    </div>"
             )
         } else {
-            result = result.replace(
+            result.replace(
                 "{invoicenotevalue}",
                 ""
             )
@@ -592,7 +577,7 @@ object PrinterUtils {
         return result
     }
 
-    fun printInvoiceReceipt(
+    private fun printInvoiceReceipt(
             context: Context,
             outputStream: OutputStream,
             invoiceHeader: InvoiceHeader,
@@ -715,7 +700,7 @@ object PrinterUtils {
                 )
                 val price = String.format(
                     "%.2f",
-                    item.invoice.getNetAmount()
+                    item.invoice.getAmount()
                 )
                 outputStream.write(ALIGN_LEFT)
                 outputStream.write(("$name\t$qty\t$up\t$price\n").toByteArray())
@@ -739,9 +724,9 @@ object PrinterUtils {
             "printInvoiceReceipt",
             "8"
         )
-        var showTax = false
+        var showTotalTax = false
         if (SettingsModel.showTax && invoiceHeader.invoiceHeadTaxAmt > 0) {
-            showTax = true
+            showTotalTax = true
             outputStream.write(
                 ("Tax(${
                     String.format(
@@ -756,9 +741,9 @@ object PrinterUtils {
                 } \n").toByteArray()
             )
         }
-        var showTax1 = false
+
         if (SettingsModel.showTax1 && invoiceHeader.invoiceHeadTax1Amt > 0) {
-            showTax1 = true
+            showTotalTax = true
             outputStream.write(
                 ("Tax1(${
                     String.format(
@@ -773,9 +758,9 @@ object PrinterUtils {
                 } \n").toByteArray()
             )
         }
-        var showTax2 = false
+
         if (SettingsModel.showTax2 && invoiceHeader.invoiceHeadTax2Amt > 0) {
-            showTax2 = true
+            showTotalTax = true
             outputStream.write(
                 ("Tax2(${
                     String.format(
@@ -790,7 +775,7 @@ object PrinterUtils {
                 } \n").toByteArray()
             )
         }
-        if (showTax || showTax1 || showTax2) {
+        if (showTotalTax) {
             outputStream.write(
                 ("T.Tax: \t ${
                     String.format(
@@ -839,70 +824,70 @@ object PrinterUtils {
         outputStream.write("------------------------------\n".toByteArray())
         outputStream.write(ALIGN_LEFT)
 
-        val pr_cash = Utils.getDoubleOrZero(posReceipt.posReceiptCash)
-        if (pr_cash > 0.0) {
+        val prCash = Utils.getDoubleOrZero(posReceipt.posReceiptCash)
+        if (prCash > 0.0) {
             outputStream.write(
                 ("Cash \t ${currency?.currencyCode1 ?: ""} \t ${
                     String.format(
                         "%.2f",
-                        pr_cash
+                        prCash
                     )
                 } \n").toByteArray()
             )
         }
-        val pr_cashs = Utils.getDoubleOrZero(posReceipt.posReceiptCashs)
-        if (pr_cashs > 0.0) {
+        val prCashs = Utils.getDoubleOrZero(posReceipt.posReceiptCashs)
+        if (prCashs > 0.0) {
             outputStream.write(
                 ("Cash \t ${currency?.currencyCode2 ?: ""} \t ${
                     String.format(
                         "%.2f",
-                        pr_cashs
+                        prCashs
                     )
                 } \n").toByteArray()
             )
         }
 
-        val pr_credit = Utils.getDoubleOrZero(posReceipt.posReceiptCredit)
-        if (pr_credit > 0.0) {
+        val prCredit = Utils.getDoubleOrZero(posReceipt.posReceiptCredit)
+        if (prCredit > 0.0) {
             outputStream.write(
                 ("Credit \t ${currency?.currencyCode1 ?: ""} \t ${
                     String.format(
                         "%.2f",
-                        pr_credit
+                        prCredit
                     )
                 } \n").toByteArray()
             )
         }
-        val pr_credits = Utils.getDoubleOrZero(posReceipt.posReceiptCredits)
-        if (pr_credits > 0.0) {
+        val prCredits = Utils.getDoubleOrZero(posReceipt.posReceiptCredits)
+        if (prCredits > 0.0) {
             outputStream.write(
                 ("Credit \t ${currency?.currencyCode2 ?: ""} \t ${
                     String.format(
                         "%.2f",
-                        pr_credits
+                        prCredits
                     )
                 } \n").toByteArray()
             )
         }
 
-        val pr_debit = Utils.getDoubleOrZero(posReceipt.posReceiptDebit)
-        if (pr_debit > 0.0) {
+        val prDebit = Utils.getDoubleOrZero(posReceipt.posReceiptDebit)
+        if (prDebit > 0.0) {
             outputStream.write(
                 ("Debit \t ${currency?.currencyCode1 ?: ""} \t ${
                     String.format(
                         "%.2f",
-                        pr_debit
+                        prDebit
                     )
                 } \n").toByteArray()
             )
         }
-        val pr_debits = Utils.getDoubleOrZero(posReceipt.posReceiptDebits)
-        if (pr_debits > 0.0) {
+        val prDebits = Utils.getDoubleOrZero(posReceipt.posReceiptDebits)
+        if (prDebits > 0.0) {
             outputStream.write(
                 ("Debit \t ${currency?.currencyCode2 ?: ""} \t ${
                     String.format(
                         "%.2f",
-                        pr_debits
+                        prDebits
                     )
                 } \n").toByteArray()
             )
@@ -939,19 +924,19 @@ object PrinterUtils {
             "14"
         )
         var displayTaxDashed = false
-        if (showTax && !company?.companyTaxRegno.isNullOrEmpty()) {
+        if (SettingsModel.showTax && !company?.companyTaxRegno.isNullOrEmpty()) {
             displayTaxDashed = true
             outputStream.write(
                 ("Tax \t No: \t ${company?.companyTax1Regno} \n").toByteArray()
             )
         }
-        if (showTax1 && !company?.companyTax1Regno.isNullOrEmpty()) {
+        if (SettingsModel.showTax1 && !company?.companyTax1Regno.isNullOrEmpty()) {
             displayTaxDashed = true
             outputStream.write(
                 ("Tax1 \t No: \t ${company?.companyTax1Regno} \n").toByteArray()
             )
         }
-        if (showTax2 && !company?.companyTax2Regno.isNullOrEmpty()) {
+        if (SettingsModel.showTax2 && !company?.companyTax2Regno.isNullOrEmpty()) {
             displayTaxDashed = true
             outputStream.write(
                 ("Tax2 \t No: \t ${company?.companyTax2Regno} \n").toByteArray()
@@ -966,7 +951,7 @@ object PrinterUtils {
             "printInvoiceReceipt",
             "15"
         )
-        if (false && !invoiceHeader.invoiceHeadTransNo.isNullOrEmpty()) {/* //GS H = HRI position
+        /*if (!invoiceHeader.invoiceHeadTransNo.isNullOrEmpty()) {*//* //GS H = HRI position
             outputStream.write(0x1D);
             outputStream.write("H".toByteArray());
             outputStream.write(2); //0=no print, 1=above, 2=below, 3=above & below
@@ -992,7 +977,7 @@ object PrinterUtils {
             outputStream.write(1);//m = barcode type 0-6
             outputStream.write(invoiceHeader.invoiceHeadTransNo?.length?:0); //length of encoded string
             outputStream.write(invoiceHeader.invoiceHeadTransNo?.toByteArray());//d1-dk
-            outputStream.write(0);//print barcode*/
+            outputStream.write(0);//print barcode*//*
             // Generate barcode image from barcode data and type
             val barcodeImage = generateBarcode(invoiceHeader.invoiceHeadTransNo!!)
             if (barcodeImage != null) {
@@ -1004,7 +989,7 @@ object PrinterUtils {
                 outputStream.write(barcodeByteArray)
                 outputStream.write(IMAGE_END_COMMAND)
             }
-        }
+        }*/
         Log.d(
             "printInvoiceReceipt",
             "16"
@@ -1019,7 +1004,7 @@ object PrinterUtils {
         )
     }
 
-    fun convertToByteArray(image: Bitmap): ByteArray {
+    private fun convertToByteArray(image: Bitmap): ByteArray {
         val outputStream = ByteArrayOutputStream()
         val width = image.width
         val height = image.height
@@ -1089,7 +1074,7 @@ object PrinterUtils {
         outputStream.flush()
     }
 
-    suspend fun print(
+    fun print(
             context: Context,
             invoiceHeader: InvoiceHeader,
             invoiceItemModels: MutableList<InvoiceItemModel>,
@@ -1137,7 +1122,7 @@ object PrinterUtils {
         }
     }
 
-    fun connectToPrinter(
+    private fun connectToPrinter(
             context: Context,
             printerName: String? = null,
             printerIP: String = "",
@@ -1171,7 +1156,7 @@ object PrinterUtils {
         }
     }
 
-    fun generateBarcode(data: String): Bitmap? {
+    private fun generateBarcode(data: String): Bitmap? {
         val barcodeEncoder = BarcodeEncoder()
         return try {
             val bitMatrix: BitMatrix = barcodeEncoder.encode(
@@ -1187,7 +1172,7 @@ object PrinterUtils {
         }
     }
 
-    fun convertBitmapToBase64(bitmap: Bitmap?): String? {
+    private fun convertBitmapToBase64(bitmap: Bitmap?): String? {
         if (bitmap == null) {
             return null
         }

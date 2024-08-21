@@ -102,9 +102,18 @@ fun UIWebView(
                     text = "Print"
                 ) {
                     activityViewModel.print(context)
-                    /*PrinterUtils.printWebPage(
-                        webView,
-                        context
+                    /*val printManager = context.getSystemService(Context.PRINT_SERVICE) as PrintManager
+                    val jobName = "webpage_" + System.currentTimeMillis()
+                    val printAdapter = webView.createPrintDocumentAdapter(jobName)
+
+                    // Define Print Attributes (optional)
+                    val printAttributes = PrintAttributes.Builder()
+                        .setMediaSize(PrintAttributes.MediaSize.ISO_A4*//*getMediaSize()*//*)
+                        .setMinMargins(PrintAttributes.Margins.NO_MARGINS).build()
+                    printManager.print(
+                        jobName,
+                        printAdapter,
+                        printAttributes
                     )*/
                 }
             }

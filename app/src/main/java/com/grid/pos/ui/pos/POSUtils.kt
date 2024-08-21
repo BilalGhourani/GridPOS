@@ -48,7 +48,7 @@ object POSUtils {
             invoiceList: MutableList<InvoiceItemModel>,
             invHeader: InvoiceHeader
     ): InvoiceHeader {
-        val isUpWithTax = SettingsModel.currentCompany?.companyUpWithTax?:false
+        val isUpWithTax = SettingsModel.currentCompany?.companyUpWithTax ?: false
         val currency = SettingsModel.currentCurrency ?: Currency()
         var totalTax = 0.0
         var totalTax1 = 0.0
@@ -56,7 +56,7 @@ object POSUtils {
         var totalAmount = 0.0
         var netTotal = 0.0
         invoiceList.forEach {
-            if(isUpWithTax){
+            if (isUpWithTax) {
                 val amount = it.invoice.getAmount()
                 val tax = it.invoice.getIncludedTaxPerc(amount)
                 val tax1 = it.invoice.getIncludedTax1Perc(amount)
@@ -66,7 +66,7 @@ object POSUtils {
                 totalTax2 += tax2
                 totalAmount += amount
                 netTotal += (amount - it.invoice.getDiscountAmount())
-            }else {
+            } else {
                 val amount = it.invoice.getAmount()
                 val tax = it.invoice.getTaxValue(amount)
                 val tax1 = it.invoice.getTax1Value(amount)
@@ -75,7 +75,7 @@ object POSUtils {
                 totalTax1 += tax1
                 totalTax2 += tax2
                 totalAmount += amount
-                netTotal += it.invoice.getNetAmount()
+                netTotal += (amount - it.invoice.getDiscountAmount() + tax + tax1 + tax2)
             }
         }
 
