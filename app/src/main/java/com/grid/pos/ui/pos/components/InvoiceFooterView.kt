@@ -221,6 +221,8 @@ fun InvoiceFooterView(
                 defaultThirdParty?.let {
                     clientState = it.thirdPartyName ?: ""
                     onThirdPartySelected.invoke(it)
+                }?:run {
+                    clientState = ""
                 }
                 SearchableDropdownMenu(items = thirdParties.toMutableList(),
                     selectedId = defaultThirdParty?.thirdPartyId,
