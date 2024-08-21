@@ -1,6 +1,8 @@
 package com.grid.pos.ui.pos.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -337,6 +339,8 @@ fun InvoiceCashView(
                 ),
                 keyboardActions = KeyboardActions(onNext = { cashTotal2FocusRequester.requestFocus() }),
                 colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedContainerColor = Color.LightGray,
+                    unfocusedLabelColor = SettingsModel.textColor,
                     unfocusedBorderColor = Color.Black,
                     focusedBorderColor = SettingsModel.buttonColor,
                     focusedTextColor = Color.Black,
@@ -368,6 +372,8 @@ fun InvoiceCashView(
                 ),
                 keyboardActions = KeyboardActions(onNext = { creditCurr1PaidFocusRequester.requestFocus() }),
                 colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedContainerColor = Color.LightGray,
+                    unfocusedLabelColor = SettingsModel.textColor,
                     unfocusedBorderColor = Color.Black,
                     focusedBorderColor = SettingsModel.buttonColor,
                     focusedTextColor = Color.Black,
@@ -474,6 +480,8 @@ fun InvoiceCashView(
                 ),
                 keyboardActions = KeyboardActions(onNext = { creditCurr2TotalFocusRequester.requestFocus() }),
                 colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedContainerColor = Color.LightGray,
+                    unfocusedLabelColor = SettingsModel.textColor,
                     unfocusedBorderColor = Color.Black,
                     focusedBorderColor = SettingsModel.buttonColor,
                     focusedTextColor = Color.Black,
@@ -505,6 +513,8 @@ fun InvoiceCashView(
                 ),
                 keyboardActions = KeyboardActions(onNext = { debitCurr1PaidFocusRequester.requestFocus() }),
                 colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedContainerColor = Color.LightGray,
+                    unfocusedLabelColor = SettingsModel.textColor,
                     unfocusedBorderColor = Color.Black,
                     focusedBorderColor = SettingsModel.buttonColor,
                     focusedTextColor = Color.Black,
@@ -611,6 +621,8 @@ fun InvoiceCashView(
                 ),
                 keyboardActions = KeyboardActions(onNext = { debitCurr2TotalFocusRequester.requestFocus() }),
                 colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedContainerColor = Color.LightGray,
+                    unfocusedLabelColor = SettingsModel.textColor,
                     unfocusedBorderColor = Color.Black,
                     focusedBorderColor = SettingsModel.buttonColor,
                     focusedTextColor = Color.Black,
@@ -642,6 +654,8 @@ fun InvoiceCashView(
                 ),
                 keyboardActions = KeyboardActions(onDone = { keyboardController?.hide() }),
                 colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedContainerColor = Color.LightGray,
+                    unfocusedLabelColor = SettingsModel.textColor,
                     unfocusedBorderColor = Color.Black,
                     focusedBorderColor = SettingsModel.buttonColor,
                     focusedTextColor = Color.Black,
