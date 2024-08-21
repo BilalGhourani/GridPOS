@@ -43,14 +43,14 @@ fun InvoiceItemCell(
     Row(
         modifier = modifier
             .fillMaxSize()
-            .pointerInput(Unit) {
+            /*.pointerInput(Unit) {
                 detectTapGestures(onDoubleTap = {
                     onEdit.invoke(index)
                 },
                     onLongPress = {
                         onEdit.invoke(index)
                     })
-            },
+            }*/,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         val textModifier = if (isLandscape) {
