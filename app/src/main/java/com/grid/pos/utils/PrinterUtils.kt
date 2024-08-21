@@ -311,7 +311,9 @@ object PrinterUtils {
         )
         invAmountVal.append("</tr>")
 
+        var showTotalTax = false
         if (SettingsModel.showTax && invoiceHeader.invoiceHeadTaxAmt > 0) {
+            showTotalTax = true
             invAmountVal.append("<tr>")
             invAmountVal.append(
                 "<td>Tax(${
@@ -341,6 +343,7 @@ object PrinterUtils {
             )
         }
         if (SettingsModel.showTax1 && invoiceHeader.invoiceHeadTax1Amt > 0) {
+            showTotalTax = true
             invAmountVal.append("<tr>")
             invAmountVal.append(
                 "<td>Tax1(${
@@ -370,6 +373,7 @@ object PrinterUtils {
             )
         }
         if (SettingsModel.showTax2 && invoiceHeader.invoiceHeadTax2Amt > 0) {
+            showTotalTax = true
             invAmountVal.append("<tr>")
             invAmountVal.append(
                 "<td>Tax2(${
@@ -398,7 +402,7 @@ object PrinterUtils {
                 ""
             )
         }
-        if (SettingsModel.showTax2 || SettingsModel.showTax2 || SettingsModel.showTax2) {
+        if (showTotalTax) {
             invAmountVal.append("<tr>")
             invAmountVal.append("<td>T.Tax:</td> ")
             invAmountVal.append(
@@ -735,8 +739,9 @@ object PrinterUtils {
             "printInvoiceReceipt",
             "8"
         )
-
-        if (SettingsModel.showTax) {
+        var showTax = false
+        if (SettingsModel.showTax && invoiceHeader.invoiceHeadTaxAmt > 0) {
+            showTax = true
             outputStream.write(
                 ("Tax(${
                     String.format(
@@ -751,7 +756,9 @@ object PrinterUtils {
                 } \n").toByteArray()
             )
         }
-        if (SettingsModel.showTax1) {
+        var showTax1 = false
+        if (SettingsModel.showTax1 && invoiceHeader.invoiceHeadTax1Amt > 0) {
+            showTax1 = true
             outputStream.write(
                 ("Tax1(${
                     String.format(
@@ -766,7 +773,9 @@ object PrinterUtils {
                 } \n").toByteArray()
             )
         }
-        if (SettingsModel.showTax2) {
+        var showTax2 = false
+        if (SettingsModel.showTax2 && invoiceHeader.invoiceHeadTax2Amt > 0) {
+            showTax2 = true
             outputStream.write(
                 ("Tax2(${
                     String.format(
@@ -781,7 +790,7 @@ object PrinterUtils {
                 } \n").toByteArray()
             )
         }
-        if (SettingsModel.showTax2 || SettingsModel.showTax2 || SettingsModel.showTax2) {
+        if (showTax || showTax1 || showTax2) {
             outputStream.write(
                 ("T.Tax: \t ${
                     String.format(
@@ -930,19 +939,19 @@ object PrinterUtils {
             "14"
         )
         var displayTaxDashed = false
-        if (SettingsModel.showTax && !company?.companyTaxRegno.isNullOrEmpty()) {
+        if (showTax && !company?.companyTaxRegno.isNullOrEmpty()) {
             displayTaxDashed = true
             outputStream.write(
                 ("Tax \t No: \t ${company?.companyTax1Regno} \n").toByteArray()
             )
         }
-        if (SettingsModel.showTax1 && !company?.companyTax1Regno.isNullOrEmpty()) {
+        if (showTax1 && !company?.companyTax1Regno.isNullOrEmpty()) {
             displayTaxDashed = true
             outputStream.write(
                 ("Tax1 \t No: \t ${company?.companyTax1Regno} \n").toByteArray()
             )
         }
-        if (SettingsModel.showTax2 && !company?.companyTax2Regno.isNullOrEmpty()) {
+        if (showTax2 && !company?.companyTax2Regno.isNullOrEmpty()) {
             displayTaxDashed = true
             outputStream.write(
                 ("Tax2 \t No: \t ${company?.companyTax2Regno} \n").toByteArray()
