@@ -11,7 +11,8 @@ object POSUtils {
 
     fun getInvoiceTransactionNo(oldInvoiceTransNo: String?): String {
         val currentYear = Utils.getCurrentYear()
-        var invNoStr = oldInvoiceTransNo.takeIf { !it.isNullOrEmpty() } ?: (currentYear + "000000000")
+        var invNoStr =
+            oldInvoiceTransNo.takeIf { !it.isNullOrEmpty() } ?: (currentYear + "000000000")
         if (invNoStr.length > 4 && !invNoStr.substring(
                 0,
                 4
@@ -45,8 +46,8 @@ object POSUtils {
     }
 
     fun refreshValues(
-            invoiceList: MutableList<InvoiceItemModel>,
-            invHeader: InvoiceHeader
+        invoiceList: MutableList<InvoiceItemModel>,
+        invHeader: InvoiceHeader
     ): InvoiceHeader {
         val isUpWithTax = SettingsModel.currentCompany?.companyUpWithTax ?: false
         val currency = SettingsModel.currentCurrency ?: Currency()
@@ -57,32 +58,38 @@ object POSUtils {
         var netTotal = 0.0
         invoiceList.forEach {
             if (isUpWithTax) {
-                val amount = it.invoice.getAmount()
+                val amount = it.invoice.getAmount() - it.invoice.getDiscountAmount()
                 totalTax += it.invoice.getIncludedTaxPerc(amount)
                 totalTax1 += it.invoice.getIncludedTax1Perc(amount)
                 totalTax2 += it.invoice.getIncludedTax2Perc(amount)
-                grossAmount += amount - it.invoice.getDiscountAmount()
-                netTotal += (amount - it.invoice.getDiscountAmount())
+                grossAmount += amount
+                netTotal += amount
             } else {
-                val amount = it.invoice.getAmount()
+                val amount = it.invoice.getAmount() - it.invoice.getDiscountAmount()
                 val tax = it.invoice.getTaxValue(amount)
                 val tax1 = it.invoice.getTax1Value(amount)
                 val tax2 = it.invoice.getTax2Value(amount)
                 totalTax += tax
                 totalTax1 += tax1
                 totalTax2 += tax2
-                grossAmount += amount - it.invoice.getDiscountAmount()
-                netTotal += (amount - it.invoice.getDiscountAmount() + tax + tax1 + tax2)
+                grossAmount += amount
+                netTotal += amount
             }
         }
 
+        val taxDivider = 1 - (invHeader.invoiceHeadDiscount * 0.01)
+        totalTax = totalTax.times(taxDivider)
+        totalTax1 = totalTax1.times(taxDivider)
+        totalTax2 = totalTax2.times(taxDivider)
         invHeader.invoiceHeadTaxAmt = totalTax
         invHeader.invoiceHeadTax1Amt = totalTax1
         invHeader.invoiceHeadTax2Amt = totalTax2
         invHeader.invoiceHeadTotalTax = totalTax + totalTax1 + totalTax2
         invHeader.invoiceHeadGrossAmount = grossAmount
-
-        val discountAmount = netTotal.times(invHeader.invoiceHeadDiscount.div(100.0))
+        if (!isUpWithTax) {
+            netTotal += totalTax + totalTax1 + totalTax2
+        }
+        val discountAmount = grossAmount.times(invHeader.invoiceHeadDiscount * 0.01)
         invHeader.invoiceHeadDiscountAmount = discountAmount
         val finalTotal = netTotal - discountAmount
         invHeader.invoiceHeadTotalNetAmount = finalTotal
@@ -93,6 +100,7 @@ object POSUtils {
     }
 
     fun getInvoiceType(invoiceHeader: InvoiceHeader): String {
-        return invoiceHeader.invoiceHeadTtCode ?: SettingsModel.getTransactionType(invoiceHeader.invoiceHeadTotal)
+        return invoiceHeader.invoiceHeadTtCode
+            ?: SettingsModel.getTransactionType(invoiceHeader.invoiceHeadTotal)
     }
 }

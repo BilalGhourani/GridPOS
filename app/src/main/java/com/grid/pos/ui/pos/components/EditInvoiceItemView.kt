@@ -151,7 +151,7 @@ fun EditInvoiceItemView(
         val itemDiscountAmount = rDiscount2.toDoubleOrNull() ?: 0.0
         val itemPrice = ((price.toDoubleOrNull() ?: 0.0).times(qty))
         if (isPercentageChanged) {
-            val disc = itemPrice.times(itemDiscount.div(100.0))
+            val disc = itemPrice.times(itemDiscount.times(0.01))
             rDiscount2 = String.format(
                 "%.${curr2Decimal}f",
                 disc
@@ -177,8 +177,8 @@ fun EditInvoiceItemView(
         )
         if (isPercentageChanged) {
             invoiceHeader.invoiceHeadDiscount = discount1.toDoubleOrNull() ?: 0.0
-            invoiceHeader.invoiceHeadDiscountAmount = invoiceHeader.invoiceHeadTotal.times(
-                invoiceHeader.invoiceHeadDiscount.div(100.0)
+            invoiceHeader.invoiceHeadDiscountAmount = invoiceHeader.invoiceHeadGrossAmount.times(
+                invoiceHeader.invoiceHeadDiscount.times(0.01)
             )
             discount2 = if (invoiceHeader.invoiceHeadDiscountAmount == 0.0) "" else String.format(
                 "%.${curr2Decimal}f",
@@ -186,7 +186,7 @@ fun EditInvoiceItemView(
             )
         } else {
             invoiceHeader.invoiceHeadDiscountAmount = discount2.toDoubleOrNull() ?: 0.0
-            invoiceHeader.invoiceHeadDiscount = (invoiceHeader.invoiceHeadDiscountAmount.div(invoiceHeader.invoiceHeadTotal)).times(
+            invoiceHeader.invoiceHeadDiscount = (invoiceHeader.invoiceHeadDiscountAmount.div(invoiceHeader.invoiceHeadGrossAmount)).times(
                 100.0
             )
             discount1 = String.format(
