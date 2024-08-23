@@ -1,87 +1,17 @@
 <!DOCTYPE html>
-<html>
-
-<style>
-    .separator {
-        margin: 5px;
-        width: 100%;
-        border-bottom: 1px dotted #00000056
-    }
-
-    .spacer {
-        height: 10px;
-        width: 100%;
-    }
-
-    .name {
-        width: 90px;
-        background-color: lightgrey;
-        margin-top: 3px;
-        font-weight: bold;
-    }
-
-    .value {
-        margin-left: 10px;
-        width: 110px;
-    }
-
-    .b1 {
-        background-color: lightgrey;
-        width: 50px;
-        margin-top: 3px;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .b2 {
-        width: 50px;
-        margin-top: 3px;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .title {
-       font-weight: bold;
-       font-size: 20px;
-    }
-
-    hr.dashed {
-        border-top: 1px dashed; #000;
-        width: 100%;
-    }
-
-    .text1 {
-        font-weight: Normal;
-        font-size: 16px;
-    }
-    .text2 {
-        font-weight: bold;
-        font-size: 16px;
-    }
-    .barcode {
-        width:100%;
-        margin: 20px !important;
-        height:100px;
-    }
-    .receipt_table{
-       margin-left: 0;
-       margin-right: auto;
-    }
-</style>
-
+<html lang="en">
 <body>
-<div style="display: flex; align-items: center; justify-content: center; flex-direction: column;">
     <div style="display: flex; align-items: center; justify-content: center; flex-direction: column">
         {company_logo}
-        <div class="title">{company_name}</div>
+        <div style="font-weight: bold;align-items: center;font-size: large;">{company_name}</div>
     </div>
     <div style="display: flex; align-items: center; justify-content: center; flex-direction: column;">
-        <div class="text1">{company_addr}</div>
-        <div class="text1">{company_phone}</div>
-        <div class="text1">Invoice# {invoicenumbervalue}</div>
-        <div class="text1">{invoicedatevalue}</div>
+        <div style="font-weight: Normal;align-items: center;font-size: medium;">{company_addr}</div>
+        <div style="font-weight: Normal;align-items: center;font-size: medium;">{company_phone}</div>
+        <div style="font-weight: Normal;align-items: center;font-size: medium;">Invoice# {invoicenumbervalue}</div>
+        <div style="font-weight: Normal;align-items: center;font-size: medium;">{invoicedatevalue}</div>
     </div>
-    <hr class="dashed">
+    <hr style="border-top: 1px dashed; #000;width: 100%;">
     <div style="width: 100%;display: flex; align-items: start; justify-content: start; flex-direction: column;">
         {clientnamevalue}
         {clientfnvalue}
@@ -90,20 +20,20 @@
         {invoiceuservalue}
     </div>
     {reprinted}
-    <hr class="dashed">
+    <hr style="border-top: 1px dashed; #000;width: 100%;">
     <table style="width: 100%">
         {tableinvoiceitemsvalue}
     </table>
-    <hr class="dashed">
+    <hr style="border-top: 1px dashed; #000;width: 100%;">
     <table style="width: 100%">
         {tableinvoiceAmountvalue}
     </table>
-    <hr class="dashed">
+    <hr style="border-top: 1px dashed; #000;width: 100%;">
     <div style="width: 100%;display: flex; align-items: start; justify-content: start;">
         <div>Number Of Items: {numberofitemsvalue}</div>
     </div>
-    <hr class="dashed">
-    <table class="receipt_table">
+    <hr style="border-top: 1px dashed; #000;width: 100%;">
+    <table style="margin-left: 0;margin-right: auto;">
         {posReceiptValues}
     </table>
     {invoicenotevalue}
@@ -113,14 +43,12 @@
         {taxregno1}
         {taxregno2}
     </div>
-    <div class="spacer"></div>
+    <div style="height: 10px; width: 100%;"></div>
     {barcodeContent}
-    <div class="spacer"></div>
+    <div style="height: 10px; width: 100%;"></div>
     <div style="display: flex; align-items: center; justify-content: center; flex-direction: column;">
-        <div class="text1">THANK YOU</div>
-        <div>GRIDS Software - www.gridsco.com</div>
+        <div style="font-weight: Normal;font-size: medium;">THANK YOU</div>
+        <div style="font-weight: Normal;font-size: medium;">GRIDS Software - www.gridsco.com</div>
     </div>
-</div>
 </body>
-
 </html>
