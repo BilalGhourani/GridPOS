@@ -49,6 +49,8 @@ object PrinterUtils {
         69,
         0
     )
+    private val ITALIC = byteArrayOf(0x1B, 0x34)
+    private val DISABLE_ITALIC = byteArrayOf(0x1B, 0x35)
     private val ALIGN_LEFT = byteArrayOf(
         27,
         97,
@@ -617,64 +619,78 @@ object PrinterUtils {
 
         var result = byteArrayOf()
 
-        for (child in element.children()) {
-            when (child.tagName()) {
-                "p" -> {
-                    result += "\n".toByteArray()
-                    result += parseHtmlElement(child)
-                    result += "\n".toByteArray()
-                }
-
-                "b", "strong" -> {
-                    result += BOLD
-                    result += child.text().toByteArray()
-                    result += NORMAL
-                }
-
-                "i", "em" -> {
-                    result += BOLD//italic to be checked
-                    result += child.text().toByteArray()
-                    result += NORMAL
-                }
-
-                "u" -> {
-                    result += BOLD//underline to be checked
-                    result += child.text().toByteArray()
-                    result += NORMAL
-                }
-
-                "font" -> {
-                    val size = child.attr("size")
-                    result += DOUBLE_SIZE//to be checked
-                    result += child.text().toByteArray()
-                    result += NORMAL_SIZE
-                }
-
-                "img" -> {
-                    val src = child.attr("src")
-                    result += IMAGE_PRINT_COMMAND // Replace with your printer's command
-                    result += src.toByteArray()
-                    result += IMAGE_END_COMMAND // Replace with your printer's command
-                }
-
-                "div", "span" -> {
-                    result += parseHtmlElement(child)
-                }
-
-                "table" -> {
-                    for (row in child.select("tr")) {
-                        for (cell in row.select("td")) {
-                            result += parseHtmlElement(cell)
-                            result += "\t".toByteArray()// Add tab space between cells
-                        }
+        val children = element.children()
+        if(children.size>0) {
+            for (child in children) {
+                when (child.tagName()) {
+                    "p" -> {
+                        result += "\n".toByteArray()
+                        result += parseHtmlElement(child)
                         result += "\n".toByteArray()
                     }
-                }
 
-                else -> {
-                    result += child.text().toByteArray()
+                    "b", "strong" -> {
+                        result += BOLD
+                        result += child.text().toByteArray()
+                        result += NORMAL
+                    }
+
+                    "i", "em" -> {
+                        result += ITALIC
+                        result += child.text().toByteArray()
+                        result += DISABLE_ITALIC
+                    }
+
+                    "u" -> {
+                        result += byteArrayOf(
+                            0x1B,
+                            0x2D,
+                            0x01
+                        )//underline to be checked
+                        result += child.text().toByteArray()
+                        result += NORMAL
+                    }
+
+                    "font" -> {
+                        val size = child.attr("size")
+                        result += DOUBLE_SIZE//to be checked
+                        result += child.text().toByteArray()
+                        result += NORMAL_SIZE
+                    }
+
+                    "img" -> {
+                        val src = child.attr("src")
+                        result += IMAGE_PRINT_COMMAND // Replace with your printer's command
+                        result += src.toByteArray()
+                        result += IMAGE_END_COMMAND // Replace with your printer's command
+                    }
+
+                    "div" -> {
+                        result += parseHtmlElement(child)
+                        result += "\n".toByteArray()
+                    }
+
+                    "span" -> {
+                        result += parseHtmlElement(child)
+                    }
+
+                    "table" -> {
+                        for (row in child.select("tr")) {
+                            for (cell in row.select("td")) {
+                                result += parseHtmlElement(cell)
+                                result += "\t".toByteArray()// Add tab space between cells
+                            }
+                            result += "\n".toByteArray()
+                        }
+                    }
+
+                    else -> {
+                        result += child.text().toByteArray()
+                    }
                 }
             }
+        }else{
+            result += element.text().toByteArray()
         }
 
         return result
@@ -1033,6 +1049,16 @@ object PrinterUtils {
         printers: MutableList<PosPrinter>
     ) {
         if (!SettingsModel.cashPrinter.isNullOrEmpty()) {
+           /* val htmlContent = getInvoiceReceiptHtmlContent(
+                context = context,
+                invoiceHeader = invoiceHeader,
+                invoiceItemModels = invoiceItemModels,
+                posReceipt = posReceipt,
+                thirdParty = thirdParty,
+                user = user,
+                company = company
+            )
+            val output = parseHtmlContent(htmlContent)*/
             val output = printInvoiceReceipt(
                 context = context,
                 invoiceHeader = invoiceHeader,
@@ -1048,10 +1074,7 @@ object PrinterUtils {
                 printerName = SettingsModel.cashPrinter
             )
         }
-        Log.d(
-            "printInvoiceReceipt",
-            "check item printer"
-        )
+
         val itemsPrintersMap = invoiceItemModels.groupBy { it.invoiceItem.itemPrinter ?: "" }
         itemsPrintersMap.entries.forEach { entry ->
             if (entry.key.isNotEmpty()) {
@@ -1073,7 +1096,7 @@ object PrinterUtils {
         }
     }
 
-    private suspend fun printOutput(
+    suspend fun printOutput(
         context: Context,
         output: ByteArray,
         printerName: String? = null,
