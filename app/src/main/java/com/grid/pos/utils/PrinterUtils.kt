@@ -18,6 +18,7 @@ import com.grid.pos.data.User.User
 import com.grid.pos.model.InvoiceItemModel
 import com.grid.pos.model.SettingsModel
 import com.journeyapps.barcodescanner.BarcodeEncoder
+import kotlinx.coroutines.delay
 import java.io.ByteArrayOutputStream
 import java.io.OutputStream
 import java.net.Socket
@@ -88,7 +89,6 @@ object PrinterUtils {
         0x1B,
         0x42
     ) // Example for ESC/POS
-
 
     fun getInvoiceReceiptHtmlContent(
             context: Context,
@@ -579,7 +579,6 @@ object PrinterUtils {
 
     private fun printInvoiceReceipt(
             context: Context,
-            outputStream: OutputStream,
             invoiceHeader: InvoiceHeader,
             invoiceItemModels: MutableList<InvoiceItemModel>,
             posReceipt: PosReceipt,
@@ -587,16 +586,13 @@ object PrinterUtils {
             user: User? = SettingsModel.currentUser,
             company: Company? = SettingsModel.currentCompany,
             currency: Currency? = SettingsModel.currentCurrency,
-    ) {
-        Log.d(
-            "printInvoiceReceipt",
-            "1"
-        )
+    ): ByteArray {
+        var result: ByteArray = byteArrayOf()
         val invDate = DateHelper.getDateFromString(
             invoiceHeader.invoiceHeadDate,
             "MMMM dd, yyyy 'at' hh:mm:ss a 'Z'"
         )
-        outputStream.write(ALIGN_CENTER)
+        result += ALIGN_CENTER
         if (!company?.companyLogo.isNullOrEmpty()) {
             val logoBitmap = FileUtils.getBitmapFromPath(
                 context,
@@ -607,405 +603,191 @@ object PrinterUtils {
                 val imageData = convertToByteArray(it)
 
                 // Send image data to printer with appropriate escape sequences
-                outputStream.write(IMAGE_PRINT_COMMAND) // Replace with your printer's command
-                outputStream.write(imageData)
-                outputStream.write(IMAGE_END_COMMAND) // Replace with your printer's command
+                result += IMAGE_PRINT_COMMAND // Replace with your printer's command
+                result += imageData
+                result += IMAGE_END_COMMAND // Replace with your printer's command
 
             }
         }
-        Log.d(
-            "printInvoiceReceipt",
-            "2"
-        )
+
         if (!company?.companyName.isNullOrEmpty()) {
-            outputStream.write(DOUBLE_SIZE)
-            outputStream.write(BOLD)
-            outputStream.write("${company?.companyName}\n".toByteArray())
-            outputStream.write(NORMAL)
-            outputStream.write(NORMAL_SIZE)
+            result += DOUBLE_HEIGHT
+            result += DOUBLE_WIDTH
+            result += BOLD
+            result += "${company?.companyName}\n".toByteArray()
+            result += NORMAL
+            result += NORMAL_SIZE
         }
         if (!company?.companyAddress.isNullOrEmpty()) {
-            outputStream.write("${company?.companyAddress}\n".toByteArray())
+            result += "${company?.companyAddress}\n".toByteArray()
         }
         if (!company?.companyPhone.isNullOrEmpty()) {
-            outputStream.write("${company?.companyPhone}\n".toByteArray())
+            result += "${company?.companyPhone}\n".toByteArray()
         }
         if (!invoiceHeader.invoiceHeadTransNo.isNullOrEmpty()) {
-            outputStream.write("Invoice# ${invoiceHeader.invoiceHeadTransNo}\n".toByteArray())
+            result += "Invoice# ${invoiceHeader.invoiceHeadTransNo}\n".toByteArray()
         }
 
         val invDateStr = DateHelper.getDateInFormat(
             invDate,
             "dd/MM/yyyy hh:mm:ss"
         )
-        outputStream.write(ALIGN_CENTER)
-        outputStream.write("$invDateStr\n".toByteArray())
-        Log.d(
-            "printInvoiceReceipt",
-            "3"
-        )
+        result += ALIGN_CENTER
+        result += "$invDateStr\n".toByteArray()
 
-        outputStream.write(ALIGN_LEFT)
+        result += ALIGN_LEFT
         if (!thirdParty?.thirdPartyName.isNullOrEmpty() || !invoiceHeader.invoiceHeadCashName.isNullOrEmpty()) {
-            outputStream.write("Client: ${thirdParty?.thirdPartyName ?: ""} ${invoiceHeader.invoiceHeadCashName ?: ""}\n".toByteArray())
+            result += "Client: ${thirdParty?.thirdPartyName ?: ""} ${invoiceHeader.invoiceHeadCashName ?: ""}\n".toByteArray()
         }
         if (!thirdParty?.thirdPartyFn.isNullOrEmpty()) {
-            outputStream.write("F/N: ${thirdParty?.thirdPartyFn ?: ""}\n".toByteArray())
+            result += "F/N: ${thirdParty?.thirdPartyFn ?: ""}\n".toByteArray()
         }
         if (!thirdParty?.thirdPartyPhone1.isNullOrEmpty() || !thirdParty?.thirdPartyPhone2.isNullOrEmpty()) {
-            outputStream.write("Phone: ${thirdParty?.thirdPartyPhone1 ?: thirdParty?.thirdPartyPhone2}\n".toByteArray())
+            result += "Phone: ${thirdParty?.thirdPartyPhone1 ?: thirdParty?.thirdPartyPhone2}\n".toByteArray()
         }
 
         if (!thirdParty?.thirdPartyAddress.isNullOrEmpty()) {
-            outputStream.write("Addr: ${thirdParty?.thirdPartyAddress}\n".toByteArray())
+            result += "Addr: ${thirdParty?.thirdPartyAddress}\n".toByteArray()
         }
 
         if (!user?.userName.isNullOrEmpty()) {
-            outputStream.write("Served By: ${user?.userName}\n".toByteArray())
+            result += "Served By: ${user?.userName}\n".toByteArray()
         }
-
-        Log.d(
-            "printInvoiceReceipt",
-            "4"
-        )
 
         if (invoiceHeader.invoiceHeadPrint > 1) {
-            outputStream.write(ALIGN_CENTER)
-            outputStream.write(BOLD)
-            outputStream.write(DOUBLE_SIZE)
-            outputStream.write("* * REPRINTED * *\n".toByteArray())
-            outputStream.write(NORMAL_SIZE)
-            outputStream.write(NORMAL)
+            result += ALIGN_CENTER
+            result += BOLD
+            result += DOUBLE_SIZE
+            result += "* * REPRINTED * *\n".toByteArray()
+            result += NORMAL_SIZE
+            result += NORMAL
         }
-        Log.d(
-            "printInvoiceReceipt",
-            "5"
-        )
+
         if (invoiceItemModels.isNotEmpty()) {
-            Log.d(
-                "printInvoiceReceipt",
-                "6"
-            )
-            outputStream.write(ALIGN_LEFT)
-            outputStream.write(("Description\tQty\tUP\tT.Price\n").toByteArray())
+            result += ALIGN_CENTER
+            result += "------------------------------\n".toByteArray()
+            result += ALIGN_LEFT
+            result += String.format("%-20s %10s\n", "Description", "T.Price").toByteArray()
             invoiceItemModels.forEach { item ->
-                val name = item.getFullName()
-                val qty = String.format(
-                    "%.2f",
-                    item.invoice.invoiceQuantity
-                )
-                val up = String.format(
-                    "%.2f",
-                    item.invoice.getPrice()
-                )
-                val price = String.format(
-                    "%.2f",
-                    item.invoice.getAmount()
-                )
-                outputStream.write(ALIGN_LEFT)
-                outputStream.write(("$name\t$qty\t$up\t$price\n").toByteArray())
+                val qtyAndPrice = String.format("%.0f x %.2f", item.invoice.invoiceQuantity, item.invoice.getPrice())
+                result += String.format("%-32s\n", item.getFullName(), item.invoice.getAmount()).toByteArray()
+                result += String.format("%-17s%13.2f\n", qtyAndPrice,  item.invoice.getAmount()).toByteArray()
             }
         }
-        Log.d(
-            "printInvoiceReceipt",
-            "7"
-        )
-        outputStream.write(ALIGN_CENTER)
-        outputStream.write("------------------------------\n".toByteArray())
-        outputStream.write(ALIGN_LEFT)
-        outputStream.write(
-            ("Disc Amount: \t" + String.format(
-                "%.2f",
-                Utils.getDoubleOrZero(invoiceHeader.invoiceHeadDiscountAmount)
-            ) + "\n").toByteArray()
-        )
 
-        Log.d(
-            "printInvoiceReceipt",
-            "8"
-        )
+        result += ALIGN_CENTER
+        result += "------------------------------\n".toByteArray()
+        result += ALIGN_LEFT
+        result += String.format("Disc Amount: \t %.2f\n",Utils.getDoubleOrZero(company?.companyTax),Utils.getDoubleOrZero(invoiceHeader.invoiceHeadDiscountAmount)).toByteArray()
+
         var showTotalTax = false
         if (SettingsModel.showTax && invoiceHeader.invoiceHeadTaxAmt > 0) {
             showTotalTax = true
-            outputStream.write(
-                ("Tax(${
-                    String.format(
-                        "%.0f",
-                        Utils.getDoubleOrZero(company?.companyTax)
-                    )
-                }%): \t ${
-                    String.format(
-                        "%.2f",
-                        Utils.getDoubleOrZero(invoiceHeader.invoiceHeadTaxAmt)
-                    )
-                } \n").toByteArray()
-            )
+            result += String.format("Tax (%.0f%s: \t %.2f\n",Utils.getDoubleOrZero(company?.companyTax),"%)",Utils.getDoubleOrZero(invoiceHeader.invoiceHeadTaxAmt)).toByteArray()
         }
 
         if (SettingsModel.showTax1 && invoiceHeader.invoiceHeadTax1Amt > 0) {
             showTotalTax = true
-            outputStream.write(
-                ("Tax1(${
-                    String.format(
-                        "%.0f",
-                        Utils.getDoubleOrZero(company?.companyTax1)
-                    )
-                }%): \t ${
-                    String.format(
-                        "%.2f",
-                        Utils.getDoubleOrZero(invoiceHeader.invoiceHeadTax1Amt)
-                    )
-                } \n").toByteArray()
-            )
+            result += String.format("Tax1(%.0f%s: \t %.2f\n",Utils.getDoubleOrZero(company?.companyTax1),"%)",Utils.getDoubleOrZero(invoiceHeader.invoiceHeadTax1Amt)).toByteArray()
         }
 
         if (SettingsModel.showTax2 && invoiceHeader.invoiceHeadTax2Amt > 0) {
             showTotalTax = true
-            outputStream.write(
-                ("Tax2(${
-                    String.format(
-                        "%.0f",
-                        Utils.getDoubleOrZero(company?.companyTax2)
-                    )
-                }%): \t ${
-                    String.format(
-                        "%.2f",
-                        Utils.getDoubleOrZero(invoiceHeader.invoiceHeadTax2Amt)
-                    )
-                } \n").toByteArray()
-            )
+            result += String.format("Tax2(%.0f%s: \t %.2f\n",Utils.getDoubleOrZero(company?.companyTax2),"%)",Utils.getDoubleOrZero(invoiceHeader.invoiceHeadTax2Amt)).toByteArray()
         }
         if (showTotalTax) {
-            outputStream.write(
-                ("T.Tax: \t ${
-                    String.format(
-                        "%.2f",
-                        Utils.getDoubleOrZero(invoiceHeader.invoiceHeadTotalTax)
-                    )
-                } \n").toByteArray()
-            )
+            result += String.format("T.Tax:     \t %.2f\n",Utils.getDoubleOrZero(invoiceHeader.invoiceHeadTotalTax)).toByteArray()
         }
-        Log.d(
-            "printInvoiceReceipt",
-            "9"
-        )
-        outputStream.write(BOLD)
-        outputStream.write(
-            ("Total ${currency?.currencyCode1 ?: ""}: \t ${
-                String.format(
-                    "%.2f",
-                    Utils.getDoubleOrZero(invoiceHeader.invoiceHeadTotal)
-                )
-            } \n").toByteArray()
-        )
 
-        outputStream.write(
-            ("Total ${currency?.currencyCode2 ?: ""}: \t ${
-                String.format(
-                    "%.2f",
-                    Utils.getDoubleOrZero(invoiceHeader.invoiceHeadTotal1)
-                )
-            } \n").toByteArray()
-        )
-        Log.d(
-            "printInvoiceReceipt",
-            "10"
-        )
-        outputStream.write(NORMAL)
-        outputStream.write(ALIGN_CENTER)
-        outputStream.write("------------------------------\n".toByteArray())
-        outputStream.write(ALIGN_LEFT)
-        Log.d(
-            "printInvoiceReceipt",
-            "11"
-        )
-        outputStream.write("Number Of Items: ${invoiceItemModels.size}\n".toByteArray())
-        outputStream.write(ALIGN_CENTER)
-        outputStream.write("------------------------------\n".toByteArray())
-        outputStream.write(ALIGN_LEFT)
+        result += BOLD
+        result += String.format("Total \t %s \t %.2f\n",currency?.currencyCode1 ?: "",Utils.getDoubleOrZero(invoiceHeader.invoiceHeadTotal)).toByteArray()
+        result += String.format("Total \t %s \t %.2f\n",currency?.currencyCode2 ?: "",Utils.getDoubleOrZero(invoiceHeader.invoiceHeadTotal1)).toByteArray()
+        result += NORMAL
+
+        result += (ALIGN_CENTER)
+        result += ("------------------------------\n".toByteArray())
+        result += (ALIGN_LEFT)
+
+        result += ("Number Of Items: ${invoiceItemModels.size}\n".toByteArray())
+        result += (ALIGN_CENTER)
+        result += ("------------------------------\n".toByteArray())
+        result += (ALIGN_LEFT)
 
         val prCash = Utils.getDoubleOrZero(posReceipt.posReceiptCash)
         if (prCash > 0.0) {
-            outputStream.write(
-                ("Cash \t ${currency?.currencyCode1 ?: ""} \t ${
-                    String.format(
-                        "%.2f",
-                        prCash
-                    )
-                } \n").toByteArray()
-            )
+            result += (String.format("Cash \t %s \t %.2f\n",currency?.currencyCode1 ?: "",prCash)).toByteArray()
         }
+
         val prCashs = Utils.getDoubleOrZero(posReceipt.posReceiptCashs)
         if (prCashs > 0.0) {
-            outputStream.write(
-                ("Cash \t ${currency?.currencyCode2 ?: ""} \t ${
-                    String.format(
-                        "%.2f",
-                        prCashs
-                    )
-                } \n").toByteArray()
-            )
+            result += (String.format("Cash \t %s \t %.2f\n",currency?.currencyCode2 ?: "",prCashs)).toByteArray()
         }
 
         val prCredit = Utils.getDoubleOrZero(posReceipt.posReceiptCredit)
         if (prCredit > 0.0) {
-            outputStream.write(
-                ("Credit \t ${currency?.currencyCode1 ?: ""} \t ${
-                    String.format(
-                        "%.2f",
-                        prCredit
-                    )
-                } \n").toByteArray()
-            )
+            result += (String.format("Credit \t %s \t %.2f\n",currency?.currencyCode1 ?: "",prCredit)).toByteArray()
         }
         val prCredits = Utils.getDoubleOrZero(posReceipt.posReceiptCredits)
         if (prCredits > 0.0) {
-            outputStream.write(
-                ("Credit \t ${currency?.currencyCode2 ?: ""} \t ${
-                    String.format(
-                        "%.2f",
-                        prCredits
-                    )
-                } \n").toByteArray()
-            )
+            result += (String.format("Credit \t %s \t %.2f\n",currency?.currencyCode2 ?: "",prCredits)).toByteArray()
         }
 
         val prDebit = Utils.getDoubleOrZero(posReceipt.posReceiptDebit)
         if (prDebit > 0.0) {
-            outputStream.write(
-                ("Debit \t ${currency?.currencyCode1 ?: ""} \t ${
-                    String.format(
-                        "%.2f",
-                        prDebit
-                    )
-                } \n").toByteArray()
-            )
+            result += (String.format("Debit \t %s \t %.2f\n",currency?.currencyCode1 ?: "",prDebit)).toByteArray()
         }
         val prDebits = Utils.getDoubleOrZero(posReceipt.posReceiptDebits)
         if (prDebits > 0.0) {
-            outputStream.write(
-                ("Debit \t ${currency?.currencyCode2 ?: ""} \t ${
-                    String.format(
-                        "%.2f",
-                        prDebits
-                    )
-                } \n").toByteArray()
-            )
+            result += (String.format("Debit \t %s \t %.2f\n",currency?.currencyCode2 ?: "",prDebits)).toByteArray()
         }
 
-        outputStream.write(
-            ("Change \t ${
-                String.format(
-                    "%.2f",
-                    Utils.getDoubleOrZero(invoiceHeader.invoiceHeadChange)
-                )
-            } \t ${currency?.currencyCode2 ?: ""} \n").toByteArray()
-        )
-        Log.d(
-            "printInvoiceReceipt",
-            "12"
-        )
-        outputStream.write(ALIGN_CENTER)
-        outputStream.write("------------------------------\n".toByteArray())
-        outputStream.write(ALIGN_LEFT)
-        Log.d(
-            "printInvoiceReceipt",
-            "13"
-        )
+        result += (String.format("Change \t %s \t %.2f\n",currency?.currencyCode1 ?: "",Utils.getDoubleOrZero(invoiceHeader.invoiceHeadChange))).toByteArray()
+
+        result += (ALIGN_CENTER)
+        result += ("------------------------------\n".toByteArray())
+        result += (ALIGN_LEFT)
+
 
         if (!invoiceHeader.invoiceHeadNote.isNullOrEmpty()) {
-            outputStream.write("${invoiceHeader.invoiceHeadNote}\n".toByteArray())
-            outputStream.write(ALIGN_CENTER)
-            outputStream.write("------------------------------\n".toByteArray())
-            outputStream.write(ALIGN_LEFT)
+            result += ("${invoiceHeader.invoiceHeadNote}\n".toByteArray())
+            result += (ALIGN_CENTER)
+            result += ("------------------------------\n".toByteArray())
+            result += (ALIGN_LEFT)
         }
-        Log.d(
-            "printInvoiceReceipt",
-            "14"
-        )
+
         var displayTaxDashed = false
         if (SettingsModel.showTax && !company?.companyTaxRegno.isNullOrEmpty()) {
             displayTaxDashed = true
-            outputStream.write(
-                ("Tax \t No: \t ${company?.companyTax1Regno} \n").toByteArray()
-            )
+            result += String.format("Tax \t No: \t %s\n" ,company?.companyTax1Regno).toByteArray()
         }
         if (SettingsModel.showTax1 && !company?.companyTax1Regno.isNullOrEmpty()) {
             displayTaxDashed = true
-            outputStream.write(
-                ("Tax1 \t No: \t ${company?.companyTax1Regno} \n").toByteArray()
-            )
+            result += String.format("Tax1 \t No: \t %s\n" ,company?.companyTax1Regno).toByteArray()
         }
         if (SettingsModel.showTax2 && !company?.companyTax2Regno.isNullOrEmpty()) {
             displayTaxDashed = true
-            outputStream.write(
-                ("Tax2 \t No: \t ${company?.companyTax2Regno} \n").toByteArray()
-            )
+            result += String.format("Tax2 \t No: \t %s\n" ,company?.companyTax1Regno).toByteArray()
         }
         if (displayTaxDashed) {
-            outputStream.write(ALIGN_CENTER)
-            outputStream.write("------------------------------\n".toByteArray())
+            result += (ALIGN_CENTER)
+            result += ("------------------------------\n".toByteArray())
         }
 
-        Log.d(
-            "printInvoiceReceipt",
-            "15"
-        )
-        /*if (!invoiceHeader.invoiceHeadTransNo.isNullOrEmpty()) {*//* //GS H = HRI position
-            outputStream.write(0x1D);
-            outputStream.write("H".toByteArray());
-            outputStream.write(2); //0=no print, 1=above, 2=below, 3=above & below
+        if (!invoiceHeader.invoiceHeadTransNo.isNullOrEmpty()) { //GS H = HRI position
+            result += getBarcodeArray(invoiceHeader.invoiceHeadTransNo!!)
+        }
 
-            //GS f = set barcode characters
-            outputStream.write(0x1D);
-            outputStream.write("f".toByteArray());
-            outputStream.write(font);
+        result += ("\n".toByteArray())
+        result += (ALIGN_CENTER)
+        result += ("THANK YOU\n".toByteArray())
+        result += ("GRIDS Software - www.gridsco.com\n".toByteArray())
+        result += ByteArray(3) { 0x0A }
 
-            //GS h = sets barcode height
-            outputStream.write(0x1D);
-            outputStream.write("h".toByteArray());
-            outputStream.write(100);
-
-            //GS w = sets barcode width
-            outputStream.write(0x1D);
-            outputStream.write("w".toByteArray());
-            outputStream.write(1);//module = 1-6
-
-            //GS k
-            outputStream.write(0x1D); //GS
-            outputStream.write("k".toByteArray()); //k
-            outputStream.write(1);//m = barcode type 0-6
-            outputStream.write(invoiceHeader.invoiceHeadTransNo?.length?:0); //length of encoded string
-            outputStream.write(invoiceHeader.invoiceHeadTransNo?.toByteArray());//d1-dk
-            outputStream.write(0);//print barcode*//*
-            // Generate barcode image from barcode data and type
-            val barcodeImage = generateBarcode(invoiceHeader.invoiceHeadTransNo!!)
-            if (barcodeImage != null) {
-                // Convert barcode image to byte array
-                val barcodeByteArray = convertToByteArray(barcodeImage)
-
-                // Send barcode data to printer with appropriate commands
-                outputStream.write(IMAGE_PRINT_COMMAND)
-                outputStream.write(barcodeByteArray)
-                outputStream.write(IMAGE_END_COMMAND)
-            }
-        }*/
-        Log.d(
-            "printInvoiceReceipt",
-            "16"
-        )
-        outputStream.write("THANK YOU\n".toByteArray())
-        outputStream.write("GRIDS Software - www.gridsco.com\n".toByteArray())
-        outputStream.write(CUT_PAPER)
-        outputStream.flush()
-        Log.d(
-            "printInvoiceReceipt",
-            "17"
-        )
+        return result
     }
 
     private fun convertToByteArray(image: Bitmap): ByteArray {
-        val outputStream = ByteArrayOutputStream()
+        var byteArray = byteArrayOf()
         val width = image.width
         val height = image.height
 
@@ -1023,58 +805,51 @@ object PrinterUtils {
                     byteData = byteData or 1
                 }
                 if (x % 8 == 7) {
-                    outputStream.write(byteData)
+                    byteArray += byteData.toByte()
                     byteData = 0
                 }
             }
             // Handle remaining bits
             if (width % 8 != 0) {
-                outputStream.write(byteData shl (8 - width % 8))
+                byteArray += (byteData shl (8 - width % 8)).toByte()
             }
         }
-        outputStream.flush()
-        return outputStream.toByteArray()
+        return byteArray
     }
 
     private fun printItemReceipt(
-            outputStream: OutputStream,
             invoiceHeader: InvoiceHeader,
             invItemModels: List<InvoiceItemModel>
-    ) {
-        outputStream.write(ALIGN_LEFT)
-        outputStream.write("Cash\n".toByteArray())
-        outputStream.write("Table Number: ${invoiceHeader.invoiceHeadTaName ?: ""}\n".toByteArray())
-        outputStream.write("Order: ${invoiceHeader.invoiceHeadOrderNo ?: ""}\n".toByteArray())
-        outputStream.write("Inv: ${invoiceHeader.invoiceHeadTransNo ?: ""}\n".toByteArray())
-        outputStream.write(
-            "${
-                DateHelper.getDateInFormat(
-                    invoiceHeader.invoiceHeadTimeStamp ?: Date(
-                        invoiceHeader.invoiceHeadDateTime.div(
-                            1000
-                        )
-                    ),
-                    "dd/MM/yyyy hh:mm:ss"
+    ): ByteArray {
+        var result: ByteArray = byteArrayOf()
+        result += (ALIGN_LEFT)
+        result += ("Cash\n".toByteArray())
+        result += ("Table Number: ${invoiceHeader.invoiceHeadTaName ?: ""}\n".toByteArray())
+        result += ("Order: ${invoiceHeader.invoiceHeadOrderNo ?: ""}\n".toByteArray())
+        result += ("Inv: ${invoiceHeader.invoiceHeadTransNo ?: ""}\n".toByteArray())
+        result += (String.format("%s\n", DateHelper.getDateInFormat(
+            invoiceHeader.invoiceHeadTimeStamp ?: Date(
+                invoiceHeader.invoiceHeadDateTime.div(
+                    1000
                 )
-            }\n".toByteArray()
-        )
-
+            ),
+            "dd/MM/yyyy hh:mm:ss"
+        )).toByteArray())
+        result += ("------------------------------\n".toByteArray())
 
         if (invItemModels.isNotEmpty()) {
-            outputStream.write("Qty\t Item\n".toByteArray())
+            result += BOLD
+            result += String.format("%-20s %10s\n", "Qty", "Item").toByteArray()
+            result += NORMAL
             invItemModels.forEach { item ->
-                val qty = String.format(
-                    "%.2f",
-                    item.invoice.invoiceQuantity
-                )
-                outputStream.write("$qty\t ${item.getName()}\n".toByteArray())
+                result += String.format("%-25s %5.0f\n", item.getName(), item.invoice.invoiceQuantity).toByteArray()
             }
         }
-        outputStream.write(CUT_PAPER)
-        outputStream.flush()
+        result += ByteArray(3) { 0x0A }
+        return result
     }
 
-    fun print(
+    suspend fun print(
             context: Context,
             invoiceHeader: InvoiceHeader,
             invoiceItemModels: MutableList<InvoiceItemModel>,
@@ -1085,49 +860,52 @@ object PrinterUtils {
             printers: MutableList<PosPrinter>
     ) {
         if (!SettingsModel.cashPrinter.isNullOrEmpty()) {
-            connectToPrinter(context = context,
-                printerName = SettingsModel.cashPrinter,
-                printRunnable = { outputStream ->
-                    printInvoiceReceipt(
-                        context = context,
-                        outputStream = outputStream,
-                        invoiceHeader = invoiceHeader,
-                        invoiceItemModels = invoiceItemModels,
-                        posReceipt = posReceipt,
-                        thirdParty = thirdParty,
-                        user = user,
-                        company = company
-                    )
-                })
+            val output = printInvoiceReceipt(
+                context = context,
+                invoiceHeader = invoiceHeader,
+                invoiceItemModels = invoiceItemModels,
+                posReceipt = posReceipt,
+                thirdParty = thirdParty,
+                user = user,
+                company = company
+            )
+            printOutput(
+                context = context,
+                output = output,
+                printerName = SettingsModel.cashPrinter
+            )
         }
-
+        Log.d(
+            "printInvoiceReceipt",
+            "check item printer"
+        )
         val itemsPrintersMap = invoiceItemModels.groupBy { it.invoiceItem.itemPrinter ?: "" }
         itemsPrintersMap.entries.forEach { entry ->
             if (entry.key.isNotEmpty()) {
                 val itemsPrinter = printers.firstOrNull { it.posPrinterId == entry.key }
                 if (itemsPrinter != null) {
-                    connectToPrinter(context = context,
+                    val output = printItemReceipt(
+                        invoiceHeader = invoiceHeader,
+                        invItemModels = entry.value
+                    )
+                    printOutput(
+                        context = context,
+                        output = output,
                         printerName = itemsPrinter.posPrinterName,
                         printerIP = itemsPrinter.posPrinterHost,
-                        printerPort = itemsPrinter.posPrinterPort,
-                        printRunnable = { outputStream ->
-                            printItemReceipt(
-                                outputStream = outputStream,
-                                invoiceHeader = invoiceHeader,
-                                invItemModels = entry.value
-                            )
-                        })
+                        printerPort = itemsPrinter.posPrinterPort
+                    )
                 }
             }
         }
     }
 
-    private fun connectToPrinter(
+    private suspend fun printOutput(
             context: Context,
+            output: ByteArray,
             printerName: String? = null,
             printerIP: String = "",
-            printerPort: Int = -1,
-            printRunnable: (OutputStream) -> Unit
+            printerPort: Int = -1
     ) {
         val printer = BluetoothPrinter()
         if (!printerName.isNullOrEmpty() && printer.connectToPrinter(
@@ -1135,18 +913,34 @@ object PrinterUtils {
                 printerName
             )
         ) {
-            if (printer.outputStream != null) {
-                printRunnable.invoke(printer.outputStream!!)
-            }
+            printer.printData(output)
+            delay(2000L)// Assuming it takes 2 seconds to print the data
             printer.disconnectPrinter()
         } else if (printerIP.isNotEmpty() && printerPort != -1) {
             try {
-                val socket = Socket(
+                Socket(
                     printerIP,
                     printerPort
-                )
-                printRunnable.invoke(socket.getOutputStream())
-                socket.close()
+                ).use { socket ->
+                    val outputStream: OutputStream = socket.getOutputStream()
+                    var offset = 0
+                    val batchSize = 1024
+                    while (offset < output.size) {
+                        val end = minOf(
+                            offset + batchSize,
+                            output.size
+                        )
+                        outputStream.write(
+                            output,
+                            offset,
+                            end - offset
+                        )
+                        offset += batchSize
+                    }
+                    outputStream.flush()
+                    delay(2000L)// Assuming it takes 2 seconds to print the data
+                    socket.close()
+                }
             } catch (e: Exception) {
                 Log.e(
                     "exception",
@@ -1170,6 +964,36 @@ object PrinterUtils {
             e.printStackTrace()
             null
         }
+    }
+
+    private fun getBarcodeArray(content: String): ByteArray {
+        val result: ByteArray = content.toByteArray()
+// include the content length after the mode selector (0x49)
+// include the content length after the mode selector (0x49)
+        val formats = byteArrayOf(
+            0x1d.toByte(),
+            0x6b.toByte(),
+            0x49.toByte(),
+            content.length.toByte()
+        )
+
+        val bytes = ByteArray(formats.size + result.size)
+
+        System.arraycopy(
+            formats,
+            0,
+            bytes,
+            0,
+            formats.size
+        )
+        System.arraycopy(
+            result,
+            0,
+            bytes,
+            formats.size,
+            result.size
+        )
+        return result
     }
 
     private fun convertBitmapToBase64(bitmap: Bitmap?): String? {

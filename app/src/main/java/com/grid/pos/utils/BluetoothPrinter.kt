@@ -18,7 +18,10 @@ class BluetoothPrinter {
     private var bluetoothSocket: BluetoothSocket? = null
     var outputStream: OutputStream? = null
 
-    fun connectToPrinter(context: Context,printerName: String): Boolean {
+    fun connectToPrinter(
+            context: Context,
+            printerName: String
+    ): Boolean {
         val bluetoothManager = context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && ActivityCompat.checkSelfPermission(
                 context,
@@ -30,7 +33,10 @@ class BluetoothPrinter {
         val device: BluetoothDevice? = bluetoothManager.adapter.bondedDevices.firstOrNull { it.name == printerName }
 
         if (device == null) {
-            Log.e("BluetoothPrinter", "Printer not found")
+            Log.e(
+                "BluetoothPrinter",
+                "Printer not found"
+            )
             return false
         }
 
@@ -41,17 +47,12 @@ class BluetoothPrinter {
             outputStream = bluetoothSocket?.outputStream
             true
         } catch (e: IOException) {
-            Log.e("BluetoothPrinter", "Failed to connect to printer", e)
+            Log.e(
+                "BluetoothPrinter",
+                "Failed to connect to printer",
+                e
+            )
             false
-        }
-    }
-
-    fun printData(data: String) {
-        try {
-            outputStream?.write(data.toByteArray())
-            outputStream?.flush()
-        } catch (e: IOException) {
-            Log.e("BluetoothPrinter", "Failed to print data", e)
         }
     }
 
@@ -69,7 +70,11 @@ class BluetoothPrinter {
             outputStream?.close()
             bluetoothSocket?.close()
         } catch (e: IOException) {
-            Log.e("BluetoothPrinter", "Failed to close connection", e)
+            Log.e(
+                "BluetoothPrinter",
+                "Failed to close connection",
+                e
+            )
         }
     }
 }
