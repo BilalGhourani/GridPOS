@@ -2,6 +2,7 @@ package com.grid.pos.utils
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.util.Base64
 import android.util.Log
@@ -16,6 +17,7 @@ import com.grid.pos.data.PosReceipt.PosReceipt
 import com.grid.pos.data.ThirdParty.ThirdParty
 import com.grid.pos.data.User.User
 import com.grid.pos.model.InvoiceItemModel
+import com.grid.pos.model.PrintPicture
 import com.grid.pos.model.SettingsModel
 import com.journeyapps.barcodescanner.BarcodeEncoder
 import kotlinx.coroutines.delay
@@ -145,14 +147,14 @@ object PrinterUtils {
         )
 
         if (!company?.companyLogo.isNullOrEmpty()) {
-            val barcodeBitmap = FileUtils.getBitmapFromPath(
+            val logoBitmap = FileUtils.getBitmapFromPath(
                 context,
                 Uri.parse(company?.companyLogo)
             )
-            val base64Barcode = convertBitmapToBase64(barcodeBitmap)
+            val base64Result = convertBitmapToBase64(logoBitmap)
             result = result.replace(
                 "{company_logo}",
-                "<img src=\"data:image/png;base64,$base64Barcode\" width=\"50px\" height=\"50px\"/>"
+                "<img src=\"data:image/png;base64,$base64Result\" width=\"100px\" height=\"50px\"/>"
             )
         } else {
             result = result.replace(
@@ -164,7 +166,7 @@ object PrinterUtils {
         result = if (!thirdParty?.thirdPartyName.isNullOrEmpty() || !invoiceHeader.invoiceHeadCashName.isNullOrEmpty()) {
             result.replace(
                 "{clientnamevalue}",
-                "<div style=\"font-weight: Normal;font-size: medium;\">Client: ${thirdParty?.thirdPartyName ?: ""} ${invoiceHeader.invoiceHeadCashName ?: ""}</div>"
+                "<div style=\"font-weight: Normal;font-size: 16px;\">Client: ${thirdParty?.thirdPartyName ?: ""} ${invoiceHeader.invoiceHeadCashName ?: ""}</div>"
             )
         } else {
             result.replace(
@@ -176,7 +178,7 @@ object PrinterUtils {
         result = if (!thirdParty?.thirdPartyFn.isNullOrEmpty()) {
             result.replace(
                 "{clientfnvalue}",
-                "<div style=\"font-weight: Normal;font-size: medium;\">F/N: ${thirdParty?.thirdPartyFn}</div>"
+                "<div style=\"font-weight: Normal;font-size: 16px;\">F/N: ${thirdParty?.thirdPartyFn}</div>"
             )
         } else {
             result.replace(
@@ -188,7 +190,7 @@ object PrinterUtils {
         result = if (!thirdParty?.thirdPartyPhone1.isNullOrEmpty() || !thirdParty?.thirdPartyPhone2.isNullOrEmpty()) {
             result.replace(
                 "{clientphonevalue}",
-                "<div style=\"font-weight: Normal;font-size: medium;\">Phone: ${thirdParty?.thirdPartyPhone1 ?: thirdParty?.thirdPartyPhone2}</div>"
+                "<div style=\"font-weight: Normal;font-size: 16px;\">Phone: ${thirdParty?.thirdPartyPhone1 ?: thirdParty?.thirdPartyPhone2}</div>"
             )
         } else {
             result.replace(
@@ -200,7 +202,7 @@ object PrinterUtils {
         result = if (!thirdParty?.thirdPartyAddress.isNullOrEmpty()) {
             result.replace(
                 "{clientaddressvalue}",
-                "<div style=\"font-weight: Normal;font-size: medium;\">Addr: ${thirdParty?.thirdPartyAddress}</div>"
+                "<div style=\"font-weight: Normal;font-size: 16px;\">Addr: ${thirdParty?.thirdPartyAddress}</div>"
             )
         } else {
             result.replace(
@@ -212,7 +214,7 @@ object PrinterUtils {
         result = if (!user?.userName.isNullOrEmpty()) {
             result.replace(
                 "{invoiceuservalue}",
-                "<div style=\"font-weight: Normal;font-size: medium;\">Served By: ${user?.userName}</div>"
+                "<div style=\"font-weight: Normal;font-size: 16px;\">Served By: ${user?.userName}</div>"
             )
         } else {
             result.replace(
@@ -237,7 +239,7 @@ object PrinterUtils {
             invoiceItemModels.forEach { item ->
                 trs.append(
                     String.format(
-                        "<tr><td>%s</td></tr> <tr><td>%.0f x %.2f</td> <td>%.2f\"</td> </tr>",
+                        "<tr><td>%s</td></tr> <tr><td>%.0f x %.2f</td> <td>%.2f</td> </tr>",
                         item.getFullName(),
                         item.invoice.invoiceQuantity,
                         item.invoice.getPrice(),
@@ -256,8 +258,6 @@ object PrinterUtils {
         val invAmountVal = StringBuilder(
             String.format(
                 "<tr><td>Disc Amount&nbsp;:</td><td>%.2f</td></tr>",
-                Utils.getDoubleOrZero(company?.companyTax),
-                "%)",
                 Utils.getDoubleOrZero(invoiceHeader.invoiceHeadDiscountAmount)
             )
         )
@@ -268,7 +268,7 @@ object PrinterUtils {
                 showTotalTax = true
                 invAmountVal.append(
                     String.format(
-                        "<tr><td>Tax(%.0f%s &nbsp;&nbsp;:</td><td>%.2f</td></tr>",
+                        "<tr><td>Tax  (%.0f%s:</td><td>%.2f</td></tr>",
                         Utils.getDoubleOrZero(company?.companyTax),
                         "%)",
                         Utils.getDoubleOrZero(invoiceHeader.invoiceHeadTaxAmt)
@@ -278,7 +278,7 @@ object PrinterUtils {
             result = if (!company?.companyTaxRegno.isNullOrEmpty()) {
                 result.replace(
                     "{taxregno}",
-                    "<div style=\"font-weight: Normal;font-size: medium;\">Tax &nbsp; No:${company?.companyTaxRegno ?: ""}</div>"
+                    "<div style=\"font-weight: Normal;font-size: 16px;\">Tax &nbsp; No:${company?.companyTaxRegno ?: ""}</div>"
                 )
             } else {
                 result.replace(
@@ -297,7 +297,7 @@ object PrinterUtils {
                 showTotalTax = true
                 invAmountVal.append(
                     String.format(
-                        "<tr><td>Tax1(%.0f%s &nbsp;&nbsp;:</td><td>%.2f</td></tr>",
+                        "<tr><td>Tax1 (%.0f%s:</td><td>%.2f</td></tr>",
                         Utils.getDoubleOrZero(company?.companyTax1),
                         "%)",
                         Utils.getDoubleOrZero(invoiceHeader.invoiceHeadTax1Amt)
@@ -307,7 +307,7 @@ object PrinterUtils {
             result = if (!company?.companyTax1Regno.isNullOrEmpty()) {
                 result.replace(
                     "{taxregno1}",
-                    "<div style=\"font-weight: Normal;font-size: medium;\">Tax1 No:${company?.companyTax1Regno ?: ""}</div>"
+                    "<div style=\"font-weight: Normal;font-size: 16px;\">Tax1 No:${company?.companyTax1Regno ?: ""}</div>"
                 )
             } else {
                 result.replace(
@@ -326,7 +326,7 @@ object PrinterUtils {
                 showTotalTax = true
                 invAmountVal.append(
                     String.format(
-                        "<tr><td>Tax2(%.0f%s &nbsp;&nbsp;:</td><td>%.2f</td></tr>",
+                        "<tr><td>Tax2 (%.0f%s:</td><td>%.2f</td></tr>",
                         Utils.getDoubleOrZero(company?.companyTax2),
                         "%)",
                         Utils.getDoubleOrZero(invoiceHeader.invoiceHeadTax2Amt)
@@ -336,7 +336,7 @@ object PrinterUtils {
             result = if (!company?.companyTax2Regno.isNullOrEmpty()) {
                 result.replace(
                     "{taxregno2}",
-                    "<div style=\"font-weight: Normal;font-size: medium;\">Tax2 No:${company?.companyTax2Regno ?: ""}</div>"
+                    "<div style=\"font-weight: Normal;font-size: 16px;\">Tax2 No:${company?.companyTax2Regno ?: ""}</div>"
                 )
             } else {
                 result.replace(
@@ -353,7 +353,8 @@ object PrinterUtils {
         result = if (showTotalTax) {
             invAmountVal.append(
                 String.format(
-                    "<tr><td>T.Tax:&nbsp;&nbsp;</td><td>%.2f</td></tr>",
+                    "<tr><td>%s</td><td>%.2f</td></tr>",
+                    "Total Tax:",
                     Utils.getDoubleOrZero(invoiceHeader.invoiceHeadTotalTax)
                 )
             )
@@ -370,7 +371,7 @@ object PrinterUtils {
 
         invAmountVal.append(
             String.format(
-                "<tr><td style=\"font-weight: bold;font-size: medium;\">Total %s:&nbsp;&nbsp;</td><td style=\"font-weight: bold;font-size: medium;\">%.2f</td></tr>",
+                "<tr><td style=\"font-weight: bold;font-size: 16px;\">Total %s:&nbsp;&nbsp;</td><td style=\"font-weight: bold;font-size: 16px;\">%.2f</td></tr>",
                 currency?.currencyCode1 ?: "",
                 Utils.getDoubleOrZero(invoiceHeader.invoiceHeadTotal)
             )
@@ -378,7 +379,7 @@ object PrinterUtils {
 
         invAmountVal.append(
             String.format(
-                "<tr><td style=\"font-weight: bold;font-size: medium;\">Total %s:&nbsp;&nbsp;</td><td style=\"font-weight: bold;font-size: medium;\">%.2f</td></tr>",
+                "<tr><td style=\"font-weight: bold;font-size: 16px;\">Total %s:&nbsp;&nbsp;</td><td style=\"font-weight: bold;font-size: 16px;\">%.2f</td></tr>",
                 currency?.currencyCode2 ?: "",
                 Utils.getDoubleOrZero(invoiceHeader.invoiceHeadTotal1)
             )
@@ -478,7 +479,7 @@ object PrinterUtils {
         result = if (!invoiceHeader.invoiceHeadNote.isNullOrEmpty()) {
             result.replace(
                 "{invoicenotevalue}",
-                "<hr class=\"dashed\">\n" + "    <div style=\"width: 100%;display: flex; align-items: start; justify-content: start; flex-direction: column;\">\n" + "        <div style=\"font-weight: Normal;font-size: medium;\">${invoiceHeader.invoiceHeadNote}</div>\n" + "    </div>"
+                "<hr class=\"dashed\">\n" + "    <div style=\"width: 100%;display: flex; align-items: start; justify-content: start; flex-direction: column;\">\n" + "        <div style=\"font-weight: Normal;font-size: 16px;\">${invoiceHeader.invoiceHeadNote}</div>\n" + "    </div>"
             )
         } else {
             result.replace(
@@ -492,7 +493,7 @@ object PrinterUtils {
             val base64Barcode = convertBitmapToBase64(barcodeBitmap)
             result = result.replace(
                 "{barcodeContent}",
-                " <img style=\"width:100%;margin: 20px !important; height:100px;\" src=\"data:image/png;base64,$base64Barcode\" alt=\"Barcode\"/>"
+                " <img style=\"width:100%;margin-start: 20px !important;margin-end: 20px !important;height:100px;\" src=\"data:image/png;base64,$base64Barcode\" alt=\"Barcode\"/>"
             )
         }
 
@@ -539,7 +540,6 @@ object PrinterUtils {
             for (child in children) {
                 when (child.tagName()) {
                     "p" -> {
-                        result += "\n".toByteArray()
                         result += parseHtmlElement(child)
                         result += "\n".toByteArray()
                     }
@@ -571,13 +571,21 @@ object PrinterUtils {
                     "img" -> {
                         val src = child.attr("src")
                         val base64Data = src.substringAfter("base64,")
-                        if (base64Data.isNotEmpty()) {/* result += Base64.decode(
+                        if (base64Data.isNotEmpty()) {
+                            val decodedString: ByteArray = Base64.decode(
                                 base64Data,
                                 Base64.DEFAULT
-                            )*/
-                        } else {/* result += IMAGE_PRINT_COMMAND // Replace with your printer's command
-                            result += src.toByteArray()
-                            result += IMAGE_END_COMMAND // Replace with your printer's command*/
+                            )
+                            val decodedByte = BitmapFactory.decodeByteArray(
+                                decodedString,
+                                0,
+                                decodedString.size
+                            )
+                            val printPic = PrintPicture.getInstance()
+                            printPic.init(decodedByte)
+                            result += ALIGN_CENTER
+                            result += printPic.printDraw()
+                            result += ALIGN_LEFT
                         }
                     }
 
@@ -634,20 +642,66 @@ object PrinterUtils {
     private fun styleElement(element: Element): ByteArray {
         var res = byteArrayOf()
         val style = element.attr("style")
-        if (style.contains("font-weight")) {
-            res += if (style.contains("bold")) BOLD_ON else BOLD_OFF
-        }
         if (style.contains("text-align") || style.contains("justify-content")) {
             res += if (style.contains("center")) ALIGN_CENTER else if (style.contains("right") || style.contains("end")) ALIGN_RIGHT else ALIGN_LEFT
         }
 
         if (style.contains("font-size")) {
-            res += if (style.contains("large")) DOUBLE_SIZE else NORMAL_SIZE
+            res += getFontSizeByteCommand(getFontSizeFromStyle(style.toString()))
+        }
+
+        if (style.contains("font-weight")) {
+            res += if (style.contains("bold")) BOLD_ON else BOLD_OFF
         }
 
         return res
     }
 
+    private fun getFontSizeFromStyle(style: String): Float {
+        val regex = Regex("""font-size:\s*(\d+(\.\d+)?)(px|em|rem|pt);?""")
+        val matchResult = regex.find(style)
+        val sizeValue = matchResult?.groups?.get(1)?.value?.toFloat()
+        val unit = matchResult?.groups?.get(3)?.value
+
+        return when (unit) {
+            "px" -> sizeValue ?: 16f
+            "em", "rem" -> sizeValue?.times(16) ?: 16f  // Assuming 1em = 16px
+            "pt" -> sizeValue?.times(1.33333f) ?: 16f // 1pt = 1.33333px
+            else -> 16f
+        }
+    }
+
+    private fun getFontSizeByteCommand(fontSizePx: Float): ByteArray {
+        return when {
+            fontSizePx <= 16 -> byteArrayOf(
+                0x1B,
+                0x21,
+                0x00
+            ) // Normal size
+            fontSizePx <= 20 -> byteArrayOf(
+                0x1B,
+                0x21,
+                0x10
+            ) // Slightly larger (double height)
+            fontSizePx <= 24 -> byteArrayOf(
+                0x1B,
+                0x21,
+                0x20
+            ) // Double width
+            fontSizePx <= 32 -> byteArrayOf(
+                0x1B,
+                0x21,
+                0x30
+            ) // Double height and width
+            else -> byteArrayOf(
+                0x1B,
+                0x21,
+                0x30
+            ) // Largest supported size (fallback)
+        }
+    }
+
+    @Deprecated("deprecated as we are converting the Html to byteArray based on the tags, keeping it for reference")
     private fun printInvoiceReceipt(
             context: Context,
             invoiceHeader: InvoiceHeader,
@@ -1033,15 +1087,7 @@ object PrinterUtils {
                 user = user,
                 company = company
             )
-            val output = parseHtmlContent(htmlContent)/* val output = printInvoiceReceipt(
-                context = context,
-                invoiceHeader = invoiceHeader,
-                invoiceItemModels = invoiceItemModels,
-                posReceipt = posReceipt,
-                thirdParty = thirdParty,
-                user = user,
-                company = company
-            )*/
+            val output = parseHtmlContent(htmlContent)
             printOutput(
                 context = context,
                 output = output,
@@ -1049,7 +1095,7 @@ object PrinterUtils {
             )
         }
 
-        /*   val itemsPrintersMap = invoiceItemModels.groupBy { it.invoiceItem.itemPrinter ?: "" }
+           val itemsPrintersMap = invoiceItemModels.groupBy { it.invoiceItem.itemPrinter ?: "" }
            itemsPrintersMap.entries.forEach { entry ->
                if (entry.key.isNotEmpty()) {
                    val itemsPrinter = printers.firstOrNull { it.posPrinterId == entry.key }
@@ -1067,7 +1113,7 @@ object PrinterUtils {
                        )
                    }
                }
-           }*/
+           }
     }
 
     suspend fun printOutput(
@@ -1126,8 +1172,8 @@ object PrinterUtils {
             val bitMatrix: BitMatrix = barcodeEncoder.encode(
                 data,
                 BarcodeFormat.CODE_128,
-                300,
-                80
+                200,
+                100
             )
             barcodeEncoder.createBitmap(bitMatrix)
         } catch (e: WriterException) {
@@ -1179,7 +1225,7 @@ object PrinterUtils {
         val byteArray: ByteArray = byteArrayOutputStream.toByteArray()
         return Base64.encodeToString(
             byteArray,
-            Base64.NO_WRAP
+            Base64.NO_PADDING
         )
     }
 }

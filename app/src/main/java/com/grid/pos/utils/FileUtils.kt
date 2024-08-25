@@ -1,6 +1,5 @@
 package com.grid.pos.utils
 
-import android.content.ContentResolver
 import android.content.ContentUris
 import android.content.ContentValues
 import android.content.Context
@@ -649,17 +648,26 @@ object FileUtils {
             context: Context,
             path: Uri
     ): Bitmap? {
-        val image = getFileFromUri(context,path)
+        val image = getFileFromUri(
+            context,
+            path
+        )
         try {
             val bmOptions = BitmapFactory.Options()
-            val bitmap = BitmapFactory.decodeFile(
+            var bitmap = BitmapFactory.decodeFile(
                 image?.absolutePath,
                 bmOptions
             )
+            if (bitmap == null) {
+                bitmap = MediaStore.Images.Media.getBitmap(
+                    context.contentResolver,
+                    path
+                )
+            }
             return Bitmap.createScaledBitmap(
                 bitmap!!,
-                200,
-                200,
+                100,
+                50,
                 true
             )
         } catch (e: java.lang.Exception) {
