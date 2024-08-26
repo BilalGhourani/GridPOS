@@ -21,12 +21,12 @@ class PrintPicture private constructor() {
     }
 
     fun getLength(): Int {
-        return length.toInt() + 20 // Returns the length with some padding
+        return length.toInt() /*+ 20*/ // Returns the length with some padding
     }
 
     fun init(bitmap: Bitmap?) {
         if (bitmap != null) {
-            initCanvas(bitmap.height) // Initialize canvas with bitmap dimensions
+            initCanvas(bitmap.width, bitmap.height) // Initialize canvas with bitmap dimensions
         }
         if (paint == null) {
             initPaint() // Initialize paint if not already done
@@ -36,9 +36,12 @@ class PrintPicture private constructor() {
         }
     }
 
-    fun initCanvas(h: Int) {
-        val w = h/2
-        bm = Bitmap.createBitmap(w, h, Bitmap.Config.RGB_565) // Create a bitmap with specified width and height
+    fun initCanvas(w: Int, h: Int) {
+        bm = Bitmap.createBitmap(
+            w,
+            h,
+            Bitmap.Config.RGB_565
+        ) // Create a bitmap with specified width and height
         canvas = Canvas(bm!!) // Initialize the canvas with the bitmap
         canvas?.drawColor(-1) // Set the background color of the canvas to white
         width = w // Set the width
@@ -74,7 +77,13 @@ class PrintPicture private constructor() {
      */
     fun printDraw(): ByteArray {
         return try {
-            val nbm = Bitmap.createBitmap(bm!!, 0, 0, width, getLength()) // Create a new bitmap for printing
+            val nbm = Bitmap.createBitmap(
+                bm!!,
+                0,
+                0,
+                width,
+                getLength()
+            ) // Create a new bitmap for printing
 
             val imgbuf = ByteArray(width / 8 * getLength() + 8) // Initialize the image buffer
 
@@ -104,7 +113,8 @@ class PrintPicture private constructor() {
                     val p6 = if (nbm.getPixel(k * 8 + 6, i) == -1) 0 else 1
                     val p7 = if (nbm.getPixel(k * 8 + 7, i) == -1) 0 else 1
 
-                    val value = p0 * 128 + p1 * 64 + p2 * 32 + p3 * 16 + p4 * 8 + p5 * 4 + p6 * 2 + p7
+                    val value =
+                        p0 * 128 + p1 * 64 + p2 * 32 + p3 * 16 + p4 * 8 + p5 * 4 + p6 * 2 + p7
                     bitbuf!![k] = value.toByte() // Set the corresponding byte in the bit buffer
                 }
 
