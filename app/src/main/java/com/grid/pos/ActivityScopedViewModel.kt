@@ -184,14 +184,20 @@ class ActivityScopedViewModel @Inject constructor(
 
     fun print(context: Context) {
         viewModelScope.launch(Dispatchers.IO) {
-            val defaultThirdParty = if (invoiceHeader.invoiceHeadThirdPartyName.isNullOrEmpty()) {
+            val thirdParty = if (invoiceHeader.invoiceHeadThirdPartyName.isNullOrEmpty()) {
                 thirdParties.firstOrNull { it.thirdPartyDefault }
             } else {
                 thirdParties.firstOrNull {
-                    it.thirdPartyId.equals(
-                        invoiceHeader.invoiceHeadThirdPartyName,
-                        ignoreCase = true
-                    )
+                    it.thirdPartyId == invoiceHeader.invoiceHeadThirdPartyName
+                }
+            }
+            val user = if (invoiceHeader.invoiceHeadUserStamp.isNullOrEmpty()) {
+                null
+            } else if (SettingsModel.currentUser?.userId.equals(invoiceHeader.invoiceHeadUserStamp)) {
+                SettingsModel.currentUser
+            } else {
+                users.firstOrNull {
+                    it.userId == invoiceHeader.invoiceHeadUserStamp
                 }
             }
             PrinterUtils.print(
@@ -199,8 +205,8 @@ class ActivityScopedViewModel @Inject constructor(
                 invoiceHeader,
                 invoiceItemModels,
                 posReceipt,
-                defaultThirdParty,
-                SettingsModel.currentUser,
+                thirdParty,
+                user,
                 SettingsModel.currentCompany,
                 printers
             )

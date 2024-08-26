@@ -35,16 +35,16 @@ import com.grid.pos.ui.theme.GridPOSTheme
 
 @Composable
 fun InvoiceFooterView(
-        invoiceHeader: InvoiceHeader,
-        items: MutableList<Item> = mutableListOf(),
-        thirdParties: MutableList<ThirdParty> = mutableListOf(),
-        invoiceHeaders: MutableList<InvoiceHeader> = mutableListOf(),
-        modifier: Modifier = Modifier,
-        onAddItem: () -> Unit = {},
-        onAddThirdParty: () -> Unit = {},
-        onItemSelected: (Item) -> Unit = {},
-        onThirdPartySelected: (ThirdParty) -> Unit = {},
-        onInvoiceSelected: (InvoiceHeader) -> Unit = {},
+    invoiceHeader: InvoiceHeader,
+    items: MutableList<Item> = mutableListOf(),
+    thirdParties: MutableList<ThirdParty> = mutableListOf(),
+    invoiceHeaders: MutableList<InvoiceHeader> = mutableListOf(),
+    modifier: Modifier = Modifier,
+    onAddItem: () -> Unit = {},
+    onAddThirdParty: () -> Unit = {},
+    onItemSelected: (Item) -> Unit = {},
+    onThirdPartySelected: (ThirdParty) -> Unit = {},
+    onInvoiceSelected: (InvoiceHeader) -> Unit = {},
 ) {
     val currency = SettingsModel.currentCurrency ?: Currency()
     val curState = currency.currencyCode1 ?: ""
@@ -208,21 +208,24 @@ fun InvoiceFooterView(
                     )
                 }
 
-                val defaultThirdParty = if (invoiceHeader.invoiceHeadThirdPartyName.isNullOrEmpty()) {
-                    thirdParties.firstOrNull { it.thirdPartyDefault }
-                } else {
-                    thirdParties.firstOrNull {
-                        it.thirdPartyId.equals(
-                            invoiceHeader.invoiceHeadThirdPartyName,
-                            ignoreCase = true
-                        )
+                val defaultThirdParty =
+                    if (invoiceHeader.invoiceHeadThirdPartyName.isNullOrEmpty()) {
+                        thirdParties.firstOrNull { it.thirdPartyDefault }
+                    } else {
+                        thirdParties.firstOrNull {
+                            it.thirdPartyId.equals(
+                                invoiceHeader.invoiceHeadThirdPartyName,
+                                ignoreCase = true
+                            )
+                        }
                     }
-                }
                 defaultThirdParty?.let {
                     clientState = it.thirdPartyName ?: ""
+                    invoiceHeader.invoiceHeadThirdPartyNewName = it.thirdPartyName
                     onThirdPartySelected.invoke(it)
-                }?:run {
+                } ?: run {
                     clientState = ""
+                    invoiceHeader.invoiceHeadThirdPartyNewName = null
                 }
                 SearchableDropdownMenu(items = thirdParties.toMutableList(),
                     selectedId = defaultThirdParty?.thirdPartyId,
