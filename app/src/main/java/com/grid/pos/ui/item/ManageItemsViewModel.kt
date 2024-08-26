@@ -160,7 +160,7 @@ class ManageItemsViewModel @Inject constructor(
             itemRepository.delete(item)
             val items = manageItemsState.value.items
             items.remove(item)
-            viewModelScope.launch(Dispatchers.Main) {
+            withContext(Dispatchers.Main) {
                 manageItemsState.value = manageItemsState.value.copy(
                     items = items,
                     selectedItem = Item(),

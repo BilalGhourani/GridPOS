@@ -78,21 +78,25 @@ class POSPrinterViewModel @Inject constructor(
                 val addedModel = posPrinterRepository.insert(printer)
                 val printers = posPrinterState.value.printers
                 printers.add(addedModel)
-                posPrinterState.value = posPrinterState.value.copy(
-                    printers = printers,
-                    selectedPrinter = PosPrinter(),
-                    isLoading = false,
-                    warning = Event("Printer saved successfully."),
-                    clear = true,
-                )
+                withContext(Dispatchers.Main) {
+                    posPrinterState.value = posPrinterState.value.copy(
+                        printers = printers,
+                        selectedPrinter = PosPrinter(),
+                        isLoading = false,
+                        warning = Event("Printer saved successfully."),
+                        clear = true,
+                    )
+                }
             } else {
                 posPrinterRepository.update(printer)
-                posPrinterState.value = posPrinterState.value.copy(
-                    selectedPrinter = PosPrinter(),
-                    isLoading = false,
-                    warning = Event("Printer saved successfully."),
-                    clear = true,
-                )
+                withContext(Dispatchers.Main) {
+                    posPrinterState.value = posPrinterState.value.copy(
+                        selectedPrinter = PosPrinter(),
+                        isLoading = false,
+                        warning = Event("Printer saved successfully."),
+                        clear = true,
+                    )
+                }
             }
         }
     }
@@ -123,7 +127,7 @@ class POSPrinterViewModel @Inject constructor(
             posPrinterRepository.delete(printer)
             val printers = posPrinterState.value.printers
             printers.remove(printer)
-            viewModelScope.launch(Dispatchers.Main) {
+            withContext(Dispatchers.Main) {
                 posPrinterState.value = posPrinterState.value.copy(
                     printers = printers,
                     selectedPrinter = PosPrinter(),

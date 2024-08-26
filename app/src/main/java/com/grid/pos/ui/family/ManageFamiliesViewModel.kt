@@ -129,7 +129,7 @@ class ManageFamiliesViewModel @Inject constructor(
             familyRepository.delete(family)
             val families = manageFamiliesState.value.families
             families.remove(family)
-            viewModelScope.launch(Dispatchers.Main) {
+            withContext(Dispatchers.Main) {
                 manageFamiliesState.value = manageFamiliesState.value.copy(
                     families = families,
                     selectedFamily = Family(),

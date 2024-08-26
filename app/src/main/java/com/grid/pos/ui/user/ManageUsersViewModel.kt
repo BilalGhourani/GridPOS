@@ -72,7 +72,7 @@ class ManageUsersViewModel @Inject constructor(
                 val addedModel = userRepository.insert(user)
                 val users = manageUsersState.value.users
                 users.add(addedModel)
-                viewModelScope.launch(Dispatchers.Main) {
+                withContext(Dispatchers.Main) {
                     manageUsersState.value = manageUsersState.value.copy(
                         users = users,
                         selectedUser = addedModel,
@@ -83,7 +83,7 @@ class ManageUsersViewModel @Inject constructor(
                 }
             } else {
                 userRepository.update(user)
-                viewModelScope.launch(Dispatchers.Main) {
+                withContext(Dispatchers.Main) {
                     manageUsersState.value = manageUsersState.value.copy(
                         selectedUser = user,
                         isLoading = false,
@@ -121,7 +121,7 @@ class ManageUsersViewModel @Inject constructor(
             userRepository.delete(user)
             val users = manageUsersState.value.users
             users.remove(user)
-            viewModelScope.launch(Dispatchers.Main) {
+            withContext(Dispatchers.Main) {
                 manageUsersState.value = manageUsersState.value.copy(
                     users = users,
                     selectedUser = User(),

@@ -234,7 +234,7 @@ class POSViewModel @Inject constructor(
             invoiceRepository.update(invoice)
         }
         if (notify) {
-            viewModelScope.launch(Dispatchers.Main) {
+            withContext(Dispatchers.Main) {
                 posState.value = posState.value.copy(
                     isLoading = false,
                     isSaved = true,

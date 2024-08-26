@@ -11,6 +11,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
@@ -68,7 +69,7 @@ class ManageCurrenciesViewModel @Inject constructor(
                 currency.prepareForInsert()
                 val addedCurr = currencyRepository.insert(currency)
                 SettingsModel.currentCurrency = addedCurr
-                viewModelScope.launch(Dispatchers.Main) {
+                withContext(Dispatchers.Main) {
                     manageCurrenciesState.value = manageCurrenciesState.value.copy(
                         selectedCurrency = addedCurr,
                         isLoading = false,
@@ -81,7 +82,7 @@ class ManageCurrenciesViewModel @Inject constructor(
                     currency
                 )
                 SettingsModel.currentCurrency = currency
-                viewModelScope.launch(Dispatchers.Main) {
+                withContext(Dispatchers.Main) {
                     manageCurrenciesState.value = manageCurrenciesState.value.copy(
                         selectedCurrency = currency,
                         warning = Event("Currency saved successfully."),

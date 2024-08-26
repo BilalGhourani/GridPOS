@@ -11,6 +11,7 @@ import com.grid.pos.data.PosPrinter.PosPrinterRepository
 import com.grid.pos.data.ThirdParty.ThirdPartyRepository
 import com.grid.pos.data.User.UserRepository
 import com.grid.pos.model.Event
+import com.grid.pos.model.SettingsModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -115,21 +116,28 @@ class ManageCompaniesViewModel @Inject constructor(
                 val addedCompany = companyRepository.insert(company)
                 val companies = manageCompaniesState.value.companies
                 companies.add(addedCompany)
-                manageCompaniesState.value = manageCompaniesState.value.copy(
-                    companies = companies,
-                    selectedCompany = Company(),
-                    isLoading = false,
-                    warning = Event("Company saved successfully."),
-                    clear = true
-                )
+                withContext(Dispatchers.Main) {
+                    manageCompaniesState.value = manageCompaniesState.value.copy(
+                        companies = companies,
+                        selectedCompany = Company(),
+                        isLoading = false,
+                        warning = Event("Company saved successfully."),
+                        clear = true
+                    )
+                }
             } else {
                 companyRepository.update(company)
-                manageCompaniesState.value = manageCompaniesState.value.copy(
-                    selectedCompany = company,
-                    isLoading = false,
-                    warning = Event("Company saved successfully."),
-                    clear = true
-                )
+                if (company.companyId.equals(SettingsModel.currentCompany?.companyId, ignoreCase = true)) {
+                    SettingsModel.currentCompany = company
+                }
+                withContext(Dispatchers.Main) {
+                    manageCompaniesState.value = manageCompaniesState.value.copy(
+                        selectedCompany = company,
+                        isLoading = false,
+                        warning = Event("Company saved successfully."),
+                        clear = true
+                    )
+                }
             }
         }
     }
@@ -161,7 +169,7 @@ class ManageCompaniesViewModel @Inject constructor(
             companyRepository.delete(company)
             val companies = manageCompaniesState.value.companies
             companies.remove(company)
-            viewModelScope.launch(Dispatchers.Main) {
+            withContext(Dispatchers.Main) {
                 manageCompaniesState.value = manageCompaniesState.value.copy(
                     companies = companies,
                     selectedCompany = Company(),
