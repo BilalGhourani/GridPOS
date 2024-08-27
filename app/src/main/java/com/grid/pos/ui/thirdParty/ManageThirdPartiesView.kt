@@ -14,6 +14,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.RemoveCircleOutline
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -47,6 +48,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.grid.pos.ActivityScopedViewModel
 import com.grid.pos.R
+import com.grid.pos.data.Family.Family
 import com.grid.pos.data.ThirdParty.ThirdParty
 import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
@@ -130,6 +132,27 @@ fun ManageThirdPartiesView(
         }
         navController?.navigateUp()
     }
+
+    fun clear() {
+        viewModel.currentThirdParty = null
+        manageThirdPartiesState.selectedThirdParty = ThirdParty()
+        manageThirdPartiesState.selectedThirdParty.thirdPartyCompId = ""
+        nameState = ""
+        fnState = ""
+        phone1State = ""
+        phone2State = ""
+        addressState = ""
+        isDefaultState = false
+        manageThirdPartiesState.clear = false
+        if(saveAndBack){
+            handleBack()
+        }
+    }
+    LaunchedEffect(manageThirdPartiesState.clear) {
+        if (manageThirdPartiesState.clear) {
+            clear()
+        }
+    }
     BackHandler {
         handleBack()
     }
@@ -194,7 +217,20 @@ fun ManageThirdPartiesView(
                             items = manageThirdPartiesState.thirdParties.toMutableList(),
                             modifier = Modifier.padding(10.dp),
                             label = "Select Third Party",
-                            selectedId = manageThirdPartiesState.selectedThirdParty.thirdPartyId
+                            selectedId = manageThirdPartiesState.selectedThirdParty.thirdPartyId,
+                            leadingIcon = {
+                                if (manageThirdPartiesState.selectedThirdParty.thirdPartyId.isNotEmpty()) {
+                                    Icon(
+                                        Icons.Default.RemoveCircleOutline,
+                                        contentDescription = "remove family",
+                                        tint = Color.Black,
+                                        modifier = it
+                                    )
+                                }
+                            },
+                            onLeadingIconClick = {
+                                clear()
+                            }
                         ) { thirdParty ->
                             thirdParty as ThirdParty
                             viewModel.currentThirdParty = thirdParty.copy()
@@ -313,20 +349,6 @@ fun ManageThirdPartiesView(
                         }
                     }
                 }
-            }
-        }
-        if (manageThirdPartiesState.clear) {
-            manageThirdPartiesState.selectedThirdParty = ThirdParty()
-            manageThirdPartiesState.selectedThirdParty.thirdPartyCompId = ""
-            nameState = ""
-            fnState = ""
-            phone1State = ""
-            phone2State = ""
-            addressState = ""
-            isDefaultState = false
-            manageThirdPartiesState.clear = false
-            if(saveAndBack){
-                handleBack()
             }
         }
     }

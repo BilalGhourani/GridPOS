@@ -14,6 +14,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.RemoveCircleOutline
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -47,6 +48,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.grid.pos.ActivityScopedViewModel
 import com.grid.pos.R
+import com.grid.pos.data.Family.Family
 import com.grid.pos.data.PosPrinter.PosPrinter
 import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
@@ -132,6 +134,26 @@ fun POSPrinterView(
         }
         navController?.navigateUp()
     }
+
+    fun clear() {
+        viewModel.currentPrinter = null
+        posPrinterState.selectedPrinter = PosPrinter()
+        posPrinterState.selectedPrinter.posPrinterCompId = ""
+        nameState = ""
+        hostState = ""
+        portState = ""
+        typeState = ""
+        posPrinterState.clear = false
+        if (saveAndBack) {
+            handleBack()
+        }
+    }
+    LaunchedEffect(posPrinterState.clear) {
+        if (posPrinterState.clear) {
+            clear()
+        }
+    }
+
     BackHandler {
         handleBack()
     }
@@ -196,7 +218,20 @@ fun POSPrinterView(
                             items = posPrinterState.printers.toMutableList(),
                             modifier = Modifier.padding(10.dp),
                             label = "Select Printer",
-                            selectedId = posPrinterState.selectedPrinter.posPrinterId
+                            selectedId = posPrinterState.selectedPrinter.posPrinterId,
+                            leadingIcon = {
+                                if (posPrinterState.selectedPrinter.posPrinterId.isNotEmpty()) {
+                                    Icon(
+                                        Icons.Default.RemoveCircleOutline,
+                                        contentDescription = "remove family",
+                                        tint = Color.Black,
+                                        modifier = it
+                                    )
+                                }
+                            },
+                            onLeadingIconClick = {
+                                clear()
+                            }
                         ) { printer ->
                             printer as PosPrinter
                             viewModel.currentPrinter = printer.copy()
@@ -286,18 +321,6 @@ fun POSPrinterView(
 
                     }
                 }
-            }
-        }
-        if (posPrinterState.clear) {
-            posPrinterState.selectedPrinter = PosPrinter()
-            posPrinterState.selectedPrinter.posPrinterCompId = ""
-            nameState = ""
-            hostState = ""
-            portState = ""
-            typeState = ""
-            posPrinterState.clear = false
-            if (saveAndBack) {
-                handleBack()
             }
         }
     }

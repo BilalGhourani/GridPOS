@@ -18,6 +18,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.RemoveCircleOutline
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -183,6 +184,35 @@ fun ManageCompaniesView(
         }
         navController?.navigateUp()
     }
+
+    fun clear() {
+        viewModel.currentCompany = null
+        manageCompaniesState.selectedCompany = Company()
+        manageCompaniesState.selectedCompany.companyCurCodeTax = ""
+        nameState = ""
+        phoneState = ""
+        addressState = ""
+        countryState = ""
+        taxRegnoState = ""
+        taxState = ""
+        upWithTaxState = false
+        emailState = ""
+        webState = ""
+        logoState = ""
+        tax1RegnoState = ""
+        tax1State = ""
+        tax2RegnoState = ""
+        tax2State = ""
+        manageCompaniesState.clear = false
+        if (saveAndBack) {
+            handleBack()
+        }
+    }
+    LaunchedEffect(manageCompaniesState.clear) {
+        if (manageCompaniesState.clear) {
+            clear()
+        }
+    }
     BackHandler {
         handleBack()
     }
@@ -246,12 +276,23 @@ fun ManageCompaniesView(
                             .weight(1f),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        SearchableDropdownMenu(
-                            items = manageCompaniesState.companies.toMutableList(),
+                        SearchableDropdownMenu(items = manageCompaniesState.companies.toMutableList(),
                             modifier = Modifier.padding(10.dp),
                             label = "Select Company",
-                            selectedId = manageCompaniesState.selectedCompany.companyId
-                        ) { company ->
+                            selectedId = manageCompaniesState.selectedCompany.companyId,
+                            leadingIcon = {
+                                if (manageCompaniesState.selectedCompany.companyId.isNotEmpty()) {
+                                    Icon(
+                                        Icons.Default.RemoveCircleOutline,
+                                        contentDescription = "remove family",
+                                        tint = Color.Black,
+                                        modifier = it
+                                    )
+                                }
+                            },
+                            onLeadingIconClick = {
+                                clear()
+                            }) { company ->
                             company as Company
                             viewModel.currentCompany = company.copy()
                             manageCompaniesState.selectedCompany = company
@@ -573,28 +614,6 @@ fun ManageCompaniesView(
 
                     }
                 }
-            }
-        }
-        if (manageCompaniesState.clear) {
-            manageCompaniesState.selectedCompany = Company()
-            manageCompaniesState.selectedCompany.companyCurCodeTax = ""
-            nameState = ""
-            phoneState = ""
-            addressState = ""
-            countryState = ""
-            taxRegnoState = ""
-            taxState = ""
-            upWithTaxState = false
-            emailState = ""
-            webState = ""
-            logoState = ""
-            tax1RegnoState = ""
-            tax1State = ""
-            tax2RegnoState = ""
-            tax2State = ""
-            manageCompaniesState.clear = false
-            if (saveAndBack) {
-                handleBack()
             }
         }
     }

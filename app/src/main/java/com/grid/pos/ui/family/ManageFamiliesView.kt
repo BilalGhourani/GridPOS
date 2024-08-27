@@ -17,6 +17,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.RemoveCircleOutline
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -52,6 +53,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.grid.pos.ActivityScopedViewModel
 import com.grid.pos.R
+import com.grid.pos.data.Company.Company
 import com.grid.pos.data.Family.Family
 import com.grid.pos.interfaces.OnGalleryResult
 import com.grid.pos.model.PopupModel
@@ -152,6 +154,23 @@ fun ManageFamiliesView(
         }
         navController?.navigateUp()
     }
+
+    fun clear() {
+        viewModel.currentFamily = null
+        manageFamiliesState.selectedFamily = Family()
+        manageFamiliesState.selectedFamily.familyCompanyId = ""
+        nameState = ""
+        imageState = ""
+        manageFamiliesState.clear = false
+        if (saveAndBack) {
+            handleBack()
+        }
+    }
+    LaunchedEffect(manageFamiliesState.clear) {
+        if (manageFamiliesState.clear) {
+            clear()
+        }
+    }
     BackHandler {
         handleBack()
     }
@@ -212,12 +231,23 @@ fun ManageFamiliesView(
                             .verticalScroll(rememberScrollState()),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        SearchableDropdownMenu(
-                            items = manageFamiliesState.families.toMutableList(),
+                        SearchableDropdownMenu(items = manageFamiliesState.families.toMutableList(),
                             modifier = Modifier.padding(10.dp),
                             label = "Select Family",
-                            selectedId = manageFamiliesState.selectedFamily.familyId
-                        ) { family ->
+                            selectedId = manageFamiliesState.selectedFamily.familyId,
+                            leadingIcon = {
+                                if (manageFamiliesState.selectedFamily.familyId.isNotEmpty()) {
+                                    Icon(
+                                        Icons.Default.RemoveCircleOutline,
+                                        contentDescription = "remove family",
+                                        tint = Color.Black,
+                                        modifier = it
+                                    )
+                                }
+                            },
+                            onLeadingIconClick = {
+                                clear()
+                            }) { family ->
                             family as Family
                             viewModel.currentFamily = family.copy()
                             manageFamiliesState.selectedFamily = family
@@ -336,16 +366,6 @@ fun ManageFamiliesView(
 
                     }
                 }
-            }
-        }
-        if (manageFamiliesState.clear) {
-            manageFamiliesState.selectedFamily = Family()
-            manageFamiliesState.selectedFamily.familyCompanyId = ""
-            nameState = ""
-            imageState = ""
-            manageFamiliesState.clear = false
-            if (saveAndBack) {
-                handleBack()
             }
         }
     }

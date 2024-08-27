@@ -14,6 +14,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.RemoveCircleOutline
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -52,6 +53,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.grid.pos.ActivityScopedViewModel
 import com.grid.pos.R
+import com.grid.pos.data.Family.Family
 import com.grid.pos.data.User.User
 import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
@@ -140,6 +142,25 @@ fun ManageUsersView(
         }
         navController?.navigateUp()
     }
+    fun clear() {
+        viewModel.currentUser = null
+        manageUsersState.selectedUser = User()
+        manageUsersState.selectedUser.userCompanyId = ""
+        nameState = ""
+        usernameState = ""
+        passwordState = ""
+        posModeState = true
+        tableModeState = true
+        manageUsersState.clear = false
+        if (saveAndBack) {
+            handleBack()
+        }
+    }
+    LaunchedEffect(manageUsersState.clear) {
+        if (manageUsersState.clear) {
+            clear()
+        }
+    }
     BackHandler {
         handleBack()
     }
@@ -204,7 +225,20 @@ fun ManageUsersView(
                             items = manageUsersState.users.toMutableList(),
                             modifier = Modifier.padding(10.dp),
                             label = "Select User",
-                            selectedId = manageUsersState.selectedUser.userId
+                            selectedId = manageUsersState.selectedUser.userId,
+                            leadingIcon = {
+                                if (manageUsersState.selectedUser.userId.isNotEmpty()) {
+                                    Icon(
+                                        Icons.Default.RemoveCircleOutline,
+                                        contentDescription = "remove family",
+                                        tint = Color.Black,
+                                        modifier = it
+                                    )
+                                }
+                            },
+                            onLeadingIconClick = {
+                                clear()
+                            }
                         ) { selectedUser ->
                             selectedUser as User
                             viewModel.currentUser = selectedUser.copy()
@@ -320,20 +354,6 @@ fun ManageUsersView(
 
                     }
                 }
-            }
-        }
-
-        if (manageUsersState.clear) {
-            manageUsersState.selectedUser = User()
-            manageUsersState.selectedUser.userCompanyId = ""
-            nameState = ""
-            usernameState = ""
-            passwordState = ""
-            posModeState = true
-            tableModeState = true
-            manageUsersState.clear = false
-            if (saveAndBack) {
-                handleBack()
             }
         }
     }

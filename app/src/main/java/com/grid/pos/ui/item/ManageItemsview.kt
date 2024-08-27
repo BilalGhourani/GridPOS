@@ -208,6 +208,36 @@ fun ManageItemsView(
         }
         navController?.navigateUp()
     }
+
+    fun clear() {
+        viewModel.currentITem = null
+        manageItemsState.selectedItem = Item()
+        manageItemsState.selectedItem.itemCompId = ""
+        manageItemsState.selectedItem.itemFaId = ""
+        nameState = ""
+        unitPriceState = ""
+        taxState = ""
+        tax1State = ""
+        tax2State = ""
+        barcodeState = ""
+        openCostState = ""
+        openQtyState = ""
+        familyIdState = ""
+        btnColorState = ""
+        btnTextColorState = ""
+        printerState = ""
+        imageState = ""
+        itemPOSState = false
+        manageItemsState.clear = false
+        if (saveAndBack) {
+            handleBack()
+        }
+    }
+    LaunchedEffect(manageItemsState.clear) {
+        if (manageItemsState.clear) {
+            clear()
+        }
+    }
     BackHandler {
         handleBack()
     }
@@ -270,12 +300,23 @@ fun ManageItemsView(
                             .weight(1f),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        SearchableDropdownMenu(
-                            items = manageItemsState.items.toMutableList(),
+                        SearchableDropdownMenu(items = manageItemsState.items.toMutableList(),
                             modifier = Modifier.padding(10.dp),
                             label = "Select Item",
-                            selectedId = manageItemsState.selectedItem.itemId
-                        ) { item ->
+                            selectedId = manageItemsState.selectedItem.itemId,
+                            leadingIcon = {
+                                if (manageItemsState.selectedItem.itemId.isNotEmpty()) {
+                                    Icon(
+                                        Icons.Default.RemoveCircleOutline,
+                                        contentDescription = "remove family",
+                                        tint = Color.Black,
+                                        modifier = it
+                                    )
+                                }
+                            },
+                            onLeadingIconClick = {
+                                clear()
+                            }) { item ->
                             item as Item
                             viewModel.currentITem = item.copy()
                             manageItemsState.selectedItem = item
@@ -661,30 +702,6 @@ fun ManageItemsView(
                         }
                     }
                 }
-            }
-        }
-
-        if (manageItemsState.clear) {
-            manageItemsState.selectedItem = Item()
-            manageItemsState.selectedItem.itemCompId = ""
-            manageItemsState.selectedItem.itemFaId = ""
-            nameState = ""
-            unitPriceState = ""
-            taxState = ""
-            tax1State = ""
-            tax2State = ""
-            barcodeState = ""
-            openCostState = ""
-            openQtyState = ""
-            familyIdState = ""
-            btnColorState = ""
-            btnTextColorState = ""
-            printerState = ""
-            imageState = ""
-            itemPOSState = false
-            manageItemsState.clear = false
-            if (saveAndBack) {
-                handleBack()
             }
         }
 
