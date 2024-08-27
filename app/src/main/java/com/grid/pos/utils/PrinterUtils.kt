@@ -239,7 +239,7 @@ object PrinterUtils {
             )
         }
         if (invoiceItemModels.isNotEmpty()) {
-            val trs = StringBuilder("<tr> <td>Description</td><td>T.Price</td>  </tr>")
+            val trs = StringBuilder("<tr><td><b>Description</b></td><td><b>Total</b</td> </tr>")
             invoiceItemModels.forEach { item ->
                 trs.append(
                     String.format(
