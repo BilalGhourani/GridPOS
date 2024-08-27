@@ -351,10 +351,10 @@ object FileUtils {
             context = app.applicationContext,
             parent = "bachup",
             sourceFilePath = dbFile.toUri(),
-            destName = "grids-${
+            destName = "grids ${
                 DateHelper.getDateInFormat(
                     Date(),
-                    "yyyyMMddhhmmss"
+                    "dd MMM yyyy hh_mm_ss"
                 )
             }.db",
             type = "sqlite"
