@@ -116,6 +116,16 @@ object Utils {
         return Color(android.graphics.Color.HSVToColor(hsv))
     }
 
+    fun convertColorToInt(
+            color: Color
+    ): Int {
+        return android.graphics.Color.rgb(
+            color.red,
+            color.green,
+            color.blue
+        )
+    }
+
     fun getDoubleValue(
             new: String,
             old: String
@@ -166,7 +176,7 @@ object Utils {
     }
 
     fun isTablet(configuration: Configuration): Boolean {
-        if (isTablet!=null){
+        if (isTablet != null) {
             return isTablet!!
         }
         isTablet = configuration.smallestScreenWidthDp >= 600
