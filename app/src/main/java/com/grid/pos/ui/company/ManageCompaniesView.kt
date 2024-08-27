@@ -74,10 +74,10 @@ import kotlinx.coroutines.withContext
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ManageCompaniesView(
-    modifier: Modifier = Modifier,
-    navController: NavController? = null,
-    activityScopedViewModel: ActivityScopedViewModel,
-    viewModel: ManageCompaniesViewModel = hiltViewModel()
+        modifier: Modifier = Modifier,
+        navController: NavController? = null,
+        activityScopedViewModel: ActivityScopedViewModel,
+        viewModel: ManageCompaniesViewModel = hiltViewModel()
 ) {
     val manageCompaniesState: ManageCompaniesState by viewModel.manageCompaniesState.collectAsState(
         ManageCompaniesState()
@@ -150,8 +150,7 @@ fun ManageCompaniesView(
             )
         }
         val firstCurr = manageCompaniesState.currencies.firstOrNull()
-        manageCompaniesState.selectedCompany.companyCurCodeTax =
-            firstCurr?.currencyId
+        manageCompaniesState.selectedCompany.companyCurCodeTax = firstCurr?.currencyId
         viewModel.saveCompany(manageCompaniesState.selectedCompany)
     }
 
@@ -161,8 +160,8 @@ fun ManageCompaniesView(
                 viewModel.currentCompany!!
             )
         ) {
-            activityScopedViewModel.showPopup(
-                true, PopupModel().apply {
+            activityScopedViewModel.showPopup(true,
+                PopupModel().apply {
                     onDismissRequest = {
                         viewModel.currentCompany = null
                         handleBack()
@@ -379,21 +378,19 @@ fun ManageCompaniesView(
                                                 if (uris.isNotEmpty()) {
                                                     manageCompaniesState.isLoading = true
                                                     CoroutineScope(Dispatchers.IO).launch {
-                                                        val internalPath =
-                                                            FileUtils.saveToExternalStorage(context = context,
-                                                                parent = "company logo",
-                                                                uris[0],
-                                                                nameState.trim().replace(
-                                                                    " ",
-                                                                    "_"
-                                                                ).ifEmpty { "item" })
+                                                        val internalPath = FileUtils.saveToExternalStorage(context = context,
+                                                            parent = "company logo",
+                                                            uris[0],
+                                                            nameState.trim().replace(
+                                                                " ",
+                                                                "_"
+                                                            ).ifEmpty { "item" })
                                                         withContext(Dispatchers.Main) {
                                                             manageCompaniesState.isLoading = false
                                                             if (internalPath != null) {
                                                                 oldImage = logoState
                                                                 logoState = internalPath
-                                                                manageCompaniesState.selectedCompany.companyLogo =
-                                                                    logoState
+                                                                manageCompaniesState.selectedCompany.companyLogo = logoState
                                                             }
                                                         }
                                                     }
@@ -450,8 +447,7 @@ fun ManageCompaniesView(
                                     tax,
                                     taxState
                                 )
-                                manageCompaniesState.selectedCompany.companyTax =
-                                    taxState.toDoubleOrNull() ?: 0.0
+                                manageCompaniesState.selectedCompany.companyTax = taxState.toDoubleOrNull() ?: 0.0
                             }
                         }
                         if (SettingsModel.showTax1) {
@@ -484,8 +480,7 @@ fun ManageCompaniesView(
                                     tax1,
                                     tax1State
                                 )
-                                manageCompaniesState.selectedCompany.companyTax1 =
-                                    tax1State.toDoubleOrNull() ?: 0.0
+                                manageCompaniesState.selectedCompany.companyTax1 = tax1State.toDoubleOrNull() ?: 0.0
                             }
                         }
                         if (SettingsModel.showTax2) {
@@ -512,22 +507,20 @@ fun ManageCompaniesView(
                                     tax2,
                                     tax2State
                                 )
-                                manageCompaniesState.selectedCompany.companyTax2 =
-                                    tax2State.toDoubleOrNull() ?: 0.0
+                                manageCompaniesState.selectedCompany.companyTax2 = tax2State.toDoubleOrNull() ?: 0.0
                             }
                         }
 
-                        if (SettingsModel.showTax || SettingsModel.showTax1 || SettingsModel.showTax2) {
-                            UISwitch(
-                                modifier = Modifier.padding(10.dp),
-                                checked = upWithTaxState,
-                                text = "Unit price with tax",
-                            ) { unitPriceWithTax ->
-                                upWithTaxState = unitPriceWithTax
-                                manageCompaniesState.selectedCompany.companyUpWithTax =
-                                    unitPriceWithTax
-                            }
+
+                        UISwitch(
+                            modifier = Modifier.padding(10.dp),
+                            checked = upWithTaxState,
+                            text = "Unit price with tax",
+                        ) { unitPriceWithTax ->
+                            upWithTaxState = unitPriceWithTax
+                            manageCompaniesState.selectedCompany.companyUpWithTax = unitPriceWithTax
                         }
+
 
                         Row(
                             modifier = Modifier
