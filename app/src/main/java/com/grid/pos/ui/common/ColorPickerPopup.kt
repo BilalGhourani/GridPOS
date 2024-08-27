@@ -78,7 +78,8 @@ fun ColorPickerPopup(
             HueBar(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(50.dp)
+                    .height(50.dp),
+                defaultColor = defaultColor
             ) {
                 hueState = it
                 buttonColorState = Utils.floatToColor(
