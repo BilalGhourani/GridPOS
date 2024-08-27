@@ -64,19 +64,22 @@ fun UIAlertDialog(
                     )
                 }
 
-                Spacer(modifier = Modifier.height(10.dp))
+                popupModel.dialogTitle?.let {title->
+                    Spacer(modifier = Modifier.height(10.dp))
 
-                Text(
-                    text = popupModel.dialogTitle,
-                    modifier = Modifier.wrapContentWidth(Alignment.CenterHorizontally),
-                    color = SettingsModel.textColor,
-                    style = TextStyle(
-                        textDecoration = TextDecoration.None,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 20.sp
-                    ),
-                    textAlign = TextAlign.Center,
-                )
+                    Text(
+                        text = title,
+                        modifier = Modifier.wrapContentWidth(Alignment.CenterHorizontally),
+                        color = SettingsModel.textColor,
+                        style = TextStyle(
+                            textDecoration = TextDecoration.None,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 20.sp
+                        ),
+                        textAlign = TextAlign.Center,
+                    )
+                }
+
 
                 Spacer(modifier = Modifier.height(10.dp))
 

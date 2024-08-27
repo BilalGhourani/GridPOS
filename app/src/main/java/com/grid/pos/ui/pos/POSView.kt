@@ -432,6 +432,7 @@ fun POSView(
                             IconButton(modifier = Modifier.size(25.dp),
                                 onClick = {
                                     activityViewModel.launchBarcodeScanner(false,
+                                        ArrayList(posState.items),
                                         object : OnBarcodeResult {
                                             override fun OnBarcodeResult(barcodesList: List<String>) {
                                                 if (barcodesList.isNotEmpty()) {

@@ -403,6 +403,7 @@ fun ManageItemsView(
                             trailingIcon = {
                                 IconButton(onClick = {
                                     activityScopedViewModel.launchBarcodeScanner(true,
+                                        ArrayList(manageItemsState.items),
                                         object : OnBarcodeResult {
                                             override fun OnBarcodeResult(barcodesList: List<String>) {
                                                 if (barcodesList.isNotEmpty()) {

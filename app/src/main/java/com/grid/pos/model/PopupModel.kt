@@ -5,12 +5,12 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 data class PopupModel(
-    var onDismissRequest: () -> Unit = {},
-    var onConfirmation: () -> Unit= {},
-    var dialogTitle: String="",
-    var dialogText: String="",
-    var positiveBtnText: String = "OK",
-    var negativeBtnText: String? = "CANCEL",
-    var icon: ImageVector?=null,
-    var height: Dp = 200.dp
+        var onDismissRequest: () -> Unit = {},
+        var onConfirmation: () -> Unit = {},
+        var dialogTitle: String? = null,
+        var dialogText: String = "",
+        var positiveBtnText: String = "OK",
+        var negativeBtnText: String? = "CANCEL",
+        var icon: ImageVector? = null,
+        var height: Dp = 200.dp
 )

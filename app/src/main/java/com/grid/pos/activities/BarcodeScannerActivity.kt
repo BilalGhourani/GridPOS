@@ -2,6 +2,7 @@ package com.grid.pos.activities
 
 import android.content.Intent
 import android.media.MediaPlayer
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
@@ -44,12 +45,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.common.InputImage
 import com.grid.pos.R
+import com.grid.pos.data.Item.Item
 import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.UIAlertDialog
@@ -63,15 +66,26 @@ class BarcodeScannerActivity : ComponentActivity() {
 
     private val barcodeScannedList = mutableListOf<String>()
     private var stopScanning: Boolean = false
-    private var justOnce: Boolean = false
+    private var scanToAdd: Boolean = false
+    private var itemsMap: Map<String, Item>? = null
     private var mMediaPlayer: MediaPlayer? = null
+    private val popupModelState = mutableStateOf(PopupModel())
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         window.setBackgroundDrawableResource(R.drawable.white_background)
-        justOnce = intent.getBooleanExtra(
-            "justOnce",
+        scanToAdd = intent.getBooleanExtra(
+            "scanToAdd",
             false
         )
+        val items = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            intent.getSerializableExtra(
+                "items",
+                ArrayList::class.java
+            ) as? ArrayList<Item>
+        } else {
+            intent.getSerializableExtra("items") as? ArrayList<Item>
+        }
+        itemsMap = items?.map { (it.itemBarcode ?: "-") to it }?.toMap()
         mMediaPlayer = MediaPlayer.create(
             this,
             com.google.zxing.client.android.R.raw.zxing_beep
@@ -101,22 +115,63 @@ class BarcodeScannerActivity : ComponentActivity() {
 
                             val cameraExecutor = remember { Executors.newSingleThreadExecutor() }
                             CameraPreviewView(cameraExecutor) { result ->
-                                if (justOnce) {
+                                if (scanToAdd) {
                                     playScanSound()
-                                    barcodeScannedList.clear()
-                                    barcodeScannedList.add(result)
-                                    finishScanning()
+                                    val item = itemsMap?.get(result)
+                                    if (item != null) {
+                                        if (!stopScanning) {
+                                            stopScanning = true
+                                            scope.launch {
+                                                isPopupShown = true
+                                                popupModelState.value = PopupModel().apply {
+                                                    dialogTitle = null
+                                                    dialogText = "Barcode already exist!"
+                                                    icon = null
+                                                    positiveBtnText = "Close"
+                                                    negativeBtnText = null
+                                                    height = 100.dp
+                                                }
+                                            }
+                                        }
+                                    } else {
+                                        barcodeScannedList.clear()
+                                        barcodeScannedList.add(result)
+                                        finishScanning()
+                                    }
                                 } else {
                                     if (!stopScanning) {
                                         stopScanning = true
                                         playScanSound()
-                                        barcodeScannedList.add(result)
-                                        scope.launch {
-                                            isPopupShown = true
-                                            snackbarHostState.showSnackbar(
-                                                message = result,
-                                                duration = SnackbarDuration.Short,
-                                            )
+                                        if (itemsMap?.containsKey(result) == false) {
+                                            scope.launch {
+                                                isPopupShown = true
+                                                popupModelState.value = PopupModel().apply {
+                                                    dialogTitle = null
+                                                    dialogText = "Barcode not exist!"
+                                                    icon = null
+                                                    positiveBtnText = "Close"
+                                                    negativeBtnText = null
+                                                    height = 100.dp
+                                                }
+                                            }
+
+                                        } else {
+                                            barcodeScannedList.add(result)
+                                            scope.launch {
+                                                isPopupShown = true
+                                                popupModelState.value = PopupModel().apply {
+                                                    dialogTitle = null
+                                                    dialogText = "Scan next?"
+                                                    icon = null
+                                                    positiveBtnText = "Scan"
+                                                    negativeBtnText = "Exit"
+                                                    height = 100.dp
+                                                }
+                                                snackbarHostState.showSnackbar(
+                                                    message = result,
+                                                    duration = SnackbarDuration.Short,
+                                                )
+                                            }
                                         }
                                     }
                                 }
@@ -143,30 +198,25 @@ class BarcodeScannerActivity : ComponentActivity() {
                                 isPopupShown = false
                                 stopScanning = false
                             },
-                            PopupModel().apply {
-                                dialogTitle = "Alert."
-                                dialogText = "Do you want to scan more?"
-                                icon = Icons.Default.Info
-                                positiveBtnText = "Scan"
-                                negativeBtnText = "Exit"
-                            }
+                            popupModelState.value
                         )
                     }
                 }
             }
         }
 
-        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
-            override fun handleOnBackPressed() {
-                // Handle the back button event
-                finishScanning()
-            }
-        })
+        onBackPressedDispatcher.addCallback(this,
+            object : OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() {
+                    // Handle the back button event
+                    finishScanning()
+                }
+            })
     }
 
     private fun finishScanning() {
         val returnIntent = Intent()
-        returnIntent.putStringArrayListExtra(
+        returnIntent.putExtra(
             "SCAN_RESULTS",
             ArrayList(barcodeScannedList)
         )
@@ -193,8 +243,8 @@ class BarcodeScannerActivity : ComponentActivity() {
 
     @Composable
     fun CameraPreviewView(
-        cameraExecutor: java.util.concurrent.ExecutorService,
-        onResult: (String) -> Unit
+            cameraExecutor: java.util.concurrent.ExecutorService,
+            onResult: (String) -> Unit
     ) {
         val context = LocalContext.current
         val cameraProviderFuture = remember { ProcessCameraProvider.getInstance(context) }
@@ -251,9 +301,9 @@ class BarcodeScannerActivity : ComponentActivity() {
 
     @OptIn(ExperimentalGetImage::class)
     private fun processImageProxy(
-        barcodeScanner: com.google.mlkit.vision.barcode.BarcodeScanner,
-        imageProxy: ImageProxy,
-        onResult: (String) -> Unit
+            barcodeScanner: com.google.mlkit.vision.barcode.BarcodeScanner,
+            imageProxy: ImageProxy,
+            onResult: (String) -> Unit
     ) {
         val mediaImage = imageProxy.image
         if (mediaImage != null) {

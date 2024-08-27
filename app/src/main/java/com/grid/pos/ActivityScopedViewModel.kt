@@ -37,6 +37,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.ArrayList
 import javax.inject.Inject
 
 @HiltViewModel
@@ -298,14 +299,16 @@ class ActivityScopedViewModel @Inject constructor(
     }
 
     fun launchBarcodeScanner(
-        justOnce: Boolean,
-        delegate: OnBarcodeResult,
-        onPermissionDenied: () -> Unit
+            scanToAdd: Boolean,
+            items: ArrayList<Item>?,
+            delegate: OnBarcodeResult,
+            onPermissionDenied: () -> Unit
     ) {
         viewModelScope.launch {
             _mainActivityEvent.send(
                 ActivityScopedUIEvent.LaunchBarcodeScanner(
-                    justOnce,
+                    scanToAdd,
+                    items,
                     delegate,
                     onPermissionDenied
                 )

@@ -1,9 +1,9 @@
 package com.grid.pos.data
 
 import com.google.firebase.firestore.Exclude
-import com.grid.pos.utils.Utils
+import java.io.Serializable
 
-abstract class DataModel {
+abstract class DataModel : Serializable {
     @Exclude
     open fun getId(): String {
         return ""

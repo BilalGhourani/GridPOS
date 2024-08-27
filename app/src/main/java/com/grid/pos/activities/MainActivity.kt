@@ -34,6 +34,7 @@ import androidx.navigation.compose.rememberNavController
 import com.grid.pos.ActivityScopedUIEvent
 import com.grid.pos.ActivityScopedViewModel
 import com.grid.pos.R
+import com.grid.pos.data.Item.Item
 import com.grid.pos.interfaces.OnActivityResult
 import com.grid.pos.interfaces.OnBarcodeResult
 import com.grid.pos.interfaces.OnGalleryResult
@@ -52,6 +53,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import java.util.ArrayList
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -76,14 +78,14 @@ class MainActivity : ComponentActivity() {
         }
 
         override fun onCapabilitiesChanged(
-            network: Network,
-            networkCapabilities: NetworkCapabilities
+                network: Network,
+                networkCapabilities: NetworkCapabilities
         ) {
         }
 
         override fun onLinkPropertiesChanged(
-            network: Network,
-            linkProperties: LinkProperties
+                network: Network,
+                linkProperties: LinkProperties
         ) {
         }
     }
@@ -183,8 +185,8 @@ class MainActivity : ComponentActivity() {
     }
 
     fun launchActivityForResult(
-        i: Intent,
-        activityResult: OnActivityResult
+            i: Intent,
+            activityResult: OnActivityResult
     ) {
         try {
             mActivityResultCallBack = activityResult
@@ -198,8 +200,8 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun launchGalleryPicker(
-        mediaType: ActivityResultContracts.PickVisualMedia.VisualMediaType = ActivityResultContracts.PickVisualMedia.ImageOnly,
-        galleryResult: OnGalleryResult
+            mediaType: ActivityResultContracts.PickVisualMedia.VisualMediaType = ActivityResultContracts.PickVisualMedia.ImageOnly,
+            galleryResult: OnGalleryResult
     ) {
         try {
             mGalleryCallBack = galleryResult
@@ -315,7 +317,8 @@ class MainActivity : ComponentActivity() {
                         permissionDelegate = { granted ->
                             if (granted) {
                                 launchCameraActivity(
-                                    sharedEvent.justOnce,
+                                    sharedEvent.scanToAdd,
+                                    sharedEvent.items,
                                     sharedEvent.delegate
                                 )
                             } else {
@@ -325,7 +328,8 @@ class MainActivity : ComponentActivity() {
                         requestStoragePermission.launch(permission)
                     } else {
                         launchCameraActivity(
-                            sharedEvent.justOnce,
+                            sharedEvent.scanToAdd,
+                            sharedEvent.items,
                             sharedEvent.delegate
                         )
                     }
@@ -390,15 +394,23 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun launchCameraActivity(
-        justOnce: Boolean,
-        delegate: OnBarcodeResult
+            scanToAdd:Boolean,
+            items: ArrayList<Item>?,
+            delegate: OnBarcodeResult
     ) {
         mOnBarcodeResult = delegate
         val intent = Intent(
             this,
             BarcodeScannerActivity::class.java
         )
-        intent.putExtra("justOnce", justOnce)
+        intent.putExtra("scanToAdd", scanToAdd)
+        items?.let {
+            intent.putExtra(
+                "items",
+                it
+            )
+        }
+
         startForResult.launch(intent)
     }
 }
