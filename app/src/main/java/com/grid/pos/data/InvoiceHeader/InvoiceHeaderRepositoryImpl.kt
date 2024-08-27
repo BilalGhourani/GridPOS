@@ -199,7 +199,7 @@ class InvoiceHeaderRepositoryImpl(
             }
 
             else -> {
-                val where = "hi_cmp_id='${SettingsModel.getCompanyID()}' ORDER BY hi_orderno DESC"
+                val where = "hi_cmp_id='${SettingsModel.getCompanyID()}' ORDER BY hi_transno DESC"
                 val dbResult = SQLServerWrapper.getListOf(
                     "in_hinvoice",
                     "",
@@ -227,11 +227,8 @@ class InvoiceHeaderRepositoryImpl(
                     ).whereEqualTo(
                         "hi_tt_code",
                         type
-                    ).whereNotEqualTo(
-                        "hi_orderno",
-                        null
                     ).orderBy(
-                        "hi_orderno",
+                        "hi_transno",
                         Query.Direction.DESCENDING
                     ).limit(1).get().await()
                 val document = querySnapshot.firstOrNull()
@@ -246,7 +243,7 @@ class InvoiceHeaderRepositoryImpl(
             }
 
             else -> {
-                val where = "hi_cmp_id='${SettingsModel.getCompanyID()}' AND hi_tt_code = '$type' ORDER BY hi_orderno DESC"
+                val where = "hi_cmp_id='${SettingsModel.getCompanyID()}' AND hi_tt_code = '$type' ORDER BY hi_transno DESC"
                 val dbResult = SQLServerWrapper.getListOf(
                     "in_hinvoice",
                     "TOP 1",
@@ -270,7 +267,7 @@ class InvoiceHeaderRepositoryImpl(
                         "hi_cmp_id",
                         SettingsModel.getCompanyID()
                     ).orderBy(
-                        "hi_orderno",
+                        "hi_transno",
                         Query.Direction.DESCENDING
                     ).limit(1).get().await()
                 val document = querySnapshot.firstOrNull()
@@ -284,7 +281,7 @@ class InvoiceHeaderRepositoryImpl(
             }
 
             else -> {
-                val where = "hi_cmp_id='${SettingsModel.getCompanyID()}' ORDER BY hi_orderno DESC"
+                val where = "hi_cmp_id='${SettingsModel.getCompanyID()}' ORDER BY hi_transno DESC"
                 val dbResult = SQLServerWrapper.getListOf(
                     "in_hinvoice",
                     "TOP 1",

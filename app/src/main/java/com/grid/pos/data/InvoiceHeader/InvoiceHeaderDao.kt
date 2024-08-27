@@ -37,14 +37,14 @@ interface InvoiceHeaderDao {
     fun getAllInvoiceHeaders(companyId: String): MutableList<InvoiceHeader>
 
     // Get all Invoice Headers as stream.
-    @Query("SELECT * FROM `in_hinvoice` WHERE hi_tt_code = :type AND hi_cmp_id=:companyId ORDER BY hi_orderno DESC LIMIT 1")
+    @Query("SELECT * FROM `in_hinvoice` WHERE hi_tt_code = :type AND hi_cmp_id=:companyId ORDER BY hi_transno DESC LIMIT 1")
     fun getLastInvoiceNo(
             type: String,
             companyId: String
     ): InvoiceHeader?
 
     // Get last Invoice Headers as stream.
-    @Query("SELECT * FROM `in_hinvoice` WHERE hi_cmp_id=:companyId ORDER BY hi_orderno DESC LIMIT 1")
+    @Query("SELECT * FROM `in_hinvoice` WHERE hi_cmp_id=:companyId ORDER BY hi_transno DESC LIMIT 1")
     fun getLastInvoice(
             companyId: String
     ): InvoiceHeader?
