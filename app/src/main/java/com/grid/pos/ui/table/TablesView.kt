@@ -55,10 +55,10 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TablesView(
-    modifier: Modifier = Modifier,
-    navController: NavController? = null,
-    activityScopedViewModel: ActivityScopedViewModel,
-    viewModel: TablesViewModel = hiltViewModel()
+        modifier: Modifier = Modifier,
+        navController: NavController? = null,
+        activityScopedViewModel: ActivityScopedViewModel,
+        viewModel: TablesViewModel = hiltViewModel()
 ) {
     val tablesState: TablesState by viewModel.tablesState.collectAsState(
         TablesState()
@@ -120,8 +120,7 @@ fun TablesView(
     }
 
     LaunchedEffect(isPopupVisible) {
-        activityScopedViewModel.showPopup(
-            isPopupVisible,
+        activityScopedViewModel.showPopup(isPopupVisible,
             if (!isPopupVisible) null else PopupModel().apply {
                 onDismissRequest = {
                     isPopupVisible = false
@@ -148,6 +147,7 @@ fun TablesView(
     fun handleBack() {
         if (stepState > 1) {
             stepState = 1
+            tablesState.step = 1
         } else {
             if (SettingsModel.getUserType() == UserType.TABLE) {
                 isPopupVisible = true
@@ -202,41 +202,41 @@ fun TablesView(
             Column(
                 modifier = modifier.padding(it)
             ) {
-                if (stepState <= 1) {
-                    UITextField(modifier = Modifier.padding(10.dp),
-                        defaultValue = tableNameState,
-                        onFocusChanged = {focusState->
-                            if (focusState.hasFocus) {
-                                keyboardController?.show()
-                            }
-                        },
-                        label = "Table Number",
-                        maxLines = 3,
-                        focusRequester = tableNameFocusRequester,
-                        keyboardType = KeyboardType.Decimal,
-                        placeHolder = "Enter Table Number",
-                        onAction = {
-                            viewModel.fetchInvoiceByTable(tableNameState)
-                        },
-                        trailingIcon = {
-                            IconButton(onClick = { }) {
-                                Icon(
-                                    imageVector = Icons.Filled.Search,
-                                    contentDescription = "Search",
-                                    tint = SettingsModel.buttonColor
-                                )
-                            }
-                        }) { tabNo ->
-                        tableNameState = Utils.getDoubleValue(
-                            tabNo,
-                            tableNameState
-                        )
+                UITextField(modifier = Modifier.padding(10.dp),
+                    defaultValue = tableNameState,
+                    onFocusChanged = { focusState ->
+                        if (focusState.hasFocus) {
+                            keyboardController?.show()
+                        }
+                    },
+                    label = "Table Number",
+                    maxLines = 3,
+                    enabled = stepState <= 1,
+                    focusRequester = tableNameFocusRequester,
+                    keyboardType = KeyboardType.Decimal,
+                    placeHolder = "Enter Table Number",
+                    onAction = {
+                        viewModel.fetchInvoiceByTable(tableNameState)
+                    },
+                    trailingIcon = {
+                        IconButton(onClick = { }) {
+                            Icon(
+                                imageVector = Icons.Filled.Search,
+                                contentDescription = "Search",
+                                tint = SettingsModel.buttonColor
+                            )
+                        }
+                    }) { tabNo ->
+                    tableNameState = Utils.getDoubleValue(
+                        tabNo,
+                        tableNameState
+                    )
 
-                    }
-                } else {
+                }
+                if (stepState > 1) {
                     UITextField(modifier = Modifier.padding(10.dp),
                         defaultValue = clientsCountState,
-                        onFocusChanged = {focusState->
+                        onFocusChanged = { focusState ->
                             if (focusState.hasFocus) {
                                 keyboardController?.show()
                             }
