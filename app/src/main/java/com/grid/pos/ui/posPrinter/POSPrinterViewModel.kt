@@ -78,6 +78,7 @@ class POSPrinterViewModel @Inject constructor(
                 val addedModel = posPrinterRepository.insert(printer)
                 val printers = posPrinterState.value.printers
                 printers.add(addedModel)
+                currentPrinter = null
                 withContext(Dispatchers.Main) {
                     posPrinterState.value = posPrinterState.value.copy(
                         printers = printers,
@@ -89,6 +90,7 @@ class POSPrinterViewModel @Inject constructor(
                 }
             } else {
                 posPrinterRepository.update(printer)
+                currentPrinter = null
                 withContext(Dispatchers.Main) {
                     posPrinterState.value = posPrinterState.value.copy(
                         selectedPrinter = PosPrinter(),
@@ -127,6 +129,7 @@ class POSPrinterViewModel @Inject constructor(
             posPrinterRepository.delete(printer)
             val printers = posPrinterState.value.printers
             printers.remove(printer)
+            currentPrinter = null
             withContext(Dispatchers.Main) {
                 posPrinterState.value = posPrinterState.value.copy(
                     printers = printers,

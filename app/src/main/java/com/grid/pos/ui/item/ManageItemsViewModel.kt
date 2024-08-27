@@ -111,6 +111,7 @@ class ManageItemsViewModel @Inject constructor(
                 val addedModel = itemRepository.insert(item)
                 val items = manageItemsState.value.items
                 items.add(addedModel)
+                currentITem = null
                 withContext(Dispatchers.Main) {
                     manageItemsState.value = manageItemsState.value.copy(
                         items = items,
@@ -122,6 +123,7 @@ class ManageItemsViewModel @Inject constructor(
                 }
             } else {
                 itemRepository.update(item)
+                currentITem = null
                 withContext(Dispatchers.Main) {
                     manageItemsState.value = manageItemsState.value.copy(
                         selectedItem = item,
@@ -160,6 +162,7 @@ class ManageItemsViewModel @Inject constructor(
             itemRepository.delete(item)
             val items = manageItemsState.value.items
             items.remove(item)
+            currentITem = null
             withContext(Dispatchers.Main) {
                 manageItemsState.value = manageItemsState.value.copy(
                     items = items,

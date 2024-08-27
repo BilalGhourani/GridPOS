@@ -296,7 +296,6 @@ fun ManageUsersView(
                                     .padding(3.dp),
                                 text = "Save"
                             ) {
-                                viewModel.currentUser = null
                                 saveUser()
                             }
 
@@ -334,7 +333,6 @@ fun ManageUsersView(
             tableModeState = true
             manageUsersState.clear = false
             if (saveAndBack) {
-                viewModel.currentUser = null
                 handleBack()
             }
         }

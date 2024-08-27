@@ -300,7 +300,6 @@ fun ManageFamiliesView(
                                     .padding(3.dp),
                                 text = "Save"
                             ) {
-                                viewModel.currentFamily = null
                                 saveFamily()
                             }
 
@@ -346,7 +345,6 @@ fun ManageFamiliesView(
             imageState = ""
             manageFamiliesState.clear = false
             if (saveAndBack) {
-                viewModel.currentFamily = null
                 handleBack()
             }
         }

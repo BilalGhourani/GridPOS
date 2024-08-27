@@ -116,6 +116,7 @@ class ManageCompaniesViewModel @Inject constructor(
                 val addedCompany = companyRepository.insert(company)
                 val companies = manageCompaniesState.value.companies
                 companies.add(addedCompany)
+                currentCompany = null
                 withContext(Dispatchers.Main) {
                     manageCompaniesState.value = manageCompaniesState.value.copy(
                         companies = companies,
@@ -130,6 +131,7 @@ class ManageCompaniesViewModel @Inject constructor(
                 if (company.companyId.equals(SettingsModel.currentCompany?.companyId, ignoreCase = true)) {
                     SettingsModel.currentCompany = company
                 }
+                currentCompany = null
                 withContext(Dispatchers.Main) {
                     manageCompaniesState.value = manageCompaniesState.value.copy(
                         selectedCompany = company,
@@ -169,6 +171,7 @@ class ManageCompaniesViewModel @Inject constructor(
             companyRepository.delete(company)
             val companies = manageCompaniesState.value.companies
             companies.remove(company)
+            currentCompany = null
             withContext(Dispatchers.Main) {
                 manageCompaniesState.value = manageCompaniesState.value.copy(
                     companies = companies,

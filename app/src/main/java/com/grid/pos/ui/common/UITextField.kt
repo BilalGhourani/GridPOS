@@ -42,6 +42,7 @@ fun UITextField(
         visualTransformation: VisualTransformation = VisualTransformation.None,
         maxLines: Int = 1,
         readOnly: Boolean = false,
+        enabled: Boolean = true,
         leadingIcon: @Composable (() -> Unit)? = null,
         trailingIcon: @Composable (() -> Unit)? = null,
         onValueChange: (String) -> Unit
@@ -50,30 +51,50 @@ fun UITextField(
         modifier = modifier.height(80.dp)
     ) {
 
-        OutlinedTextField(value = defaultValue, onValueChange = {
-            onValueChange(it)
-        }, shape = RoundedCornerShape(15.dp), label = {
-            label?.let { Text(text = label, color = SettingsModel.textColor) }.run { null }
-        }, readOnly = readOnly,
+        OutlinedTextField(value = defaultValue,
+            onValueChange = {
+                onValueChange(it)
+            },
+            shape = RoundedCornerShape(15.dp),
+            label = {
+                label?.let {
+                    Text(
+                        text = label,
+                        color = SettingsModel.textColor
+                    )
+                }.run { null }
+            },
+            readOnly = readOnly,
+            enabled = enabled,
             placeholder = { placeHolder?.let { Text(text = placeHolder) }.run { null } },
             modifier = Modifier
                 .fillMaxSize()
                 .focusRequester(focusRequester)
-                .onFocusChanged { onFocusChanged?.invoke(it) }, keyboardOptions = KeyboardOptions(
-                capitalization = capitalization, autoCorrect = autoCorrect,
-                keyboardType = keyboardType, imeAction = imeAction
-            ), keyboardActions = KeyboardActions(
+                .onFocusChanged { onFocusChanged?.invoke(it) },
+            keyboardOptions = KeyboardOptions(
+                capitalization = capitalization,
+                autoCorrect = autoCorrect,
+                keyboardType = keyboardType,
+                imeAction = imeAction
+            ),
+            keyboardActions = KeyboardActions(
                 onNext = {
                     onAction.invoke(this)
                 },
                 onDone = {
                     onAction.invoke(this)
                 },
-            ), maxLines = maxLines, singleLine = maxLines == 1, leadingIcon = leadingIcon,
-            trailingIcon = trailingIcon, visualTransformation = visualTransformation,
+            ),
+            maxLines = maxLines,
+            singleLine = maxLines == 1,
+            leadingIcon = leadingIcon,
+            trailingIcon = trailingIcon,
+            visualTransformation = visualTransformation,
             colors = OutlinedTextFieldDefaults.colors(
-                unfocusedBorderColor = Color.Black, focusedBorderColor = SettingsModel.buttonColor,
-                focusedTextColor = Color.Black, unfocusedTextColor = Color.Black,
+                unfocusedBorderColor = Color.Black,
+                focusedBorderColor = SettingsModel.buttonColor,
+                focusedTextColor = Color.Black,
+                unfocusedTextColor = Color.Black,
                 cursorColor = SettingsModel.buttonColor
             )
         )

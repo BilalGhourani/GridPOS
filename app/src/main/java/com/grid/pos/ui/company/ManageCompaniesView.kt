@@ -542,7 +542,6 @@ fun ManageCompaniesView(
                                     .padding(3.dp),
                                 text = "Save"
                             ) {
-                                viewModel.currentCompany = null
                                 saveCompany()
                             }
 
@@ -602,7 +601,6 @@ fun ManageCompaniesView(
             tax2State = ""
             manageCompaniesState.clear = false
             if (saveAndBack) {
-                viewModel.currentCompany = null
                 handleBack()
             }
         }

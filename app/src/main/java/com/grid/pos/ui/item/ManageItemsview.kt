@@ -19,10 +19,12 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.AddCircleOutline
 import androidx.compose.material.icons.filled.ColorLens
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.QrCode2
+import androidx.compose.material.icons.filled.RemoveCircleOutline
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -65,6 +67,7 @@ import com.grid.pos.data.Item.Item
 import com.grid.pos.data.PosPrinter.PosPrinter
 import com.grid.pos.interfaces.OnBarcodeResult
 import com.grid.pos.interfaces.OnGalleryResult
+import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.ColorPickerPopup
@@ -456,12 +459,24 @@ fun ManageItemsView(
                             manageItemsState.selectedItem.itemOpenQty = openQtyState.toDoubleOrNull() ?: 0.0
                         }
 
-                        SearchableDropdownMenu(
-                            items = manageItemsState.families.toMutableList(),
+                        SearchableDropdownMenu(items = manageItemsState.families.toMutableList(),
                             modifier = Modifier.padding(10.dp),
                             label = "Select Family",
-                            selectedId = familyIdState
-                        ) { family ->
+                            selectedId = familyIdState,
+                            leadingIcon = {
+                                if (familyIdState.isNotEmpty()) {
+                                    Icon(
+                                        Icons.Default.RemoveCircleOutline,
+                                        contentDescription = "remove family",
+                                        tint = Color.Black,
+                                        modifier = it
+                                    )
+                                }
+                            },
+                            onLeadingIconClick = {
+                                familyIdState = ""
+                                manageItemsState.selectedItem.itemFaId = null
+                            }) { family ->
                             family as Family
                             familyIdState = family.familyId
                             manageItemsState.selectedItem.itemFaId = familyIdState
@@ -513,12 +528,24 @@ fun ManageItemsView(
                             manageItemsState.selectedItem.itemBtnTextColor = btnTextColor
                         }
 
-                        SearchableDropdownMenu(
-                            items = manageItemsState.printers.toMutableList(),
+                        SearchableDropdownMenu(items = manageItemsState.printers.toMutableList(),
                             modifier = Modifier.padding(10.dp),
                             label = "Select Printer",
-                            selectedId = printerState
-                        ) { printer ->
+                            selectedId = printerState,
+                            leadingIcon = {
+                                if (printerState.isNotEmpty()) {
+                                    Icon(
+                                        Icons.Default.RemoveCircleOutline,
+                                        contentDescription = "remove printer",
+                                        tint = Color.Black,
+                                        modifier = it
+                                    )
+                                }
+                            },
+                            onLeadingIconClick = {
+                                printerState = ""
+                                manageItemsState.selectedItem.itemPrinter = null
+                            }) { printer ->
                             printer as PosPrinter
                             printerState = printer.posPrinterId
                             manageItemsState.selectedItem.itemPrinter = printerState
@@ -598,7 +625,6 @@ fun ManageItemsView(
                                     .padding(3.dp),
                                 text = "Save"
                             ) {
-                                viewModel.currentITem = null
                                 saveItem()
                             }
 
@@ -657,7 +683,6 @@ fun ManageItemsView(
             itemPOSState = false
             manageItemsState.clear = false
             if (saveAndBack) {
-                viewModel.currentITem = null
                 handleBack()
             }
         }

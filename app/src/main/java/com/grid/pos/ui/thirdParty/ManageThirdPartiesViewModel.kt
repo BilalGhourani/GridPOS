@@ -71,6 +71,7 @@ class ManageThirdPartiesViewModel @Inject constructor(
                 val thirdParties = manageThirdPartiesState.value.thirdParties
                 thirdParties.add(addedModel)
                 val isDefaultEnabled = thirdParties.none { it.thirdPartyDefault }
+                currentThirdParty = null
                 withContext(Dispatchers.Main) {
                     manageThirdPartiesState.value = manageThirdPartiesState.value.copy(
                         thirdParties = thirdParties,
@@ -84,6 +85,7 @@ class ManageThirdPartiesViewModel @Inject constructor(
             } else {
                 thirdPartyRepository.update(thirdParty)
                 val isDefaultEnabled = manageThirdPartiesState.value.thirdParties.none { it.thirdPartyDefault }
+                currentThirdParty = null
                 withContext(Dispatchers.Main) {
                     manageThirdPartiesState.value = manageThirdPartiesState.value.copy(
                         selectedThirdParty = thirdParty,
@@ -125,6 +127,7 @@ class ManageThirdPartiesViewModel @Inject constructor(
             val thirdParties = manageThirdPartiesState.value.thirdParties
             thirdParties.remove(thirdParty)
             val isDefaultEnabled = thirdParties.none { it.thirdPartyDefault }
+            currentThirdParty = null
             withContext(Dispatchers.Main) {
                 manageThirdPartiesState.value = manageThirdPartiesState.value.copy(
                     thirdParties = thirdParties,
