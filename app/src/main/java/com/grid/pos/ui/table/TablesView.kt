@@ -31,6 +31,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
@@ -219,11 +220,12 @@ fun TablesView(
                         viewModel.fetchInvoiceByTable(tableNameState)
                     },
                     trailingIcon = {
-                        IconButton(onClick = { }) {
+                        IconButton(enabled = stepState <= 1,
+                            onClick = { }) {
                             Icon(
                                 imageVector = Icons.Filled.Search,
                                 contentDescription = "Search",
-                                tint = SettingsModel.buttonColor
+                                tint = if (stepState <= 1) SettingsModel.buttonColor else Color.LightGray
                             )
                         }
                     }) { tabNo ->
