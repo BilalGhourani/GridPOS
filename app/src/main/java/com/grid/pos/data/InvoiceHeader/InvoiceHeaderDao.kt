@@ -33,7 +33,7 @@ interface InvoiceHeaderDao {
     suspend fun update(invoiceHeader: InvoiceHeader)
 
     // Get all Invoice Headers as stream.
-    @Query("SELECT * FROM `in_hinvoice` WHERE hi_cmp_id=:companyId")
+    @Query("SELECT * FROM `in_hinvoice` WHERE hi_cmp_id=:companyId ORDER BY hi_transno DESC")
     fun getAllInvoiceHeaders(companyId: String): MutableList<InvoiceHeader>
 
     // Get all Invoice Headers as stream.

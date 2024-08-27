@@ -180,6 +180,9 @@ class InvoiceHeaderRepositoryImpl(
                     .whereEqualTo(
                         "hi_cmp_id",
                         SettingsModel.getCompanyID()
+                    ).orderBy(
+                        "hi_transno",
+                        Query.Direction.DESCENDING
                     ).get().await()
                 val invoices = mutableListOf<InvoiceHeader>()
                 if (querySnapshot.size() > 0) {
