@@ -3,10 +3,14 @@ package com.grid.pos.utils
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Canvas
+import android.graphics.Paint
+import android.graphics.Typeface
 import android.net.Uri
 import android.util.Base64
 import android.util.Log
 import com.google.zxing.BarcodeFormat
+import com.google.zxing.EncodeHintType
 import com.google.zxing.WriterException
 import com.google.zxing.common.BitMatrix
 import com.grid.pos.data.Company.Company
@@ -489,7 +493,12 @@ object PrinterUtils {
         }
 
         if (!invoiceHeader.invoiceHeadTransNo.isNullOrEmpty()) {
-            val barcodeBitmap = generateBarcode(invoiceHeader.invoiceHeadTransNo!!)
+            val barcodeBitmap = generateBarcodeBitmapWithText(
+                invoiceHeader.invoiceHeadTransNo!!,
+                400,
+                150,
+                true
+            )
             val base64Barcode = convertBitmapToBase64(barcodeBitmap)
             result = result.replace(
                 "{barcodeContent}",
@@ -1095,25 +1104,25 @@ object PrinterUtils {
             )
         }
 
-           val itemsPrintersMap = invoiceItemModels.groupBy { it.invoiceItem.itemPrinter ?: "" }
-           itemsPrintersMap.entries.forEach { entry ->
-               if (entry.key.isNotEmpty()) {
-                   val itemsPrinter = printers.firstOrNull { it.posPrinterId == entry.key }
-                   if (itemsPrinter != null) {
-                       val output = printItemReceipt(
-                           invoiceHeader = invoiceHeader,
-                           invItemModels = entry.value
-                       )
-                       printOutput(
-                           context = context,
-                           output = output,
-                           printerName = itemsPrinter.posPrinterName,
-                           printerIP = itemsPrinter.posPrinterHost,
-                           printerPort = itemsPrinter.posPrinterPort
-                       )
-                   }
-               }
-           }
+        val itemsPrintersMap = invoiceItemModels.groupBy { it.invoiceItem.itemPrinter ?: "" }
+        itemsPrintersMap.entries.forEach { entry ->
+            if (entry.key.isNotEmpty()) {
+                val itemsPrinter = printers.firstOrNull { it.posPrinterId == entry.key }
+                if (itemsPrinter != null) {
+                    val output = printItemReceipt(
+                        invoiceHeader = invoiceHeader,
+                        invItemModels = entry.value
+                    )
+                    printOutput(
+                        context = context,
+                        output = output,
+                        printerName = itemsPrinter.posPrinterName,
+                        printerIP = itemsPrinter.posPrinterHost,
+                        printerPort = itemsPrinter.posPrinterPort
+                    )
+                }
+            }
+        }
     }
 
     suspend fun printOutput(
@@ -1166,20 +1175,72 @@ object PrinterUtils {
         }
     }
 
-    private fun generateBarcode(data: String): Bitmap? {
-        val barcodeEncoder = BarcodeEncoder()
-        return try {
-            val bitMatrix: BitMatrix = barcodeEncoder.encode(
-                data,
+    fun generateBarcodeBitmapWithText(
+            barcodeData: String,
+            width: Int,
+            height: Int,
+            withText: Boolean
+    ): Bitmap? {
+        try {
+            // Generate the barcode bitmap
+            val barcodeEncoder = BarcodeEncoder()
+            val hints = hashMapOf<EncodeHintType, Any>(EncodeHintType.CHARACTER_SET to "UTF-8")
+            val barcodeBitmap = barcodeEncoder.encodeBitmap(
+                barcodeData,
                 BarcodeFormat.CODE_128,
-                200,
-                100
+                width,
+                if (withText) (height * 0.75).toInt() else height,
+                hints
             )
-            barcodeEncoder.createBitmap(bitMatrix)
+
+            if (!withText) {
+                return barcodeBitmap
+            }
+            // Create a new bitmap with space for the barcode and text
+            val bitmapWithText = Bitmap.createBitmap(
+                width,
+                height,
+                Bitmap.Config.ARGB_8888
+            )
+            val canvas = Canvas(bitmapWithText)
+
+            // Draw the barcode on the upper half of the bitmap
+            canvas.drawBitmap(
+                barcodeBitmap,
+                0f,
+                0f,
+                null
+            )
+
+            // Draw the barcode text below the barcode
+            val paint = Paint().apply {
+                color = android.graphics.Color.BLACK
+                textSize = 20f // Adjust the text size as needed
+                typeface = Typeface.create(
+                    Typeface.SANS_SERIF,
+                    Typeface.NORMAL
+                )
+                textAlign = Paint.Align.CENTER
+                letterSpacing = 0.5f
+            }
+
+            // Calculate the position for the text
+            val xPos = width / 2f
+            val yPos = (height * 0.875).toFloat() // Adjust this to position the text
+
+            canvas.drawText(
+                barcodeData,
+                xPos,
+                yPos,
+                paint
+            )
+
+            return bitmapWithText
         } catch (e: WriterException) {
             e.printStackTrace()
-            null
         }
+
+        return null
     }
 
     private fun getBarcodeArray(content: String): ByteArray {
