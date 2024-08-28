@@ -232,7 +232,7 @@ data class Item(
                 || !item.itemPrinter.equals(itemPrinter)
                 || !item.itemOpenQty.equals(itemOpenQty)
                 || !item.itemOpenCost.equals(itemOpenCost)
-                || !item.itemPos.equals(itemPos)
+                || item.itemPos != itemPos
                 || !item.itemImage.equals(itemImage)
                 || !item.itemBtnColor.equals(itemBtnColor)
                 || !item.itemBtnTextColor.equals(itemBtnTextColor)
