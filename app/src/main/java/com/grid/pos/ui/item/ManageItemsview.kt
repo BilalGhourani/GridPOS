@@ -176,6 +176,16 @@ fun ManageItemsView(
                 old
             )
         }
+        if (SettingsModel.showTax && manageItemsState.selectedItem.itemTax == 0.0) {
+            manageItemsState.selectedItem.itemTax = taxState.toDoubleOrNull() ?: 0.0
+        }
+        if (SettingsModel.showTax1 && manageItemsState.selectedItem.itemTax1 == 0.0) {
+            manageItemsState.selectedItem.itemTax1 = tax1State.toDoubleOrNull() ?: 0.0
+        }
+        if (SettingsModel.showTax2 && manageItemsState.selectedItem.itemTax2 == 0.0) {
+            manageItemsState.selectedItem.itemTax2 = tax2State.toDoubleOrNull() ?: 0.0
+        }
+        manageItemsState.selectedItem.itemPos = itemPOSState
         viewModel.saveItem(manageItemsState.selectedItem)
     }
 
