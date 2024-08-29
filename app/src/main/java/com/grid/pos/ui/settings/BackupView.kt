@@ -171,15 +171,6 @@ fun BackupView(
                                 fontSize = 16.sp,
                                 textAlign = TextAlign.Center
                             )
-                        },
-                        actions = {
-                            IconButton(onClick = { navController?.navigate("SettingsView") }) {
-                                Icon(
-                                    painterResource(R.drawable.ic_settings),
-                                    contentDescription = "Back",
-                                    tint = SettingsModel.buttonColor
-                                )
-                            }
                         })
                 }
             }) {
