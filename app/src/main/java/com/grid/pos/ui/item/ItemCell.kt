@@ -97,7 +97,6 @@ fun ItemCell(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center,
             ) {
-                val price = item.itemUnitPrice.toString()
                 Text(
                     text = item.itemName ?: "",
                     color = itemTextColor,
@@ -117,7 +116,11 @@ fun ItemCell(
                 )
                 if (SettingsModel.showPriceInItemBtn) {
                     Text(
-                        text = "$price ${SettingsModel.currentCurrency?.currencyCode1 ?: ""}",
+                        text = String.format(
+                            "%.${SettingsModel.currentCurrency?.currencyName1Dec}f %s",
+                            item.itemUnitPrice,
+                            SettingsModel.currentCurrency?.currencyCode1 ?: ""
+                        ),
                         color = itemTextColor,
                         style = TextStyle(
                             textDecoration = TextDecoration.None,
