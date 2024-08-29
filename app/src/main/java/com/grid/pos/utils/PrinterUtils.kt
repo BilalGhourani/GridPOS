@@ -95,20 +95,19 @@ object PrinterUtils {
         109
     )
 
-
     fun getInvoiceReceiptHtmlContent(
-        context: Context,
-        invoiceHeader: InvoiceHeader,
-        invoiceItemModels: MutableList<InvoiceItemModel>,
-        posReceipt: PosReceipt,
-        thirdParty: ThirdParty? = null,
-        user: User? = SettingsModel.currentUser,
-        company: Company? = SettingsModel.currentCompany,
-        currency: Currency? = SettingsModel.currentCurrency,
-        content: String = FileUtils.readFileFromAssets(
-            "invoice_receipt.html",
-            context
-        )
+            context: Context,
+            invoiceHeader: InvoiceHeader,
+            invoiceItemModels: MutableList<InvoiceItemModel>,
+            posReceipt: PosReceipt,
+            thirdParty: ThirdParty? = null,
+            user: User? = SettingsModel.currentUser,
+            company: Company? = SettingsModel.currentCompany,
+            currency: Currency? = SettingsModel.currentCurrency,
+            content: String = FileUtils.readFileFromAssets(
+                "invoice_receipt.html",
+                context
+            )
     ): String {
         val defaultLocal = Locale.getDefault()
         var result = content.ifEmpty { FileUtils.getDefaultReceipt() }
@@ -157,18 +156,17 @@ object PrinterUtils {
             )
         }
 
-        result =
-            if (!thirdParty?.thirdPartyName.isNullOrEmpty() || !invoiceHeader.invoiceHeadCashName.isNullOrEmpty()) {
-                result.replace(
-                    "{clientnamevalue}",
-                    "<div style=\"font-weight: Normal;font-size: 16px;\">Client: ${thirdParty?.thirdPartyName ?: ""} ${invoiceHeader.invoiceHeadCashName ?: ""}</div>"
-                )
-            } else {
-                result.replace(
-                    "{clientnamevalue}",
-                    ""
-                )
-            }
+        result = if (!thirdParty?.thirdPartyName.isNullOrEmpty() || !invoiceHeader.invoiceHeadCashName.isNullOrEmpty()) {
+            result.replace(
+                "{clientnamevalue}",
+                "<div style=\"font-weight: Normal;font-size: 16px;\">Client: ${thirdParty?.thirdPartyName ?: ""} ${invoiceHeader.invoiceHeadCashName ?: ""}</div>"
+            )
+        } else {
+            result.replace(
+                "{clientnamevalue}",
+                ""
+            )
+        }
 
         result = if (!thirdParty?.thirdPartyFn.isNullOrEmpty()) {
             result.replace(
@@ -182,18 +180,17 @@ object PrinterUtils {
             )
         }
 
-        result =
-            if (!thirdParty?.thirdPartyPhone1.isNullOrEmpty() || !thirdParty?.thirdPartyPhone2.isNullOrEmpty()) {
-                result.replace(
-                    "{clientphonevalue}",
-                    "<div style=\"font-weight: Normal;font-size: 16px;\">Phone: ${thirdParty?.thirdPartyPhone1 ?: thirdParty?.thirdPartyPhone2}</div>"
-                )
-            } else {
-                result.replace(
-                    "{clientphonevalue}",
-                    ""
-                )
-            }
+        result = if (!thirdParty?.thirdPartyPhone1.isNullOrEmpty() || !thirdParty?.thirdPartyPhone2.isNullOrEmpty()) {
+            result.replace(
+                "{clientphonevalue}",
+                "<div style=\"font-weight: Normal;font-size: 16px;\">Phone: ${thirdParty?.thirdPartyPhone1 ?: thirdParty?.thirdPartyPhone2}</div>"
+            )
+        } else {
+            result.replace(
+                "{clientphonevalue}",
+                ""
+            )
+        }
 
         result = if (!thirdParty?.thirdPartyAddress.isNullOrEmpty()) {
             result.replace(
@@ -259,6 +256,16 @@ object PrinterUtils {
                 Utils.getDoubleOrZero(invoiceHeader.invoiceHeadDiscountAmount)
             )
         )
+
+        if (SettingsModel.currentCompany?.companyUpWithTax == true && (SettingsModel.showTax || SettingsModel.showTax1 || SettingsModel.showTax2)) {
+            invAmountVal.append(
+                String.format(
+                    defaultLocal,
+                    "<tr><td>Before Tax:</td><td>%.2f</td></tr>",
+                    Utils.getDoubleOrZero(invoiceHeader.invoiceHeadTotal - invoiceHeader.invoiceHeadTotalTax)
+                )
+            )
+        }
 
         var showTotalTax = false
         if (SettingsModel.showTax) {
@@ -705,13 +712,13 @@ object PrinterUtils {
     }
 
     private fun getItemReceiptHtmlContent(
-        context: Context,
-        content: String = FileUtils.readFileFromAssets(
-            "item_receipt.html",
-            context
-        ),
-        invoiceHeader: InvoiceHeader,
-        invItemModels: List<InvoiceItemModel>
+            context: Context,
+            content: String = FileUtils.readFileFromAssets(
+                "item_receipt.html",
+                context
+            ),
+            invoiceHeader: InvoiceHeader,
+            invItemModels: List<InvoiceItemModel>
     ): String {
         var result = content.ifEmpty { FileUtils.getDefaultItemReceipt() }
         result = result.replace(
@@ -760,14 +767,14 @@ object PrinterUtils {
     }
 
     suspend fun print(
-        context: Context,
-        invoiceHeader: InvoiceHeader,
-        invoiceItemModels: MutableList<InvoiceItemModel>,
-        posReceipt: PosReceipt,
-        thirdParty: ThirdParty?,
-        user: User?,
-        company: Company?,
-        printers: MutableList<PosPrinter>
+            context: Context,
+            invoiceHeader: InvoiceHeader,
+            invoiceItemModels: MutableList<InvoiceItemModel>,
+            posReceipt: PosReceipt,
+            thirdParty: ThirdParty?,
+            user: User?,
+            company: Company?,
+            printers: MutableList<PosPrinter>
     ) {
         if (!SettingsModel.cashPrinter.isNullOrEmpty()) {
             val htmlContent = getInvoiceReceiptHtmlContent(
@@ -811,11 +818,11 @@ object PrinterUtils {
     }
 
     private suspend fun printOutput(
-        context: Context,
-        output: ByteArray,
-        printerName: String? = null,
-        printerIP: String = "",
-        printerPort: Int = -1
+            context: Context,
+            output: ByteArray,
+            printerName: String? = null,
+            printerIP: String = "",
+            printerPort: Int = -1
     ) {
         val printer = BluetoothPrinter()
         if (!printerName.isNullOrEmpty() && printer.connectToPrinter(
@@ -863,10 +870,10 @@ object PrinterUtils {
     }
 
     private fun generateBarcodeBitmapWithText(
-        barcodeData: String,
-        width: Int,
-        height: Int,
-        withText: Boolean
+            barcodeData: String,
+            width: Int,
+            height: Int,
+            withText: Boolean
     ): Bitmap? {
         try {
             // Generate the barcode bitmap
