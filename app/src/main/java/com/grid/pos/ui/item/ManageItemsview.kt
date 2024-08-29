@@ -19,7 +19,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.AddCircleOutline
 import androidx.compose.material.icons.filled.ColorLens
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Info
@@ -67,7 +66,6 @@ import com.grid.pos.data.Item.Item
 import com.grid.pos.data.PosPrinter.PosPrinter
 import com.grid.pos.interfaces.OnBarcodeResult
 import com.grid.pos.interfaces.OnGalleryResult
-import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.ColorPickerPopup
@@ -226,9 +224,9 @@ fun ManageItemsView(
         manageItemsState.selectedItem.itemFaId = ""
         nameState = ""
         unitPriceState = ""
-        taxState = ""
-        tax1State = ""
-        tax2State = ""
+        taxState = SettingsModel.currentCompany?.companyTax.toString()
+        tax1State = SettingsModel.currentCompany?.companyTax1.toString()
+        tax2State = SettingsModel.currentCompany?.companyTax2.toString()
         barcodeState = ""
         openCostState = ""
         openQtyState = ""
@@ -314,13 +312,13 @@ fun ManageItemsView(
                             modifier = Modifier.padding(10.dp),
                             label = "Select Item",
                             selectedId = manageItemsState.selectedItem.itemId,
-                            leadingIcon = {
+                            leadingIcon = { modifier ->
                                 if (manageItemsState.selectedItem.itemId.isNotEmpty()) {
                                     Icon(
                                         Icons.Default.RemoveCircleOutline,
                                         contentDescription = "remove family",
                                         tint = Color.Black,
-                                        modifier = it
+                                        modifier = modifier
                                     )
                                 }
                             },
@@ -515,13 +513,13 @@ fun ManageItemsView(
                             modifier = Modifier.padding(10.dp),
                             label = "Select Family",
                             selectedId = familyIdState,
-                            leadingIcon = {
+                            leadingIcon = { modifier ->
                                 if (familyIdState.isNotEmpty()) {
                                     Icon(
                                         Icons.Default.RemoveCircleOutline,
                                         contentDescription = "remove family",
                                         tint = Color.Black,
-                                        modifier = it
+                                        modifier = modifier
                                     )
                                 }
                             },
@@ -584,13 +582,13 @@ fun ManageItemsView(
                             modifier = Modifier.padding(10.dp),
                             label = "Select Printer",
                             selectedId = printerState,
-                            leadingIcon = {
+                            leadingIcon = { modifier ->
                                 if (printerState.isNotEmpty()) {
                                     Icon(
                                         Icons.Default.RemoveCircleOutline,
                                         contentDescription = "remove printer",
                                         tint = Color.Black,
-                                        modifier = it
+                                        modifier = modifier
                                     )
                                 }
                             },
