@@ -1,4 +1,4 @@
-package com.grid.pos.ui.settings
+package com.grid.pos.ui.settings.setupReports
 
 import android.net.Uri
 import androidx.activity.compose.BackHandler

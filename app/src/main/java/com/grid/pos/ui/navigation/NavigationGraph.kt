@@ -20,7 +20,7 @@ import com.grid.pos.ui.posPrinter.POSPrinterView
 import com.grid.pos.ui.reports.ReportsView
 import com.grid.pos.ui.settings.BackupView
 import com.grid.pos.ui.settings.SettingsView
-import com.grid.pos.ui.settings.SetupReportView
+import com.grid.pos.ui.settings.setupReports.SetupReportView
 import com.grid.pos.ui.settings.setupReports.ReportsListView
 import com.grid.pos.ui.table.TablesView
 import com.grid.pos.ui.theme.White
