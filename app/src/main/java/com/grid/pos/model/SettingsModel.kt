@@ -26,6 +26,9 @@ object SettingsModel {
 
     var cashPrinter: String? = null
 
+    var selectedPayslip: String? = null
+    var selectedPayTicket: String? = null
+
     var orientationType: String = ORIENTATION_TYPE.DEVICE_SENSOR.key
     var showItemsInPOS: Boolean = false
     var showTax: Boolean = false

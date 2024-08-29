@@ -20,6 +20,8 @@ import com.grid.pos.ui.posPrinter.POSPrinterView
 import com.grid.pos.ui.reports.ReportsView
 import com.grid.pos.ui.settings.BackupView
 import com.grid.pos.ui.settings.SettingsView
+import com.grid.pos.ui.settings.SetupReportView
+import com.grid.pos.ui.settings.setupReports.ReportsListView
 import com.grid.pos.ui.table.TablesView
 import com.grid.pos.ui.theme.White
 import com.grid.pos.ui.thirdParty.ManageThirdPartiesView
@@ -124,6 +126,20 @@ fun AuthNavGraph(
         }
         composable(route = "BackupView") {
             BackupView(
+                navController = navController,
+                activityViewModel = activityViewModel
+            )
+        }
+
+        composable(route = "ReportsListView") {
+            ReportsListView(
+                navController = navController,
+                activityViewModel = activityViewModel
+            )
+        }
+
+        composable(route = "SetupReportView") {
+            SetupReportView(
                 navController = navController,
                 activityViewModel = activityViewModel
             )

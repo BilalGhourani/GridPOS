@@ -14,8 +14,10 @@ import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.ConnectionModel
 import com.grid.pos.model.HomeSectionModel
 import com.grid.pos.model.InvoiceItemModel
+import com.grid.pos.model.LANGUAGES
 import com.grid.pos.model.ORIENTATION_TYPE
 import com.grid.pos.model.OrientationModel
+import com.grid.pos.model.ReportLanguage
 import com.grid.pos.model.SettingsModel
 import java.math.BigInteger
 import java.text.SimpleDateFormat
@@ -41,6 +43,12 @@ object Utils {
         OrientationModel(ORIENTATION_TYPE.PORTRAIT.key),
         OrientationModel(ORIENTATION_TYPE.LANDSCAPE.key),
         OrientationModel(ORIENTATION_TYPE.DEVICE_SENSOR.key)
+    )
+
+    val reportLanguages = mutableListOf<DataModel>(
+        ReportLanguage(LANGUAGES.Arabic.key),
+        ReportLanguage(LANGUAGES.English.key),
+        ReportLanguage(LANGUAGES.French.key)
     )
 
     var isTablet: Boolean? = null;

@@ -25,3 +25,19 @@ data class OrientationModel(
         return orientatioName
     }
 }
+
+enum class LANGUAGES(val key: String) {
+    Default("Default"), Arabic("Arabic"), English("English"), French("French")
+}
+
+data class ReportLanguage(
+        val language: String
+) : DataModel() {
+
+    override fun getId(): String {
+        return language
+    }
+    override fun getName(): String {
+        return language
+    }
+}

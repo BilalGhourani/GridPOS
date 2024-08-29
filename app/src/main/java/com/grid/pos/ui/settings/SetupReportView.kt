@@ -3,13 +3,19 @@ package com.grid.pos.ui.settings
 import android.net.Uri
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.RemoveCircleOutline
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
@@ -27,29 +33,30 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.grid.pos.ActivityScopedViewModel
-import com.grid.pos.App
 import com.grid.pos.interfaces.OnGalleryResult
 import com.grid.pos.model.Event
-import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
+import com.grid.pos.ui.common.SearchableDropdownMenu
 import com.grid.pos.ui.common.UIButton
+import com.grid.pos.ui.common.UITextField
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.utils.FileUtils
+import com.grid.pos.utils.Utils
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BackupView(
+fun SetupReportView(
         modifier: Modifier = Modifier,
         navController: NavController? = null,
         activityViewModel: ActivityScopedViewModel,
@@ -58,41 +65,40 @@ fun BackupView(
     var isLoading by remember { mutableStateOf(false) }
     var warning by remember { mutableStateOf(Event("")) }
     var action by remember { mutableStateOf("") }
-    var popupMessage by remember { mutableStateOf(Event("")) }
-    var isPopupShown by remember { mutableStateOf(false) }
-    var isRestoreWarningPopup by remember { mutableStateOf(false) }
-    var shouldKill by remember { mutableStateOf(true) }
+
+    var countryState by remember { mutableStateOf("Default") }
+    var languageState by remember { mutableStateOf("") }
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
-    fun restoreDbNow() {
-        activityViewModel.launchFilePicker("*/*",
+    fun addReport(reportType: String) {
+        if (languageState.isEmpty()) {
+            warning = Event("Please select a language!")
+            return
+        }
+        activityViewModel.launchFilePicker("text/html",
             object : OnGalleryResult {
                 override fun onGalleryResult(uris: List<Uri>) {
                     if (uris.isNotEmpty()) {
                         isLoading = true
                         CoroutineScope(Dispatchers.IO).launch {
-                            FileUtils.restore(
+                            FileUtils.saveToInternalStorage(
                                 context,
-                                uris[0]
+                                "Reports/$countryState",
+                                uris[0],
+                                "$reportType-$languageState.html"
                             )
                             withContext(Dispatchers.Main) {
                                 isLoading = false
-                                popupMessage = Event("To complete the backup restoration process, the application needs to be restarted. Please close and reopen the app.")
-                                delay(250L)
-                                shouldKill = true
-                                isPopupShown = true
-                                isRestoreWarningPopup = false
+                                warning = Event("$reportType has been added successfully")
+                                action = ""
                             }
                         }
                     } else {
                         CoroutineScope(Dispatchers.Main).launch {
                             isLoading = false
-                            popupMessage = Event("Failed to restore your data.")
-                            delay(250L)
-                            shouldKill = false
-                            isPopupShown = true
-                            isRestoreWarningPopup = false
+                            warning = Event("Failed to add $reportType")
+                            action = ""
                         }
                     }
                 }
@@ -123,30 +129,11 @@ fun BackupView(
     LaunchedEffect(isLoading) {
         activityViewModel.showLoading(isLoading)
     }
-
-    LaunchedEffect(isPopupShown) {
-        activityViewModel.showPopup(
-            isPopupShown,
-            if (!isPopupShown) null else PopupModel().apply {
-                onDismissRequest = {
-                    isPopupShown = false
-                }
-                onConfirmation = {
-                    isPopupShown = false
-                    if (isRestoreWarningPopup) {
-                        restoreDbNow()
-                    } else if (shouldKill) {
-                        App.getInstance().killTheApp()
-                    }
-                }
-                dialogText = popupMessage.value
-                positiveBtnText = if (isRestoreWarningPopup) "Restore" else if (shouldKill) "Close" else "Ok"
-                negativeBtnText = if (isRestoreWarningPopup) "Cancel" else null
-                height = if (shouldKill || isRestoreWarningPopup) 150.dp else 100.dp
-            })
+    fun handleBack() {
+        navController?.navigateUp()
     }
     BackHandler {
-        navController?.navigateUp()
+        handleBack()
     }
     GridPOSTheme {
         Scaffold(containerColor = SettingsModel.backgroundColor,
@@ -159,9 +146,18 @@ fun BackupView(
                     color = SettingsModel.backgroundColor
                 ) {
                     TopAppBar(colors = TopAppBarDefaults.mediumTopAppBarColors(containerColor = SettingsModel.topBarColor),
+                        navigationIcon = {
+                            IconButton(onClick = { handleBack() }) {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                    contentDescription = "Back",
+                                    tint = SettingsModel.buttonColor
+                                )
+                            }
+                        },
                         title = {
                             Text(
-                                text = "Backup & Restore",
+                                text = "Setup Reports",
                                 color = SettingsModel.textColor,
                                 fontSize = 16.sp,
                                 textAlign = TextAlign.Center
@@ -175,42 +171,50 @@ fun BackupView(
                     .padding(it)
                     .verticalScroll(rememberScrollState()),
             ) {
-                UIButton(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(70.dp)
-                        .padding(10.dp),
-                    text = "Backup",
-                    buttonColor = SettingsModel.buttonColor,
-                    textColor = SettingsModel.buttonTextColor
-                ) {
-                    isLoading = true
-                    CoroutineScope(Dispatchers.IO).launch {
-                        FileUtils.backup()
-                        withContext(Dispatchers.Main) {
-                            isLoading = false
-                            popupMessage = Event("Your data has been backed up successfully.")
-                            delay(250L)
-                            shouldKill = false
-                            isPopupShown = true
-                            isRestoreWarningPopup = false
-                        }
-                    }
-                }
-                UIButton(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(70.dp)
-                        .padding(10.dp),
-                    text = "Restore",
-                    buttonColor = SettingsModel.buttonColor,
-                    textColor = SettingsModel.buttonTextColor
-                ) {
-                    popupMessage = Event("Are you sure you want to restore, this will overwrite completely your current db and cannot be restored, continue?")
-                    shouldKill = false
-                    isPopupShown = true
-                    isRestoreWarningPopup = true
 
+                UITextField(
+                    modifier = Modifier.padding(10.dp),
+                    defaultValue = countryState,
+                    enabled = false,
+                    label = "Country",
+                    placeHolder = "Country",
+                ) { country ->
+                    countryState = country
+                }
+
+                SearchableDropdownMenu(items = Utils.reportLanguages,
+                    modifier = Modifier.padding(10.dp),
+                    enableSearch = false,
+                    label = languageState.ifEmpty { "Select Language" },
+                    selectedId = languageState,
+                    leadingIcon = { modifier ->
+                        if (languageState.isNotEmpty()) {
+                            Icon(
+                                Icons.Default.RemoveCircleOutline,
+                                contentDescription = "remove family",
+                                tint = Color.Black,
+                                modifier = modifier
+                            )
+                        }
+                    },
+                    onLeadingIconClick = {
+                        languageState = ""
+                    }) { type ->
+                    languageState = type.getName()
+                }
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                UIButton(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(70.dp)
+                        .padding(10.dp),
+                    text = if (activityViewModel.isPaySlip) "Payslip" else "PayTicket",
+                    buttonColor = SettingsModel.buttonColor,
+                    textColor = SettingsModel.buttonTextColor
+                ) {
+                    addReport(if (activityViewModel.isPaySlip) "Payslip" else "PayTicket")
                 }
             }
         }

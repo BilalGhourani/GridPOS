@@ -291,14 +291,20 @@ class MainActivity : ComponentActivity() {
                     ) {
                         permissionDelegate = { granted ->
                             if (granted) {
-                                launchFilePicker(sharedEvent.delegate)
+                                launchFilePicker(
+                                    sharedEvent.intentType,
+                                    sharedEvent.delegate
+                                )
                             } else {
                                 sharedEvent.onPermissionDenied.invoke()
                             }
                         }
                         requestStoragePermission.launch(getStoragePermissions())
                     } else {
-                        launchFilePicker(sharedEvent.delegate)
+                        launchFilePicker(
+                            sharedEvent.intentType,
+                            sharedEvent.delegate
+                        )
                     }
 
                 }
@@ -360,19 +366,24 @@ class MainActivity : ComponentActivity() {
         requestedOrientation = orientation
     }
 
-    private fun launchFilePicker(delegate: OnGalleryResult) {
+    private fun launchFilePicker(
+            intentType: String,
+            delegate: OnGalleryResult
+    ) {
         val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
             addCategory(Intent.CATEGORY_OPENABLE)
-            type = "*/*"
-            putExtra(
-                Intent.EXTRA_MIME_TYPES,
-                arrayOf(
-                    "application/octet-stream",
-                    "application/x-sqlite3",
-                    "application/vnd.sqlite3",
-                    "application/x-sqlite3"
+            type = intentType
+            if (intentType == "*/*") {
+                putExtra(
+                    Intent.EXTRA_MIME_TYPES,
+                    arrayOf(
+                        "application/octet-stream",
+                        "application/x-sqlite3",
+                        "application/vnd.sqlite3",
+                        "application/x-sqlite3"
+                    )
                 )
-            )
+            }
 
             /*  val pickerInitialUri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                   MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
@@ -394,7 +405,7 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun launchCameraActivity(
-            scanToAdd:Boolean,
+            scanToAdd: Boolean,
             items: ArrayList<Item>?,
             delegate: OnBarcodeResult
     ) {
@@ -403,7 +414,10 @@ class MainActivity : ComponentActivity() {
             this,
             BarcodeScannerActivity::class.java
         )
-        intent.putExtra("scanToAdd", scanToAdd)
+        intent.putExtra(
+            "scanToAdd",
+            scanToAdd
+        )
         items?.let {
             intent.putExtra(
                 "items",

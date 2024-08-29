@@ -24,6 +24,7 @@ sealed class ActivityScopedUIEvent {
     ) : ActivityScopedUIEvent()
 
     class LaunchFilePicker(
+            var intentType: String,
             var delegate: OnGalleryResult,
             var onPermissionDenied: () -> Unit
     ) : ActivityScopedUIEvent()

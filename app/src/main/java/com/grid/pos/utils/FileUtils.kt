@@ -16,6 +16,7 @@ import androidx.documentfile.provider.DocumentFile
 import com.grid.pos.App
 import com.grid.pos.data.AppDatabase
 import com.grid.pos.di.AppModule
+import com.grid.pos.model.FileModel
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import java.io.BufferedReader
 import java.io.File
@@ -41,7 +42,7 @@ object FileUtils {
             parent
         )
         if (!storageDir.exists()) {
-            storageDir.mkdir()
+            storageDir.mkdirs()
         }
         val destinationFile = File(
             storageDir,
@@ -676,5 +677,42 @@ object FileUtils {
         return null
     }
 
+    fun getFileModels(
+            directoryFile: File,
+            selectedPaySlip: String?,
+            selectedPayTicket: String?
+    ): MutableList<FileModel> {
+        val result = mutableListOf<FileModel>()
+
+        if (directoryFile.exists() && directoryFile.isDirectory) {
+            directoryFile.listFiles()?.forEach { file ->
+                // If the current file is a directory, recursively gather its children
+                if (file.isDirectory) {
+                    result.addAll(
+                        getFileModels(
+                            file,
+                            selectedPaySlip,
+                            selectedPayTicket
+                        )
+                    )
+                } else {
+                    val fileName = file.name
+                    val directoryName = directoryFile.name
+                    val isPaySlip = fileName.contains("payslip",ignoreCase = true)
+                    val selected = if (isPaySlip) selectedPaySlip?.equals("$directoryName/$fileName") == true
+                    else selectedPayTicket?.equals("$directoryName/$fileName") == true
+                    val fileModel = FileModel(
+                        fileName = fileName,
+                        parentName = directoryName,
+                        isPaySlip = isPaySlip,
+                        selected = selected
+                    )
+                    result.add(fileModel)
+                }
+            }
+        }
+
+        return result
+    }
 
 }

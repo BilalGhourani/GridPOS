@@ -808,11 +808,11 @@ fun SettingsView(
                         .fillMaxWidth()
                         .height(70.dp)
                         .padding(10.dp),
-                    text = "App Settings",
+                    text = "Setup Reports",
                     buttonColor = buttonColorState,
                     textColor = buttonTextColorState
                 ) {
-                    activityScopedViewModel.openAppStorageSettings()
+                    navController?.navigate("ReportsListView")
                 }
                 UIButton(
                     modifier = Modifier

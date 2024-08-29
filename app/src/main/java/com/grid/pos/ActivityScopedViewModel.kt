@@ -42,13 +42,13 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ActivityScopedViewModel @Inject constructor(
-    private val settingsRepository: SettingsRepository,
-    private val currencyRepository: CurrencyRepository,
-    private val companyRepository: CompanyRepository,
-    private val thirdPartyRepository: ThirdPartyRepository,
-    private val familyRepository: FamilyRepository,
-    private val itemRepository: ItemRepository,
-    private val posPrinterRepository: PosPrinterRepository,
+        private val settingsRepository: SettingsRepository,
+        private val currencyRepository: CurrencyRepository,
+        private val companyRepository: CompanyRepository,
+        private val thirdPartyRepository: ThirdPartyRepository,
+        private val familyRepository: FamilyRepository,
+        private val itemRepository: ItemRepository,
+        private val posPrinterRepository: PosPrinterRepository,
 ) : ViewModel() {
     private val _mainActivityEvent = Channel<ActivityScopedUIEvent>()
     val mainActivityEvent = _mainActivityEvent.receiveAsFlow()
@@ -69,6 +69,8 @@ class ActivityScopedViewModel @Inject constructor(
     var items: MutableList<Item> = mutableListOf()
     var invoiceHeaders: MutableList<InvoiceHeader> = mutableListOf()
     var printers: MutableList<PosPrinter> = mutableListOf()
+
+    var isPaySlip: Boolean = true
 
     private val _activityState = MutableStateFlow(ActivityState())
     val activityState: MutableStateFlow<ActivityState> = _activityState
@@ -248,9 +250,17 @@ class ActivityScopedViewModel @Inject constructor(
         }
     }
 
-    fun showPopup(show: Boolean, popupModel: PopupModel?) {
+    fun showPopup(
+            show: Boolean,
+            popupModel: PopupModel?
+    ) {
         viewModelScope.launch {
-            _mainActivityEvent.send(ActivityScopedUIEvent.ShowPopup(show, popupModel))
+            _mainActivityEvent.send(
+                ActivityScopedUIEvent.ShowPopup(
+                    show,
+                    popupModel
+                )
+            )
         }
     }
 
@@ -261,9 +271,9 @@ class ActivityScopedViewModel @Inject constructor(
     }
 
     fun launchGalleryPicker(
-        mediaType: ActivityResultContracts.PickVisualMedia.VisualMediaType,
-        delegate: OnGalleryResult,
-        onPermissionDenied: () -> Unit
+            mediaType: ActivityResultContracts.PickVisualMedia.VisualMediaType,
+            delegate: OnGalleryResult,
+            onPermissionDenied: () -> Unit
     ) {
         viewModelScope.launch {
             _mainActivityEvent.send(
@@ -277,12 +287,14 @@ class ActivityScopedViewModel @Inject constructor(
     }
 
     fun launchFilePicker(
-        delegate: OnGalleryResult,
-        onPermissionDenied: () -> Unit
+            intentType: String,
+            delegate: OnGalleryResult,
+            onPermissionDenied: () -> Unit
     ) {
         viewModelScope.launch {
             _mainActivityEvent.send(
                 ActivityScopedUIEvent.LaunchFilePicker(
+                    intentType,
                     delegate,
                     onPermissionDenied
                 )
@@ -291,7 +303,7 @@ class ActivityScopedViewModel @Inject constructor(
     }
 
     fun startChooserActivity(
-        intent: Intent
+            intent: Intent
     ) {
         viewModelScope.launch {
             _mainActivityEvent.send(ActivityScopedUIEvent.StartChooserActivity(intent))

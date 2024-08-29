@@ -223,7 +223,7 @@ fun LicenseView(
                         .padding(10.dp),
                     text = "Select License File"
                 ) {
-                    activityScopedViewModel.launchFilePicker(object : OnGalleryResult {
+                    activityScopedViewModel.launchFilePicker("*/*",object : OnGalleryResult {
                         override fun onGalleryResult(uris: List<Uri>) {
                             if (uris.isNotEmpty()) {
                                 viewModel.copyLicenseFile(
