@@ -229,12 +229,10 @@ fun ReportsView(
                 isPopupVisible = false
                 handleBack()
             }
-            dialogTitle = "Alert."
             dialogText = "Are you sure you want to cancel the reports?"
             positiveBtnText = "Cancel"
             negativeBtnText = "Close"
-            icon = Icons.Default.Info
-            height = 230.dp
+            height = 130.dp
         })
     }
 

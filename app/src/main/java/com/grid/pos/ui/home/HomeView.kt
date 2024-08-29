@@ -89,9 +89,8 @@ fun HomeView(
                     activityState.warning = null
                     logout()
                 }
-                dialogTitle = "Alert."
                 dialogText = activityState.warning?.value ?: SettingsModel.companyAccessWarning
-                icon = Icons.Default.Info
+                height = 100.dp
             })
     }
     BackHandler {

@@ -124,9 +124,7 @@ class BarcodeScannerActivity : ComponentActivity() {
                                             scope.launch {
                                                 isPopupShown = true
                                                 popupModelState.value = PopupModel().apply {
-                                                    dialogTitle = null
                                                     dialogText = "Barcode already exist!"
-                                                    icon = null
                                                     positiveBtnText = "Close"
                                                     negativeBtnText = null
                                                     height = 100.dp
@@ -146,9 +144,7 @@ class BarcodeScannerActivity : ComponentActivity() {
                                             scope.launch {
                                                 isPopupShown = true
                                                 popupModelState.value = PopupModel().apply {
-                                                    dialogTitle = null
                                                     dialogText = "Barcode not exist!"
-                                                    icon = null
                                                     positiveBtnText = "Close"
                                                     negativeBtnText = null
                                                     height = 100.dp
@@ -160,9 +156,7 @@ class BarcodeScannerActivity : ComponentActivity() {
                                             scope.launch {
                                                 isPopupShown = true
                                                 popupModelState.value = PopupModel().apply {
-                                                    dialogTitle = null
                                                     dialogText = "Scan next?"
-                                                    icon = null
                                                     positiveBtnText = "Scan"
                                                     negativeBtnText = "Exit"
                                                     height = 100.dp

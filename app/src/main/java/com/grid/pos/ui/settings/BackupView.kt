@@ -143,13 +143,11 @@ fun BackupView(
                     App.getInstance().killTheApp()
                 }
             }
-            dialogTitle = "Alert."
             dialogText = popupMessage.value
-            icon = Icons.Default.Info
             positiveBtnText =
                 if (isRestoreWarningPopup) "Restore" else if (shouldKill) "Close" else "Ok"
             negativeBtnText = if (isRestoreWarningPopup) "Cancel" else null
-            height = if (shouldKill || isRestoreWarningPopup) 250.dp else 200.dp
+            height = if (shouldKill || isRestoreWarningPopup) 150.dp else 100.dp
         })
     }
     BackHandler {

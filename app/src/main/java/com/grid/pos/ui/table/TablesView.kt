@@ -133,11 +133,10 @@ fun TablesView(
                     navController?.clearBackStack("LoginView")
                     navController?.navigate("LoginView")
                 }
-                dialogTitle = "Alert."
                 dialogText = "Are you sure you want to logout?"
                 positiveBtnText = "Logout"
                 negativeBtnText = "Cancel"
-                icon = Icons.Default.Info
+                height = 100.dp
             })
     }
 

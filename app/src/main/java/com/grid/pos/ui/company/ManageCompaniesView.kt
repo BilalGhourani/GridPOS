@@ -171,11 +171,12 @@ fun ManageCompaniesView(
                         saveAndBack = true
                         saveCompany()
                     }
-                    dialogTitle = "Alert."
+                    dialogTitle =null
                     dialogText = "Do you want to save your changes"
                     positiveBtnText = "Save"
                     negativeBtnText = "Close"
-                    icon = Icons.Default.Info
+                    icon =  null
+                    height = 100.dp
                 })
             return
         }

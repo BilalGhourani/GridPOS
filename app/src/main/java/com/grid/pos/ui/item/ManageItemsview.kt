@@ -203,11 +203,10 @@ fun ManageItemsView(
                         saveAndBack = true
                         saveItem()
                     }
-                    dialogTitle = "Alert."
                     dialogText = "Do you want to save your changes"
                     positiveBtnText = "Save"
                     negativeBtnText = "Close"
-                    icon = Icons.Default.Info
+                    height = 100.dp
                 })
             return
         }

@@ -286,7 +286,6 @@ fun POSView(
                         }
                     }
                 }
-                dialogTitle = "Alert."
                 dialogText = when (popupState) {
                     PopupState.BACK_PRESSED -> "Are you sure you want to logout?"
                     PopupState.DELETE_INVOICE -> "Are you sure you want to Delete this invoice?"
@@ -298,7 +297,7 @@ fun POSView(
                     else -> "Discard"
                 }
                 negativeBtnText = "Cancel"
-                icon = Icons.Default.Info
+                height = 150.dp
             })
     }
     BackHandler {
