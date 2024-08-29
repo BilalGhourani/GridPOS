@@ -101,7 +101,7 @@ fun ReportsView(
     val currentTime = Calendar.getInstance()
     currentTime.timeZone = TimeZone.getDefault()
     val initialDate = currentTime.time
-    val dateFormat = "yyyy-MM-dd hh:mm"
+    val dateFormat = "yyyy-MM-dd HH:mm"
 
     fun getDateFromState(
         time: Long,
@@ -145,15 +145,15 @@ fun ReportsView(
     var datePickerPopupState by remember { mutableStateOf(DatePickerPopupState.FROM) }
     val fromDatePickerState = rememberDatePickerState(initialSelectedDateMillis = initialDate.time)
     val fromTimePickerState = rememberTimePickerState(
-        initialHour = currentTime.get(Calendar.HOUR_OF_DAY),
-        initialMinute = currentTime.get(Calendar.MINUTE),
-        is24Hour = false,
+        initialHour = 0,
+        initialMinute = 0,
+        is24Hour = true,
     )
     val toDatePickerState = rememberDatePickerState(initialSelectedDateMillis = initialDate.time)
     val toTimePickerState = rememberTimePickerState(
-        initialHour = currentTime.get(Calendar.HOUR_OF_DAY),
-        initialMinute = currentTime.get(Calendar.MINUTE),
-        is24Hour = false,
+        initialHour = 23,
+        initialMinute = 59,
+        is24Hour = true,
     )
     var fromDateState by remember {
         mutableStateOf(
