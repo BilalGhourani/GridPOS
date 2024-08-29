@@ -28,8 +28,8 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavController
 import com.grid.pos.ActivityScopedViewModel
 import com.grid.pos.model.SettingsModel
+import com.grid.pos.model.UserType
 import com.grid.pos.ui.theme.GridPOSTheme
-import com.grid.pos.utils.PrinterUtils
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -54,7 +54,14 @@ fun UIWebView(
 
     fun handleBack() {
         activityViewModel.clearPosValues()
-        navController?.navigateUp()
+        if (SettingsModel.getUserType() == UserType.TABLE) {
+            navController?.popBackStack(
+                "TablesView",
+                false
+            )
+        } else {
+            navController?.navigateUp()
+        }
     }
     BackHandler {
         handleBack()
@@ -101,8 +108,7 @@ fun UIWebView(
                         .padding(10.dp),
                     text = "Print"
                 ) {
-                    activityViewModel.print(context)
-                    /*val printManager = context.getSystemService(Context.PRINT_SERVICE) as PrintManager
+                    activityViewModel.print(context)/*val printManager = context.getSystemService(Context.PRINT_SERVICE) as PrintManager
                     val jobName = "webpage_" + System.currentTimeMillis()
                     val printAdapter = webView.createPrintDocumentAdapter(jobName)
 
