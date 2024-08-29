@@ -36,7 +36,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
@@ -45,7 +44,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -61,13 +59,12 @@ import com.grid.pos.utils.Utils
 import kotlinx.coroutines.launch
 
 @OptIn(
-    ExperimentalMaterial3Api::class,
-    ExperimentalComposeUiApi::class
+    ExperimentalMaterial3Api::class
 )
 @Composable
 fun ManageCurrenciesView(
-        navController: NavController? = null,
         modifier: Modifier = Modifier,
+        navController: NavController? = null,
         activityScopedViewModel: ActivityScopedViewModel,
         viewModel: ManageCurrenciesViewModel = hiltViewModel()
 ) {
@@ -82,15 +79,15 @@ fun ManageCurrenciesView(
     val curName2DecFocusRequester = remember { FocusRequester() }
     val rateFocusRequester = remember { FocusRequester() }
 
-    var curCode1State by remember { mutableStateOf(SettingsModel.currentCurrency?.currencyCode1 ?: "") }
-    var curName1State by remember { mutableStateOf(SettingsModel.currentCurrency?.currencyName1 ?: "") }
+    var curCode1State by remember { mutableStateOf(manageCurrenciesState.selectedCurrency.currencyCode1 ?: "") }
+    var curName1State by remember { mutableStateOf(manageCurrenciesState.selectedCurrency.currencyName1 ?: "") }
     var curName1DecState by remember {
         mutableStateOf(
             manageCurrenciesState.selectedCurrency.currencyName1Dec.toString()
         )
     }
-    var curCode2State by remember { mutableStateOf(SettingsModel.currentCurrency?.currencyCode2 ?: "") }
-    var curName2State by remember { mutableStateOf(SettingsModel.currentCurrency?.currencyName2 ?: "") }
+    var curCode2State by remember { mutableStateOf(manageCurrenciesState.selectedCurrency.currencyCode2 ?: "") }
+    var curName2State by remember { mutableStateOf(manageCurrenciesState.selectedCurrency.currencyName2 ?: "") }
     var curName2DecState by remember {
         mutableStateOf(
             manageCurrenciesState.selectedCurrency.currencyName2Dec.toString()
