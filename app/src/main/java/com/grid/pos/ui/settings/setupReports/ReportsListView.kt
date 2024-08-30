@@ -5,26 +5,33 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.requiredWidth
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AddCircleOutline
+import androidx.compose.material.icons.filled.DeleteForever
+import androidx.compose.material.icons.filled.Preview
+import androidx.compose.material.icons.filled.SaveAlt
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ModalBottomSheet
@@ -52,13 +59,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.grid.pos.ActivityScopedViewModel
@@ -76,10 +81,10 @@ import java.io.File
 )
 @Composable
 fun ReportsListView(
-        modifier: Modifier = Modifier,
-        navController: NavController? = null,
-        activityViewModel: ActivityScopedViewModel,
-        viewModel: ReportsListViewModel = hiltViewModel()
+    modifier: Modifier = Modifier,
+    navController: NavController? = null,
+    activityViewModel: ActivityScopedViewModel,
+    viewModel: ReportsListViewModel = hiltViewModel()
 ) {
     val state: ReportsListState by viewModel.state.collectAsState(
         ReportsListState()
@@ -93,7 +98,7 @@ fun ReportsListView(
     val fileModelState = remember { mutableStateOf(FileModel()) }
 
     val context = LocalContext.current
-
+    var isOptionPopupExpanded by remember { mutableStateOf(false) }
     var previewBottomSheetState by remember { mutableStateOf(false) }
     val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
@@ -135,6 +140,14 @@ fun ReportsListView(
     }
 
     fun handleBack() {
+        if (isOptionPopupExpanded) {
+            isOptionPopupExpanded = false
+            return
+        }
+        if (deletePopupState) {
+            deletePopupState = false
+            return
+        }
         navController?.navigateUp()
     }
     BackHandler {
@@ -182,9 +195,9 @@ fun ReportsListView(
                             }
                         })
                 }
-            }) {
+            }) { padding ->
             Column(
-                modifier = modifier.padding(it),
+                modifier = modifier.padding(padding),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
@@ -265,21 +278,131 @@ fun ReportsListView(
                                     onSelect = {
                                         viewModel.selectFile(fileModel)
                                     },
-                                    onPreview = {
+                                    onOption = {
                                         fileModelState.value = fileModel
-                                        previewBottomSheetState = true
-                                    },
-                                    onRemove = {
-                                        if (fileModel.selected) {
-                                            viewModel.showError("cannot delete selected report!")
-                                        } else {
-                                            fileModelState.value = fileModel
-                                            deletePopupState = true
-                                        }
+                                        isOptionPopupExpanded = !isOptionPopupExpanded
                                     })
+
                             }
                         }
                     }
+                }
+            }
+        }
+
+        if (isOptionPopupExpanded) {
+            ModalBottomSheet(
+                onDismissRequest = { isOptionPopupExpanded = false },
+                sheetState = bottomSheetState,
+                containerColor = Color.White,
+                contentColor = Color.White,
+                shape = RoundedCornerShape(
+                    topStart = 15.dp,
+                    topEnd = 15.dp
+                ),
+                dragHandle = null,
+                scrimColor = Color.Black.copy(alpha = .5f),
+                windowInsets = WindowInsets(
+                    0,
+                    0,
+                    0,
+                    0
+                )
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .wrapContentHeight()
+                        .padding(horizontal = 10.dp)
+                        .background(color = Color.White)
+                ) {
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(60.dp)
+                            .padding(horizontal = 5.dp)
+                            .clickable {
+                                isOptionPopupExpanded = false
+                                previewBottomSheetState = true
+                            },
+                        horizontalArrangement = Arrangement.Start,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Preview,
+                            contentDescription = "Preview",
+                            tint = SettingsModel.textColor
+                        )
+                        Spacer(modifier = Modifier.width(5.dp))
+                        Text(
+                            "Preview",
+                            color = SettingsModel.textColor,
+                            fontSize = 16.sp
+                        )
+                    }
+
+                    HorizontalDivider(
+                        modifier = Modifier
+                            .height(1.dp)
+                            .background(color = Color.LightGray)
+                    )
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(60.dp)
+                            .padding(horizontal = 5.dp)
+                            .clickable {
+                                isOptionPopupExpanded = false
+                            },
+                        horizontalArrangement = Arrangement.Start,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.SaveAlt,
+                            contentDescription = "Download",
+                            tint = SettingsModel.textColor
+                        )
+                        Spacer(modifier = Modifier.width(5.dp))
+                        Text(
+                            "Download",
+                            color = SettingsModel.textColor,
+                            fontSize = 16.sp
+                        )
+                    }
+
+                    HorizontalDivider(
+                        modifier = Modifier
+                            .height(1.dp)
+                            .background(color = Color.LightGray)
+                    )
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(60.dp)
+                            .padding(horizontal = 5.dp)
+                            .clickable {
+                                isOptionPopupExpanded = false
+                                if (fileModelState.value.selected) {
+                                    viewModel.showError("cannot delete selected report!")
+                                } else {
+                                    deletePopupState = true
+                                }
+                            },
+                        horizontalArrangement = Arrangement.Start,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.DeleteForever,
+                            contentDescription = "Delete",
+                            tint = Color.Red
+                        )
+                        Spacer(modifier = Modifier.width(5.dp))
+                        Text("Delete", color = Color.Red, fontSize = 16.sp)
+                    }
+                    Spacer(modifier = Modifier.height(10.dp))
                 }
             }
         }
