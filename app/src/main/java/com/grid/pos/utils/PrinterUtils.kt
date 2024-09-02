@@ -115,6 +115,24 @@ object PrinterUtils {
             invoiceHeader.invoiceHeadDate,
             "MMMM dd, yyyy 'at' hh:mm:ss a 'Z'"
         )
+
+        if (!company?.companyLogo.isNullOrEmpty()) {
+            val logoBitmap = FileUtils.getBitmapFromPath(
+                context,
+                Uri.parse(company?.companyLogo)
+            )
+            val base64Result = convertBitmapToBase64(logoBitmap)
+            result = result.replace(
+                "{company_logo}",
+                "<img src=\"data:image/png;base64,$base64Result\" width=\"100px\" height=\"50px\"/>"
+            )
+        } else {
+            result = result.replace(
+                "{company_logo}",
+                ""
+            )
+        }
+
         result = result.replace(
             "{company_name}",
             company?.companyName ?: ""
@@ -136,23 +154,6 @@ object PrinterUtils {
             result = result.replace(
                 "{invoicenumbervalue}",
                 "Invoice# ${invoiceHeader.invoiceHeadOrderNo}"
-            )
-        }
-
-        if (!company?.companyLogo.isNullOrEmpty()) {
-            val logoBitmap = FileUtils.getBitmapFromPath(
-                context,
-                Uri.parse(company?.companyLogo)
-            )
-            val base64Result = convertBitmapToBase64(logoBitmap)
-            result = result.replace(
-                "{company_logo}",
-                "<img src=\"data:image/png;base64,$base64Result\" width=\"100px\" height=\"50px\"/>"
-            )
-        } else {
-            result = result.replace(
-                "{company_logo}",
-                ""
             )
         }
 
