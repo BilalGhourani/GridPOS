@@ -172,78 +172,87 @@ object PrinterUtils {
         result = if (!thirdParty?.thirdPartyName.isNullOrEmpty() || !invoiceHeader.invoiceHeadCashName.isNullOrEmpty()) {
             result.replace(
                 "{clientnamevalue}",
-                "Client: ${thirdParty?.thirdPartyName ?: ""} ${invoiceHeader.invoiceHeadCashName ?: ""}"
+                "${thirdParty?.thirdPartyName ?: ""} ${invoiceHeader.invoiceHeadCashName ?: ""}"
+            ).replace(
+                "{client_display}",
+                "block"
             )
         } else {
             result.replace(
-                "{clientnamevalue}",
-                ""
+                "{client_display}",
+                "none"
             )
         }
 
         result = if (!thirdParty?.thirdPartyFn.isNullOrEmpty()) {
             result.replace(
                 "{clientfnvalue}",
-                "F/N: ${thirdParty?.thirdPartyFn}"
+                thirdParty?.thirdPartyFn ?: ""
+            ).replace(
+                "{fn_display}",
+                "block"
             )
         } else {
             result.replace(
-                "{clientfnvalue}",
-                ""
+                "{fn_display}",
+                "none"
             )
         }
 
         result = if (!thirdParty?.thirdPartyPhone1.isNullOrEmpty() || !thirdParty?.thirdPartyPhone2.isNullOrEmpty()) {
             result.replace(
                 "{clientphonevalue}",
-                "Phone: ${thirdParty?.thirdPartyPhone1 ?: thirdParty?.thirdPartyPhone2}"
+                thirdParty?.thirdPartyPhone1 ?: thirdParty?.thirdPartyPhone2 ?: ""
+            ).replace(
+                "{phone_display}",
+                "block"
             )
         } else {
             result.replace(
-                "{clientphonevalue}",
-                ""
+                "{phone_display}",
+                "none"
             )
         }
 
         result = if (!thirdParty?.thirdPartyAddress.isNullOrEmpty()) {
             result.replace(
                 "{clientaddressvalue}",
-                "Addr: ${thirdParty?.thirdPartyAddress}"
+                thirdParty?.thirdPartyAddress ?: ""
+            ).replace(
+                "{addr_display}",
+                "block"
             )
         } else {
             result.replace(
-                "{clientaddressvalue}",
-                ""
+                "{addr_display}",
+                "none"
             )
         }
 
         result = if (!user?.userName.isNullOrEmpty()) {
             result.replace(
                 "{invoiceuservalue}",
-                "Served By: ${user?.userName}"
+                user?.userName ?: ""
+            ).replace(
+                "{servedby_display}",
+                "block"
             )
         } else {
             result.replace(
-                "{invoiceuservalue}",
-                ""
+                "{servedby_display}",
+                "none"
             )
         }
 
         result = if (invoiceHeader.invoiceHeadPrint > 1) {
             result.replace(
-                "{reprinted_dashed}",
-                "<hr style=\"border-top: 1px dashed; #000;width: 100%;\"> "
-            ).replace(
-                "{reprinted}",
-                " * * REPRINTED * * "
+                "{rp_disp}",
+                "flex"
             )
         } else {
             result.replace(
-                "{reprinted_dashed}",
-                ""
-            ).replace(
-                "{reprinted}",
-                ""
+                "{rp_disp}",
+                "none"
             )
         }
         var discountAmount = invoiceHeader.invoiceHeadDiscountAmount
@@ -325,12 +334,15 @@ object PrinterUtils {
             result = if (!company?.companyTaxRegno.isNullOrEmpty()) {
                 result.replace(
                     "{taxregno}",
-                    "Tax &nbsp; No: ${company?.companyTaxRegno ?: ""}"
+                    company?.companyTaxRegno ?: ""
+                ).replace(
+                    "{tax_display}",
+                    "block"
                 )
             } else {
                 result.replace(
-                    "{taxregno}",
-                    ""
+                    "{tax_display}",
+                    "none"
                 )
             }
         } else {
@@ -355,12 +367,15 @@ object PrinterUtils {
             result = if (!company?.companyTax1Regno.isNullOrEmpty()) {
                 result.replace(
                     "{taxregno1}",
-                    "Tax1 No: ${company?.companyTax1Regno ?: ""}"
+                    company?.companyTax1Regno ?: ""
+                ).replace(
+                    "{tax1_display}",
+                    "block"
                 )
             } else {
                 result.replace(
-                    "{taxregno1}",
-                    ""
+                    "{tax1_display}",
+                    "none"
                 )
             }
         } else {
@@ -385,12 +400,15 @@ object PrinterUtils {
             result = if (!company?.companyTax2Regno.isNullOrEmpty()) {
                 result.replace(
                     "{taxregno2}",
-                    "Tax2 No: ${company?.companyTax2Regno ?: ""}"
+                    company?.companyTax2Regno ?: ""
+                ).replace(
+                    "{tax2_display}",
+                    "block"
                 )
             } else {
                 result.replace(
-                    "{taxregno2}",
-                    ""
+                    "{tax2_display}",
+                    "none"
                 )
             }
         } else {
@@ -409,13 +427,13 @@ object PrinterUtils {
                 )
             )
             result.replace(
-                "{taxdashed}",
-                "<hr style=\"border-top: 1px dashed; #000;width: 100%;\">"
+                "{taxes_display}",
+                "block"
             )
         } else {
             result.replace(
-                "{taxdashed}",
-                ""
+                "{taxes_display}",
+                "none"
             )
         }
 
@@ -540,16 +558,13 @@ object PrinterUtils {
                 "{invoicenotevalue}",
                 invoiceHeader.invoiceHeadNote!!
             ).replace(
-                "{notedashed}",
-                "<hr style=\"border-top: 1px dashed; #000;width: 100%;\">"
+                "{note_display}",
+                "block"
             )
         } else {
             result.replace(
-                "{invoicenotevalue}",
-                ""
-            ).replace(
-                "{notedashed}",
-                ""
+                "{note_display}",
+                "none"
             )
         }
 
@@ -564,11 +579,14 @@ object PrinterUtils {
             result = result.replace(
                 "{barcodeContent}",
                 " <img style=\"width:100%;margin-start: 20px !important;margin-end: 20px !important;height:100px;\" src=\"data:image/png;base64,$base64Barcode\" alt=\"Barcode\"/>"
+            ).replace(
+                "{barcode_display}",
+                "block"
             )
         } else {
             result = result.replace(
-                "{barcodeContent}",
-                ""
+                "{barcode_display}",
+                "none"
             )
         }
 
@@ -660,14 +678,16 @@ object PrinterUtils {
 
                     "div" -> {
                         val style = element.attr("style")
-                        if (style.contains("text-align") || style.contains("justify-content")) {
-                            result += if (style.contains("center")) ALIGN_CENTER else if (style.contains(
-                                    "right"
-                                ) || style.contains("end")
-                            ) ALIGN_RIGHT else ALIGN_LEFT
+                        if (!style.contains("display:none")) {
+                            if (style.contains("text-align") || style.contains("justify-content")) {
+                                result += if (style.contains("center")) ALIGN_CENTER else if (style.contains(
+                                        "right"
+                                    ) || style.contains("end")
+                                ) ALIGN_RIGHT else ALIGN_LEFT
+                            }
+                            result += parseHtmlElement(child)
+                            result += ALIGN_LEFT
                         }
-                        result += parseHtmlElement(child)
-                        result += ALIGN_LEFT
                     }
 
                     "span" -> {
@@ -801,34 +821,43 @@ object PrinterUtils {
         result = if (!invoiceHeader.invoiceHeadTaName.isNullOrEmpty()) {
             result.replace(
                 "{table_name}",
-                "Table Number: ${invoiceHeader.invoiceHeadTaName ?: ""}"
+                invoiceHeader.invoiceHeadTaName ?: ""
+            ).replace(
+                "{table_no_display}",
+                "block"
             )
         } else {
             result.replace(
-                "{table_name}",
-                ""
+                "{table_no_display}",
+                "none"
             )
         }
         result = if (!invoiceHeader.invoiceHeadOrderNo.isNullOrEmpty()) {
             result.replace(
                 "{order_no}",
-                "Order: ${invoiceHeader.invoiceHeadOrderNo ?: ""}"
+                invoiceHeader.invoiceHeadOrderNo ?: ""
+            ).replace(
+                "{order_no_display}",
+                "block"
             )
         } else {
             result.replace(
-                "{order_no}",
-                ""
+                "{order_no_display}",
+                "none"
             )
         }
         result = if (!invoiceHeader.invoiceHeadTransNo.isNullOrEmpty()) {
             result.replace(
                 "{trans_no}",
-                "Inv: ${invoiceHeader.invoiceHeadTransNo ?: ""}"
+                invoiceHeader.invoiceHeadTransNo ?: ""
+            ).replace(
+                "{trans_no_display}",
+                "block"
             )
         } else {
             result.replace(
-                "{trans_no}",
-                ""
+                "{trans_no_display}",
+                "none"
             )
         }
 

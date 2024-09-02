@@ -13,15 +13,15 @@
 </div>
 <hr style="border-top: 1px dashed; #000;width: 100%;">
 <div style="width: 100%;display: flex; align-items: start; justify-content: start; flex-direction: column;">
-    <div style="font-weight: Normal;font-size: 16px;">{clientnamevalue}</div>
-    <div style="font-weight: Normal;font-size: 16px;">{clientfnvalue}</div>
-    <div style="font-weight: Normal;font-size: 16px;">{clientphonevalue}</div>
-    <div style="font-weight: Normal;font-size: 16px;">{clientaddressvalue}</div>
-    <div style="font-weight: Normal;font-size: 16px;">{invoiceuservalue}</div>
+    <div style="display:{client_display};font-weight: Normal;font-size: 16px;">Client: {clientnamevalue}</div>
+    <div style="display:{fn_display};font-weight: Normal;font-size: 16px;">F/N: {clientfnvalue}</div>
+    <div style="display:{phone_display};font-weight: Normal;font-size: 16px;">Phone: {clientphonevalue}</div>
+    <div style="display:{addr_display};font-weight: Normal;font-size: 16px;">Addr: {clientaddressvalue}</div>
+    <div style="display:{servedby_display};font-weight: Normal;font-size: 16px;">Served By: {invoiceuservalue}</div>
 </div>
-{reprinted_dashed}
-<div style="display: flex; align-items: center; justify-content: center;">
-    <div style="font-size: large; font-weight: bold;">{reprinted}</div>
+<div style="display: {rp_disp}; align-items: center; justify-content: center;flex-direction: column;">
+    <hr style="border-top: 1px dashed; #000;width: 100%;">
+    <div style="font-size: large; font-weight: bold;"> * * REPRINTED * *</div>
 </div>
 
 <hr style="border-top: 1px dashed; #000;width: 100%;">
@@ -30,7 +30,15 @@
         <td><b>Description</b></td>
         <td><b>Total</b></td>
     </tr>
-    {rows}<tr><td>item_name</td></tr> <tr><td>item_qty x item_price</td> <td>item_amount</td> </tr>{rows}
+    {rows}
+    <tr>
+        <td>item_name</td>
+    </tr>
+    <tr>
+        <td>item_qty x item_price</td>
+        <td>item_amount</td>
+    </tr>
+    {rows}
 </table>
 <hr style="border-top: 1px dashed; #000;width: 100%;">
 <table style="width: 100%">
@@ -44,19 +52,21 @@
 <table style="margin-left: 0;margin-right: auto;">
     {posReceiptValues}
 </table>
-{notedashed}
-<div style="width: 100%;display: flex; align-items: start; justify-content: start; flex-direction: column;">
+<div style="width: 100%;display:{note_display}; align-items: start; justify-content: start; flex-direction: column;">
+    <hr style="border-top: 1px dashed; #000;width: 100%;">
     <div style="font-weight: Normal;font-size: 16px;">{invoicenotevalue}</div>
 </div>
-{taxdashed}
-<div style="width: 100%;display: flex; align-items: start; justify-content: start; flex-direction: column;">
-    <div style="font-weight: Normal;font-size: 16px;">{taxregno}</div>
-    <div style="font-weight: Normal;font-size: 16px;">{taxregno1}</div>
-    <div style="font-weight: Normal;font-size: 16px;">{taxregno2}</div>
+<div style="width: 100%;display: {taxes_display}; align-items: start; justify-content: start; flex-direction: column;">
+    <hr style="border-top: 1px dashed; #000;width: 100%;">
+    <div style="display: {tax_display};font-weight: Normal;font-size: 16px;">Tax &nbsp; No: {taxregno}</div>
+    <div style="display: {tax1_display};font-weight: Normal;font-size: 16px;">Tax1 No: {taxregno1}</div>
+    <div style="display: {tax2_display};font-weight: Normal;font-size: 16px;">Tax2 No: {taxregno2}</div>
 </div>
-<div style="height: 10px; width: 100%;"></div>
-{barcodeContent}
-<div style="height: 10px; width: 100%;"></div>
+<div style="width: 100%;display: {barcode_display}; align-items: start; justify-content: start; flex-direction: column;">
+    <div style="height: 10px; width: 100%;"></div>
+    {barcodeContent}
+    <div style="height: 10px; width: 100%;"></div>
+</div>
 <div style="display: flex; align-items: center; justify-content: center; flex-direction: column;">
     <div style="font-weight: Normal;font-size: 16px;">THANK YOU</div>
     <div style="font-weight: Normal;font-size: 16px;">GRIDS Software - www.gridsco.com</div>
