@@ -78,10 +78,17 @@ class ReportsListViewModel @Inject constructor(
         )
 
         CoroutineScope(Dispatchers.IO).launch {
-            DataStoreManager.putString(
-                DataStoreManager.DataStoreKeys.SELECTED_PAYSLIP.key,
-                fileModel.getFullName()
-            )
+            if (fileModel.isPaySlip) {
+                DataStoreManager.putString(
+                    DataStoreManager.DataStoreKeys.SELECTED_PAYSLIP.key,
+                    fileModel.getFullName()
+                )
+            }else{
+                DataStoreManager.putString(
+                    DataStoreManager.DataStoreKeys.SELECTED_PAY_TICKET.key,
+                    fileModel.getFullName()
+                )
+            }
             val fileModels = if (fileModel.isPaySlip) state.value.paySlips else state.value.payTickets
             fileModels.forEach {
                 it.selected = it.parentName == fileModel.parentName && it.fileName == fileModel.fileName
