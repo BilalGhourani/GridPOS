@@ -227,9 +227,11 @@ object PrinterUtils {
                 ""
             )
         }
+        var discountAmount = invoiceHeader.invoiceHeadDiscountAmount
         if (invoiceItemModels.isNotEmpty()) {
             val trs = StringBuilder("<tr><td><b>Description</b></td><td><b>Total</b</td> </tr>")
             invoiceItemModels.forEach { item ->
+                discountAmount += item.invoice.getDiscountAmount()
                 trs.append(
                     String.format(
                         defaultLocal,
@@ -253,7 +255,7 @@ object PrinterUtils {
             String.format(
                 defaultLocal,
                 "<tr><td>Disc Amount&nbsp;:</td><td>%.2f</td></tr>",
-                Utils.getDoubleOrZero(invoiceHeader.invoiceHeadDiscountAmount)
+                Utils.getDoubleOrZero(discountAmount)
             )
         )
 

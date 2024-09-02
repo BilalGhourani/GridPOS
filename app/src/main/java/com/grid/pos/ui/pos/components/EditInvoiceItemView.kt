@@ -88,9 +88,15 @@ fun EditInvoiceItemView(
         invoiceItem = invoiceItemAtIndex.invoiceItem
     )
 
+    val curr1Decimal = SettingsModel.currentCurrency?.currencyName1Dec ?: 2
+    val curr2Decimal = SettingsModel.currentCurrency?.currencyName2Dec ?: 2
+
     var price by remember {
         mutableStateOf(
-            if (invoiceItemModel.invoice.invoicePrice > 0.0) invoiceItemModel.invoice.invoicePrice.toString() else ""
+            String.format(
+                "%.${curr1Decimal}f",
+                invoiceItemModel.invoice.invoicePrice
+            )
         )
     }
     var qty by remember {
@@ -135,8 +141,6 @@ fun EditInvoiceItemView(
     var tax2State by remember {
         mutableStateOf(invoiceItemModel.invoice.invoiceTax2.toString().takeIf { it != "0.0" } ?: "")
     }
-    val curr1Decimal = SettingsModel.currentCurrency?.currencyName1Dec ?: 2
-    val curr2Decimal = SettingsModel.currentCurrency?.currencyName2Dec ?: 2
     var isPercentageChanged by remember {
         mutableStateOf(true)
     }
