@@ -1,54 +1,65 @@
 <!DOCTYPE html>
 <html lang="en">
 <body>
-    <div style="display: flex; align-items: center; justify-content: center; flex-direction: column">
-        {company_logo}
-        <div style="font-weight: bold;align-items: center;font-size: 16px;">{company_name}</div>
-    </div>
-    <div style="display: flex; align-items: center; justify-content: center; flex-direction: column;">
-        <div style="font-weight: Normal;align-items: center;font-size: 16px;">{company_addr}</div>
-        <div style="font-weight: Normal;align-items: center;font-size: 16px;">{company_phone}</div>
-        {invoicenumbervalue}
-        <div style="font-weight: Normal;align-items: center;font-size: 16px;">{invoicedatevalue}</div>
-    </div>
-    <hr style="border-top: 1px dashed; #000;width: 100%;">
-    <div style="width: 100%;display: flex; align-items: start; justify-content: start; flex-direction: column;">
-        {clientnamevalue}
-        {clientfnvalue}
-        {clientphonevalue}
-        {clientaddressvalue}
-        {invoiceuservalue}
-    </div>
-    {reprinted}
-    <hr style="border-top: 1px dashed; #000;width: 100%;">
-    <table style="width: 100%">
-        {tableinvoiceitemsvalue}
-    </table>
-    <hr style="border-top: 1px dashed; #000;width: 100%;">
-    <table style="width: 100%">
-        {tableinvoiceAmountvalue}
-    </table>
-    <hr style="border-top: 1px dashed; #000;width: 100%;">
-    <div style="width: 100%;display: flex; align-items: start; justify-content: start;">
-        <div>Number Of Items: {numberofitemsvalue}</div>
-    </div>
-    <hr style="border-top: 1px dashed; #000;width: 100%;">
-    <table style="margin-left: 0;margin-right: auto;">
-        {posReceiptValues}
-    </table>
-    {invoicenotevalue}
-    {taxdashed}
-    <div style="width: 100%;display: flex; align-items: start; justify-content: start; flex-direction: column;">
-        {taxregno}
-        {taxregno1}
-        {taxregno2}
-    </div>
-    <div style="height: 10px; width: 100%;"></div>
-    {barcodeContent}
-    <div style="height: 10px; width: 100%;"></div>
-    <div style="display: flex; align-items: center; justify-content: center; flex-direction: column;">
-        <div style="font-weight: Normal;font-size: 16px;">THANK YOU</div>
-        <div style="font-weight: Normal;font-size: 16px;">GRIDS Software - www.gridsco.com</div>
-    </div>
+<div style="display: flex; align-items: center; justify-content: center; flex-direction: column">
+    {company_logo}
+    <div style="font-weight: bold;align-items: center;font-size: 16px;">{company_name}</div>
+</div>
+<div style="display: flex; align-items: center; justify-content: center; flex-direction: column;">
+    <div style="font-weight: Normal;align-items: center;font-size: 16px;">{company_addr}</div>
+    <div style="font-weight: Normal;align-items: center;font-size: 16px;">{company_phone}</div>
+    <div style="font-weight: Normal;align-items: center;font-size: 16px;">{invoicenumbervalue}</div>
+    <div style="font-weight: Normal;align-items: center;font-size: 16px;">{invoicedatevalue}</div>
+</div>
+<hr style="border-top: 1px dashed; #000;width: 100%;">
+<div style="width: 100%;display: flex; align-items: start; justify-content: start; flex-direction: column;">
+    <div style="font-weight: Normal;font-size: 16px;">{clientnamevalue}</div>
+    <div style="font-weight: Normal;font-size: 16px;">{clientfnvalue}</div>
+    <div style="font-weight: Normal;font-size: 16px;">{clientphonevalue}</div>
+    <div style="font-weight: Normal;font-size: 16px;">{clientaddressvalue}</div>
+    <div style="font-weight: Normal;font-size: 16px;">{invoiceuservalue}</div>
+</div>
+{reprinted_dashed}
+<div style="display: flex; align-items: center; justify-content: center;">
+    <div style="font-size: large; font-weight: bold;">{reprinted}</div>
+</div>
+
+<hr style="border-top: 1px dashed; #000;width: 100%;">
+<table style="width: 100%">
+    <tr>
+        <td><b>Description</b></td>
+        <td><b>Total</b></td>
+    </tr>
+    {rows}<tr><td>item_name</td></tr> <tr><td>item_qty x item_price</td> <td>item_amount</td> </tr>{rows}
+</table>
+<hr style="border-top: 1px dashed; #000;width: 100%;">
+<table style="width: 100%">
+    {tableinvoiceAmountvalue}
+</table>
+<hr style="border-top: 1px dashed; #000;width: 100%;">
+<div style="width: 100%;display: flex; align-items: start; justify-content: start;">
+    <div>Number Of Items: {numberofitemsvalue}</div>
+</div>
+<hr style="border-top: 1px dashed; #000;width: 100%;">
+<table style="margin-left: 0;margin-right: auto;">
+    {posReceiptValues}
+</table>
+{notedashed}
+<div style="width: 100%;display: flex; align-items: start; justify-content: start; flex-direction: column;">
+    <div style="font-weight: Normal;font-size: 16px;">{invoicenotevalue}</div>
+</div>
+{taxdashed}
+<div style="width: 100%;display: flex; align-items: start; justify-content: start; flex-direction: column;">
+    <div style="font-weight: Normal;font-size: 16px;">{taxregno}</div>
+    <div style="font-weight: Normal;font-size: 16px;">{taxregno1}</div>
+    <div style="font-weight: Normal;font-size: 16px;">{taxregno2}</div>
+</div>
+<div style="height: 10px; width: 100%;"></div>
+{barcodeContent}
+<div style="height: 10px; width: 100%;"></div>
+<div style="display: flex; align-items: center; justify-content: center; flex-direction: column;">
+    <div style="font-weight: Normal;font-size: 16px;">THANK YOU</div>
+    <div style="font-weight: Normal;font-size: 16px;">GRIDS Software - www.gridsco.com</div>
+</div>
 </body>
 </html>

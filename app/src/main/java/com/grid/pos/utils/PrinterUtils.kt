@@ -135,7 +135,7 @@ object PrinterUtils {
         if (!invoiceHeader.invoiceHeadOrderNo.isNullOrEmpty()) {
             result = result.replace(
                 "{invoicenumbervalue}",
-                "<div style=\"font-weight: Normal;align-items: center;font-size: 16px;\">Invoice# ${invoiceHeader.invoiceHeadOrderNo}</div>"
+                "Invoice# ${invoiceHeader.invoiceHeadOrderNo}"
             )
         }
 
@@ -159,7 +159,7 @@ object PrinterUtils {
         result = if (!thirdParty?.thirdPartyName.isNullOrEmpty() || !invoiceHeader.invoiceHeadCashName.isNullOrEmpty()) {
             result.replace(
                 "{clientnamevalue}",
-                "<div style=\"font-weight: Normal;font-size: 16px;\">Client: ${thirdParty?.thirdPartyName ?: ""} ${invoiceHeader.invoiceHeadCashName ?: ""}</div>"
+                "Client: ${thirdParty?.thirdPartyName ?: ""} ${invoiceHeader.invoiceHeadCashName ?: ""}"
             )
         } else {
             result.replace(
@@ -171,7 +171,7 @@ object PrinterUtils {
         result = if (!thirdParty?.thirdPartyFn.isNullOrEmpty()) {
             result.replace(
                 "{clientfnvalue}",
-                "<div style=\"font-weight: Normal;font-size: 16px;\">F/N: ${thirdParty?.thirdPartyFn}</div>"
+                "F/N: ${thirdParty?.thirdPartyFn}"
             )
         } else {
             result.replace(
@@ -183,7 +183,7 @@ object PrinterUtils {
         result = if (!thirdParty?.thirdPartyPhone1.isNullOrEmpty() || !thirdParty?.thirdPartyPhone2.isNullOrEmpty()) {
             result.replace(
                 "{clientphonevalue}",
-                "<div style=\"font-weight: Normal;font-size: 16px;\">Phone: ${thirdParty?.thirdPartyPhone1 ?: thirdParty?.thirdPartyPhone2}</div>"
+                "Phone: ${thirdParty?.thirdPartyPhone1 ?: thirdParty?.thirdPartyPhone2}"
             )
         } else {
             result.replace(
@@ -195,7 +195,7 @@ object PrinterUtils {
         result = if (!thirdParty?.thirdPartyAddress.isNullOrEmpty()) {
             result.replace(
                 "{clientaddressvalue}",
-                "<div style=\"font-weight: Normal;font-size: 16px;\">Addr: ${thirdParty?.thirdPartyAddress}</div>"
+                "Addr: ${thirdParty?.thirdPartyAddress}"
             )
         } else {
             result.replace(
@@ -207,7 +207,7 @@ object PrinterUtils {
         result = if (!user?.userName.isNullOrEmpty()) {
             result.replace(
                 "{invoiceuservalue}",
-                "<div style=\"font-weight: Normal;font-size: 16px;\">Served By: ${user?.userName}</div>"
+                "Served By: ${user?.userName}"
             )
         } else {
             result.replace(
@@ -218,33 +218,59 @@ object PrinterUtils {
 
         result = if (invoiceHeader.invoiceHeadPrint > 1) {
             result.replace(
+                "{reprinted_dashed}",
+                "<hr style=\"border-top: 1px dashed; #000;width: 100%;\"> "
+            ).replace(
                 "{reprinted}",
-                "<hr class=\"dashed\"> <div style=\"display: flex; align-items: center; justify-content: center;\">\n" + "            <div style=\"font-size: large; font-weight: bold;\"> * * REPRINTED * * </div>\n" + "        </div>"
+                " * * REPRINTED * * "
             )
         } else {
             result.replace(
+                "{reprinted_dashed}",
+                ""
+            ).replace(
                 "{reprinted}",
                 ""
             )
         }
         var discountAmount = invoiceHeader.invoiceHeadDiscountAmount
         if (invoiceItemModels.isNotEmpty()) {
-            val trs = StringBuilder("<tr><td><b>Description</b></td><td><b>Total</b</td> </tr>")
+            val regex = "\\{rows\\}(.*?)\\{rows\\}".toRegex()
+            val matchResult = regex.find(result)
+            val extractedSubstring = matchResult?.groups?.get(1)?.value ?: "<tr><td>item_name</td></tr> <tr><td>item_qty x item_price</td> <td>item_amount</td> </tr>"
+            val trs = StringBuilder("")
             invoiceItemModels.forEach { item ->
                 discountAmount += item.invoice.getDiscountAmount()
+                val qty = String.format(
+                    "%.0f",
+                    item.invoice.invoiceQuantity
+                )
+                val price = String.format(
+                    "%.2f",
+                    item.invoice.getPrice()
+                )
+                val amount = String.format(
+                    "%.2f",
+                    item.invoice.getAmount()
+                )
                 trs.append(
-                    String.format(
-                        defaultLocal,
-                        "<tr><td>%s</td></tr> <tr><td>%.0f x %.2f</td> <td>%.2f</td> </tr>",
-                        item.getFullName(),
-                        item.invoice.invoiceQuantity,
-                        item.invoice.getPrice(),
-                        item.invoice.getAmount()
+                    extractedSubstring.replace(
+                        "item_name",
+                        item.getFullName()
+                    ).replace(
+                        "item_qty",
+                        qty
+                    ).replace(
+                        "item_price",
+                        price
+                    ).replace(
+                        "item_amount",
+                        amount
                     )
                 )
             }
             result = result.replace(
-                "{tableinvoiceitemsvalue}",
+                regex,
                 trs.toString()
             ).replace(
                 "{numberofitemsvalue}",
@@ -286,7 +312,7 @@ object PrinterUtils {
             result = if (!company?.companyTaxRegno.isNullOrEmpty()) {
                 result.replace(
                     "{taxregno}",
-                    "<div style=\"font-weight: Normal;font-size: 16px;\">Tax &nbsp; No:${company?.companyTaxRegno ?: ""}</div>"
+                    "Tax &nbsp; No: ${company?.companyTaxRegno ?: ""}"
                 )
             } else {
                 result.replace(
@@ -316,7 +342,7 @@ object PrinterUtils {
             result = if (!company?.companyTax1Regno.isNullOrEmpty()) {
                 result.replace(
                     "{taxregno1}",
-                    "<div style=\"font-weight: Normal;font-size: 16px;\">Tax1 No:${company?.companyTax1Regno ?: ""}</div>"
+                    "Tax1 No: ${ company?.companyTax1Regno ?: "" }"
                 )
             } else {
                 result.replace(
@@ -346,7 +372,7 @@ object PrinterUtils {
             result = if (!company?.companyTax2Regno.isNullOrEmpty()) {
                 result.replace(
                     "{taxregno2}",
-                    "<div style=\"font-weight: Normal;font-size: 16px;\">Tax2 No:${company?.companyTax2Regno ?: ""}</div>"
+                    "Tax2 No: ${ company?.companyTax2Regno ?: "" }"
                 )
             } else {
                 result.replace(
@@ -371,7 +397,7 @@ object PrinterUtils {
             )
             result.replace(
                 "{taxdashed}",
-                "<hr class=\"dashed\">"
+                "<hr style=\"border-top: 1px dashed; #000;width: 100%;\">"
             )
         } else {
             result.replace(
@@ -499,11 +525,17 @@ object PrinterUtils {
         result = if (!invoiceHeader.invoiceHeadNote.isNullOrEmpty()) {
             result.replace(
                 "{invoicenotevalue}",
-                "<hr class=\"dashed\">\n" + "    <div style=\"width: 100%;display: flex; align-items: start; justify-content: start; flex-direction: column;\">\n" + "        <div style=\"font-weight: Normal;font-size: 16px;\">${invoiceHeader.invoiceHeadNote}</div>\n" + "    </div>"
+                invoiceHeader.invoiceHeadNote!!
+            ).replace(
+                "{notedashed}",
+                "<hr style=\"border-top: 1px dashed; #000;width: 100%;\">"
             )
         } else {
             result.replace(
                 "{invoicenotevalue}",
+                ""
+            ).replace(
+                "{notedashed}",
                 ""
             )
         }
