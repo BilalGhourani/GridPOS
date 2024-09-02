@@ -677,7 +677,10 @@ object PrinterUtils {
                     }
 
                     "div" -> {
-                        val style = child.attr("style").replace(" ","")
+                        val style = child.attr("style").replace(
+                            " ",
+                            ""
+                        )
                         if (!style.contains("display:none")) {
                             if (style.contains("text-align") || style.contains("justify-content")) {
                                 result += if (style.contains("center")) ALIGN_CENTER else if (style.contains(
@@ -733,7 +736,10 @@ object PrinterUtils {
 
     private fun styleElement(element: Element): ByteArray {
         var res = byteArrayOf()
-        val style = element.attr("style").replace(" ","")
+        val style = element.attr("style").replace(
+            " ",
+            ""
+        )
         if (style.contains("text-align") || style.contains("justify-content")) {
             res += if (style.contains("center")) ALIGN_CENTER else if (style.contains("right") || style.contains(
                     "end"
@@ -921,10 +927,16 @@ object PrinterUtils {
                 company = company
             )
             val output = parseHtmlContent(htmlContent)
+            val printerDetails = SettingsModel.cashPrinter?.split(":") ?: listOf()
+            val size = printerDetails.size
+            val ip = if (size > 0) printerDetails[0] else ""
+            val port = if (size > 1) printerDetails[1] else ""
             printOutput(
                 context = context,
                 output = output,
-                printerName = SettingsModel.cashPrinter
+                printerName = SettingsModel.cashPrinter,
+                printerIP = ip,
+                printerPort = port.toIntOrNull() ?: -1
             )
         }
 
