@@ -677,7 +677,7 @@ object PrinterUtils {
                     }
 
                     "div" -> {
-                        val style = element.attr("style")
+                        val style = child.attr("style").replace(" ","")
                         if (!style.contains("display:none")) {
                             if (style.contains("text-align") || style.contains("justify-content")) {
                                 result += if (style.contains("center")) ALIGN_CENTER else if (style.contains(
@@ -705,7 +705,7 @@ object PrinterUtils {
                     }
 
                     else -> {
-                        val text = element.text() ?: ""
+                        val text = child.text() ?: ""
                         if (text.isNotEmpty()) {
                             result += styleElement(child)
                             result += text.toByteArray()
@@ -733,7 +733,7 @@ object PrinterUtils {
 
     private fun styleElement(element: Element): ByteArray {
         var res = byteArrayOf()
-        val style = element.attr("style")
+        val style = element.attr("style").replace(" ","")
         if (style.contains("text-align") || style.contains("justify-content")) {
             res += if (style.contains("center")) ALIGN_CENTER else if (style.contains("right") || style.contains(
                     "end"
