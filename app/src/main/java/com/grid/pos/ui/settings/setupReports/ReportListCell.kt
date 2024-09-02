@@ -8,9 +8,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Preview
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -32,15 +30,13 @@ import com.grid.pos.model.FileModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.ui.theme.LightGreen
-import com.grid.pos.ui.theme.Pink80
 
 @Composable
 fun ReportListCell(
-        modifier: Modifier = Modifier,
-        fileModel: FileModel,
-        onSelect: () -> Unit = {},
-        onPreview: () -> Unit = {},
-        onRemove: () -> Unit = {}
+    modifier: Modifier = Modifier,
+    fileModel: FileModel,
+    onSelect: () -> Unit = {},
+    onOption: () -> Unit = {},
 ) {
     Card(
         modifier = modifier.clickable { onSelect.invoke() },
@@ -70,23 +66,13 @@ fun ReportListCell(
                 color = if (fileModel.selected) LightGreen else SettingsModel.textColor
             )
             Spacer(modifier = Modifier.width(5.dp))
-            IconButton(modifier = Modifier.size(25.dp),
-                onClick = { onPreview.invoke() }) {
+            IconButton(modifier = Modifier
+                .size(25.dp),
+                onClick = { onOption.invoke() }) {
                 Icon(
-                    //imageVector = Icons.Default.Preview,
-                    imageVector = Icons.Default.Preview,
-                    contentDescription = "Preview",
-                    tint = LightGreen
-                )
-            }
-
-            Spacer(modifier = Modifier.width(5.dp))
-            IconButton(modifier = Modifier.size(25.dp),
-                onClick = { onRemove.invoke() }) {
-                Icon(
-                    imageVector = Icons.Default.Delete,
+                    imageVector = Icons.Default.MoreVert,
                     contentDescription = "Delete",
-                    tint = Pink80
+                    tint = SettingsModel.buttonColor
                 )
             }
             Spacer(modifier = Modifier.width(5.dp))
