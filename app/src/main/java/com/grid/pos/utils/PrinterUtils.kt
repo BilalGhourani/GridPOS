@@ -342,7 +342,7 @@ object PrinterUtils {
             result = if (!company?.companyTax1Regno.isNullOrEmpty()) {
                 result.replace(
                     "{taxregno1}",
-                    "Tax1 No: ${ company?.companyTax1Regno ?: "" }"
+                    "Tax1 No: ${company?.companyTax1Regno ?: ""}"
                 )
             } else {
                 result.replace(
@@ -372,7 +372,7 @@ object PrinterUtils {
             result = if (!company?.companyTax2Regno.isNullOrEmpty()) {
                 result.replace(
                     "{taxregno2}",
-                    "Tax2 No: ${ company?.companyTax2Regno ?: "" }"
+                    "Tax2 No: ${company?.companyTax2Regno ?: ""}"
                 )
             } else {
                 result.replace(
@@ -583,27 +583,39 @@ object PrinterUtils {
                     }
 
                     "b", "strong" -> {
-                        result += BOLD_ON
-                        result += child.text().toByteArray()
-                        result += BOLD_OFF
+                        val text = child.text() ?: ""
+                        if (text.isNotEmpty()) {
+                            result += BOLD_ON
+                            result += text.toByteArray()
+                            result += BOLD_OFF
+                        }
                     }
 
                     "i", "em" -> {
-                        result += ITALIC_ON
-                        result += child.text().toByteArray()
-                        result += ITALIC_OFF
+                        val text = child.text() ?: ""
+                        if (text.isNotEmpty()) {
+                            result += ITALIC_ON
+                            result += text.toByteArray()
+                            result += ITALIC_OFF
+                        }
                     }
 
                     "u" -> {
-                        result += UNDERLINE_ON
-                        result += child.text().toByteArray()
-                        result += UNDERLINE_OFF
+                        val text = child.text() ?: ""
+                        if (text.isNotEmpty()) {
+                            result += UNDERLINE_ON
+                            result += text.toByteArray()
+                            result += UNDERLINE_OFF
+                        }
                     }
 
                     "font" -> {
-                        result += DOUBLE_SIZE
-                        result += child.text().toByteArray()
-                        result += NORMAL_SIZE
+                        val text = child.text() ?: ""
+                        if (text.isNotEmpty()) {
+                            result += DOUBLE_SIZE
+                            result += text.toByteArray()
+                            result += NORMAL_SIZE
+                        }
                     }
 
                     "img" -> {
@@ -660,20 +672,26 @@ object PrinterUtils {
                     }
 
                     else -> {
-                        result += styleElement(child)
-                        result += child.text().toByteArray()
-                        result += BOLD_OFF + ALIGN_LEFT + NORMAL_SIZE
-                        if (child.tagName().equals("div")) {
-                            result += "\n".toByteArray()
+                        val text = element.text() ?: ""
+                        if (text.isNotEmpty()) {
+                            result += styleElement(child)
+                            result += text.toByteArray()
+                            result += BOLD_OFF + ALIGN_LEFT + NORMAL_SIZE
+                            if (child.tagName().equals("div")) {
+                                result += "\n".toByteArray()
+                            }
                         }
                     }
                 }
             }
         } else {
-            result += styleElement(element)
-            result += element.text().toByteArray()
-            if (element.tagName().equals("div")) {
-                result += "\n".toByteArray()
+            val text = element.text() ?: ""
+            if (text.isNotEmpty()) {
+                result += styleElement(element)
+                result += text.toByteArray()
+                if (element.tagName().equals("div")) {
+                    result += "\n".toByteArray()
+                }
             }
         }
 
