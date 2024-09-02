@@ -335,14 +335,6 @@ object FileUtils {
         }
     }
 
-    fun getDefaultReceipt(): String {
-        return "<!DOCTYPE html>\n" + "<html>\n" + "\n" + "<style>\n" + "    .separator {\n" + "        margin: 5px;\n" + "        width: 100%;\n" + "        border-bottom: 1px dotted #00000056\n" + "    }\n" + "\n" + "    .name {\n" + "        width: 90px;\n" + "        background-color: lightgrey;\n" + "        margin-top: 3px;\n" + "        font-weight: bold;\n" + "    }\n" + "\n" + "    .value {\n" + "        margin-left: 10px;\n" + "        width: 110px;\n" + "    }\n" + "\n" + "    .b1 {\n" + "        background-color: lightgrey;\n" + "        width: 50px;\n" + "        margin-top: 3px;\n" + "        align-items: center;\n" + "        justify-content: center;\n" + "    }\n" + "\n" + "    .b2 {\n" + "        width: 50px;\n" + "        margin-top: 3px;\n" + "        align-items: center;\n" + "        justify-content: center;\n" + "    }\n" + "\n" + "    .title {\n" + "        margin-left: 50px;\n" + "    }\n" + "\n" + "    hr.dashed {\n" + "        border-top: 5px dotted #000;\n" + "        width: 200px;\n" + "    }\n" + "\n" + "    .text1 {\n" + "        font-weight: bold;\n" + "    }\n" + "</style>\n" + "\n" + "<body>\n" + "    <div style=\"display: flex; align-items: center; justify-content: center; flex-direction: column;\">\n" + "        <div style=\"display: flex; align-items: center; justify-content: center;\">\n" + "            <img src=\"companylogovalue\" width=\"50px\" height=\"50px\" />\n" + "            <div class=\"title\">{companyvalue}</div>\n" + "        </div>\n" + "        <div style=\"display: flex; align-items: center; justify-content: center; flex-direction: column;\">\n" + "            <div class=\"text1\">Branch: {invoicebranchvalue}</div>\n" + "            <div class=\"text1\">Invoice# {invoicenumbervalue}</div>\n" + "            <div class=\"text1\">{invoicedatevalue}</div>\n" + "        </div>\n" + "        <hr class=\"dashed\">\n" + "        <div style=\"display: flex; align-items: start; justify-content: start; flex-direction: column;\">\n" + "            <div class=\"text1\">Client: {clientnamevalue} {invoicecashnamevalue}</div>\n" + "            <div class=\"text1\">F/N: {clientfnvalue}</div>\n" + "            <div class=\"text1\">Phone: {clientphonevalue}</div>\n" + "            <div class=\"text1\">Addr: {clientaddressvalue}</div>\n" + "            <div class=\"text1\">Served By: {invoiceuservalue}</div>\n" + "        </div>\n" + "        <hr class=\"dashed\">\n" + "        <div style=\"display: flex; align-items: center; justify-content: center;\">\n" + "            <div style=\"font-size: 30px; font-weight: bold;\">{reprintedvalue}</div>\n" + "        </div>\n" + "        <hr class=\"dashed\">\n" + "        <table style=\"width: 200px\">\n" + "            {tableinvoiceitemsvalue}\n" + "        </table>\n" + "        <hr class=\"dashed\">\n" + "        <div style=\"display: flex; align-items: start; justify-content: start; flex-direction: column;\">\n" + "            <div class=\"text1\">Disc Amount: {invoicediscamtvalue}</div>\n" + "            <div class=\"text1\">After Disc: {invoiceafterdiscvalue}</div>\n" + "            <div class=\"text1\">groupsettingstaxname({vatcompanyvalue}%): {invoicetaxamtvalue}</div>\n" + "            <div class=\"text1\">groupsettingstax1name({tax1companyvalue}%): {invoicetax1amtvalue}</div>\n" + "            <div class=\"text1\">groupsettingstax2name({tax2companyvalue}%): {invoicetax2amtvalue}</div>\n" + "            <div class=\"text1\">T.Tax: {invoicevatamtvalue}</div>\n" + "            <div class=\"text1\">Total {firstcurrencyvalue}: {invoicetotalvalue}</div>\n" + "            <div class=\"text1\">Total {secondcurrencyvalue}: {invoicetotal1value}</div>\n" + "        </div>\n" + "        <hr class=\"dashed\">\n" + "        <div style=\"display: flex; align-items: start; justify-content: start;\">\n" + "            <div>Number Of Items: {numberofitemsvalue}</div>\n" + "        </div>\n" + "        <hr class=\"dashed\">\n" + "        <table style=\"width: 200px\">\n" + "            {tablepaymentsvalue}\n" + "        </table>\n" + "        <hr class=\"dashed\">\n" + "        <div style=\"display: flex; align-items: center; justify-content: center; flex-direction: column;\">\n" + "            <div class=\"text1\">THANK YOU</div>\n" + "            <div>GRIDS Software - www.gridsco.com</div>\n" + "        </div>\n" + "        <div style=\"display: flex; align-items: center; justify-content: center; flex-direction: column;\">\n" + "            <div class=\"text1\">{invoicenotevalue}</div>\n" + "        </div>\n" + "        <img src=\"barcodeimagevalue\" />\n" + "        <div class=\"text1\">{invoicepaidvalue}</div>\n" + "    </div>\n" + "</body>\n" + "\n" + "</html>"
-    }
-
-    fun getDefaultItemReceipt(): String {
-        return "<!DOCTYPE html>\n" + "<html lang=\"en\">\n" + "<head>\n" + "    <meta charset=\"UTF-8\">\n" + "    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n" + "    <title>Receipt</title>\n" + "    <style>\n" + "        body {\n" + "            font-family: Arial, sans-serif;\n" + "            margin: 0;\n" + "            padding: 20px;\n" + "        }\n" + "        .container {\n" + "            max-width: 400px;\n" + "            margin: 0 auto;\n" + "            border: 1px solid #ccc;\n" + "            padding: 20px;\n" + "            border-radius: 5px;\n" + "        }\n" + "        .receipt-header {\n" + "            text-align: center;\n" + "            margin-bottom: 20px;\n" + "        }\n" + "        .receipt-items {\n" + "            border-collapse: collapse;\n" + "            width: 100%;\n" + "        }\n" + "        .receipt-items th, .receipt-items td {\n" + "            border: 1px solid #ddd;\n" + "            padding: 8px;\n" + "            text-align: left;\n" + "        }\n" + "        .receipt-items th {\n" + "            background-color: #f2f2f2;\n" + "        }\n" + "        .total {\n" + "            margin-top: 20px;\n" + "            text-align: right;\n" + "        }\n" + "    </style>\n" + "</head>\n" + "<body>\n" + "<div class=\"container\">\n" + "    <div class=\"receipt-header\">\n" + "        <h2>Receipt</h2>\n" + "    </div>\n" + "    <table class=\"receipt-items\">\n" + "        <thead>\n" + "        <tr>\n" + "            <th>Item</th>\n" + "            <th>Quantity</th>\n" + "            <th>Price</th>\n" + "        </tr>\n" + "        </thead>\n" + "        <tbody>\n" + "        {rows_content}\n" + "        </tbody>\n" + "    </table>\n" + "    <div class=\"total\">\n" + "        <strong>Total: {total}</strong>\n" + "    </div>\n" + "</div>\n" + "</body>\n" + "</html>"
-    }
-
     fun backup() {
         val app = App.getInstance()
         val appDatabase: AppDatabase = AppModule.provideDatabase(app)
@@ -624,25 +616,28 @@ object FileUtils {
 
     fun getHtmlFile(
             context: Context,
-            htmlContent: String
-    ): File {
-        val pdfFile = File(
+            urlSuffix: String
+    ): String {
+        val rootDir = File(
             context.filesDir,
-            "output.pdf"
+            "Reports"
+        )
+        if (!rootDir.exists()) {
+            return ""
+        }
+
+        val file = File(
+            rootDir,
+            urlSuffix
         )
 
-        try {
-            // Use OutputStreamWriter to write the data to the file
-            FileOutputStream(pdfFile).use { outputStream ->
-                OutputStreamWriter(outputStream).use { writer ->
-                    writer.write(htmlContent)
-                }
-                outputStream.close()
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
+        if (!file.exists()) {
+            return ""
         }
-        return pdfFile
+        return getFileContent(
+            context,
+            Uri.fromFile(file)
+        )
     }
 
     fun getBitmapFromPath(
@@ -698,7 +693,10 @@ object FileUtils {
                 } else {
                     val fileName = file.name
                     val directoryName = directoryFile.name
-                    val isPaySlip = fileName.contains("payslip",ignoreCase = true)
+                    val isPaySlip = fileName.contains(
+                        "payslip",
+                        ignoreCase = true
+                    )
                     val selected = if (isPaySlip) selectedPaySlip?.equals("$directoryName/$fileName") == true
                     else selectedPayTicket?.equals("$directoryName/$fileName") == true
                     val fileModel = FileModel(

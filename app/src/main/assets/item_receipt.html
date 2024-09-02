@@ -1,36 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Receipt</title>
-    <style>
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        th, td {
-            border: 1px solid black;
-            padding: 8px;
-            text-align: left;
-        }
-    </style>
-</head>
 <body>
-<p>Cash</p>
-<p>Table Number: {table_name}</p>
-<p>Order: {order_no}</p>
-<p>Inv: {trans_no}</p>
-<p>{invoice_time}</p>
-<table>
-    <thead>
+<div style="display: flex; align-items: start; justify-content: start; flex-direction: column;">
+    <div style="font-weight: Normal;align-items: center;font-size: 16px;">Cash</div>
+    <div style="font-weight: Normal;align-items: center;font-size: 16px;">{table_name}</div>
+    <div style="font-weight: Normal;align-items: center;font-size: 16px;">{order_no}</div>
+    <div style="font-weight: Normal;align-items: center;font-size: 16px;">{trans_no}</div>
+    <div style="font-weight: Normal;align-items: center;font-size: 16px;">{invoice_time}</div>
+</div>
+<table style="width: 100%">
     <tr>
-        <th>Qty</th>
-        <th>Item</th>
+        <td><b>Qty</b></td>
+        <td><b>Item</b></td>
     </tr>
-    </thead>
-    <tbody>
-    {rows_content}
-    </tbody>
+    {rows}
+    <tr>
+        <td>item_qty</td>
+        <td>item_name</td>
+    </tr>
+    {rows}
 </table>
 </body>
 </html>

@@ -95,6 +95,22 @@ object PrinterUtils {
         109
     )
 
+    private fun getPaySlipHtmlContent(context: Context): String {
+        if (!SettingsModel.selectedPayslip.isNullOrEmpty()) {
+            val payslip = FileUtils.getHtmlFile(
+                context,
+                SettingsModel.selectedPayslip!!
+            )
+            if (payslip.isNotEmpty()) {
+                return payslip
+            }
+        }
+        return FileUtils.readFileFromAssets(
+            "invoice_receipt.html",
+            context
+        )
+    }
+
     fun getInvoiceReceiptHtmlContent(
             context: Context,
             invoiceHeader: InvoiceHeader,
@@ -104,13 +120,9 @@ object PrinterUtils {
             user: User? = SettingsModel.currentUser,
             company: Company? = SettingsModel.currentCompany,
             currency: Currency? = SettingsModel.currentCurrency,
-            content: String = FileUtils.readFileFromAssets(
-                "invoice_receipt.html",
-                context
-            )
     ): String {
         val defaultLocal = Locale.getDefault()
-        var result = content.ifEmpty { FileUtils.getDefaultReceipt() }
+        var result = getPaySlipHtmlContent(context)
         val invDate = DateHelper.getDateFromString(
             invoiceHeader.invoiceHeadDate,
             "MMMM dd, yyyy 'at' hh:mm:ss a 'Z'"
@@ -764,28 +776,61 @@ object PrinterUtils {
         }
     }
 
+    private fun getPayTicketHtmlContent(context: Context): String {
+        if (!SettingsModel.selectedPayTicket.isNullOrEmpty()) {
+            val payslip = FileUtils.getHtmlFile(
+                context,
+                SettingsModel.selectedPayTicket!!
+            )
+            if (payslip.isNotEmpty()) {
+                return payslip
+            }
+        }
+        return FileUtils.readFileFromAssets(
+            "item_receipt.html",
+            context
+        )
+    }
+
     private fun getItemReceiptHtmlContent(
             context: Context,
-            content: String = FileUtils.readFileFromAssets(
-                "item_receipt.html",
-                context
-            ),
             invoiceHeader: InvoiceHeader,
             invItemModels: List<InvoiceItemModel>
     ): String {
-        var result = content.ifEmpty { FileUtils.getDefaultItemReceipt() }
-        result = result.replace(
-            "{table_name}",
-            invoiceHeader.invoiceHeadTaName ?: ""
-        )
-        result = result.replace(
-            "{order_no}",
-            invoiceHeader.invoiceHeadOrderNo ?: ""
-        )
-        result = result.replace(
-            "{trans_no}",
-            invoiceHeader.invoiceHeadTransNo ?: ""
-        )
+        var result = getPayTicketHtmlContent(context)
+        result = if (!invoiceHeader.invoiceHeadTaName.isNullOrEmpty()) {
+            result.replace(
+                "{table_name}",
+                "Table Number: ${invoiceHeader.invoiceHeadTaName ?: ""}"
+            )
+        } else {
+            result.replace(
+                "{table_name}",
+                ""
+            )
+        }
+        result = if (!invoiceHeader.invoiceHeadOrderNo.isNullOrEmpty()) {
+            result.replace(
+                "{order_no}",
+                "Order: ${invoiceHeader.invoiceHeadOrderNo ?: ""}"
+            )
+        } else {
+            result.replace(
+                "{order_no}",
+                ""
+            )
+        }
+        result = if (!invoiceHeader.invoiceHeadTransNo.isNullOrEmpty()) {
+            result.replace(
+                "{trans_no}",
+                "Inv: ${invoiceHeader.invoiceHeadTransNo ?: ""}"
+            )
+        } else {
+            result.replace(
+                "{trans_no}",
+                ""
+            )
+        }
 
         result = result.replace(
             "{invoice_time}",
@@ -798,21 +843,28 @@ object PrinterUtils {
                 "dd/MM/yyyy hh:mm:ss"
             )
         )
-        val defaultLocal = Locale.getDefault()
         if (invItemModels.isNotEmpty()) {
+            val regex = "\\{rows\\}(.*?)\\{rows\\}".toRegex()
+            val matchResult = regex.find(result)
+            val extractedSubstring = matchResult?.groups?.get(1)?.value ?: "<tr><td>item_name</td></tr> <tr><td>item_qty x item_price</td> <td>item_amount</td> </tr>"
             val trs = StringBuilder("")
             invItemModels.forEach { item ->
+                val qty = String.format(
+                    "%.2f",
+                    item.invoice.invoiceQuantity
+                )
                 trs.append(
-                    String.format(
-                        defaultLocal,
-                        "<tr> <td>%.2f</td> <td>%s</td></tr>",
-                        item.invoice.invoiceQuantity,
-                        item.getName()
+                    extractedSubstring.replace(
+                        "item_qty",
+                        qty
+                    ).replace(
+                        "item_name",
+                        item.getFullName()
                     )
                 )
             }
             result = result.replace(
-                "{rows_content}",
+                regex,
                 trs.toString()
             )
         }
