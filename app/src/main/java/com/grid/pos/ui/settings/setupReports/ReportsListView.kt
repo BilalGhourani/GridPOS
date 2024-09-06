@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -81,10 +80,10 @@ import java.io.File
 )
 @Composable
 fun ReportsListView(
-    modifier: Modifier = Modifier,
-    navController: NavController? = null,
-    activityViewModel: ActivityScopedViewModel,
-    viewModel: ReportsListViewModel = hiltViewModel()
+        modifier: Modifier = Modifier,
+        navController: NavController? = null,
+        activityViewModel: ActivityScopedViewModel,
+        viewModel: ReportsListViewModel = hiltViewModel()
 ) {
     val state: ReportsListState by viewModel.state.collectAsState(
         ReportsListState()
@@ -302,12 +301,6 @@ fun ReportsListView(
                 ),
                 dragHandle = null,
                 scrimColor = Color.Black.copy(alpha = .5f),
-                windowInsets = WindowInsets(
-                    0,
-                    0,
-                    0,
-                    0
-                )
             ) {
                 Column(
                     modifier = Modifier
@@ -400,7 +393,11 @@ fun ReportsListView(
                             tint = Color.Red
                         )
                         Spacer(modifier = Modifier.width(5.dp))
-                        Text("Delete", color = Color.Red, fontSize = 16.sp)
+                        Text(
+                            "Delete",
+                            color = Color.Red,
+                            fontSize = 16.sp
+                        )
                     }
                     Spacer(modifier = Modifier.height(10.dp))
                 }
@@ -417,13 +414,7 @@ fun ReportsListView(
                     topEnd = 15.dp
                 ),
                 dragHandle = null,
-                scrimColor = Color.Black.copy(alpha = .5f),
-                windowInsets = WindowInsets(
-                    0,
-                    0,
-                    0,
-                    0
-                )
+                scrimColor = Color.Black.copy(alpha = .5f)
             ) {
                 AndroidView(modifier = Modifier
                     .fillMaxWidth()

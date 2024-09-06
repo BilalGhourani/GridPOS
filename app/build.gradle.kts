@@ -103,14 +103,14 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
 
 
-    implementation("androidx.compose.material:material-icons-core:1.6.6")
-    implementation("androidx.compose.material:material-icons-extended:1.6.6")
+    implementation("androidx.compose.material:material-icons-core:1.7.0")
+    implementation("androidx.compose.material:material-icons-extended:1.7.0")
 
     //Navigation
-    implementation("androidx.navigation:navigation-compose:2.7.7")
+    implementation("androidx.navigation:navigation-compose:2.8.0")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.1")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
-    implementation("androidx.activity:activity-ktx:1.9.0")
+    implementation("androidx.activity:activity-ktx:1.9.2")
 
     //Dagger - Hilt
     implementation("com.google.dagger:hilt-android:2.48")
@@ -137,9 +137,9 @@ dependencies {
     implementation("com.google.code.gson:gson:2.10.1")
 
     //jetPack DataStore
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.1")
-    implementation("androidx.datastore:datastore-preferences-rxjava2:1.0.0")
-    implementation("androidx.datastore:datastore-preferences-rxjava3:1.0.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
+    implementation("androidx.datastore:datastore-preferences-rxjava2:1.1.1")
+    implementation("androidx.datastore:datastore-preferences-rxjava3:1.1.1")
     implementation("net.sourceforge.jtds:jtds:1.3.1")
 
     // For working with .xlsx files

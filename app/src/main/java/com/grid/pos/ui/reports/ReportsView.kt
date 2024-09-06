@@ -534,13 +534,7 @@ fun ReportsView(
                 contentColor = SettingsModel.backgroundColor,
                 shape = RoundedCornerShape(15.dp),
                 dragHandle = null,
-                scrimColor = Color.Black.copy(alpha = .5f),
-                windowInsets = WindowInsets(
-                    0,
-                    0,
-                    0,
-                    0
-                )
+                scrimColor = Color.Black.copy(alpha = .5f)
             ) {
                 Column(
                     modifier = Modifier
