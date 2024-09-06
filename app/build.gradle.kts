@@ -24,7 +24,7 @@ android {
         applicationId = "com.grid.pos"
         minSdk = 26
         targetSdk = 34
-        versionCode = 7
+        versionCode = 8
         versionName = "1.0.1"
         archivesName = "grid_pos_release(${versionName}(${versionCode}))"
 
