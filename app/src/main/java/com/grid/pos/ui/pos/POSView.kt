@@ -239,6 +239,7 @@ fun POSView(
                 popupState = PopupState.BACK_PRESSED
                 isSavePopupVisible = true
             } else {
+                viewModel.closeConnectionIfNeeded()
                 navController?.navigateUp()
             }
         }
@@ -444,7 +445,7 @@ fun POSView(
                                                         } ?: false
                                                     }
                                                     items.forEach { itm ->
-                                                        val count = itm.itemBarcode?.let {barcode-> map[barcode] } ?: 1
+                                                        val count = itm.itemBarcode?.let { barcode -> map[barcode] } ?: 1
                                                         for (i in 0 until count) {
                                                             val invoiceItemModel = InvoiceItemModel()
                                                             invoiceItemModel.setItem(itm)
@@ -504,6 +505,13 @@ fun POSView(
                             modifier = Modifier
                                 .wrapContentWidth()
                                 .height(350.dp),
+                            onLoadClients = { viewModel.fetchThirdParties() },
+                            onLoadInvoices = {
+                                if (state.thirdParties.isEmpty()) {
+                                    viewModel.fetchThirdParties()
+                                }
+                                viewModel.fetchInvoices()
+                            },
                             onAddItem = {
                                 activityViewModel.invoiceItemModels = invoicesState
                                 activityViewModel.invoiceHeader = invoiceHeaderState.value

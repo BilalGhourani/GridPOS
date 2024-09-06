@@ -41,6 +41,8 @@ fun InvoiceFooterView(
     thirdParties: MutableList<ThirdParty> = mutableListOf(),
     invoiceHeaders: MutableList<InvoiceHeader> = mutableListOf(),
     modifier: Modifier = Modifier,
+    onLoadClients: () -> Unit = {},
+    onLoadInvoices: () -> Unit = {},
     onAddItem: () -> Unit = {},
     onAddThirdParty: () -> Unit = {},
     onItemSelected: (Item) -> Unit = {},
@@ -93,28 +95,6 @@ fun InvoiceFooterView(
                     .wrapContentHeight()
                     .padding(5.dp)
             ) {
-                /* if (SettingsModel.showTax) {
-                     Row(
-                         modifier = Modifier.wrapContentWidth(),
-                         horizontalArrangement = Arrangement.Absolute.Left
-                     ) {
-                         Text(
-                             text = "Tax: $taxState $curState",
-                             color = SettingsModel.textColor
-                         )
-                     }
-                 }
-                 if (SettingsModel.showTax1) {
-                     Row(
-                         modifier = Modifier.wrapContentWidth(),
-                         horizontalArrangement = Arrangement.Absolute.Left
-                     ) {
-                         Text(
-                             text = "Tax1: $tax1State $curState",
-                             color = SettingsModel.textColor
-                         )
-                     }
-                 }*/
                 Row(
                     modifier = Modifier.wrapContentWidth(),
                     horizontalArrangement = Arrangement.Absolute.Left
@@ -167,28 +147,6 @@ fun InvoiceFooterView(
                     .wrapContentHeight()
                     .padding(5.dp)
             ) {
-                /* if (SettingsModel.showTax2) {
-                     Row(
-                         modifier = Modifier.wrapContentWidth(),
-                         horizontalArrangement = Arrangement.Absolute.Left
-                     ) {
-                         Text(
-                             text = "Tax2: $tax2State $curState",
-                             color = SettingsModel.textColor
-                         )
-                     }
-                 }
-                 if (SettingsModel.showTax || SettingsModel.showTax1 || SettingsModel.showTax2) {
-                     Row(
-                         modifier = Modifier.wrapContentWidth(),
-                         horizontalArrangement = Arrangement.Absolute.Left
-                     ) {
-                         Text(
-                             text = "Total Tax: $totalTaxState $curState",
-                             color = SettingsModel.textColor
-                         )
-                     }
-                 }*/
                 Row(
                     modifier = Modifier.wrapContentWidth(),
                     horizontalArrangement = Arrangement.Absolute.Left
@@ -237,6 +195,7 @@ fun InvoiceFooterView(
                         5.dp
                     ),
                     label = "Customers",
+                    onLoadItems = {onLoadClients.invoke()},
                     leadingIcon = {
                         if (SettingsModel.connectionType != CONNECTION_TYPE.SQL_SERVER.key) {
                             Icon(
@@ -269,6 +228,7 @@ fun InvoiceFooterView(
                     5.dp
                 ),
             label = "Invoices",
+            onLoadItems = {onLoadInvoices.invoke()},
         ) { invoiceHeader ->
             onInvoiceSelected.invoke(invoiceHeader as InvoiceHeader)
         }

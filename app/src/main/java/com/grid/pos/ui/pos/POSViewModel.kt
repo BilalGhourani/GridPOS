@@ -17,6 +17,7 @@ import com.grid.pos.data.ThirdParty.ThirdPartyRepository
 import com.grid.pos.model.Event
 import com.grid.pos.model.InvoiceItemModel
 import com.grid.pos.model.SettingsModel
+import com.grid.pos.ui.common.BaseViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -27,13 +28,13 @@ import javax.inject.Inject
 
 @HiltViewModel
 class POSViewModel @Inject constructor(
-    private val invoiceHeaderRepository: InvoiceHeaderRepository,
-    private val posReceiptRepository: PosReceiptRepository,
-    private val invoiceRepository: InvoiceRepository,
-    private val itemRepository: ItemRepository,
-    private val thirdPartyRepository: ThirdPartyRepository,
-    private val familyRepository: FamilyRepository
-) : ViewModel() {
+        private val invoiceHeaderRepository: InvoiceHeaderRepository,
+        private val posReceiptRepository: PosReceiptRepository,
+        private val invoiceRepository: InvoiceRepository,
+        private val itemRepository: ItemRepository,
+        private val thirdPartyRepository: ThirdPartyRepository,
+        private val familyRepository: FamilyRepository
+) : BaseViewModel() {
 
     private val _posState = MutableStateFlow(POSState())
     val posState: MutableStateFlow<POSState> = _posState
@@ -41,17 +42,9 @@ class POSViewModel @Inject constructor(
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
-            val isConnectedToSQLServer = SettingsModel.isConnectedToSqlServer()
-            if (isConnectedToSQLServer) {
-                SQLServerWrapper.openConnection()
-            }
+            openConnectionIfNeeded()
             fetchItems()
             fetchFamilies()
-            fetchThirdParties()
-            fetchInvoices()
-            if (isConnectedToSQLServer) {
-                SQLServerWrapper.closeConnection()
-            }
         }
     }
 
@@ -64,13 +57,15 @@ class POSViewModel @Inject constructor(
         }
     }
 
-    private suspend fun fetchThirdParties() {
-        val listOfThirdParties = thirdPartyRepository.getAllThirdParties()
-        clientsMao = listOfThirdParties.map { it.thirdPartyId to it }.toMap()
-        withContext(Dispatchers.Main) {
-            posState.value = posState.value.copy(
-                thirdParties = listOfThirdParties
-            )
+    fun fetchThirdParties() {
+        viewModelScope.launch(Dispatchers.IO) {
+            val listOfThirdParties = thirdPartyRepository.getAllThirdParties()
+            clientsMao = listOfThirdParties.map { it.thirdPartyId to it }.toMap()
+            withContext(Dispatchers.Main) {
+                posState.value = posState.value.copy(
+                    thirdParties = listOfThirdParties
+                )
+            }
         }
     }
 
@@ -83,21 +78,23 @@ class POSViewModel @Inject constructor(
         }
     }
 
-    private suspend fun fetchInvoices() {
-        val listOfInvoices = invoiceHeaderRepository.getAllInvoiceHeaders()
-        listOfInvoices.map {
-            it.invoiceHeadThirdPartyNewName = clientsMao[it.invoiceHeadThirdPartyName]?.thirdPartyName
-        }
-        withContext(Dispatchers.Main) {
-            posState.value = posState.value.copy(
-                invoiceHeaders = listOfInvoices
-            )
+    fun fetchInvoices() {
+        viewModelScope.launch(Dispatchers.IO) {
+            val listOfInvoices = invoiceHeaderRepository.getAllInvoiceHeaders()
+            listOfInvoices.map {
+                it.invoiceHeadThirdPartyNewName = clientsMao[it.invoiceHeadThirdPartyName]?.thirdPartyName
+            }
+            withContext(Dispatchers.Main) {
+                posState.value = posState.value.copy(
+                    invoiceHeaders = listOfInvoices
+                )
+            }
         }
     }
 
     fun showWarning(
-        warning: String,
-        action: String
+            warning: String,
+            action: String
     ) {
         viewModelScope.launch(Dispatchers.Main) {
             posState.value = posState.value.copy(
@@ -109,10 +106,10 @@ class POSViewModel @Inject constructor(
     }
 
     fun saveInvoiceHeader(
-        invoiceHeader: InvoiceHeader,
-        posReceipt: PosReceipt,
-        invoiceItems: MutableList<InvoiceItemModel>,
-        finish: Boolean = false,
+            invoiceHeader: InvoiceHeader,
+            posReceipt: PosReceipt,
+            invoiceItems: MutableList<InvoiceItemModel>,
+            finish: Boolean = false,
     ) {
         if (invoiceItems.isEmpty()) {
             posState.value = posState.value.copy(
@@ -138,8 +135,7 @@ class POSViewModel @Inject constructor(
                     invoiceHeader.invoiceHeadOrderNo = POSUtils.getInvoiceNo(
                         result?.invoiceHeadOrderNo ?: ""
                     )
-                    invoiceHeader.invoiceHeadTtCode =
-                        SettingsModel.getTransactionType(invoiceHeader.invoiceHeadGrossAmount)
+                    invoiceHeader.invoiceHeadTtCode = SettingsModel.getTransactionType(invoiceHeader.invoiceHeadGrossAmount)
                 } else {
                     invoiceHeader.invoiceHeadTtCode = null
                 }
@@ -166,8 +162,7 @@ class POSViewModel @Inject constructor(
                         result?.invoiceHeadOrderNo ?: ""
                     )
                     invoiceHeader.prepareForInsert()
-                    invoiceHeader.invoiceHeadTtCode =
-                        SettingsModel.getTransactionType(invoiceHeader.invoiceHeadGrossAmount)
+                    invoiceHeader.invoiceHeadTtCode = SettingsModel.getTransactionType(invoiceHeader.invoiceHeadGrossAmount)
                 }
                 invoiceHeaderRepository.update(
                     invoiceHeader,
@@ -183,9 +178,9 @@ class POSViewModel @Inject constructor(
     }
 
     private suspend fun savePOSReceipt(
-        invoiceHeader: InvoiceHeader,
-        posReceipt: PosReceipt,
-        invoiceItems: MutableList<InvoiceItemModel>
+            invoiceHeader: InvoiceHeader,
+            posReceipt: PosReceipt,
+            invoiceItems: MutableList<InvoiceItemModel>
     ) {
         val isInserting = posReceipt.isNew()
         if (isInserting) {
@@ -202,8 +197,8 @@ class POSViewModel @Inject constructor(
     }
 
     private suspend fun saveInvoiceItems(
-        invoiceHeader: InvoiceHeader,
-        invoiceItems: MutableList<InvoiceItemModel>
+            invoiceHeader: InvoiceHeader,
+            invoiceItems: MutableList<InvoiceItemModel>
     ) {
         val itemsToInsert = invoiceItems.filter { it.invoice.isNew() }
         val itemsToUpdate = invoiceItems.filter { !it.invoice.isNew() }
@@ -235,9 +230,9 @@ class POSViewModel @Inject constructor(
     }
 
     private suspend fun saveInvoiceItem(
-        invoice: Invoice,
-        isInserting: Boolean,
-        notify: Boolean = false
+            invoice: Invoice,
+            isInserting: Boolean,
+            notify: Boolean = false
     ) {
         if (isInserting) {
             invoice.prepareForInsert()
@@ -257,8 +252,8 @@ class POSViewModel @Inject constructor(
     }
 
     fun loadInvoiceDetails(
-        invoiceHeader: InvoiceHeader,
-        onSuccess: (PosReceipt, MutableList<InvoiceItemModel>) -> Unit
+            invoiceHeader: InvoiceHeader,
+            onSuccess: (PosReceipt, MutableList<InvoiceItemModel>) -> Unit
     ) {
         posState.value = posState.value.copy(
             isLoading = true
@@ -285,9 +280,9 @@ class POSViewModel @Inject constructor(
     }
 
     private suspend fun getPosReceipt(
-        invoiceHeaderId: String,
-        invoices: MutableList<InvoiceItemModel>,
-        onSuccess: (PosReceipt, MutableList<InvoiceItemModel>) -> Unit
+            invoiceHeaderId: String,
+            invoices: MutableList<InvoiceItemModel>,
+            onSuccess: (PosReceipt, MutableList<InvoiceItemModel>) -> Unit
     ) {
         val posReceipt = posReceiptRepository.getPosReceiptByInvoice(invoiceHeaderId)
         viewModelScope.launch(Dispatchers.Main) {
@@ -302,9 +297,9 @@ class POSViewModel @Inject constructor(
     }
 
     fun deleteInvoiceHeader(
-        invoiceHeader: InvoiceHeader,
-        posReceipt: PosReceipt,
-        invoiceItems: MutableList<InvoiceItemModel>
+            invoiceHeader: InvoiceHeader,
+            posReceipt: PosReceipt,
+            invoiceItems: MutableList<InvoiceItemModel>
     ) {
         if (invoiceHeader.isNew()) {
             posState.value = posState.value.copy(
