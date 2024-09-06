@@ -7,14 +7,12 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.RemoveCircleOutline
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -46,14 +44,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.grid.pos.ActivityScopedViewModel
 import com.grid.pos.R
-import com.grid.pos.data.Family.Family
 import com.grid.pos.data.ThirdParty.ThirdParty
 import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
-import com.grid.pos.ui.common.SearchableDropdownMenu
 import com.grid.pos.ui.common.SearchableDropdownMenuEx
 import com.grid.pos.ui.common.UIButton
 import com.grid.pos.ui.common.UISwitch
@@ -71,9 +68,7 @@ fun ManageThirdPartiesView(
         activityScopedViewModel: ActivityScopedViewModel,
         viewModel: ManageThirdPartiesViewModel = hiltViewModel()
 ) {
-    val manageThirdPartiesState: ManageThirdPartiesState by viewModel.manageThirdPartiesState.collectAsState(
-        ManageThirdPartiesState()
-    )
+    val state  by viewModel.manageThirdPartiesState.collectAsStateWithLifecycle()
     viewModel.fillCachedThirdParties(activityScopedViewModel.thirdParties)
     val keyboardController = LocalSoftwareKeyboardController.current
     val fnFocusRequester = remember { FocusRequester() }
@@ -90,8 +85,8 @@ fun ManageThirdPartiesView(
 
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
-    LaunchedEffect(manageThirdPartiesState.warning) {
-        manageThirdPartiesState.warning?.value?.let { message ->
+    LaunchedEffect(state.warning) {
+        state.warning?.value?.let { message ->
             scope.launch {
                 snackbarHostState.showSnackbar(
                     message = message,
@@ -101,13 +96,13 @@ fun ManageThirdPartiesView(
         }
     }
 
-    LaunchedEffect(manageThirdPartiesState.isLoading) {
-        activityScopedViewModel.showLoading(manageThirdPartiesState.isLoading)
+    LaunchedEffect(state.isLoading) {
+        activityScopedViewModel.showLoading(state.isLoading)
     }
 
     var saveAndBack by remember { mutableStateOf(false) }
     fun handleBack() {
-        if (viewModel.currentThirdParty != null && manageThirdPartiesState.selectedThirdParty.didChanged(
+        if (viewModel.currentThirdParty != null && state.selectedThirdParty.didChanged(
                 viewModel.currentThirdParty!!
             )
         ) {
@@ -119,7 +114,7 @@ fun ManageThirdPartiesView(
                     }
                     onConfirmation = {
                         saveAndBack = true
-                        viewModel.saveThirdParty(manageThirdPartiesState.selectedThirdParty)
+                        viewModel.saveThirdParty(state.selectedThirdParty)
                     }
                     dialogText = "Do you want to save your changes"
                     positiveBtnText = "Save"
@@ -128,8 +123,8 @@ fun ManageThirdPartiesView(
                 })
             return
         }
-        if (manageThirdPartiesState.thirdParties.isNotEmpty()) {
-            activityScopedViewModel.thirdParties = manageThirdPartiesState.thirdParties
+        if (state.thirdParties.isNotEmpty()) {
+            activityScopedViewModel.thirdParties = state.thirdParties
         }
         viewModel.closeConnectionIfNeeded()
         navController?.navigateUp()
@@ -137,21 +132,21 @@ fun ManageThirdPartiesView(
 
     fun clear() {
         viewModel.currentThirdParty = null
-        manageThirdPartiesState.selectedThirdParty = ThirdParty()
-        manageThirdPartiesState.selectedThirdParty.thirdPartyCompId = ""
+        state.selectedThirdParty = ThirdParty()
+        state.selectedThirdParty.thirdPartyCompId = ""
         nameState = ""
         fnState = ""
         phone1State = ""
         phone2State = ""
         addressState = ""
         isDefaultState = false
-        manageThirdPartiesState.clear = false
+        state.clear = false
         if (saveAndBack) {
             handleBack()
         }
     }
-    LaunchedEffect(manageThirdPartiesState.clear) {
-        if (manageThirdPartiesState.clear) {
+    LaunchedEffect(state.clear) {
+        if (state.clear) {
             clear()
         }
     }
@@ -224,7 +219,7 @@ fun ManageThirdPartiesView(
                             fnFocusRequester.requestFocus()
                         }) { name ->
                         nameState = name
-                        manageThirdPartiesState.selectedThirdParty.thirdPartyName = name
+                        state.selectedThirdParty.thirdPartyName = name
                     }
 
                     //financial number
@@ -240,7 +235,7 @@ fun ManageThirdPartiesView(
                             phone1FocusRequester.requestFocus()
                         }) { fn ->
                         fnState = fn
-                        manageThirdPartiesState.selectedThirdParty.thirdPartyFn = fn
+                        state.selectedThirdParty.thirdPartyFn = fn
                     }
 
                     //phone1
@@ -254,7 +249,7 @@ fun ManageThirdPartiesView(
                         focusRequester = phone1FocusRequester,
                         onAction = { phone2FocusRequester.requestFocus() }) { phone1 ->
                         phone1State = phone1
-                        manageThirdPartiesState.selectedThirdParty.thirdPartyPhone1 = phone1
+                        state.selectedThirdParty.thirdPartyPhone1 = phone1
                     }
 
                     //phone2
@@ -268,7 +263,7 @@ fun ManageThirdPartiesView(
                         focusRequester = phone2FocusRequester,
                         onAction = { addressFocusRequester.requestFocus() }) { phone2 ->
                         phone2State = phone2
-                        manageThirdPartiesState.selectedThirdParty.thirdPartyPhone2 = phone2
+                        state.selectedThirdParty.thirdPartyPhone2 = phone2
                     }
 
                     //address
@@ -284,7 +279,7 @@ fun ManageThirdPartiesView(
                         imeAction = ImeAction.Done,
                         onAction = { keyboardController?.hide() }) { address ->
                         addressState = address
-                        manageThirdPartiesState.selectedThirdParty.thirdPartyAddress = address
+                        state.selectedThirdParty.thirdPartyAddress = address
                     }
 
                     UISwitch(
@@ -293,11 +288,11 @@ fun ManageThirdPartiesView(
                             vertical = 5.dp
                         ),
                         checked = isDefaultState,
-                        enabled = manageThirdPartiesState.enableIsDefault,
+                        enabled = state.enableIsDefault,
                         text = "POS Default",
                     ) { isDefault ->
                         isDefaultState = isDefault
-                        manageThirdPartiesState.selectedThirdParty.thirdPartyDefault = isDefaultState
+                        state.selectedThirdParty.thirdPartyDefault = isDefaultState
                     }
 
                     Row(
@@ -316,7 +311,7 @@ fun ManageThirdPartiesView(
                                 .padding(3.dp),
                             text = "Save"
                         ) {
-                            viewModel.saveThirdParty(manageThirdPartiesState.selectedThirdParty)
+                            viewModel.saveThirdParty(state.selectedThirdParty)
                         }
 
                         UIButton(
@@ -339,7 +334,7 @@ fun ManageThirdPartiesView(
                     }
                 }
 
-                SearchableDropdownMenuEx(items = manageThirdPartiesState.thirdParties.toMutableList(),
+                SearchableDropdownMenuEx(items = state.thirdParties.toMutableList(),
                     modifier = Modifier
                         .padding(
                             top = 15.dp,
@@ -347,10 +342,10 @@ fun ManageThirdPartiesView(
                             end = 10.dp
                         ),
                     label = "Select Third Party",
-                    selectedId = manageThirdPartiesState.selectedThirdParty.thirdPartyId,
+                    selectedId = state.selectedThirdParty.thirdPartyId,
                     onLoadItems = { viewModel.fetchThirdParties() },
                     leadingIcon = {
-                        if (manageThirdPartiesState.selectedThirdParty.thirdPartyId.isNotEmpty()) {
+                        if (state.selectedThirdParty.thirdPartyId.isNotEmpty()) {
                             Icon(
                                 Icons.Default.RemoveCircleOutline,
                                 contentDescription = "remove family",
@@ -364,7 +359,7 @@ fun ManageThirdPartiesView(
                     }) { thirdParty ->
                     thirdParty as ThirdParty
                     viewModel.currentThirdParty = thirdParty.copy()
-                    manageThirdPartiesState.selectedThirdParty = thirdParty
+                    state.selectedThirdParty = thirdParty
                     nameState = thirdParty.thirdPartyName ?: ""
                     fnState = thirdParty.thirdPartyFn ?: ""
                     phone1State = thirdParty.thirdPartyPhone1 ?: ""

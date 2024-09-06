@@ -122,7 +122,9 @@ class ManageCompaniesViewModel @Inject constructor(
                 company.prepareForInsert()
                 val addedCompany = companyRepository.insert(company)
                 val companies = manageCompaniesState.value.companies
-                companies.add(addedCompany)
+                if(companies.isNotEmpty()) {
+                    companies.add(addedCompany)
+                }
                 currentCompany = null
                 withContext(Dispatchers.Main) {
                     manageCompaniesState.value = manageCompaniesState.value.copy(

@@ -83,7 +83,9 @@ class ManageThirdPartiesViewModel @Inject constructor(
                 thirdParty.prepareForInsert()
                 val addedModel = thirdPartyRepository.insert(thirdParty)
                 val thirdParties = manageThirdPartiesState.value.thirdParties
-                thirdParties.add(addedModel)
+                if(thirdParties.isNotEmpty()) {
+                    thirdParties.add(addedModel)
+                }
                 val isDefaultEnabled = thirdParties.none { it.thirdPartyDefault }
                 currentThirdParty = null
                 withContext(Dispatchers.Main) {

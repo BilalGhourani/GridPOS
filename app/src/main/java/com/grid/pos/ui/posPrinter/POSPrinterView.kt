@@ -7,14 +7,12 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.RemoveCircleOutline
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -46,14 +44,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.grid.pos.ActivityScopedViewModel
 import com.grid.pos.R
-import com.grid.pos.data.Family.Family
 import com.grid.pos.data.PosPrinter.PosPrinter
 import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
-import com.grid.pos.ui.common.SearchableDropdownMenu
 import com.grid.pos.ui.common.SearchableDropdownMenuEx
 import com.grid.pos.ui.common.UIButton
 import com.grid.pos.ui.common.UITextField
@@ -71,9 +68,7 @@ fun POSPrinterView(
         activityScopedViewModel: ActivityScopedViewModel,
         viewModel: POSPrinterViewModel = hiltViewModel()
 ) {
-    val posPrinterState: POSPrinterState by viewModel.posPrinterState.collectAsState(
-        POSPrinterState()
-    )
+    val state by viewModel.posPrinterState.collectAsStateWithLifecycle()
     viewModel.fillCachedPrinters(activityScopedViewModel.printers)
     val keyboardController = LocalSoftwareKeyboardController.current
 
@@ -91,25 +86,25 @@ fun POSPrinterView(
 
 
 
-    LaunchedEffect(posPrinterState.warning) {
-        posPrinterState.warning?.value?.let { message ->
+    LaunchedEffect(state.warning) {
+        state.warning?.value?.let { message ->
             scope.launch {
                 snackbarHostState.showSnackbar(
                     message = message,
                     duration = SnackbarDuration.Short,
-                    actionLabel = posPrinterState.actionLabel
+                    actionLabel = state.actionLabel
                 )
             }
         }
     }
 
-    LaunchedEffect(posPrinterState.isLoading) {
-        activityScopedViewModel.showLoading(posPrinterState.isLoading)
+    LaunchedEffect(state.isLoading) {
+        activityScopedViewModel.showLoading(state.isLoading)
     }
 
     var saveAndBack by remember { mutableStateOf(false) }
     fun handleBack() {
-        if (viewModel.currentPrinter != null && posPrinterState.selectedPrinter.didChanged(
+        if (viewModel.currentPrinter != null && state.selectedPrinter.didChanged(
                 viewModel.currentPrinter!!
             )
         ) {
@@ -121,7 +116,7 @@ fun POSPrinterView(
                     }
                     onConfirmation = {
                         saveAndBack = true
-                        viewModel.savePrinter(posPrinterState.selectedPrinter)
+                        viewModel.savePrinter(state.selectedPrinter)
                     }
                     dialogText = "Do you want to save your changes"
                     positiveBtnText = "Save"
@@ -130,8 +125,8 @@ fun POSPrinterView(
                 })
             return
         }
-        if (posPrinterState.printers.isNotEmpty()) {
-            activityScopedViewModel.printers = posPrinterState.printers
+        if (state.printers.isNotEmpty()) {
+            activityScopedViewModel.printers = state.printers
         }
         viewModel.closeConnectionIfNeeded()
         navController?.navigateUp()
@@ -139,19 +134,19 @@ fun POSPrinterView(
 
     fun clear() {
         viewModel.currentPrinter = null
-        posPrinterState.selectedPrinter = PosPrinter()
-        posPrinterState.selectedPrinter.posPrinterCompId = ""
+        state.selectedPrinter = PosPrinter()
+        state.selectedPrinter.posPrinterCompId = ""
         nameState = ""
         hostState = ""
         portState = ""
         typeState = ""
-        posPrinterState.clear = false
+        state.clear = false
         if (saveAndBack) {
             handleBack()
         }
     }
-    LaunchedEffect(posPrinterState.clear) {
-        if (posPrinterState.clear) {
+    LaunchedEffect(state.clear) {
+        if (state.clear) {
             clear()
         }
     }
@@ -220,7 +215,7 @@ fun POSPrinterView(
                         placeHolder = "Enter Name",
                         onAction = { hostFocusRequester.requestFocus() }) { name ->
                         nameState = name
-                        posPrinterState.selectedPrinter.posPrinterName = nameState
+                        state.selectedPrinter.posPrinterName = nameState
                     }
 
                     UITextField(modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
@@ -229,7 +224,7 @@ fun POSPrinterView(
                         placeHolder = "ex:127.0.0.1",
                         onAction = { portFocusRequester.requestFocus() }) { host ->
                         hostState = host
-                        posPrinterState.selectedPrinter.posPrinterHost = hostState
+                        state.selectedPrinter.posPrinterHost = hostState
                     }
 
                     UITextField(modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
@@ -241,7 +236,7 @@ fun POSPrinterView(
                             port,
                             portState
                         )
-                        posPrinterState.selectedPrinter.posPrinterPort = portState.toIntOrNull() ?: -1
+                        state.selectedPrinter.posPrinterPort = portState.toIntOrNull() ?: -1
                     }
 
                     UITextField(modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
@@ -251,7 +246,7 @@ fun POSPrinterView(
                         imeAction = ImeAction.Done,
                         onAction = { keyboardController?.hide() }) { type ->
                         typeState = type
-                        posPrinterState.selectedPrinter.posPrinterType = typeState
+                        state.selectedPrinter.posPrinterType = typeState
                     }
 
 
@@ -269,7 +264,7 @@ fun POSPrinterView(
                                 .padding(3.dp),
                             text = "Save"
                         ) {
-                            viewModel.savePrinter(posPrinterState.selectedPrinter)
+                            viewModel.savePrinter(state.selectedPrinter)
                         }
 
                         UIButton(
@@ -278,7 +273,7 @@ fun POSPrinterView(
                                 .padding(3.dp),
                             text = "Delete"
                         ) {
-                            viewModel.deleteSelectedPrinter(posPrinterState.selectedPrinter)
+                            viewModel.deleteSelectedPrinter(state.selectedPrinter)
                         }
 
                         UIButton(
@@ -293,17 +288,17 @@ fun POSPrinterView(
 
                 }
 
-                SearchableDropdownMenuEx(items = posPrinterState.printers.toMutableList(),
+                SearchableDropdownMenuEx(items = state.printers.toMutableList(),
                     modifier = Modifier.padding(
                         top = 15.dp,
                         start = 10.dp,
                         end = 10.dp
                     ),
                     label = "Select Printer",
-                    selectedId = posPrinterState.selectedPrinter.posPrinterId,
+                    selectedId = state.selectedPrinter.posPrinterId,
                     onLoadItems = {viewModel.fetchPrinters()},
                     leadingIcon = {
-                        if (posPrinterState.selectedPrinter.posPrinterId.isNotEmpty()) {
+                        if (state.selectedPrinter.posPrinterId.isNotEmpty()) {
                             Icon(
                                 Icons.Default.RemoveCircleOutline,
                                 contentDescription = "remove family",
@@ -317,7 +312,7 @@ fun POSPrinterView(
                     }) { printer ->
                     printer as PosPrinter
                     viewModel.currentPrinter = printer.copy()
-                    posPrinterState.selectedPrinter = printer
+                    state.selectedPrinter = printer
                     nameState = printer.posPrinterName ?: ""
                     hostState = printer.posPrinterHost
                     portState = printer.posPrinterPort.toString()

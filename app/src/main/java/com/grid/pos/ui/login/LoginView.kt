@@ -28,7 +28,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -49,6 +48,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.grid.pos.ActivityScopedViewModel
 import com.grid.pos.R
@@ -71,7 +71,7 @@ fun LoginView(
     viewModel: LoginViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
-    val loginState by viewModel.usersState.collectAsState()
+    val state by viewModel.usersState.collectAsStateWithLifecycle()
     val keyboardController = LocalSoftwareKeyboardController.current
     val passwordFocusRequester = remember { FocusRequester() }
 
@@ -82,18 +82,18 @@ fun LoginView(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
-    LaunchedEffect(loginState.warning) {
-        loginState.warning?.value?.let { message ->
+    LaunchedEffect(state.warning) {
+        state.warning?.value?.let { message ->
             scope.launch {
                 val snackbarResult = snackbarHostState.showSnackbar(
                     message = message,
                     duration = SnackbarDuration.Short,
-                    actionLabel = loginState.warningAction
+                    actionLabel = state.warningAction
                 )
-                loginState.warning = null
+                state.warning = null
                 when (snackbarResult) {
                     SnackbarResult.Dismissed -> {}
-                    SnackbarResult.ActionPerformed -> when (loginState.warningAction) {
+                    SnackbarResult.ActionPerformed -> when (state.warningAction) {
                         "Register" -> navController?.navigate("ManageUsersView")
                         "Create a Company" -> navController?.navigate("ManageCompaniesView")
                         "Settings" -> navController?.navigate("SettingsView")
@@ -102,24 +102,24 @@ fun LoginView(
             }
         }
     }
-    LaunchedEffect(loginState.isLoading) {
-        activityScopedViewModel.showLoading(loginState.isLoading)
+    LaunchedEffect(state.isLoading) {
+        activityScopedViewModel.showLoading(state.isLoading)
     }
-    LaunchedEffect(loginState.needLicense) {
-        if (loginState.needLicense) {
-            loginState.needLicense = false
+    LaunchedEffect(state.needLicense) {
+        if (state.needLicense) {
+            state.needLicense = false
             navController?.navigate("LicenseView")
         }
     }
-    LaunchedEffect(loginState.isLoggedIn) {
-        if (loginState.isLoggedIn) {
+    LaunchedEffect(state.isLoggedIn) {
+        if (state.isLoggedIn) {
             CoroutineScope(Dispatchers.IO).launch {
                 activityScopedViewModel.activityState.value.isLoggedIn = true
                 activityScopedViewModel.activityState.value.warning = null
                 activityScopedViewModel.initiateValues()
             }
             withContext(Dispatchers.Main) {
-                loginState.isLoading = false
+                state.isLoading = false
                 SettingsModel.currentUser?.let {
                     if (it.userPosMode && it.userTableMode) {
                         navController?.navigate("HomeView")

@@ -83,10 +83,13 @@ class ActivityScopedViewModel @Inject constructor(
             fetchSettings()
             fetchCompanies()
             fetchCurrencies()
-            fetchThirdParties()
+            /*
+            * no need to cash all data after the login
+            * */
+            /* fetchThirdParties()
             fetchFamilies()
             fetchItems()
-            fetchPrinters()
+            fetchPrinters()*/
             if (isConnectedToSQLServer) {
                 SQLServerWrapper.closeConnection()
             }

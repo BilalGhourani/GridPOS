@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
@@ -17,7 +16,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Image
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.RemoveCircleOutline
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -51,16 +49,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.grid.pos.ActivityScopedViewModel
 import com.grid.pos.R
-import com.grid.pos.data.Company.Company
 import com.grid.pos.data.Family.Family
-import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.interfaces.OnGalleryResult
 import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
-import com.grid.pos.ui.common.SearchableDropdownMenu
 import com.grid.pos.ui.common.SearchableDropdownMenuEx
 import com.grid.pos.ui.common.UIButton
 import com.grid.pos.ui.common.UITextField
@@ -82,9 +78,7 @@ fun ManageFamiliesView(
         viewModel: ManageFamiliesViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
-    val manageFamiliesState: ManageFamiliesState by viewModel.manageFamiliesState.collectAsState(
-        ManageFamiliesState()
-    )
+    val state by viewModel.manageFamiliesState.collectAsStateWithLifecycle()
     viewModel.fillCachedFamilies(activityScopedViewModel.families)
     val keyboardController = LocalSoftwareKeyboardController.current
     val imageFocusRequester = remember { FocusRequester() }
@@ -96,17 +90,17 @@ fun ManageFamiliesView(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
-    LaunchedEffect(manageFamiliesState.warning) {
-        manageFamiliesState.warning?.value?.let { message ->
+    LaunchedEffect(state.warning) {
+        state.warning?.value?.let { message ->
             scope.launch {
                 val snackBarResult = snackbarHostState.showSnackbar(
                     message = message,
                     duration = SnackbarDuration.Short,
-                    actionLabel = manageFamiliesState.actionLabel
+                    actionLabel = state.actionLabel
                 )
                 when (snackBarResult) {
                     SnackbarResult.Dismissed -> {}
-                    SnackbarResult.ActionPerformed -> when (manageFamiliesState.actionLabel) {
+                    SnackbarResult.ActionPerformed -> when (state.actionLabel) {
                         "Settings" -> activityScopedViewModel.openAppStorageSettings()
                     }
                 }
@@ -114,8 +108,8 @@ fun ManageFamiliesView(
         }
     }
 
-    LaunchedEffect(manageFamiliesState.isLoading) {
-        activityScopedViewModel.showLoading(manageFamiliesState.isLoading)
+    LaunchedEffect(state.isLoading) {
+        activityScopedViewModel.showLoading(state.isLoading)
     }
 
     fun saveFamily() {
@@ -125,12 +119,12 @@ fun ManageFamiliesView(
                 old
             )
         }
-        viewModel.saveFamily(manageFamiliesState.selectedFamily)
+        viewModel.saveFamily(state.selectedFamily)
     }
 
     var saveAndBack by remember { mutableStateOf(false) }
     fun handleBack() {
-        if (viewModel.currentFamily != null && manageFamiliesState.selectedFamily.didChanged(
+        if (viewModel.currentFamily != null && state.selectedFamily.didChanged(
                 viewModel.currentFamily!!
             )
         ) {
@@ -151,8 +145,8 @@ fun ManageFamiliesView(
                 })
             return
         }
-        if (manageFamiliesState.families.isNotEmpty()) {
-            activityScopedViewModel.families = manageFamiliesState.families
+        if (state.families.isNotEmpty()) {
+            activityScopedViewModel.families = state.families
         }
         viewModel.closeConnectionIfNeeded()
         navController?.navigateUp()
@@ -160,17 +154,17 @@ fun ManageFamiliesView(
 
     fun clear() {
         viewModel.currentFamily = null
-        manageFamiliesState.selectedFamily = Family()
-        manageFamiliesState.selectedFamily.familyCompanyId = ""
+        state.selectedFamily = Family()
+        state.selectedFamily.familyCompanyId = ""
         nameState = ""
         imageState = ""
-        manageFamiliesState.clear = false
+        state.clear = false
         if (saveAndBack) {
             handleBack()
         }
     }
-    LaunchedEffect(manageFamiliesState.clear) {
-        if (manageFamiliesState.clear) {
+    LaunchedEffect(state.clear) {
+        if (state.clear) {
             clear()
         }
     }
@@ -240,7 +234,7 @@ fun ManageFamiliesView(
                         placeHolder = "Enter Name",
                         onAction = { imageFocusRequester.requestFocus() }) { name ->
                         nameState = name
-                        manageFamiliesState.selectedFamily.familyName = name
+                        state.selectedFamily.familyName = name
                     }
 
                     UITextField(modifier = Modifier.padding(
@@ -259,7 +253,7 @@ fun ManageFamiliesView(
                                     object : OnGalleryResult {
                                         override fun onGalleryResult(uris: List<Uri>) {
                                             if (uris.isNotEmpty()) {
-                                                manageFamiliesState.isLoading = true
+                                                state.isLoading = true
                                                 CoroutineScope(Dispatchers.IO).launch {
                                                     val internalPath = FileUtils.saveToExternalStorage(context = context,
                                                         parent = "family",
@@ -269,11 +263,11 @@ fun ManageFamiliesView(
                                                             "_"
                                                         ).ifEmpty { "family" })
                                                     withContext(Dispatchers.Main) {
-                                                        manageFamiliesState.isLoading = false
+                                                        state.isLoading = false
                                                         if (internalPath != null) {
                                                             oldImage = imageState
                                                             imageState = internalPath
-                                                            manageFamiliesState.selectedFamily.familyImage = imageState
+                                                            state.selectedFamily.familyImage = imageState
                                                         }
                                                     }
                                                 }
@@ -296,7 +290,7 @@ fun ManageFamiliesView(
                             }
                         }) { img ->
                         imageState = img
-                        manageFamiliesState.selectedFamily.familyImage = img
+                        state.selectedFamily.familyImage = img
                     }
 
                     Row(
@@ -336,7 +330,7 @@ fun ManageFamiliesView(
                                     imageState
                                 )
                             }
-                            viewModel.deleteSelectedFamily(manageFamiliesState.selectedFamily)
+                            viewModel.deleteSelectedFamily(state.selectedFamily)
                         }
 
                         UIButton(
@@ -351,17 +345,17 @@ fun ManageFamiliesView(
 
                 }
 
-                SearchableDropdownMenuEx(items = manageFamiliesState.families.toMutableList(),
+                SearchableDropdownMenuEx(items = state.families.toMutableList(),
                     modifier = Modifier.padding(
                             top = 15.dp,
                             start = 10.dp,
                             end = 10.dp
                         ),
                     label = "Select Family",
-                    selectedId = manageFamiliesState.selectedFamily.familyId,
+                    selectedId = state.selectedFamily.familyId,
                     onLoadItems = { viewModel.fetchFamilies() },
                     leadingIcon = {
-                        if (manageFamiliesState.selectedFamily.familyId.isNotEmpty()) {
+                        if (state.selectedFamily.familyId.isNotEmpty()) {
                             Icon(
                                 Icons.Default.RemoveCircleOutline,
                                 contentDescription = "remove family",
@@ -375,7 +369,7 @@ fun ManageFamiliesView(
                     }) { family ->
                     family as Family
                     viewModel.currentFamily = family.copy()
-                    manageFamiliesState.selectedFamily = family
+                    state.selectedFamily = family
                     nameState = family.familyName ?: ""
                     imageState = family.familyImage ?: ""
                 }

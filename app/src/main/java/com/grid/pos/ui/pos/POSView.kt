@@ -65,6 +65,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.grid.pos.ActivityScopedViewModel
 import com.grid.pos.R
@@ -94,7 +95,7 @@ fun POSView(
         activityViewModel: ActivityScopedViewModel,
         viewModel: POSViewModel = hiltViewModel()
 ) {
-    val posState: POSState by viewModel.posState.collectAsState(POSState())
+    val state by viewModel.posState.collectAsStateWithLifecycle()
     val invoicesState = remember { mutableStateListOf<InvoiceItemModel>() }
     val invoiceHeaderState = remember { mutableStateOf(activityViewModel.invoiceHeader) }
     var itemIndexToEdit by remember { mutableIntStateOf(-1) }
@@ -123,22 +124,22 @@ fun POSView(
                     activityViewModel.posReceipt = receipt
                 })
         } else {
-            posState.isLoading = false
+            state.isLoading = false
         }
     }
 
     LaunchedEffect(key1 = Unit) {
-        if (posState.items.isEmpty()) {
-            posState.items.addAll(activityViewModel.items)
+        if (state.items.isEmpty()) {
+            state.items.addAll(activityViewModel.items)
         }
-        if (posState.families.isEmpty()) {
-            posState.families.addAll(activityViewModel.families)
+        if (state.families.isEmpty()) {
+            state.families.addAll(activityViewModel.families)
         }
-        if (posState.thirdParties.isEmpty()) {
-            posState.thirdParties.addAll(activityViewModel.thirdParties)
+        if (state.thirdParties.isEmpty()) {
+            state.thirdParties.addAll(activityViewModel.thirdParties)
         }
-        if (posState.invoiceHeaders.isEmpty()) {
-            posState.invoiceHeaders.addAll(activityViewModel.invoiceHeaders)
+        if (state.invoiceHeaders.isEmpty()) {
+            state.invoiceHeaders.addAll(activityViewModel.invoiceHeaders)
         }
 
         if (activityViewModel.shouldLoadInvoice) {
@@ -159,22 +160,22 @@ fun POSView(
         }
     }
 
-    LaunchedEffect(posState.isLoading) {
-        activityViewModel.showLoading(posState.isLoading)
+    LaunchedEffect(state.isLoading) {
+        activityViewModel.showLoading(state.isLoading)
     }
 
     val scope = rememberCoroutineScope()
-    LaunchedEffect(posState.warning) {
-        posState.warning?.value?.let { message ->
+    LaunchedEffect(state.warning) {
+        state.warning?.value?.let { message ->
             scope.launch {
                 val snackBarResult = snackbarHostState.showSnackbar(
                     message = message,
                     duration = SnackbarDuration.Short,
-                    actionLabel = posState.actionLabel
+                    actionLabel = state.actionLabel
                 )
                 when (snackBarResult) {
                     SnackbarResult.Dismissed -> {}
-                    SnackbarResult.ActionPerformed -> when (posState.actionLabel) {
+                    SnackbarResult.ActionPerformed -> when (state.actionLabel) {
                         "Settings" -> activityViewModel.openAppStorageSettings()
                     }
                 }
@@ -193,10 +194,10 @@ fun POSView(
     }
 
     LaunchedEffect(
-        posState.isSaved,
-        posState.isDeleted
+        state.isSaved,
+        state.isDeleted
     ) {
-        if (posState.isSaved) {
+        if (state.isSaved) {
             isPayBottomSheetVisible = false
             if (activityViewModel.shouldPrintInvoice) {
                 activityViewModel.invoiceItemModels = invoicesState
@@ -207,13 +208,13 @@ fun POSView(
             } else {
                 clear()
             }
-            posState.isSaved = false
+            state.isSaved = false
         }
-        if (posState.isDeleted) {
-            posState.invoiceHeaders.remove(invoiceHeaderState.value)
-            activityViewModel.invoiceHeaders = posState.invoiceHeaders
+        if (state.isDeleted) {
+            state.invoiceHeaders.remove(invoiceHeaderState.value)
+            activityViewModel.invoiceHeaders = state.invoiceHeaders
             clear()
-            posState.isDeleted = false
+            state.isDeleted = false
             if (SettingsModel.getUserType() == UserType.TABLE) {
                 navController?.navigateUp()
             }
@@ -411,7 +412,7 @@ fun POSView(
                                 isEditBottomSheetVisible = true
                             },
                             onRemove = { index ->
-                                posState.itemsToDelete.add(invoicesState.removeAt(index))
+                                state.itemsToDelete.add(invoicesState.removeAt(index))
                                 activityViewModel.invoiceItemModels = invoicesState
                                 invoiceHeaderState.value = POSUtils.refreshValues(
                                     activityViewModel.invoiceItemModels,
@@ -427,14 +428,14 @@ fun POSView(
                             IconButton(modifier = Modifier.size(25.dp),
                                 onClick = {
                                     activityViewModel.launchBarcodeScanner(false,
-                                        ArrayList(posState.items),
+                                        ArrayList(state.items),
                                         object : OnBarcodeResult {
                                             override fun OnBarcodeResult(barcodesList: List<String>) {
                                                 if (barcodesList.isNotEmpty()) {
                                                     val map: Map<String, Int> = barcodesList.groupingBy { barcode -> barcode }
                                                         .eachCount()
                                                     val barcodes = barcodesList.joinToString(",")
-                                                    val items = posState.items.filter { item ->
+                                                    val items = state.items.filter { item ->
                                                         item.itemBarcode?.let { barcode ->
                                                             barcodes.contains(
                                                                 barcode,
@@ -497,9 +498,9 @@ fun POSView(
 
 
                         InvoiceFooterView(invoiceHeader = invoiceHeaderState.value,
-                            items = posState.items,
-                            thirdParties = posState.thirdParties.toMutableList(),
-                            invoiceHeaders = posState.invoiceHeaders,
+                            items = state.items,
+                            thirdParties = state.thirdParties.toMutableList(),
+                            invoiceHeaders = state.invoiceHeaders,
                             modifier = Modifier
                                 .wrapContentWidth()
                                 .height(350.dp),
@@ -509,7 +510,7 @@ fun POSView(
                                 navController?.navigate(
                                     "ManageItemsView"
                                 )
-                                posState.items.clear()
+                                state.items.clear()
                             },
                             onAddThirdParty = {
                                 activityViewModel.invoiceItemModels = invoicesState
@@ -517,7 +518,7 @@ fun POSView(
                                 navController?.navigate(
                                     "ManageThirdPartiesView"
                                 )
-                                posState.thirdParties.clear()
+                                state.thirdParties.clear()
                             },
                             onItemSelected = { item ->
                                 val invoiceItemModel = InvoiceItemModel()
@@ -531,7 +532,7 @@ fun POSView(
                                 isAddItemBottomSheetVisible = false
                             },
                             onThirdPartySelected = { thirdParty ->
-                                posState.selectedThirdParty = thirdParty
+                                state.selectedThirdParty = thirdParty
                                 invoiceHeaderState.value.invoiceHeadThirdPartyName = thirdParty.thirdPartyId
                             },
                             onInvoiceSelected = { invoiceHeader ->
@@ -546,8 +547,8 @@ fun POSView(
                     }
                     if (isLandscape && SettingsModel.showItemsInPOS) {
                         AddInvoiceItemView(
-                            categories = posState.families,
-                            items = posState.items,
+                            categories = state.families,
+                            items = state.items,
                             notifyDirectly = true,
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -609,8 +610,8 @@ fun POSView(
                     animationSpec = tween(durationMillis = 250)
                 )
             ) {
-                AddInvoiceItemView(categories = posState.families,
-                    items = posState.items,
+                AddInvoiceItemView(categories = state.families,
+                    items = state.items,
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(it)

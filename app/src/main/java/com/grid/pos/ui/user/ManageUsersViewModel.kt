@@ -78,7 +78,9 @@ class ManageUsersViewModel @Inject constructor(
                 user.prepareForInsert()
                 val addedModel = userRepository.insert(user)
                 val users = manageUsersState.value.users
-                users.add(addedModel)
+                if(users.isNotEmpty()) {
+                    users.add(addedModel)
+                }
                 currentUser = null
                 withContext(Dispatchers.Main) {
                     manageUsersState.value = manageUsersState.value.copy(

@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -22,7 +21,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -40,6 +38,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.grid.pos.ActivityScopedViewModel
 import com.grid.pos.R
@@ -61,9 +60,7 @@ fun TablesView(
         activityScopedViewModel: ActivityScopedViewModel,
         viewModel: TablesViewModel = hiltViewModel()
 ) {
-    val tablesState: TablesState by viewModel.tablesState.collectAsState(
-        TablesState()
-    )
+    val state by viewModel.tablesState.collectAsStateWithLifecycle()
 
     val keyboardController = LocalSoftwareKeyboardController.current
 
@@ -80,32 +77,32 @@ fun TablesView(
     val scope = rememberCoroutineScope()
 
     fun moveToPos() {
-        tablesState.invoiceHeader.invoiceHeadTaName = tableNameState
-        tablesState.invoiceHeader.invoiceHeadClientsCount = clientsCountState.toIntOrNull() ?: 1
-        activityScopedViewModel.invoiceHeader = tablesState.invoiceHeader
+        state.invoiceHeader.invoiceHeadTaName = tableNameState
+        state.invoiceHeader.invoiceHeadClientsCount = clientsCountState.toIntOrNull() ?: 1
+        activityScopedViewModel.invoiceHeader = state.invoiceHeader
         activityScopedViewModel.shouldLoadInvoice = true
-        tablesState.clear = true
+        state.clear = true
         stepState = 1
-        tablesState.step = 1
+        state.step = 1
         navController?.navigate("POSView")
     }
 
     LaunchedEffect(
         stepState,
-        tablesState.moveToPos
+        state.moveToPos
     ) {
         if (stepState == 1) {
             tableNameFocusRequester.requestFocus()
         } else {
             clientsCountFocusRequester.requestFocus()
         }
-        if (tablesState.moveToPos) {
+        if (state.moveToPos) {
             moveToPos()
-            tablesState.moveToPos = false
+            state.moveToPos = false
         }
     }
-    LaunchedEffect(tablesState.warning) {
-        tablesState.warning?.value?.let { message ->
+    LaunchedEffect(state.warning) {
+        state.warning?.value?.let { message ->
             scope.launch {
                 snackbarHostState.showSnackbar(
                     message = message,
@@ -115,8 +112,8 @@ fun TablesView(
         }
     }
 
-    LaunchedEffect(tablesState.isLoading) {
-        activityScopedViewModel.showLoading(tablesState.isLoading)
+    LaunchedEffect(state.isLoading) {
+        activityScopedViewModel.showLoading(state.isLoading)
     }
 
     LaunchedEffect(isPopupVisible) {
@@ -139,14 +136,14 @@ fun TablesView(
             })
     }
 
-    LaunchedEffect(tablesState.step) {
-        stepState = tablesState.step
+    LaunchedEffect(state.step) {
+        stepState = state.step
     }
 
     fun handleBack() {
         if (stepState > 1) {
             stepState = 1
-            tablesState.step = 1
+            state.step = 1
         } else {
             if (SettingsModel.getUserType() == UserType.TABLE) {
                 isPopupVisible = true
@@ -278,12 +275,12 @@ fun TablesView(
         }
 
 
-        if (tablesState.clear) {
-            tablesState.invoiceHeader = InvoiceHeader()
+        if (state.clear) {
+            state.invoiceHeader = InvoiceHeader()
             stepState = 1
             tableNameState = ""
             clientsCountState = ""
-            tablesState.clear = false
+            state.clear = false
         }
     }
 }

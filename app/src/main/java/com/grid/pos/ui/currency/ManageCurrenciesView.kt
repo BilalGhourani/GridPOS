@@ -15,7 +15,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -47,6 +46,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.grid.pos.ActivityScopedViewModel
 import com.grid.pos.R
@@ -68,9 +68,7 @@ fun ManageCurrenciesView(
         activityScopedViewModel: ActivityScopedViewModel,
         viewModel: ManageCurrenciesViewModel = hiltViewModel()
 ) {
-    val manageCurrenciesState: ManageCurrenciesState by viewModel.manageCurrenciesState.collectAsState(
-        ManageCurrenciesState()
-    )
+    val state by viewModel.manageCurrenciesState.collectAsStateWithLifecycle()
     val keyboardController = LocalSoftwareKeyboardController.current
     val curName1FocusRequester = remember { FocusRequester() }
     val curName1DecFocusRequester = remember { FocusRequester() }
@@ -79,29 +77,29 @@ fun ManageCurrenciesView(
     val curName2DecFocusRequester = remember { FocusRequester() }
     val rateFocusRequester = remember { FocusRequester() }
 
-    var curCode1State by remember { mutableStateOf(manageCurrenciesState.selectedCurrency.currencyCode1 ?: "") }
-    var curName1State by remember { mutableStateOf(manageCurrenciesState.selectedCurrency.currencyName1 ?: "") }
+    var curCode1State by remember { mutableStateOf(state.selectedCurrency.currencyCode1 ?: "") }
+    var curName1State by remember { mutableStateOf(state.selectedCurrency.currencyName1 ?: "") }
     var curName1DecState by remember {
         mutableStateOf(
-            manageCurrenciesState.selectedCurrency.currencyName1Dec.toString()
+            state.selectedCurrency.currencyName1Dec.toString()
         )
     }
-    var curCode2State by remember { mutableStateOf(manageCurrenciesState.selectedCurrency.currencyCode2 ?: "") }
-    var curName2State by remember { mutableStateOf(manageCurrenciesState.selectedCurrency.currencyName2 ?: "") }
+    var curCode2State by remember { mutableStateOf(state.selectedCurrency.currencyCode2 ?: "") }
+    var curName2State by remember { mutableStateOf(state.selectedCurrency.currencyName2 ?: "") }
     var curName2DecState by remember {
         mutableStateOf(
-            manageCurrenciesState.selectedCurrency.currencyName2Dec.toString()
+            state.selectedCurrency.currencyName2Dec.toString()
         )
     }
     var rateState by remember {
         mutableStateOf(
-            manageCurrenciesState.selectedCurrency.currencyRate.toString()
+            state.selectedCurrency.currencyRate.toString()
         )
     }
 
     var saveAndBack by remember { mutableStateOf(false) }
     fun handleBack() {
-        if (viewModel.currentCurrency != null && manageCurrenciesState.selectedCurrency.didChanged(
+        if (viewModel.currentCurrency != null && state.selectedCurrency.didChanged(
                 viewModel.currentCurrency!!
             )
         ) {
@@ -113,7 +111,7 @@ fun ManageCurrenciesView(
                     }
                     onConfirmation = {
                         saveAndBack = true
-                        viewModel.saveCurrency(manageCurrenciesState.selectedCurrency)
+                        viewModel.saveCurrency()
                     }
                     dialogText = "Do you want to save your changes"
                     positiveBtnText = "Save"
@@ -131,8 +129,8 @@ fun ManageCurrenciesView(
 
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
-    LaunchedEffect(manageCurrenciesState.warning) {
-        manageCurrenciesState.warning?.value?.let { message ->
+    LaunchedEffect(state.warning) {
+        state.warning?.value?.let { message ->
             scope.launch {
                 snackbarHostState.showSnackbar(
                     message = message,
@@ -141,11 +139,11 @@ fun ManageCurrenciesView(
             }
         }
     }
-    LaunchedEffect(manageCurrenciesState.isLoading) {
-        activityScopedViewModel.showLoading(manageCurrenciesState.isLoading)
+    LaunchedEffect(state.isLoading) {
+        activityScopedViewModel.showLoading(state.isLoading)
     }
-    LaunchedEffect(manageCurrenciesState.isSaved) {
-        if (manageCurrenciesState.isSaved && saveAndBack) {
+    LaunchedEffect(state.isSaved) {
+        if (state.isSaved && saveAndBack) {
             viewModel.currentCurrency = null
             handleBack()
         }
@@ -226,7 +224,7 @@ fun ManageCurrenciesView(
                                 placeHolder = "Code",
                                 onAction = { curName1FocusRequester.requestFocus() }) { curCode1 ->
                                 curCode1State = curCode1
-                                manageCurrenciesState.selectedCurrency.currencyCode1 = curCode1
+                                state.selectedCurrency.currencyCode1 = curCode1
                             }
 
                             UITextField(modifier = Modifier
@@ -241,7 +239,7 @@ fun ManageCurrenciesView(
                                 focusRequester = curName1FocusRequester,
                                 onAction = { curName1DecFocusRequester.requestFocus() }) { curName1 ->
                                 curName1State = curName1
-                                manageCurrenciesState.selectedCurrency.currencyName1 = curName1
+                                state.selectedCurrency.currencyName1 = curName1
                             }
 
                             UITextField(modifier = Modifier
@@ -259,7 +257,7 @@ fun ManageCurrenciesView(
                                     curName1Dec,
                                     curName1DecState
                                 )
-                                manageCurrenciesState.selectedCurrency.currencyName1Dec = curName1DecState.toIntOrNull() ?: 0
+                                state.selectedCurrency.currencyName1Dec = curName1DecState.toIntOrNull() ?: 0
                             }
                         }
 
@@ -282,7 +280,7 @@ fun ManageCurrenciesView(
                                 focusRequester = curCode2FocusRequester,
                                 onAction = { curName2FocusRequester.requestFocus() }) { curCode2 ->
                                 curCode2State = curCode2
-                                manageCurrenciesState.selectedCurrency.currencyCode2 = curCode2
+                                state.selectedCurrency.currencyCode2 = curCode2
                             }
 
                             UITextField(modifier = Modifier
@@ -297,7 +295,7 @@ fun ManageCurrenciesView(
                                 focusRequester = curName2FocusRequester,
                                 onAction = { curName2DecFocusRequester.requestFocus() }) { curName2 ->
                                 curName2State = curName2
-                                manageCurrenciesState.selectedCurrency.currencyName2 = curName2
+                                state.selectedCurrency.currencyName2 = curName2
                             }
 
                             UITextField(modifier = Modifier
@@ -315,7 +313,7 @@ fun ManageCurrenciesView(
                                     curName2Dec,
                                     curName2DecState
                                 )
-                                manageCurrenciesState.selectedCurrency.currencyName2Dec = curName2DecState.toIntOrNull() ?: 0
+                                state.selectedCurrency.currencyName2Dec = curName2DecState.toIntOrNull() ?: 0
                             }
                         }
 
@@ -331,7 +329,7 @@ fun ManageCurrenciesView(
                                 rateStr,
                                 rateState
                             )
-                            manageCurrenciesState.selectedCurrency.currencyRate = rateState.toDoubleOrNull() ?: 0.0
+                            state.selectedCurrency.currencyRate = rateState.toDoubleOrNull() ?: 0.0
                         }
 
 
@@ -349,7 +347,7 @@ fun ManageCurrenciesView(
                                 text = "Save"
                             ) {
                                 viewModel.currentCurrency = null
-                                viewModel.saveCurrency(manageCurrenciesState.selectedCurrency)
+                                viewModel.saveCurrency()
                             }
 
                             UIButton(
@@ -365,16 +363,16 @@ fun ManageCurrenciesView(
                 }
             }
         }
-        if (manageCurrenciesState.fillFields) {
-            viewModel.currentCurrency = manageCurrenciesState.selectedCurrency
-            curCode1State = manageCurrenciesState.selectedCurrency.currencyCode1 ?: ""
-            curName1State = manageCurrenciesState.selectedCurrency.currencyName1 ?: ""
-            curName1DecState = manageCurrenciesState.selectedCurrency.currencyName1Dec.toString()
-            curCode2State = manageCurrenciesState.selectedCurrency.currencyCode2 ?: ""
-            curName2State = manageCurrenciesState.selectedCurrency.currencyName2 ?: ""
-            curName2DecState = manageCurrenciesState.selectedCurrency.currencyName2Dec.toString()
-            rateState = manageCurrenciesState.selectedCurrency.currencyRate.toString()
-            manageCurrenciesState.fillFields = false
+        if (state.fillFields) {
+            viewModel.currentCurrency = state.selectedCurrency
+            curCode1State = state.selectedCurrency.currencyCode1 ?: ""
+            curName1State = state.selectedCurrency.currencyName1 ?: ""
+            curName1DecState = state.selectedCurrency.currencyName1Dec.toString()
+            curCode2State = state.selectedCurrency.currencyCode2 ?: ""
+            curName2State = state.selectedCurrency.currencyName2 ?: ""
+            curName2DecState = state.selectedCurrency.currencyName2Dec.toString()
+            rateState = state.selectedCurrency.currencyRate.toString()
+            state.fillFields = false
         }
     }
 }

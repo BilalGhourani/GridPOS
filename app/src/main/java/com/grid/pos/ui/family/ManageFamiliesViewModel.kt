@@ -88,7 +88,9 @@ class ManageFamiliesViewModel @Inject constructor(
                 family.prepareForInsert()
                 val addedModel = familyRepository.insert(family)
                 val families = manageFamiliesState.value.families
-                families.add(addedModel)
+                if(families.isNotEmpty()) {
+                    families.add(addedModel)
+                }
                 currentFamily = null
                 withContext(Dispatchers.Main) {
                     manageFamiliesState.value = manageFamiliesState.value.copy(

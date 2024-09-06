@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
@@ -23,7 +22,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ColorLens
 import androidx.compose.material.icons.filled.Image
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.QrCode2
 import androidx.compose.material.icons.filled.RemoveCircleOutline
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -40,7 +38,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -60,6 +57,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.grid.pos.ActivityScopedViewModel
 import com.grid.pos.R
@@ -71,7 +69,6 @@ import com.grid.pos.interfaces.OnGalleryResult
 import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.ColorPickerPopup
-import com.grid.pos.ui.common.SearchableDropdownMenu
 import com.grid.pos.ui.common.SearchableDropdownMenuEx
 import com.grid.pos.ui.common.UIButton
 import com.grid.pos.ui.common.UISwitch
@@ -96,9 +93,7 @@ fun ManageItemsView(
         activityScopedViewModel: ActivityScopedViewModel,
         viewModel: ManageItemsViewModel = hiltViewModel()
 ) {
-    val manageItemsState: ManageItemsState by viewModel.manageItemsState.collectAsState(
-        ManageItemsState()
-    )
+    val state by viewModel.manageItemsState.collectAsStateWithLifecycle()
     viewModel.fillCachedItems(
         activityScopedViewModel.items,
         activityScopedViewModel.families
@@ -148,17 +143,17 @@ fun ManageItemsView(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
-    LaunchedEffect(manageItemsState.warning) {
-        manageItemsState.warning?.value?.let { message ->
+    LaunchedEffect(state.warning) {
+        state.warning?.value?.let { message ->
             scope.launch {
                 val snackBarResult = snackbarHostState.showSnackbar(
                     message = message,
                     duration = SnackbarDuration.Short,
-                    actionLabel = manageItemsState.actionLabel
+                    actionLabel = state.actionLabel
                 )
                 when (snackBarResult) {
                     SnackbarResult.Dismissed -> {}
-                    SnackbarResult.ActionPerformed -> when (manageItemsState.actionLabel) {
+                    SnackbarResult.ActionPerformed -> when (state.actionLabel) {
                         "Settings" -> activityScopedViewModel.openAppStorageSettings()
                     }
                 }
@@ -166,8 +161,8 @@ fun ManageItemsView(
         }
     }
 
-    LaunchedEffect(manageItemsState.isLoading) {
-        activityScopedViewModel.showLoading(manageItemsState.isLoading)
+    LaunchedEffect(state.isLoading) {
+        activityScopedViewModel.showLoading(state.isLoading)
     }
 
     fun saveItem() {
@@ -177,22 +172,22 @@ fun ManageItemsView(
                 old
             )
         }
-        if (SettingsModel.showTax && manageItemsState.selectedItem.itemTax == 0.0) {
-            manageItemsState.selectedItem.itemTax = taxState.toDoubleOrNull() ?: 0.0
+        if (SettingsModel.showTax && state.selectedItem.itemTax == 0.0) {
+            state.selectedItem.itemTax = taxState.toDoubleOrNull() ?: 0.0
         }
-        if (SettingsModel.showTax1 && manageItemsState.selectedItem.itemTax1 == 0.0) {
-            manageItemsState.selectedItem.itemTax1 = tax1State.toDoubleOrNull() ?: 0.0
+        if (SettingsModel.showTax1 && state.selectedItem.itemTax1 == 0.0) {
+            state.selectedItem.itemTax1 = tax1State.toDoubleOrNull() ?: 0.0
         }
-        if (SettingsModel.showTax2 && manageItemsState.selectedItem.itemTax2 == 0.0) {
-            manageItemsState.selectedItem.itemTax2 = tax2State.toDoubleOrNull() ?: 0.0
+        if (SettingsModel.showTax2 && state.selectedItem.itemTax2 == 0.0) {
+            state.selectedItem.itemTax2 = tax2State.toDoubleOrNull() ?: 0.0
         }
-        manageItemsState.selectedItem.itemPos = itemPOSState
-        viewModel.saveItem(manageItemsState.selectedItem)
+        state.selectedItem.itemPos = itemPOSState
+        viewModel.saveItem(state.selectedItem)
     }
 
     var saveAndBack by remember { mutableStateOf(false) }
     fun handleBack() {
-        if (viewModel.currentITem != null && manageItemsState.selectedItem.didChanged(
+        if (viewModel.currentITem != null && state.selectedItem.didChanged(
                 viewModel.currentITem!!
             )
         ) {
@@ -213,8 +208,8 @@ fun ManageItemsView(
                 })
             return
         }
-        if (manageItemsState.items.isNotEmpty()) {
-            activityScopedViewModel.items = manageItemsState.items
+        if (state.items.isNotEmpty()) {
+            activityScopedViewModel.items = state.items
         }
         viewModel.closeConnectionIfNeeded()
         navController?.navigateUp()
@@ -222,9 +217,9 @@ fun ManageItemsView(
 
     fun clear() {
         viewModel.currentITem = null
-        manageItemsState.selectedItem = Item()
-        manageItemsState.selectedItem.itemCompId = ""
-        manageItemsState.selectedItem.itemFaId = ""
+        state.selectedItem = Item()
+        state.selectedItem.itemCompId = ""
+        state.selectedItem.itemFaId = ""
         nameState = ""
         unitPriceState = ""
         taxState = SettingsModel.currentCompany?.companyTax.toString()
@@ -239,13 +234,13 @@ fun ManageItemsView(
         printerState = ""
         imageState = ""
         itemPOSState = false
-        manageItemsState.clear = false
+        state.clear = false
         if (saveAndBack) {
             handleBack()
         }
     }
-    LaunchedEffect(manageItemsState.clear) {
-        if (manageItemsState.clear) {
+    LaunchedEffect(state.clear) {
+        if (state.clear) {
             clear()
         }
     }
@@ -319,7 +314,7 @@ fun ManageItemsView(
                         placeHolder = "Enter Name",
                         onAction = { unitPriceFocusRequester.requestFocus() }) { name ->
                         nameState = name
-                        manageItemsState.selectedItem.itemName = name
+                        state.selectedItem.itemName = name
                     }
 
                     //unitPrice
@@ -347,7 +342,7 @@ fun ManageItemsView(
                             unitPrice,
                             unitPriceState
                         )
-                        manageItemsState.selectedItem.itemUnitPrice = unitPriceState.toDoubleOrNull() ?: 0.0
+                        state.selectedItem.itemUnitPrice = unitPriceState.toDoubleOrNull() ?: 0.0
                     }
 
                     if (SettingsModel.showTax) {
@@ -375,7 +370,7 @@ fun ManageItemsView(
                                 tax,
                                 taxState
                             )
-                            manageItemsState.selectedItem.itemTax = taxState.toDoubleOrNull() ?: 0.0
+                            state.selectedItem.itemTax = taxState.toDoubleOrNull() ?: 0.0
                         }
                     }
                     if (SettingsModel.showTax1) {
@@ -400,7 +395,7 @@ fun ManageItemsView(
                                 tax1,
                                 tax1State
                             )
-                            manageItemsState.selectedItem.itemTax1 = tax1State.toDoubleOrNull() ?: 0.0
+                            state.selectedItem.itemTax1 = tax1State.toDoubleOrNull() ?: 0.0
                         }
                     }
                     if (SettingsModel.showTax2) {
@@ -419,7 +414,7 @@ fun ManageItemsView(
                                 tax2,
                                 tax2State
                             )
-                            manageItemsState.selectedItem.itemTax2 = tax2State.toDoubleOrNull() ?: 0.0
+                            state.selectedItem.itemTax2 = tax2State.toDoubleOrNull() ?: 0.0
                         }
                     }
                     //barcode
@@ -435,12 +430,12 @@ fun ManageItemsView(
                         trailingIcon = {
                             IconButton(onClick = {
                                 activityScopedViewModel.launchBarcodeScanner(true,
-                                    ArrayList(manageItemsState.items),
+                                    ArrayList(state.items),
                                     object : OnBarcodeResult {
                                         override fun OnBarcodeResult(barcodesList: List<String>) {
                                             if (barcodesList.isNotEmpty()) {
                                                 barcodeState = barcodesList[0]
-                                                manageItemsState.selectedItem.itemBarcode = barcodeState
+                                                state.selectedItem.itemBarcode = barcodeState
                                             }
                                         }
                                     },
@@ -459,7 +454,7 @@ fun ManageItemsView(
                             }
                         }) { barcode ->
                         barcodeState = barcode
-                        manageItemsState.selectedItem.itemBarcode = barcode
+                        state.selectedItem.itemBarcode = barcode
                     }
 
                     //open cost
@@ -477,7 +472,7 @@ fun ManageItemsView(
                             openCost,
                             openCostState
                         )
-                        manageItemsState.selectedItem.itemOpenCost = openCostState.toDoubleOrNull() ?: 0.0
+                        state.selectedItem.itemOpenCost = openCostState.toDoubleOrNull() ?: 0.0
                     }
 
                     //open quantity
@@ -495,10 +490,10 @@ fun ManageItemsView(
                             openQty,
                             openQtyState
                         )
-                        manageItemsState.selectedItem.itemOpenQty = openQtyState.toDoubleOrNull() ?: 0.0
+                        state.selectedItem.itemOpenQty = openQtyState.toDoubleOrNull() ?: 0.0
                     }
 
-                    SearchableDropdownMenuEx(items = manageItemsState.families.toMutableList(),
+                    SearchableDropdownMenuEx(items = state.families.toMutableList(),
                         modifier = Modifier.padding(
                             horizontal = 10.dp,
                             vertical = 5.dp
@@ -517,11 +512,11 @@ fun ManageItemsView(
                         },
                         onLeadingIconClick = {
                             familyIdState = ""
-                            manageItemsState.selectedItem.itemFaId = null
+                            state.selectedItem.itemFaId = null
                         }) { family ->
                         family as Family
                         familyIdState = family.familyId
-                        manageItemsState.selectedItem.itemFaId = familyIdState
+                        state.selectedItem.itemFaId = familyIdState
                     }
 
                     //Button color
@@ -547,7 +542,7 @@ fun ManageItemsView(
                             }
                         }) { btnColor ->
                         btnColorState = btnColor
-                        manageItemsState.selectedItem.itemBtnColor = btnColor
+                        state.selectedItem.itemBtnColor = btnColor
                     }
 
                     //Button text color
@@ -573,10 +568,10 @@ fun ManageItemsView(
                             }
                         }) { btnTextColor ->
                         btnTextColorState = btnTextColor
-                        manageItemsState.selectedItem.itemBtnTextColor = btnTextColor
+                        state.selectedItem.itemBtnTextColor = btnTextColor
                     }
 
-                    SearchableDropdownMenuEx(items = manageItemsState.printers.toMutableList(),
+                    SearchableDropdownMenuEx(items = state.printers.toMutableList(),
                         modifier = Modifier.padding(
                             horizontal = 10.dp,
                             vertical = 5.dp
@@ -595,11 +590,11 @@ fun ManageItemsView(
                         },
                         onLeadingIconClick = {
                             printerState = ""
-                            manageItemsState.selectedItem.itemPrinter = null
+                            state.selectedItem.itemPrinter = null
                         }) { printer ->
                         printer as PosPrinter
                         printerState = printer.posPrinterId
-                        manageItemsState.selectedItem.itemPrinter = printerState
+                        state.selectedItem.itemPrinter = printerState
                     }
 
                     UITextField(modifier = Modifier.padding(
@@ -618,7 +613,7 @@ fun ManageItemsView(
                                     object : OnGalleryResult {
                                         override fun onGalleryResult(uris: List<Uri>) {
                                             if (uris.isNotEmpty()) {
-                                                manageItemsState.isLoading = true
+                                                state.isLoading = true
                                                 CoroutineScope(Dispatchers.IO).launch {
                                                     val internalPath = FileUtils.saveToExternalStorage(context = context,
                                                         parent = "item",
@@ -628,11 +623,11 @@ fun ManageItemsView(
                                                             "_"
                                                         ).ifEmpty { "item" })
                                                     withContext(Dispatchers.Main) {
-                                                        manageItemsState.isLoading = false
+                                                        state.isLoading = false
                                                         if (internalPath != null) {
                                                             oldImage = imageState
                                                             imageState = internalPath
-                                                            manageItemsState.selectedItem.itemImage = imageState
+                                                            state.selectedItem.itemImage = imageState
                                                         }
                                                     }
                                                 }
@@ -654,7 +649,7 @@ fun ManageItemsView(
                             }
                         }) { img ->
                         imageState = img
-                        manageItemsState.selectedItem.itemImage = img
+                        state.selectedItem.itemImage = img
                     }
 
                     UISwitch(
@@ -666,7 +661,7 @@ fun ManageItemsView(
                         text = "Item POS",
                     ) { isItemPOS ->
                         itemPOSState = isItemPOS
-                        manageItemsState.selectedItem.itemPos = isItemPOS
+                        state.selectedItem.itemPos = isItemPOS
                     }
 
                     Row(
@@ -706,7 +701,7 @@ fun ManageItemsView(
                                     imageState
                                 )
                             }
-                            viewModel.deleteSelectedItem(manageItemsState.selectedItem)
+                            viewModel.deleteSelectedItem(state.selectedItem)
                         }
 
                         UIButton(
@@ -720,17 +715,17 @@ fun ManageItemsView(
                     }
                 }
 
-                SearchableDropdownMenuEx(items = manageItemsState.items.toMutableList(),
+                SearchableDropdownMenuEx(items = state.items.toMutableList(),
                     modifier = Modifier.padding(
                             top = 15.dp,
                             start = 10.dp,
                             end = 10.dp
                         ),
                     label = "Select Item",
-                    selectedId = manageItemsState.selectedItem.itemId,
+                    selectedId = state.selectedItem.itemId,
                     onLoadItems = { viewModel.fetchItems() },
                     leadingIcon = { modifier ->
-                        if (manageItemsState.selectedItem.itemId.isNotEmpty()) {
+                        if (state.selectedItem.itemId.isNotEmpty()) {
                             Icon(
                                 Icons.Default.RemoveCircleOutline,
                                 contentDescription = "remove family",
@@ -744,7 +739,7 @@ fun ManageItemsView(
                     }) { item ->
                     item as Item
                     viewModel.currentITem = item.copy()
-                    manageItemsState.selectedItem = item
+                    state.selectedItem = item
                     nameState = item.itemName ?: ""
                     unitPriceState = item.itemUnitPrice.toString()
                     taxState = item.itemTax.toString()
@@ -785,12 +780,12 @@ fun ManageItemsView(
                         when (colorPickerType) {
                             ColorPickerType.BUTTON_COLOR -> {
                                 btnColorState = it.toHexCode()
-                                manageItemsState.selectedItem.itemBtnColor = btnColorState
+                                state.selectedItem.itemBtnColor = btnColorState
                             }
 
                             ColorPickerType.BUTTON_TEXT_COLOR -> {
                                 btnTextColorState = it.toHexCode()
-                                manageItemsState.selectedItem.itemBtnTextColor = btnTextColorState
+                                state.selectedItem.itemBtnTextColor = btnTextColorState
                             }
 
                             else -> {}

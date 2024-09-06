@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -18,7 +17,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DatePicker
@@ -68,6 +66,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.grid.pos.ActivityScopedViewModel
 import com.grid.pos.BuildConfig
@@ -93,9 +92,7 @@ fun ReportsView(
     activityViewModel: ActivityScopedViewModel,
     viewModel: ReportsViewModel = hiltViewModel()
 ) {
-    val reportsState: ReportsState by viewModel.reportsState.collectAsState(
-        ReportsState()
-    )
+    val state by viewModel.reportsState.collectAsStateWithLifecycle()
 
     val context = LocalContext.current
     val currentTime = Calendar.getInstance()
@@ -189,10 +186,10 @@ fun ReportsView(
 
 
     LaunchedEffect(
-        reportsState.warning,
-        reportsState.isDone
+        state.warning,
+        state.isDone
     ) {
-        reportsState.warning?.value?.let { message ->
+        state.warning?.value?.let { message ->
             scope.launch {
                 snackbarHostState.showSnackbar(
                     message = message,
@@ -201,18 +198,18 @@ fun ReportsView(
             }
         }
 
-        if (reportsState.isDone) {
+        if (state.isDone) {
             isBottomSheetVisible = true
-            reportsState.isDone = false
+            state.isDone = false
         }
     }
 
-    LaunchedEffect(reportsState.isLoading) {
-        activityViewModel.showLoading(reportsState.isLoading)
+    LaunchedEffect(state.isLoading) {
+        activityViewModel.showLoading(state.isLoading)
     }
 
     fun handleBack() {
-        if (reportsState.isLoading) {
+        if (state.isLoading) {
             isPopupVisible = true
         } else {
             navController?.navigateUp()
@@ -225,7 +222,7 @@ fun ReportsView(
                 isPopupVisible = false
             }
             onConfirmation = {
-                reportsState.isLoading = false
+                state.isLoading = false
                 isPopupVisible = false
                 handleBack()
             }
@@ -619,8 +616,8 @@ fun ReportsView(
 
         }
 
-        if (reportsState.clear) {
-            reportsState.clear = false
+        if (state.clear) {
+            state.clear = false
         }
     }
 }

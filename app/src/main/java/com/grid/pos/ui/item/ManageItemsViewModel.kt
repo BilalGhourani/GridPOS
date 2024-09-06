@@ -115,7 +115,9 @@ class ManageItemsViewModel @Inject constructor(
                 item.prepareForInsert()
                 val addedModel = itemRepository.insert(item)
                 val items = manageItemsState.value.items
-                items.add(addedModel)
+                if(items.isNotEmpty()) {
+                    items.add(addedModel)
+                }
                 currentITem = null
                 withContext(Dispatchers.Main) {
                     manageItemsState.value = manageItemsState.value.copy(

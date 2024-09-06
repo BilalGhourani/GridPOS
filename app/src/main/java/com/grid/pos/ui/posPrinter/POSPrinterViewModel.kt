@@ -86,7 +86,9 @@ class POSPrinterViewModel @Inject constructor(
                 printer.prepareForInsert()
                 val addedModel = posPrinterRepository.insert(printer)
                 val printers = posPrinterState.value.printers
-                printers.add(addedModel)
+                if(printers.isNotEmpty()) {
+                    printers.add(addedModel)
+                }
                 currentPrinter = null
                 withContext(Dispatchers.Main) {
                     posPrinterState.value = posPrinterState.value.copy(

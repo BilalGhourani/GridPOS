@@ -7,14 +7,12 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.RemoveCircleOutline
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
@@ -51,14 +49,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.grid.pos.ActivityScopedViewModel
 import com.grid.pos.R
-import com.grid.pos.data.Family.Family
 import com.grid.pos.data.User.User
 import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
-import com.grid.pos.ui.common.SearchableDropdownMenu
 import com.grid.pos.ui.common.SearchableDropdownMenuEx
 import com.grid.pos.ui.common.UIButton
 import com.grid.pos.ui.common.UITextField
@@ -77,9 +74,7 @@ fun ManageUsersView(
         activityScopedViewModel: ActivityScopedViewModel,
         viewModel: ManageUsersViewModel = hiltViewModel()
 ) {
-    val manageUsersState: ManageUsersState by viewModel.manageUsersState.collectAsState(
-        ManageUsersState()
-    )
+    val state  by viewModel.manageUsersState.collectAsStateWithLifecycle()
 
     viewModel.fillCachedUsers(activityScopedViewModel.users)
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -95,8 +90,8 @@ fun ManageUsersView(
 
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
-    LaunchedEffect(manageUsersState.warning) {
-        manageUsersState.warning?.value?.let { message ->
+    LaunchedEffect(state.warning) {
+        state.warning?.value?.let { message ->
             scope.launch {
                 snackbarHostState.showSnackbar(
                     message = message,
@@ -106,18 +101,18 @@ fun ManageUsersView(
         }
     }
 
-    LaunchedEffect(manageUsersState.isLoading) {
-        activityScopedViewModel.showLoading(manageUsersState.isLoading)
+    LaunchedEffect(state.isLoading) {
+        activityScopedViewModel.showLoading(state.isLoading)
     }
 
     fun saveUser() {
-        manageUsersState.selectedUser.userPassword = passwordState
-        viewModel.saveUser(manageUsersState.selectedUser)
+        state.selectedUser.userPassword = passwordState
+        viewModel.saveUser(state.selectedUser)
     }
 
     var saveAndBack by remember { mutableStateOf(false) }
     fun handleBack() {
-        if (viewModel.currentUser != null && manageUsersState.selectedUser.didChanged(
+        if (viewModel.currentUser != null && state.selectedUser.didChanged(
                 viewModel.currentUser!!
             )
         ) {
@@ -138,28 +133,28 @@ fun ManageUsersView(
                 })
             return
         }
-        if (manageUsersState.users.isNotEmpty()) {
-            activityScopedViewModel.users = manageUsersState.users
+        if (state.users.isNotEmpty()) {
+            activityScopedViewModel.users = state.users
         }
         viewModel.closeConnectionIfNeeded()
         navController?.navigateUp()
     }
     fun clear() {
         viewModel.currentUser = null
-        manageUsersState.selectedUser = User()
-        manageUsersState.selectedUser.userCompanyId = ""
+        state.selectedUser = User()
+        state.selectedUser.userCompanyId = ""
         nameState = ""
         usernameState = ""
         passwordState = ""
         posModeState = true
         tableModeState = true
-        manageUsersState.clear = false
+        state.clear = false
         if (saveAndBack) {
             handleBack()
         }
     }
-    LaunchedEffect(manageUsersState.clear) {
-        if (manageUsersState.clear) {
+    LaunchedEffect(state.clear) {
+        if (state.clear) {
             clear()
         }
     }
@@ -226,7 +221,7 @@ fun ManageUsersView(
                             placeHolder = "Enter Name",
                             onAction = { usernameFocusRequester.requestFocus() }) {
                             nameState = it
-                            manageUsersState.selectedUser.userName = it.trim()
+                            state.selectedUser.userName = it.trim()
                         }
 
                         UITextField(modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
@@ -236,7 +231,7 @@ fun ManageUsersView(
                             focusRequester = usernameFocusRequester,
                             onAction = { passwordFocusRequester.requestFocus() }) {
                             usernameState = it
-                            manageUsersState.selectedUser.userUsername = it.trim()
+                            state.selectedUser.userUsername = it.trim()
                         }
 
                         UITextField(modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
@@ -258,7 +253,7 @@ fun ManageUsersView(
                                 }
                             }) {
                             passwordState = it
-                            manageUsersState.selectedUser.userPassword = it.trim()
+                            state.selectedUser.userPassword = it.trim()
                         }
 
                         Row(
@@ -274,7 +269,7 @@ fun ManageUsersView(
                                 checked = posModeState
                             ) {
                                 posModeState = it
-                                manageUsersState.selectedUser.userPosMode = posModeState
+                                state.selectedUser.userPosMode = posModeState
                             }
 
                             UiVerticalCheckBox(
@@ -283,7 +278,7 @@ fun ManageUsersView(
                                 checked = tableModeState
                             ) {
                                 tableModeState = it
-                                manageUsersState.selectedUser.userTableMode = tableModeState
+                                state.selectedUser.userTableMode = tableModeState
                             }
                         }
 
@@ -309,7 +304,7 @@ fun ManageUsersView(
                                     .padding(3.dp),
                                 text = "Delete"
                             ) {
-                                viewModel.deleteSelectedUser(manageUsersState.selectedUser)
+                                viewModel.deleteSelectedUser(state.selectedUser)
                             }
 
                             UIButton(
@@ -324,17 +319,17 @@ fun ManageUsersView(
 
                     }
                 SearchableDropdownMenuEx(
-                    items = manageUsersState.users.toMutableList(),
+                    items = state.users.toMutableList(),
                     modifier = Modifier.padding(
                         top = 15.dp,
                         start = 10.dp,
                         end = 10.dp
                     ),
                     label = "Select User",
-                    selectedId = manageUsersState.selectedUser.userId,
+                    selectedId = state.selectedUser.userId,
                     onLoadItems = {viewModel.fetchUsers()},
                     leadingIcon = {
-                        if (manageUsersState.selectedUser.userId.isNotEmpty()) {
+                        if (state.selectedUser.userId.isNotEmpty()) {
                             Icon(
                                 Icons.Default.RemoveCircleOutline,
                                 contentDescription = "remove family",
@@ -349,7 +344,7 @@ fun ManageUsersView(
                 ) { selectedUser ->
                     selectedUser as User
                     viewModel.currentUser = selectedUser.copy()
-                    manageUsersState.selectedUser = selectedUser
+                    state.selectedUser = selectedUser
                     nameState = selectedUser.userName ?: ""
                     usernameState = selectedUser.userUsername ?: ""
                     passwordState = selectedUser.userPassword?.decryptCBC() ?: ""
