@@ -172,7 +172,7 @@ class ReportsViewModel @Inject constructor(
         firstRow.createCell(5).setCellValue("Rem.Qty")
         firstRow.createCell(6).setCellValue("Profit")
 
-
+        val priceWithTax = SettingsModel.currentCompany?.companyUpWithTax ?: false
         itemMap.values.forEachIndexed { index, item ->
             val itemInvoices = invoiceItemMap[item.itemId]
             var quantitiesSold = 0.0
@@ -185,7 +185,7 @@ class ReportsViewModel @Inject constructor(
                 }
                 totalCost += it.invoiceQuantity.times(it.invoiceCost)
                 quantitiesSold += it.invoiceQuantity
-                totalSale += it.getNetAmount()
+                totalSale += if (priceWithTax) it.getAmount() else it.getNetAmount()
             }
             val row = sheet.createRow(index + 1)
             row.createCell(0).setCellValue(item.itemName)
@@ -222,13 +222,14 @@ class ReportsViewModel @Inject constructor(
         firstRow.createCell(1).setCellValue("Qty Sold")
         firstRow.createCell(2).setCellValue("Total")
 
+        val priceWithTax = SettingsModel.currentCompany?.companyUpWithTax ?: false
         filteredInvoiceItemMap.keys.forEachIndexed { index, itemId ->
             val item = itemMap[itemId]
             var quantitiesSold = 0.0
             var totalSale = 0.0
             filteredInvoiceItemMap[itemId]?.map {
                 quantitiesSold += it.invoiceQuantity
-                totalSale += it.getNetAmount()
+                totalSale +=  if (priceWithTax) it.getAmount() else it.getNetAmount()
             }
             val row = sheet.createRow(index + 1)
             row.createCell(0).setCellValue(item?.itemName ?: "N/A")
