@@ -1,6 +1,7 @@
 package com.grid.pos.ui.pos.components
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -20,6 +21,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
@@ -36,39 +38,25 @@ import com.grid.pos.ui.theme.GridPOSTheme
 
 @Composable
 fun InvoiceFooterView(
-    invoiceHeader: InvoiceHeader,
-    items: MutableList<Item> = mutableListOf(),
-    thirdParties: MutableList<ThirdParty> = mutableListOf(),
-    invoiceHeaders: MutableList<InvoiceHeader> = mutableListOf(),
-    modifier: Modifier = Modifier,
-    onLoadClients: () -> Unit = {},
-    onLoadInvoices: () -> Unit = {},
-    onAddItem: () -> Unit = {},
-    onAddThirdParty: () -> Unit = {},
-    onItemSelected: (Item) -> Unit = {},
-    onThirdPartySelected: (ThirdParty) -> Unit = {},
-    onInvoiceSelected: (InvoiceHeader) -> Unit = {},
+        invoiceHeader: InvoiceHeader,
+        items: MutableList<Item> = mutableListOf(),
+        thirdParties: MutableList<ThirdParty> = mutableListOf(),
+        invoiceHeaders: MutableList<InvoiceHeader> = mutableListOf(),
+        modifier: Modifier = Modifier,
+        onLoadClients: () -> Unit = {},
+        onLoadInvoices: () -> Unit = {},
+        onAddItem: () -> Unit = {},
+        onAddThirdParty: () -> Unit = {},
+        onItemSelected: (Item) -> Unit = {},
+        onThirdPartySelected: (ThirdParty) -> Unit = {},
+        onInvoiceSelected: (InvoiceHeader) -> Unit = {},
 ) {
     val currency = SettingsModel.currentCurrency ?: Currency()
     val curState = currency.currencyCode1 ?: ""
     val cur2State = currency.currencyCode2 ?: ""
     val curr1Decimal = currency.currencyName1Dec
-    val curr2Decimal = currency.currencyName2Dec/* val taxState = String.format(
-        "%.${curr1Decimal}f",
-        invoiceHeader.invoiceHeadTaxAmt
-    )
-    val tax1State = String.format(
-        "%.${curr1Decimal}f",
-        invoiceHeader.invoiceHeadTax1Amt
-    )
-    val tax2State = String.format(
-        "%.${curr1Decimal}f",
-        invoiceHeader.invoiceHeadTax2Amt
-    )
-    val totalTaxState = String.format(
-        "%.${curr1Decimal}f",
-        invoiceHeader.invoiceHeadTotalTax
-    )*/
+    val curr2Decimal = currency.currencyName2Dec
+
     val totalState = String.format(
         "%.${curr1Decimal}f",
         invoiceHeader.invoiceHeadTotal
@@ -80,40 +68,43 @@ fun InvoiceFooterView(
 
     val tableNoState = invoiceHeader.invoiceHeadTaName ?: ""
     var clientState by remember { mutableStateOf(invoiceHeader.invoiceHeadCashName ?: "") }
-
-    Column(
+    Box(
         modifier = modifier
             .fillMaxWidth()
             .fillMaxHeight()
     ) {
+        SearchableDropdownMenuEx(
+            items = invoiceHeaders.toMutableList(),
+            showSelected = false,
+            selectedId = null,
+            modifier = Modifier.fillMaxWidth().padding(
+                5.dp,
+                160.dp,
+                5.dp,
+                5.dp
+            ),
+            label = "Invoices",
+            onLoadItems = { onLoadInvoices.invoke() },
+        ) { invoiceHeader ->
+            onInvoiceSelected.invoke(invoiceHeader as InvoiceHeader)
+        }
+
         Row(
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth().wrapContentHeight()
         ) {
             Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .wrapContentHeight()
-                    .padding(5.dp)
+                modifier = Modifier.weight(1f).wrapContentHeight().padding(5.dp),
+                horizontalAlignment = Alignment.Start
             ) {
-                Row(
-                    modifier = Modifier.wrapContentWidth(),
-                    horizontalArrangement = Arrangement.Absolute.Left
-                ) {
-                    Text(
-                        text = "$totalState $curState",
-                        color = SettingsModel.textColor
-                    )
-                }
+                Text(
+                    text = "$totalState $curState",
+                    color = SettingsModel.textColor
+                )
 
-                Row(
-                    modifier = Modifier.wrapContentWidth(),
-                    horizontalArrangement = Arrangement.Absolute.Left
-                ) {
-                    Text(
-                        text = "$totalCur2State $cur2State",
-                        color = SettingsModel.textColor
-                    )
-                }
+                Text(
+                    text = "$totalCur2State $cur2State",
+                    color = SettingsModel.textColor
+                )
 
                 SearchableDropdownMenuEx(items = items.toMutableList(),
                     showSelected = false,
@@ -142,42 +133,29 @@ fun InvoiceFooterView(
 
             }
             Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .wrapContentHeight()
-                    .padding(5.dp)
+                modifier = Modifier.weight(1f).wrapContentHeight().padding(5.dp),
+                horizontalAlignment = Alignment.Start
             ) {
-                Row(
-                    modifier = Modifier.wrapContentWidth(),
-                    horizontalArrangement = Arrangement.Absolute.Left
-                ) {
-                    Text(
-                        text = tableNoState,
-                        color = SettingsModel.textColor
-                    )
-                }
+                Text(
+                    text = tableNoState,
+                    color = SettingsModel.textColor
+                )
 
-                Row(
-                    modifier = Modifier.wrapContentWidth(),
-                    horizontalArrangement = Arrangement.Absolute.Left
-                ) {
-                    Text(
-                        text = clientState,
-                        color = SettingsModel.textColor
-                    )
-                }
+                Text(
+                    text = clientState,
+                    color = SettingsModel.textColor
+                )
 
-                val defaultThirdParty =
-                    if (invoiceHeader.invoiceHeadThirdPartyName.isNullOrEmpty()) {
-                        thirdParties.firstOrNull { it.thirdPartyDefault }
-                    } else {
-                        thirdParties.firstOrNull {
-                            it.thirdPartyId.equals(
-                                invoiceHeader.invoiceHeadThirdPartyName,
-                                ignoreCase = true
-                            )
-                        }
+                val defaultThirdParty = if (invoiceHeader.invoiceHeadThirdPartyName.isNullOrEmpty()) {
+                    thirdParties.firstOrNull { it.thirdPartyDefault }
+                } else {
+                    thirdParties.firstOrNull {
+                        it.thirdPartyId.equals(
+                            invoiceHeader.invoiceHeadThirdPartyName,
+                            ignoreCase = true
+                        )
                     }
+                }
                 defaultThirdParty?.let {
                     clientState = it.thirdPartyName ?: ""
                     invoiceHeader.invoiceHeadThirdPartyNewName = it.thirdPartyName
@@ -195,7 +173,7 @@ fun InvoiceFooterView(
                         5.dp
                     ),
                     label = "Customers",
-                    onLoadItems = {onLoadClients.invoke()},
+                    onLoadItems = { onLoadClients.invoke() },
                     leadingIcon = {
                         if (SettingsModel.connectionType != CONNECTION_TYPE.SQL_SERVER.key) {
                             Icon(
@@ -214,23 +192,6 @@ fun InvoiceFooterView(
                     onThirdPartySelected.invoke(thirdParty)
                 }
             }
-        }
-        SearchableDropdownMenuEx(
-            items = invoiceHeaders.toMutableList(),
-            showSelected = false,
-            selectedId = null,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(
-                    5.dp,
-                    15.dp,
-                    5.dp,
-                    5.dp
-                ),
-            label = "Invoices",
-            onLoadItems = {onLoadInvoices.invoke()},
-        ) { invoiceHeader ->
-            onInvoiceSelected.invoke(invoiceHeader as InvoiceHeader)
         }
     }
 }
