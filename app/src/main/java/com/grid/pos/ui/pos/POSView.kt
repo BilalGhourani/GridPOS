@@ -187,6 +187,7 @@ fun POSView(
         activityViewModel.invoiceHeader = InvoiceHeader()
         activityViewModel.posReceipt = PosReceipt()
         activityViewModel.shouldPrintInvoice = true
+        activityViewModel.printInvoiceWithOrder = false
         activityViewModel.shouldLoadInvoice = false
         activityViewModel.pendingInvHeadState = null
         invoicesState.clear()
@@ -668,6 +669,7 @@ fun POSView(
                         activityViewModel.posReceipt = receipt
                         invoiceHeaderState.value.invoiceHeadChange = change
                         activityViewModel.shouldPrintInvoice = false
+                        activityViewModel.printInvoiceWithOrder = false
                         viewModel.saveInvoiceHeader(
                             invoiceHeaderState.value,
                             activityViewModel.posReceipt,
@@ -679,6 +681,7 @@ fun POSView(
                         activityViewModel.posReceipt = receipt
                         invoiceHeaderState.value.invoiceHeadChange = change
                         activityViewModel.shouldPrintInvoice = true
+                        activityViewModel.printInvoiceWithOrder = true
                         viewModel.saveInvoiceHeader(
                             invoiceHeaderState.value,
                             activityViewModel.posReceipt,
@@ -690,6 +693,7 @@ fun POSView(
                         activityViewModel.posReceipt = receipt
                         invoiceHeaderState.value.invoiceHeadChange = change
                         activityViewModel.shouldPrintInvoice = true
+                        activityViewModel.printInvoiceWithOrder = false
                         viewModel.saveInvoiceHeader(
                             invoiceHeaderState.value,
                             activityViewModel.posReceipt,

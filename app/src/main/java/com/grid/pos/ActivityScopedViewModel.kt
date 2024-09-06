@@ -58,6 +58,7 @@ class ActivityScopedViewModel @Inject constructor(
     var pendingInvHeadState: InvoiceHeader? = null
     var invoiceItemModels: MutableList<InvoiceItemModel> = mutableListOf()
     var shouldPrintInvoice: Boolean = false
+    var printInvoiceWithOrder: Boolean = false
     var shouldLoadInvoice: Boolean = false
     var companies: MutableList<Company> = mutableListOf()
     private var localCompanies: MutableList<Company> = mutableListOf()
@@ -212,6 +213,7 @@ class ActivityScopedViewModel @Inject constructor(
                 thirdParty,
                 user,
                 SettingsModel.currentCompany,
+                printInvoiceWithOrder,
                 printers
             )
         }
@@ -235,7 +237,8 @@ class ActivityScopedViewModel @Inject constructor(
             posReceipt,
             defaultThirdParty,
             SettingsModel.currentUser,
-            SettingsModel.currentCompany
+            SettingsModel.currentCompany,
+            withOrderNo = printInvoiceWithOrder
         )
     }
 

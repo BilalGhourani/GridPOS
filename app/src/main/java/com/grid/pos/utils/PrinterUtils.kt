@@ -120,6 +120,7 @@ object PrinterUtils {
             user: User? = SettingsModel.currentUser,
             company: Company? = SettingsModel.currentCompany,
             currency: Currency? = SettingsModel.currentCurrency,
+            withOrderNo: Boolean = false,
     ): String {
         val defaultLocal = Locale.getDefault()
         var result = getPaySlipHtmlContent(context)
@@ -162,10 +163,15 @@ object PrinterUtils {
             )
         )
 
-        if (!invoiceHeader.invoiceHeadOrderNo.isNullOrEmpty()) {
+        val invoiceNo = if (withOrderNo) {
+            invoiceHeader.invoiceHeadOrderNo
+        } else {
+            invoiceHeader.invoiceHeadTransNo
+        }
+        if (!invoiceNo.isNullOrEmpty()) {
             result = result.replace(
                 "{invoicenumbervalue}",
-                "Invoice# ${invoiceHeader.invoiceHeadOrderNo}"
+                "Invoice# $invoiceNo"
             )
         }
 
@@ -198,11 +204,19 @@ object PrinterUtils {
                 "none"
             )
         }
+        var phone = ""
+        if (!thirdParty?.thirdPartyPhone1.isNullOrEmpty()) {
+            phone += thirdParty?.thirdPartyPhone1
+        }
 
-        result = if (!thirdParty?.thirdPartyPhone1.isNullOrEmpty() || !thirdParty?.thirdPartyPhone2.isNullOrEmpty()) {
+        if (!thirdParty?.thirdPartyPhone2.isNullOrEmpty()) {
+            phone += if (phone.isNotEmpty()) " - " + thirdParty?.thirdPartyPhone2 else thirdParty?.thirdPartyPhone2
+        }
+
+        result = if (phone.isNotEmpty()) {
             result.replace(
                 "{clientphonevalue}",
-                thirdParty?.thirdPartyPhone1 ?: thirdParty?.thirdPartyPhone2 ?: ""
+                phone
             ).replace(
                 "{phone_display}",
                 "block"
@@ -347,8 +361,8 @@ object PrinterUtils {
             }
         } else {
             result = result.replace(
-                "{taxregno}",
-                ""
+                "{tax_display}",
+                "none"
             )
         }
         if (SettingsModel.showTax1) {
@@ -380,8 +394,8 @@ object PrinterUtils {
             }
         } else {
             result = result.replace(
-                "{taxregno1}",
-                ""
+                "{tax1_display}",
+                "none"
             )
         }
         if (SettingsModel.showTax2) {
@@ -413,8 +427,8 @@ object PrinterUtils {
             }
         } else {
             result = result.replace(
-                "{taxregno2}",
-                ""
+                "{tax2_display}",
+                "none"
             )
         }
         result = if (showTotalTax) {
@@ -568,9 +582,9 @@ object PrinterUtils {
             )
         }
 
-        if (!invoiceHeader.invoiceHeadOrderNo.isNullOrEmpty()) {
+        if (!invoiceNo.isNullOrEmpty()) {
             val barcodeBitmap = generateBarcodeBitmapWithText(
-                invoiceHeader.invoiceHeadOrderNo!!,
+                invoiceNo,
                 400,
                 150,
                 true
@@ -914,6 +928,7 @@ object PrinterUtils {
             thirdParty: ThirdParty?,
             user: User?,
             company: Company?,
+            printInvoiceWithOrder: Boolean,
             printers: MutableList<PosPrinter>
     ) {
         if (!SettingsModel.cashPrinter.isNullOrEmpty()) {
@@ -924,7 +939,8 @@ object PrinterUtils {
                 posReceipt = posReceipt,
                 thirdParty = thirdParty,
                 user = user,
-                company = company
+                company = company,
+                withOrderNo = printInvoiceWithOrder
             )
             val output = parseHtmlContent(htmlContent)
             val printerDetails = SettingsModel.cashPrinter?.split(":") ?: listOf()
