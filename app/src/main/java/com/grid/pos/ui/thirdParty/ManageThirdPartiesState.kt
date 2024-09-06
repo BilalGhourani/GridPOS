@@ -8,7 +8,7 @@ import com.grid.pos.model.Event
 data class ManageThirdPartiesState(
         val thirdParties: MutableList<ThirdParty> = mutableListOf(),
         var selectedThirdParty: ThirdParty = ThirdParty(),
-        var enableIsDefault: Boolean = true,
+        var enableIsDefault: Boolean = false,
         val isLoading: Boolean = false,
         var clear: Boolean = false,
         val warning: Event<String>? = null,

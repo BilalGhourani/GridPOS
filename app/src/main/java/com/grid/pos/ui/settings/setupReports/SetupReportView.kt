@@ -43,7 +43,7 @@ import com.grid.pos.ActivityScopedViewModel
 import com.grid.pos.interfaces.OnGalleryResult
 import com.grid.pos.model.Event
 import com.grid.pos.model.SettingsModel
-import com.grid.pos.ui.common.SearchableDropdownMenu
+import com.grid.pos.ui.common.SearchableDropdownMenuEx
 import com.grid.pos.ui.common.UIButton
 import com.grid.pos.ui.common.UITextField
 import com.grid.pos.ui.theme.GridPOSTheme
@@ -182,7 +182,7 @@ fun SetupReportView(
                     countryState = country
                 }
 
-                SearchableDropdownMenu(items = Utils.reportLanguages,
+                SearchableDropdownMenuEx(items = Utils.reportLanguages,
                     modifier = Modifier.padding(10.dp),
                     enableSearch = false,
                     label = languageState.ifEmpty { "Select Language" },

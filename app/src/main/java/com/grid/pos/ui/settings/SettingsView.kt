@@ -66,7 +66,7 @@ import com.grid.pos.data.Company.Company
 import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.ColorPickerPopup
-import com.grid.pos.ui.common.SearchableDropdownMenu
+import com.grid.pos.ui.common.SearchableDropdownMenuEx
 import com.grid.pos.ui.common.UIButton
 import com.grid.pos.ui.common.UISwitch
 import com.grid.pos.ui.common.UITextField
@@ -252,7 +252,7 @@ fun SettingsView(
                         }
 
                         if (isFirebaseSectionExpanded) {
-                            SearchableDropdownMenu(
+                            SearchableDropdownMenuEx(
                                 items = Utils.connections,
                                 modifier = Modifier.padding(10.dp),
                                 enableSearch = false,
@@ -389,7 +389,7 @@ fun SettingsView(
 
                                 }
                                 else -> {
-                                    SearchableDropdownMenu(items = companies.toMutableList(),
+                                    SearchableDropdownMenuEx(items = companies.toMutableList(),
                                         modifier = Modifier.padding(10.dp),
                                         enableSearch = false,
                                         color = LightGrey,
@@ -575,7 +575,7 @@ fun SettingsView(
                     }
 
                     if (isAppSettingsSectionExpanded) {
-                        SearchableDropdownMenu(
+                        SearchableDropdownMenuEx(
                             items = Utils.orientations,
                             modifier = Modifier.padding(10.dp),
                             enableSearch = false,

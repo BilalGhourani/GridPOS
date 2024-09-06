@@ -8,10 +8,12 @@ import com.grid.pos.data.Currency.Currency
 import com.grid.pos.data.Currency.CurrencyRepository
 import com.grid.pos.data.Family.FamilyRepository
 import com.grid.pos.data.PosPrinter.PosPrinterRepository
+import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.data.ThirdParty.ThirdPartyRepository
 import com.grid.pos.data.User.UserRepository
 import com.grid.pos.model.Event
 import com.grid.pos.model.SettingsModel
+import com.grid.pos.ui.common.BaseViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -22,13 +24,13 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ManageCompaniesViewModel @Inject constructor(
-    private val companyRepository: CompanyRepository,
-    private val currencyRepository: CurrencyRepository,
-    private val posPrinterRepository: PosPrinterRepository,
-    private val familyRepository: FamilyRepository,
-    private val thirdPartyRepository: ThirdPartyRepository,
-    private val userRepository: UserRepository
-) : ViewModel() {
+        private val companyRepository: CompanyRepository,
+        private val currencyRepository: CurrencyRepository,
+        private val posPrinterRepository: PosPrinterRepository,
+        private val familyRepository: FamilyRepository,
+        private val thirdPartyRepository: ThirdPartyRepository,
+        private val userRepository: UserRepository
+) : BaseViewModel() {
 
     private val _manageCompaniesState = MutableStateFlow(ManageCompaniesState())
     val manageCompaniesState: MutableStateFlow<ManageCompaniesState> = _manageCompaniesState
@@ -36,15 +38,14 @@ class ManageCompaniesViewModel @Inject constructor(
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
-            fetchCompanies()
+            openConnectionIfNeeded()
             fetchCurrencies()
-            //fetchPrinters()
         }
     }
 
     fun showWarning(
-        warning: String,
-        action: String
+            warning: String,
+            action: String
     ) {
         viewModelScope.launch(Dispatchers.Main) {
             manageCompaniesState.value = manageCompaniesState.value.copy(
@@ -56,8 +57,8 @@ class ManageCompaniesViewModel @Inject constructor(
     }
 
     fun fillCachedCompanies(
-        companies: MutableList<Company> = mutableListOf(),
-        currencies: MutableList<Currency> = mutableListOf()
+            companies: MutableList<Company> = mutableListOf(),
+            currencies: MutableList<Currency> = mutableListOf()
     ) {
         if (manageCompaniesState.value.companies.isEmpty()) {
             viewModelScope.launch(Dispatchers.Main) {
@@ -69,12 +70,18 @@ class ManageCompaniesViewModel @Inject constructor(
         }
     }
 
-    private suspend fun fetchCompanies() {
-        val companies = companyRepository.getAllCompanies()
-        viewModelScope.launch(Dispatchers.Main) {
-            manageCompaniesState.value = manageCompaniesState.value.copy(
-                companies = companies
-            )
+    fun fetchCompanies() {
+        manageCompaniesState.value = manageCompaniesState.value.copy(
+            isLoading = true
+        )
+        viewModelScope.launch(Dispatchers.IO) {
+            val companies = companyRepository.getAllCompanies()
+            withContext(Dispatchers.Main) {
+                manageCompaniesState.value = manageCompaniesState.value.copy(
+                    companies = companies,
+                    isLoading = false
+                )
+            }
         }
     }
 
@@ -128,7 +135,11 @@ class ManageCompaniesViewModel @Inject constructor(
                 }
             } else {
                 companyRepository.update(company)
-                if (company.companyId.equals(SettingsModel.currentCompany?.companyId, ignoreCase = true)) {
+                if (company.companyId.equals(
+                        SettingsModel.currentCompany?.companyId,
+                        ignoreCase = true
+                    )
+                ) {
                     SettingsModel.currentCompany = company
                 }
                 currentCompany = null
@@ -185,8 +196,7 @@ class ManageCompaniesViewModel @Inject constructor(
     }
 
     private suspend fun hasRelations(companyID: String): Boolean {
-        if (familyRepository.getOneFamily(companyID) != null)
-            return true
+        if (familyRepository.getOneFamily(companyID) != null) return true
         if (userRepository.getOneUser(companyID) != null) {
             return true
         }

@@ -6,6 +6,7 @@ import com.grid.pos.data.Currency.Currency
 import com.grid.pos.data.Currency.CurrencyRepository
 import com.grid.pos.model.Event
 import com.grid.pos.model.SettingsModel
+import com.grid.pos.ui.common.BaseViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -17,7 +18,7 @@ import javax.inject.Inject
 @HiltViewModel
 class ManageCurrenciesViewModel @Inject constructor(
         private val currencyRepository: CurrencyRepository
-) : ViewModel() {
+) : BaseViewModel() {
 
     private val _manageCurrenciesState = MutableStateFlow(ManageCurrenciesState())
     val manageCurrenciesState: MutableStateFlow<ManageCurrenciesState> = _manageCurrenciesState
@@ -25,6 +26,7 @@ class ManageCurrenciesViewModel @Inject constructor(
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
+            openConnectionIfNeeded()
             fetchCurrencies()
         }
     }

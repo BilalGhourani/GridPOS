@@ -31,6 +31,7 @@ import com.grid.pos.data.ThirdParty.ThirdParty
 import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.SearchableDropdownMenu
+import com.grid.pos.ui.common.SearchableDropdownMenuEx
 import com.grid.pos.ui.theme.GridPOSTheme
 
 @Composable
@@ -134,7 +135,7 @@ fun InvoiceFooterView(
                     )
                 }
 
-                SearchableDropdownMenu(items = items.toMutableList(),
+                SearchableDropdownMenuEx(items = items.toMutableList(),
                     showSelected = false,
                     modifier = Modifier.padding(
                         0.dp,
@@ -227,7 +228,7 @@ fun InvoiceFooterView(
                     clientState = ""
                     invoiceHeader.invoiceHeadThirdPartyNewName = null
                 }
-                SearchableDropdownMenu(items = thirdParties.toMutableList(),
+                SearchableDropdownMenuEx(items = thirdParties.toMutableList(),
                     selectedId = defaultThirdParty?.thirdPartyId,
                     modifier = Modifier.padding(
                         0.dp,
@@ -255,7 +256,7 @@ fun InvoiceFooterView(
                 }
             }
         }
-        SearchableDropdownMenu(
+        SearchableDropdownMenuEx(
             items = invoiceHeaders.toMutableList(),
             showSelected = false,
             selectedId = null,

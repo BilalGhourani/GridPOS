@@ -1,7 +1,6 @@
 package com.grid.pos.data
 
 import com.grid.pos.model.SettingsModel
-import org.json.JSONObject
 import java.sql.Connection
 import java.sql.DriverManager
 import java.sql.PreparedStatement
@@ -40,97 +39,58 @@ object SQLServerWrapper {
         }
     }
 
+    fun closeResultSet(resultSet: ResultSet) {
+        try {
+            val statement = resultSet.statement
+            if (mConnection == null && !statement.connection.isClosed) {
+                statement.connection.close()
+            }
+            if (!statement.isClosed) {
+                statement.close()
+            }
+            if (!resultSet.isClosed) {
+                resultSet.close()
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
     fun getListOf(
             tableName: String,
             colPrefix: String = "",
             columns: MutableList<String>,
             where: String,
             joinSubQuery: String = "",
-    ): List<JSONObject> {
-        var connection: Connection? = null
-        var statement: PreparedStatement? = null
-        var resultSet: ResultSet? = null
-        val result = mutableListOf<JSONObject>()
+    ): ResultSet? {
         try {
-            connection = getConnection()
+            val connection = getConnection()
             val cols = columns.joinToString(", ")
             val whereQuery = if (where.isNotEmpty()) "WHERE $where " else ""
             val query = "SELECT $colPrefix $cols FROM $tableName $joinSubQuery $whereQuery"
-            statement = connection.prepareStatement(query)
-            resultSet = statement.executeQuery()
-            if (cols.contains("*")) {
-                // Get the ResultSetMetaData
-                val metaData = resultSet.metaData
-
-                // Get the number of columns
-                val columnCount = metaData.columnCount
-                columns.clear()
-                // Iterate through the columns and print their names
-                for (i in 1..columnCount) {
-                    columns.add(metaData.getColumnName(i))
-                }
-            }
-            while (resultSet.next()) {
-                val obj = JSONObject()
-                for (columnName in columns) {
-                    val columnValue = resultSet.getObject(columnName)
-                    obj.put(
-                        columnName,
-                        columnValue
-                    )
-                }
-                result.add(obj)
-            }
+            val statement = connection.prepareStatement(query)
+            return statement.executeQuery()
         } catch (e: Exception) {
             e.printStackTrace()
-        } finally {
-            resultSet?.close()
-            statement?.close()
-            if (mConnection == null) {
-                connection?.close()
-            }
         }
-        return result
+        return null
     }
 
     fun executeProcedure(
             procedureName: String,
             params: List<Any>,
-    ): List<JSONObject> {
-        var connection: Connection? = null
-        var statement: PreparedStatement? = null
-        var resultSet: ResultSet? = null
-        val result = mutableListOf<JSONObject>()
+    ): ResultSet? {
         try {
-            connection = getConnection()
-
+            val connection = getConnection()
             val parameters = params.joinToString(", ")
             // Prepare the stored procedure call
             val query = "select dbo.$procedureName($parameters) as $procedureName" // Modify with your procedure and parameters
-            statement = connection.prepareStatement(query)
-            resultSet = statement.executeQuery()
-
-            while (resultSet.next()) {
-                val obj = JSONObject()
-                val value = resultSet.getString(procedureName) // Replace with actual column names
-                obj.put(
-                    procedureName,
-                    value
-                )
-                result.add(obj)
-            }
-
-
+            val statement = connection.prepareStatement(query)
+            return statement.executeQuery()
         } catch (e: Exception) {
             e.printStackTrace()
-        } finally {
-            resultSet?.close()
-            statement?.close()
-            if (mConnection == null) {
-                connection?.close()
-            }
         }
-        return result
+        return null
     }
 
     fun insert(
@@ -142,12 +102,18 @@ object SQLServerWrapper {
             return
         }
         val cols = columns.joinToString(", ")
-        val vals = columns.joinToString(", ") { "?" }
-        val sqlQuery = "INSERT INTO $tableName ($cols) VALUES ($vals)"
-        runDbQuery(
-            sqlQuery,
-            values
-        )
+        val vals = values.joinToString(", ") {
+            if (it is String) {
+                if (it.startsWith("HashBytes")) {
+                    it
+                } else {
+                    "'$it'"
+                }
+            } else {
+                "'$it'"
+            }
+        }
+        runDbQuery("INSERT INTO $tableName ($cols) VALUES ($vals)")
     }
 
     fun update(
@@ -159,13 +125,17 @@ object SQLServerWrapper {
         if (columns.size != values.size) {
             return
         }
-        val setStatement = columns.joinToString(", ") { "$it = ?" }
+        //val setStatement = columns.joinToString(", ") { "$it = ?" }
+        // Combine the lists into the desired format
+        val setStatement = columns.zip(values) { param, value ->
+            if (value is String && value.startsWith("HashBytes")) {
+                "$param=$value"
+            } else {
+                "$param='$value'"
+            }
+        }.joinToString(", ")
         val whereQuery = if (where.isNotEmpty()) "WHERE $where " else ""
-        val sqlQuery = "UPDATE $tableName SET $setStatement $whereQuery"
-        runDbQuery(
-            sqlQuery,
-            values
-        )
+        runDbQuery("UPDATE $tableName SET $setStatement $whereQuery")
     }
 
     fun delete(
@@ -174,40 +144,38 @@ object SQLServerWrapper {
             innerJoin: String = ""
     ) {
         val whereQuery = if (where.isNotEmpty()) "WHERE $where " else ""
-        val sqlQuery = "DELETE FROM $tableName $innerJoin $whereQuery"
-        runDbQuery(
-            sqlQuery,
-            listOf()
-        )
+        runDbQuery("DELETE FROM $tableName $innerJoin $whereQuery")
     }
 
     private fun runDbQuery(
             query: String,
-            params: List<Any?>
+            params: List<Any?>? = null
     ): Boolean {
         var connection: Connection? = null
         var statement: PreparedStatement? = null
-        return try {
+        var isSuccess: Boolean
+        try {
             connection = getConnection()
             statement = connection.prepareStatement(query)
 
-            params.forEachIndexed { index, param ->
+            params?.forEachIndexed { index, param ->
                 statement.setObject(
                     index + 1,
                     param
                 )
             }
             val executeVal = statement.executeUpdate()
-            executeVal > 0
+            isSuccess = executeVal > 0
         } catch (e: Exception) {
             e.printStackTrace()
-            false
+            isSuccess = false
         } finally {
             statement?.close()
             if (mConnection == null) {
                 connection?.close()
             }
         }
+        return isSuccess
     }
 
     private fun getConnection(): Connection {

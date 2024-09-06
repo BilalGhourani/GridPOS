@@ -19,4 +19,6 @@ interface ThirdPartyRepository {
 
     suspend fun getOneThirdPartyByUserID(userId: String): ThirdParty?
 
+    suspend fun getDefaultThirdParties(): ThirdParty?
+
 }

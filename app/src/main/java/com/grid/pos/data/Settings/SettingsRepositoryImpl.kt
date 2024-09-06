@@ -1,16 +1,8 @@
 package com.grid.pos.data.Settings
 
-import com.google.firebase.firestore.FirebaseFirestore
-import com.grid.pos.data.InvoiceHeader.InvoiceHeader
-import com.grid.pos.data.PosReceipt.PosReceipt
 import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.SettingsModel
-import com.grid.pos.utils.DateHelper
-import com.grid.pos.utils.Utils
-import kotlinx.coroutines.tasks.await
-import org.json.JSONObject
-import java.util.Date
 
 class SettingsRepositoryImpl : SettingsRepository {
     override suspend fun getSalesInvoiceTransType(): String? {
@@ -26,22 +18,29 @@ class SettingsRepositoryImpl : SettingsRepository {
             }
 
             else -> {
-                val where = if (SettingsModel.isSqlServerWebDb) {
-                    "tt_type='Sales Invoice' and tt_cmp_id='${SettingsModel.getCompanyID()}'"
-                } else {
-                    "tt_type='Sales Invoice'"
-                }
+                try {
+                    val where = if (SettingsModel.isSqlServerWebDb) {
+                        "tt_type='Sales Invoice' and tt_cmp_id='${SettingsModel.getCompanyID()}'"
+                    } else {
+                        "tt_type='Sales Invoice'"
+                    }
 
-                val dbResult = SQLServerWrapper.getListOf(
-                    "acc_transactiontype",
-                    "",
-                    mutableListOf(
-                        "tt_code"
-                    ),
-                    where
-                )
-                if (dbResult.isNotEmpty()) {
-                    return dbResult[0].optString("tt_code")
+                    val dbResult = SQLServerWrapper.getListOf(
+                        "acc_transactiontype",
+                        "",
+                        mutableListOf(
+                            "tt_code"
+                        ),
+                        where
+                    )
+                    dbResult?.let {
+                        if (it.next()) {
+                            return it.getString("tt_code")
+                        }
+                        SQLServerWrapper.closeResultSet(it)
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
                 }
                 return null
             }
@@ -61,21 +60,28 @@ class SettingsRepositoryImpl : SettingsRepository {
             }
 
             else -> {
-                val where = if (SettingsModel.isSqlServerWebDb) {
-                    "tt_type='Return Sale' and tt_cmp_id='${SettingsModel.getCompanyID()}'"
-                } else {
-                    "tt_type='Return Sale'"
-                }
-                val dbResult = SQLServerWrapper.getListOf(
-                    "acc_transactiontype",
-                    "",
-                    mutableListOf(
-                        "tt_code"
-                    ),
-                    where
-                )
-                if (dbResult.isNotEmpty()) {
-                    return dbResult[0].optString("tt_code")
+                try {
+                    val where = if (SettingsModel.isSqlServerWebDb) {
+                        "tt_type='Return Sale' and tt_cmp_id='${SettingsModel.getCompanyID()}'"
+                    } else {
+                        "tt_type='Return Sale'"
+                    }
+                    val dbResult = SQLServerWrapper.getListOf(
+                        "acc_transactiontype",
+                        "",
+                        mutableListOf(
+                            "tt_code"
+                        ),
+                        where
+                    )
+                    dbResult?.let {
+                        if (it.next()) {
+                            return it.getString("tt_code")
+                        }
+                        SQLServerWrapper.closeResultSet(it)
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
                 }
                 return null
             }
@@ -95,21 +101,28 @@ class SettingsRepositoryImpl : SettingsRepository {
             }
 
             else -> {
-                val where = if (SettingsModel.isSqlServerWebDb) {
-                    "bra_default=1 and bra_cmp_id='${SettingsModel.getCompanyID()}'"
-                } else {
-                    "bra_default=1"
-                }
-                val dbResult = SQLServerWrapper.getListOf(
-                    "branch",
-                    "",
-                    mutableListOf(
-                        "bra_name"
-                    ),
-                    where
-                )
-                if (dbResult.isNotEmpty()) {
-                    return dbResult[0].optString("bra_name")
+                try {
+                    val where = if (SettingsModel.isSqlServerWebDb) {
+                        "bra_default=1 and bra_cmp_id='${SettingsModel.getCompanyID()}'"
+                    } else {
+                        "bra_default=1"
+                    }
+                    val dbResult = SQLServerWrapper.getListOf(
+                        "branch",
+                        "",
+                        mutableListOf(
+                            "bra_name"
+                        ),
+                        where
+                    )
+                    dbResult?.let {
+                        if (it.next()) {
+                            return it.getString("bra_name")
+                        }
+                        SQLServerWrapper.closeResultSet(it)
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
                 }
                 return null
             }
@@ -129,21 +142,28 @@ class SettingsRepositoryImpl : SettingsRepository {
             }
 
             else -> {
-                val where = if (SettingsModel.isSqlServerWebDb) {
-                    "wa_order=1 and wa_cmp_id='${SettingsModel.getCompanyID()}'"
-                } else {
-                    "wa_order=1"
-                }
-                val dbResult = SQLServerWrapper.getListOf(
-                    if (SettingsModel.isSqlServerWebDb) "warehouse" else "st_warehouse",
-                    "",
-                    mutableListOf(
-                        "wa_name"
-                    ),
-                    where
-                )
-                if (dbResult.isNotEmpty()) {
-                    return dbResult[0].optString("wa_name")
+                try {
+                    val where = if (SettingsModel.isSqlServerWebDb) {
+                        "wa_order=1 and wa_cmp_id='${SettingsModel.getCompanyID()}'"
+                    } else {
+                        "wa_order=1"
+                    }
+                    val dbResult = SQLServerWrapper.getListOf(
+                        if (SettingsModel.isSqlServerWebDb) "warehouse" else "st_warehouse",
+                        "",
+                        mutableListOf(
+                            "wa_name"
+                        ),
+                        where
+                    )
+                    dbResult?.let {
+                        if (it.next()) {
+                            return it.getString("wa_name")
+                        }
+                        SQLServerWrapper.closeResultSet(it)
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
                 }
                 return null
             }

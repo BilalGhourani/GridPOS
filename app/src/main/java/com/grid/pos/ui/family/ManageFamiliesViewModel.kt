@@ -5,7 +5,10 @@ import androidx.lifecycle.viewModelScope
 import com.grid.pos.data.Family.Family
 import com.grid.pos.data.Family.FamilyRepository
 import com.grid.pos.data.Item.ItemRepository
+import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.model.Event
+import com.grid.pos.model.SettingsModel
+import com.grid.pos.ui.common.BaseViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -18,7 +21,7 @@ import javax.inject.Inject
 class ManageFamiliesViewModel @Inject constructor(
         private val familyRepository: FamilyRepository,
         private val itemRepository: ItemRepository
-) : ViewModel() {
+) : BaseViewModel() {
 
     private val _manageFamiliesState = MutableStateFlow(ManageFamiliesState())
     val manageFamiliesState: MutableStateFlow<ManageFamiliesState> = _manageFamiliesState
@@ -26,7 +29,7 @@ class ManageFamiliesViewModel @Inject constructor(
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
-            fetchFamilies()
+           openConnectionIfNeeded()
         }
     }
 
@@ -40,12 +43,18 @@ class ManageFamiliesViewModel @Inject constructor(
         }
     }
 
-    private suspend fun fetchFamilies() {
-        val listOfFamilies = familyRepository.getAllFamilies()
-        viewModelScope.launch(Dispatchers.Main) {
-            manageFamiliesState.value = manageFamiliesState.value.copy(
-                families = listOfFamilies
-            )
+    fun fetchFamilies() {
+        manageFamiliesState.value = manageFamiliesState.value.copy(
+            isLoading = true
+        )
+        viewModelScope.launch(Dispatchers.IO) {
+            val listOfFamilies = familyRepository.getAllFamilies()
+            withContext(Dispatchers.Main) {
+                manageFamiliesState.value = manageFamiliesState.value.copy(
+                    families = listOfFamilies,
+                    isLoading = false
+                )
+            }
         }
     }
 

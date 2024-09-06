@@ -2,14 +2,12 @@ package com.grid.pos.data.PosReceipt
 
 import com.google.firebase.firestore.FirebaseFirestore
 import com.grid.pos.data.Currency.Currency
-import com.grid.pos.data.InvoiceHeader.InvoiceHeader
 import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.DateHelper
 import com.grid.pos.utils.Utils
 import kotlinx.coroutines.tasks.await
-import org.json.JSONObject
 import java.util.Date
 
 class PosReceiptRepositoryImpl(
@@ -381,7 +379,7 @@ class PosReceiptRepositoryImpl(
                 val document = querySnapshot.documents.firstOrNull()
                 if (document != null) {
                     val obj = document.toObject(PosReceipt::class.java)
-                    if (obj != null && !obj.posReceiptId.isNullOrEmpty()) {
+                    if (obj != null && obj.posReceiptId.isNotEmpty()) {
                         obj.posReceiptDocumentId = document.id
                         return obj
                     }
@@ -402,66 +400,72 @@ class PosReceiptRepositoryImpl(
                     where,
                     " INNER JOIN pos_receiptacc on pr_ra_id = ra_id"
                 )
-                if (dbResult.isNotEmpty()) {
+
+                try {
                     val posReceipt = PosReceipt()
                     var commonAreFilled = false
-                    dbResult.forEachIndexed { index, obj ->
-                        if (!commonAreFilled) {
-                            commonAreFilled = true
-                            posReceipt.posReceiptId = obj.optString("pr_id")
-                            posReceipt.posReceiptInvoiceId = obj.optString("pr_hi_id")
+                    dbResult?.let {
+                        while (it.next()) {
+                            if (!commonAreFilled) {
+                                commonAreFilled = true
+                                posReceipt.posReceiptId = it.getString("pr_id")
+                                posReceipt.posReceiptInvoiceId = it.getString("pr_hi_id")
 
-                            val timeStamp = obj.opt("pr_timestamp")
-                            posReceipt.posReceiptTimeStamp = if (timeStamp is Date) timeStamp else DateHelper.getDateFromString(
-                                timeStamp as String,
-                                "yyyy-MM-dd hh:mm:ss.SSS"
-                            )
-                            posReceipt.posReceiptDateTime = posReceipt.posReceiptTimeStamp!!.time
-                            posReceipt.posReceiptUserStamp = obj.optString("pr_userstamp")
+                                val timeStamp = it.getObject("pr_timestamp")
+                                posReceipt.posReceiptTimeStamp = if (timeStamp is Date) timeStamp else DateHelper.getDateFromString(
+                                    timeStamp as String,
+                                    "yyyy-MM-dd hh:mm:ss.SSS"
+                                )
+                                posReceipt.posReceiptDateTime = posReceipt.posReceiptTimeStamp!!.time
+                                posReceipt.posReceiptUserStamp = it.getString("pr_userstamp")
+                            }
+                            val raType = it.getString("ra_type")
+                            val raOrder = it.getInt("ra_order")
+                            when (raType) {
+                                "Cash" -> {
+                                    if (raOrder == 1) {
+                                        posReceipt.posReceiptCashID = it.getString("pr_id")
+                                        posReceipt.posReceiptCashRaID = it.getString("pr_ra_id")
+                                        posReceipt.posReceiptCash = it.getDouble("pr_amt")
+                                    } else {
+                                        posReceipt.posReceiptCashsID = it.getString("pr_id")
+                                        posReceipt.posReceiptCashsRaID = it.getString("pr_ra_id")
+                                        posReceipt.posReceiptCashs = it.getDouble("pr_amt")
+                                    }
+                                }
+
+                                "Credit" -> {
+                                    if (raOrder == 1) {
+                                        posReceipt.posReceiptCreditID = it.getString("pr_id")
+                                        posReceipt.posReceiptCreditRaID = it.getString("pr_ra_id")
+                                        posReceipt.posReceiptCredit = it.getDouble("pr_amt")
+                                    } else {
+                                        posReceipt.posReceiptCreditsID = it.getString("pr_id")
+                                        posReceipt.posReceiptCreditsRaID = it.getString("pr_ra_id")
+                                        posReceipt.posReceiptCredits = it.getDouble("pr_amt")
+                                    }
+
+                                }
+
+                                "Debit" -> {
+                                    if (raOrder == 1) {
+                                        posReceipt.posReceiptDebitID = it.getString("pr_id")
+                                        posReceipt.posReceiptDebitRaID = it.getString("pr_ra_id")
+                                        posReceipt.posReceiptDebit = it.getDouble("pr_amt")
+                                    } else {
+                                        posReceipt.posReceiptDebitsID = it.getString("pr_id")
+                                        posReceipt.posReceiptDebitsRaID = it.getString("pr_ra_id")
+                                        posReceipt.posReceiptDebits = it.getDouble("pr_amt")
+                                    }
+
+                                }
+                            }
                         }
-                        val ra_type = obj.optString("ra_type")
-                        val ra_order = obj.optInt("ra_order")
-                        when (ra_type) {
-                            "Cash" -> {
-                                if (ra_order == 1) {
-                                    posReceipt.posReceiptCashID = obj.optString("pr_id")
-                                    posReceipt.posReceiptCashRaID = obj.optString("pr_ra_id")
-                                    posReceipt.posReceiptCash = obj.optDouble("pr_amt")
-                                } else {
-                                    posReceipt.posReceiptCashsID = obj.optString("pr_id")
-                                    posReceipt.posReceiptCashsRaID = obj.optString("pr_ra_id")
-                                    posReceipt.posReceiptCashs = obj.optDouble("pr_amt")
-                                }
-                            }
-
-                            "Credit" -> {
-                                if (ra_order == 1) {
-                                    posReceipt.posReceiptCreditID = obj.optString("pr_id")
-                                    posReceipt.posReceiptCreditRaID = obj.optString("pr_ra_id")
-                                    posReceipt.posReceiptCredit = obj.optDouble("pr_amt")
-                                } else {
-                                    posReceipt.posReceiptCreditsID = obj.optString("pr_id")
-                                    posReceipt.posReceiptCreditsRaID = obj.optString("pr_ra_id")
-                                    posReceipt.posReceiptCredits = obj.optDouble("pr_amt")
-                                }
-
-                            }
-
-                            "Debit" -> {
-                                if (ra_order == 1) {
-                                    posReceipt.posReceiptDebitID = obj.optString("pr_id")
-                                    posReceipt.posReceiptDebitRaID = obj.optString("pr_ra_id")
-                                    posReceipt.posReceiptDebit = obj.optDouble("pr_amt")
-                                } else {
-                                    posReceipt.posReceiptDebitsID = obj.optString("pr_id")
-                                    posReceipt.posReceiptDebitsRaID = obj.optString("pr_ra_id")
-                                    posReceipt.posReceiptDebits = obj.optDouble("pr_amt")
-                                }
-
-                            }
-                        }
+                        SQLServerWrapper.closeResultSet(it)
+                        return posReceipt
                     }
-                    return posReceipt
+                } catch (e: Exception) {
+                    e.printStackTrace()
                 }
                 return null
             }
@@ -589,14 +593,14 @@ class PosReceiptRepositoryImpl(
             order: Int,
             index: Int
     ) {
-        val pr_id = Utils.generateRandomUuidString()
-        val ra_id_cash1 = Utils.generateRandomUuidString()
+        val prId = Utils.generateRandomUuidString()
+        val raIdCash1 = Utils.generateRandomUuidString()
         SQLServerWrapper.insert(
             "pos_receiptacc",
             getReceiptAccColumns(),
             if (SettingsModel.isSqlServerWebDb) {
                 listOf(
-                    ra_id_cash1,
+                    raIdCash1,
                     530,
                     currency?.currencyId,
                     "Cash $order",
@@ -606,7 +610,7 @@ class PosReceiptRepositoryImpl(
                 )
             } else {
                 listOf(
-                    ra_id_cash1,
+                    raIdCash1,
                     530,
                     currency?.currencyId,
                     "Cash $order",
@@ -616,12 +620,12 @@ class PosReceiptRepositoryImpl(
             }
         )
         val values = getValues(
-            pr_id,
+            prId,
             posReceipt,
             index,
             rate
         )
-        values.add(ra_id_cash1)
+        values.add(raIdCash1)
         SQLServerWrapper.insert(
             "pos_receipt",
             columns,

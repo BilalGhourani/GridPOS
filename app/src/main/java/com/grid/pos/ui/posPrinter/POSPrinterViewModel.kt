@@ -1,11 +1,11 @@
 package com.grid.pos.ui.posPrinter
 
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.grid.pos.data.Item.ItemRepository
 import com.grid.pos.data.PosPrinter.PosPrinter
 import com.grid.pos.data.PosPrinter.PosPrinterRepository
 import com.grid.pos.model.Event
+import com.grid.pos.ui.common.BaseViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -18,7 +18,7 @@ import javax.inject.Inject
 class POSPrinterViewModel @Inject constructor(
         private val posPrinterRepository: PosPrinterRepository,
         private val itemRepository: ItemRepository
-) : ViewModel() {
+) : BaseViewModel() {
 
     private val _posPrinterState = MutableStateFlow(POSPrinterState())
     val posPrinterState: MutableStateFlow<POSPrinterState> = _posPrinterState
@@ -26,7 +26,7 @@ class POSPrinterViewModel @Inject constructor(
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
-            fetchPrinters()
+            openConnectionIfNeeded()
         }
     }
 
@@ -40,11 +40,20 @@ class POSPrinterViewModel @Inject constructor(
         }
     }
 
-    private suspend fun fetchPrinters() {
-        val listOfPrinters = posPrinterRepository.getAllPosPrinters()
+    fun fetchPrinters() {
         posPrinterState.value = posPrinterState.value.copy(
-            printers = listOfPrinters
+            warning = null,
+            isLoading = true
         )
+        viewModelScope.launch(Dispatchers.IO) {
+            val listOfPrinters = posPrinterRepository.getAllPosPrinters()
+            withContext(Dispatchers.Main) {
+                posPrinterState.value = posPrinterState.value.copy(
+                    printers = listOfPrinters,
+                    isLoading = false
+                )
+            }
+        }
     }
 
     fun showWarning(

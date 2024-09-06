@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
@@ -17,7 +18,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Image
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.RemoveCircleOutline
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -56,10 +56,11 @@ import androidx.navigation.NavController
 import com.grid.pos.ActivityScopedViewModel
 import com.grid.pos.R
 import com.grid.pos.data.Company.Company
+import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.interfaces.OnGalleryResult
 import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
-import com.grid.pos.ui.common.SearchableDropdownMenu
+import com.grid.pos.ui.common.SearchableDropdownMenuEx
 import com.grid.pos.ui.common.UIButton
 import com.grid.pos.ui.common.UISwitch
 import com.grid.pos.ui.common.UITextField
@@ -171,11 +172,11 @@ fun ManageCompaniesView(
                         saveAndBack = true
                         saveCompany()
                     }
-                    dialogTitle =null
+                    dialogTitle = null
                     dialogText = "Do you want to save your changes"
                     positiveBtnText = "Save"
                     negativeBtnText = "Close"
-                    icon =  null
+                    icon = null
                     height = 100.dp
                 })
             return
@@ -183,6 +184,7 @@ fun ManageCompaniesView(
         if (manageCompaniesState.companies.isNotEmpty()) {
             activityScopedViewModel.companies = manageCompaniesState.companies
         }
+        viewModel.closeConnectionIfNeeded()
         navController?.navigateUp()
     }
 
@@ -266,354 +268,400 @@ fun ManageCompaniesView(
                     .background(color = Color.Transparent)
             ) {
                 Column(
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(top = 90.dp)
+                        .verticalScroll(
+                            rememberScrollState()
+                        ),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .verticalScroll(
-                                rememberScrollState()
-                            )
-                            .weight(1f),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        SearchableDropdownMenu(items = manageCompaniesState.companies.toMutableList(),
-                            modifier = Modifier.padding(10.dp),
-                            label = "Select Company",
-                            selectedId = manageCompaniesState.selectedCompany.companyId,
-                            leadingIcon = {
-                                if (manageCompaniesState.selectedCompany.companyId.isNotEmpty()) {
-                                    Icon(
-                                        Icons.Default.RemoveCircleOutline,
-                                        contentDescription = "remove family",
-                                        tint = Color.Black,
-                                        modifier = it
-                                    )
-                                }
-                            },
-                            onLeadingIconClick = {
-                                clear()
-                            }) { company ->
-                            company as Company
-                            viewModel.currentCompany = company.copy()
-                            manageCompaniesState.selectedCompany = company
-                            nameState = company.companyName ?: ""
-                            phoneState = company.companyPhone ?: ""
-                            addressState = company.companyAddress ?: ""
-                            countryState = company.companyCountry ?: ""
-                            taxRegnoState = company.companyTaxRegno ?: ""
-                            taxState = company.companyTax.toString()
-                            upWithTaxState = company.companyUpWithTax
-                            //printerState = company.companyPrinterId ?: ""
-                            emailState = company.companyEmail ?: ""
-                            webState = company.companyWeb ?: ""
-                            logoState = company.companyLogo ?: ""
-                            tax1RegnoState = company.companyTax1Regno ?: ""
-                            tax1State = company.companyTax1.toString()
-                            tax2RegnoState = company.companyTax2Regno ?: ""
-                            tax2State = company.companyTax2.toString()
+                    //name
+                    UITextField(modifier = Modifier.padding(
+                        horizontal = 10.dp,
+                        vertical = 5.dp
+                    ),
+                        defaultValue = nameState,
+                        label = "Name",
+                        placeHolder = "Enter Name",
+                        onAction = { phoneFocusRequester.requestFocus() }) { name ->
+                        nameState = name
+                        manageCompaniesState.selectedCompany.companyName = name
+                    }
+
+                    //phone
+                    UITextField(modifier = Modifier.padding(
+                        horizontal = 10.dp,
+                        vertical = 5.dp
+                    ),
+                        defaultValue = phoneState,
+                        label = "Phone",
+                        focusRequester = phoneFocusRequester,
+                        placeHolder = "Enter Phone",
+                        onAction = { addressFocusRequester.requestFocus() }) { phone ->
+                        phoneState = phone
+                        manageCompaniesState.selectedCompany.companyPhone = phone
+                    }
+
+                    //address
+                    UITextField(modifier = Modifier.padding(
+                        horizontal = 10.dp,
+                        vertical = 5.dp
+                    ),
+                        defaultValue = addressState,
+                        label = "Address",
+                        maxLines = 3,
+                        focusRequester = addressFocusRequester,
+                        placeHolder = "Enter address",
+                        onAction = {
+                            countryFocusRequester.requestFocus()
+                        }) { address ->
+                        addressState = address
+                        manageCompaniesState.selectedCompany.companyAddress = address
+                    }
+
+                    //country
+                    UITextField(modifier = Modifier.padding(
+                        horizontal = 10.dp,
+                        vertical = 5.dp
+                    ),
+                        defaultValue = countryState,
+                        label = "Country",
+                        maxLines = 3,
+                        focusRequester = countryFocusRequester,
+                        placeHolder = "Enter country",
+                        onAction = {
+                            if (SettingsModel.showTax) {
+                                taxRegNoFocusRequester.requestFocus()
+                            } else if (SettingsModel.showTax1) {
+                                tax1RegNoFocusRequester.requestFocus()
+                            } else if (SettingsModel.showTax2) {
+                                tax2RegNoFocusRequester.requestFocus()
+                            } else {
+                                emailFocusRequester.requestFocus()
+                            }
+                        }) { country ->
+                        countryState = country
+                        manageCompaniesState.selectedCompany.companyCountry = countryState
+                    }
+
+                    /*SearchableDropdownMenuEx(
+                        items = manageCompaniesState.printers.toMutableList(),
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+                        label = "Select Printer",
+                        selectedId = printerState
+                    ) { printer ->
+                        printer as PosPrinter
+                        printerState = printer.posPrinterId
+                        manageCompaniesState.selectedCompany.companyPrinterId = printerState
+                    }*/
+
+                    //email
+                    UITextField(modifier = Modifier.padding(
+                        horizontal = 10.dp,
+                        vertical = 5.dp
+                    ),
+                        defaultValue = emailState,
+                        label = "Email Address",
+                        placeHolder = "Enter Email Address",
+                        focusRequester = emailFocusRequester,
+                        onAction = { webFocusRequester.requestFocus() }) { email ->
+                        emailState = email
+                        manageCompaniesState.selectedCompany.companyEmail = email
+                    }
+
+                    //web
+                    UITextField(modifier = Modifier.padding(
+                        horizontal = 10.dp,
+                        vertical = 5.dp
+                    ),
+                        defaultValue = webState,
+                        label = "Website",
+                        placeHolder = "Enter Website",
+                        focusRequester = webFocusRequester,
+                        onAction = { logoFocusRequester.requestFocus() }) { web ->
+                        webState = web
+                        manageCompaniesState.selectedCompany.companyWeb = web
+                    }
+
+                    //logo
+                    UITextField(modifier = Modifier.padding(
+                        horizontal = 10.dp,
+                        vertical = 5.dp
+                    ),
+                        defaultValue = logoState,
+                        label = "Logo",
+                        placeHolder = "Enter Logo",
+                        focusRequester = logoFocusRequester,
+                        imeAction = ImeAction.Done,
+                        onAction = { keyboardController?.hide() },
+                        trailingIcon = {
+                            IconButton(onClick = {
+                                activityScopedViewModel.launchGalleryPicker(mediaType = ActivityResultContracts.PickVisualMedia.ImageOnly,
+                                    object : OnGalleryResult {
+                                        override fun onGalleryResult(uris: List<Uri>) {
+                                            if (uris.isNotEmpty()) {
+                                                manageCompaniesState.isLoading = true
+                                                CoroutineScope(Dispatchers.IO).launch {
+                                                    val internalPath = FileUtils.saveToExternalStorage(context = context,
+                                                        parent = "company logo",
+                                                        uris[0],
+                                                        nameState.trim().replace(
+                                                            " ",
+                                                            "_"
+                                                        ).ifEmpty { "item" })
+                                                    withContext(Dispatchers.Main) {
+                                                        manageCompaniesState.isLoading = false
+                                                        if (internalPath != null) {
+                                                            oldImage = logoState
+                                                            logoState = internalPath
+                                                            manageCompaniesState.selectedCompany.companyLogo = logoState
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    },
+                                    onPermissionDenied = {
+                                        viewModel.showWarning(
+                                            "Permission Denied",
+                                            "Settings"
+                                        )
+                                    })
+                            }) {
+                                Icon(
+                                    Icons.Default.Image,
+                                    contentDescription = "Image",
+                                    tint = SettingsModel.buttonColor
+                                )
+                            }
+                        }) { logo ->
+                        logoState = logo
+                        manageCompaniesState.selectedCompany.companyLogo = logo
+                    }
+
+                    if (SettingsModel.showTax) {
+                        //tax reg no
+                        UITextField(modifier = Modifier.padding(
+                            horizontal = 10.dp,
+                            vertical = 5.dp
+                        ),
+                            defaultValue = taxRegnoState,
+                            label = "Tax Reg. No",
+                            focusRequester = taxRegNoFocusRequester,
+                            placeHolder = "Enter Tax Reg. No",
+                            onAction = { taxFocusRequester.requestFocus() }) { taxRegno ->
+                            taxRegnoState = taxRegno
+                            manageCompaniesState.selectedCompany.companyTaxRegno = taxRegno
                         }
 
-                        //name
-                        UITextField(modifier = Modifier.padding(10.dp),
-                            defaultValue = nameState,
-                            label = "Name",
-                            placeHolder = "Enter Name",
-                            onAction = { phoneFocusRequester.requestFocus() }) { name ->
-                            nameState = name
-                            manageCompaniesState.selectedCompany.companyName = name
-                        }
-
-                        //phone
-                        UITextField(modifier = Modifier.padding(10.dp),
-                            defaultValue = phoneState,
-                            label = "Phone",
-                            focusRequester = phoneFocusRequester,
-                            placeHolder = "Enter Phone",
-                            onAction = { addressFocusRequester.requestFocus() }) { phone ->
-                            phoneState = phone
-                            manageCompaniesState.selectedCompany.companyPhone = phone
-                        }
-
-                        //address
-                        UITextField(modifier = Modifier.padding(10.dp),
-                            defaultValue = addressState,
-                            label = "Address",
-                            maxLines = 3,
-                            focusRequester = addressFocusRequester,
-                            placeHolder = "Enter address",
+                        //tax
+                        UITextField(modifier = Modifier.padding(
+                            horizontal = 10.dp,
+                            vertical = 5.dp
+                        ),
+                            defaultValue = taxState,
+                            label = "Tax",
+                            focusRequester = taxFocusRequester,
+                            keyboardType = KeyboardType.Decimal,
+                            placeHolder = "Enter Tax",
                             onAction = {
-                                countryFocusRequester.requestFocus()
-                            }) { address ->
-                            addressState = address
-                            manageCompaniesState.selectedCompany.companyAddress = address
-                        }
-
-                        //country
-                        UITextField(modifier = Modifier.padding(10.dp),
-                            defaultValue = countryState,
-                            label = "Country",
-                            maxLines = 3,
-                            focusRequester = countryFocusRequester,
-                            placeHolder = "Enter country",
-                            onAction = {
-                                if (SettingsModel.showTax) {
-                                    taxRegNoFocusRequester.requestFocus()
-                                } else if (SettingsModel.showTax1) {
+                                if (SettingsModel.showTax1) {
                                     tax1RegNoFocusRequester.requestFocus()
                                 } else if (SettingsModel.showTax2) {
                                     tax2RegNoFocusRequester.requestFocus()
                                 } else {
                                     emailFocusRequester.requestFocus()
                                 }
-                            }) { country ->
-                            countryState = country
-                            manageCompaniesState.selectedCompany.companyCountry = countryState
+                            }) { tax ->
+                            taxState = Utils.getDoubleValue(
+                                tax,
+                                taxState
+                            )
+                            manageCompaniesState.selectedCompany.companyTax = taxState.toDoubleOrNull() ?: 0.0
                         }
-
-                        /*SearchableDropdownMenu(
-                            items = manageCompaniesState.printers.toMutableList(),
-                            modifier = Modifier.padding(10.dp),
-                            label = "Select Printer",
-                            selectedId = printerState
-                        ) { printer ->
-                            printer as PosPrinter
-                            printerState = printer.posPrinterId
-                            manageCompaniesState.selectedCompany.companyPrinterId = printerState
-                        }*/
-
-                        //email
-                        UITextField(modifier = Modifier.padding(10.dp),
-                            defaultValue = emailState,
-                            label = "Email Address",
-                            placeHolder = "Enter Email Address",
-                            focusRequester = emailFocusRequester,
-                            onAction = { webFocusRequester.requestFocus() }) { email ->
-                            emailState = email
-                            manageCompaniesState.selectedCompany.companyEmail = email
-                        }
-
-                        //web
-                        UITextField(modifier = Modifier.padding(10.dp),
-                            defaultValue = webState,
-                            label = "Website",
-                            placeHolder = "Enter Website",
-                            focusRequester = webFocusRequester,
-                            onAction = { logoFocusRequester.requestFocus() }) { web ->
-                            webState = web
-                            manageCompaniesState.selectedCompany.companyWeb = web
-                        }
-
-                        //logo
-                        UITextField(modifier = Modifier.padding(10.dp),
-                            defaultValue = logoState,
-                            label = "Logo",
-                            placeHolder = "Enter Logo",
-                            focusRequester = logoFocusRequester,
-                            imeAction = ImeAction.Done,
-                            onAction = { keyboardController?.hide() },
-                            trailingIcon = {
-                                IconButton(onClick = {
-                                    activityScopedViewModel.launchGalleryPicker(mediaType = ActivityResultContracts.PickVisualMedia.ImageOnly,
-                                        object : OnGalleryResult {
-                                            override fun onGalleryResult(uris: List<Uri>) {
-                                                if (uris.isNotEmpty()) {
-                                                    manageCompaniesState.isLoading = true
-                                                    CoroutineScope(Dispatchers.IO).launch {
-                                                        val internalPath = FileUtils.saveToExternalStorage(context = context,
-                                                            parent = "company logo",
-                                                            uris[0],
-                                                            nameState.trim().replace(
-                                                                " ",
-                                                                "_"
-                                                            ).ifEmpty { "item" })
-                                                        withContext(Dispatchers.Main) {
-                                                            manageCompaniesState.isLoading = false
-                                                            if (internalPath != null) {
-                                                                oldImage = logoState
-                                                                logoState = internalPath
-                                                                manageCompaniesState.selectedCompany.companyLogo = logoState
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        },
-                                        onPermissionDenied = {
-                                            viewModel.showWarning(
-                                                "Permission Denied",
-                                                "Settings"
-                                            )
-                                        })
-                                }) {
-                                    Icon(
-                                        Icons.Default.Image,
-                                        contentDescription = "Image",
-                                        tint = SettingsModel.buttonColor
-                                    )
-                                }
-                            }) { logo ->
-                            logoState = logo
-                            manageCompaniesState.selectedCompany.companyLogo = logo
-                        }
-
-                        if (SettingsModel.showTax) {
-                            //tax reg no
-                            UITextField(modifier = Modifier.padding(10.dp),
-                                defaultValue = taxRegnoState,
-                                label = "Tax Reg. No",
-                                focusRequester = taxRegNoFocusRequester,
-                                placeHolder = "Enter Tax Reg. No",
-                                onAction = { taxFocusRequester.requestFocus() }) { taxRegno ->
-                                taxRegnoState = taxRegno
-                                manageCompaniesState.selectedCompany.companyTaxRegno = taxRegno
-                            }
-
-                            //tax
-                            UITextField(modifier = Modifier.padding(10.dp),
-                                defaultValue = taxState,
-                                label = "Tax",
-                                focusRequester = taxFocusRequester,
-                                keyboardType = KeyboardType.Decimal,
-                                placeHolder = "Enter Tax",
-                                onAction = {
-                                    if (SettingsModel.showTax1) {
-                                        tax1RegNoFocusRequester.requestFocus()
-                                    } else if (SettingsModel.showTax2) {
-                                        tax2RegNoFocusRequester.requestFocus()
-                                    } else {
-                                        emailFocusRequester.requestFocus()
-                                    }
-                                }) { tax ->
-                                taxState = Utils.getDoubleValue(
-                                    tax,
-                                    taxState
-                                )
-                                manageCompaniesState.selectedCompany.companyTax = taxState.toDoubleOrNull() ?: 0.0
-                            }
-                        }
-                        if (SettingsModel.showTax1) {
-                            //tax1 reg no
-                            UITextField(modifier = Modifier.padding(10.dp),
-                                defaultValue = tax1RegnoState,
-                                label = "Tax1 Reg. No",
-                                placeHolder = "Enter Tax1 Reg. No",
-                                focusRequester = tax1RegNoFocusRequester,
-                                onAction = { tax1FocusRequester.requestFocus() }) { tax1Regno ->
-                                tax1RegnoState = tax1Regno
-                                manageCompaniesState.selectedCompany.companyTax1Regno = tax1Regno
-                            }
-
-                            //tax1
-                            UITextField(modifier = Modifier.padding(10.dp),
-                                defaultValue = tax1State,
-                                label = "Tax1",
-                                keyboardType = KeyboardType.Decimal,
-                                placeHolder = "Enter Tax1",
-                                focusRequester = tax1FocusRequester,
-                                onAction = {
-                                    if (SettingsModel.showTax2) {
-                                        tax2RegNoFocusRequester.requestFocus()
-                                    } else {
-                                        emailFocusRequester.requestFocus()
-                                    }
-                                }) { tax1 ->
-                                tax1State = Utils.getDoubleValue(
-                                    tax1,
-                                    tax1State
-                                )
-                                manageCompaniesState.selectedCompany.companyTax1 = tax1State.toDoubleOrNull() ?: 0.0
-                            }
-                        }
-                        if (SettingsModel.showTax2) {
-                            //tax2 reg no
-                            UITextField(modifier = Modifier.padding(10.dp),
-                                defaultValue = tax2RegnoState,
-                                label = "Tax2 Reg. No",
-                                placeHolder = "Enter Tax2 Reg. No",
-                                focusRequester = tax2RegNoFocusRequester,
-                                onAction = { tax2FocusRequester.requestFocus() }) { tax2Regno ->
-                                tax2RegnoState = tax2Regno
-                                manageCompaniesState.selectedCompany.companyTax2Regno = tax2Regno
-                            }
-
-                            //tax2
-                            UITextField(modifier = Modifier.padding(10.dp),
-                                defaultValue = tax2State,
-                                label = "Tax2",
-                                keyboardType = KeyboardType.Decimal,
-                                placeHolder = "Enter Tax2",
-                                focusRequester = tax2FocusRequester,
-                                onAction = { emailFocusRequester.requestFocus() }) { tax2 ->
-                                tax2State = Utils.getDoubleValue(
-                                    tax2,
-                                    tax2State
-                                )
-                                manageCompaniesState.selectedCompany.companyTax2 = tax2State.toDoubleOrNull() ?: 0.0
-                            }
-                        }
-
-
-                        UISwitch(
-                            modifier = Modifier.padding(10.dp),
-                            checked = upWithTaxState,
-                            text = "Unit price with tax",
-                        ) { unitPriceWithTax ->
-                            upWithTaxState = unitPriceWithTax
-                            manageCompaniesState.selectedCompany.companyUpWithTax = unitPriceWithTax
-                        }
-
-
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .wrapContentHeight()
-                                .padding(10.dp),
-                            verticalAlignment = Alignment.Bottom
-                        ) {
-                            UIButton(
-                                modifier = Modifier
-                                    .weight(.33f)
-                                    .padding(3.dp),
-                                text = "Save"
-                            ) {
-                                saveCompany()
-                            }
-
-                            UIButton(
-                                modifier = Modifier
-                                    .weight(.33f)
-                                    .padding(3.dp),
-                                text = "Delete"
-                            ) {
-                                oldImage?.let { old ->
-                                    FileUtils.deleteFile(
-                                        context,
-                                        old
-                                    )
-                                }
-                                if (logoState.isNotEmpty()) {
-                                    FileUtils.deleteFile(
-                                        context,
-                                        logoState
-                                    )
-                                }
-                                viewModel.deleteSelectedCompany(
-                                    manageCompaniesState.selectedCompany
-                                )
-                            }
-
-                            UIButton(
-                                modifier = Modifier
-                                    .weight(.33f)
-                                    .padding(3.dp),
-                                text = "Close"
-                            ) {
-                                handleBack()
-                            }
-                        }
-
                     }
+                    if (SettingsModel.showTax1) {
+                        //tax1 reg no
+                        UITextField(modifier = Modifier.padding(
+                            horizontal = 10.dp,
+                            vertical = 5.dp
+                        ),
+                            defaultValue = tax1RegnoState,
+                            label = "Tax1 Reg. No",
+                            placeHolder = "Enter Tax1 Reg. No",
+                            focusRequester = tax1RegNoFocusRequester,
+                            onAction = { tax1FocusRequester.requestFocus() }) { tax1Regno ->
+                            tax1RegnoState = tax1Regno
+                            manageCompaniesState.selectedCompany.companyTax1Regno = tax1Regno
+                        }
+
+                        //tax1
+                        UITextField(modifier = Modifier.padding(
+                            horizontal = 10.dp,
+                            vertical = 5.dp
+                        ),
+                            defaultValue = tax1State,
+                            label = "Tax1",
+                            keyboardType = KeyboardType.Decimal,
+                            placeHolder = "Enter Tax1",
+                            focusRequester = tax1FocusRequester,
+                            onAction = {
+                                if (SettingsModel.showTax2) {
+                                    tax2RegNoFocusRequester.requestFocus()
+                                } else {
+                                    emailFocusRequester.requestFocus()
+                                }
+                            }) { tax1 ->
+                            tax1State = Utils.getDoubleValue(
+                                tax1,
+                                tax1State
+                            )
+                            manageCompaniesState.selectedCompany.companyTax1 = tax1State.toDoubleOrNull() ?: 0.0
+                        }
+                    }
+                    if (SettingsModel.showTax2) {
+                        //tax2 reg no
+                        UITextField(modifier = Modifier.padding(
+                            horizontal = 10.dp,
+                            vertical = 5.dp
+                        ),
+                            defaultValue = tax2RegnoState,
+                            label = "Tax2 Reg. No",
+                            placeHolder = "Enter Tax2 Reg. No",
+                            focusRequester = tax2RegNoFocusRequester,
+                            onAction = { tax2FocusRequester.requestFocus() }) { tax2Regno ->
+                            tax2RegnoState = tax2Regno
+                            manageCompaniesState.selectedCompany.companyTax2Regno = tax2Regno
+                        }
+
+                        //tax2
+                        UITextField(modifier = Modifier.padding(
+                            horizontal = 10.dp,
+                            vertical = 5.dp
+                        ),
+                            defaultValue = tax2State,
+                            label = "Tax2",
+                            keyboardType = KeyboardType.Decimal,
+                            placeHolder = "Enter Tax2",
+                            focusRequester = tax2FocusRequester,
+                            onAction = { emailFocusRequester.requestFocus() }) { tax2 ->
+                            tax2State = Utils.getDoubleValue(
+                                tax2,
+                                tax2State
+                            )
+                            manageCompaniesState.selectedCompany.companyTax2 = tax2State.toDoubleOrNull() ?: 0.0
+                        }
+                    }
+
+
+                    UISwitch(
+                        modifier = Modifier.padding(
+                            horizontal = 10.dp,
+                            vertical = 5.dp
+                        ),
+                        checked = upWithTaxState,
+                        text = "Unit price with tax",
+                    ) { unitPriceWithTax ->
+                        upWithTaxState = unitPriceWithTax
+                        manageCompaniesState.selectedCompany.companyUpWithTax = unitPriceWithTax
+                    }
+
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .wrapContentHeight()
+                            .padding(
+                                horizontal = 10.dp,
+                                vertical = 5.dp
+                            ),
+                        verticalAlignment = Alignment.Bottom
+                    ) {
+                        UIButton(
+                            modifier = Modifier
+                                .weight(.33f)
+                                .padding(3.dp),
+                            text = "Save"
+                        ) {
+                            saveCompany()
+                        }
+
+                        UIButton(
+                            modifier = Modifier
+                                .weight(.33f)
+                                .padding(3.dp),
+                            text = "Delete"
+                        ) {
+                            oldImage?.let { old ->
+                                FileUtils.deleteFile(
+                                    context,
+                                    old
+                                )
+                            }
+                            if (logoState.isNotEmpty()) {
+                                FileUtils.deleteFile(
+                                    context,
+                                    logoState
+                                )
+                            }
+                            viewModel.deleteSelectedCompany(
+                                manageCompaniesState.selectedCompany
+                            )
+                        }
+
+                        UIButton(
+                            modifier = Modifier
+                                .weight(.33f)
+                                .padding(3.dp),
+                            text = "Close"
+                        ) {
+                            handleBack()
+                        }
+                    }
+
+                }
+
+                SearchableDropdownMenuEx(items = manageCompaniesState.companies.toMutableList(),
+                    modifier = Modifier.padding(
+                            top = 15.dp,
+                            start = 10.dp,
+                            end = 10.dp
+                        ),
+                    label = "Select Company",
+                    selectedId = manageCompaniesState.selectedCompany.companyId,
+                    onLoadItems = { viewModel.fetchCompanies() },
+                    leadingIcon = {
+                        if (manageCompaniesState.selectedCompany.companyId.isNotEmpty()) {
+                            Icon(
+                                Icons.Default.RemoveCircleOutline,
+                                contentDescription = "remove family",
+                                tint = Color.Black,
+                                modifier = it
+                            )
+                        }
+                    },
+                    onLeadingIconClick = {
+                        clear()
+                    }) { company ->
+                    company as Company
+                    viewModel.currentCompany = company.copy()
+                    manageCompaniesState.selectedCompany = company
+                    nameState = company.companyName ?: ""
+                    phoneState = company.companyPhone ?: ""
+                    addressState = company.companyAddress ?: ""
+                    countryState = company.companyCountry ?: ""
+                    taxRegnoState = company.companyTaxRegno ?: ""
+                    taxState = company.companyTax.toString()
+                    upWithTaxState = company.companyUpWithTax
+                    //printerState = company.companyPrinterId ?: ""
+                    emailState = company.companyEmail ?: ""
+                    webState = company.companyWeb ?: ""
+                    logoState = company.companyLogo ?: ""
+                    tax1RegnoState = company.companyTax1Regno ?: ""
+                    tax1State = company.companyTax1.toString()
+                    tax2RegnoState = company.companyTax2Regno ?: ""
+                    tax2State = company.companyTax2.toString()
                 }
             }
         }

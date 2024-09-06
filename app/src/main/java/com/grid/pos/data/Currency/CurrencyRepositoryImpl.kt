@@ -74,50 +74,49 @@ class CurrencyRepositoryImpl(
             }
 
             else -> {
-                val companyID = SettingsModel.getCompanyID()
-                val where = if (SettingsModel.isSqlServerWebDb) {
-                    "cur_cmp_id='$companyID' ORDER BY cur_order ASC"
-                } else {
-                    "(cur_order='1' OR cur_order = '2') ORDER BY cur_order ASC"
-                }
-
-                val dbResult = SQLServerWrapper.getListOf(
-                    "currency",
-                    "TOP 2",
-                    mutableListOf("*"),
-                    where
-                )
                 val currency = Currency()
-                currency.currencyCompId = companyID
-                dbResult.forEach { obj ->
-                    if (obj.optInt("cur_order") == 1) {
-                        currency.currencyId = obj.optString("cur_code")
-                        currency.currencyCode1 = if(SettingsModel.isSqlServerWebDb) obj.optString("cur_newcode") else obj.optString("cur_code")
-                        currency.currencyName1 = obj.optString("cur_name")
-                        currency.currencyName1Dec = obj.optInt("cur_decimal")
+                try {
+                    val companyID = SettingsModel.getCompanyID()
+                    val where = if (SettingsModel.isSqlServerWebDb) {
+                        "cur_cmp_id='$companyID' ORDER BY cur_order ASC"
                     } else {
-                        currency.currencyDocumentId = obj.optString("cur_code")
-                        currency.currencyCode2 = if(SettingsModel.isSqlServerWebDb) obj.optString("cur_newcode") else obj.optString("cur_code")
-                        currency.currencyName2 = obj.optString("cur_name")
-                        currency.currencyName2Dec = obj.optInt("cur_decimal")
+                        "(cur_order='1' OR cur_order = '2') ORDER BY cur_order ASC"
                     }
+
+                    val dbResult = SQLServerWrapper.getListOf(
+                        "currency",
+                        "TOP 2",
+                        mutableListOf("*"),
+                        where
+                    )
+                    currency.currencyCompId = companyID
+                    dbResult?.let {
+                        while (it.next()) {
+                            if (it.getInt("cur_order") == 1) {
+                                currency.currencyId = it.getString("cur_code")
+                                currency.currencyCode1 = if (SettingsModel.isSqlServerWebDb) it.getString("cur_newcode") else it.getString("cur_code")
+                                currency.currencyName1 = it.getString("cur_name")
+                                currency.currencyName1Dec = it.getInt("cur_decimal")
+                            } else {
+                                currency.currencyDocumentId = it.getString("cur_code")
+                                currency.currencyCode2 = if (SettingsModel.isSqlServerWebDb) it.getString("cur_newcode") else it.getString("cur_code")
+                                currency.currencyName2 = it.getString("cur_name")
+                                currency.currencyName2Dec = it.getInt("cur_decimal")
+                            }
+                        }
+                        SQLServerWrapper.closeResultSet(it)
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
                 }
 
-                /*val rateWhere =  "rate_cur_code1 = '${currency.currencyId}' AND rate_cur_code2 = '${currency.currencyDocumentId}' ORDER BY rate_date DESC"
-
-                val rateDbResult = SQLServerWrapper.getListOf(
-                    "crate",
-                    "TOP 1",
-                    mutableListOf("rate_rate"),
-                    rateWhere
-                )*/
                 if (currency.currencyId.isNotEmpty() && !currency.currencyDocumentId.isNullOrEmpty()) {
-                   val timestamp =  Timestamp.valueOf(
-                       DateHelper.getDateInFormat(
-                           Date(),
-                           "yyyy-MM-dd HH:mm:ss"
-                       )
-                   )
+                    val timestamp = Timestamp.valueOf(
+                        DateHelper.getDateInFormat(
+                            Date(),
+                            "yyyy-MM-dd HH:mm:ss"
+                        )
+                    )
                     val rateDbResult = SQLServerWrapper.executeProcedure(
                         "getrate",
                         listOf(
@@ -126,8 +125,15 @@ class CurrencyRepositoryImpl(
                             "'$timestamp'"
                         )
                     )
-                    if (rateDbResult.isNotEmpty()) {
-                        currency.currencyRate = rateDbResult[0].optDouble("getrate")
+                    try {
+                        rateDbResult?.let {
+                            if (it.next()) {
+                                currency.currencyRate = it.getDouble("getrate")
+                            }
+                            SQLServerWrapper.closeResultSet(it)
+                        }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
                     }
                 }
 

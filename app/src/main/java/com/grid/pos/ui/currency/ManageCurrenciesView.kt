@@ -122,6 +122,7 @@ fun ManageCurrenciesView(
                 })
             return
         }
+        viewModel.closeConnectionIfNeeded()
         navController?.navigateUp()
     }
     BackHandler {

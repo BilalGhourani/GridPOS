@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
@@ -55,10 +56,12 @@ import com.grid.pos.ActivityScopedViewModel
 import com.grid.pos.R
 import com.grid.pos.data.Company.Company
 import com.grid.pos.data.Family.Family
+import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.interfaces.OnGalleryResult
 import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.SearchableDropdownMenu
+import com.grid.pos.ui.common.SearchableDropdownMenuEx
 import com.grid.pos.ui.common.UIButton
 import com.grid.pos.ui.common.UITextField
 import com.grid.pos.ui.theme.GridPOSTheme
@@ -151,6 +154,7 @@ fun ManageFamiliesView(
         if (manageFamiliesState.families.isNotEmpty()) {
             activityScopedViewModel.families = manageFamiliesState.families
         }
+        viewModel.closeConnectionIfNeeded()
         navController?.navigateUp()
     }
 
@@ -220,150 +224,160 @@ fun ManageFamiliesView(
                     .padding(it)
                     .background(color = Color.Transparent)
             ) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.TopCenter
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(top = 90.dp)
+                        .verticalScroll(rememberScrollState()),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .verticalScroll(rememberScrollState()),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        SearchableDropdownMenu(items = manageFamiliesState.families.toMutableList(),
-                            modifier = Modifier.padding(10.dp),
-                            label = "Select Family",
-                            selectedId = manageFamiliesState.selectedFamily.familyId,
-                            leadingIcon = {
-                                if (manageFamiliesState.selectedFamily.familyId.isNotEmpty()) {
-                                    Icon(
-                                        Icons.Default.RemoveCircleOutline,
-                                        contentDescription = "remove family",
-                                        tint = Color.Black,
-                                        modifier = it
-                                    )
-                                }
-                            },
-                            onLeadingIconClick = {
-                                clear()
-                            }) { family ->
-                            family as Family
-                            viewModel.currentFamily = family.copy()
-                            manageFamiliesState.selectedFamily = family
-                            nameState = family.familyName ?: ""
-                            imageState = family.familyImage ?: ""
-                        }
+                    UITextField(modifier = Modifier.padding(
+                        horizontal = 10.dp,
+                        vertical = 5.dp
+                    ),
+                        defaultValue = nameState,
+                        label = "Name",
+                        placeHolder = "Enter Name",
+                        onAction = { imageFocusRequester.requestFocus() }) { name ->
+                        nameState = name
+                        manageFamiliesState.selectedFamily.familyName = name
+                    }
 
-                        UITextField(modifier = Modifier.padding(10.dp),
-                            defaultValue = nameState,
-                            label = "Name",
-                            placeHolder = "Enter Name",
-                            onAction = { imageFocusRequester.requestFocus() }) { name ->
-                            nameState = name
-                            manageFamiliesState.selectedFamily.familyName = name
-                        }
-
-                        UITextField(modifier = Modifier.padding(10.dp),
-                            defaultValue = imageState,
-                            label = "Image",
-                            placeHolder = "Image",
-                            focusRequester = imageFocusRequester,
-                            imeAction = ImeAction.Done,
-                            onAction = { keyboardController?.hide() },
-                            trailingIcon = {
-                                IconButton(onClick = {
-                                    activityScopedViewModel.launchGalleryPicker(mediaType = ActivityResultContracts.PickVisualMedia.ImageOnly,
-                                        object : OnGalleryResult {
-                                            override fun onGalleryResult(uris: List<Uri>) {
-                                                if (uris.isNotEmpty()) {
-                                                    manageFamiliesState.isLoading = true
-                                                    CoroutineScope(Dispatchers.IO).launch {
-                                                        val internalPath = FileUtils.saveToExternalStorage(context = context,
-                                                            parent = "family",
-                                                            uris[0],
-                                                            nameState.trim().replace(
-                                                                " ",
-                                                                "_"
-                                                            ).ifEmpty { "family" })
-                                                        withContext(Dispatchers.Main) {
-                                                            manageFamiliesState.isLoading = false
-                                                            if (internalPath != null) {
-                                                                oldImage = imageState
-                                                                imageState = internalPath
-                                                                manageFamiliesState.selectedFamily.familyImage = imageState
-                                                            }
+                    UITextField(modifier = Modifier.padding(
+                        horizontal = 10.dp,
+                        vertical = 5.dp
+                    ),
+                        defaultValue = imageState,
+                        label = "Image",
+                        placeHolder = "Image",
+                        focusRequester = imageFocusRequester,
+                        imeAction = ImeAction.Done,
+                        onAction = { keyboardController?.hide() },
+                        trailingIcon = {
+                            IconButton(onClick = {
+                                activityScopedViewModel.launchGalleryPicker(mediaType = ActivityResultContracts.PickVisualMedia.ImageOnly,
+                                    object : OnGalleryResult {
+                                        override fun onGalleryResult(uris: List<Uri>) {
+                                            if (uris.isNotEmpty()) {
+                                                manageFamiliesState.isLoading = true
+                                                CoroutineScope(Dispatchers.IO).launch {
+                                                    val internalPath = FileUtils.saveToExternalStorage(context = context,
+                                                        parent = "family",
+                                                        uris[0],
+                                                        nameState.trim().replace(
+                                                            " ",
+                                                            "_"
+                                                        ).ifEmpty { "family" })
+                                                    withContext(Dispatchers.Main) {
+                                                        manageFamiliesState.isLoading = false
+                                                        if (internalPath != null) {
+                                                            oldImage = imageState
+                                                            imageState = internalPath
+                                                            manageFamiliesState.selectedFamily.familyImage = imageState
                                                         }
                                                     }
                                                 }
                                             }
+                                        }
 
-                                        },
-                                        onPermissionDenied = {
-                                            viewModel.showWarning(
-                                                "Permission Denied",
-                                                "Settings"
-                                            )
-                                        })
-                                }) {
-                                    Icon(
-                                        Icons.Default.Image,
-                                        contentDescription = "Image",
-                                        tint = SettingsModel.buttonColor
-                                    )
-                                }
-                            }) { img ->
-                            imageState = img
-                            manageFamiliesState.selectedFamily.familyImage = img
-                        }
-
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .wrapContentHeight()
-                                .padding(10.dp),
-                            verticalAlignment = Alignment.Bottom
-                        ) {
-                            UIButton(
-                                modifier = Modifier
-                                    .weight(.33f)
-                                    .padding(3.dp),
-                                text = "Save"
-                            ) {
-                                saveFamily()
+                                    },
+                                    onPermissionDenied = {
+                                        viewModel.showWarning(
+                                            "Permission Denied",
+                                            "Settings"
+                                        )
+                                    })
+                            }) {
+                                Icon(
+                                    Icons.Default.Image,
+                                    contentDescription = "Image",
+                                    tint = SettingsModel.buttonColor
+                                )
                             }
-
-                            UIButton(
-                                modifier = Modifier
-                                    .weight(.33f)
-                                    .padding(3.dp),
-                                text = "Delete"
-                            ) {
-                                oldImage?.let { old ->
-                                    FileUtils.deleteFile(
-                                        context,
-                                        old
-                                    )
-                                }
-                                if (imageState.isNotEmpty()) {
-                                    FileUtils.deleteFile(
-                                        context,
-                                        imageState
-                                    )
-                                }
-                                viewModel.deleteSelectedFamily(manageFamiliesState.selectedFamily)
-                            }
-
-                            UIButton(
-                                modifier = Modifier
-                                    .weight(.33f)
-                                    .padding(3.dp),
-                                text = "Close"
-                            ) {
-                                handleBack()
-                            }
-                        }
-
+                        }) { img ->
+                        imageState = img
+                        manageFamiliesState.selectedFamily.familyImage = img
                     }
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .wrapContentHeight()
+                            .padding(
+                                horizontal = 10.dp,
+                                vertical = 5.dp
+                            ),
+                        verticalAlignment = Alignment.Bottom
+                    ) {
+                        UIButton(
+                            modifier = Modifier
+                                .weight(.33f)
+                                .padding(3.dp),
+                            text = "Save"
+                        ) {
+                            saveFamily()
+                        }
+
+                        UIButton(
+                            modifier = Modifier
+                                .weight(.33f)
+                                .padding(3.dp),
+                            text = "Delete"
+                        ) {
+                            oldImage?.let { old ->
+                                FileUtils.deleteFile(
+                                    context,
+                                    old
+                                )
+                            }
+                            if (imageState.isNotEmpty()) {
+                                FileUtils.deleteFile(
+                                    context,
+                                    imageState
+                                )
+                            }
+                            viewModel.deleteSelectedFamily(manageFamiliesState.selectedFamily)
+                        }
+
+                        UIButton(
+                            modifier = Modifier
+                                .weight(.33f)
+                                .padding(3.dp),
+                            text = "Close"
+                        ) {
+                            handleBack()
+                        }
+                    }
+
+                }
+
+                SearchableDropdownMenuEx(items = manageFamiliesState.families.toMutableList(),
+                    modifier = Modifier.padding(
+                            top = 15.dp,
+                            start = 10.dp,
+                            end = 10.dp
+                        ),
+                    label = "Select Family",
+                    selectedId = manageFamiliesState.selectedFamily.familyId,
+                    onLoadItems = { viewModel.fetchFamilies() },
+                    leadingIcon = {
+                        if (manageFamiliesState.selectedFamily.familyId.isNotEmpty()) {
+                            Icon(
+                                Icons.Default.RemoveCircleOutline,
+                                contentDescription = "remove family",
+                                tint = Color.Black,
+                                modifier = it
+                            )
+                        }
+                    },
+                    onLeadingIconClick = {
+                        clear()
+                    }) { family ->
+                    family as Family
+                    viewModel.currentFamily = family.copy()
+                    manageFamiliesState.selectedFamily = family
+                    nameState = family.familyName ?: ""
+                    imageState = family.familyImage ?: ""
                 }
             }
         }

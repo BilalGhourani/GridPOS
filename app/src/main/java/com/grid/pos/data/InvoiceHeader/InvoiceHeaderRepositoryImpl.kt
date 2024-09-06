@@ -2,14 +2,13 @@ package com.grid.pos.data.InvoiceHeader
 
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
-import com.grid.pos.data.Invoice.Invoice
 import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.DateHelper
 import com.grid.pos.utils.Utils
 import kotlinx.coroutines.tasks.await
-import org.json.JSONObject
+import java.sql.ResultSet
 import java.sql.Timestamp
 import java.util.Date
 
@@ -202,16 +201,23 @@ class InvoiceHeaderRepositoryImpl(
             }
 
             else -> {
-                val where = "hi_cmp_id='${SettingsModel.getCompanyID()}' ORDER BY hi_transno DESC"
-                val dbResult = SQLServerWrapper.getListOf(
-                    "in_hinvoice",
-                    "",
-                    mutableListOf("*"),
-                    where
-                )
                 val invoiceHeaders: MutableList<InvoiceHeader> = mutableListOf()
-                dbResult.forEach { obj ->
-                    invoiceHeaders.add(fillParams(obj))
+                try {
+                    val where = "hi_cmp_id='${SettingsModel.getCompanyID()}' ORDER BY hi_transno DESC"
+                    val dbResult = SQLServerWrapper.getListOf(
+                        "in_hinvoice",
+                        "",
+                        mutableListOf("*"),
+                        where
+                    )
+                    dbResult?.let {
+                        while (it.next()) {
+                            invoiceHeaders.add(fillParams(it))
+                        }
+                        SQLServerWrapper.closeResultSet(it)
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
                 }
                 return invoiceHeaders
             }
@@ -246,16 +252,23 @@ class InvoiceHeaderRepositoryImpl(
             }
 
             else -> {
-                val where = "hi_cmp_id='${SettingsModel.getCompanyID()}' AND hi_tt_code = '$type' ORDER BY hi_transno DESC"
-                val dbResult = SQLServerWrapper.getListOf(
-                    "in_hinvoice",
-                    "TOP 1",
-                    mutableListOf("*"),
-                    where
-                )
                 val invoiceHeaders: MutableList<InvoiceHeader> = mutableListOf()
-                dbResult.forEach { obj ->
-                    invoiceHeaders.add(fillParams(obj))
+                try {
+                    val where = "hi_cmp_id='${SettingsModel.getCompanyID()}' AND hi_tt_code = '$type' ORDER BY hi_transno DESC"
+                    val dbResult = SQLServerWrapper.getListOf(
+                        "in_hinvoice",
+                        "TOP 1",
+                        mutableListOf("*"),
+                        where
+                    )
+                    dbResult?.let {
+                        while (it.next()) {
+                            invoiceHeaders.add(fillParams(it))
+                        }
+                        SQLServerWrapper.closeResultSet(it)
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
                 }
                 return if (invoiceHeaders.size > 0) invoiceHeaders[0] else null
             }
@@ -284,16 +297,23 @@ class InvoiceHeaderRepositoryImpl(
             }
 
             else -> {
-                val where = "hi_cmp_id='${SettingsModel.getCompanyID()}' ORDER BY hi_transno DESC"
-                val dbResult = SQLServerWrapper.getListOf(
-                    "in_hinvoice",
-                    "TOP 1",
-                    mutableListOf("*"),
-                    where
-                )
                 val invoiceHeaders: MutableList<InvoiceHeader> = mutableListOf()
-                dbResult.forEach { obj ->
-                    invoiceHeaders.add(fillParams(obj))
+                try {
+                    val where = "hi_cmp_id='${SettingsModel.getCompanyID()}' ORDER BY hi_transno DESC"
+                    val dbResult = SQLServerWrapper.getListOf(
+                        "in_hinvoice",
+                        "TOP 1",
+                        mutableListOf("*"),
+                        where
+                    )
+                    dbResult?.let {
+                        while (it.next()) {
+                            invoiceHeaders.add(fillParams(it))
+                        }
+                        SQLServerWrapper.closeResultSet(it)
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
                 }
                 return if (invoiceHeaders.size > 0) invoiceHeaders[0] else null
             }
@@ -318,8 +338,7 @@ class InvoiceHeaderRepositoryImpl(
                     ).limit(1).get().await()
                 val document = querySnapshot.firstOrNull()
                 if (document != null) {
-                    val obj = document.toObject(InvoiceHeader::class.java)
-                    return obj
+                    return document.toObject(InvoiceHeader::class.java)
                 }
                 return null
             }
@@ -332,24 +351,29 @@ class InvoiceHeaderRepositoryImpl(
             }
 
             else -> {
-                val tableId = getTableIdByNumber(tableNo)
-                val subQuery = if (!tableId.isNullOrEmpty()) "(hi_ta_name = '$tableId' OR hi_ta_name = '$tableNo')" else "hi_ta_name = '$tableNo'"
-                val where = "hi_cmp_id='${SettingsModel.getCompanyID()}' AND $subQuery AND (hi_transno IS NULL OR hi_transno = '')"
-                val dbResult = SQLServerWrapper.getListOf(
-                    "in_hinvoice",
-                    "TOP 1",
-                    mutableListOf("*"),
-                    where
-                )
                 val invoiceHeaders: MutableList<InvoiceHeader> = mutableListOf()
-                dbResult.forEach { obj ->
-                    val invoiceHeader = fillParams(obj)
-                    invoiceHeader.invoiceHeadTaName = tableNo
-                    invoiceHeaders.add(invoiceHeader)
+                try {
+                    val tableId = getTableIdByNumber(tableNo)
+                    val subQuery = if (!tableId.isNullOrEmpty()) "(hi_ta_name = '$tableId' OR hi_ta_name = '$tableNo')" else "hi_ta_name = '$tableNo'"
+                    val where = "hi_cmp_id='${SettingsModel.getCompanyID()}' AND $subQuery AND (hi_transno IS NULL OR hi_transno = '')"
+                    val dbResult = SQLServerWrapper.getListOf(
+                        "in_hinvoice",
+                        "TOP 1",
+                        mutableListOf("*"),
+                        where
+                    )
+                    dbResult?.let {
+                        while (it.next()) {
+                            val invoiceHeader = fillParams(it)
+                            invoiceHeader.invoiceHeadTaName = tableNo
+                            invoiceHeaders.add(invoiceHeader)
+                        }
+                        SQLServerWrapper.closeResultSet(it)
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
                 }
                 return if (invoiceHeaders.size > 0) invoiceHeaders[0] else null
-
-                return null
             }
         }
     }
@@ -400,14 +424,13 @@ class InvoiceHeaderRepositoryImpl(
                     ).limit(1).get().await()
                 val document = querySnapshot.firstOrNull()
                 if (document != null) {
-                    val obj = document.toObject(InvoiceHeader::class.java)
-                    return obj
+                    return document.toObject(InvoiceHeader::class.java)
                 }
                 return null
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
-                return invoiceHeaderDao.getOneInvoiceByUserId(userId )
+                return invoiceHeaderDao.getOneInvoiceByUserId(userId)
             }
 
             else -> {
@@ -426,14 +449,13 @@ class InvoiceHeaderRepositoryImpl(
                     ).limit(1).get().await()
                 val document = querySnapshot.firstOrNull()
                 if (document != null) {
-                    val obj = document.toObject(InvoiceHeader::class.java)
-                    return obj
+                    return document.toObject(InvoiceHeader::class.java)
                 }
                 return null
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
-                return invoiceHeaderDao.getOneInvoiceByClientId(clientId )
+                return invoiceHeaderDao.getOneInvoiceByClientId(clientId)
             }
 
             else -> {
@@ -442,48 +464,48 @@ class InvoiceHeaderRepositoryImpl(
         }
     }
 
-    private fun fillParams(obj: JSONObject): InvoiceHeader {
+    private fun fillParams(obj: ResultSet): InvoiceHeader {
         return InvoiceHeader().apply {
-            invoiceHeadId = obj.optString("hi_id")
-            invoiceHeadCompId = obj.optString("hi_cmp_id")
-            invoiceHeadDate = obj.optString("hi_date")
-            invoiceHeadOrderNo = obj.optString("hi_orderno")
-            invoiceHeadTtCode = obj.optString("hi_tt_code")
-            invoiceHeadTransNo = obj.optString("hi_transno")
-            invoiceHeadStatus = obj.optString("hi_status")
-            invoiceHeadNote = obj.optString("hi_note")
-            invoiceHeadThirdPartyName = obj.optString("hi_tp_name")
-            invoiceHeadCashName = obj.optString("hi_cashname")
-            invoiceHeadTotalNetAmount = obj.optDouble("hi_total")
-            invoiceHeadGrossAmount = obj.optDouble("hi_netamt")
-            invoiceHeadDiscount = obj.optDouble("hi_disc")
-            invoiceHeadDiscountAmount = obj.optDouble("hi_discamt")
-            invoiceHeadTaxAmt = obj.optDouble("hi_taxamt")
-            invoiceHeadTax1Amt = obj.optDouble("hi_tax1amt")
-            invoiceHeadTax2Amt = obj.optDouble("hi_tax2amt")
+            invoiceHeadId = obj.getString("hi_id")
+            invoiceHeadCompId = obj.getString("hi_cmp_id")
+            invoiceHeadDate = obj.getString("hi_date")
+            invoiceHeadOrderNo = obj.getString("hi_orderno")
+            invoiceHeadTtCode = obj.getString("hi_tt_code")
+            invoiceHeadTransNo = obj.getString("hi_transno")
+            invoiceHeadStatus = obj.getString("hi_status")
+            invoiceHeadNote = obj.getString("hi_note")
+            invoiceHeadThirdPartyName = obj.getString("hi_tp_name")
+            invoiceHeadCashName = obj.getString("hi_cashname")
+            invoiceHeadTotalNetAmount = obj.getDouble("hi_total")
+            invoiceHeadGrossAmount = obj.getDouble("hi_netamt")
+            invoiceHeadDiscount = obj.getDouble("hi_disc")
+            invoiceHeadDiscountAmount = obj.getDouble("hi_discamt")
+            invoiceHeadTaxAmt = obj.getDouble("hi_taxamt")
+            invoiceHeadTax1Amt = obj.getDouble("hi_tax1amt")
+            invoiceHeadTax2Amt = obj.getDouble("hi_tax2amt")
             invoiceHeadTotalTax = invoiceHeadTaxAmt + invoiceHeadTax1Amt + invoiceHeadTax2Amt
-            invoiceHeadTotal = obj.optDouble("hi_total")
-            invoiceHeadTotal1 = obj.optDouble("hi_total1")
-            invoiceHeadRate = obj.optDouble("hi_rates")
+            invoiceHeadTotal = obj.getDouble("hi_total")
+            invoiceHeadTotal1 = obj.getDouble("hi_total1")
+            invoiceHeadRate = obj.getDouble("hi_rates")
             if (SettingsModel.isSqlServerWebDb) {
-                invoiceHeadTableId = obj.optString("hi_ta_name")
+                invoiceHeadTableId = obj.getString("hi_ta_name")
             } else {
-                invoiceHeadTaName = obj.optString("hi_ta_name")
+                invoiceHeadTaName = obj.getString("hi_ta_name")
             }
-            invoiceHeadClientsCount = obj.optInt("hi_clientscount")
-            invoiceHeadChange = obj.optDouble("hi_change")
-            val timeStamp = obj.opt("hi_timestamp")
+            invoiceHeadClientsCount = obj.getInt("hi_clientscount")
+            invoiceHeadChange = obj.getDouble("hi_change")
+            val timeStamp = obj.getObject("hi_timestamp")
             invoiceHeadTimeStamp = if (timeStamp is Date) timeStamp else DateHelper.getDateFromString(
                 timeStamp as String,
                 "yyyy-MM-dd hh:mm:ss.SSS"
             )
             invoiceHeadDateTime = invoiceHeadTimeStamp!!.time
-            invoiceHeadUserStamp = obj.optString("hi_userstamp")
+            invoiceHeadUserStamp = obj.getString("hi_userstamp")
         }
     }
 
     private fun getColumns(): List<String> {
-        return if(SettingsModel.isSqlServerWebDb){
+        return if (SettingsModel.isSqlServerWebDb) {
             listOf(
                 "hi_id",
                 "hi_cmp_id",
@@ -512,7 +534,7 @@ class InvoiceHeaderRepositoryImpl(
                 "hi_timestamp",
                 "hi_userstamp",
             )
-        }else{
+        } else {
             listOf(
                 "hi_id",
                 "hi_cmp_id",
@@ -550,7 +572,7 @@ class InvoiceHeaderRepositoryImpl(
                 "yyyy-MM-dd HH:mm:ss"
             )
         )
-        return if(SettingsModel.isSqlServerWebDb){
+        return if (SettingsModel.isSqlServerWebDb) {
             listOf(
                 invoiceHeader.invoiceHeadId,
                 invoiceHeader.invoiceHeadCompId,
@@ -579,7 +601,7 @@ class InvoiceHeaderRepositoryImpl(
                 dateTime,
                 invoiceHeader.invoiceHeadUserStamp
             )
-        }else{
+        } else {
             listOf(
                 invoiceHeader.invoiceHeadId,
                 invoiceHeader.invoiceHeadCompId,
@@ -611,18 +633,24 @@ class InvoiceHeaderRepositoryImpl(
     }
 
     private fun getTableIdByNumber(tableNo: String): String? {
-        val where = if (SettingsModel.isSqlServerWebDb) "ta_cmp_id='${SettingsModel.getCompanyID()}' AND ta_newname = '$tableNo' AND ta_status = 'Busy'"
-        else "ta_name = '$tableNo' AND ta_status = 'Busy'"
-        val dbResult = SQLServerWrapper.getListOf(
-            "pos_table",
-            "TOP 1",
-            mutableListOf("*"),
-            where
-        )
-        if (!dbResult.isNullOrEmpty()) {
-            return dbResult[0].optString("ta_name")
+        try {
+            val where = if (SettingsModel.isSqlServerWebDb) "ta_cmp_id='${SettingsModel.getCompanyID()}' AND ta_newname = '$tableNo' AND ta_status = 'Busy'"
+            else "ta_name = '$tableNo' AND ta_status = 'Busy'"
+            val dbResult = SQLServerWrapper.getListOf(
+                "pos_table",
+                "TOP 1",
+                mutableListOf("*"),
+                where
+            )
+            dbResult?.let {
+                if (it.next()) {
+                    return it.getString("ta_name")
+                }
+                SQLServerWrapper.closeResultSet(it)
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
-
         return null
     }
 }

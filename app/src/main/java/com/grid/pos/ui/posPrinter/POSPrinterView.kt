@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
@@ -53,6 +54,7 @@ import com.grid.pos.data.PosPrinter.PosPrinter
 import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.SearchableDropdownMenu
+import com.grid.pos.ui.common.SearchableDropdownMenuEx
 import com.grid.pos.ui.common.UIButton
 import com.grid.pos.ui.common.UITextField
 import com.grid.pos.ui.theme.GridPOSTheme
@@ -131,6 +133,7 @@ fun POSPrinterView(
         if (posPrinterState.printers.isNotEmpty()) {
             activityScopedViewModel.printers = posPrinterState.printers
         }
+        viewModel.closeConnectionIfNeeded()
         navController?.navigateUp()
     }
 
@@ -203,122 +206,122 @@ fun POSPrinterView(
                     .padding(it)
                     .background(color = Color.Transparent)
             ) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.TopCenter
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(top = 90.dp)
+                        .verticalScroll(rememberScrollState()),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .verticalScroll(rememberScrollState()),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        SearchableDropdownMenu(
-                            items = posPrinterState.printers.toMutableList(),
-                            modifier = Modifier.padding(10.dp),
-                            label = "Select Printer",
-                            selectedId = posPrinterState.selectedPrinter.posPrinterId,
-                            leadingIcon = {
-                                if (posPrinterState.selectedPrinter.posPrinterId.isNotEmpty()) {
-                                    Icon(
-                                        Icons.Default.RemoveCircleOutline,
-                                        contentDescription = "remove family",
-                                        tint = Color.Black,
-                                        modifier = it
-                                    )
-                                }
-                            },
-                            onLeadingIconClick = {
-                                clear()
-                            }
-                        ) { printer ->
-                            printer as PosPrinter
-                            viewModel.currentPrinter = printer.copy()
-                            posPrinterState.selectedPrinter = printer
-                            nameState = printer.posPrinterName ?: ""
-                            hostState = printer.posPrinterHost
-                            portState = printer.posPrinterPort.toString()
-                            typeState = printer.posPrinterType ?: ""
-                        }
 
-                        UITextField(modifier = Modifier.padding(10.dp),
-                            defaultValue = nameState,
-                            label = "Name",
-                            placeHolder = "Enter Name",
-                            onAction = { hostFocusRequester.requestFocus() }) { name ->
-                            nameState = name
-                            posPrinterState.selectedPrinter.posPrinterName = nameState
-                        }
-
-                        UITextField(modifier = Modifier.padding(10.dp),
-                            defaultValue = hostState,
-                            label = "Host",
-                            placeHolder = "ex:127.0.0.1",
-                            onAction = { portFocusRequester.requestFocus() }) { host ->
-                            hostState = host
-                            posPrinterState.selectedPrinter.posPrinterHost = hostState
-                        }
-
-                        UITextField(modifier = Modifier.padding(10.dp),
-                            defaultValue = portState,
-                            label = "Port",
-                            placeHolder = "ex:9100",
-                            onAction = { typeFocusRequester.requestFocus() }) { port ->
-                            portState = Utils.getIntValue(
-                                port,
-                                portState
-                            )
-                            posPrinterState.selectedPrinter.posPrinterPort = portState.toIntOrNull() ?: -1
-                        }
-
-                        UITextField(modifier = Modifier.padding(10.dp),
-                            defaultValue = typeState,
-                            label = "Type",
-                            placeHolder = "Enter Type",
-                            imeAction = ImeAction.Done,
-                            onAction = { keyboardController?.hide() }) { type ->
-                            typeState = type
-                            posPrinterState.selectedPrinter.posPrinterType = typeState
-                        }
-
-
-
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .wrapContentHeight()
-                                .padding(10.dp),
-                            verticalAlignment = Alignment.Bottom
-                        ) {
-                            UIButton(
-                                modifier = Modifier
-                                    .weight(.33f)
-                                    .padding(3.dp),
-                                text = "Save"
-                            ) {
-                                viewModel.savePrinter(posPrinterState.selectedPrinter)
-                            }
-
-                            UIButton(
-                                modifier = Modifier
-                                    .weight(.33f)
-                                    .padding(3.dp),
-                                text = "Delete"
-                            ) {
-                                viewModel.deleteSelectedPrinter(posPrinterState.selectedPrinter)
-                            }
-
-                            UIButton(
-                                modifier = Modifier
-                                    .weight(.33f)
-                                    .padding(3.dp),
-                                text = "Close"
-                            ) {
-                                handleBack()
-                            }
-                        }
-
+                    UITextField(modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+                        defaultValue = nameState,
+                        label = "Name",
+                        placeHolder = "Enter Name",
+                        onAction = { hostFocusRequester.requestFocus() }) { name ->
+                        nameState = name
+                        posPrinterState.selectedPrinter.posPrinterName = nameState
                     }
+
+                    UITextField(modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+                        defaultValue = hostState,
+                        label = "Host",
+                        placeHolder = "ex:127.0.0.1",
+                        onAction = { portFocusRequester.requestFocus() }) { host ->
+                        hostState = host
+                        posPrinterState.selectedPrinter.posPrinterHost = hostState
+                    }
+
+                    UITextField(modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+                        defaultValue = portState,
+                        label = "Port",
+                        placeHolder = "ex:9100",
+                        onAction = { typeFocusRequester.requestFocus() }) { port ->
+                        portState = Utils.getIntValue(
+                            port,
+                            portState
+                        )
+                        posPrinterState.selectedPrinter.posPrinterPort = portState.toIntOrNull() ?: -1
+                    }
+
+                    UITextField(modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+                        defaultValue = typeState,
+                        label = "Type",
+                        placeHolder = "Enter Type",
+                        imeAction = ImeAction.Done,
+                        onAction = { keyboardController?.hide() }) { type ->
+                        typeState = type
+                        posPrinterState.selectedPrinter.posPrinterType = typeState
+                    }
+
+
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .wrapContentHeight()
+                            .padding(horizontal = 10.dp, vertical = 5.dp),
+                        verticalAlignment = Alignment.Bottom
+                    ) {
+                        UIButton(
+                            modifier = Modifier
+                                .weight(.33f)
+                                .padding(3.dp),
+                            text = "Save"
+                        ) {
+                            viewModel.savePrinter(posPrinterState.selectedPrinter)
+                        }
+
+                        UIButton(
+                            modifier = Modifier
+                                .weight(.33f)
+                                .padding(3.dp),
+                            text = "Delete"
+                        ) {
+                            viewModel.deleteSelectedPrinter(posPrinterState.selectedPrinter)
+                        }
+
+                        UIButton(
+                            modifier = Modifier
+                                .weight(.33f)
+                                .padding(3.dp),
+                            text = "Close"
+                        ) {
+                            handleBack()
+                        }
+                    }
+
+                }
+
+                SearchableDropdownMenuEx(items = posPrinterState.printers.toMutableList(),
+                    modifier = Modifier.padding(
+                        top = 15.dp,
+                        start = 10.dp,
+                        end = 10.dp
+                    ),
+                    label = "Select Printer",
+                    selectedId = posPrinterState.selectedPrinter.posPrinterId,
+                    onLoadItems = {viewModel.fetchPrinters()},
+                    leadingIcon = {
+                        if (posPrinterState.selectedPrinter.posPrinterId.isNotEmpty()) {
+                            Icon(
+                                Icons.Default.RemoveCircleOutline,
+                                contentDescription = "remove family",
+                                tint = Color.Black,
+                                modifier = it
+                            )
+                        }
+                    },
+                    onLeadingIconClick = {
+                        clear()
+                    }) { printer ->
+                    printer as PosPrinter
+                    viewModel.currentPrinter = printer.copy()
+                    posPrinterState.selectedPrinter = printer
+                    nameState = printer.posPrinterName ?: ""
+                    hostState = printer.posPrinterHost
+                    portState = printer.posPrinterPort.toString()
+                    typeState = printer.posPrinterType ?: ""
                 }
             }
         }

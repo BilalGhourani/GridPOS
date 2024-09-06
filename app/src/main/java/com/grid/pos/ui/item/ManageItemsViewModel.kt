@@ -1,6 +1,5 @@
 package com.grid.pos.ui.item
 
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.grid.pos.data.Family.Family
 import com.grid.pos.data.Family.FamilyRepository
@@ -9,7 +8,7 @@ import com.grid.pos.data.Item.Item
 import com.grid.pos.data.Item.ItemRepository
 import com.grid.pos.data.PosPrinter.PosPrinterRepository
 import com.grid.pos.model.Event
-import com.grid.pos.model.SettingsModel
+import com.grid.pos.ui.common.BaseViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -24,7 +23,7 @@ class ManageItemsViewModel @Inject constructor(
         private val familyRepository: FamilyRepository,
         private val posPrinterRepository: PosPrinterRepository,
         private val invoiceRepository: InvoiceRepository
-) : ViewModel() {
+) : BaseViewModel() {
 
     private val _manageItemsState = MutableStateFlow(ManageItemsState())
     val manageItemsState: MutableStateFlow<ManageItemsState> = _manageItemsState
@@ -32,7 +31,7 @@ class ManageItemsViewModel @Inject constructor(
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
-            fetchItems()
+            openConnectionIfNeeded()
             fetchFamilies()
             fetchPrinters()
         }
@@ -52,12 +51,18 @@ class ManageItemsViewModel @Inject constructor(
         }
     }
 
-    private suspend fun fetchItems() {
-        val listOfItems = itemRepository.getAllItems()
-        viewModelScope.launch(Dispatchers.Main) {
-            manageItemsState.value = manageItemsState.value.copy(
-                items = listOfItems
-            )
+    fun fetchItems() {
+        manageItemsState.value = manageItemsState.value.copy(
+            isLoading = true
+        )
+        viewModelScope.launch(Dispatchers.IO) {
+            val listOfItems = itemRepository.getAllItems()
+            withContext(Dispatchers.Main) {
+                manageItemsState.value = manageItemsState.value.copy(
+                    items = listOfItems,
+                    isLoading = false
+                )
+            }
         }
     }
 
@@ -176,8 +181,6 @@ class ManageItemsViewModel @Inject constructor(
     }
 
     private suspend fun hasRelations(itemId: String): Boolean {
-        if (invoiceRepository.getOneInvoiceByItemID(itemId) != null) return true
-
-        return false
+        return invoiceRepository.getOneInvoiceByItemID(itemId) != null
     }
 }

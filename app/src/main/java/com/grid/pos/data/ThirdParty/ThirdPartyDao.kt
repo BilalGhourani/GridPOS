@@ -42,4 +42,8 @@ interface ThirdPartyDao {
     // Get one Third Party as stream.
     @Query("SELECT * FROM `thirdparty` WHERE tp_userstamp=:userID LIMIT 1")
     fun getOneThirdPartyByUserID(userID: String): ThirdParty?
+
+    // Get one Third Party as stream.
+    @Query("SELECT * FROM `thirdparty` WHERE tp_cmp_id=:companyId AND tp_default=1 LIMIT 1")
+    fun getDefaultThirdParties(companyId: String): ThirdParty?
 }

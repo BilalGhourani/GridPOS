@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
@@ -53,6 +54,7 @@ import com.grid.pos.data.ThirdParty.ThirdParty
 import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.SearchableDropdownMenu
+import com.grid.pos.ui.common.SearchableDropdownMenuEx
 import com.grid.pos.ui.common.UIButton
 import com.grid.pos.ui.common.UISwitch
 import com.grid.pos.ui.common.UITextField
@@ -129,6 +131,7 @@ fun ManageThirdPartiesView(
         if (manageThirdPartiesState.thirdParties.isNotEmpty()) {
             activityScopedViewModel.thirdParties = manageThirdPartiesState.thirdParties
         }
+        viewModel.closeConnectionIfNeeded()
         navController?.navigateUp()
     }
 
@@ -143,7 +146,7 @@ fun ManageThirdPartiesView(
         addressState = ""
         isDefaultState = false
         manageThirdPartiesState.clear = false
-        if(saveAndBack){
+        if (saveAndBack) {
             handleBack()
         }
     }
@@ -203,150 +206,171 @@ fun ManageThirdPartiesView(
                     .background(color = Color.Transparent)
             ) {
                 Column(
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(top = 90.dp)
+                        .verticalScroll(rememberScrollState()),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Column(
+                    //name
+                    UITextField(modifier = Modifier.padding(
+                        horizontal = 10.dp,
+                        vertical = 5.dp
+                    ),
+                        defaultValue = nameState,
+                        label = "Name",
+                        placeHolder = "Enter Name",
+                        onAction = {
+                            fnFocusRequester.requestFocus()
+                        }) { name ->
+                        nameState = name
+                        manageThirdPartiesState.selectedThirdParty.thirdPartyName = name
+                    }
+
+                    //financial number
+                    UITextField(modifier = Modifier.padding(
+                        horizontal = 10.dp,
+                        vertical = 5.dp
+                    ),
+                        defaultValue = fnState,
+                        label = "Financial No.",
+                        placeHolder = "Financial No.",
+                        focusRequester = fnFocusRequester,
+                        onAction = {
+                            phone1FocusRequester.requestFocus()
+                        }) { fn ->
+                        fnState = fn
+                        manageThirdPartiesState.selectedThirdParty.thirdPartyFn = fn
+                    }
+
+                    //phone1
+                    UITextField(modifier = Modifier.padding(
+                        horizontal = 10.dp,
+                        vertical = 5.dp
+                    ),
+                        defaultValue = phone1State,
+                        label = "Phone1",
+                        placeHolder = "Enter Phone1",
+                        focusRequester = phone1FocusRequester,
+                        onAction = { phone2FocusRequester.requestFocus() }) { phone1 ->
+                        phone1State = phone1
+                        manageThirdPartiesState.selectedThirdParty.thirdPartyPhone1 = phone1
+                    }
+
+                    //phone2
+                    UITextField(modifier = Modifier.padding(
+                        horizontal = 10.dp,
+                        vertical = 5.dp
+                    ),
+                        defaultValue = phone2State,
+                        label = "Phone2",
+                        placeHolder = "Enter Phone2",
+                        focusRequester = phone2FocusRequester,
+                        onAction = { addressFocusRequester.requestFocus() }) { phone2 ->
+                        phone2State = phone2
+                        manageThirdPartiesState.selectedThirdParty.thirdPartyPhone2 = phone2
+                    }
+
+                    //address
+                    UITextField(modifier = Modifier.padding(
+                        horizontal = 10.dp,
+                        vertical = 5.dp
+                    ),
+                        defaultValue = addressState,
+                        label = "Address",
+                        maxLines = 3,
+                        placeHolder = "Enter address",
+                        focusRequester = addressFocusRequester,
+                        imeAction = ImeAction.Done,
+                        onAction = { keyboardController?.hide() }) { address ->
+                        addressState = address
+                        manageThirdPartiesState.selectedThirdParty.thirdPartyAddress = address
+                    }
+
+                    UISwitch(
+                        modifier = Modifier.padding(
+                            horizontal = 10.dp,
+                            vertical = 5.dp
+                        ),
+                        checked = isDefaultState,
+                        enabled = manageThirdPartiesState.enableIsDefault,
+                        text = "POS Default",
+                    ) { isDefault ->
+                        isDefaultState = isDefault
+                        manageThirdPartiesState.selectedThirdParty.thirdPartyDefault = isDefaultState
+                    }
+
+                    Row(
                         modifier = Modifier
-                            .fillMaxSize()
-                            .verticalScroll(rememberScrollState())
-                            .weight(1f),
-                        horizontalAlignment = Alignment.CenterHorizontally
+                            .fillMaxWidth()
+                            .wrapContentHeight()
+                            .padding(
+                                horizontal = 10.dp,
+                                vertical = 5.dp
+                            ),
+                        verticalAlignment = Alignment.Bottom
                     ) {
-                        SearchableDropdownMenu(
-                            items = manageThirdPartiesState.thirdParties.toMutableList(),
-                            modifier = Modifier.padding(10.dp),
-                            label = "Select Third Party",
-                            selectedId = manageThirdPartiesState.selectedThirdParty.thirdPartyId,
-                            leadingIcon = {
-                                if (manageThirdPartiesState.selectedThirdParty.thirdPartyId.isNotEmpty()) {
-                                    Icon(
-                                        Icons.Default.RemoveCircleOutline,
-                                        contentDescription = "remove family",
-                                        tint = Color.Black,
-                                        modifier = it
-                                    )
-                                }
-                            },
-                            onLeadingIconClick = {
-                                clear()
-                            }
-                        ) { thirdParty ->
-                            thirdParty as ThirdParty
-                            viewModel.currentThirdParty = thirdParty.copy()
-                            manageThirdPartiesState.selectedThirdParty = thirdParty
-                            nameState = thirdParty.thirdPartyName ?: ""
-                            fnState = thirdParty.thirdPartyFn ?: ""
-                            phone1State = thirdParty.thirdPartyPhone1 ?: ""
-                            phone2State = thirdParty.thirdPartyPhone2 ?: ""
-                            addressState = thirdParty.thirdPartyAddress ?: ""
-                            isDefaultState = thirdParty.thirdPartyDefault
-                        }
-
-                        //name
-                        UITextField(modifier = Modifier.padding(10.dp),
-                            defaultValue = nameState,
-                            label = "Name",
-                            placeHolder = "Enter Name",
-                            onAction = {
-                                fnFocusRequester.requestFocus()
-                            }) { name ->
-                            nameState = name
-                            manageThirdPartiesState.selectedThirdParty.thirdPartyName = name
-                        }
-
-                        //financial number
-                        UITextField(modifier = Modifier.padding(10.dp),
-                            defaultValue = fnState,
-                            label = "Financial No.",
-                            placeHolder = "Financial No.",
-                            focusRequester = fnFocusRequester,
-                            onAction = {
-                                phone1FocusRequester.requestFocus()
-                            }) { fn ->
-                            fnState = fn
-                            manageThirdPartiesState.selectedThirdParty.thirdPartyFn = fn
-                        }
-
-                        //phone1
-                        UITextField(modifier = Modifier.padding(10.dp),
-                            defaultValue = phone1State,
-                            label = "Phone1",
-                            placeHolder = "Enter Phone1",
-                            focusRequester = phone1FocusRequester,
-                            onAction = { phone2FocusRequester.requestFocus() }) { phone1 ->
-                            phone1State = phone1
-                            manageThirdPartiesState.selectedThirdParty.thirdPartyPhone1 = phone1
-                        }
-
-                        //phone2
-                        UITextField(modifier = Modifier.padding(10.dp),
-                            defaultValue = phone2State,
-                            label = "Phone2",
-                            placeHolder = "Enter Phone2",
-                            focusRequester = phone2FocusRequester,
-                            onAction = { addressFocusRequester.requestFocus() }) { phone2 ->
-                            phone2State = phone2
-                            manageThirdPartiesState.selectedThirdParty.thirdPartyPhone2 = phone2
-                        }
-
-                        //address
-                        UITextField(modifier = Modifier.padding(10.dp),
-                            defaultValue = addressState,
-                            label = "Address",
-                            maxLines = 3,
-                            placeHolder = "Enter address",
-                            focusRequester = addressFocusRequester,
-                            imeAction = ImeAction.Done,
-                            onAction = { keyboardController?.hide() }) { address ->
-                            addressState = address
-                            manageThirdPartiesState.selectedThirdParty.thirdPartyAddress = address
-                        }
-
-                        UISwitch(
-                            modifier = Modifier.padding(10.dp),
-                            checked = isDefaultState,
-                            enabled = manageThirdPartiesState.enableIsDefault,
-                            text = "POS Default",
-                        ) { isDefault ->
-                            isDefaultState = isDefault
-                            manageThirdPartiesState.selectedThirdParty.thirdPartyDefault = isDefaultState
-                        }
-
-                        Row(
+                        UIButton(
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .wrapContentHeight()
-                                .padding(10.dp),
-                            verticalAlignment = Alignment.Bottom
+                                .weight(.33f)
+                                .padding(3.dp),
+                            text = "Save"
                         ) {
-                            UIButton(
-                                modifier = Modifier
-                                    .weight(.33f)
-                                    .padding(3.dp),
-                                text = "Save"
-                            ) {
-                                viewModel.saveThirdParty(manageThirdPartiesState.selectedThirdParty)
-                            }
+                            viewModel.saveThirdParty(manageThirdPartiesState.selectedThirdParty)
+                        }
 
-                            UIButton(
-                                modifier = Modifier
-                                    .weight(.33f)
-                                    .padding(3.dp),
-                                text = "Delete"
-                            ) {
-                                viewModel.deleteSelectedThirdParty()
-                            }
+                        UIButton(
+                            modifier = Modifier
+                                .weight(.33f)
+                                .padding(3.dp),
+                            text = "Delete"
+                        ) {
+                            viewModel.deleteSelectedThirdParty()
+                        }
 
-                            UIButton(
-                                modifier = Modifier
-                                    .weight(.33f)
-                                    .padding(3.dp),
-                                text = "Close"
-                            ) {
-                                handleBack()
-                            }
+                        UIButton(
+                            modifier = Modifier
+                                .weight(.33f)
+                                .padding(3.dp),
+                            text = "Close"
+                        ) {
+                            handleBack()
                         }
                     }
+                }
+
+                SearchableDropdownMenuEx(items = manageThirdPartiesState.thirdParties.toMutableList(),
+                    modifier = Modifier
+                        .padding(
+                            top = 15.dp,
+                            start = 10.dp,
+                            end = 10.dp
+                        ),
+                    label = "Select Third Party",
+                    selectedId = manageThirdPartiesState.selectedThirdParty.thirdPartyId,
+                    onLoadItems = { viewModel.fetchThirdParties() },
+                    leadingIcon = {
+                        if (manageThirdPartiesState.selectedThirdParty.thirdPartyId.isNotEmpty()) {
+                            Icon(
+                                Icons.Default.RemoveCircleOutline,
+                                contentDescription = "remove family",
+                                tint = Color.Black,
+                                modifier = it
+                            )
+                        }
+                    },
+                    onLeadingIconClick = {
+                        clear()
+                    }) { thirdParty ->
+                    thirdParty as ThirdParty
+                    viewModel.currentThirdParty = thirdParty.copy()
+                    manageThirdPartiesState.selectedThirdParty = thirdParty
+                    nameState = thirdParty.thirdPartyName ?: ""
+                    fnState = thirdParty.thirdPartyFn ?: ""
+                    phone1State = thirdParty.thirdPartyPhone1 ?: ""
+                    phone2State = thirdParty.thirdPartyPhone2 ?: ""
+                    addressState = thirdParty.thirdPartyAddress ?: ""
+                    isDefaultState = thirdParty.thirdPartyDefault
                 }
             }
         }

@@ -9,7 +9,7 @@ import kotlinx.coroutines.tasks.await
 import java.util.Date
 
 class ThirdPartyRepositoryImpl(
-    private val thirdPartyDao: ThirdPartyDao
+        private val thirdPartyDao: ThirdPartyDao
 ) : ThirdPartyRepository {
     override suspend fun insert(thirdParty: ThirdParty): ThirdParty {
         if (SettingsModel.isConnectedToFireStore()) {
@@ -70,37 +70,45 @@ class ThirdPartyRepositoryImpl(
             }
 
             else -> {
-                val where =
-                    if (SettingsModel.isSqlServerWebDb) "tp_cmp_id='${SettingsModel.getCompanyID()}'" else ""
-                val dbResult = SQLServerWrapper.getListOf(
-                    "thirdparty",
-                    "",
-                    mutableListOf("*"),
-                    where
-                )
                 val thirdParties: MutableList<ThirdParty> = mutableListOf()
-                dbResult.forEach { obj ->
-                    thirdParties.add(ThirdParty().apply {
-                        thirdPartyId = obj.optString("tp_name")
-                        thirdPartyName =
-                            if (SettingsModel.isSqlServerWebDb) obj.optString("tp_newname") else obj.optString(
-                                "tp_name"
-                            )
-                        thirdPartyFn = obj.optString("tp_fn")
-                        thirdPartyCompId =
-                            if (SettingsModel.isSqlServerWebDb) obj.optString("tp_cmp_id") else SettingsModel.getCompanyID()
-                        thirdPartyPhone1 = obj.optString("tp_phone1")
-                        thirdPartyPhone2 = obj.optString("tp_phone2")
-                        thirdPartyAddress = obj.optString("tp_address")
-                        val timeStamp = obj.opt("tp_timestamp")
-                        thirdPartyTimeStamp =
-                            if (timeStamp is Date) timeStamp else DateHelper.getDateFromString(
-                                timeStamp as String,
-                                "yyyy-MM-dd hh:mm:ss.SSS"
-                            )
-                        thirdPartyDateTime = thirdPartyTimeStamp!!.time
-                        thirdPartyUserStamp = obj.optString("tp_userstamp")
-                    })
+                try {
+                    val where = if (SettingsModel.isSqlServerWebDb) "tp_cmp_id='${SettingsModel.getCompanyID()}'" else ""
+                    val dbResult = SQLServerWrapper.getListOf(
+                        "thirdparty",
+                        "",
+                        mutableListOf("*"),
+                        where
+                    )
+                    dbResult?.let {
+                        val isDefaultOneFound = false
+                        while (it.next()) {
+                            thirdParties.add(ThirdParty().apply {
+                                thirdPartyId = it.getString("tp_name")
+                                thirdPartyName = if (SettingsModel.isSqlServerWebDb) it.getString("tp_newname") else it.getString(
+                                    "tp_name"
+                                )
+                                thirdPartyFn = it.getString("tp_fn")
+                                thirdPartyCompId = if (SettingsModel.isSqlServerWebDb) it.getString("tp_cmp_id") else SettingsModel.getCompanyID()
+                                thirdPartyPhone1 = it.getString("tp_phone1")
+                                thirdPartyPhone2 = it.getString("tp_phone2")
+                                thirdPartyAddress = it.getString("tp_address")
+                                val timeStamp = it.getObject("tp_timestamp")
+                                thirdPartyTimeStamp = if (timeStamp is Date) timeStamp else DateHelper.getDateFromString(
+                                    timeStamp as String,
+                                    "yyyy-MM-dd hh:mm:ss.SSS"
+                                )
+                                thirdPartyDateTime = thirdPartyTimeStamp!!.time
+                                thirdPartyUserStamp = it.getString("tp_userstamp")
+                                thirdPartyDefault = !isDefaultOneFound && thirdPartyName.equals(
+                                    "cash",
+                                    ignoreCase = true
+                                )
+                            })
+                        }
+                        SQLServerWrapper.closeResultSet(it)
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
                 }
                 thirdParties
             }
@@ -129,7 +137,7 @@ class ThirdPartyRepositoryImpl(
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
-               return thirdPartyDao.getOneThirdPartyByCompanyID(companyId)
+                return thirdPartyDao.getOneThirdPartyByCompanyID(companyId)
             }
 
             else -> {
@@ -159,7 +167,7 @@ class ThirdPartyRepositoryImpl(
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
-               return thirdPartyDao.getOneThirdPartyByUserID(userId)
+                return thirdPartyDao.getOneThirdPartyByUserID(userId)
             }
 
             else -> {
@@ -168,5 +176,73 @@ class ThirdPartyRepositoryImpl(
         }
     }
 
+    override suspend fun getDefaultThirdParties(): ThirdParty? {
+        when (SettingsModel.connectionType) {
+            CONNECTION_TYPE.FIRESTORE.key -> {
+                val querySnapshot = FirebaseFirestore.getInstance().collection("thirdParty")
+                    .whereEqualTo(
+                        "tp_cmp_id",
+                        SettingsModel.getCompanyID()
+                    ).whereEqualTo(
+                        "tp_default",
+                        true
+                    ).limit(1).get().await()
+                if (querySnapshot.size() > 0) {
+                    for (document in querySnapshot) {
+                        val obj = document.toObject(ThirdParty::class.java)
+                        if (obj.thirdPartyId.isNotEmpty()) {
+                            obj.thirdPartyDocumentId = document.id
+                            return obj
+                        }
+                    }
+                }
+                return null
+            }
+
+            CONNECTION_TYPE.LOCAL.key -> {
+                thirdPartyDao.getDefaultThirdParties(SettingsModel.getCompanyID() ?: "")
+            }
+
+            else -> {
+                try {
+                    val where = if (SettingsModel.isSqlServerWebDb) "tp_cmp_id='${SettingsModel.getCompanyID()}' AND UPPER(tp_newname) = 'CASH'" else "UPPER(tp_name) = 'CASH'"
+                    val dbResult = SQLServerWrapper.getListOf(
+                        "thirdparty",
+                        "",
+                        mutableListOf("*"),
+                        where
+                    )
+                    dbResult?.let {
+                        while (it.next()) {
+                            return ThirdParty().apply {
+                                thirdPartyId = it.getString("tp_name")
+                                thirdPartyName = if (SettingsModel.isSqlServerWebDb) it.getString("tp_newname") else it.getString(
+                                    "tp_name"
+                                )
+                                thirdPartyFn = it.getString("tp_fn")
+                                thirdPartyCompId = if (SettingsModel.isSqlServerWebDb) it.getString("tp_cmp_id") else SettingsModel.getCompanyID()
+                                thirdPartyPhone1 = it.getString("tp_phone1")
+                                thirdPartyPhone2 = it.getString("tp_phone2")
+                                thirdPartyAddress = it.getString("tp_address")
+                                val timeStamp = it.getObject("tp_timestamp")
+                                thirdPartyTimeStamp = if (timeStamp is Date) timeStamp else DateHelper.getDateFromString(
+                                    timeStamp as String,
+                                    "yyyy-MM-dd hh:mm:ss.SSS"
+                                )
+                                thirdPartyDateTime = thirdPartyTimeStamp!!.time
+                                thirdPartyUserStamp = it.getString("tp_userstamp")
+                                thirdPartyDefault = true
+                            }
+                        }
+                        SQLServerWrapper.closeResultSet(it)
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+                return null
+            }
+        }
+        return null
+    }
 
 }

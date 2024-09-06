@@ -8,6 +8,7 @@ import com.grid.pos.data.User.User
 import com.grid.pos.data.User.UserRepository
 import com.grid.pos.model.Event
 import com.grid.pos.model.SettingsModel
+import com.grid.pos.ui.common.BaseViewModel
 import com.grid.pos.utils.Extension.encryptCBC
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -22,7 +23,7 @@ class ManageUsersViewModel @Inject constructor(
         private val userRepository: UserRepository,
         private val thirdPartyRepository: ThirdPartyRepository,
         private val invoiceHeaderRepository: InvoiceHeaderRepository
-) : ViewModel() {
+) : BaseViewModel() {
 
     private val _manageUsersState = MutableStateFlow(ManageUsersState())
     val manageUsersState: MutableStateFlow<ManageUsersState> = _manageUsersState
@@ -30,7 +31,7 @@ class ManageUsersViewModel @Inject constructor(
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
-            fetchUsers()
+            openConnectionIfNeeded()
         }
     }
 
@@ -44,12 +45,18 @@ class ManageUsersViewModel @Inject constructor(
         }
     }
 
-    private suspend fun fetchUsers() {
-        val listOfUsers = userRepository.getAllUsers()
-        viewModelScope.launch(Dispatchers.Main) {
-            manageUsersState.value = manageUsersState.value.copy(
-                users = listOfUsers
-            )
+    fun fetchUsers() {
+        manageUsersState.value = manageUsersState.value.copy(
+            isLoading = true
+        )
+        viewModelScope.launch(Dispatchers.IO) {
+            val listOfUsers = userRepository.getAllUsers()
+            withContext(Dispatchers.Main) {
+                manageUsersState.value = manageUsersState.value.copy(
+                    users = listOfUsers,
+                    isLoading = false
+                )
+            }
         }
     }
 

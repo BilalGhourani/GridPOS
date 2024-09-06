@@ -7,6 +7,7 @@ import com.grid.pos.data.ThirdParty.ThirdParty
 import com.grid.pos.data.ThirdParty.ThirdPartyRepository
 import com.grid.pos.model.Event
 import com.grid.pos.model.SettingsModel
+import com.grid.pos.ui.common.BaseViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -19,7 +20,7 @@ import javax.inject.Inject
 class ManageThirdPartiesViewModel @Inject constructor(
         private val thirdPartyRepository: ThirdPartyRepository,
         private val invoiceHeaderRepository: InvoiceHeaderRepository
-) : ViewModel() {
+) : BaseViewModel() {
 
     private val _manageThirdPartiesState = MutableStateFlow(ManageThirdPartiesState())
     val manageThirdPartiesState: MutableStateFlow<ManageThirdPartiesState> = _manageThirdPartiesState
@@ -27,7 +28,13 @@ class ManageThirdPartiesViewModel @Inject constructor(
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
-            fetchThirdParties()
+            openConnectionIfNeeded()
+            val isDefaultEnabled = thirdPartyRepository.getDefaultThirdParties() != null
+            withContext(Dispatchers.Main) {
+                manageThirdPartiesState.value = manageThirdPartiesState.value.copy(
+                    enableIsDefault = isDefaultEnabled
+                )
+            }
         }
     }
 
@@ -41,14 +48,21 @@ class ManageThirdPartiesViewModel @Inject constructor(
         }
     }
 
-    private suspend fun fetchThirdParties() {
-        val listOfThirdParties = thirdPartyRepository.getAllThirdParties()
-        val isDefaultEnabled = listOfThirdParties.none { it.thirdPartyDefault }
-        viewModelScope.launch(Dispatchers.Main) {
-            manageThirdPartiesState.value = manageThirdPartiesState.value.copy(
-                thirdParties = listOfThirdParties,
-                enableIsDefault = isDefaultEnabled
-            )
+    fun fetchThirdParties() {
+        manageThirdPartiesState.value = manageThirdPartiesState.value.copy(
+            warning = null,
+            isLoading = true
+        )
+        viewModelScope.launch(Dispatchers.IO) {
+            val listOfThirdParties = thirdPartyRepository.getAllThirdParties()
+            val isDefaultEnabled = listOfThirdParties.none { it.thirdPartyDefault }
+            withContext(Dispatchers.Main) {
+                manageThirdPartiesState.value = manageThirdPartiesState.value.copy(
+                    thirdParties = listOfThirdParties,
+                    enableIsDefault = isDefaultEnabled,
+                    isLoading = false
+                )
+            }
         }
     }
 

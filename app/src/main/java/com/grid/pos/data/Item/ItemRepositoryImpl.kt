@@ -1,7 +1,6 @@
 package com.grid.pos.data.Item
 
 import com.google.firebase.firestore.FirebaseFirestore
-import com.grid.pos.data.PosReceipt.PosReceipt
 import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.SettingsModel
@@ -10,7 +9,7 @@ import kotlinx.coroutines.tasks.await
 import java.util.Date
 
 class ItemRepositoryImpl(
-    private val itemDao: ItemDao
+        private val itemDao: ItemDao
 ) : ItemRepository {
     override suspend fun insert(item: Item): Item {
         if (SettingsModel.isConnectedToFireStore()) {
@@ -71,40 +70,46 @@ class ItemRepositoryImpl(
             }
 
             else -> {
-                val where = "it_cmp_id='${SettingsModel.getCompanyID()}'"
-                val dbResult = SQLServerWrapper.getListOf(
-                    "st_item",
-                    "",
-                    mutableListOf("*"),
-                    where
-                )
                 val items: MutableList<Item> = mutableListOf()
-                dbResult.forEach { obj ->
-                    items.add(Item().apply {
-                        itemId = obj.optString("it_id")
-                        itemCompId = obj.optString("it_cmp_id")
-                        itemFaId = obj.optString("it_fa_name")
-                        itemName = obj.optString("it_name")
-                        itemBarcode = obj.optString("it_barcode")
-                        itemUnitPrice = obj.optDouble("it_unitprice")
-                        itemTax = obj.optDouble("it_tax")
-                        itemTax1 = obj.optDouble("it_tax1")
-                        itemTax2 = obj.optDouble("it_tax2")
-                        itemPrinter = obj.optString("it_printer")
-                        itemOpenQty = obj.optDouble("it_maxqty")
-                        itemOpenCost = obj.optDouble("it_cost")
-                        itemPos = obj.optInt("it_pos") == 1
-                        itemBtnColor = obj.optString("it_color")
-                        itemBtnTextColor = "#000000"
-                        val timeStamp = obj.opt("it_timestamp")
-                        itemTimeStamp =
-                            if (timeStamp is Date) timeStamp else DateHelper.getDateFromString(
-                                timeStamp as String,
-                                "yyyy-MM-dd hh:mm:ss.SSS"
-                            )
-                        itemDateTime = itemTimeStamp!!.time
-                        itemUserStamp = obj.optString("it_userstamp")
-                    })
+                try {
+                    val where = "it_cmp_id='${SettingsModel.getCompanyID()}'"
+                    val dbResult = SQLServerWrapper.getListOf(
+                        "st_item",
+                        "",
+                        mutableListOf("*"),
+                        where
+                    )
+                    dbResult?.let {
+                        while (it.next()) {
+                            items.add(Item().apply {
+                                itemId = it.getString("it_id")
+                                itemCompId = it.getString("it_cmp_id")
+                                itemFaId = it.getString("it_fa_name")
+                                itemName = it.getString("it_name")
+                                itemBarcode = it.getString("it_barcode")
+                                itemUnitPrice = it.getDouble("it_unitprice")
+                                itemTax = it.getDouble("it_tax")
+                                itemTax1 = it.getDouble("it_tax1")
+                                itemTax2 = it.getDouble("it_tax2")
+                                itemPrinter = it.getString("it_printer")
+                                itemOpenQty = it.getDouble("it_maxqty")
+                                itemOpenCost = it.getDouble("it_cost")
+                                itemPos = it.getInt("it_pos") == 1
+                                itemBtnColor = it.getString("it_color")
+                                itemBtnTextColor = "#000000"
+                                val timeStamp = it.getObject("it_timestamp")
+                                itemTimeStamp = if (timeStamp is Date) timeStamp else DateHelper.getDateFromString(
+                                    timeStamp as String,
+                                    "yyyy-MM-dd hh:mm:ss.SSS"
+                                )
+                                itemDateTime = itemTimeStamp!!.time
+                                itemUserStamp = it.getString("it_userstamp")
+                            })
+                        }
+                        SQLServerWrapper.closeResultSet(it)
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
                 }
                 return items
             }

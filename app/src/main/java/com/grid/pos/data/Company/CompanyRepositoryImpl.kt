@@ -66,33 +66,40 @@ class CompanyRepositoryImpl(
             }
 
             else -> {//CONNECTION_TYPE.SQL_SERVER.key
-                val where = "cmp_id='${SettingsModel.getCompanyID()}'"
-                val dbResult = SQLServerWrapper.getListOf(
-                    "company",
-                    "",
-                    mutableListOf("*"),
-                    where
-                )
                 val companies: MutableList<Company> = mutableListOf()
-                dbResult.forEach { obj ->
-                    companies.add(Company().apply {
-                        companyId = obj.optString("cmp_id")
-                        companyName = obj.optString("cmp_name")
-                        companyPhone = obj.optString("cmp_phone")
-                        companyAddress = obj.optString("cmp_address")
-                        companyTaxRegno = obj.optString("cmp_vatregno")
-                        companyTax = obj.optDouble("cmp_vat")
-                        companyCurCodeTax = obj.optString("cmp_cur_codetax")
-                        companyEmail = obj.optString("cmp_email")
-                        companyWeb = obj.optString("cmp_web")
-                        companyLogo = obj.optString("cmp_logo")
-                        companySS = obj.optBoolean("cmp_ss")
-                        companyCountry = obj.optString("cmp_country")
-                        companyTax1 = obj.optDouble("cmp_tax1")
-                        companyTax1Regno = obj.optString("cmp_tax1regno")
-                        companyTax2 = obj.optDouble("cmp_tax2")
-                        companyTax2Regno = obj.optString("cmp_tax2regno")
-                    })
+                try {
+                    val where = "cmp_id='${SettingsModel.getCompanyID()}'"
+                    val dbResult = SQLServerWrapper.getListOf(
+                        "company",
+                        "",
+                        mutableListOf("*"),
+                        where
+                    )
+                    dbResult?.let {
+                        while (it.next()) {
+                            companies.add(Company().apply {
+                                companyId = it.getString("cmp_id")
+                                companyName = it.getString("cmp_name")
+                                companyPhone = it.getString("cmp_phone")
+                                companyAddress = it.getString("cmp_address")
+                                companyTaxRegno = it.getString("cmp_vatregno")
+                                companyTax = it.getDouble("cmp_vat")
+                                companyCurCodeTax = it.getString("cmp_cur_codetax")
+                                companyEmail = it.getString("cmp_email")
+                                companyWeb = it.getString("cmp_web")
+                                companyLogo = it.getString("cmp_logo")
+                                companySS = it.getBoolean("cmp_ss")
+                                companyCountry = it.getString("cmp_country")
+                                companyTax1 = it.getDouble("cmp_tax1")
+                                companyTax1Regno = it.getString("cmp_tax1regno")
+                                companyTax2 = it.getDouble("cmp_tax2")
+                                companyTax2Regno = it.getString("cmp_tax2regno")
+                            })
+                        }
+                        SQLServerWrapper.closeResultSet(it)
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
                 }
                 if (companies.size > 0) companies[0] else null
             }
@@ -122,33 +129,40 @@ class CompanyRepositoryImpl(
             }
 
             else -> {//CONNECTION_TYPE.SQL_SERVER.key
-                val where = "cmp_id='${SettingsModel.getCompanyID()}'"
-                val dbResult = SQLServerWrapper.getListOf(
-                    "company",
-                    "",
-                    mutableListOf("*"),
-                    where
-                )
                 val companies: MutableList<Company> = mutableListOf()
-                dbResult.forEach { obj ->
-                    companies.add(Company().apply {
-                        companyId = obj.optString("cmp_id")
-                        companyName = obj.optString("cmp_name")
-                        companyPhone = obj.optString("cmp_phone")
-                        companyAddress = obj.optString("cmp_address")
-                        companyTaxRegno = obj.optString("cmp_vatregno")
-                        companyTax = obj.optDouble("cmp_vat")
-                        companyCurCodeTax = obj.optString("cmp_cur_codetax")
-                        companyEmail = obj.optString("cmp_email")
-                        companyWeb = obj.optString("cmp_web")
-                        companyLogo = obj.optString("cmp_logo")
-                        companySS = obj.optBoolean("cmp_ss")
-                        companyCountry = obj.optString("cmp_country")
-                        companyTax1 = obj.optDouble("cmp_tax1")
-                        companyTax1Regno = obj.optString("cmp_tax1regno")
-                        companyTax2 = obj.optDouble("cmp_tax2")
-                        companyTax2Regno = obj.optString("cmp_tax2regno")
-                    })
+                try {
+                    val where = "cmp_id='${SettingsModel.getCompanyID()}'"
+                    val dbResult = SQLServerWrapper.getListOf(
+                        "company",
+                        "",
+                        mutableListOf("*"),
+                        where
+                    )
+                    dbResult?.let {
+                        while (it.next()) {
+                            companies.add(Company().apply {
+                                companyId = it.getString("cmp_id")
+                                companyName = it.getString("cmp_name")
+                                companyPhone = it.getString("cmp_phone")
+                                companyAddress = it.getString("cmp_address")
+                                companyTaxRegno = it.getString("cmp_vatregno")
+                                companyTax = it.getDouble("cmp_vat")
+                                companyCurCodeTax = it.getString("cmp_cur_codetax")
+                                companyEmail = it.getString("cmp_email")
+                                companyWeb = it.getString("cmp_web")
+                                companyLogo = it.getString("cmp_logo")
+                                companySS = it.getBoolean("cmp_ss")
+                                companyCountry = it.getString("cmp_country")
+                                companyTax1 = it.getDouble("cmp_tax1")
+                                companyTax1Regno = it.getString("cmp_tax1regno")
+                                companyTax2 = it.getDouble("cmp_tax2")
+                                companyTax2Regno = it.getString("cmp_tax2regno")
+                            })
+                        }
+                        SQLServerWrapper.closeResultSet(it)
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
                 }
                 companies
             }

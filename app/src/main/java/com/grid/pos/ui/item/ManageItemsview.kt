@@ -11,8 +11,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
@@ -70,6 +72,7 @@ import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.ColorPickerPopup
 import com.grid.pos.ui.common.SearchableDropdownMenu
+import com.grid.pos.ui.common.SearchableDropdownMenuEx
 import com.grid.pos.ui.common.UIButton
 import com.grid.pos.ui.common.UISwitch
 import com.grid.pos.ui.common.UITextField
@@ -213,6 +216,7 @@ fun ManageItemsView(
         if (manageItemsState.items.isNotEmpty()) {
             activityScopedViewModel.items = manageItemsState.items
         }
+        viewModel.closeConnectionIfNeeded()
         navController?.navigateUp()
     }
 
@@ -296,418 +300,465 @@ fun ManageItemsView(
                     .background(color = Color.Transparent)
             ) {
                 Column(
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .fillMaxHeight()
+                        .padding(top = 90.dp)
+                        .verticalScroll(
+                            rememberScrollState()
+                        ),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .verticalScroll(
-                                rememberScrollState()
-                            )
-                            .weight(1f),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        SearchableDropdownMenu(items = manageItemsState.items.toMutableList(),
-                            modifier = Modifier.padding(10.dp),
-                            label = "Select Item",
-                            selectedId = manageItemsState.selectedItem.itemId,
-                            leadingIcon = { modifier ->
-                                if (manageItemsState.selectedItem.itemId.isNotEmpty()) {
-                                    Icon(
-                                        Icons.Default.RemoveCircleOutline,
-                                        contentDescription = "remove family",
-                                        tint = Color.Black,
-                                        modifier = modifier
-                                    )
-                                }
-                            },
-                            onLeadingIconClick = {
-                                clear()
-                            }) { item ->
-                            item as Item
-                            viewModel.currentITem = item.copy()
-                            manageItemsState.selectedItem = item
-                            nameState = item.itemName ?: ""
-                            unitPriceState = item.itemUnitPrice.toString()
-                            taxState = item.itemTax.toString()
-                            tax1State = item.itemTax1.toString()
-                            tax2State = item.itemTax2.toString()
-                            barcodeState = item.itemBarcode ?: ""
-                            openCostState = item.itemOpenCost.toString()
-                            openQtyState = item.itemOpenQty.toString()
-                            familyIdState = item.itemFaId ?: ""
-                            btnColorState = item.itemBtnColor ?: ""
-                            btnTextColorState = item.itemBtnTextColor ?: ""
-                            printerState = item.itemPrinter ?: ""
-                            itemPOSState = item.itemPos
-                            imageState = item.itemImage ?: ""
-                        }
+                    //name
+                    UITextField(modifier = Modifier.padding(
+                        horizontal = 10.dp,
+                        vertical = 5.dp
+                    ),
+                        defaultValue = nameState,
+                        label = "Name",
+                        placeHolder = "Enter Name",
+                        onAction = { unitPriceFocusRequester.requestFocus() }) { name ->
+                        nameState = name
+                        manageItemsState.selectedItem.itemName = name
+                    }
 
-                        //name
-                        UITextField(modifier = Modifier.padding(10.dp),
-                            defaultValue = nameState,
-                            label = "Name",
-                            placeHolder = "Enter Name",
-                            onAction = { unitPriceFocusRequester.requestFocus() }) { name ->
-                            nameState = name
-                            manageItemsState.selectedItem.itemName = name
-                        }
+                    //unitPrice
+                    UITextField(modifier = Modifier.padding(
+                        horizontal = 10.dp,
+                        vertical = 5.dp
+                    ),
+                        defaultValue = unitPriceState,
+                        label = "Unit Price",
+                        focusRequester = unitPriceFocusRequester,
+                        keyboardType = KeyboardType.Decimal,
+                        placeHolder = "Enter Unit Price",
+                        onAction = {
+                            if (SettingsModel.showTax) {
+                                taxFocusRequester.requestFocus()
+                            } else if (SettingsModel.showTax1) {
+                                tax1FocusRequester.requestFocus()
+                            } else if (SettingsModel.showTax2) {
+                                tax2FocusRequester.requestFocus()
+                            } else {
+                                barcodeFocusRequester.requestFocus()
+                            }
+                        }) { unitPrice ->
+                        unitPriceState = Utils.getDoubleValue(
+                            unitPrice,
+                            unitPriceState
+                        )
+                        manageItemsState.selectedItem.itemUnitPrice = unitPriceState.toDoubleOrNull() ?: 0.0
+                    }
 
-                        //unitPrice
-                        UITextField(modifier = Modifier.padding(10.dp),
-                            defaultValue = unitPriceState,
-                            label = "Unit Price",
-                            focusRequester = unitPriceFocusRequester,
+                    if (SettingsModel.showTax) {
+                        //tax
+                        UITextField(modifier = Modifier.padding(
+                            horizontal = 10.dp,
+                            vertical = 5.dp
+                        ),
+                            defaultValue = taxState,
+                            label = "Tax",
+                            maxLines = 3,
+                            focusRequester = taxFocusRequester,
                             keyboardType = KeyboardType.Decimal,
-                            placeHolder = "Enter Unit Price",
+                            placeHolder = "Enter Tax",
                             onAction = {
-                                if (SettingsModel.showTax) {
-                                    taxFocusRequester.requestFocus()
-                                } else if (SettingsModel.showTax1) {
+                                if (SettingsModel.showTax1) {
                                     tax1FocusRequester.requestFocus()
                                 } else if (SettingsModel.showTax2) {
                                     tax2FocusRequester.requestFocus()
                                 } else {
                                     barcodeFocusRequester.requestFocus()
                                 }
-                            }) { unitPrice ->
-                            unitPriceState = Utils.getDoubleValue(
-                                unitPrice,
-                                unitPriceState
+                            }) { tax ->
+                            taxState = Utils.getDoubleValue(
+                                tax,
+                                taxState
                             )
-                            manageItemsState.selectedItem.itemUnitPrice = unitPriceState.toDoubleOrNull() ?: 0.0
+                            manageItemsState.selectedItem.itemTax = taxState.toDoubleOrNull() ?: 0.0
                         }
-
-                        if (SettingsModel.showTax) {
-                            //tax
-                            UITextField(modifier = Modifier.padding(10.dp),
-                                defaultValue = taxState,
-                                label = "Tax",
-                                maxLines = 3,
-                                focusRequester = taxFocusRequester,
-                                keyboardType = KeyboardType.Decimal,
-                                placeHolder = "Enter Tax",
-                                onAction = {
-                                    if (SettingsModel.showTax1) {
-                                        tax1FocusRequester.requestFocus()
-                                    } else if (SettingsModel.showTax2) {
-                                        tax2FocusRequester.requestFocus()
-                                    } else {
-                                        barcodeFocusRequester.requestFocus()
-                                    }
-                                }) { tax ->
-                                taxState = Utils.getDoubleValue(
-                                    tax,
-                                    taxState
-                                )
-                                manageItemsState.selectedItem.itemTax = taxState.toDoubleOrNull() ?: 0.0
-                            }
+                    }
+                    if (SettingsModel.showTax1) {
+                        //tax1
+                        UITextField(modifier = Modifier.padding(
+                            horizontal = 10.dp,
+                            vertical = 5.dp
+                        ),
+                            defaultValue = tax1State,
+                            label = "Tax1",
+                            focusRequester = tax1FocusRequester,
+                            keyboardType = KeyboardType.Decimal,
+                            placeHolder = "Enter Tax1",
+                            onAction = {
+                                if (SettingsModel.showTax2) {
+                                    tax2FocusRequester.requestFocus()
+                                } else {
+                                    barcodeFocusRequester.requestFocus()
+                                }
+                            }) { tax1 ->
+                            tax1State = Utils.getDoubleValue(
+                                tax1,
+                                tax1State
+                            )
+                            manageItemsState.selectedItem.itemTax1 = tax1State.toDoubleOrNull() ?: 0.0
                         }
-                        if (SettingsModel.showTax1) {
-                            //tax1
-                            UITextField(modifier = Modifier.padding(10.dp),
-                                defaultValue = tax1State,
-                                label = "Tax1",
-                                focusRequester = tax1FocusRequester,
-                                keyboardType = KeyboardType.Decimal,
-                                placeHolder = "Enter Tax1",
-                                onAction = {
-                                    if (SettingsModel.showTax2) {
-                                        tax2FocusRequester.requestFocus()
-                                    } else {
-                                        barcodeFocusRequester.requestFocus()
-                                    }
-                                }) { tax1 ->
-                                tax1State = Utils.getDoubleValue(
-                                    tax1,
-                                    tax1State
-                                )
-                                manageItemsState.selectedItem.itemTax1 = tax1State.toDoubleOrNull() ?: 0.0
-                            }
+                    }
+                    if (SettingsModel.showTax2) {
+                        //tax2
+                        UITextField(modifier = Modifier.padding(
+                            horizontal = 10.dp,
+                            vertical = 5.dp
+                        ),
+                            defaultValue = tax2State,
+                            label = "Tax2",
+                            focusRequester = tax2FocusRequester,
+                            keyboardType = KeyboardType.Decimal,
+                            placeHolder = "Enter Tax2",
+                            onAction = { barcodeFocusRequester.requestFocus() }) { tax2 ->
+                            tax2State = Utils.getDoubleValue(
+                                tax2,
+                                tax2State
+                            )
+                            manageItemsState.selectedItem.itemTax2 = tax2State.toDoubleOrNull() ?: 0.0
                         }
-                        if (SettingsModel.showTax2) {
-                            //tax2
-                            UITextField(modifier = Modifier.padding(10.dp),
-                                defaultValue = tax2State,
-                                label = "Tax2",
-                                focusRequester = tax2FocusRequester,
-                                keyboardType = KeyboardType.Decimal,
-                                placeHolder = "Enter Tax2",
-                                onAction = { barcodeFocusRequester.requestFocus() }) { tax2 ->
-                                tax2State = Utils.getDoubleValue(
-                                    tax2,
-                                    tax2State
-                                )
-                                manageItemsState.selectedItem.itemTax2 = tax2State.toDoubleOrNull() ?: 0.0
-                            }
-                        }
-                        //barcode
-                        UITextField(modifier = Modifier.padding(10.dp),
-                            defaultValue = barcodeState,
-                            label = "Barcode",
-                            placeHolder = "Enter Barcode",
-                            focusRequester = barcodeFocusRequester,
-                            onAction = { openCostFocusRequester.requestFocus() },
-                            trailingIcon = {
-                                IconButton(onClick = {
-                                    activityScopedViewModel.launchBarcodeScanner(true,
-                                        ArrayList(manageItemsState.items),
-                                        object : OnBarcodeResult {
-                                            override fun OnBarcodeResult(barcodesList: List<String>) {
-                                                if (barcodesList.isNotEmpty()) {
-                                                    barcodeState = barcodesList[0]
-                                                    manageItemsState.selectedItem.itemBarcode = barcodeState
-                                                }
+                    }
+                    //barcode
+                    UITextField(modifier = Modifier.padding(
+                        horizontal = 10.dp,
+                        vertical = 5.dp
+                    ),
+                        defaultValue = barcodeState,
+                        label = "Barcode",
+                        placeHolder = "Enter Barcode",
+                        focusRequester = barcodeFocusRequester,
+                        onAction = { openCostFocusRequester.requestFocus() },
+                        trailingIcon = {
+                            IconButton(onClick = {
+                                activityScopedViewModel.launchBarcodeScanner(true,
+                                    ArrayList(manageItemsState.items),
+                                    object : OnBarcodeResult {
+                                        override fun OnBarcodeResult(barcodesList: List<String>) {
+                                            if (barcodesList.isNotEmpty()) {
+                                                barcodeState = barcodesList[0]
+                                                manageItemsState.selectedItem.itemBarcode = barcodeState
                                             }
-                                        },
-                                        onPermissionDenied = {
-                                            viewModel.showWarning(
-                                                "Permission Denied",
-                                                "Settings"
-                                            )
-                                        })
-                                }) {
-                                    Icon(
-                                        Icons.Default.QrCode2,
-                                        contentDescription = "Barcode",
-                                        tint = SettingsModel.buttonColor
-                                    )
-                                }
-                            }) { barcode ->
-                            barcodeState = barcode
-                            manageItemsState.selectedItem.itemBarcode = barcode
-                        }
+                                        }
+                                    },
+                                    onPermissionDenied = {
+                                        viewModel.showWarning(
+                                            "Permission Denied",
+                                            "Settings"
+                                        )
+                                    })
+                            }) {
+                                Icon(
+                                    Icons.Default.QrCode2,
+                                    contentDescription = "Barcode",
+                                    tint = SettingsModel.buttonColor
+                                )
+                            }
+                        }) { barcode ->
+                        barcodeState = barcode
+                        manageItemsState.selectedItem.itemBarcode = barcode
+                    }
 
-                        //open cost
-                        UITextField(modifier = Modifier.padding(10.dp),
-                            defaultValue = openCostState,
-                            keyboardType = KeyboardType.Decimal,
-                            label = "Open cost",
-                            placeHolder = "Enter Open cost",
-                            focusRequester = openCostFocusRequester,
-                            onAction = { openQtyFocusRequester.requestFocus() }) { openCost ->
-                            openCostState = Utils.getDoubleValue(
-                                openCost,
-                                openCostState
-                            )
-                            manageItemsState.selectedItem.itemOpenCost = openCostState.toDoubleOrNull() ?: 0.0
-                        }
+                    //open cost
+                    UITextField(modifier = Modifier.padding(
+                        horizontal = 10.dp,
+                        vertical = 5.dp
+                    ),
+                        defaultValue = openCostState,
+                        keyboardType = KeyboardType.Decimal,
+                        label = "Open cost",
+                        placeHolder = "Enter Open cost",
+                        focusRequester = openCostFocusRequester,
+                        onAction = { openQtyFocusRequester.requestFocus() }) { openCost ->
+                        openCostState = Utils.getDoubleValue(
+                            openCost,
+                            openCostState
+                        )
+                        manageItemsState.selectedItem.itemOpenCost = openCostState.toDoubleOrNull() ?: 0.0
+                    }
 
-                        //open quantity
-                        UITextField(modifier = Modifier.padding(10.dp),
-                            defaultValue = openQtyState,
-                            label = "Open Qty",
-                            keyboardType = KeyboardType.Decimal,
-                            placeHolder = "Enter Open Qty",
-                            focusRequester = openQtyFocusRequester,
-                            onAction = { btnColorFocusRequester.requestFocus() }) { openQty ->
-                            openQtyState = Utils.getDoubleValue(
-                                openQty,
-                                openQtyState
-                            )
-                            manageItemsState.selectedItem.itemOpenQty = openQtyState.toDoubleOrNull() ?: 0.0
-                        }
+                    //open quantity
+                    UITextField(modifier = Modifier.padding(
+                        horizontal = 10.dp,
+                        vertical = 5.dp
+                    ),
+                        defaultValue = openQtyState,
+                        label = "Open Qty",
+                        keyboardType = KeyboardType.Decimal,
+                        placeHolder = "Enter Open Qty",
+                        focusRequester = openQtyFocusRequester,
+                        onAction = { btnColorFocusRequester.requestFocus() }) { openQty ->
+                        openQtyState = Utils.getDoubleValue(
+                            openQty,
+                            openQtyState
+                        )
+                        manageItemsState.selectedItem.itemOpenQty = openQtyState.toDoubleOrNull() ?: 0.0
+                    }
 
-                        SearchableDropdownMenu(items = manageItemsState.families.toMutableList(),
-                            modifier = Modifier.padding(10.dp),
-                            label = "Select Family",
-                            selectedId = familyIdState,
-                            leadingIcon = { modifier ->
-                                if (familyIdState.isNotEmpty()) {
-                                    Icon(
-                                        Icons.Default.RemoveCircleOutline,
-                                        contentDescription = "remove family",
-                                        tint = Color.Black,
-                                        modifier = modifier
-                                    )
-                                }
-                            },
-                            onLeadingIconClick = {
-                                familyIdState = ""
-                                manageItemsState.selectedItem.itemFaId = null
-                            }) { family ->
-                            family as Family
-                            familyIdState = family.familyId
-                            manageItemsState.selectedItem.itemFaId = familyIdState
-                        }
+                    SearchableDropdownMenuEx(items = manageItemsState.families.toMutableList(),
+                        modifier = Modifier.padding(
+                            horizontal = 10.dp,
+                            vertical = 5.dp
+                        ),
+                        label = "Select Family",
+                        selectedId = familyIdState,
+                        leadingIcon = { modifier ->
+                            if (familyIdState.isNotEmpty()) {
+                                Icon(
+                                    Icons.Default.RemoveCircleOutline,
+                                    contentDescription = "remove family",
+                                    tint = Color.Black,
+                                    modifier = modifier
+                                )
+                            }
+                        },
+                        onLeadingIconClick = {
+                            familyIdState = ""
+                            manageItemsState.selectedItem.itemFaId = null
+                        }) { family ->
+                        family as Family
+                        familyIdState = family.familyId
+                        manageItemsState.selectedItem.itemFaId = familyIdState
+                    }
 
-                        //Button color
-                        UITextField(modifier = Modifier.padding(10.dp),
-                            defaultValue = btnColorState,
-                            label = "Button color",
-                            placeHolder = "Enter Button color",
-                            focusRequester = btnColorFocusRequester,
-                            onAction = { btnTextColorFocusRequester.requestFocus() },
-                            trailingIcon = {
-                                IconButton(onClick = {
-                                    colorPickerType = ColorPickerType.BUTTON_COLOR
-                                    isColorPickerShown = true
-                                }) {
-                                    Icon(
-                                        Icons.Default.ColorLens,
-                                        contentDescription = "color",
-                                        tint = SettingsModel.buttonColor
-                                    )
-                                }
-                            }) { btnColor ->
-                            btnColorState = btnColor
-                            manageItemsState.selectedItem.itemBtnColor = btnColor
-                        }
+                    //Button color
+                    UITextField(modifier = Modifier.padding(
+                        horizontal = 10.dp,
+                        vertical = 5.dp
+                    ),
+                        defaultValue = btnColorState,
+                        label = "Button color",
+                        placeHolder = "Enter Button color",
+                        focusRequester = btnColorFocusRequester,
+                        onAction = { btnTextColorFocusRequester.requestFocus() },
+                        trailingIcon = {
+                            IconButton(onClick = {
+                                colorPickerType = ColorPickerType.BUTTON_COLOR
+                                isColorPickerShown = true
+                            }) {
+                                Icon(
+                                    Icons.Default.ColorLens,
+                                    contentDescription = "color",
+                                    tint = SettingsModel.buttonColor
+                                )
+                            }
+                        }) { btnColor ->
+                        btnColorState = btnColor
+                        manageItemsState.selectedItem.itemBtnColor = btnColor
+                    }
 
-                        //Button text color
-                        UITextField(modifier = Modifier.padding(10.dp),
-                            defaultValue = btnTextColorState,
-                            label = "Button Text color",
-                            placeHolder = "Enter Button Text color",
-                            focusRequester = btnTextColorFocusRequester,
-                            onAction = { imageFocusRequester.requestFocus() },
-                            trailingIcon = {
-                                IconButton(onClick = {
-                                    colorPickerType = ColorPickerType.BUTTON_TEXT_COLOR
-                                    isColorPickerShown = true
-                                }) {
-                                    Icon(
-                                        Icons.Default.ColorLens,
-                                        contentDescription = "color",
-                                        tint = SettingsModel.buttonColor
-                                    )
-                                }
-                            }) { btnTextColor ->
-                            btnTextColorState = btnTextColor
-                            manageItemsState.selectedItem.itemBtnTextColor = btnTextColor
-                        }
+                    //Button text color
+                    UITextField(modifier = Modifier.padding(
+                        horizontal = 10.dp,
+                        vertical = 5.dp
+                    ),
+                        defaultValue = btnTextColorState,
+                        label = "Button Text color",
+                        placeHolder = "Enter Button Text color",
+                        focusRequester = btnTextColorFocusRequester,
+                        onAction = { imageFocusRequester.requestFocus() },
+                        trailingIcon = {
+                            IconButton(onClick = {
+                                colorPickerType = ColorPickerType.BUTTON_TEXT_COLOR
+                                isColorPickerShown = true
+                            }) {
+                                Icon(
+                                    Icons.Default.ColorLens,
+                                    contentDescription = "color",
+                                    tint = SettingsModel.buttonColor
+                                )
+                            }
+                        }) { btnTextColor ->
+                        btnTextColorState = btnTextColor
+                        manageItemsState.selectedItem.itemBtnTextColor = btnTextColor
+                    }
 
-                        SearchableDropdownMenu(items = manageItemsState.printers.toMutableList(),
-                            modifier = Modifier.padding(10.dp),
-                            label = "Select Printer",
-                            selectedId = printerState,
-                            leadingIcon = { modifier ->
-                                if (printerState.isNotEmpty()) {
-                                    Icon(
-                                        Icons.Default.RemoveCircleOutline,
-                                        contentDescription = "remove printer",
-                                        tint = Color.Black,
-                                        modifier = modifier
-                                    )
-                                }
-                            },
-                            onLeadingIconClick = {
-                                printerState = ""
-                                manageItemsState.selectedItem.itemPrinter = null
-                            }) { printer ->
-                            printer as PosPrinter
-                            printerState = printer.posPrinterId
-                            manageItemsState.selectedItem.itemPrinter = printerState
-                        }
+                    SearchableDropdownMenuEx(items = manageItemsState.printers.toMutableList(),
+                        modifier = Modifier.padding(
+                            horizontal = 10.dp,
+                            vertical = 5.dp
+                        ),
+                        label = "Select Printer",
+                        selectedId = printerState,
+                        leadingIcon = { modifier ->
+                            if (printerState.isNotEmpty()) {
+                                Icon(
+                                    Icons.Default.RemoveCircleOutline,
+                                    contentDescription = "remove printer",
+                                    tint = Color.Black,
+                                    modifier = modifier
+                                )
+                            }
+                        },
+                        onLeadingIconClick = {
+                            printerState = ""
+                            manageItemsState.selectedItem.itemPrinter = null
+                        }) { printer ->
+                        printer as PosPrinter
+                        printerState = printer.posPrinterId
+                        manageItemsState.selectedItem.itemPrinter = printerState
+                    }
 
-                        UITextField(modifier = Modifier.padding(10.dp),
-                            defaultValue = imageState,
-                            label = "Image",
-                            placeHolder = "Image",
-                            focusRequester = imageFocusRequester,
-                            imeAction = ImeAction.Done,
-                            onAction = { keyboardController?.hide() },
-                            trailingIcon = {
-                                IconButton(onClick = {
-                                    activityScopedViewModel.launchGalleryPicker(mediaType = ActivityResultContracts.PickVisualMedia.ImageOnly,
-                                        object : OnGalleryResult {
-                                            override fun onGalleryResult(uris: List<Uri>) {
-                                                if (uris.isNotEmpty()) {
-                                                    manageItemsState.isLoading = true
-                                                    CoroutineScope(Dispatchers.IO).launch {
-                                                        val internalPath = FileUtils.saveToExternalStorage(context = context,
-                                                            parent = "item",
-                                                            uris[0],
-                                                            nameState.trim().replace(
-                                                                " ",
-                                                                "_"
-                                                            ).ifEmpty { "item" })
-                                                        withContext(Dispatchers.Main) {
-                                                            manageItemsState.isLoading = false
-                                                            if (internalPath != null) {
-                                                                oldImage = imageState
-                                                                imageState = internalPath
-                                                                manageItemsState.selectedItem.itemImage = imageState
-                                                            }
+                    UITextField(modifier = Modifier.padding(
+                        horizontal = 10.dp,
+                        vertical = 5.dp
+                    ),
+                        defaultValue = imageState,
+                        label = "Image",
+                        placeHolder = "Image",
+                        focusRequester = imageFocusRequester,
+                        imeAction = ImeAction.Done,
+                        onAction = { keyboardController?.hide() },
+                        trailingIcon = {
+                            IconButton(onClick = {
+                                activityScopedViewModel.launchGalleryPicker(mediaType = ActivityResultContracts.PickVisualMedia.ImageOnly,
+                                    object : OnGalleryResult {
+                                        override fun onGalleryResult(uris: List<Uri>) {
+                                            if (uris.isNotEmpty()) {
+                                                manageItemsState.isLoading = true
+                                                CoroutineScope(Dispatchers.IO).launch {
+                                                    val internalPath = FileUtils.saveToExternalStorage(context = context,
+                                                        parent = "item",
+                                                        uris[0],
+                                                        nameState.trim().replace(
+                                                            " ",
+                                                            "_"
+                                                        ).ifEmpty { "item" })
+                                                    withContext(Dispatchers.Main) {
+                                                        manageItemsState.isLoading = false
+                                                        if (internalPath != null) {
+                                                            oldImage = imageState
+                                                            imageState = internalPath
+                                                            manageItemsState.selectedItem.itemImage = imageState
                                                         }
                                                     }
                                                 }
                                             }
-                                        },
-                                        onPermissionDenied = {
-                                            viewModel.showWarning(
-                                                "Permission Denied",
-                                                "Settings"
-                                            )
-                                        })
-                                }) {
-                                    Icon(
-                                        Icons.Default.Image,
-                                        contentDescription = "Image",
-                                        tint = SettingsModel.buttonColor
-                                    )
-                                }
-                            }) { img ->
-                            imageState = img
-                            manageItemsState.selectedItem.itemImage = img
-                        }
+                                        }
+                                    },
+                                    onPermissionDenied = {
+                                        viewModel.showWarning(
+                                            "Permission Denied",
+                                            "Settings"
+                                        )
+                                    })
+                            }) {
+                                Icon(
+                                    Icons.Default.Image,
+                                    contentDescription = "Image",
+                                    tint = SettingsModel.buttonColor
+                                )
+                            }
+                        }) { img ->
+                        imageState = img
+                        manageItemsState.selectedItem.itemImage = img
+                    }
 
-                        UISwitch(
-                            modifier = Modifier.padding(10.dp),
-                            checked = itemPOSState,
-                            text = "Item POS",
-                        ) { isItemPOS ->
-                            itemPOSState = isItemPOS
-                            manageItemsState.selectedItem.itemPos = isItemPOS
-                        }
+                    UISwitch(
+                        modifier = Modifier.padding(
+                            horizontal = 10.dp,
+                            vertical = 5.dp
+                        ),
+                        checked = itemPOSState,
+                        text = "Item POS",
+                    ) { isItemPOS ->
+                        itemPOSState = isItemPOS
+                        manageItemsState.selectedItem.itemPos = isItemPOS
+                    }
 
-                        Row(
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .wrapContentHeight()
+                            .padding(
+                                horizontal = 10.dp,
+                                vertical = 5.dp
+                            ),
+                        verticalAlignment = Alignment.Bottom
+                    ) {
+                        UIButton(
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .wrapContentHeight()
-                                .padding(10.dp),
-                            verticalAlignment = Alignment.Bottom
+                                .weight(.33f)
+                                .padding(3.dp),
+                            text = "Save"
                         ) {
-                            UIButton(
-                                modifier = Modifier
-                                    .weight(.33f)
-                                    .padding(3.dp),
-                                text = "Save"
-                            ) {
-                                saveItem()
-                            }
+                            saveItem()
+                        }
 
-                            UIButton(
-                                modifier = Modifier
-                                    .weight(.33f)
-                                    .padding(3.dp),
-                                text = "Delete"
-                            ) {
-                                oldImage?.let { old ->
-                                    FileUtils.deleteFile(
-                                        context,
-                                        old
-                                    )
-                                }
-                                if (imageState.isNotEmpty()) {
-                                    FileUtils.deleteFile(
-                                        context,
-                                        imageState
-                                    )
-                                }
-                                viewModel.deleteSelectedItem(manageItemsState.selectedItem)
+                        UIButton(
+                            modifier = Modifier
+                                .weight(.33f)
+                                .padding(3.dp),
+                            text = "Delete"
+                        ) {
+                            oldImage?.let { old ->
+                                FileUtils.deleteFile(
+                                    context,
+                                    old
+                                )
                             }
+                            if (imageState.isNotEmpty()) {
+                                FileUtils.deleteFile(
+                                    context,
+                                    imageState
+                                )
+                            }
+                            viewModel.deleteSelectedItem(manageItemsState.selectedItem)
+                        }
 
-                            UIButton(
-                                modifier = Modifier
-                                    .weight(.33f)
-                                    .padding(3.dp),
-                                text = "Close"
-                            ) {
-                                handleBack()
-                            }
+                        UIButton(
+                            modifier = Modifier
+                                .weight(.33f)
+                                .padding(3.dp),
+                            text = "Close"
+                        ) {
+                            handleBack()
                         }
                     }
+                }
+
+                SearchableDropdownMenuEx(items = manageItemsState.items.toMutableList(),
+                    modifier = Modifier.padding(
+                            top = 15.dp,
+                            start = 10.dp,
+                            end = 10.dp
+                        ),
+                    label = "Select Item",
+                    selectedId = manageItemsState.selectedItem.itemId,
+                    onLoadItems = { viewModel.fetchItems() },
+                    leadingIcon = { modifier ->
+                        if (manageItemsState.selectedItem.itemId.isNotEmpty()) {
+                            Icon(
+                                Icons.Default.RemoveCircleOutline,
+                                contentDescription = "remove family",
+                                tint = Color.Black,
+                                modifier = modifier
+                            )
+                        }
+                    },
+                    onLeadingIconClick = {
+                        clear()
+                    }) { item ->
+                    item as Item
+                    viewModel.currentITem = item.copy()
+                    manageItemsState.selectedItem = item
+                    nameState = item.itemName ?: ""
+                    unitPriceState = item.itemUnitPrice.toString()
+                    taxState = item.itemTax.toString()
+                    tax1State = item.itemTax1.toString()
+                    tax2State = item.itemTax2.toString()
+                    barcodeState = item.itemBarcode ?: ""
+                    openCostState = item.itemOpenCost.toString()
+                    openQtyState = item.itemOpenQty.toString()
+                    familyIdState = item.itemFaId ?: ""
+                    btnColorState = item.itemBtnColor ?: ""
+                    btnTextColorState = item.itemBtnTextColor ?: ""
+                    printerState = item.itemPrinter ?: ""
+                    itemPOSState = item.itemPos
+                    imageState = item.itemImage ?: ""
                 }
             }
         }

@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
@@ -58,6 +59,7 @@ import com.grid.pos.data.User.User
 import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.SearchableDropdownMenu
+import com.grid.pos.ui.common.SearchableDropdownMenuEx
 import com.grid.pos.ui.common.UIButton
 import com.grid.pos.ui.common.UITextField
 import com.grid.pos.ui.common.UiVerticalCheckBox
@@ -139,6 +141,7 @@ fun ManageUsersView(
         if (manageUsersState.users.isNotEmpty()) {
             activityScopedViewModel.users = manageUsersState.users
         }
+        viewModel.closeConnectionIfNeeded()
         navController?.navigateUp()
     }
     fun clear() {
@@ -210,46 +213,14 @@ fun ManageUsersView(
                     .padding(it)
                     .background(color = Color.Transparent)
             ) {
-                Column(
-                    modifier = Modifier.fillMaxSize(),
-                ) {
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
-                            .verticalScroll(rememberScrollState())
-                            .weight(1f),
+                            .padding(top = 90.dp)
+                            .verticalScroll(rememberScrollState()),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        SearchableDropdownMenu(
-                            items = manageUsersState.users.toMutableList(),
-                            modifier = Modifier.padding(10.dp),
-                            label = "Select User",
-                            selectedId = manageUsersState.selectedUser.userId,
-                            leadingIcon = {
-                                if (manageUsersState.selectedUser.userId.isNotEmpty()) {
-                                    Icon(
-                                        Icons.Default.RemoveCircleOutline,
-                                        contentDescription = "remove family",
-                                        tint = Color.Black,
-                                        modifier = it
-                                    )
-                                }
-                            },
-                            onLeadingIconClick = {
-                                clear()
-                            }
-                        ) { selectedUser ->
-                            selectedUser as User
-                            viewModel.currentUser = selectedUser.copy()
-                            manageUsersState.selectedUser = selectedUser
-                            nameState = selectedUser.userName ?: ""
-                            usernameState = selectedUser.userUsername ?: ""
-                            passwordState = selectedUser.userPassword?.decryptCBC() ?: ""
-                            posModeState = selectedUser.userPosMode ?: true
-                            tableModeState = selectedUser.userTableMode ?: true
-                        }
-
-                        UITextField(modifier = Modifier.padding(10.dp),
+                        UITextField(modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
                             defaultValue = nameState,
                             label = "Name",
                             placeHolder = "Enter Name",
@@ -258,7 +229,7 @@ fun ManageUsersView(
                             manageUsersState.selectedUser.userName = it.trim()
                         }
 
-                        UITextField(modifier = Modifier.padding(10.dp),
+                        UITextField(modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
                             defaultValue = usernameState,
                             label = "Username",
                             placeHolder = "Enter Username",
@@ -268,7 +239,7 @@ fun ManageUsersView(
                             manageUsersState.selectedUser.userUsername = it.trim()
                         }
 
-                        UITextField(modifier = Modifier.padding(10.dp),
+                        UITextField(modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
                             defaultValue = passwordState,
                             label = "Password",
                             placeHolder = "Enter Password",
@@ -294,7 +265,7 @@ fun ManageUsersView(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .wrapContentHeight()
-                                .padding(10.dp),
+                                .padding(horizontal = 10.dp, vertical = 5.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             UiVerticalCheckBox(
@@ -320,7 +291,7 @@ fun ManageUsersView(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .wrapContentHeight()
-                                .padding(10.dp),
+                                .padding(horizontal = 10.dp, vertical = 5.dp),
                             verticalAlignment = Alignment.Bottom
                         ) {
                             UIButton(
@@ -352,6 +323,38 @@ fun ManageUsersView(
                         }
 
                     }
+                SearchableDropdownMenuEx(
+                    items = manageUsersState.users.toMutableList(),
+                    modifier = Modifier.padding(
+                        top = 15.dp,
+                        start = 10.dp,
+                        end = 10.dp
+                    ),
+                    label = "Select User",
+                    selectedId = manageUsersState.selectedUser.userId,
+                    onLoadItems = {viewModel.fetchUsers()},
+                    leadingIcon = {
+                        if (manageUsersState.selectedUser.userId.isNotEmpty()) {
+                            Icon(
+                                Icons.Default.RemoveCircleOutline,
+                                contentDescription = "remove family",
+                                tint = Color.Black,
+                                modifier = it
+                            )
+                        }
+                    },
+                    onLeadingIconClick = {
+                        clear()
+                    }
+                ) { selectedUser ->
+                    selectedUser as User
+                    viewModel.currentUser = selectedUser.copy()
+                    manageUsersState.selectedUser = selectedUser
+                    nameState = selectedUser.userName ?: ""
+                    usernameState = selectedUser.userUsername ?: ""
+                    passwordState = selectedUser.userPassword?.decryptCBC() ?: ""
+                    posModeState = selectedUser.userPosMode ?: true
+                    tableModeState = selectedUser.userTableMode ?: true
                 }
             }
         }

@@ -1,20 +1,19 @@
 package com.grid.pos.data.Invoice
 
 import com.google.firebase.firestore.FirebaseFirestore
-import com.grid.pos.data.InvoiceHeader.InvoiceHeader
 import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.DateHelper
 import kotlinx.coroutines.tasks.await
-import org.json.JSONObject
+import java.sql.ResultSet
 import java.util.Date
 
 class InvoiceRepositoryImpl(
-    private val invoiceDao: InvoiceDao
+        private val invoiceDao: InvoiceDao
 ) : InvoiceRepository {
     override suspend fun insert(
-        invoice: Invoice
+            invoice: Invoice
     ): Invoice {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
@@ -40,7 +39,7 @@ class InvoiceRepositoryImpl(
     }
 
     override suspend fun delete(
-        invoice: Invoice
+            invoice: Invoice
     ) {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
@@ -64,7 +63,7 @@ class InvoiceRepositoryImpl(
     }
 
     override suspend fun update(
-        invoice: Invoice
+            invoice: Invoice
     ) {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
@@ -90,7 +89,7 @@ class InvoiceRepositoryImpl(
     }
 
     override suspend fun getAllInvoices(
-        invoiceHeaderId: String
+            invoiceHeaderId: String
     ): MutableList<Invoice> {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
@@ -117,16 +116,23 @@ class InvoiceRepositoryImpl(
             }
 
             else -> {
-                val where = "in_hi_id = '$invoiceHeaderId'"
-                val dbResult = SQLServerWrapper.getListOf(
-                    "in_invoice",
-                    "",
-                    mutableListOf("*"),
-                    where
-                )
                 val invoices: MutableList<Invoice> = mutableListOf()
-                dbResult.forEach { obj ->
-                    invoices.add(fillParams(obj))
+                try {
+                    val where = "in_hi_id = '$invoiceHeaderId'"
+                    val dbResult = SQLServerWrapper.getListOf(
+                        "in_invoice",
+                        "",
+                        mutableListOf("*"),
+                        where
+                    )
+                    dbResult?.let {
+                        while (it.next()) {
+                            invoices.add(fillParams(it))
+                        }
+                        SQLServerWrapper.closeResultSet(it)
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
                 }
                 return invoices
             }
@@ -134,7 +140,7 @@ class InvoiceRepositoryImpl(
     }
 
     override suspend fun getInvoicesByIds(
-        ids: List<String>
+            ids: List<String>
     ): MutableList<Invoice> {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
@@ -161,16 +167,23 @@ class InvoiceRepositoryImpl(
             }
 
             else -> {
-                val where = "in_hi_id IN (${ids.joinToString(", ")})"
-                val dbResult = SQLServerWrapper.getListOf(
-                    "in_invoice",
-                    "",
-                    mutableListOf("*"),
-                    where
-                )
                 val invoices: MutableList<Invoice> = mutableListOf()
-                dbResult.forEach { obj ->
-                    invoices.add(fillParams(obj))
+                try {
+                    val where = "in_hi_id IN (${ids.joinToString(", ")})"
+                    val dbResult = SQLServerWrapper.getListOf(
+                        "in_invoice",
+                        "",
+                        mutableListOf("*"),
+                        where
+                    )
+                    dbResult?.let {
+                        while (it.next()) {
+                            invoices.add(fillParams(it))
+                        }
+                        SQLServerWrapper.closeResultSet(it)
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
                 }
                 return invoices
             }
@@ -207,29 +220,29 @@ class InvoiceRepositoryImpl(
         }
     }
 
-    private fun fillParams(obj: JSONObject): Invoice {
+    private fun fillParams(obj: ResultSet): Invoice {
         return Invoice().apply {
-            invoiceId = obj.optString("in_id")
-            invoiceHeaderId = obj.optString("in_hi_id")
-            invoiceItemId = obj.optString("in_it_id")
-            invoiceQuantity = obj.optDouble("in_qty")
-            invoicePrice = obj.optDouble("in_price")
-            invoiceDiscount = obj.optDouble("in_disc")
-            invoiceDiscamt = obj.optDouble("in_discamt")
-            invoiceTax = obj.optDouble("in_vat")
-            invoiceTax1 = obj.optDouble("in_tax1")
-            invoiceTax2 = obj.optDouble("in_tax2")
-            invoiceNote = obj.optString("in_note")
-            invoiceCost = obj.optDouble("in_cost")
-            invoiceRemQty = obj.optDouble("in_remqty")
-            invoiceExtraName = obj.optString("in_extraname")
-            val timeStamp = obj.opt("in_timestamp")
+            invoiceId = obj.getString("in_id")
+            invoiceHeaderId = obj.getString("in_hi_id")
+            invoiceItemId = obj.getString("in_it_id")
+            invoiceQuantity = obj.getDouble("in_qty")
+            invoicePrice = obj.getDouble("in_price")
+            invoiceDiscount = obj.getDouble("in_disc")
+            invoiceDiscamt = obj.getDouble("in_discamt")
+            invoiceTax = obj.getDouble("in_vat")
+            invoiceTax1 = obj.getDouble("in_tax1")
+            invoiceTax2 = obj.getDouble("in_tax2")
+            invoiceNote = obj.getString("in_note")
+            invoiceCost = obj.getDouble("in_cost")
+            invoiceRemQty = obj.getDouble("in_remqty")
+            invoiceExtraName = obj.getString("in_extraname")
+            val timeStamp = obj.getObject("in_timestamp")
             invoiceTimeStamp = if (timeStamp is Date) timeStamp else DateHelper.getDateFromString(
                 timeStamp as String,
                 "yyyy-MM-dd hh:mm:ss.SSS"
             )
             invoiceDateTime = invoiceTimeStamp!!.time
-            invoiceUserStamp = obj.optString("in_userstamp")
+            invoiceUserStamp = obj.getString("in_userstamp")
         }
     }
 

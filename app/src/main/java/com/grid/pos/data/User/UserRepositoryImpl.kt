@@ -1,23 +1,20 @@
 package com.grid.pos.data.User
 
 import com.google.firebase.firestore.FirebaseFirestore
-import com.grid.pos.data.Company.Company
-import com.grid.pos.data.Family.Family
 import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.LoginResponse
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.DateHelper
 import com.grid.pos.utils.Extension.encryptCBC
-import com.grid.pos.utils.Utils
 import kotlinx.coroutines.tasks.await
 import java.util.Date
 
 class UserRepositoryImpl(
-    private val userDao: UserDao
+        private val userDao: UserDao
 ) : UserRepository {
     override suspend fun insert(
-        user: User
+            user: User
     ): User {
         if (SettingsModel.isConnectedToFireStore()) {
             val docRef = FirebaseFirestore.getInstance().collection("set_users").add(user).await()
@@ -29,7 +26,7 @@ class UserRepositoryImpl(
     }
 
     override suspend fun delete(
-        user: User
+            user: User
     ) {
         if (SettingsModel.isConnectedToFireStore()) {
             user.userDocumentId?.let {
@@ -42,7 +39,7 @@ class UserRepositoryImpl(
     }
 
     override suspend fun update(
-        user: User
+            user: User
     ) {
         if (SettingsModel.isConnectedToFireStore()) {
             user.userDocumentId?.let {
@@ -56,8 +53,8 @@ class UserRepositoryImpl(
     }
 
     override suspend fun getUserByCredentials(
-        username: String,
-        password: String
+            username: String,
+            password: String
     ): LoginResponse {
         val encryptedPassword = password.encryptCBC()
         when (SettingsModel.connectionType) {
@@ -146,25 +143,31 @@ class UserRepositoryImpl(
 
             else -> {
                 if (SettingsModel.isSqlServerWebDb) {
-                    val where =
-                        "usr_username = '$username' AND usr_password=hashBytes ('SHA2_512', CONVERT(nvarchar(4000),'$password'+cast(usr_salt as nvarchar(36)))) AND usr_expiry > getdate() AND usr_cmp_id='${SettingsModel.getCompanyID()}'"
-                    val dbResult = SQLServerWrapper.getListOf(
-                        "set_users",
-                        "",
-                        mutableListOf("*"),
-                        where
-                    )
                     val users: MutableList<User> = mutableListOf()
-                    dbResult.forEach { obj ->
-                        users.add(User().apply {
-                            userId = obj.optString("usr_id")
-                            userName = obj.optString("usr_name")
-                            userUsername = obj.optString("usr_username")
-                            userPassword = obj.optString("usr_password")
-                            userCompanyId = obj.optString("usr_cmp_id")
-                            userPosMode = true
-                            userTableMode = true
-                        })
+                    try {
+                        val where = "usr_username = '$username' AND usr_password=hashBytes ('SHA2_512', CONVERT(nvarchar(4000),'$password'+cast(usr_salt as nvarchar(36)))) AND usr_expiry > getdate() AND usr_cmp_id='${SettingsModel.getCompanyID()}'"
+                        val dbResult = SQLServerWrapper.getListOf(
+                            "set_users",
+                            "",
+                            mutableListOf("*"),
+                            where
+                        )
+                        dbResult?.let {
+                            while (it.next()) {
+                                users.add(User().apply {
+                                    userId = it.getString("usr_id")
+                                    userName = it.getString("usr_name")
+                                    userUsername = it.getString("usr_username")
+                                    userPassword = it.getString("usr_password")
+                                    userCompanyId = it.getString("usr_cmp_id")
+                                    userPosMode = true
+                                    userTableMode = true
+                                })
+                            }
+                            SQLServerWrapper.closeResultSet(it)
+                        }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
                     }
                     if (users.isNotEmpty()) {
                         return LoginResponse(
@@ -174,26 +177,31 @@ class UserRepositoryImpl(
                     }
                     return LoginResponse(allUsersSize = 1)
                 } else {
-                    val where =
-                        "emp_username = '$username' AND emp_password=HashBytes('SHA', '$password') and (emp_inactive IS NULL or emp_inactive = 0)"
-                    val dbResult = SQLServerWrapper.getListOf(
-                        "pay_employees",
-                        "",
-                        mutableListOf("*"),
-                        where
-                    )
                     val users: MutableList<User> = mutableListOf()
-                    dbResult.forEach { obj ->
-                        users.add(User().apply {
-                            userId = obj.optString("emp_id")
-                            userName = obj.optString("emp_name")
-                            userUsername = obj.optString("emp_username")
-                            userPassword = obj.optString("emp_password")
-                            userCompanyId =
-                                SettingsModel.getCompanyID()//obj.optString("usr_cmp_id")
-                            userPosMode = true
-                            userTableMode = true
-                        })
+                    try {
+                        val where = "emp_username = '$username' AND emp_password=HashBytes('SHA', '$password') and (emp_inactive IS NULL or emp_inactive = 0)"
+                        val dbResult = SQLServerWrapper.getListOf(
+                            "pay_employees",
+                            "",
+                            mutableListOf("*"),
+                            where
+                        )
+                        dbResult?.let {
+                            while (it.next()) {
+                                users.add(User().apply {
+                                    userId = it.getString("emp_id")
+                                    userName = it.getString("emp_name")
+                                    userUsername = it.getString("emp_username")
+                                    userPassword = it.getString("emp_password")
+                                    userCompanyId = SettingsModel.getCompanyID()//obj.optString("usr_cmp_id")
+                                    userPosMode = true
+                                    userTableMode = true
+                                })
+                            }
+                            SQLServerWrapper.closeResultSet(it)
+                        }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
                     }
                     if (users.isNotEmpty()) {
                         return LoginResponse(
@@ -235,45 +243,59 @@ class UserRepositoryImpl(
 
             else -> {//CONNECTION_TYPE.SQL_SERVER.key
                 if (SettingsModel.isSqlServerWebDb) {
-                    val where = "usr_cmp_id='${SettingsModel.getCompanyID()}'"
-                    val dbResult = SQLServerWrapper.getListOf(
-                        "set_users",
-                        "",
-                        mutableListOf("*"),
-                        where
-                    )
                     val users: MutableList<User> = mutableListOf()
-                    dbResult.forEach { obj ->
-                        users.add(User().apply {
-                            userId = obj.optString("usr_id")
-                            userName = obj.optString("usr_name")
-                            userUsername = obj.optString("usr_username")
-                            userPassword = obj.optString("usr_password")
-                            userCompanyId = obj.optString("usr_cmp_id")
-                            userPosMode = true
-                            userTableMode = true
-                        })
+                    try {
+                        val where = "usr_cmp_id='${SettingsModel.getCompanyID()}'"
+                        val dbResult = SQLServerWrapper.getListOf(
+                            "set_users",
+                            "",
+                            mutableListOf("*"),
+                            where
+                        )
+                        dbResult?.let {
+                            while (it.next()) {
+                                users.add(User().apply {
+                                    userId = it.getString("usr_id")
+                                    userName = it.getString("usr_name")
+                                    userUsername = it.getString("usr_username")
+                                    userPassword = it.getString("usr_password")
+                                    userCompanyId = it.getString("usr_cmp_id")
+                                    userPosMode = true
+                                    userTableMode = true
+                                })
+                            }
+                            SQLServerWrapper.closeResultSet(it)
+                        }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
                     }
                     users
                 } else {
-                    val dbResult = SQLServerWrapper.getListOf(
-                        "pay_employees",
-                        "",
-                        mutableListOf("*"),
-                        ""
-                    )
                     val users: MutableList<User> = mutableListOf()
-                    dbResult.forEach { obj ->
-                        users.add(User().apply {
-                            userId = obj.optString("emp_id")
-                            userName = obj.optString("emp_name")
-                            userUsername = obj.optString("emp_username")
-                            userPassword = obj.optString("emp_password")
-                            userCompanyId =
-                                SettingsModel.getCompanyID()//obj.optString("usr_cmp_id")
-                            userPosMode = true
-                            userTableMode = true
-                        })
+                    try {
+                        val dbResult = SQLServerWrapper.getListOf(
+                            "pay_employees",
+                            "",
+                            mutableListOf("*"),
+                            ""
+                        )
+
+                        dbResult?.let {
+                            while (it.next()) {
+                                users.add(User().apply {
+                                    userId = it.getString("emp_id")
+                                    userName = it.getString("emp_name")
+                                    userUsername = it.getString("emp_username")
+                                    userPassword = it.getString("emp_password")
+                                    userCompanyId = SettingsModel.getCompanyID()//obj.optString("usr_cmp_id")
+                                    userPosMode = true
+                                    userTableMode = true
+                                })
+                            }
+                            SQLServerWrapper.closeResultSet(it)
+                        }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
                     }
                     users
                 }
@@ -307,44 +329,57 @@ class UserRepositoryImpl(
 
             else -> {//CONNECTION_TYPE.SQL_SERVER.key
                 if (SettingsModel.isSqlServerWebDb) {
-                    val where = "usr_cmp_id='$companyId'"
-                    val dbResult = SQLServerWrapper.getListOf(
-                        "set_users",
-                        "TOP 1",
-                        mutableListOf("*"),
-                        where
-                    )
+                    try {
+                        val where = "usr_cmp_id='$companyId'"
+                        val dbResult = SQLServerWrapper.getListOf(
+                            "set_users",
+                            "TOP 1",
+                            mutableListOf("*"),
+                            where
+                        )
 
-                    dbResult.forEach { obj ->
-                        return User().apply {
-                            userId = obj.optString("usr_id")
-                            userName = obj.optString("usr_name")
-                            userUsername = obj.optString("usr_username")
-                            userPassword = obj.optString("usr_password")
-                            userCompanyId = obj.optString("usr_cmp_id")
-                            userPosMode = true
-                            userTableMode = true
+                        dbResult?.let {
+                            if (it.next()) {
+                                return User().apply {
+                                    userId = it.getString("usr_id")
+                                    userName = it.getString("usr_name")
+                                    userUsername = it.getString("usr_username")
+                                    userPassword = it.getString("usr_password")
+                                    userCompanyId = it.getString("usr_cmp_id")
+                                    userPosMode = true
+                                    userTableMode = true
+                                }
+                            }
+                            SQLServerWrapper.closeResultSet(it)
                         }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
                     }
                     return null
                 } else {
-                    val dbResult = SQLServerWrapper.getListOf(
-                        "pay_employees",
-                        "TOP 1",
-                        mutableListOf("*"),
-                        ""
-                    )
-                    dbResult.forEach { obj ->
-                        return User().apply {
-                            userId = obj.optString("emp_id")
-                            userName = obj.optString("emp_name")
-                            userUsername = obj.optString("emp_username")
-                            userPassword = obj.optString("emp_password")
-                            userCompanyId =
-                                SettingsModel.getCompanyID()//obj.optString("usr_cmp_id")
-                            userPosMode = true
-                            userTableMode = true
+                    try {
+                        val dbResult = SQLServerWrapper.getListOf(
+                            "pay_employees",
+                            "TOP 1",
+                            mutableListOf("*"),
+                            ""
+                        )
+                        dbResult?.let {
+                            while (it.next()) {
+                                return User().apply {
+                                    userId = it.getString("emp_id")
+                                    userName = it.getString("emp_name")
+                                    userUsername = it.getString("emp_username")
+                                    userPassword = it.getString("emp_password")
+                                    userCompanyId = SettingsModel.getCompanyID()//obj.optString("usr_cmp_id")
+                                    userPosMode = true
+                                    userTableMode = true
+                                }
+                            }
+                            SQLServerWrapper.closeResultSet(it)
                         }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
                     }
                     return null
                 }
