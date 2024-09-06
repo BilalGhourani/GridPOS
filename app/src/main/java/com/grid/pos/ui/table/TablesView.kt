@@ -81,6 +81,7 @@ fun TablesView(
         state.invoiceHeader.invoiceHeadClientsCount = clientsCountState.toIntOrNull() ?: 1
         activityScopedViewModel.invoiceHeader = state.invoiceHeader
         activityScopedViewModel.shouldLoadInvoice = true
+        activityScopedViewModel.isFromTable = true
         state.clear = true
         stepState = 1
         state.step = 1

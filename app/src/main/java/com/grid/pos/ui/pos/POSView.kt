@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -204,7 +205,7 @@ fun POSView(
                 activityViewModel.invoiceItemModels = invoicesState
                 activityViewModel.invoiceHeader = invoiceHeaderState.value
                 navController?.navigate("UIWebView")
-            } else if (SettingsModel.getUserType() == UserType.TABLE) {
+            } else if (activityViewModel.isFromTable) {
                 navController?.navigateUp()
             } else {
                 clear()
@@ -216,7 +217,7 @@ fun POSView(
             activityViewModel.invoiceHeaders = state.invoiceHeaders
             clear()
             state.isDeleted = false
-            if (SettingsModel.getUserType() == UserType.TABLE) {
+            if (activityViewModel.isFromTable) {
                 navController?.navigateUp()
             }
         }
@@ -505,7 +506,7 @@ fun POSView(
                             invoiceHeaders = state.invoiceHeaders,
                             modifier = Modifier
                                 .wrapContentWidth()
-                                .height(350.dp),
+                                .wrapContentHeight(),
                             onLoadClients = { viewModel.fetchThirdParties() },
                             onLoadInvoices = {
                                 if (state.thirdParties.isEmpty()) {
@@ -674,7 +675,7 @@ fun POSView(
                             invoiceHeaderState.value,
                             activityViewModel.posReceipt,
                             activityViewModel.invoiceItemModels,
-                            SettingsModel.getUserType() != UserType.TABLE
+                            !activityViewModel.isFromTable
                         )
                     },
                     onSaveAndPrint = { change, receipt ->
@@ -686,7 +687,7 @@ fun POSView(
                             invoiceHeaderState.value,
                             activityViewModel.posReceipt,
                             activityViewModel.invoiceItemModels,
-                            SettingsModel.getUserType() != UserType.TABLE
+                            !activityViewModel.isFromTable
                         )
                     },
                     onFinishAndPrint = { change, receipt ->

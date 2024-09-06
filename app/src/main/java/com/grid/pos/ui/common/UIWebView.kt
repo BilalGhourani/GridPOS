@@ -53,13 +53,14 @@ fun UIWebView(
     }
 
     fun handleBack() {
-        activityViewModel.clearPosValues()
-        if (SettingsModel.getUserType() == UserType.TABLE) {
+        if (activityViewModel.isFromTable) {
+            activityViewModel.clearPosValues()
             navController?.popBackStack(
                 "TablesView",
                 false
             )
         } else {
+            activityViewModel.clearPosValues()
             navController?.navigateUp()
         }
     }
