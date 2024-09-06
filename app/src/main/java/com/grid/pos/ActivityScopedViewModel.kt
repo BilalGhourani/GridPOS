@@ -59,7 +59,6 @@ class ActivityScopedViewModel @Inject constructor(
     var invoiceItemModels: MutableList<InvoiceItemModel> = mutableListOf()
     var shouldPrintInvoice: Boolean = false
     var shouldLoadInvoice: Boolean = false
-    var isFromTable: Boolean = false
     var companies: MutableList<Company> = mutableListOf()
     private var localCompanies: MutableList<Company> = mutableListOf()
     var currencies: MutableList<Currency> = mutableListOf()
@@ -182,7 +181,6 @@ class ActivityScopedViewModel @Inject constructor(
         shouldPrintInvoice = true
         pendingInvHeadState = null
         shouldLoadInvoice = false
-        isFromTable = false
     }
 
     fun print(context: Context) {
@@ -352,7 +350,6 @@ class ActivityScopedViewModel @Inject constructor(
         invoiceItemModels.clear()
         shouldPrintInvoice = false
         shouldLoadInvoice = false
-        isFromTable = false
         companies.clear()
         currencies.clear()
         users.clear()

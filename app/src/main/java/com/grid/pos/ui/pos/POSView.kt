@@ -27,7 +27,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.QrCode2
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -90,10 +89,10 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun POSView(
-    modifier: Modifier = Modifier,
-    navController: NavController? = null,
-    activityViewModel: ActivityScopedViewModel,
-    viewModel: POSViewModel = hiltViewModel()
+        modifier: Modifier = Modifier,
+        navController: NavController? = null,
+        activityViewModel: ActivityScopedViewModel,
+        viewModel: POSViewModel = hiltViewModel()
 ) {
     val posState: POSState by viewModel.posState.collectAsState(POSState())
     val invoicesState = remember { mutableStateListOf<InvoiceItemModel>() }
@@ -203,6 +202,8 @@ fun POSView(
                 activityViewModel.invoiceItemModels = invoicesState
                 activityViewModel.invoiceHeader = invoiceHeaderState.value
                 navController?.navigate("UIWebView")
+            } else if (SettingsModel.getUserType() == UserType.TABLE) {
+                navController?.navigateUp()
             } else {
                 clear()
             }
@@ -213,7 +214,7 @@ fun POSView(
             activityViewModel.invoiceHeaders = posState.invoiceHeaders
             clear()
             posState.isDeleted = false
-            if (activityViewModel.isFromTable) {
+            if (SettingsModel.getUserType() == UserType.TABLE) {
                 navController?.navigateUp()
             }
         }
@@ -242,8 +243,7 @@ fun POSView(
         }
     }
     LaunchedEffect(isSavePopupVisible) {
-        activityViewModel.showPopup(
-            isSavePopupVisible,
+        activityViewModel.showPopup(isSavePopupVisible,
             if (!isSavePopupVisible) null else PopupModel().apply {
                 onDismissRequest = {
                     isSavePopupVisible = false
@@ -317,9 +317,7 @@ fun POSView(
                         containerColor = SettingsModel.topBarColor
                     ),
                         navigationIcon = {
-                            if (isEditBottomSheetVisible || isAddItemBottomSheetVisible || isPayBottomSheetVisible) {
-                                null
-                            } else {
+                            if (!isEditBottomSheetVisible && !isAddItemBottomSheetVisible && !isPayBottomSheetVisible) {
                                 IconButton(onClick = {
                                     handleBack()
                                 }) {
@@ -340,9 +338,7 @@ fun POSView(
                             )
                         },
                         actions = {
-                            if (isEditBottomSheetVisible || isAddItemBottomSheetVisible || isPayBottomSheetVisible) {
-                                null
-                            } else {
+                            if (!isEditBottomSheetVisible && !isAddItemBottomSheetVisible && !isPayBottomSheetVisible) {
                                 IconButton(onClick = {
                                     activityViewModel.invoiceItemModels = invoicesState
                                     activityViewModel.invoiceHeader = invoiceHeaderState.value
@@ -435,9 +431,8 @@ fun POSView(
                                         object : OnBarcodeResult {
                                             override fun OnBarcodeResult(barcodesList: List<String>) {
                                                 if (barcodesList.isNotEmpty()) {
-                                                    val map: Map<String, Int> =
-                                                        barcodesList.groupingBy { barcode -> barcode }
-                                                            .eachCount()
+                                                    val map: Map<String, Int> = barcodesList.groupingBy { barcode -> barcode }
+                                                        .eachCount()
                                                     val barcodes = barcodesList.joinToString(",")
                                                     val items = posState.items.filter { item ->
                                                         item.itemBarcode?.let { barcode ->
@@ -448,20 +443,16 @@ fun POSView(
                                                         } ?: false
                                                     }
                                                     items.forEach { itm ->
-                                                        val count =
-                                                            itm.itemBarcode?.let { map[it] } ?: 1
+                                                        val count = itm.itemBarcode?.let {barcode-> map[barcode] } ?: 1
                                                         for (i in 0 until count) {
-                                                            val invoiceItemModel =
-                                                                InvoiceItemModel()
+                                                            val invoiceItemModel = InvoiceItemModel()
                                                             invoiceItemModel.setItem(itm)
                                                             invoicesState.add(invoiceItemModel)
-                                                            activityViewModel.invoiceItemModels =
-                                                                invoicesState
-                                                            invoiceHeaderState.value =
-                                                                POSUtils.refreshValues(
-                                                                    activityViewModel.invoiceItemModels,
-                                                                    invoiceHeaderState.value
-                                                                )
+                                                            activityViewModel.invoiceItemModels = invoicesState
+                                                            invoiceHeaderState.value = POSUtils.refreshValues(
+                                                                activityViewModel.invoiceItemModels,
+                                                                invoiceHeaderState.value
+                                                            )
                                                         }
                                                     }
                                                 }
@@ -541,8 +532,7 @@ fun POSView(
                             },
                             onThirdPartySelected = { thirdParty ->
                                 posState.selectedThirdParty = thirdParty
-                                invoiceHeaderState.value.invoiceHeadThirdPartyName =
-                                    thirdParty.thirdPartyId
+                                invoiceHeaderState.value.invoiceHeadThirdPartyName = thirdParty.thirdPartyId
                             },
                             onInvoiceSelected = { invoiceHeader ->
                                 if (invoicesState.isNotEmpty()) {
@@ -673,7 +663,7 @@ fun POSView(
                             invoiceHeaderState.value,
                             activityViewModel.posReceipt,
                             activityViewModel.invoiceItemModels,
-                            !activityViewModel.isFromTable
+                            SettingsModel.getUserType() != UserType.TABLE
                         )
                     },
                     onSaveAndPrint = { change, receipt ->
@@ -684,7 +674,7 @@ fun POSView(
                             invoiceHeaderState.value,
                             activityViewModel.posReceipt,
                             activityViewModel.invoiceItemModels,
-                            !activityViewModel.isFromTable
+                            SettingsModel.getUserType() != UserType.TABLE
                         )
                     },
                     onFinishAndPrint = { change, receipt ->
