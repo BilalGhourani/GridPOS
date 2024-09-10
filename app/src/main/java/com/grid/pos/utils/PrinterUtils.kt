@@ -313,13 +313,16 @@ object PrinterUtils {
                 "${invoiceItemModels.size}"
             )
         }
-        val invAmountVal = StringBuilder(
-            String.format(
-                defaultLocal,
-                "<tr><td>Disc Amount&nbsp;:</td><td>%.2f</td></tr>",
-                Utils.getDoubleOrZero(discountAmount)
+        val invAmountVal = StringBuilder("")
+        if (discountAmount > 0.0) {
+            invAmountVal.append(
+                String.format(
+                    defaultLocal,
+                    "<tr><td>Disc Amount&nbsp;:</td><td>%.2f</td></tr>",
+                    Utils.getDoubleOrZero(discountAmount)
+                )
             )
-        )
+        }
 
         if (SettingsModel.currentCompany?.companyUpWithTax == true && (SettingsModel.showTax || SettingsModel.showTax1 || SettingsModel.showTax2)) {
             invAmountVal.append(
