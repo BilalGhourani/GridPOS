@@ -349,6 +349,10 @@ class ActivityScopedViewModel @Inject constructor(
         activityState.value.isLoggedIn = false
         SettingsModel.currentUser = null
         SettingsModel.currentUserId = null
+        SettingsModel.currentCompany = null
+        SettingsModel.currentCurrency = null
+        SettingsModel.defaultBranch = null
+        SettingsModel.defaultWarehouse = null
         posReceipt = PosReceipt()
         invoiceHeader = InvoiceHeader()
         pendingInvHeadState = null
