@@ -5,6 +5,10 @@ import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.DateHelper
+import com.grid.pos.utils.Extension.getDoubleValue
+import com.grid.pos.utils.Extension.getIntValue
+import com.grid.pos.utils.Extension.getObjectValue
+import com.grid.pos.utils.Extension.getStringValue
 import kotlinx.coroutines.tasks.await
 import java.util.Date
 
@@ -82,28 +86,28 @@ class ItemRepositoryImpl(
                     dbResult?.let {
                         while (it.next()) {
                             items.add(Item().apply {
-                                itemId = it.getString("it_id")
-                                itemCompId = it.getString("it_cmp_id")
-                                itemFaId = it.getString("it_fa_name")
-                                itemName = it.getString("it_name")
-                                itemBarcode = it.getString("it_barcode")
-                                itemUnitPrice = it.getDouble("it_unitprice")
-                                itemTax = it.getDouble("it_tax")
-                                itemTax1 = it.getDouble("it_tax1")
-                                itemTax2 = it.getDouble("it_tax2")
-                                itemPrinter = it.getString("it_printer")
-                                itemOpenQty = it.getDouble("it_maxqty")
-                                itemOpenCost = it.getDouble("it_cost")
-                                itemPos = it.getInt("it_pos") == 1
-                                itemBtnColor = it.getString("it_color")
+                                itemId = it.getStringValue("it_id")
+                                itemCompId = it.getStringValue("it_cmp_id")
+                                itemFaId = it.getStringValue("it_fa_name")
+                                itemName = it.getStringValue("it_name")
+                                itemBarcode = it.getStringValue("it_barcode")
+                                itemUnitPrice = it.getDoubleValue("it_unitprice")
+                                itemTax = it.getDoubleValue("it_vat")
+                                itemTax1 = it.getDoubleValue("it_tax1")
+                                itemTax2 = it.getDoubleValue("it_tax2")
+                                itemPrinter = it.getStringValue("it_di_name")
+                                itemOpenQty = it.getDoubleValue("it_maxqty")
+                                itemOpenCost = it.getDoubleValue("it_cost")
+                                itemPos = it.getIntValue("it_pos", 1) == 1
+                                itemBtnColor = it.getStringValue("it_color")
                                 itemBtnTextColor = "#000000"
-                                val timeStamp = it.getObject("it_timestamp")
+                                val timeStamp = it.getObjectValue("it_timestamp")
                                 itemTimeStamp = if (timeStamp is Date) timeStamp else DateHelper.getDateFromString(
                                     timeStamp as String,
                                     "yyyy-MM-dd hh:mm:ss.SSS"
                                 )
                                 itemDateTime = itemTimeStamp!!.time
-                                itemUserStamp = it.getString("it_userstamp")
+                                itemUserStamp = it.getStringValue("it_userstamp")
                             })
                         }
                         SQLServerWrapper.closeResultSet(it)

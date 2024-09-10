@@ -4,6 +4,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.SettingsModel
+import com.grid.pos.utils.Extension.getStringValue
 import kotlinx.coroutines.tasks.await
 
 class PosPrinterRepositoryImpl(
@@ -83,15 +84,15 @@ class PosPrinterRepositoryImpl(
                         dbResult?.let {
                             while (it.next()) {
                                 printers.add(PosPrinter().apply {
-                                    posPrinterId = it.getString("di_name")
-                                    posPrinterCompId = it.getString("di_cmp_id")
-                                    posPrinterName = it.getString("di_printer")
-                                    val diaAppPrinters = it.getString("dia_appprinter").split(":")
+                                    posPrinterId = it.getStringValue("di_name")
+                                    posPrinterCompId = it.getStringValue("di_cmp_id")
+                                    posPrinterName = it.getStringValue("di_printer")
+                                    val diaAppPrinters = it.getStringValue("dia_appprinter").split(":")
                                     val size = diaAppPrinters.size
                                     posPrinterHost = if (size > 0) diaAppPrinters[0] else ""
                                     val port = if (size > 1) diaAppPrinters[1] else "-1"
                                     posPrinterPort = port.toIntOrNull() ?: -1
-                                    posPrinterType = it.getString("usr_cmp_id")
+                                    posPrinterType = it.getStringValue("usr_cmp_id")
                                 })
                             }
                             SQLServerWrapper.closeResultSet(it)
@@ -111,10 +112,10 @@ class PosPrinterRepositoryImpl(
                         dbResult?.let {
                             while (it.next()) {
                                 printers.add(PosPrinter().apply {
-                                    posPrinterId = it.getString("di_name")
-                                    posPrinterCompId = it.getString("di_bra_name")//branch
-                                    posPrinterName = it.getString("di_printer")
-                                    val diaAppPrinters = it.getString("di_appprinter").split(":")
+                                    posPrinterId = it.getStringValue("di_name")
+                                    posPrinterCompId = it.getStringValue("di_bra_name")//branch
+                                    posPrinterName = it.getStringValue("di_printer")
+                                    val diaAppPrinters = it.getStringValue("di_appprinter").split(":")
                                     val size = diaAppPrinters.size
                                     posPrinterHost = if (size > 0) diaAppPrinters[0] else ""
                                     val port = if (size > 1) diaAppPrinters[1] else "-1"
@@ -174,15 +175,15 @@ class PosPrinterRepositoryImpl(
                         dbResult?.let {
                             while (it.next()) {
                                 return PosPrinter().apply {
-                                    posPrinterId = it.getString("di_name")
-                                    posPrinterCompId = it.getString("di_cmp_id")
-                                    posPrinterName = it.getString("di_printer")
-                                    val diaAppPrinters = it.getString("dia_appprinter").split(":")
+                                    posPrinterId = it.getStringValue("di_name")
+                                    posPrinterCompId = it.getStringValue("di_cmp_id")
+                                    posPrinterName = it.getStringValue("di_printer")
+                                    val diaAppPrinters = it.getStringValue("dia_appprinter").split(":")
                                     val size = diaAppPrinters.size
                                     posPrinterHost = if (size > 0) diaAppPrinters[0] else ""
                                     val port = if (size > 1) diaAppPrinters[1] else "-1"
                                     posPrinterPort = port.toIntOrNull() ?: -1
-                                    posPrinterType = it.getString("usr_cmp_id")
+                                    posPrinterType = it.getStringValue("usr_cmp_id")
                                 }
                             }
                             SQLServerWrapper.closeResultSet(it)
@@ -201,10 +202,10 @@ class PosPrinterRepositoryImpl(
                         dbResult?.let {
                             while (it.next()) {
                                 return PosPrinter().apply {
-                                    posPrinterId = it.getString("di_name")
-                                    posPrinterCompId = it.getString("di_bra_name")//branch
-                                    posPrinterName = it.getString("di_printer")
-                                    val diaAppPrinters = it.getString("di_appprinter").split(":")
+                                    posPrinterId = it.getStringValue("di_name")
+                                    posPrinterCompId = it.getStringValue("di_bra_name")//branch
+                                    posPrinterName = it.getStringValue("di_printer")
+                                    val diaAppPrinters = it.getStringValue("di_appprinter").split(":")
                                     val size = diaAppPrinters.size
                                     posPrinterHost = if (size > 0) diaAppPrinters[0] else ""
                                     val port = if (size > 1) diaAppPrinters[1] else "-1"

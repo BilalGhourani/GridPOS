@@ -3,6 +3,7 @@ package com.grid.pos.data.Settings
 import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.SettingsModel
+import com.grid.pos.utils.Extension.getStringValue
 
 class SettingsRepositoryImpl : SettingsRepository {
     override suspend fun getSalesInvoiceTransType(): String? {
@@ -35,7 +36,7 @@ class SettingsRepositoryImpl : SettingsRepository {
                     )
                     dbResult?.let {
                         if (it.next()) {
-                            return it.getString("tt_code")
+                            return it.getStringValue("tt_code")
                         }
                         SQLServerWrapper.closeResultSet(it)
                     }
@@ -76,7 +77,7 @@ class SettingsRepositoryImpl : SettingsRepository {
                     )
                     dbResult?.let {
                         if (it.next()) {
-                            return it.getString("tt_code")
+                            return it.getStringValue("tt_code")
                         }
                         SQLServerWrapper.closeResultSet(it)
                     }
@@ -117,7 +118,7 @@ class SettingsRepositoryImpl : SettingsRepository {
                     )
                     dbResult?.let {
                         if (it.next()) {
-                            return it.getString("bra_name")
+                            return it.getStringValue("bra_name")
                         }
                         SQLServerWrapper.closeResultSet(it)
                     }
@@ -158,7 +159,7 @@ class SettingsRepositoryImpl : SettingsRepository {
                     )
                     dbResult?.let {
                         if (it.next()) {
-                            return it.getString("wa_name")
+                            return it.getStringValue("wa_name")
                         }
                         SQLServerWrapper.closeResultSet(it)
                     }

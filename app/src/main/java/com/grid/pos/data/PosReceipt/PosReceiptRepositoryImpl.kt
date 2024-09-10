@@ -6,6 +6,10 @@ import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.DateHelper
+import com.grid.pos.utils.Extension.getDoubleValue
+import com.grid.pos.utils.Extension.getIntValue
+import com.grid.pos.utils.Extension.getObjectValue
+import com.grid.pos.utils.Extension.getStringValue
 import com.grid.pos.utils.Utils
 import kotlinx.coroutines.tasks.await
 import java.util.Date
@@ -408,54 +412,54 @@ class PosReceiptRepositoryImpl(
                         while (it.next()) {
                             if (!commonAreFilled) {
                                 commonAreFilled = true
-                                posReceipt.posReceiptId = it.getString("pr_id")
-                                posReceipt.posReceiptInvoiceId = it.getString("pr_hi_id")
+                                posReceipt.posReceiptId = it.getStringValue("pr_id")
+                                posReceipt.posReceiptInvoiceId = it.getStringValue("pr_hi_id")
 
-                                val timeStamp = it.getObject("pr_timestamp")
+                                val timeStamp = it.getObjectValue("pr_timestamp")
                                 posReceipt.posReceiptTimeStamp = if (timeStamp is Date) timeStamp else DateHelper.getDateFromString(
                                     timeStamp as String,
                                     "yyyy-MM-dd hh:mm:ss.SSS"
                                 )
                                 posReceipt.posReceiptDateTime = posReceipt.posReceiptTimeStamp!!.time
-                                posReceipt.posReceiptUserStamp = it.getString("pr_userstamp")
+                                posReceipt.posReceiptUserStamp = it.getStringValue("pr_userstamp")
                             }
-                            val raType = it.getString("ra_type")
-                            val raOrder = it.getInt("ra_order")
+                            val raType = it.getStringValue("ra_type")
+                            val raOrder = it.getIntValue("ra_order")
                             when (raType) {
                                 "Cash" -> {
                                     if (raOrder == 1) {
-                                        posReceipt.posReceiptCashID = it.getString("pr_id")
-                                        posReceipt.posReceiptCashRaID = it.getString("pr_ra_id")
-                                        posReceipt.posReceiptCash = it.getDouble("pr_amt")
+                                        posReceipt.posReceiptCashID = it.getStringValue("pr_id")
+                                        posReceipt.posReceiptCashRaID = it.getStringValue("pr_ra_id")
+                                        posReceipt.posReceiptCash = it.getDoubleValue("pr_amt")
                                     } else {
-                                        posReceipt.posReceiptCashsID = it.getString("pr_id")
-                                        posReceipt.posReceiptCashsRaID = it.getString("pr_ra_id")
-                                        posReceipt.posReceiptCashs = it.getDouble("pr_amt")
+                                        posReceipt.posReceiptCashsID = it.getStringValue("pr_id")
+                                        posReceipt.posReceiptCashsRaID = it.getStringValue("pr_ra_id")
+                                        posReceipt.posReceiptCashs = it.getDoubleValue("pr_amt")
                                     }
                                 }
 
                                 "Credit" -> {
                                     if (raOrder == 1) {
-                                        posReceipt.posReceiptCreditID = it.getString("pr_id")
-                                        posReceipt.posReceiptCreditRaID = it.getString("pr_ra_id")
-                                        posReceipt.posReceiptCredit = it.getDouble("pr_amt")
+                                        posReceipt.posReceiptCreditID = it.getStringValue("pr_id")
+                                        posReceipt.posReceiptCreditRaID = it.getStringValue("pr_ra_id")
+                                        posReceipt.posReceiptCredit = it.getDoubleValue("pr_amt")
                                     } else {
-                                        posReceipt.posReceiptCreditsID = it.getString("pr_id")
-                                        posReceipt.posReceiptCreditsRaID = it.getString("pr_ra_id")
-                                        posReceipt.posReceiptCredits = it.getDouble("pr_amt")
+                                        posReceipt.posReceiptCreditsID = it.getStringValue("pr_id")
+                                        posReceipt.posReceiptCreditsRaID = it.getStringValue("pr_ra_id")
+                                        posReceipt.posReceiptCredits = it.getDoubleValue("pr_amt")
                                     }
 
                                 }
 
                                 "Debit" -> {
                                     if (raOrder == 1) {
-                                        posReceipt.posReceiptDebitID = it.getString("pr_id")
-                                        posReceipt.posReceiptDebitRaID = it.getString("pr_ra_id")
-                                        posReceipt.posReceiptDebit = it.getDouble("pr_amt")
+                                        posReceipt.posReceiptDebitID = it.getStringValue("pr_id")
+                                        posReceipt.posReceiptDebitRaID = it.getStringValue("pr_ra_id")
+                                        posReceipt.posReceiptDebit = it.getDoubleValue("pr_amt")
                                     } else {
-                                        posReceipt.posReceiptDebitsID = it.getString("pr_id")
-                                        posReceipt.posReceiptDebitsRaID = it.getString("pr_ra_id")
-                                        posReceipt.posReceiptDebits = it.getDouble("pr_amt")
+                                        posReceipt.posReceiptDebitsID = it.getStringValue("pr_id")
+                                        posReceipt.posReceiptDebitsRaID = it.getStringValue("pr_ra_id")
+                                        posReceipt.posReceiptDebits = it.getDoubleValue("pr_amt")
                                     }
 
                                 }

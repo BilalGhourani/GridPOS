@@ -4,6 +4,9 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.SettingsModel
+import com.grid.pos.utils.Extension.getBooleanValue
+import com.grid.pos.utils.Extension.getDoubleValue
+import com.grid.pos.utils.Extension.getStringValue
 import kotlinx.coroutines.tasks.await
 
 class CompanyRepositoryImpl(
@@ -78,22 +81,22 @@ class CompanyRepositoryImpl(
                     dbResult?.let {
                         while (it.next()) {
                             companies.add(Company().apply {
-                                companyId = it.getString("cmp_id")
-                                companyName = it.getString("cmp_name")
-                                companyPhone = it.getString("cmp_phone")
-                                companyAddress = it.getString("cmp_address")
-                                companyTaxRegno = it.getString("cmp_vatregno")
-                                companyTax = it.getDouble("cmp_vat")
-                                companyCurCodeTax = it.getString("cmp_cur_codetax")
-                                companyEmail = it.getString("cmp_email")
-                                companyWeb = it.getString("cmp_web")
-                                companyLogo = it.getString("cmp_logo")
-                                companySS = it.getBoolean("cmp_ss")
-                                companyCountry = it.getString("cmp_country")
-                                companyTax1 = it.getDouble("cmp_tax1")
-                                companyTax1Regno = it.getString("cmp_tax1regno")
-                                companyTax2 = it.getDouble("cmp_tax2")
-                                companyTax2Regno = it.getString("cmp_tax2regno")
+                                companyId = it.getStringValue("cmp_id")
+                                companyName = it.getStringValue("cmp_name")
+                                companyPhone = it.getStringValue("cmp_phone")
+                                companyAddress = it.getStringValue("cmp_address")
+                                companyTaxRegno = it.getStringValue("cmp_vatregno")
+                                companyTax = it.getDoubleValue("cmp_vat")
+                                companyCurCodeTax = it.getStringValue("cmp_cur_codetax")
+                                companyEmail = it.getStringValue("cmp_email")
+                                companyWeb = it.getStringValue("cmp_web")
+                                companyLogo = it.getStringValue("cmp_logo")
+                                companySS = it.getBooleanValue("cmp_ss")
+                                companyCountry = it.getStringValue("cmp_country")
+                                companyTax1 = it.getDoubleValue("cmp_tax1")
+                                companyTax1Regno = it.getStringValue("cmp_tax1regno")
+                                companyTax2 = it.getDoubleValue("cmp_tax2")
+                                companyTax2Regno = it.getStringValue("cmp_tax2regno")
                             })
                         }
                         SQLServerWrapper.closeResultSet(it)
@@ -141,22 +144,22 @@ class CompanyRepositoryImpl(
                     dbResult?.let {
                         while (it.next()) {
                             companies.add(Company().apply {
-                                companyId = it.getString("cmp_id")
-                                companyName = it.getString("cmp_name")
-                                companyPhone = it.getString("cmp_phone")
-                                companyAddress = it.getString("cmp_address")
-                                companyTaxRegno = it.getString("cmp_vatregno")
-                                companyTax = it.getDouble("cmp_vat")
-                                companyCurCodeTax = it.getString("cmp_cur_codetax")
-                                companyEmail = it.getString("cmp_email")
-                                companyWeb = it.getString("cmp_web")
-                                companyLogo = it.getString("cmp_logo")
-                                companySS = it.getBoolean("cmp_ss")
-                                companyCountry = it.getString("cmp_country")
-                                companyTax1 = it.getDouble("cmp_tax1")
-                                companyTax1Regno = it.getString("cmp_tax1regno")
-                                companyTax2 = it.getDouble("cmp_tax2")
-                                companyTax2Regno = it.getString("cmp_tax2regno")
+                                companyId = it.getStringValue("cmp_id")
+                                companyName = it.getStringValue("cmp_name")
+                                companyPhone = it.getStringValue("cmp_phone")
+                                companyAddress = it.getStringValue("cmp_address")
+                                companyTaxRegno = it.getStringValue("cmp_vatregno")
+                                companyTax = it.getDoubleValue("cmp_vat")
+                                companyCurCodeTax = it.getStringValue("cmp_cur_codetax")
+                                companyEmail = it.getStringValue("cmp_email")
+                                companyWeb = it.getStringValue("cmp_web")
+                                companyLogo = it.getStringValue("cmp_logo")
+                                companySS = it.getBooleanValue("cmp_ss")
+                                companyCountry = it.getStringValue("cmp_country")
+                                companyTax1 = it.getDoubleValue("cmp_tax1")
+                                companyTax1Regno = it.getStringValue("cmp_tax1regno")
+                                companyTax2 = it.getDoubleValue("cmp_tax2")
+                                companyTax2Regno = it.getStringValue("cmp_tax2regno")
                             })
                         }
                         SQLServerWrapper.closeResultSet(it)

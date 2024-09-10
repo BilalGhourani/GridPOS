@@ -20,6 +20,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.core.content.ContextCompat
 import com.grid.pos.App
 import kotlinx.coroutines.launch
+import java.sql.ResultSet
 import javax.crypto.Cipher
 import javax.crypto.spec.IvParameterSpec
 import javax.crypto.spec.SecretKeySpec
@@ -152,6 +153,66 @@ object Extension {
             }
 
             else -> null
+        }
+    }
+
+    fun ResultSet.getStringValue(
+            value: String,
+            fallback: String = ""
+    ): String {
+        return try {
+            getString(value)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            fallback
+        }
+    }
+
+    fun ResultSet.getDoubleValue(
+            value: String,
+            fallback: Double = 0.0
+    ): Double {
+        return try {
+            getDouble(value)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            fallback
+        }
+    }
+
+    fun ResultSet.getIntValue(
+            value: String,
+            fallback: Int = 0
+    ): Int {
+        return try {
+            getInt(value)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            fallback
+        }
+    }
+
+    fun ResultSet.getBooleanValue(
+            value: String,
+            fallback: Boolean = false
+    ): Boolean {
+        return try {
+            getBoolean(value)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            fallback
+        }
+    }
+
+    fun ResultSet.getObjectValue(
+            value: String,
+            fallback: Any? = null
+    ): Any? {
+        return try {
+            getObject(value)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            fallback
         }
     }
 

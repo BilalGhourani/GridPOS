@@ -5,6 +5,9 @@ import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.DateHelper
+import com.grid.pos.utils.Extension.getDoubleValue
+import com.grid.pos.utils.Extension.getIntValue
+import com.grid.pos.utils.Extension.getStringValue
 import kotlinx.coroutines.tasks.await
 import java.sql.Timestamp
 import java.util.Date
@@ -92,16 +95,16 @@ class CurrencyRepositoryImpl(
                     currency.currencyCompId = companyID
                     dbResult?.let {
                         while (it.next()) {
-                            if (it.getInt("cur_order") == 1) {
-                                currency.currencyId = it.getString("cur_code")
-                                currency.currencyCode1 = if (SettingsModel.isSqlServerWebDb) it.getString("cur_newcode") else it.getString("cur_code")
-                                currency.currencyName1 = it.getString("cur_name")
-                                currency.currencyName1Dec = it.getInt("cur_decimal")
+                            if (it.getIntValue("cur_order") == 1) {
+                                currency.currencyId = it.getStringValue("cur_code")
+                                currency.currencyCode1 = if (SettingsModel.isSqlServerWebDb) it.getStringValue("cur_newcode") else it.getStringValue("cur_code")
+                                currency.currencyName1 = it.getStringValue("cur_name")
+                                currency.currencyName1Dec = it.getIntValue("cur_decimal")
                             } else {
-                                currency.currencyDocumentId = it.getString("cur_code")
-                                currency.currencyCode2 = if (SettingsModel.isSqlServerWebDb) it.getString("cur_newcode") else it.getString("cur_code")
-                                currency.currencyName2 = it.getString("cur_name")
-                                currency.currencyName2Dec = it.getInt("cur_decimal")
+                                currency.currencyDocumentId = it.getStringValue("cur_code")
+                                currency.currencyCode2 = if (SettingsModel.isSqlServerWebDb) it.getStringValue("cur_newcode") else it.getStringValue("cur_code")
+                                currency.currencyName2 = it.getStringValue("cur_name")
+                                currency.currencyName2Dec = it.getIntValue("cur_decimal")
                             }
                         }
                         SQLServerWrapper.closeResultSet(it)
@@ -128,7 +131,7 @@ class CurrencyRepositoryImpl(
                     try {
                         rateDbResult?.let {
                             if (it.next()) {
-                                currency.currencyRate = it.getDouble("getrate")
+                                currency.currencyRate = it.getDoubleValue("getrate")
                             }
                             SQLServerWrapper.closeResultSet(it)
                         }

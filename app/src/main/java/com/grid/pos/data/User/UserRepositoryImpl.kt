@@ -7,6 +7,7 @@ import com.grid.pos.model.LoginResponse
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.DateHelper
 import com.grid.pos.utils.Extension.encryptCBC
+import com.grid.pos.utils.Extension.getStringValue
 import kotlinx.coroutines.tasks.await
 import java.util.Date
 
@@ -155,11 +156,11 @@ class UserRepositoryImpl(
                         dbResult?.let {
                             while (it.next()) {
                                 users.add(User().apply {
-                                    userId = it.getString("usr_id")
-                                    userName = it.getString("usr_name")
-                                    userUsername = it.getString("usr_username")
-                                    userPassword = it.getString("usr_password")
-                                    userCompanyId = it.getString("usr_cmp_id")
+                                    userId = it.getStringValue("usr_id")
+                                    userName = it.getStringValue("usr_name")
+                                    userUsername = it.getStringValue("usr_username")
+                                    userPassword = it.getStringValue("usr_password")
+                                    userCompanyId = it.getStringValue("usr_cmp_id")
                                     userPosMode = true
                                     userTableMode = true
                                 })
@@ -189,10 +190,10 @@ class UserRepositoryImpl(
                         dbResult?.let {
                             while (it.next()) {
                                 users.add(User().apply {
-                                    userId = it.getString("emp_id")
-                                    userName = it.getString("emp_name")
-                                    userUsername = it.getString("emp_username")
-                                    userPassword = it.getString("emp_password")
+                                    userId = it.getStringValue("emp_id")
+                                    userName = it.getStringValue("emp_name")
+                                    userUsername = it.getStringValue("emp_username")
+                                    userPassword = it.getStringValue("emp_password")
                                     userCompanyId = SettingsModel.getCompanyID()//obj.optString("usr_cmp_id")
                                     userPosMode = true
                                     userTableMode = true
@@ -255,11 +256,11 @@ class UserRepositoryImpl(
                         dbResult?.let {
                             while (it.next()) {
                                 users.add(User().apply {
-                                    userId = it.getString("usr_id")
-                                    userName = it.getString("usr_name")
-                                    userUsername = it.getString("usr_username")
-                                    userPassword = it.getString("usr_password")
-                                    userCompanyId = it.getString("usr_cmp_id")
+                                    userId = it.getStringValue("usr_id")
+                                    userName = it.getStringValue("usr_name")
+                                    userUsername = it.getStringValue("usr_username")
+                                    userPassword = it.getStringValue("usr_password")
+                                    userCompanyId = it.getStringValue("usr_cmp_id")
                                     userPosMode = true
                                     userTableMode = true
                                 })
@@ -283,10 +284,10 @@ class UserRepositoryImpl(
                         dbResult?.let {
                             while (it.next()) {
                                 users.add(User().apply {
-                                    userId = it.getString("emp_id")
-                                    userName = it.getString("emp_name")
-                                    userUsername = it.getString("emp_username")
-                                    userPassword = it.getString("emp_password")
+                                    userId = it.getStringValue("emp_id")
+                                    userName = it.getStringValue("emp_name")
+                                    userUsername = it.getStringValue("emp_username")
+                                    userPassword = it.getStringValue("emp_password")
                                     userCompanyId = SettingsModel.getCompanyID()//obj.optString("usr_cmp_id")
                                     userPosMode = true
                                     userTableMode = true
@@ -341,11 +342,11 @@ class UserRepositoryImpl(
                         dbResult?.let {
                             if (it.next()) {
                                 return User().apply {
-                                    userId = it.getString("usr_id")
-                                    userName = it.getString("usr_name")
-                                    userUsername = it.getString("usr_username")
-                                    userPassword = it.getString("usr_password")
-                                    userCompanyId = it.getString("usr_cmp_id")
+                                    userId = it.getStringValue("usr_id")
+                                    userName = it.getStringValue("usr_name")
+                                    userUsername = it.getStringValue("usr_username")
+                                    userPassword = it.getStringValue("usr_password")
+                                    userCompanyId = it.getStringValue("usr_cmp_id")
                                     userPosMode = true
                                     userTableMode = true
                                 }
@@ -367,10 +368,10 @@ class UserRepositoryImpl(
                         dbResult?.let {
                             while (it.next()) {
                                 return User().apply {
-                                    userId = it.getString("emp_id")
-                                    userName = it.getString("emp_name")
-                                    userUsername = it.getString("emp_username")
-                                    userPassword = it.getString("emp_password")
+                                    userId = it.getStringValue("emp_id")
+                                    userName = it.getStringValue("emp_name")
+                                    userUsername = it.getStringValue("emp_username")
+                                    userPassword = it.getStringValue("emp_password")
                                     userCompanyId = SettingsModel.getCompanyID()//obj.optString("usr_cmp_id")
                                     userPosMode = true
                                     userTableMode = true

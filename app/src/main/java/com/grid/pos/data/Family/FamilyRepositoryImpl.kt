@@ -4,6 +4,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.SettingsModel
+import com.grid.pos.utils.Extension.getStringValue
 import kotlinx.coroutines.tasks.await
 
 class FamilyRepositoryImpl(
@@ -80,12 +81,12 @@ class FamilyRepositoryImpl(
                     dbResult?.let {
                         while (it.next()) {
                             families.add(Family().apply {
-                                familyId = it.getString("fa_name")
-                                familyName = if (SettingsModel.isSqlServerWebDb) it.getString("fa_newname") else it.getString(
+                                familyId = it.getStringValue("fa_name")
+                                familyName = if (SettingsModel.isSqlServerWebDb) it.getStringValue("fa_newname") else it.getStringValue(
                                     "fa_name"
                                 )
                                 //familyImage = obj.optString("fa_name")
-                                familyCompanyId = if (SettingsModel.isSqlServerWebDb) it.getString("fa_cmp_id") else SettingsModel.getCompanyID()
+                                familyCompanyId = if (SettingsModel.isSqlServerWebDb) it.getStringValue("fa_cmp_id") else SettingsModel.getCompanyID()
                             })
                         }
                         SQLServerWrapper.closeResultSet(it)
@@ -134,12 +135,12 @@ class FamilyRepositoryImpl(
                     dbResult?.let {
                         if (it.next()) {
                             return Family().apply {
-                                familyId = it.getString("fa_name")
-                                familyName = if (SettingsModel.isSqlServerWebDb) it.getString("fa_newname") else it.getString(
+                                familyId = it.getStringValue("fa_name")
+                                familyName = if (SettingsModel.isSqlServerWebDb) it.getStringValue("fa_newname") else it.getStringValue(
                                     "fa_name"
                                 )
                                 //familyImage = obj.optString("fa_name")
-                                familyCompanyId = if (SettingsModel.isSqlServerWebDb) it.getString("fa_cmp_id") else SettingsModel.getCompanyID()
+                                familyCompanyId = if (SettingsModel.isSqlServerWebDb) it.getStringValue("fa_cmp_id") else SettingsModel.getCompanyID()
                             }
                         }
                         SQLServerWrapper.closeResultSet(it)

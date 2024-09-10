@@ -6,6 +6,10 @@ import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.DateHelper
+import com.grid.pos.utils.Extension.getDoubleValue
+import com.grid.pos.utils.Extension.getIntValue
+import com.grid.pos.utils.Extension.getObjectValue
+import com.grid.pos.utils.Extension.getStringValue
 import com.grid.pos.utils.Utils
 import kotlinx.coroutines.tasks.await
 import java.sql.ResultSet
@@ -472,41 +476,41 @@ class InvoiceHeaderRepositoryImpl(
 
     private fun fillParams(obj: ResultSet): InvoiceHeader {
         return InvoiceHeader().apply {
-            invoiceHeadId = obj.getString("hi_id")
-            invoiceHeadCompId = obj.getString("hi_cmp_id")
+            invoiceHeadId = obj.getStringValue("hi_id")
+            invoiceHeadCompId = obj.getStringValue("hi_cmp_id")
             invoiceHeadDate = obj.getString("hi_date")
-            invoiceHeadOrderNo = obj.getString("hi_orderno")
-            invoiceHeadTtCode = obj.getString("hi_tt_code")
-            invoiceHeadTransNo = obj.getString("hi_transno")
-            invoiceHeadStatus = obj.getString("hi_status")
-            invoiceHeadNote = obj.getString("hi_note")
-            invoiceHeadThirdPartyName = obj.getString("hi_tp_name")
-            invoiceHeadCashName = obj.getString("hi_cashname")
-            invoiceHeadTotalNetAmount = obj.getDouble("hi_total")
-            invoiceHeadGrossAmount = obj.getDouble("hi_netamt")
-            invoiceHeadDiscount = obj.getDouble("hi_disc")
-            invoiceHeadDiscountAmount = obj.getDouble("hi_discamt")
-            invoiceHeadTaxAmt = obj.getDouble("hi_taxamt")
-            invoiceHeadTax1Amt = obj.getDouble("hi_tax1amt")
-            invoiceHeadTax2Amt = obj.getDouble("hi_tax2amt")
+            invoiceHeadOrderNo = obj.getStringValue("hi_orderno")
+            invoiceHeadTtCode = obj.getStringValue("hi_tt_code")
+            invoiceHeadTransNo = obj.getStringValue("hi_transno")
+            invoiceHeadStatus = obj.getStringValue("hi_status")
+            invoiceHeadNote = obj.getStringValue("hi_note")
+            invoiceHeadThirdPartyName = obj.getStringValue("hi_tp_name")
+            invoiceHeadCashName = obj.getStringValue("hi_cashname")
+            invoiceHeadTotalNetAmount = obj.getDoubleValue("hi_total")
+            invoiceHeadGrossAmount = obj.getDoubleValue("hi_netamt")
+            invoiceHeadDiscount = obj.getDoubleValue("hi_disc")
+            invoiceHeadDiscountAmount = obj.getDoubleValue("hi_discamt")
+            invoiceHeadTaxAmt = obj.getDoubleValue("hi_taxamt")
+            invoiceHeadTax1Amt = obj.getDoubleValue("hi_tax1amt")
+            invoiceHeadTax2Amt = obj.getDoubleValue("hi_tax2amt")
             invoiceHeadTotalTax = invoiceHeadTaxAmt + invoiceHeadTax1Amt + invoiceHeadTax2Amt
-            invoiceHeadTotal = obj.getDouble("hi_total")
-            invoiceHeadTotal1 = obj.getDouble("hi_total1")
-            invoiceHeadRate = obj.getDouble("hi_rates")
+            invoiceHeadTotal = obj.getDoubleValue("hi_total")
+            invoiceHeadTotal1 = obj.getDoubleValue("hi_total1")
+            invoiceHeadRate = obj.getDoubleValue("hi_rates")
             if (SettingsModel.isSqlServerWebDb) {
-                invoiceHeadTableId = obj.getString("hi_ta_name")
+                invoiceHeadTableId = obj.getStringValue("hi_ta_name")
             } else {
-                invoiceHeadTaName = obj.getString("hi_ta_name")
+                invoiceHeadTaName = obj.getStringValue("hi_ta_name")
             }
-            invoiceHeadClientsCount = obj.getInt("hi_clientscount")
-            invoiceHeadChange = obj.getDouble("hi_change")
-            val timeStamp = obj.getObject("hi_timestamp")
+            invoiceHeadClientsCount = obj.getIntValue("hi_clientscount")
+            invoiceHeadChange = obj.getDoubleValue("hi_change")
+            val timeStamp = obj.getObjectValue("hi_timestamp")
             invoiceHeadTimeStamp = if (timeStamp is Date) timeStamp else DateHelper.getDateFromString(
                 timeStamp as String,
                 "yyyy-MM-dd hh:mm:ss.SSS"
             )
             invoiceHeadDateTime = invoiceHeadTimeStamp!!.time
-            invoiceHeadUserStamp = obj.getString("hi_userstamp")
+            invoiceHeadUserStamp = obj.getStringValue("hi_userstamp")
         }
     }
 
@@ -650,7 +654,7 @@ class InvoiceHeaderRepositoryImpl(
             )
             dbResult?.let {
                 if (it.next()) {
-                    return it.getString("ta_name")
+                    return it.getStringValue("ta_name")
                 }
                 SQLServerWrapper.closeResultSet(it)
             }
