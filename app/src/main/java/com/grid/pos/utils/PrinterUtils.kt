@@ -120,7 +120,6 @@ object PrinterUtils {
             user: User? = SettingsModel.currentUser,
             company: Company? = SettingsModel.currentCompany,
             currency: Currency? = SettingsModel.currentCurrency,
-            withOrderNo: Boolean = false,
     ): String {
         val defaultLocal = Locale.getDefault()
         var result = getPaySlipHtmlContent(context)
@@ -163,11 +162,7 @@ object PrinterUtils {
             )
         )
 
-        val invoiceNo = if (withOrderNo) {
-            invoiceHeader.invoiceHeadOrderNo
-        } else {
-            invoiceHeader.invoiceHeadTransNo
-        }
+        val invoiceNo = invoiceHeader.invoiceHeadTransNo ?: invoiceHeader.invoiceHeadOrderNo
         if (!invoiceNo.isNullOrEmpty()) {
             result = result.replace(
                 "{invoicenumbervalue}",
@@ -931,7 +926,6 @@ object PrinterUtils {
             thirdParty: ThirdParty?,
             user: User?,
             company: Company?,
-            printInvoiceWithOrder: Boolean,
             printers: MutableList<PosPrinter>
     ) {
         if (!SettingsModel.cashPrinter.isNullOrEmpty()) {
@@ -942,8 +936,7 @@ object PrinterUtils {
                 posReceipt = posReceipt,
                 thirdParty = thirdParty,
                 user = user,
-                company = company,
-                withOrderNo = printInvoiceWithOrder
+                company = company
             )
             val output = parseHtmlContent(htmlContent)
             val printerDetails = SettingsModel.cashPrinter?.split(":") ?: listOf()

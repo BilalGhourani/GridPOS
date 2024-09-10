@@ -37,7 +37,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.util.ArrayList
 import javax.inject.Inject
 
 @HiltViewModel
@@ -215,7 +214,6 @@ class ActivityScopedViewModel @Inject constructor(
                 thirdParty,
                 user,
                 SettingsModel.currentCompany,
-                printInvoiceWithOrder,
                 printers
             )
         }
@@ -239,8 +237,7 @@ class ActivityScopedViewModel @Inject constructor(
             posReceipt,
             defaultThirdParty,
             SettingsModel.currentUser,
-            SettingsModel.currentCompany,
-            withOrderNo = printInvoiceWithOrder
+            SettingsModel.currentCompany
         )
     }
 

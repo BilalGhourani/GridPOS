@@ -125,19 +125,25 @@ class POSViewModel @Inject constructor(
 
         CoroutineScope(Dispatchers.IO).launch {
             if (isInserting) {
+                val result = invoiceHeaderRepository.getLastInvoiceByType(
+                    POSUtils.getInvoiceType(invoiceHeader)
+                )
                 if (finish) {
-                    val result = invoiceHeaderRepository.getLastInvoiceByType(
-                        POSUtils.getInvoiceType(invoiceHeader)
-                    )
                     invoiceHeader.invoiceHeadTransNo = POSUtils.getInvoiceTransactionNo(
                         result?.invoiceHeadTransNo ?: ""
                     )
+                    if (invoiceHeader.invoiceHeadOrderNo.isNullOrEmpty()) {
+                        invoiceHeader.invoiceHeadOrderNo = POSUtils.getInvoiceNo(
+                            result?.invoiceHeadOrderNo ?: ""
+                        )
+                    }
+                    invoiceHeader.invoiceHeadTtCode = SettingsModel.getTransactionType(invoiceHeader.invoiceHeadGrossAmount)
+                } else {
                     invoiceHeader.invoiceHeadOrderNo = POSUtils.getInvoiceNo(
                         result?.invoiceHeadOrderNo ?: ""
                     )
-                    invoiceHeader.invoiceHeadTtCode = SettingsModel.getTransactionType(invoiceHeader.invoiceHeadGrossAmount)
-                } else {
                     invoiceHeader.invoiceHeadTtCode = null
+                    invoiceHeader.invoiceHeadTransNo = null
                 }
                 invoiceHeader.prepareForInsert()
                 val addedInv = invoiceHeaderRepository.insert(
@@ -157,9 +163,6 @@ class POSViewModel @Inject constructor(
                     )
                     invoiceHeader.invoiceHeadTransNo = POSUtils.getInvoiceTransactionNo(
                         result?.invoiceHeadTransNo ?: ""
-                    )
-                    invoiceHeader.invoiceHeadOrderNo = POSUtils.getInvoiceNo(
-                        result?.invoiceHeadOrderNo ?: ""
                     )
                     invoiceHeader.prepareForInsert()
                     invoiceHeader.invoiceHeadTtCode = SettingsModel.getTransactionType(invoiceHeader.invoiceHeadGrossAmount)

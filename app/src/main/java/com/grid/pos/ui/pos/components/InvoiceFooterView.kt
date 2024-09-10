@@ -43,6 +43,7 @@ fun InvoiceFooterView(
         thirdParties: MutableList<ThirdParty> = mutableListOf(),
         invoiceHeaders: MutableList<InvoiceHeader> = mutableListOf(),
         modifier: Modifier = Modifier,
+        isFromTable: Boolean = false,
         onLoadClients: () -> Unit = {},
         onLoadInvoices: () -> Unit = {},
         onAddItem: () -> Unit = {},
@@ -73,27 +74,35 @@ fun InvoiceFooterView(
             .fillMaxWidth()
             .fillMaxHeight()
     ) {
-        SearchableDropdownMenuEx(
-            items = invoiceHeaders.toMutableList(),
-            showSelected = false,
-            selectedId = null,
-            modifier = Modifier.fillMaxWidth().padding(
-                5.dp,
-                160.dp,
-                5.dp,
-                5.dp
-            ),
-            label = "Invoices",
-            onLoadItems = { onLoadInvoices.invoke() },
-        ) { invoiceHeader ->
-            onInvoiceSelected.invoke(invoiceHeader as InvoiceHeader)
+        if (!isFromTable) {
+            SearchableDropdownMenuEx(
+                items = invoiceHeaders.toMutableList(),
+                showSelected = false,
+                selectedId = null,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(
+                        5.dp,
+                        160.dp,
+                        5.dp,
+                        5.dp
+                    ),
+                label = "Invoices",
+                onLoadItems = { onLoadInvoices.invoke() },
+            ) { invoiceHeader ->
+                onInvoiceSelected.invoke(invoiceHeader as InvoiceHeader)
+            }
         }
-
         Row(
-            modifier = Modifier.fillMaxWidth().wrapContentHeight()
+            modifier = Modifier
+                .fillMaxWidth()
+                .wrapContentHeight()
         ) {
             Column(
-                modifier = Modifier.weight(1f).wrapContentHeight().padding(5.dp),
+                modifier = Modifier
+                    .weight(1f)
+                    .wrapContentHeight()
+                    .padding(5.dp),
                 horizontalAlignment = Alignment.Start
             ) {
                 Text(
@@ -133,7 +142,10 @@ fun InvoiceFooterView(
 
             }
             Column(
-                modifier = Modifier.weight(1f).wrapContentHeight().padding(5.dp),
+                modifier = Modifier
+                    .weight(1f)
+                    .wrapContentHeight()
+                    .padding(5.dp),
                 horizontalAlignment = Alignment.Start
             ) {
                 Text(

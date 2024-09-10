@@ -179,10 +179,16 @@ class InvoiceHeaderRepositoryImpl(
                     .whereEqualTo(
                         "hi_cmp_id",
                         SettingsModel.getCompanyID()
+                    ).whereNotEqualTo(
+                        "hi_transno",
+                        null
+                    ).whereNotEqualTo(
+                        "hi_transno",
+                        ""
                     ).orderBy(
                         "hi_transno",
                         Query.Direction.DESCENDING
-                    ).get().await()
+                    ).limit(100).get().await()
                 val invoices = mutableListOf<InvoiceHeader>()
                 if (querySnapshot.size() > 0) {
                     for (document in querySnapshot) {
@@ -237,7 +243,7 @@ class InvoiceHeaderRepositoryImpl(
                         "hi_tt_code",
                         type
                     ).orderBy(
-                        "hi_transno",
+                        "hi_timestamp",
                         Query.Direction.DESCENDING
                     ).limit(1).get().await()
                 val document = querySnapshot.firstOrNull()
@@ -254,7 +260,7 @@ class InvoiceHeaderRepositoryImpl(
             else -> {
                 val invoiceHeaders: MutableList<InvoiceHeader> = mutableListOf()
                 try {
-                    val where = "hi_cmp_id='${SettingsModel.getCompanyID()}' AND hi_tt_code = '$type' ORDER BY hi_transno DESC"
+                    val where = "hi_cmp_id='${SettingsModel.getCompanyID()}' AND hi_tt_code = '$type' ORDER BY hi_timestamp DESC"
                     val dbResult = SQLServerWrapper.getListOf(
                         "in_hinvoice",
                         "TOP 1",

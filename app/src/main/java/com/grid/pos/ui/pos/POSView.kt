@@ -188,7 +188,6 @@ fun POSView(
         activityViewModel.invoiceHeader = InvoiceHeader()
         activityViewModel.posReceipt = PosReceipt()
         activityViewModel.shouldPrintInvoice = true
-        activityViewModel.printInvoiceWithOrder = false
         activityViewModel.shouldLoadInvoice = false
         activityViewModel.pendingInvHeadState = null
         invoicesState.clear()
@@ -507,6 +506,7 @@ fun POSView(
                             modifier = Modifier
                                 .wrapContentWidth()
                                 .wrapContentHeight(),
+                            isFromTable = activityViewModel.isFromTable,
                             onLoadClients = { viewModel.fetchThirdParties() },
                             onLoadInvoices = {
                                 if (state.thirdParties.isEmpty()) {
@@ -670,35 +670,32 @@ fun POSView(
                         activityViewModel.posReceipt = receipt
                         invoiceHeaderState.value.invoiceHeadChange = change
                         activityViewModel.shouldPrintInvoice = false
-                        activityViewModel.printInvoiceWithOrder = false
                         viewModel.saveInvoiceHeader(
-                            invoiceHeaderState.value,
-                            activityViewModel.posReceipt,
-                            activityViewModel.invoiceItemModels,
-                            !activityViewModel.isFromTable
+                            invoiceHeader = invoiceHeaderState.value,
+                            posReceipt = activityViewModel.posReceipt,
+                            invoiceItems = activityViewModel.invoiceItemModels,
+                            finish = !activityViewModel.isFromTable
                         )
                     },
                     onSaveAndPrint = { change, receipt ->
                         activityViewModel.posReceipt = receipt
                         invoiceHeaderState.value.invoiceHeadChange = change
                         activityViewModel.shouldPrintInvoice = true
-                        activityViewModel.printInvoiceWithOrder = true
                         viewModel.saveInvoiceHeader(
-                            invoiceHeaderState.value,
-                            activityViewModel.posReceipt,
-                            activityViewModel.invoiceItemModels,
-                            !activityViewModel.isFromTable
+                            invoiceHeader = invoiceHeaderState.value,
+                            posReceipt = activityViewModel.posReceipt,
+                            invoiceItems = activityViewModel.invoiceItemModels,
+                            finish = !activityViewModel.isFromTable
                         )
                     },
                     onFinishAndPrint = { change, receipt ->
                         activityViewModel.posReceipt = receipt
                         invoiceHeaderState.value.invoiceHeadChange = change
                         activityViewModel.shouldPrintInvoice = true
-                        activityViewModel.printInvoiceWithOrder = false
                         viewModel.saveInvoiceHeader(
-                            invoiceHeaderState.value,
-                            activityViewModel.posReceipt,
-                            activityViewModel.invoiceItemModels,
+                            invoiceHeader = invoiceHeaderState.value,
+                            posReceipt = activityViewModel.posReceipt,
+                            invoiceItems = activityViewModel.invoiceItemModels,
                             finish = true
                         )
                     },
