@@ -41,7 +41,7 @@ fun InvoiceCashView(
         invoiceHeader: InvoiceHeader,
         posReceipt: PosReceipt,
         onSave: (Double, PosReceipt) -> Unit = { _, _ -> },
-        onSaveAndPrint: (Double, PosReceipt) -> Unit = { _, _ -> },
+        onSaveAndPrintOrder: (Double, PosReceipt) -> Unit = { _, _ -> },
         onFinishAndPrint: (Double, PosReceipt) -> Unit = { _, _ -> },
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -212,7 +212,7 @@ fun InvoiceCashView(
                 posReceipt.posReceiptDebits = debitCurr2Paid.toDoubleOrNull() ?: 0.0
                 posReceipt.posReceiptCredit = creditCurr1Paid.toDoubleOrNull() ?: 0.0
                 posReceipt.posReceiptCredits = creditCurr2Paid.toDoubleOrNull() ?: 0.0
-                onSaveAndPrint.invoke(
+                onSaveAndPrintOrder.invoke(
                     changeCurr1.toDoubleOrNull() ?: 0.0,
                     posReceipt
                 )

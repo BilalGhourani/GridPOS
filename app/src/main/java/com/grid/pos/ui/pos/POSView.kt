@@ -43,7 +43,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
@@ -677,7 +676,7 @@ fun POSView(
                             finish = !activityViewModel.isFromTable
                         )
                     },
-                    onSaveAndPrint = { change, receipt ->
+                    onSaveAndPrintOrder = { change, receipt ->
                         activityViewModel.posReceipt = receipt
                         invoiceHeaderState.value.invoiceHeadChange = change
                         activityViewModel.shouldPrintInvoice = true
@@ -685,7 +684,7 @@ fun POSView(
                             invoiceHeader = invoiceHeaderState.value,
                             posReceipt = activityViewModel.posReceipt,
                             invoiceItems = activityViewModel.invoiceItemModels,
-                            finish = !activityViewModel.isFromTable
+                            finish = false
                         )
                     },
                     onFinishAndPrint = { change, receipt ->
