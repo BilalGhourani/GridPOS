@@ -6,13 +6,13 @@ import com.grid.pos.model.InvoiceItemModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.Utils
 import java.math.BigInteger
+import kotlin.math.min
 
 object POSUtils {
 
     fun getInvoiceTransactionNo(oldInvoiceTransNo: String?): String {
         val currentYear = Utils.getCurrentYear()
-        var invNoStr =
-            oldInvoiceTransNo.takeIf { !it.isNullOrEmpty() } ?: (currentYear + "000000000")
+        var invNoStr = oldInvoiceTransNo.takeIf { !it.isNullOrEmpty() } ?: (currentYear + "000000000")
         if (invNoStr.length > 4 && !invNoStr.substring(
                 0,
                 4
@@ -46,8 +46,8 @@ object POSUtils {
     }
 
     fun refreshValues(
-        invoiceList: MutableList<InvoiceItemModel>,
-        invHeader: InvoiceHeader
+            invoiceList: MutableList<InvoiceItemModel>,
+            invHeader: InvoiceHeader
     ): InvoiceHeader {
         val isUpWithTax = SettingsModel.currentCompany?.companyUpWithTax ?: false
         val currency = SettingsModel.currentCurrency ?: Currency()
@@ -100,7 +100,21 @@ object POSUtils {
     }
 
     fun getInvoiceType(invoiceHeader: InvoiceHeader): String {
-        return invoiceHeader.invoiceHeadTtCode
-            ?: SettingsModel.getTransactionType(invoiceHeader.invoiceHeadTotal)
+        return invoiceHeader.invoiceHeadTtCode ?: SettingsModel.getTransactionType(invoiceHeader.invoiceHeadTotal)
+    }
+
+    fun getDecimalPartSize(
+            number: Double,
+            max: Int = 6
+    ): Int {
+        val numberString = number.toString()
+        return if (numberString.contains('.')) {
+            min(
+                numberString.split(".")[1].length,
+                max
+            )  // Get the part after the decimal point
+        } else {
+            0  // If no decimal part, return 0
+        }
     }
 }

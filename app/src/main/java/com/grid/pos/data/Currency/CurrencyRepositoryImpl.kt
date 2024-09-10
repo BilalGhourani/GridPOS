@@ -9,6 +9,7 @@ import com.grid.pos.utils.Extension.getDoubleValue
 import com.grid.pos.utils.Extension.getIntValue
 import com.grid.pos.utils.Extension.getStringValue
 import kotlinx.coroutines.tasks.await
+import java.math.BigDecimal
 import java.sql.Timestamp
 import java.util.Date
 
@@ -131,7 +132,11 @@ class CurrencyRepositoryImpl(
                     try {
                         rateDbResult?.let {
                             if (it.next()) {
-                                currency.currencyRate = it.getDoubleValue("getrate")
+                                val rate = it.getDoubleValue("getrate")
+                                currency.currencyRate = String.format(
+                                    "%.6f",
+                                    rate
+                                ).toDouble()
                             }
                             SQLServerWrapper.closeResultSet(it)
                         }

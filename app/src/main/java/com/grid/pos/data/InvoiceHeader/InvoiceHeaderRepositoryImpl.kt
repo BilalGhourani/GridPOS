@@ -5,6 +5,7 @@ import com.google.firebase.firestore.Query
 import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.SettingsModel
+import com.grid.pos.ui.pos.POSUtils
 import com.grid.pos.utils.DateHelper
 import com.grid.pos.utils.Extension.getDoubleValue
 import com.grid.pos.utils.Extension.getIntValue
@@ -601,11 +602,11 @@ class InvoiceHeaderRepositoryImpl(
                 invoiceHeader.invoiceHeadTaxAmt,
                 invoiceHeader.invoiceHeadTax1Amt,
                 invoiceHeader.invoiceHeadTax2Amt,
-                invoiceHeader.invoiceHeadTotal1,
-                invoiceHeader.invoiceHeadRate,
+                String.format("%.${POSUtils.getDecimalPartSize(invoiceHeader.invoiceHeadTotal1)}f",invoiceHeader.invoiceHeadTotal1),
+                String.format("%.${POSUtils.getDecimalPartSize(invoiceHeader.invoiceHeadRate)}f",invoiceHeader.invoiceHeadRate),
                 invoiceHeader.invoiceHeadTableId ?: invoiceHeader.invoiceHeadTaName,
                 invoiceHeader.invoiceHeadClientsCount,
-                invoiceHeader.invoiceHeadChange,
+                String.format("%.${POSUtils.getDecimalPartSize(invoiceHeader.invoiceHeadChange)}f",invoiceHeader.invoiceHeadChange),
                 SettingsModel.defaultWarehouse,
                 SettingsModel.defaultBranch,
                 dateTime,
@@ -629,11 +630,11 @@ class InvoiceHeaderRepositoryImpl(
                 invoiceHeader.invoiceHeadTaxAmt,
                 invoiceHeader.invoiceHeadTax1Amt,
                 invoiceHeader.invoiceHeadTax2Amt,
-                invoiceHeader.invoiceHeadTotal1,
-                invoiceHeader.invoiceHeadRate,
+                String.format("%.${POSUtils.getDecimalPartSize(invoiceHeader.invoiceHeadTotal1)}f",invoiceHeader.invoiceHeadTotal1),
+                String.format("%.${POSUtils.getDecimalPartSize(invoiceHeader.invoiceHeadRate)}f",invoiceHeader.invoiceHeadRate),
                 invoiceHeader.invoiceHeadTableId ?: invoiceHeader.invoiceHeadTaName,
                 invoiceHeader.invoiceHeadClientsCount,
-                invoiceHeader.invoiceHeadChange,
+                String.format("%.${POSUtils.getDecimalPartSize(invoiceHeader.invoiceHeadChange)}f",invoiceHeader.invoiceHeadChange),
                 SettingsModel.defaultWarehouse,
                 SettingsModel.defaultBranch,
                 dateTime,

@@ -7,6 +7,7 @@ import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.DateHelper
 import kotlinx.coroutines.tasks.await
 import java.sql.ResultSet
+import java.sql.Timestamp
 import java.util.Date
 
 class InvoiceRepositoryImpl(
@@ -270,6 +271,12 @@ class InvoiceRepositoryImpl(
     }
 
     private fun getValues(invoice: Invoice): List<Any?> {
+        invoice.invoiceTimeStamp = Timestamp.valueOf(
+            DateHelper.getDateInFormat(
+                Date(),
+                "yyyy-MM-dd HH:mm:ss"
+            )
+        )
         return listOf(
             invoice.invoiceId,
             invoice.invoiceHeaderId,

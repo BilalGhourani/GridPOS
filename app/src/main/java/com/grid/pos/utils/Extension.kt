@@ -173,7 +173,7 @@ object Extension {
             fallback: Double = 0.0
     ): Double {
         return try {
-            getDouble(value)
+            getDouble(value).takeIf { !it.isNaN() } ?: 0.0
         } catch (e: Exception) {
             e.printStackTrace()
             fallback

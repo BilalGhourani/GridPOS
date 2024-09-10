@@ -54,6 +54,7 @@ import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.UIButton
 import com.grid.pos.ui.common.UITextField
+import com.grid.pos.ui.pos.POSUtils
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.utils.Utils
 import kotlinx.coroutines.launch
@@ -93,7 +94,7 @@ fun ManageCurrenciesView(
     }
     var rateState by remember {
         mutableStateOf(
-            state.selectedCurrency.currencyRate.toString()
+            String.format("%.${POSUtils.getDecimalPartSize(state.selectedCurrency.currencyRate)}f",state.selectedCurrency.currencyRate)
         )
     }
 
