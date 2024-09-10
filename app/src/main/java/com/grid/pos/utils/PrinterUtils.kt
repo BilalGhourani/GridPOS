@@ -238,6 +238,21 @@ object PrinterUtils {
             )
         }
 
+        result = if (!invoiceHeader.invoiceHeadTaName.isNullOrEmpty()) {
+            result.replace(
+                "{table_name}",
+                invoiceHeader.invoiceHeadTaName ?: ""
+            ).replace(
+                "{table_no_display}",
+                "block"
+            )
+        } else {
+            result.replace(
+                "{table_no_display}",
+                "none"
+            )
+        }
+
         result = if (!user?.userName.isNullOrEmpty()) {
             result.replace(
                 "{invoiceuservalue}",
