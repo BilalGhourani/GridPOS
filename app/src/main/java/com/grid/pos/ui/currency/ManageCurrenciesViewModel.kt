@@ -25,35 +25,36 @@ class ManageCurrenciesViewModel @Inject constructor(
     var currentCurrency: Currency? = null
 
     init {
+        fetchCurrencies()
+    }
+
+    private fun fetchCurrencies() {
+        SettingsModel.currentCurrency?.let {
+            manageCurrenciesState.value = manageCurrenciesState.value.copy(
+                selectedCurrency = it,
+                fillFields = true,
+                isLoading = false
+            )
+            viewModelScope.launch(Dispatchers.IO) {
+                openConnectionIfNeeded()
+            }
+            return
+        }
         manageCurrenciesState.value = manageCurrenciesState.value.copy(
             isLoading = true
         )
         viewModelScope.launch(Dispatchers.IO) {
             openConnectionIfNeeded()
-            fetchCurrencies()
-        }
-    }
-
-    private suspend fun fetchCurrencies() {
-        SettingsModel.currentCurrency?.let {
-            viewModelScope.launch(Dispatchers.Main) {
+            val currencies = currencyRepository.getAllCurrencies()
+            val currency = if (currencies.size > 0) currencies[0] else Currency()
+            SettingsModel.currentCurrency = currency
+            withContext(Dispatchers.Main) {
                 manageCurrenciesState.value = manageCurrenciesState.value.copy(
-                    selectedCurrency = it,
+                    selectedCurrency = currency,
                     fillFields = true,
                     isLoading = false
                 )
             }
-            return
-        }
-        val currencies = currencyRepository.getAllCurrencies()
-        val currency = if (currencies.size > 0) currencies[0] else Currency()
-        SettingsModel.currentCurrency = currency
-        viewModelScope.launch(Dispatchers.Main) {
-            manageCurrenciesState.value = manageCurrenciesState.value.copy(
-                selectedCurrency = currency,
-                fillFields = true,
-                isLoading = false
-            )
         }
     }
 
