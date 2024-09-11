@@ -372,7 +372,7 @@ fun ManageCurrenciesView(
             curCode2State = state.selectedCurrency.currencyCode2 ?: ""
             curName2State = state.selectedCurrency.currencyName2 ?: ""
             curName2DecState = state.selectedCurrency.currencyName2Dec.toString()
-            rateState = state.selectedCurrency.currencyRate.toString()
+            rateState =  String.format("%.${POSUtils.getDecimalPartSize(state.selectedCurrency.currencyRate)}f",state.selectedCurrency.currencyRate)
             state.fillFields = false
         }
     }

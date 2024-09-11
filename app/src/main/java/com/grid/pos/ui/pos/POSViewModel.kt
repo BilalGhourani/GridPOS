@@ -58,12 +58,16 @@ class POSViewModel @Inject constructor(
     }
 
     fun fetchThirdParties() {
+        posState.value = posState.value.copy(
+            isLoading = true
+        )
         viewModelScope.launch(Dispatchers.IO) {
             val listOfThirdParties = thirdPartyRepository.getAllThirdParties()
             clientsMao = listOfThirdParties.map { it.thirdPartyId to it }.toMap()
             withContext(Dispatchers.Main) {
                 posState.value = posState.value.copy(
-                    thirdParties = listOfThirdParties
+                    thirdParties = listOfThirdParties,
+                    isLoading = true
                 )
             }
         }
@@ -79,6 +83,9 @@ class POSViewModel @Inject constructor(
     }
 
     fun fetchInvoices() {
+        posState.value = posState.value.copy(
+            isLoading = true
+        )
         viewModelScope.launch(Dispatchers.IO) {
             val listOfInvoices = invoiceHeaderRepository.getAllInvoiceHeaders()
             listOfInvoices.map {
@@ -86,7 +93,8 @@ class POSViewModel @Inject constructor(
             }
             withContext(Dispatchers.Main) {
                 posState.value = posState.value.copy(
-                    invoiceHeaders = listOfInvoices
+                    invoiceHeaders = listOfInvoices,
+                    isLoading = true
                 )
             }
         }

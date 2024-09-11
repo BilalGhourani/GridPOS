@@ -178,6 +178,7 @@ class InvoiceHeaderRepositoryImpl(
     }
 
     override suspend fun getAllInvoiceHeaders(): MutableList<InvoiceHeader> {
+        val limit = 100
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
                 val querySnapshot = FirebaseFirestore.getInstance().collection("in_hinvoice")
@@ -193,7 +194,7 @@ class InvoiceHeaderRepositoryImpl(
                     ).orderBy(
                         "hi_transno",
                         Query.Direction.DESCENDING
-                    ).limit(100).get().await()
+                    ).limit(limit.toLong()).get().await()
                 val invoices = mutableListOf<InvoiceHeader>()
                 if (querySnapshot.size() > 0) {
                     for (document in querySnapshot) {
@@ -208,7 +209,7 @@ class InvoiceHeaderRepositoryImpl(
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
-                return invoiceHeaderDao.getAllInvoiceHeaders(SettingsModel.getCompanyID() ?: "")
+                return invoiceHeaderDao.getAllInvoiceHeaders(limit,SettingsModel.getCompanyID() ?: "")
             }
 
             else -> {
@@ -217,7 +218,7 @@ class InvoiceHeaderRepositoryImpl(
                     val where = "hi_cmp_id='${SettingsModel.getCompanyID()}' ORDER BY hi_transno DESC"
                     val dbResult = SQLServerWrapper.getListOf(
                         "in_hinvoice",
-                        "",
+                        "TOP $limit",
                         mutableListOf("*"),
                         where
                     )
