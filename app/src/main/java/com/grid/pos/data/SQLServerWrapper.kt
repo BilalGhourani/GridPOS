@@ -10,16 +10,22 @@ object SQLServerWrapper {
 
     private var mConnection: Connection? = null
 
-    private fun getDatabaseConnection(): Connection {
+    private fun getDatabaseConnection(
+            serverPath: String? = SettingsModel.sqlServerPath,
+            dbName: String? = SettingsModel.sqlServerDbName,
+            serverName: String? = SettingsModel.sqlServerName,
+            username: String? = SettingsModel.sqlServerDbUser,
+            passwrod: String? = SettingsModel.sqlServerDbPassword
+    ): Connection {
         try {
             Class.forName("net.sourceforge.jtds.jdbc.Driver")
         } catch (e: ClassNotFoundException) {
             e.printStackTrace()
         }
         return DriverManager.getConnection(
-            SettingsModel.getSqlServerDbPath(),
-            SettingsModel.sqlServerDbUser,
-            SettingsModel.sqlServerDbPassword
+            "jdbc:jtds:sqlserver://${serverPath}/$dbName;instance=$serverName;encrypt=true",
+            username,
+            passwrod
         )
     }
 
@@ -53,6 +59,29 @@ object SQLServerWrapper {
             }
         } catch (e: Exception) {
             e.printStackTrace()
+        }
+    }
+
+    fun isConnectionSucceeded(
+            serverPath: String? = SettingsModel.sqlServerPath,
+            dbName: String? = SettingsModel.sqlServerDbName,
+            serverName: String? = SettingsModel.sqlServerName,
+            username: String? = SettingsModel.sqlServerDbUser,
+            passwrod: String? = SettingsModel.sqlServerDbPassword
+    ): String {
+        return try {
+           val connection =  getDatabaseConnection(
+                serverPath,
+                dbName,
+                serverName,
+                username,
+                passwrod
+            )
+            connection.close()
+            "Connection Successful!"
+        } catch (e: Exception) {
+            e.printStackTrace()
+            e.message ?: "Failed to connect!"
         }
     }
 

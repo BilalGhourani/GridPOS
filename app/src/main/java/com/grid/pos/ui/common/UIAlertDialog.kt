@@ -9,11 +9,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -26,28 +29,29 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
 
 @Composable
 fun UIAlertDialog(
-    onDismissRequest: () -> Unit,
-    onConfirmation: () -> Unit,
-    popupModel: PopupModel
+        onDismissRequest: () -> Unit,
+        onConfirmation: () -> Unit,
+        popupModel: PopupModel
 ) {
-    Dialog(onDismissRequest = { onDismissRequest() }) {
-        Card(
+    Dialog(properties = DialogProperties(),
+        onDismissRequest = { onDismissRequest() }) {
+        Surface(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(popupModel.height),
+                .wrapContentHeight(),
             shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = SettingsModel.backgroundColor,
-            )
+            color = SettingsModel.backgroundColor,
+            contentColor = SettingsModel.backgroundColor
         ) {
             Column(
                 modifier = Modifier
-                    .fillMaxSize()
+                    .wrapContentSize()
                     .padding(horizontal = 16.dp),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -64,7 +68,7 @@ fun UIAlertDialog(
                     )
                 }
 
-                popupModel.dialogTitle?.let {title->
+                popupModel.dialogTitle?.let { title ->
                     Spacer(modifier = Modifier.height(10.dp))
 
                     Text(
@@ -95,7 +99,7 @@ fun UIAlertDialog(
                     textAlign = TextAlign.Center,
                 )
 
-                Spacer(modifier = Modifier.weight(1f))
+                Spacer(modifier = Modifier.height(10.dp))
 
                 Row(
                     modifier = Modifier

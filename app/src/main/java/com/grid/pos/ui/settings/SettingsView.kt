@@ -23,6 +23,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.RemoveCircleOutline
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Card
@@ -48,6 +49,7 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -62,8 +64,11 @@ import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
 import com.grid.pos.ActivityScopedViewModel
 import com.grid.pos.App
+import com.grid.pos.R
 import com.grid.pos.data.Company.Company
+import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.model.CONNECTION_TYPE
+import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.ColorPickerPopup
 import com.grid.pos.ui.common.SearchableDropdownMenuEx
@@ -252,13 +257,42 @@ fun SettingsView(
                         }
 
                         if (isFirebaseSectionExpanded) {
-                            SearchableDropdownMenuEx(
-                                items = Utils.connections,
+                            SearchableDropdownMenuEx(items = Utils.connections,
                                 modifier = Modifier.padding(10.dp),
                                 enableSearch = false,
                                 color = LightGrey,
                                 label = connectionTypeState.ifEmpty { "Select Type" },
-                            ) { type ->
+                                leadingIcon = {
+                                    if (connectionTypeState == CONNECTION_TYPE.SQL_SERVER.key) {
+                                        Icon(
+                                            modifier = it.size(20.dp),
+                                            painter = painterResource(R.drawable.refresh),
+                                            contentDescription = "check connectivity",
+                                            tint = Color.Black,
+                                        )
+                                    }
+                                },
+                                onLeadingIconClick = {
+                                    isLoading = true
+                                    CoroutineScope(Dispatchers.IO).launch {
+                                        val message = SQLServerWrapper.isConnectionSucceeded(
+                                            sqlServerPath,
+                                            sqlServerDbName,
+                                            sqlServerName,
+                                            sqlServerDbUser,
+                                            sqlServerDbPassword
+                                        )
+                                        withContext(Dispatchers.Main) {
+                                            isLoading = false
+                                            activityScopedViewModel.showPopup(true,
+                                                PopupModel().apply {
+                                                    positiveBtnText = "Close"
+                                                    negativeBtnText = null
+                                                    dialogText = message
+                                                })
+                                        }
+                                    }
+                                }) { type ->
                                 connectionTypeState = type.getName()
                             }
                             when (connectionTypeState) {
@@ -307,6 +341,7 @@ fun SettingsView(
                                         fireStoreCompanyID = compId
                                     }
                                 }
+
                                 CONNECTION_TYPE.SQL_SERVER.key -> {
                                     UITextField(modifier = Modifier.padding(10.dp),
                                         defaultValue = sqlServerPath,
@@ -379,15 +414,18 @@ fun SettingsView(
                                     }
 
                                     UISwitch(
-                                        modifier = Modifier.fillMaxWidth().height(60.dp).padding(10.dp),
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(60.dp)
+                                            .padding(10.dp),
                                         checked = isSqlServerWebDb,
                                         text = "Sql Server Web Db",
                                         textColor = textColorState
                                     ) { isWebDb ->
                                         isSqlServerWebDb = isWebDb
                                     }
-
                                 }
+
                                 else -> {
                                     SearchableDropdownMenuEx(items = companies.toMutableList(),
                                         modifier = Modifier.padding(10.dp),
@@ -412,7 +450,7 @@ fun SettingsView(
 
                             UIButton(
                                 modifier = Modifier
-                                    .wrapContentWidth()
+                                    .fillMaxWidth()
                                     .height(60.dp)
                                     .padding(
                                         10.dp

@@ -58,7 +58,7 @@ object SettingsModel {
             return UserType.BOTH
         } else if (currentUser?.userPosMode == true) {
             return UserType.POS
-        }else if (currentUser?.userTableMode == true) {
+        } else if (currentUser?.userTableMode == true) {
             return UserType.TABLE
         }
         return UserType.BOTH
@@ -84,10 +84,6 @@ object SettingsModel {
         } else {
             localCompanyID
         }
-    }
-
-    fun getSqlServerDbPath(): String {
-        return "jdbc:jtds:sqlserver://${sqlServerPath}/$sqlServerDbName;instance=$sqlServerName;encrypt=true"
     }
 
     fun getTransactionType(amount: Double): String {
