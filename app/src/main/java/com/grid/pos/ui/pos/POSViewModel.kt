@@ -67,7 +67,7 @@ class POSViewModel @Inject constructor(
             withContext(Dispatchers.Main) {
                 posState.value = posState.value.copy(
                     thirdParties = listOfThirdParties,
-                    isLoading = true
+                    isLoading = false
                 )
             }
         }
@@ -94,7 +94,7 @@ class POSViewModel @Inject constructor(
             withContext(Dispatchers.Main) {
                 posState.value = posState.value.copy(
                     invoiceHeaders = listOfInvoices,
-                    isLoading = true
+                    isLoading = false
                 )
             }
         }
