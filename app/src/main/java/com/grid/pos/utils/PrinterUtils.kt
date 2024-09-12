@@ -168,6 +168,11 @@ object PrinterUtils {
                 "{invoicenumbervalue}",
                 "Invoice# $invoiceNo"
             )
+        } else {
+            result = result.replace(
+                "{invoicenumbervalue}",
+                "Invoice# "
+            )
         }
 
         result = if (!thirdParty?.thirdPartyName.isNullOrEmpty() || !invoiceHeader.invoiceHeadCashName.isNullOrEmpty()) {
