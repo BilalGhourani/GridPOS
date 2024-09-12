@@ -163,17 +163,10 @@ object PrinterUtils {
         )
 
         val invoiceNo = invoiceHeader.invoiceHeadTransNo ?: invoiceHeader.invoiceHeadOrderNo
-        if (!invoiceNo.isNullOrEmpty()) {
-            result = result.replace(
-                "{invoicenumbervalue}",
-                "Invoice# $invoiceNo"
-            )
-        } else {
-            result = result.replace(
-                "{invoicenumbervalue}",
-                "Invoice# "
-            )
-        }
+        result = result.replace(
+            "{invoicenumbervalue}",
+            "Invoice# ${invoiceNo ?: ""}"
+        )
 
         result = if (!thirdParty?.thirdPartyName.isNullOrEmpty() || !invoiceHeader.invoiceHeadCashName.isNullOrEmpty()) {
             result.replace(
