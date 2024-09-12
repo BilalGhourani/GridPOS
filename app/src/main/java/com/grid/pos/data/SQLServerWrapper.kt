@@ -15,7 +15,7 @@ object SQLServerWrapper {
             dbName: String? = SettingsModel.sqlServerDbName,
             serverName: String? = SettingsModel.sqlServerName,
             username: String? = SettingsModel.sqlServerDbUser,
-            passwrod: String? = SettingsModel.sqlServerDbPassword
+            password: String? = SettingsModel.sqlServerDbPassword
     ): Connection {
         try {
             Class.forName("net.sourceforge.jtds.jdbc.Driver")
@@ -25,7 +25,7 @@ object SQLServerWrapper {
         return DriverManager.getConnection(
             "jdbc:jtds:sqlserver://${serverPath}/$dbName;instance=$serverName;encrypt=true",
             username,
-            passwrod
+            password
         )
     }
 
@@ -77,6 +77,9 @@ object SQLServerWrapper {
                 username,
                 passwrod
             )
+            val query = "SELECT TOP 1 * FROM company"
+            val statement = connection.prepareStatement(query)
+             statement.executeQuery()
             connection.close()
             "Connection Successful!"
         } catch (e: Exception) {
