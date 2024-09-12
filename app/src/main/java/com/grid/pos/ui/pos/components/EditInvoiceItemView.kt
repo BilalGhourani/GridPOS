@@ -253,15 +253,11 @@ fun EditInvoiceItemView(
                         price
                     )
                     invoiceItemModel.invoice.invoicePrice = price.toDoubleOrNull() ?: 0.0
+                    calculateItemDiscount()
+                    calculateInvoiceDiscount()
                 },
                 modifier = Modifier
-                    .weight(1f)
-                    .onFocusChanged {
-                        if (!it.hasFocus) {
-                            calculateItemDiscount()
-                            calculateInvoiceDiscount()
-                        }
-                    },
+                    .weight(1f),
                 shape = RoundedCornerShape(15.dp),
                 label = {
                     Text(
