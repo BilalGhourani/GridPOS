@@ -68,8 +68,7 @@ fun ManageThirdPartiesView(
         activityScopedViewModel: ActivityScopedViewModel,
         viewModel: ManageThirdPartiesViewModel = hiltViewModel()
 ) {
-    val state  by viewModel.manageThirdPartiesState.collectAsStateWithLifecycle()
-    viewModel.fillCachedThirdParties(activityScopedViewModel.thirdParties)
+    val state by viewModel.manageThirdPartiesState.collectAsStateWithLifecycle()
     val keyboardController = LocalSoftwareKeyboardController.current
     val fnFocusRequester = remember { FocusRequester() }
     val phone1FocusRequester = remember { FocusRequester() }
@@ -82,6 +81,10 @@ fun ManageThirdPartiesView(
     var phone2State by remember { mutableStateOf("") }
     var addressState by remember { mutableStateOf("") }
     var isDefaultState by remember { mutableStateOf(false) }
+
+    LaunchedEffect(activityScopedViewModel.thirdParties) {
+        viewModel.fillCachedThirdParties(activityScopedViewModel.thirdParties)
+    }
 
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -335,8 +338,7 @@ fun ManageThirdPartiesView(
                 }
 
                 SearchableDropdownMenuEx(items = state.thirdParties.toMutableList(),
-                    modifier = Modifier
-                        .padding(
+                    modifier = Modifier.padding(
                             top = 15.dp,
                             start = 10.dp,
                             end = 10.dp

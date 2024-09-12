@@ -39,7 +39,7 @@ class ManageUsersViewModel @Inject constructor(
         if (manageUsersState.value.users.isEmpty()) {
             viewModelScope.launch(Dispatchers.Main) {
                 manageUsersState.value = manageUsersState.value.copy(
-                    users = users
+                    users = users.toMutableList()
                 )
             }
         }

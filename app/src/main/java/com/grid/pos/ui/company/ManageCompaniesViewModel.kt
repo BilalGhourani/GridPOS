@@ -63,8 +63,8 @@ class ManageCompaniesViewModel @Inject constructor(
         if (manageCompaniesState.value.companies.isEmpty()) {
             viewModelScope.launch(Dispatchers.Main) {
                 manageCompaniesState.value = manageCompaniesState.value.copy(
-                    companies = companies,
-                    currencies = currencies
+                    companies = companies.toMutableList(),
+                    currencies = currencies.toMutableList()
                 )
             }
         }

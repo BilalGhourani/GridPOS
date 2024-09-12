@@ -128,20 +128,29 @@ fun POSView(
         }
     }
 
-    LaunchedEffect(key1 = Unit) {
-        if (state.items.isEmpty()) {
-            state.items.addAll(activityViewModel.items)
-        }
-        if (state.families.isEmpty()) {
-            state.families.addAll(activityViewModel.families)
-        }
-        if (state.thirdParties.isEmpty()) {
-            state.thirdParties.addAll(activityViewModel.thirdParties)
-        }
-        if (state.invoiceHeaders.isEmpty()) {
-            state.invoiceHeaders.addAll(activityViewModel.invoiceHeaders)
-        }
+    LaunchedEffect(
+        activityViewModel.items
+    ) {
+        state.items = activityViewModel.items.toMutableList()
+    }
 
+    LaunchedEffect(
+        activityViewModel.families
+    ) {
+        state.families = activityViewModel.families.toMutableList()
+    }
+    LaunchedEffect(
+        activityViewModel.thirdParties
+    ) {
+        state.thirdParties = activityViewModel.thirdParties.toMutableList()
+    }
+    LaunchedEffect(
+        activityViewModel.invoiceHeaders
+    ) {
+        state.invoiceHeaders = activityViewModel.invoiceHeaders.toMutableList()
+    }
+
+    LaunchedEffect(key1 = Unit) {
         if (activityViewModel.shouldLoadInvoice) {
             activityViewModel.shouldLoadInvoice = false
             selectInvoice(invoiceHeaderState.value)
@@ -202,6 +211,10 @@ fun POSView(
             if (activityViewModel.shouldPrintInvoice) {
                 activityViewModel.invoiceItemModels = invoicesState
                 activityViewModel.invoiceHeader = invoiceHeaderState.value
+                activityViewModel.invoiceHeaders = state.invoiceHeaders.toMutableList()
+                activityViewModel.thirdParties = state.thirdParties.toMutableList()
+                activityViewModel.families = state.families.toMutableList()
+                activityViewModel.items = state.items.toMutableList()
                 navController?.navigate("UIWebView")
             } else if (activityViewModel.isFromTable) {
                 navController?.navigateUp()
@@ -344,6 +357,10 @@ fun POSView(
                                 IconButton(onClick = {
                                     activityViewModel.invoiceItemModels = invoicesState
                                     activityViewModel.invoiceHeader = invoiceHeaderState.value
+                                    activityViewModel.invoiceHeaders = state.invoiceHeaders.toMutableList()
+                                    activityViewModel.thirdParties = state.thirdParties.toMutableList()
+                                    activityViewModel.families = state.families.toMutableList()
+                                    activityViewModel.items = state.items.toMutableList()
                                     navController?.navigate("SettingsView")
                                 }) {
                                     Icon(
@@ -516,18 +533,26 @@ fun POSView(
                             onAddItem = {
                                 activityViewModel.invoiceItemModels = invoicesState
                                 activityViewModel.invoiceHeader = invoiceHeaderState.value
+                                activityViewModel.invoiceHeaders = state.invoiceHeaders.toMutableList()
+                                activityViewModel.thirdParties = state.thirdParties.toMutableList()
+                                activityViewModel.families = state.families.toMutableList()
+                                activityViewModel.items = state.items.toMutableList()
+                                state.items.clear()
                                 navController?.navigate(
                                     "ManageItemsView"
                                 )
-                                state.items.clear()
                             },
                             onAddThirdParty = {
                                 activityViewModel.invoiceItemModels = invoicesState
                                 activityViewModel.invoiceHeader = invoiceHeaderState.value
+                                activityViewModel.invoiceHeaders = state.invoiceHeaders.toMutableList()
+                                activityViewModel.thirdParties = state.thirdParties.toMutableList()
+                                activityViewModel.families = state.families.toMutableList()
+                                activityViewModel.items = state.items.toMutableList()
+                                state.thirdParties.clear()
                                 navController?.navigate(
                                     "ManageThirdPartiesView"
                                 )
-                                state.thirdParties.clear()
                             },
                             onItemSelected = { item ->
                                 val invoiceItemModel = InvoiceItemModel()

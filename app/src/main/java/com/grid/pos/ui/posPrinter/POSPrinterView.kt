@@ -69,7 +69,6 @@ fun POSPrinterView(
         viewModel: POSPrinterViewModel = hiltViewModel()
 ) {
     val state by viewModel.posPrinterState.collectAsStateWithLifecycle()
-    viewModel.fillCachedPrinters(activityScopedViewModel.printers)
     val keyboardController = LocalSoftwareKeyboardController.current
 
     val hostFocusRequester = remember { FocusRequester() }
@@ -84,7 +83,9 @@ fun POSPrinterView(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
-
+    LaunchedEffect(activityScopedViewModel.printers) {
+        viewModel.fillCachedPrinters(activityScopedViewModel.printers)
+    }
 
     LaunchedEffect(state.warning) {
         state.warning?.value?.let { message ->
@@ -209,7 +210,10 @@ fun POSPrinterView(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
 
-                    UITextField(modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+                    UITextField(modifier = Modifier.padding(
+                        horizontal = 10.dp,
+                        vertical = 5.dp
+                    ),
                         defaultValue = nameState,
                         label = "Name",
                         placeHolder = "Enter Name",
@@ -218,7 +222,10 @@ fun POSPrinterView(
                         state.selectedPrinter.posPrinterName = nameState
                     }
 
-                    UITextField(modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+                    UITextField(modifier = Modifier.padding(
+                        horizontal = 10.dp,
+                        vertical = 5.dp
+                    ),
                         defaultValue = hostState,
                         label = "Host",
                         placeHolder = "ex:127.0.0.1",
@@ -227,7 +234,10 @@ fun POSPrinterView(
                         state.selectedPrinter.posPrinterHost = hostState
                     }
 
-                    UITextField(modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+                    UITextField(modifier = Modifier.padding(
+                        horizontal = 10.dp,
+                        vertical = 5.dp
+                    ),
                         defaultValue = portState,
                         label = "Port",
                         placeHolder = "ex:9100",
@@ -239,7 +249,10 @@ fun POSPrinterView(
                         state.selectedPrinter.posPrinterPort = portState.toIntOrNull() ?: -1
                     }
 
-                    UITextField(modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+                    UITextField(modifier = Modifier.padding(
+                        horizontal = 10.dp,
+                        vertical = 5.dp
+                    ),
                         defaultValue = typeState,
                         label = "Type",
                         placeHolder = "Enter Type",
@@ -255,7 +268,10 @@ fun POSPrinterView(
                         modifier = Modifier
                             .fillMaxWidth()
                             .wrapContentHeight()
-                            .padding(horizontal = 10.dp, vertical = 5.dp),
+                            .padding(
+                                horizontal = 10.dp,
+                                vertical = 5.dp
+                            ),
                         verticalAlignment = Alignment.Bottom
                     ) {
                         UIButton(
@@ -296,7 +312,7 @@ fun POSPrinterView(
                     ),
                     label = "Select Printer",
                     selectedId = state.selectedPrinter.posPrinterId,
-                    onLoadItems = {viewModel.fetchPrinters()},
+                    onLoadItems = { viewModel.fetchPrinters() },
                     leadingIcon = {
                         if (state.selectedPrinter.posPrinterId.isNotEmpty()) {
                             Icon(

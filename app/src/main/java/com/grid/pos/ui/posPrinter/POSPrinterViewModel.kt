@@ -34,7 +34,7 @@ class POSPrinterViewModel @Inject constructor(
         if (posPrinterState.value.printers.isEmpty()) {
             viewModelScope.launch(Dispatchers.Main) {
                 posPrinterState.value = posPrinterState.value.copy(
-                    printers = printers
+                    printers = printers.toMutableList()
                 )
             }
         }

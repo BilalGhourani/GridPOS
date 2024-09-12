@@ -42,7 +42,7 @@ class ManageThirdPartiesViewModel @Inject constructor(
         if (manageThirdPartiesState.value.thirdParties.isEmpty()) {
             viewModelScope.launch(Dispatchers.Main) {
                 manageThirdPartiesState.value = manageThirdPartiesState.value.copy(
-                    thirdParties = thirdParties
+                    thirdParties = thirdParties.toMutableList()
                 )
             }
         }

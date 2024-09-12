@@ -37,7 +37,7 @@ class ManageFamiliesViewModel @Inject constructor(
         if (manageFamiliesState.value.families.isEmpty()) {
             viewModelScope.launch(Dispatchers.Main) {
                 manageFamiliesState.value = manageFamiliesState.value.copy(
-                    families = families
+                    families = families.toMutableList()
                 )
             }
         }

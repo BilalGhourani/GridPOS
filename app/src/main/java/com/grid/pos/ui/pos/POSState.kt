@@ -11,15 +11,15 @@ import com.grid.pos.model.InvoiceItemModel
 import com.grid.pos.model.SettingsModel
 
 data class POSState(
-    val itemsToDelete: MutableList<InvoiceItemModel> = mutableListOf(),
-    val families: MutableList<Family> = mutableListOf(),
-    val items: MutableList<Item> = mutableListOf(),
-    val thirdParties: MutableList<ThirdParty> = mutableListOf(),
-    val invoiceHeaders: MutableList<InvoiceHeader> = mutableListOf(),
-    var selectedThirdParty: ThirdParty = ThirdParty(),
-    var isSaved: Boolean = false,
-    var isDeleted: Boolean = false,
-    var isLoading: Boolean = false,
-    val warning: Event<String>? = null,
-    val actionLabel: String? = null,
+        val itemsToDelete: MutableList<InvoiceItemModel> = mutableListOf(),
+        var families: MutableList<Family> = mutableListOf(),
+        var items: MutableList<Item> = mutableListOf(),
+        var thirdParties: MutableList<ThirdParty> = mutableListOf(),
+        var invoiceHeaders: MutableList<InvoiceHeader> = mutableListOf(),
+        var selectedThirdParty: ThirdParty = ThirdParty(),
+        var isSaved: Boolean = false,
+        var isDeleted: Boolean = false,
+        var isLoading: Boolean = false,
+        val warning: Event<String>? = null,
+        val actionLabel: String? = null,
 )

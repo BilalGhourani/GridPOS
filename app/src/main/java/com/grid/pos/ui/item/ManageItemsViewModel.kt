@@ -42,12 +42,14 @@ class ManageItemsViewModel @Inject constructor(
             families: MutableList<Family> = mutableListOf()
     ) {
         if (manageItemsState.value.items.isEmpty()) {
-            viewModelScope.launch(Dispatchers.Main) {
-                manageItemsState.value = manageItemsState.value.copy(
-                    items = items,
-                    families = families
-                )
-            }
+            manageItemsState.value = manageItemsState.value.copy(
+                items = items.toMutableList()
+            )
+        }
+        if (manageItemsState.value.families.isEmpty()) {
+            manageItemsState.value = manageItemsState.value.copy(
+                families = families
+            )
         }
     }
 
@@ -68,7 +70,7 @@ class ManageItemsViewModel @Inject constructor(
 
     private suspend fun fetchFamilies() {
         val listOfFamilies = familyRepository.getAllFamilies()
-        viewModelScope.launch(Dispatchers.Main) {
+        withContext(Dispatchers.Main) {
             manageItemsState.value = manageItemsState.value.copy(
                 families = listOfFamilies
             )
@@ -77,7 +79,7 @@ class ManageItemsViewModel @Inject constructor(
 
     private suspend fun fetchPrinters() {
         val listOfPrinters = posPrinterRepository.getAllPosPrinters()
-        viewModelScope.launch(Dispatchers.Main) {
+        withContext(Dispatchers.Main) {
             manageItemsState.value = manageItemsState.value.copy(
                 printers = listOfPrinters
             )
@@ -115,7 +117,7 @@ class ManageItemsViewModel @Inject constructor(
                 item.prepareForInsert()
                 val addedModel = itemRepository.insert(item)
                 val items = manageItemsState.value.items
-                if(items.isNotEmpty()) {
+                if (items.isNotEmpty()) {
                     items.add(addedModel)
                 }
                 currentITem = null

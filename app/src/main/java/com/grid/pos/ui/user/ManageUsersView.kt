@@ -76,7 +76,6 @@ fun ManageUsersView(
 ) {
     val state  by viewModel.manageUsersState.collectAsStateWithLifecycle()
 
-    viewModel.fillCachedUsers(activityScopedViewModel.users)
     val keyboardController = LocalSoftwareKeyboardController.current
     val usernameFocusRequester = remember { FocusRequester() }
     val passwordFocusRequester = remember { FocusRequester() }
@@ -87,6 +86,10 @@ fun ManageUsersView(
     var posModeState by remember { mutableStateOf(true) }
     var tableModeState by remember { mutableStateOf(false) }
     var passwordVisibility by remember { mutableStateOf(false) }
+
+    LaunchedEffect(activityScopedViewModel.users) {
+        viewModel.fillCachedUsers(activityScopedViewModel.users)
+    }
 
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -260,7 +263,10 @@ fun ManageUsersView(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .wrapContentHeight()
-                                .padding(horizontal = 10.dp, vertical = 5.dp),
+                                .padding(
+                                    horizontal = 10.dp,
+                                    vertical = 5.dp
+                                ),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             UiVerticalCheckBox(
@@ -286,7 +292,10 @@ fun ManageUsersView(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .wrapContentHeight()
-                                .padding(horizontal = 10.dp, vertical = 5.dp),
+                                .padding(
+                                    horizontal = 10.dp,
+                                    vertical = 5.dp
+                                ),
                             verticalAlignment = Alignment.Bottom
                         ) {
                             UIButton(

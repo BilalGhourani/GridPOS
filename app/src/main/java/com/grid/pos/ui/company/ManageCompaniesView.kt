@@ -81,10 +81,6 @@ fun ManageCompaniesView(
         viewModel: ManageCompaniesViewModel = hiltViewModel()
 ) {
     val state by viewModel.manageCompaniesState.collectAsStateWithLifecycle()
-    viewModel.fillCachedCompanies(
-        activityScopedViewModel.companies,
-        activityScopedViewModel.currencies
-    )
     val context = LocalContext.current
     val keyboardController = LocalSoftwareKeyboardController.current
     val phoneFocusRequester = remember { FocusRequester() }
@@ -117,6 +113,13 @@ fun ManageCompaniesView(
     var tax2RegnoState by remember { mutableStateOf("") }
 
     var oldImage: String? = null
+
+    LaunchedEffect(activityScopedViewModel.companies,activityScopedViewModel.currencies) {
+        viewModel.fillCachedCompanies(
+            activityScopedViewModel.companies,
+            activityScopedViewModel.currencies
+        )
+    }
 
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()

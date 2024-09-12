@@ -94,10 +94,6 @@ fun ManageItemsView(
         viewModel: ManageItemsViewModel = hiltViewModel()
 ) {
     val state by viewModel.manageItemsState.collectAsStateWithLifecycle()
-    viewModel.fillCachedItems(
-        activityScopedViewModel.items,
-        activityScopedViewModel.families
-    )
 
     val context = LocalContext.current
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -142,6 +138,16 @@ fun ManageItemsView(
 
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+
+    LaunchedEffect(
+        activityScopedViewModel.items,
+        activityScopedViewModel.families
+    ) {
+        viewModel.fillCachedItems(
+            activityScopedViewModel.items,
+            activityScopedViewModel.families
+        )
+    }
 
     LaunchedEffect(state.warning) {
         state.warning?.value?.let { message ->
@@ -717,10 +723,10 @@ fun ManageItemsView(
 
                 SearchableDropdownMenuEx(items = state.items.toMutableList(),
                     modifier = Modifier.padding(
-                            top = 15.dp,
-                            start = 10.dp,
-                            end = 10.dp
-                        ),
+                        top = 15.dp,
+                        start = 10.dp,
+                        end = 10.dp
+                    ),
                     label = "Select Item",
                     selectedId = state.selectedItem.itemId,
                     onLoadItems = { viewModel.fetchItems() },

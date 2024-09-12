@@ -79,7 +79,6 @@ fun ManageFamiliesView(
 ) {
     val context = LocalContext.current
     val state by viewModel.manageFamiliesState.collectAsStateWithLifecycle()
-    viewModel.fillCachedFamilies(activityScopedViewModel.families)
     val keyboardController = LocalSoftwareKeyboardController.current
     val imageFocusRequester = remember { FocusRequester() }
 
@@ -89,6 +88,10 @@ fun ManageFamiliesView(
 
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+
+    LaunchedEffect(activityScopedViewModel.families) {
+        viewModel.fillCachedFamilies(activityScopedViewModel.families)
+    }
 
     LaunchedEffect(state.warning) {
         state.warning?.value?.let { message ->
