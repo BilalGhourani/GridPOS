@@ -14,6 +14,7 @@ import com.grid.pos.data.Item.ItemRepository
 import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.model.Event
 import com.grid.pos.model.SettingsModel
+import com.grid.pos.ui.common.BaseViewModel
 import com.grid.pos.utils.FileUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -25,13 +26,14 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbookType
 import java.io.File
 import java.util.Date
 import javax.inject.Inject
+import kotlin.math.min
 
 @HiltViewModel
 class ReportsViewModel @Inject constructor(
         private val invoiceHeaderRepository: InvoiceHeaderRepository,
         private val invoiceRepository: InvoiceRepository,
         private val itemRepository: ItemRepository
-) : ViewModel() {
+) : BaseViewModel() {
 
     private var itemMap: Map<String, Item> = mutableMapOf()
     private var invoices: MutableList<InvoiceHeader> = mutableListOf()
@@ -44,6 +46,7 @@ class ReportsViewModel @Inject constructor(
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
+            openConnectionIfNeeded()
             fetchItems()
         }
     }
@@ -61,20 +64,32 @@ class ReportsViewModel @Inject constructor(
             isLoading = true
         )
         viewModelScope.launch(Dispatchers.IO) {
-            if (SettingsModel.isConnectedToSqlServer()) {
-                SQLServerWrapper.openConnection()
-            }
-            val listOfInvoices = invoiceHeaderRepository.getAllInvoiceHeaders()
-            invoices = listOfInvoices
-            if (invoices.isNotEmpty()) {
-                fetchInvoiceItems(from,
-                    to,
-                    listOfInvoices.map { it.invoiceHeadId })
-            } else {
-                reportsState.value = reportsState.value.copy(
-                    warning = Event("no data found in the date range!"),
-                    isLoading = false
+            try {
+                val listOfInvoices = invoiceHeaderRepository.getInvoicesBetween(
+                    from,
+                    to
                 )
+                invoices = listOfInvoices
+                if (invoices.isNotEmpty()) {
+                    fetchInvoiceItems(from,
+                        to,
+                        listOfInvoices.map { it.invoiceHeadId })
+                } else {
+                    withContext(Dispatchers.Main) {
+                        reportsState.value = reportsState.value.copy(
+                            warning = Event("no data found in the date range!"),
+                            isLoading = false
+                        )
+                    }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                withContext(Dispatchers.Main) {
+                    reportsState.value = reportsState.value.copy(
+                        warning = Event("an error has occurred!"),
+                        isLoading = false
+                    )
+                }
             }
         }
     }
@@ -85,7 +100,22 @@ class ReportsViewModel @Inject constructor(
             ids: List<String>
     ) {
         viewModelScope.launch(Dispatchers.IO) {
-            val listOfInvoices = invoiceRepository.getInvoicesByIds(ids)
+            val listOfInvoices = mutableListOf<Invoice>()
+            val batchSize = 30
+            var start = 0
+            val size = ids.size
+            while (start < size) {
+                val to = min(
+                    start + batchSize,
+                    size
+                )
+                val idsBatch = ids.subList(
+                    start,
+                    to
+                );
+                listOfInvoices.addAll(invoiceRepository.getInvoicesByIds(idsBatch))
+                start = to + 1;
+            }
             invoiceItemMap = listOfInvoices.groupBy { it.invoiceItemId ?: "" }
             val filteredInvoiceItems = if (!SettingsModel.isConnectedToSqlite()) {
                 listOfInvoices.filter { from.before(it.invoiceTimeStamp) && to.after(it.invoiceTimeStamp) }
@@ -96,9 +126,6 @@ class ReportsViewModel @Inject constructor(
             }
             filteredInvoiceItemMap = filteredInvoiceItems.groupBy { it.invoiceItemId ?: "" }
             generateReportsExcel()
-            if (SettingsModel.isConnectedToSqlServer()) {
-                SQLServerWrapper.closeConnection()
-            }
         }
     }
 
@@ -229,7 +256,7 @@ class ReportsViewModel @Inject constructor(
             var totalSale = 0.0
             filteredInvoiceItemMap[itemId]?.map {
                 quantitiesSold += it.invoiceQuantity
-                totalSale +=  if (priceWithTax) it.getAmount() else it.getNetAmount()
+                totalSale += if (priceWithTax) it.getAmount() else it.getNetAmount()
             }
             val row = sheet.createRow(index + 1)
             row.createCell(0).setCellValue(item?.itemName ?: "N/A")

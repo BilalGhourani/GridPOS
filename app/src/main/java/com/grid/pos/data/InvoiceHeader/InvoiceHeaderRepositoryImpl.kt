@@ -19,11 +19,11 @@ import java.util.Arrays
 import java.util.Date
 
 class InvoiceHeaderRepositoryImpl(
-    private val invoiceHeaderDao: InvoiceHeaderDao
+        private val invoiceHeaderDao: InvoiceHeaderDao
 ) : InvoiceHeaderRepository {
     override suspend fun insert(
-        invoiceHeader: InvoiceHeader,
-        isFinished: Boolean
+            invoiceHeader: InvoiceHeader,
+            isFinished: Boolean
     ): InvoiceHeader {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
@@ -103,7 +103,7 @@ class InvoiceHeaderRepositoryImpl(
     }
 
     override suspend fun delete(
-        invoiceHeader: InvoiceHeader
+            invoiceHeader: InvoiceHeader
     ) {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
@@ -127,8 +127,8 @@ class InvoiceHeaderRepositoryImpl(
     }
 
     override suspend fun update(
-        invoiceHeader: InvoiceHeader,
-        isFinished: Boolean
+            invoiceHeader: InvoiceHeader,
+            isFinished: Boolean
     ) {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
@@ -216,8 +216,7 @@ class InvoiceHeaderRepositoryImpl(
             else -> {
                 val invoiceHeaders: MutableList<InvoiceHeader> = mutableListOf()
                 try {
-                    val where =
-                        "hi_cmp_id='${SettingsModel.getCompanyID()}' ORDER BY hi_transno DESC"
+                    val where = "hi_cmp_id='${SettingsModel.getCompanyID()}' ORDER BY hi_transno DESC"
                     val dbResult = SQLServerWrapper.getListOf(
                         "in_hinvoice",
                         "TOP $limit",
@@ -239,7 +238,7 @@ class InvoiceHeaderRepositoryImpl(
     }
 
     override suspend fun getLastInvoiceByType(
-        type: String
+            type: String
     ): InvoiceHeader? {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
@@ -268,8 +267,7 @@ class InvoiceHeaderRepositoryImpl(
             else -> {
                 val invoiceHeaders: MutableList<InvoiceHeader> = mutableListOf()
                 try {
-                    val where =
-                        "hi_cmp_id='${SettingsModel.getCompanyID()}' AND hi_tt_code = '$type' ORDER BY hi_timestamp DESC"
+                    val where = "hi_cmp_id='${SettingsModel.getCompanyID()}' AND hi_tt_code = '$type' ORDER BY hi_timestamp DESC"
                     val dbResult = SQLServerWrapper.getListOf(
                         "in_hinvoice",
                         "TOP 1",
@@ -314,8 +312,7 @@ class InvoiceHeaderRepositoryImpl(
             else -> {
                 val invoiceHeaders: MutableList<InvoiceHeader> = mutableListOf()
                 try {
-                    val where =
-                        "hi_cmp_id='${SettingsModel.getCompanyID()}' ORDER BY hi_transno DESC"
+                    val where = "hi_cmp_id='${SettingsModel.getCompanyID()}' ORDER BY hi_transno DESC"
                     val dbResult = SQLServerWrapper.getListOf(
                         "in_hinvoice",
                         "TOP 1",
@@ -337,7 +334,7 @@ class InvoiceHeaderRepositoryImpl(
     }
 
     override suspend fun getInvoiceByTable(
-        tableNo: String
+            tableNo: String
     ): InvoiceHeader? {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
@@ -370,10 +367,8 @@ class InvoiceHeaderRepositoryImpl(
                 val invoiceHeaders: MutableList<InvoiceHeader> = mutableListOf()
                 try {
                     val tableId = getTableIdByNumber(tableNo)
-                    val subQuery =
-                        if (!tableId.isNullOrEmpty()) "(hi_ta_name = '$tableId' OR hi_ta_name = '$tableNo')" else "hi_ta_name = '$tableNo'"
-                    val where =
-                        "hi_cmp_id='${SettingsModel.getCompanyID()}' AND $subQuery AND (hi_transno IS NULL OR hi_transno = '')"
+                    val subQuery = if (!tableId.isNullOrEmpty()) "(hi_ta_name = '$tableId' OR hi_ta_name = '$tableNo')" else "hi_ta_name = '$tableNo'"
+                    val where = "hi_cmp_id='${SettingsModel.getCompanyID()}' AND $subQuery AND (hi_transno IS NULL OR hi_transno = '')"
                     val dbResult = SQLServerWrapper.getListOf(
                         "in_hinvoice",
                         "TOP 1",
@@ -397,21 +392,21 @@ class InvoiceHeaderRepositoryImpl(
     }
 
     override suspend fun getInvoicesBetween(
-        from: Date,
-        to: Date
+            from: Date,
+            to: Date
     ): MutableList<InvoiceHeader> {
         if (SettingsModel.isConnectedToFireStore()) {
             val querySnapshot = FirebaseFirestore.getInstance().collection("in_hinvoice")
                 .whereEqualTo(
                     "hi_cmp_id",
                     SettingsModel.getCompanyID()
-                )/*  .whereGreaterThanOrEqualTo(
-                      "hi_timestamp",
-                      from
-                  ).whereLessThan(
-                      "hi_timestamp",
-                      to
-                  )*/.get().await()
+                ).whereGreaterThanOrEqualTo(
+                    "hi_timestamp",
+                    from
+                ).whereLessThan(
+                    "hi_timestamp",
+                    to
+                ).get().await()
             val invoices = mutableListOf<InvoiceHeader>()
             if (querySnapshot.size() > 0) {
                 for (document in querySnapshot) {
@@ -513,11 +508,10 @@ class InvoiceHeaderRepositoryImpl(
             invoiceHeadClientsCount = obj.getIntValue("hi_clientscount")
             invoiceHeadChange = obj.getDoubleValue("hi_change")
             val timeStamp = obj.getObjectValue("hi_timestamp")
-            invoiceHeadTimeStamp =
-                if (timeStamp is Date) timeStamp else DateHelper.getDateFromString(
-                    timeStamp as String,
-                    "yyyy-MM-dd hh:mm:ss.SSS"
-                )
+            invoiceHeadTimeStamp = if (timeStamp is Date) timeStamp else DateHelper.getDateFromString(
+                timeStamp as String,
+                "yyyy-MM-dd hh:mm:ss.SSS"
+            )
             invoiceHeadDateTime = invoiceHeadTimeStamp!!.time
             invoiceHeadUserStamp = obj.getStringValue("hi_userstamp")
         }
@@ -671,9 +665,8 @@ class InvoiceHeaderRepositoryImpl(
 
     private fun getTableIdByNumber(tableNo: String): String? {
         try {
-            val where =
-                if (SettingsModel.isSqlServerWebDb) "ta_cmp_id='${SettingsModel.getCompanyID()}' AND ta_newname = '$tableNo' AND ta_status = 'Busy'"
-                else "ta_name = '$tableNo' AND ta_status = 'Busy'"
+            val where = if (SettingsModel.isSqlServerWebDb) "ta_cmp_id='${SettingsModel.getCompanyID()}' AND ta_newname = '$tableNo' AND ta_status = 'Busy'"
+            else "ta_name = '$tableNo' AND ta_status = 'Busy'"
             val dbResult = SQLServerWrapper.getListOf(
                 "pos_table",
                 "TOP 1",

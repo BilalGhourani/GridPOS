@@ -212,6 +212,7 @@ fun ReportsView(
         if (state.isLoading) {
             isPopupVisible = true
         } else {
+            viewModel.closeConnectionIfNeeded()
             navController?.navigateUp()
         }
     }
