@@ -16,4 +16,6 @@ object Constants {
     const val LICENSE_NOT_FOUND = -2
     const val LICENSE_EXPIRED = -3
     const val LICENSE_ACCESS_DENIED = -4
+
+    const val SQL_USER_POS_MODE = false
 }

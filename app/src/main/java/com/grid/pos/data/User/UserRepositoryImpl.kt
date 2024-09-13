@@ -5,6 +5,7 @@ import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.LoginResponse
 import com.grid.pos.model.SettingsModel
+import com.grid.pos.utils.Constants
 import com.grid.pos.utils.DateHelper
 import com.grid.pos.utils.Extension.encryptCBC
 import com.grid.pos.utils.Extension.getStringValue
@@ -162,7 +163,7 @@ class UserRepositoryImpl(
                                     userUsername = it.getStringValue("usr_username")
                                     userPassword = it.getStringValue("usr_password")
                                     userCompanyId = it.getStringValue("usr_cmp_id")
-                                    userPosMode = true
+                                    userPosMode = Constants.SQL_USER_POS_MODE
                                     userTableMode = true
                                 })
                             }
@@ -198,7 +199,7 @@ class UserRepositoryImpl(
                                     userUsername = it.getStringValue("emp_username")
                                     userPassword = it.getStringValue("emp_password")
                                     userCompanyId = SettingsModel.getCompanyID()//obj.optString("usr_cmp_id")
-                                    userPosMode = true
+                                    userPosMode = Constants.SQL_USER_POS_MODE
                                     userTableMode = true
                                 })
                             }
@@ -265,7 +266,7 @@ class UserRepositoryImpl(
                                     userUsername = it.getStringValue("usr_username")
                                     userPassword = it.getStringValue("usr_password")
                                     userCompanyId = it.getStringValue("usr_cmp_id")
-                                    userPosMode = true
+                                    userPosMode = Constants.SQL_USER_POS_MODE
                                     userTableMode = true
                                 })
                             }
@@ -293,7 +294,7 @@ class UserRepositoryImpl(
                                     userUsername = it.getStringValue("emp_username")
                                     userPassword = it.getStringValue("emp_password")
                                     userCompanyId = SettingsModel.getCompanyID()//obj.optString("usr_cmp_id")
-                                    userPosMode = true
+                                    userPosMode = Constants.SQL_USER_POS_MODE
                                     userTableMode = true
                                 })
                             }
@@ -351,7 +352,7 @@ class UserRepositoryImpl(
                                     userUsername = it.getStringValue("usr_username")
                                     userPassword = it.getStringValue("usr_password")
                                     userCompanyId = it.getStringValue("usr_cmp_id")
-                                    userPosMode = true
+                                    userPosMode = Constants.SQL_USER_POS_MODE
                                     userTableMode = true
                                 }
                             }
@@ -377,7 +378,7 @@ class UserRepositoryImpl(
                                     userUsername = it.getStringValue("emp_username")
                                     userPassword = it.getStringValue("emp_password")
                                     userCompanyId = SettingsModel.getCompanyID()//obj.optString("usr_cmp_id")
-                                    userPosMode = true
+                                    userPosMode = Constants.SQL_USER_POS_MODE
                                     userTableMode = true
                                 }
                             }
