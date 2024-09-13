@@ -134,7 +134,7 @@ class CurrencyRepositoryImpl(
                             if (it.next()) {
                                 val rate = it.getDoubleValue("getrate")
                                 currency.currencyRate = String.format(
-                                    "%.6f",
+                                    "%,.6f",
                                     rate
                                 ).toDouble()
                             }

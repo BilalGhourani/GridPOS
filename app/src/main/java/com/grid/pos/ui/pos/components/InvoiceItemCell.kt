@@ -135,7 +135,7 @@ fun InvoiceItemCell(
         Text(
             text = if (isHeader) "Price" else
                 String.format(
-                    "%.${SettingsModel.currentCurrency?.currencyName1Dec ?: 2}f",
+                    "%,.${SettingsModel.currentCurrency?.currencyName1Dec ?: 2}f",
                     invoiceItemModel.invoice.getPrice()
                 ),
             modifier = textModifier,
@@ -149,7 +149,7 @@ fun InvoiceItemCell(
         )
         Text(
             text = if (isHeader) "Amount" else String.format(
-                "%.${SettingsModel.currentCurrency?.currencyName1Dec ?: 2}f",
+                "%,.${SettingsModel.currentCurrency?.currencyName1Dec ?: 2}f",
                 invoiceItemModel.invoice.getAmount()
             ),
             modifier = textModifier,

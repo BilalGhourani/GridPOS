@@ -60,11 +60,11 @@ fun InvoiceFooterView(
     val curr2Decimal = currency.currencyName2Dec
 
     val totalState = String.format(
-        "%.${curr1Decimal}f",
+        "%,.${curr1Decimal}f",
         invoiceHeader.invoiceHeadTotal
     )
     val totalCur2State = String.format(
-        "%.${curr2Decimal}f",
+        "%,.${curr2Decimal}f",
         invoiceHeader.invoiceHeadTotal1
     )
 

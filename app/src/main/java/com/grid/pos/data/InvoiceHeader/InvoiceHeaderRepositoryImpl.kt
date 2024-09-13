@@ -296,7 +296,7 @@ class InvoiceHeaderRepositoryImpl(
                         "hi_cmp_id",
                         SettingsModel.getCompanyID()
                     ).orderBy(
-                        "hi_transno",
+                        "hi_timestamp",
                         Query.Direction.DESCENDING
                     ).limit(1).get().await()
                 val document = querySnapshot.firstOrNull()

@@ -94,7 +94,7 @@ fun EditInvoiceItemView(
     var price by remember {
         mutableStateOf(
             String.format(
-                "%.${curr1Decimal}f",
+                "%,.${curr1Decimal}f",
                 invoiceItemModel.invoice.invoicePrice
             )
         )
@@ -157,7 +157,7 @@ fun EditInvoiceItemView(
         if (isPercentageChanged) {
             val disc = itemPrice.times(itemDiscount.times(0.01))
             rDiscount2 = String.format(
-                "%.${curr2Decimal}f",
+                "%,.${curr2Decimal}f",
                 disc
             )
             invoiceItemModel.invoice.invoiceDiscount = itemDiscount
@@ -165,7 +165,7 @@ fun EditInvoiceItemView(
         } else {
             val disc = (itemDiscountAmount.div(itemPrice)).times(100.0)
             rDiscount1 = String.format(
-                "%.${curr1Decimal}f",
+                "%,.${curr1Decimal}f",
                 disc
             )
             invoiceItemModel.invoice.invoiceDiscount = disc
@@ -185,7 +185,7 @@ fun EditInvoiceItemView(
                 invoiceHeader.invoiceHeadDiscount.times(0.01)
             )
             discount2 = if (invoiceHeader.invoiceHeadDiscountAmount == 0.0) "" else String.format(
-                "%.${curr2Decimal}f",
+                "%,.${curr2Decimal}f",
                 invoiceHeader.invoiceHeadDiscountAmount
             )
         } else {
@@ -194,7 +194,7 @@ fun EditInvoiceItemView(
                 100.0
             )
             discount1 = String.format(
-                "%.${curr1Decimal}f",
+                "%,.${curr1Decimal}f",
                 invoiceHeader.invoiceHeadDiscount
             )
         }

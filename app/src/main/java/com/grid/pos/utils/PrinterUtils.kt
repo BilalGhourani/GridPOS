@@ -286,15 +286,15 @@ object PrinterUtils {
             invoiceItemModels.forEach { item ->
                 discountAmount += item.invoice.getDiscountAmount()
                 val qty = String.format(
-                    "%.0f",
+                    "%,.0f",
                     item.invoice.invoiceQuantity
                 )
                 val price = String.format(
-                    "%.2f",
+                    "%,.2f",
                     item.invoice.getPrice()
                 )
                 val amount = String.format(
-                    "%.2f",
+                    "%,.2f",
                     item.invoice.getAmount()
                 )
                 trs.append(
@@ -326,7 +326,7 @@ object PrinterUtils {
             invAmountVal.append(
                 String.format(
                     defaultLocal,
-                    "<tr><td>Disc Amount&nbsp;:</td><td>%.2f</td></tr>",
+                    "<tr><td>Disc Amount&nbsp;:</td><td>%,.2f</td></tr>",
                     Utils.getDoubleOrZero(discountAmount)
                 )
             )
@@ -336,7 +336,7 @@ object PrinterUtils {
             invAmountVal.append(
                 String.format(
                     defaultLocal,
-                    "<tr><td>Before Tax:</td><td>%.2f</td></tr>",
+                    "<tr><td>Before Tax:</td><td>%,.2f</td></tr>",
                     Utils.getDoubleOrZero(invoiceHeader.invoiceHeadTotal - invoiceHeader.invoiceHeadTotalTax)
                 )
             )
@@ -349,7 +349,7 @@ object PrinterUtils {
                 invAmountVal.append(
                     String.format(
                         defaultLocal,
-                        "<tr><td>Tax  (%.0f%s:</td><td>%.2f</td></tr>",
+                        "<tr><td>Tax  (%,.0f%s:</td><td>%,.2f</td></tr>",
                         Utils.getDoubleOrZero(company?.companyTax),
                         "%)",
                         Utils.getDoubleOrZero(invoiceHeader.invoiceHeadTaxAmt)
@@ -382,7 +382,7 @@ object PrinterUtils {
                 invAmountVal.append(
                     String.format(
                         defaultLocal,
-                        "<tr><td>Tax1 (%.0f%s:</td><td>%.2f</td></tr>",
+                        "<tr><td>Tax1 (%,.0f%s:</td><td>%,.2f</td></tr>",
                         Utils.getDoubleOrZero(company?.companyTax1),
                         "%)",
                         Utils.getDoubleOrZero(invoiceHeader.invoiceHeadTax1Amt)
@@ -415,7 +415,7 @@ object PrinterUtils {
                 invAmountVal.append(
                     String.format(
                         defaultLocal,
-                        "<tr><td>Tax2 (%.0f%s:</td><td>%.2f</td></tr>",
+                        "<tr><td>Tax2 (%,.0f%s:</td><td>%,.2f</td></tr>",
                         Utils.getDoubleOrZero(company?.companyTax2),
                         "%)",
                         Utils.getDoubleOrZero(invoiceHeader.invoiceHeadTax2Amt)
@@ -446,7 +446,7 @@ object PrinterUtils {
             invAmountVal.append(
                 String.format(
                     defaultLocal,
-                    "<tr><td>%s</td><td>%.2f</td></tr>",
+                    "<tr><td>%s</td><td>%,.2f</td></tr>",
                     "Total Tax:",
                     Utils.getDoubleOrZero(invoiceHeader.invoiceHeadTotalTax)
                 )
@@ -465,7 +465,7 @@ object PrinterUtils {
         invAmountVal.append(
             String.format(
                 defaultLocal,
-                "<tr><td style=\"font-weight: bold;font-size: 16px;\">Total %s:&nbsp;&nbsp;</td><td style=\"font-weight: bold;font-size: 16px;\">%.2f</td></tr>",
+                "<tr><td style=\"font-weight: bold;font-size: 16px;\">Total %s:&nbsp;&nbsp;</td><td style=\"font-weight: bold;font-size: 16px;\">%,.2f</td></tr>",
                 currency?.currencyCode1 ?: "",
                 Utils.getDoubleOrZero(invoiceHeader.invoiceHeadTotal)
             )
@@ -474,7 +474,7 @@ object PrinterUtils {
         invAmountVal.append(
             String.format(
                 defaultLocal,
-                "<tr><td style=\"font-weight: bold;font-size: 16px;\">Total %s:&nbsp;&nbsp;</td><td style=\"font-weight: bold;font-size: 16px;\">%.2f</td></tr>",
+                "<tr><td style=\"font-weight: bold;font-size: 16px;\">Total %s:&nbsp;&nbsp;</td><td style=\"font-weight: bold;font-size: 16px;\">%,.2f</td></tr>",
                 currency?.currencyCode2 ?: "",
                 Utils.getDoubleOrZero(invoiceHeader.invoiceHeadTotal1)
             )
@@ -492,7 +492,7 @@ object PrinterUtils {
             posReceiptValues.append(
                 String.format(
                     defaultLocal,
-                    "<tr><td>%s</td><td>%s</td><td>%.2f</td></tr>",
+                    "<tr><td>%s</td><td>%s</td><td>%,.2f</td></tr>",
                     "Cash",
                     currency?.currencyCode1 ?: "",
                     prCash
@@ -504,7 +504,7 @@ object PrinterUtils {
             posReceiptValues.append(
                 String.format(
                     defaultLocal,
-                    "<tr><td>%s</td><td>%s</td><td>%.2f</td></tr>",
+                    "<tr><td>%s</td><td>%s</td><td>%,.2f</td></tr>",
                     "Cash",
                     currency?.currencyCode2 ?: "",
                     prCashs
@@ -517,7 +517,7 @@ object PrinterUtils {
             posReceiptValues.append(
                 String.format(
                     defaultLocal,
-                    "<tr><td>%s</td><td>%s</td><td>%.2f</td></tr>",
+                    "<tr><td>%s</td><td>%s</td><td>%,.2f</td></tr>",
                     "Credit",
                     currency?.currencyCode1 ?: "",
                     prCredit
@@ -529,7 +529,7 @@ object PrinterUtils {
             posReceiptValues.append(
                 String.format(
                     defaultLocal,
-                    "<tr><td>%s</td><td>%s</td><td>%.2f</td></tr>",
+                    "<tr><td>%s</td><td>%s</td><td>%,.2f</td></tr>",
                     "Credit",
                     currency?.currencyCode2 ?: "",
                     prCredits
@@ -542,7 +542,7 @@ object PrinterUtils {
             posReceiptValues.append(
                 String.format(
                     defaultLocal,
-                    "<tr><td>%s</td><td>%s</td><td>%.2f</td></tr>",
+                    "<tr><td>%s</td><td>%s</td><td>%,.2f</td></tr>",
                     "Debit",
                     currency?.currencyCode1 ?: "",
                     prDebit
@@ -554,7 +554,7 @@ object PrinterUtils {
             posReceiptValues.append(
                 String.format(
                     defaultLocal,
-                    "<tr><td>%s</td><td>%s</td><td>%.2f</td></tr>",
+                    "<tr><td>%s</td><td>%s</td><td>%,.2f</td></tr>",
                     "Debit",
                     currency?.currencyCode2 ?: "",
                     prDebits
@@ -565,7 +565,7 @@ object PrinterUtils {
         posReceiptValues.append(
             String.format(
                 defaultLocal,
-                "<tr><td>%s</td><td>%s</td><td>%.2f</td></tr>",
+                "<tr><td>%s</td><td>%s</td><td>%,.2f</td></tr>",
                 "Change",
                 currency?.currencyCode1 ?: "",
                 Utils.getDoubleOrZero(invoiceHeader.invoiceHeadChange)
@@ -910,7 +910,7 @@ object PrinterUtils {
             val trs = StringBuilder("")
             invItemModels.forEach { item ->
                 val qty = String.format(
-                    "%.2f",
+                    "%,.2f",
                     item.invoice.invoiceQuantity
                 )
                 trs.append(
