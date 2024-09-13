@@ -17,6 +17,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
@@ -128,10 +129,18 @@ class LoginViewModel @Inject constructor(
                     )
                 }
             } ?: run {
-                if (loginResponse.allUsersSize == 0) {
+                if (!loginResponse.error.isNullOrEmpty()) {
+                    withContext(Dispatchers.Main) {
+                        usersState.value = usersState.value.copy(
+                            warning = Event(loginResponse.error),
+                            isLoading = false,
+                            warningAction = "Settings"
+                        )
+                    }
+                } else if (loginResponse.allUsersSize == 0) {
                     if (SettingsModel.isConnectedToSqlite()) {
                         val companies = companyRepository.getAllCompanies()
-                        viewModelScope.launch(Dispatchers.Main) {
+                        withContext(Dispatchers.Main) {
                             if (companies.isEmpty()) {
                                 usersState.value = usersState.value.copy(
                                     warning = Event("no company found!"),
