@@ -48,12 +48,53 @@ class POSViewModel @Inject constructor(
         }
     }
 
-    private suspend fun fetchItems() {
+    fun loadFamiliesAndItems() {
+        val loadItems = posState.value.items.isEmpty()
+        val loadFamilies = posState.value.families.isEmpty()
+        if (loadItems || loadFamilies) {
+            posState.value = posState.value.copy(
+                isLoading = true
+            )
+        }
+        viewModelScope.launch(Dispatchers.IO) {
+            if (loadItems) {
+                fetchItems(!loadFamilies)
+            }
+            if (loadFamilies) {
+                fetchFamilies(true)
+            }
+        }
+    }
+
+    private suspend fun fetchItems(stopLoading: Boolean = false) {
         val listOfItems = itemRepository.getAllItems()
         withContext(Dispatchers.Main) {
-            posState.value = posState.value.copy(
-                items = listOfItems
-            )
+            posState.value = if (stopLoading) {
+                posState.value.copy(
+                    items = listOfItems,
+                    isLoading = false
+                )
+            } else {
+                posState.value.copy(
+                    items = listOfItems
+                )
+            }
+        }
+    }
+
+    private suspend fun fetchFamilies(stopLoading: Boolean = false) {
+        val listOfFamilies = familyRepository.getAllFamilies()
+        withContext(Dispatchers.Main) {
+            posState.value = if (stopLoading) {
+                posState.value.copy(
+                    families = listOfFamilies,
+                    isLoading = false
+                )
+            } else {
+                posState.value.copy(
+                    families = listOfFamilies
+                )
+            }
         }
     }
 
@@ -70,15 +111,6 @@ class POSViewModel @Inject constructor(
                     isLoading = false
                 )
             }
-        }
-    }
-
-    private suspend fun fetchFamilies() {
-        val listOfFamilies = familyRepository.getAllFamilies()
-        withContext(Dispatchers.Main) {
-            posState.value = posState.value.copy(
-                families = listOfFamilies
-            )
         }
     }
 

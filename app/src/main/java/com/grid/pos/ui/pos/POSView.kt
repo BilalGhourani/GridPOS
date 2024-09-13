@@ -530,6 +530,9 @@ fun POSView(
                                 }
                                 viewModel.fetchInvoices()
                             },
+                            onLoadItems = {
+                                viewModel.loadFamiliesAndItems()
+                            },
                             onAddItem = {
                                 activityViewModel.invoiceItemModels = invoicesState
                                 activityViewModel.invoiceHeader = invoiceHeaderState.value

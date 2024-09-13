@@ -87,6 +87,14 @@ data class User(
     }
 
     @Exclude
+    override fun search(key: String): Boolean {
+        return getName().contains(
+            key,
+            ignoreCase = true
+        )
+    }
+
+    @Exclude
     override fun isNew(): Boolean {
         return if (SettingsModel.isConnectedToFireStore()) {
             userDocumentId.isNullOrEmpty()

@@ -14,6 +14,11 @@ abstract class DataModel : Serializable {
         return ""
     }
 
+    @Exclude
+    open fun search(key:String): Boolean {
+        return false
+    }
+
     open fun isNew(): Boolean {
         return true
     }

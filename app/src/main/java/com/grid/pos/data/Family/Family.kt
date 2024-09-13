@@ -64,6 +64,14 @@ data class Family(
     }
 
     @Exclude
+    override fun search(key: String): Boolean {
+        return getName().contains(
+            key,
+            ignoreCase = true
+        )
+    }
+
+    @Exclude
     fun getFullFamilyImage(): String {
         familyImage?.let {
             if (it.startsWith("/")) {

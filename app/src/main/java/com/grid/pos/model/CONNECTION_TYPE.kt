@@ -1,5 +1,6 @@
 package com.grid.pos.model
 
+import com.google.firebase.firestore.Exclude
 import com.grid.pos.data.DataModel
 
 enum class CONNECTION_TYPE(val key: String) {
@@ -12,6 +13,13 @@ data class ConnectionModel(
     override fun getName(): String {
         return connectionName
     }
+
+    override fun search(key: String): Boolean {
+        return getName().contains(
+            key,
+            ignoreCase = true
+        )
+    }
 }
 
 enum class ORIENTATION_TYPE(val key: String) {
@@ -23,6 +31,13 @@ data class OrientationModel(
 ) : DataModel() {
     override fun getName(): String {
         return orientatioName
+    }
+
+    override fun search(key: String): Boolean {
+        return getName().contains(
+            key,
+            ignoreCase = true
+        )
     }
 }
 
@@ -37,7 +52,15 @@ data class ReportLanguage(
     override fun getId(): String {
         return language
     }
+
     override fun getName(): String {
         return language
+    }
+
+    override fun search(key: String): Boolean {
+        return getName().contains(
+            key,
+            ignoreCase = true
+        )
     }
 }

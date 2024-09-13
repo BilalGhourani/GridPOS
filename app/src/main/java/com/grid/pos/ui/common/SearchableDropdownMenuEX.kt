@@ -155,10 +155,7 @@ fun SearchableDropdownMenuEx(
 
         if (expandedState) {
             val filteredItems = if (searchText.isEmpty()) items else items.filter {
-                it.getName().contains(
-                    searchText,
-                    ignoreCase = true
-                )
+                it.search(searchText)
             }
             Surface(
                 modifier = Modifier.padding(top = 2.dp),

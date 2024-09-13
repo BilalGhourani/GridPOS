@@ -46,6 +46,7 @@ fun InvoiceFooterView(
         isFromTable: Boolean = false,
         onLoadClients: () -> Unit = {},
         onLoadInvoices: () -> Unit = {},
+        onLoadItems: () -> Unit = {},
         onAddItem: () -> Unit = {},
         onAddThirdParty: () -> Unit = {},
         onItemSelected: (Item) -> Unit = {},
@@ -124,6 +125,9 @@ fun InvoiceFooterView(
                         5.dp
                     ),
                     label = "Items",
+                    onLoadItems = {
+                        onLoadItems.invoke()
+                    },
                     leadingIcon = {
                         if (SettingsModel.connectionType != CONNECTION_TYPE.SQL_SERVER.key) {
                             Icon(

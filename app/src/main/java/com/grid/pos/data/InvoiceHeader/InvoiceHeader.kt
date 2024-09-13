@@ -273,6 +273,14 @@ data class InvoiceHeader(
     }
 
     @Exclude
+    override fun search(key: String): Boolean {
+        return getName().contains(
+            key,
+            ignoreCase = true
+        )
+    }
+
+    @Exclude
     fun getTotalNetAmount(): Double {
         if (invoiceHeadTotalNetAmount.isNaN()) {
             return 0.0

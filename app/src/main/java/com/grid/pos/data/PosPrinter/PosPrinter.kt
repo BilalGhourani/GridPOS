@@ -80,6 +80,14 @@ data class PosPrinter(
     }
 
     @Exclude
+    override fun search(key: String): Boolean {
+        return getName().contains(
+            key,
+            ignoreCase = true
+        )
+    }
+
+    @Exclude
     override fun isNew(): Boolean {
         return if (SettingsModel.isConnectedToFireStore()) {
             posPrinterDocumentId.isNullOrEmpty()

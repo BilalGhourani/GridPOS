@@ -124,6 +124,14 @@ data class ThirdParty(
     }
 
     @Exclude
+    override fun search(key: String): Boolean {
+        return getName().contains(
+            key,
+            ignoreCase = true
+        )
+    }
+
+    @Exclude
     override fun isNew(): Boolean {
         return if (SettingsModel.isConnectedToFireStore()) {
             thirdPartyDocumentId.isNullOrEmpty()
