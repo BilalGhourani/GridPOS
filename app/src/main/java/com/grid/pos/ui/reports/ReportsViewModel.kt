@@ -220,20 +220,20 @@ class ReportsViewModel @Inject constructor(
             row.createCell(2).setCellValue(quantitiesSold)
             row.createCell(3).setCellValue(
                 String.format(
-                    "%.${currency.currencyName1Dec}f",
+                    "%,.${currency.currencyName1Dec}f",
                     totalCost
                 )
             )
             row.createCell(4).setCellValue(
                 String.format(
-                    "%.${currency.currencyName1Dec}f",
+                    "%,.${currency.currencyName1Dec}f",
                     totalSale
                 )
             )
             row.createCell(5).setCellValue(remQty)
             row.createCell(6).setCellValue(
                 String.format(
-                    "%.${currency.currencyName1Dec}f",
+                    "%,.${currency.currencyName1Dec}f",
                     totalSale - totalCost
                 )
             )
