@@ -18,6 +18,7 @@ import com.grid.pos.data.InvoiceHeader.InvoiceHeaderRepositoryImpl
 import com.grid.pos.data.Item.ItemRepository
 import com.grid.pos.data.Item.ItemRepositoryImpl
 import com.grid.pos.data.MIGRATION_1_2
+import com.grid.pos.data.MIGRATION_2_3
 import com.grid.pos.data.PosPrinter.PosPrinterRepository
 import com.grid.pos.data.PosPrinter.PosPrinterRepositoryImpl
 import com.grid.pos.data.PosReceipt.PosReceiptRepository
@@ -53,7 +54,7 @@ object AppModule {
             app,
             AppDatabase::class.java,
             Constants.DATABASE_NAME
-        ).addMigrations(MIGRATION_1_2).addCallback(callback).build()
+        ).addMigrations(MIGRATION_1_2).addMigrations(MIGRATION_2_3).addCallback(callback).build()
     }
 
     @Provides
