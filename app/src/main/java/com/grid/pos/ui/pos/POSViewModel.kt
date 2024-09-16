@@ -172,14 +172,6 @@ class POSViewModel @Inject constructor(
                     invoiceHeader.invoiceHeadTransNo = POSUtils.getInvoiceTransactionNo(
                         lastTransactionIvn?.invoiceHeadTransNo ?: ""
                     )
-                    if (invoiceHeader.invoiceHeadOrderNo.isNullOrEmpty()) {
-                        val lastOrderInv = invoiceHeaderRepository.getLastOrderByType(
-                            POSUtils.getInvoiceType(invoiceHeader)
-                        )
-                        invoiceHeader.invoiceHeadOrderNo = POSUtils.getInvoiceNo(
-                            lastOrderInv?.invoiceHeadOrderNo ?: ""
-                        )
-                    }
                     invoiceHeader.invoiceHeadTtCode = SettingsModel.getTransactionType(invoiceHeader.invoiceHeadGrossAmount)
                 } else {
                     val lastOrderInv = invoiceHeaderRepository.getLastOrderByType(
@@ -203,22 +195,18 @@ class POSViewModel @Inject constructor(
                     invoiceItems
                 )
             } else {
-                if (finish && invoiceHeader.invoiceHeadTransNo.isNullOrEmpty()) {
-                    val lastTransactionIvn = invoiceHeaderRepository.getLastTransactionByType(
-                        POSUtils.getInvoiceType(invoiceHeader)
-                    )
-                    invoiceHeader.invoiceHeadTransNo = POSUtils.getInvoiceTransactionNo(
-                        lastTransactionIvn?.invoiceHeadTransNo ?: ""
-                    )
-                    if (invoiceHeader.invoiceHeadOrderNo.isNullOrEmpty()) {
-                        val lastOrderInv = invoiceHeaderRepository.getLastOrderByType(
+                if (finish) {
+                    if (invoiceHeader.invoiceHeadTransNo.isNullOrEmpty()) {
+                        val lastTransactionIvn = invoiceHeaderRepository.getLastTransactionByType(
                             POSUtils.getInvoiceType(invoiceHeader)
                         )
-                        invoiceHeader.invoiceHeadOrderNo = POSUtils.getInvoiceNo(
-                            lastOrderInv?.invoiceHeadOrderNo ?: ""
+                        invoiceHeader.invoiceHeadTransNo = POSUtils.getInvoiceTransactionNo(
+                            lastTransactionIvn?.invoiceHeadTransNo ?: ""
                         )
+                        if (invoiceHeader.invoiceHeadTtCode.isNullOrEmpty()) {
+                            invoiceHeader.invoiceHeadTtCode = SettingsModel.getTransactionType(invoiceHeader.invoiceHeadGrossAmount)
+                        }
                     }
-                    invoiceHeader.invoiceHeadTtCode = SettingsModel.getTransactionType(invoiceHeader.invoiceHeadGrossAmount)
                 }
                 invoiceHeaderRepository.update(
                     invoiceHeader,
