@@ -5,6 +5,7 @@ import com.google.firebase.firestore.Query
 import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.SettingsModel
+import com.grid.pos.model.TableModel
 import com.grid.pos.ui.pos.POSUtils
 import com.grid.pos.utils.DateHelper
 import com.grid.pos.utils.Extension.getDoubleValue
@@ -15,7 +16,6 @@ import com.grid.pos.utils.Utils
 import kotlinx.coroutines.tasks.await
 import java.sql.ResultSet
 import java.sql.Timestamp
-import java.util.Arrays
 import java.util.Date
 
 class InvoiceHeaderRepositoryImpl(
@@ -37,7 +37,42 @@ class InvoiceHeaderRepositoryImpl(
             }
 
             else -> {
-                if (!invoiceHeader.invoiceHeadTableId.isNullOrEmpty()/* && !invoiceHeader.invoiceHeadTaName.isNullOrEmpty()*/) {
+                if (!invoiceHeader.invoiceHeadTableId.isNullOrEmpty()) {
+                    if (SettingsModel.isSqlServerWebDb) {
+                        if (invoiceHeader.invoiceHeadTableType?.equals("temp") == true) {
+                            SQLServerWrapper.delete(
+                                "pos_table",
+                                "where ta_name = '${invoiceHeader.invoiceHeadTableId}'"
+                            )
+                        } else {
+                            SQLServerWrapper.update(
+                                "pos_table",
+                                listOf(
+                                    "ta_hiid",
+                                    "ta_status",
+                                ),
+                                listOf(
+                                    if (isFinished) null else invoiceHeader.invoiceHeadId,
+                                    if (isFinished) "Completed" else "Busy",
+                                ),
+                                "where ta_name = '${invoiceHeader.invoiceHeadTableId}'"
+                            )
+                        }
+                    } else {
+                        SQLServerWrapper.update(
+                            "pos_table",
+                            listOf(
+                                "ta_hiid",
+                                "ta_status"
+                            ),
+                            listOf(
+                                if (isFinished) null else invoiceHeader.invoiceHeadId,
+                                if (isFinished) "Completed" else "Busy",
+                            ),
+                            "where ta_name = '${invoiceHeader.invoiceHeadTableId}'"
+                        )
+                    }
+                } else if (!invoiceHeader.invoiceHeadTaName.isNullOrEmpty()) {
                     if (SettingsModel.isSqlServerWebDb) {
                         val tableId = Utils.generateRandomUuidString()
                         SQLServerWrapper.insert(
@@ -48,7 +83,7 @@ class InvoiceHeaderRepositoryImpl(
                                 "ta_status",
                                 "ta_newname",
                                 "ta_cmp_id",
-                                "ta_locked",
+                                "ta_type",
                                 "ta_timestamp",
                                 "ta_userstamp"
                             ),
@@ -58,7 +93,7 @@ class InvoiceHeaderRepositoryImpl(
                                 if (isFinished) "Completed" else "Busy",
                                 invoiceHeader.invoiceHeadTaName,
                                 SettingsModel.getCompanyID(),
-                                if (isFinished) "0" else "1",
+                                "temp",
                                 DateHelper.getDateInFormat(
                                     Date(invoiceHeader.invoiceHeadDateTime),
                                     "yyyy-MM-dd hh:mm:ss.SSS"
@@ -74,7 +109,7 @@ class InvoiceHeaderRepositoryImpl(
                                 "ta_name",
                                 "ta_hiid",
                                 "ta_status",
-                                "ta_locked",
+                                "ta_type",
                                 "ta_timestamp",
                                 "ta_userstamp"
                             ),
@@ -82,7 +117,7 @@ class InvoiceHeaderRepositoryImpl(
                                 invoiceHeader.invoiceHeadTaName,
                                 invoiceHeader.invoiceHeadId,
                                 if (isFinished) "Completed" else "Busy",
-                                if (isFinished) "0" else "1",
+                                "table",
                                 DateHelper.getDateInFormat(
                                     Date(invoiceHeader.invoiceHeadDateTime),
                                     "yyyy-MM-dd hh:mm:ss.SSS"
@@ -416,6 +451,116 @@ class InvoiceHeaderRepositoryImpl(
         }
     }
 
+    override suspend fun getAllOpenedTables(): MutableList<TableModel> {
+        when (SettingsModel.connectionType) {
+            CONNECTION_TYPE.FIRESTORE.key -> {
+                val querySnapshot = FirebaseFirestore.getInstance().collection("in_hinvoice")
+                    .whereEqualTo(
+                        "hi_cmp_id",
+                        SettingsModel.getCompanyID()
+                    ).whereNotEqualTo(
+                        "hi_ta_name",
+                        null
+                    ).whereEqualTo(
+                        "hi_transno",
+                        null
+                    ).get().await()
+                val tables = mutableListOf<TableModel>()
+                if (querySnapshot.size() > 0) {
+                    for (document in querySnapshot) {
+                        val obj = document.toObject(InvoiceHeader::class.java)
+                        if (obj.invoiceHeadId.isNotEmpty()) {
+                            obj.invoiceHeadDocumentId = document.id
+                            if (!obj.invoiceHeadTaName.isNullOrEmpty()) {
+                                tables.add(
+                                    TableModel(
+                                        obj.invoiceHeadTaName!!,
+                                        obj.invoiceHeadTaName!!
+                                    )
+                                )
+                            }
+                        }
+                    }
+                }
+                return tables
+            }
+
+            CONNECTION_TYPE.LOCAL.key -> {
+                val tables = mutableListOf<TableModel>()
+                val invoices = invoiceHeaderDao.getOpenedInvoicesTable(
+                    SettingsModel.getCompanyID() ?: ""
+                )
+                for (invoice in invoices) {
+                    if (!invoice.invoiceHeadTaName.isNullOrEmpty()) {
+                        tables.add(
+                            TableModel(
+                                invoice.invoiceHeadTaName!!,
+                                invoice.invoiceHeadTaName!!
+                            )
+                        )
+                    }
+                }
+                return tables
+            }
+
+            else -> {
+                val tables: MutableList<TableModel> = mutableListOf()
+                if (SettingsModel.isSqlServerWebDb) {
+                    try {
+                        val where = "ta_cmp_id='${SettingsModel.getCompanyID()}' AND ta_hiid IS NOT NULL AND ta_hiid <> ''"
+                        val dbResult = SQLServerWrapper.getListOf(
+                            "pos_table",
+                            "",
+                            mutableListOf("*"),
+                            where
+                        )
+                        dbResult?.let {
+                            while (it.next()) {
+                                tables.add(
+                                    TableModel(
+                                        it.getStringValue("ta_name"),
+                                        it.getStringValue("ta_newname"),
+                                        it.getStringValue("ta_type")
+                                    )
+                                )
+                            }
+                            SQLServerWrapper.closeResultSet(it)
+                        }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                } else {
+                    try {
+                        val where = "hi_cmp_id='${SettingsModel.getCompanyID()}' AND ta_hiid IS NOT NULL AND ta_hiid <> ''"
+                        val dbResult = SQLServerWrapper.getListOf(
+                            "pos_table",
+                            "",
+                            mutableListOf("*"),
+                            where,
+                            " INNER JOIN in_hinvoice on hi_ta_name = ta_name"
+                        )
+                        dbResult?.let {
+                            while (it.next()) {
+                                tables.add(
+                                    TableModel(
+                                        it.getStringValue("ta_name"),
+                                        it.getStringValue("ta_name"),
+                                        it.getStringValue("ta_type")
+                                    )
+                                )
+                            }
+                            SQLServerWrapper.closeResultSet(it)
+                        }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                }
+
+                return tables
+            }
+        }
+    }
+
     override suspend fun getInvoiceByTable(
             tableNo: String
     ): InvoiceHeader? {
@@ -434,7 +579,9 @@ class InvoiceHeaderRepositoryImpl(
                     ).limit(1).get().await()
                 val document = querySnapshot.firstOrNull()
                 if (document != null) {
-                    return document.toObject(InvoiceHeader::class.java)
+                    val obj = document.toObject(InvoiceHeader::class.java)
+                    obj.invoiceHeadDocumentId = document.id
+                    return obj
                 }
                 return null
             }
@@ -449,8 +596,8 @@ class InvoiceHeaderRepositoryImpl(
             else -> {
                 val invoiceHeaders: MutableList<InvoiceHeader> = mutableListOf()
                 try {
-                    val tableId = getTableIdByNumber(tableNo)
-                    val subQuery = if (!tableId.isNullOrEmpty()) "(hi_ta_name = '$tableId' OR hi_ta_name = '$tableNo')" else "hi_ta_name = '$tableNo'"
+                    val tableModel = getTableIdByNumber(tableNo)
+                    val subQuery = if (!tableModel?.table_id.isNullOrEmpty()) "(hi_ta_name = '${tableModel?.table_id}' OR hi_ta_name = '$tableNo')" else "hi_ta_name = '$tableNo'"
                     val where = "hi_cmp_id='${SettingsModel.getCompanyID()}' AND $subQuery AND (hi_transno IS NULL OR hi_transno = '')"
                     val dbResult = SQLServerWrapper.getListOf(
                         "in_hinvoice",
@@ -462,6 +609,7 @@ class InvoiceHeaderRepositoryImpl(
                         while (it.next()) {
                             val invoiceHeader = fillParams(it)
                             invoiceHeader.invoiceHeadTaName = tableNo
+                            invoiceHeader.invoiceHeadTableType = tableModel?.table_type
                             invoiceHeaders.add(invoiceHeader)
                         }
                         SQLServerWrapper.closeResultSet(it)
@@ -586,6 +734,7 @@ class InvoiceHeaderRepositoryImpl(
             if (SettingsModel.isSqlServerWebDb) {
                 invoiceHeadTableId = obj.getStringValue("hi_ta_name")
             } else {
+                invoiceHeadTableId = obj.getStringValue("hi_ta_name")
                 invoiceHeadTaName = obj.getStringValue("hi_ta_name")
             }
             invoiceHeadClientsCount = obj.getIntValue("hi_clientscount")
@@ -751,19 +900,32 @@ class InvoiceHeaderRepositoryImpl(
         }
     }
 
-    private fun getTableIdByNumber(tableNo: String): String? {
+    private fun getTableIdByNumber(tableNo: String): TableModel? {
         try {
-            val where = if (SettingsModel.isSqlServerWebDb) "ta_cmp_id='${SettingsModel.getCompanyID()}' AND ta_newname = '$tableNo' AND ta_status = 'Busy'"
-            else "ta_name = '$tableNo' AND ta_status = 'Busy'"
+            val where = if (SettingsModel.isSqlServerWebDb) "ta_cmp_id='${SettingsModel.getCompanyID()}' AND ta_newname = '$tableNo' AND ta_hiid IS NOT NULL AND ta_hiid <> ''"
+            else "hi_cmp_id='${SettingsModel.getCompanyID()}' AND ta_name = '$tableNo' AND ta_hiid IS NOT NULL AND ta_hiid <> ''"
             val dbResult = SQLServerWrapper.getListOf(
                 "pos_table",
                 "TOP 1",
                 mutableListOf("*"),
-                where
+                where,
+                " INNER JOIN in_hinvoice on hi_ta_name = ta_name"
             )
             dbResult?.let {
                 if (it.next()) {
-                    return it.getStringValue("ta_name")
+                    return if (SettingsModel.isSqlServerWebDb) {
+                        TableModel(
+                            it.getStringValue("ta_name"),
+                            it.getStringValue("ta_newname"),
+                            it.getStringValue("ta_type")
+                        )
+                    } else {
+                        TableModel(
+                            it.getStringValue("ta_name"),
+                            it.getStringValue("ta_name"),
+                            it.getStringValue("ta_type")
+                        )
+                    }
                 }
                 SQLServerWrapper.closeResultSet(it)
             }

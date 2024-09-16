@@ -2,8 +2,10 @@ package com.grid.pos.ui.table
 
 import com.grid.pos.data.InvoiceHeader.InvoiceHeader
 import com.grid.pos.model.Event
+import com.grid.pos.model.TableModel
 
 data class TablesState(
+        val tables : MutableList<TableModel> = mutableListOf(),
         var invoiceHeader: InvoiceHeader = InvoiceHeader(),
         var step: Int = 1,
         var moveToPos: Boolean = false,

@@ -212,6 +212,13 @@ data class InvoiceHeader(
         var invoiceHeadTableId: String? = null,
 
         /**
+         * Invoice header Table type
+         * */
+        @Ignore
+        @get:Exclude
+        var invoiceHeadTableType: String? = null,
+
+        /**
          * Invoice header Clients Count
          * */
         @ColumnInfo(name = "hi_clientscount")

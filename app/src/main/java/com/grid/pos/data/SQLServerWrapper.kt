@@ -136,7 +136,7 @@ object SQLServerWrapper {
         val cols = columns.joinToString(", ")
         val vals = values.joinToString(", ") {
             if (it is String) {
-                if (it.startsWith("HashBytes")) {
+                if (it.startsWith("hashBytes")) {
                     it
                 } else {
                     "'$it'"
@@ -160,7 +160,7 @@ object SQLServerWrapper {
         //val setStatement = columns.joinToString(", ") { "$it = ?" }
         // Combine the lists into the desired format
         val setStatement = columns.zip(values) { param, value ->
-            if (value is String && value.startsWith("HashBytes")) {
+            if (value is String && value.startsWith("hashBytes")) {
                 "$param=$value"
             } else {
                 "$param='$value'"

@@ -57,6 +57,12 @@ interface InvoiceHeaderDao {
     ): InvoiceHeader?
 
     // Get all Invoice Headers as stream.
+    @Query("SELECT * FROM `in_hinvoice` WHERE hi_ta_name IS NOT NULL AND hi_ta_name != '' AND hi_cmp_id=:companyId AND (hi_transno IS NULL OR hi_transno = '')")
+    fun getOpenedInvoicesTable(
+            companyId: String
+    ): MutableList<InvoiceHeader>
+
+    // Get all Invoice Headers as stream.
     @Query("SELECT * FROM `in_hinvoice` WHERE hi_ta_name = :tableNo AND hi_cmp_id=:companyId AND (hi_transno IS NULL OR hi_transno = '') LIMIT 1")
     fun getInvoiceByTable(
             tableNo: String,

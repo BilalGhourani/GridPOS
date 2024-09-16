@@ -1,5 +1,6 @@
 package com.grid.pos.data.InvoiceHeader
 
+import com.grid.pos.model.TableModel
 import java.util.Date
 
 interface InvoiceHeaderRepository {
@@ -20,6 +21,8 @@ interface InvoiceHeaderRepository {
     suspend fun getLastOrderByType(type: String): InvoiceHeader?
     suspend fun getLastTransactionByType(type: String): InvoiceHeader?
     suspend fun getLastInvoice(): InvoiceHeader?
+
+    suspend fun getAllOpenedTables(): MutableList<TableModel>
     suspend fun getInvoiceByTable(tableNo: String): InvoiceHeader?
     suspend fun getInvoicesBetween(
             from: Date,
