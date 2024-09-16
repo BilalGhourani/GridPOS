@@ -40,6 +40,7 @@ fun InvoiceCashView(
         modifier: Modifier,
         invoiceHeader: InvoiceHeader,
         posReceipt: PosReceipt,
+        onPrint: () -> Unit = { },
         onSave: (Double, PosReceipt) -> Unit = { _, _ -> },
         onSaveAndPrintOrder: (Double, PosReceipt) -> Unit = { _, _ -> },
         onFinishAndPrint: (Double, PosReceipt) -> Unit = { _, _ -> },
@@ -181,6 +182,17 @@ fun InvoiceCashView(
                 ),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
+            if (!invoiceHeader.isNew()) {
+                UIButton(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight(),
+                    text = "Print & Close",
+                    shape = RoundedCornerShape(15.dp)
+                ) {
+                    onPrint.invoke()
+                }
+            }
             UIButton(
                 modifier = Modifier
                     .weight(1f)

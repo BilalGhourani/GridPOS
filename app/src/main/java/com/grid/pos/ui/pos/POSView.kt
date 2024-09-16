@@ -99,6 +99,7 @@ fun POSView(
     val invoicesState = remember { mutableStateListOf<InvoiceItemModel>() }
     val invoiceHeaderState = remember { mutableStateOf(activityViewModel.invoiceHeader) }
     var itemIndexToEdit by remember { mutableIntStateOf(-1) }
+    var isInvoiceEdited by remember { mutableStateOf(false) }
     var isEditBottomSheetVisible by remember { mutableStateOf(false) }
     var isAddItemBottomSheetVisible by remember { mutableStateOf(false) }
     var isPayBottomSheetVisible by remember { mutableStateOf(false) }
@@ -122,6 +123,7 @@ fun POSView(
                     invoicesState.addAll(invoiceItems)
                     activityViewModel.invoiceItemModels = invoiceItems
                     activityViewModel.posReceipt = receipt
+                    isInvoiceEdited = false
                 })
         } else {
             state.isLoading = false
@@ -558,6 +560,7 @@ fun POSView(
                                 )
                             },
                             onItemSelected = { item ->
+                                isInvoiceEdited = true
                                 val invoiceItemModel = InvoiceItemModel()
                                 invoiceItemModel.setItem(item)
                                 invoicesState.add(invoiceItemModel)
@@ -569,6 +572,7 @@ fun POSView(
                                 isAddItemBottomSheetVisible = false
                             },
                             onThirdPartySelected = { thirdParty ->
+                                isInvoiceEdited = isInvoiceEdited || invoiceHeaderState.value.invoiceHeadThirdPartyName != thirdParty.thirdPartyId
                                 state.selectedThirdParty = thirdParty
                                 invoiceHeaderState.value.invoiceHeadThirdPartyName = thirdParty.thirdPartyId
                             },
@@ -591,6 +595,7 @@ fun POSView(
                                 .fillMaxWidth()
                                 .fillMaxHeight()
                         ) { itemList ->
+                            isInvoiceEdited = true
                             val invoices = mutableListOf<InvoiceItemModel>()
                             itemList.forEach { item ->
                                 val invoiceItemModel = InvoiceItemModel()
@@ -626,7 +631,8 @@ fun POSView(
                         .background(
                             color = SettingsModel.backgroundColor
                         ),
-                    onSave = { invHeader, itemModel ->
+                    onSave = { invHeader, itemModel, isChanged ->
+                        isInvoiceEdited = isInvoiceEdited || isChanged
                         invoicesState[itemIndexToEdit] = itemModel
                         activityViewModel.invoiceItemModels = invoicesState
                         invoiceHeaderState.value = invHeader
@@ -658,6 +664,7 @@ fun POSView(
                         .pointerInput(Unit) {
                             detectTapGestures(onTap = {})
                         }) { itemList ->
+                    isInvoiceEdited = true
                     val invoices = mutableListOf<InvoiceItemModel>()
                     itemList.forEach { item ->
                         val invoiceItemModel = InvoiceItemModel()
@@ -693,6 +700,19 @@ fun POSView(
                         .background(
                             color = SettingsModel.backgroundColor
                         ),
+                    onPrint = {
+                        if (isInvoiceEdited) {
+                            viewModel.showWarning(
+                                "Save your changes at first!",
+                                ""
+                            )
+                        } else {
+                            activityViewModel.shouldPrintInvoice = true
+                            viewModel.savePrintedNumber(
+                                invoiceHeaderState.value
+                            )
+                        }
+                    },
                     onSave = { change, receipt ->
                         activityViewModel.posReceipt = receipt
                         invoiceHeaderState.value.invoiceHeadChange = change

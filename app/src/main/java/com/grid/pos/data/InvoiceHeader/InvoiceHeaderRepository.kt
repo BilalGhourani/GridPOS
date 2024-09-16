@@ -12,6 +12,7 @@ interface InvoiceHeaderRepository {
     suspend fun delete(invoiceHeader: InvoiceHeader)
 
     // Update an Invoice Header
+    suspend fun updateInvoiceHeader(invoiceHeader: InvoiceHeader)
     suspend fun update(invoiceHeader: InvoiceHeader,isFinished: Boolean = false)
 
     // Get all Invoice Headers logs as stream.

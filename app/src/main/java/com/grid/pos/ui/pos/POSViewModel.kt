@@ -19,7 +19,6 @@ import com.grid.pos.model.InvoiceItemModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.BaseViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
@@ -163,7 +162,7 @@ class POSViewModel @Inject constructor(
         )
         val isInserting = invoiceHeader.isNew()
 
-        CoroutineScope(Dispatchers.IO).launch {
+        viewModelScope.launch(Dispatchers.IO) {
             if (isInserting) {
                 if (finish) {
                     val lastTransactionIvn = invoiceHeaderRepository.getLastTransactionByType(
@@ -301,6 +300,34 @@ class POSViewModel @Inject constructor(
                 )
             }
         }
+    }
+
+    fun savePrintedNumber(
+            invoiceHeader: InvoiceHeader,
+    ) {
+        if (invoiceHeader.isNew()) {
+            showWarning(
+                "Save invoice at first!",
+                ""
+            )
+            return
+        }
+        posState.value = posState.value.copy(
+            isLoading = true
+        )
+        viewModelScope.launch(Dispatchers.IO) {
+            invoiceHeaderRepository.updateInvoiceHeader(
+                invoiceHeader
+            )
+            withContext(Dispatchers.Main) {
+                posState.value = posState.value.copy(
+                    isLoading = false,
+                    isSaved = true,
+                    warning = null
+                )
+            }
+        }
+
     }
 
     fun loadInvoiceDetails(

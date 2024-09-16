@@ -126,6 +126,32 @@ class InvoiceHeaderRepositoryImpl(
         }
     }
 
+    override suspend fun updateInvoiceHeader(
+            invoiceHeader: InvoiceHeader
+    ) {
+        when (SettingsModel.connectionType) {
+            CONNECTION_TYPE.FIRESTORE.key -> {
+                invoiceHeader.invoiceHeadDocumentId?.let {
+                    FirebaseFirestore.getInstance().collection("in_hinvoice").document(it)
+                        .update(invoiceHeader.getMap()).await()
+                }
+            }
+
+            CONNECTION_TYPE.LOCAL.key -> {
+                invoiceHeaderDao.update(invoiceHeader)
+            }
+
+            else -> {
+                SQLServerWrapper.update(
+                    "in_hinvoice",
+                    getColumns(),
+                    getValues(invoiceHeader),
+                    "hi_id = '${invoiceHeader.invoiceHeadId}'"
+                )
+            }
+        }
+    }
+
     override suspend fun update(
             invoiceHeader: InvoiceHeader,
             isFinished: Boolean

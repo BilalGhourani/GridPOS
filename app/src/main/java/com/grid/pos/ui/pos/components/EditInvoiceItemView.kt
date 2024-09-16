@@ -65,7 +65,7 @@ fun EditInvoiceItemView(
         invoices: MutableList<InvoiceItemModel>,
         invHeader: InvoiceHeader,
         invoiceIndex: Int = 0,
-        onSave: (InvoiceHeader, InvoiceItemModel) -> Unit = { _, _ -> },
+        onSave: (InvoiceHeader, InvoiceItemModel,Boolean) -> Unit = { _, _,_ -> },
         onClose: () -> Unit = {},
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -87,6 +87,8 @@ fun EditInvoiceItemView(
         invoice = invoiceItemAtIndex.invoice.copy(),
         invoiceItem = invoiceItemAtIndex.invoiceItem
     )
+
+    var isInvoiceEdited by remember { mutableStateOf(false) }
 
     val curr1Decimal = SettingsModel.currentCurrency?.currencyName1Dec ?: 2
     val curr2Decimal = SettingsModel.currentCurrency?.currencyName2Dec ?: 2
@@ -222,7 +224,8 @@ fun EditInvoiceItemView(
         invoiceItemModel.invoice.invoiceNote = itemNote
         onSave.invoke(
             invoiceHeader,
-            invoiceItemModel
+            invoiceItemModel,
+            isInvoiceEdited
         )
     }
 
@@ -248,6 +251,7 @@ fun EditInvoiceItemView(
             OutlinedTextField(
                 value = price,
                 onValueChange = {
+                    isInvoiceEdited = true
                     price = Utils.getDoubleValue(
                         it,
                         price
@@ -307,6 +311,7 @@ fun EditInvoiceItemView(
                 leadingIcon = {
                     IconButton(onClick = {
                         qty++
+                        isInvoiceEdited = true
                         invoiceItemModel.invoice.invoiceQuantity = qty.toDouble()
                         calculateItemDiscount()
                         calculateInvoiceDiscount()
@@ -321,6 +326,7 @@ fun EditInvoiceItemView(
                 trailingIcon = {
                     IconButton(onClick = {
                         if (qty > 1) qty--
+                        isInvoiceEdited = true
                         invoiceItemModel.invoice.invoiceQuantity = qty.toDouble()
                         calculateItemDiscount()
                         calculateInvoiceDiscount()
@@ -364,6 +370,7 @@ fun EditInvoiceItemView(
             )
             OutlinedTextField(value = rDiscount1,
                 onValueChange = {
+                    isInvoiceEdited = true
                     rDiscount1 = Utils.getDoubleValue(
                         it,
                         rDiscount1
@@ -396,6 +403,7 @@ fun EditInvoiceItemView(
             )
             OutlinedTextField(value = rDiscount2,
                 onValueChange = {
+                    isInvoiceEdited = true
                     rDiscount2 = Utils.getDoubleValue(
                         it,
                         rDiscount2
@@ -444,6 +452,7 @@ fun EditInvoiceItemView(
             )
             OutlinedTextField(value = discount1,
                 onValueChange = {
+                    isInvoiceEdited = true
                     discount1 = Utils.getDoubleValue(
                         it,
                         discount1
@@ -477,6 +486,7 @@ fun EditInvoiceItemView(
             )
             OutlinedTextField(value = discount2,
                 onValueChange = {
+                    isInvoiceEdited = true
                     discount2 = Utils.getDoubleValue(
                         it,
                         discount2
@@ -517,6 +527,7 @@ fun EditInvoiceItemView(
             onAction = {
                 itemExtraNameFocusRequester.requestFocus()
             }) {
+            isInvoiceEdited = true
             clientExtraName = it
         }
 
@@ -525,6 +536,7 @@ fun EditInvoiceItemView(
             label = "Item Extra Name",
             focusRequester = itemExtraNameFocusRequester,
             onAction = { invoiceNoteFocusRequester.requestFocus() }) {
+            isInvoiceEdited = true
             itemExtraName = it
         }
 
@@ -535,6 +547,7 @@ fun EditInvoiceItemView(
             onAction = {
                 itemNoteFocusRequester.requestFocus()
             }) {
+            isInvoiceEdited = true
             invoiceNote = it
         }
 
@@ -553,6 +566,7 @@ fun EditInvoiceItemView(
                     keyboardController?.hide()
                 }
             }) {
+            isInvoiceEdited = true
             itemNote = it
         }
 
@@ -587,6 +601,7 @@ fun EditInvoiceItemView(
                                 calculateInvoiceDiscount()
                             }
                         }) {
+                        isInvoiceEdited = true
                         taxState = Utils.getDoubleValue(
                             it,
                             taxState
@@ -615,6 +630,7 @@ fun EditInvoiceItemView(
                                 calculateInvoiceDiscount()
                             }
                         }) {
+                        isInvoiceEdited = true
                         tax1State = Utils.getDoubleValue(
                             it,
                             tax1State
@@ -638,6 +654,7 @@ fun EditInvoiceItemView(
                                 calculateInvoiceDiscount()
                             }
                         }) {
+                        isInvoiceEdited = true
                         tax2State = Utils.getDoubleValue(
                             it,
                             tax1State
