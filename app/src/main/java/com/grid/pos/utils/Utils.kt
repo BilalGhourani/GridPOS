@@ -148,6 +148,17 @@ object Utils {
         }
     }
 
+    fun roundDoubleValue(
+            value: Double,
+            decimal: Int?=2
+    ): Double {
+        val doubleStr = String.format(
+            "%.${decimal}f",
+            value
+        )
+        return doubleStr.toDoubleOrNull() ?: value
+    }
+
     fun getIntValue(
             new: String,
             old: String

@@ -187,6 +187,14 @@ fun ManageItemsView(
         if (SettingsModel.showTax2 && state.selectedItem.itemTax2 == 0.0) {
             state.selectedItem.itemTax2 = tax2State.toDoubleOrNull() ?: 0.0
         }
+        state.selectedItem.itemUnitPrice = Utils.roundDoubleValue(
+            state.selectedItem.itemUnitPrice,
+            SettingsModel.currentCurrency?.currencyName1Dec
+        )
+        state.selectedItem.itemOpenCost = Utils.roundDoubleValue(
+            state.selectedItem.itemOpenCost,
+            SettingsModel.currentCurrency?.currencyName1Dec
+        )
         state.selectedItem.itemPos = itemPOSState
         viewModel.saveItem(state.selectedItem)
     }
