@@ -10,6 +10,7 @@ import com.grid.pos.data.User.UserRepository
 import com.grid.pos.model.Event
 import com.grid.pos.model.LoginResponse
 import com.grid.pos.model.SettingsModel
+import com.grid.pos.ui.common.BaseViewModel
 import com.grid.pos.ui.license.CheckLicenseUseCase
 import com.grid.pos.utils.Constants
 import com.grid.pos.utils.DataStoreManager
@@ -25,11 +26,16 @@ class LoginViewModel @Inject constructor(
         private val checkLicenseUseCase: CheckLicenseUseCase,
         private val repository: UserRepository,
         private val companyRepository: CompanyRepository
-) : ViewModel() {
+) : BaseViewModel() {
 
     private val _usersState = MutableStateFlow(LoginState())
     val usersState: MutableStateFlow<LoginState> = _usersState
 
+    init {
+        viewModelScope.launch(Dispatchers.IO) {
+            openConnectionIfNeeded()
+        }
+    }
     fun login(
             context: Context,
             username: String,
