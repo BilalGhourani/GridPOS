@@ -814,7 +814,7 @@ object PrinterUtils {
                 0x21,
                 0x20
             ) // Double width
-            fontSizePx <= 32 -> byteArrayOf(
+            fontSizePx <= 30 -> byteArrayOf(
                 0x1B,
                 0x21,
                 0x30

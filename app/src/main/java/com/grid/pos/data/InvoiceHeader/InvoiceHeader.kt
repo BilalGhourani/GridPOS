@@ -335,6 +335,7 @@ data class InvoiceHeader(
             "hi_ta_name" to invoiceHeadTaName,
             "hi_clientscount" to invoiceHeadClientsCount,
             "hi_change" to invoiceHeadChange,
+            "hi_printed" to invoiceHeadPrinted,
             "hi_timestamp" to FieldValue.serverTimestamp(),
             "hi_userstamp" to invoiceHeadUserStamp,
             "hi_datetime" to invoiceHeadDateTime,

@@ -600,6 +600,7 @@ class InvoiceHeaderRepositoryImpl(
                 "hi_ta_name",
                 "hi_clientscount",
                 "hi_change",
+                "hi_printed",
                 "hi_wa_name",
                 "hi_bra_name",
                 "hi_timestamp",
@@ -628,6 +629,7 @@ class InvoiceHeaderRepositoryImpl(
                 "hi_ta_name",
                 "hi_clientscount",
                 "hi_change",
+                "hi_printed",
                 "hi_wa_name",
                 "hi_bra_name",
                 "hi_timestamp",
@@ -676,6 +678,7 @@ class InvoiceHeaderRepositoryImpl(
                     "%.${POSUtils.getDecimalPartSize(invoiceHeader.invoiceHeadChange)}f",
                     invoiceHeader.invoiceHeadChange
                 ),
+                invoiceHeader.invoiceHeadPrinted,
                 SettingsModel.defaultWarehouse,
                 SettingsModel.defaultBranch,
                 dateTime,
@@ -713,6 +716,7 @@ class InvoiceHeaderRepositoryImpl(
                     "%.${POSUtils.getDecimalPartSize(invoiceHeader.invoiceHeadChange)}f",
                     invoiceHeader.invoiceHeadChange
                 ),
+                invoiceHeader.invoiceHeadPrinted,
                 SettingsModel.defaultWarehouse,
                 SettingsModel.defaultBranch,
                 dateTime,
