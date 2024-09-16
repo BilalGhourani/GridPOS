@@ -27,7 +27,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -103,16 +102,26 @@ fun POSPrinterView(
         activityScopedViewModel.showLoading(state.isLoading)
     }
 
+    fun clear() {
+        viewModel.currentPrinter = PosPrinter()
+        state.selectedPrinter = PosPrinter()
+        nameState = ""
+        hostState = ""
+        portState = ""
+        typeState = ""
+        state.clear = false
+    }
+
     var saveAndBack by remember { mutableStateOf(false) }
     fun handleBack() {
-        if (viewModel.currentPrinter != null && state.selectedPrinter.didChanged(
-                viewModel.currentPrinter!!
+        if (state.selectedPrinter.didChanged(
+                viewModel.currentPrinter
             )
         ) {
             activityScopedViewModel.showPopup(true,
                 PopupModel().apply {
                     onDismissRequest = {
-                        viewModel.currentPrinter = null
+                        clear()
                         handleBack()
                     }
                     onConfirmation = {
@@ -133,22 +142,15 @@ fun POSPrinterView(
         navController?.navigateUp()
     }
 
-    fun clear() {
-        viewModel.currentPrinter = null
-        state.selectedPrinter = PosPrinter()
-        state.selectedPrinter.posPrinterCompId = ""
-        nameState = ""
-        hostState = ""
-        portState = ""
-        typeState = ""
-        state.clear = false
+    fun clearAndBack() {
+        clear()
         if (saveAndBack) {
             handleBack()
         }
     }
     LaunchedEffect(state.clear) {
         if (state.clear) {
-            clear()
+            clearAndBack()
         }
     }
 

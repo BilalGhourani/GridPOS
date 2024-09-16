@@ -25,7 +25,7 @@ class ManageFamiliesViewModel @Inject constructor(
 
     private val _manageFamiliesState = MutableStateFlow(ManageFamiliesState())
     val manageFamiliesState: MutableStateFlow<ManageFamiliesState> = _manageFamiliesState
-    var currentFamily: Family? = null
+    var currentFamily: Family = Family()
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
@@ -91,7 +91,6 @@ class ManageFamiliesViewModel @Inject constructor(
                 if(families.isNotEmpty()) {
                     families.add(addedModel)
                 }
-                currentFamily = null
                 withContext(Dispatchers.Main) {
                     manageFamiliesState.value = manageFamiliesState.value.copy(
                         families = families,
@@ -103,7 +102,6 @@ class ManageFamiliesViewModel @Inject constructor(
                 }
             } else {
                 familyRepository.update(family)
-                currentFamily = null
                 withContext(Dispatchers.Main) {
                     manageFamiliesState.value = manageFamiliesState.value.copy(
                         selectedFamily = Family(),
@@ -142,7 +140,6 @@ class ManageFamiliesViewModel @Inject constructor(
             familyRepository.delete(family)
             val families = manageFamiliesState.value.families
             families.remove(family)
-            currentFamily = null
             withContext(Dispatchers.Main) {
                 manageFamiliesState.value = manageFamiliesState.value.copy(
                     families = families,

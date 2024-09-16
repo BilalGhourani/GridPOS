@@ -27,7 +27,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -103,16 +102,28 @@ fun ManageThirdPartiesView(
         activityScopedViewModel.showLoading(state.isLoading)
     }
 
+    fun clear() {
+        viewModel.currentThirdParty = ThirdParty()
+        state.selectedThirdParty = ThirdParty()
+        nameState = ""
+        fnState = ""
+        phone1State = ""
+        phone2State = ""
+        addressState = ""
+        isDefaultState = false
+        state.clear = false
+    }
+
     var saveAndBack by remember { mutableStateOf(false) }
     fun handleBack() {
-        if (viewModel.currentThirdParty != null && state.selectedThirdParty.didChanged(
-                viewModel.currentThirdParty!!
+        if (state.selectedThirdParty.didChanged(
+                viewModel.currentThirdParty
             )
         ) {
             activityScopedViewModel.showPopup(true,
                 PopupModel().apply {
                     onDismissRequest = {
-                        viewModel.currentThirdParty = null
+                        clear()
                         handleBack()
                     }
                     onConfirmation = {
@@ -133,24 +144,15 @@ fun ManageThirdPartiesView(
         navController?.navigateUp()
     }
 
-    fun clear() {
-        viewModel.currentThirdParty = null
-        state.selectedThirdParty = ThirdParty()
-        state.selectedThirdParty.thirdPartyCompId = ""
-        nameState = ""
-        fnState = ""
-        phone1State = ""
-        phone2State = ""
-        addressState = ""
-        isDefaultState = false
-        state.clear = false
+    fun clearAndBack() {
+        clear()
         if (saveAndBack) {
             handleBack()
         }
     }
     LaunchedEffect(state.clear) {
         if (state.clear) {
-            clear()
+            clearAndBack()
         }
     }
     BackHandler {
@@ -339,10 +341,10 @@ fun ManageThirdPartiesView(
 
                 SearchableDropdownMenuEx(items = state.thirdParties.toMutableList(),
                     modifier = Modifier.padding(
-                            top = 15.dp,
-                            start = 10.dp,
-                            end = 10.dp
-                        ),
+                        top = 15.dp,
+                        start = 10.dp,
+                        end = 10.dp
+                    ),
                     label = "Select Third Party",
                     selectedId = state.selectedThirdParty.thirdPartyId,
                     onLoadItems = { viewModel.fetchThirdParties() },

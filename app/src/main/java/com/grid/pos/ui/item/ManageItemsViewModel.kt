@@ -27,7 +27,7 @@ class ManageItemsViewModel @Inject constructor(
 
     private val _manageItemsState = MutableStateFlow(ManageItemsState())
     val manageItemsState: MutableStateFlow<ManageItemsState> = _manageItemsState
-    var currentITem: Item? = null
+    var currentITem: Item = Item()
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
@@ -120,7 +120,6 @@ class ManageItemsViewModel @Inject constructor(
                 if (items.isNotEmpty()) {
                     items.add(addedModel)
                 }
-                currentITem = null
                 withContext(Dispatchers.Main) {
                     manageItemsState.value = manageItemsState.value.copy(
                         items = items,
@@ -132,7 +131,6 @@ class ManageItemsViewModel @Inject constructor(
                 }
             } else {
                 itemRepository.update(item)
-                currentITem = null
                 withContext(Dispatchers.Main) {
                     manageItemsState.value = manageItemsState.value.copy(
                         selectedItem = item,
@@ -171,7 +169,6 @@ class ManageItemsViewModel @Inject constructor(
             itemRepository.delete(item)
             val items = manageItemsState.value.items
             items.remove(item)
-            currentITem = null
             withContext(Dispatchers.Main) {
                 manageItemsState.value = manageItemsState.value.copy(
                     items = items,

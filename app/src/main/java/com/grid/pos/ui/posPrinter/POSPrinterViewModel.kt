@@ -22,7 +22,7 @@ class POSPrinterViewModel @Inject constructor(
 
     private val _posPrinterState = MutableStateFlow(POSPrinterState())
     val posPrinterState: MutableStateFlow<POSPrinterState> = _posPrinterState
-    var currentPrinter: PosPrinter? = null
+    var currentPrinter: PosPrinter = PosPrinter()
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
@@ -89,7 +89,6 @@ class POSPrinterViewModel @Inject constructor(
                 if(printers.isNotEmpty()) {
                     printers.add(addedModel)
                 }
-                currentPrinter = null
                 withContext(Dispatchers.Main) {
                     posPrinterState.value = posPrinterState.value.copy(
                         printers = printers,
@@ -101,7 +100,6 @@ class POSPrinterViewModel @Inject constructor(
                 }
             } else {
                 posPrinterRepository.update(printer)
-                currentPrinter = null
                 withContext(Dispatchers.Main) {
                     posPrinterState.value = posPrinterState.value.copy(
                         selectedPrinter = PosPrinter(),
@@ -140,7 +138,6 @@ class POSPrinterViewModel @Inject constructor(
             posPrinterRepository.delete(printer)
             val printers = posPrinterState.value.printers
             printers.remove(printer)
-            currentPrinter = null
             withContext(Dispatchers.Main) {
                 posPrinterState.value = posPrinterState.value.copy(
                     printers = printers,

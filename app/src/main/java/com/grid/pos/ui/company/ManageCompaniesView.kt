@@ -32,7 +32,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -114,7 +113,10 @@ fun ManageCompaniesView(
 
     var oldImage: String? = null
 
-    LaunchedEffect(activityScopedViewModel.companies,activityScopedViewModel.currencies) {
+    LaunchedEffect(
+        activityScopedViewModel.companies,
+        activityScopedViewModel.currencies
+    ) {
         viewModel.fillCachedCompanies(
             activityScopedViewModel.companies,
             activityScopedViewModel.currencies
@@ -156,16 +158,36 @@ fun ManageCompaniesView(
         viewModel.saveCompany(state.selectedCompany)
     }
 
+    fun clear() {
+        viewModel.currentCompany = Company()
+        state.selectedCompany = Company()
+        nameState = ""
+        phoneState = ""
+        addressState = ""
+        countryState = ""
+        taxRegnoState = ""
+        taxState = ""
+        upWithTaxState = false
+        emailState = ""
+        webState = ""
+        logoState = ""
+        tax1RegnoState = ""
+        tax1State = ""
+        tax2RegnoState = ""
+        tax2State = ""
+        state.clear = false
+    }
+
     var saveAndBack by remember { mutableStateOf(false) }
     fun handleBack() {
-        if (viewModel.currentCompany != null && state.selectedCompany.didChanged(
-                viewModel.currentCompany!!
+        if (state.selectedCompany.didChanged(
+                viewModel.currentCompany
             )
         ) {
             activityScopedViewModel.showPopup(true,
                 PopupModel().apply {
                     onDismissRequest = {
-                        viewModel.currentCompany = null
+                        clear()
                         handleBack()
                     }
                     onConfirmation = {
@@ -188,32 +210,15 @@ fun ManageCompaniesView(
         navController?.navigateUp()
     }
 
-    fun clear() {
-        viewModel.currentCompany = null
-        state.selectedCompany = Company()
-        state.selectedCompany.companyCurCodeTax = ""
-        nameState = ""
-        phoneState = ""
-        addressState = ""
-        countryState = ""
-        taxRegnoState = ""
-        taxState = ""
-        upWithTaxState = false
-        emailState = ""
-        webState = ""
-        logoState = ""
-        tax1RegnoState = ""
-        tax1State = ""
-        tax2RegnoState = ""
-        tax2State = ""
-        state.clear = false
+    fun clearAndBack() {
+        clear()
         if (saveAndBack) {
             handleBack()
         }
     }
     LaunchedEffect(state.clear) {
         if (state.clear) {
-            clear()
+            clearAndBack()
         }
     }
     BackHandler {
@@ -624,10 +629,10 @@ fun ManageCompaniesView(
 
                 SearchableDropdownMenuEx(items = state.companies.toMutableList(),
                     modifier = Modifier.padding(
-                            top = 15.dp,
-                            start = 10.dp,
-                            end = 10.dp
-                        ),
+                        top = 15.dp,
+                        start = 10.dp,
+                        end = 10.dp
+                    ),
                     label = "Select Company",
                     selectedId = state.selectedCompany.companyId,
                     onLoadItems = { viewModel.fetchCompanies() },

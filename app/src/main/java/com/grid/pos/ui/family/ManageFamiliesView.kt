@@ -31,7 +31,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -125,6 +124,14 @@ fun ManageFamiliesView(
         viewModel.saveFamily(state.selectedFamily)
     }
 
+    fun clear() {
+        viewModel.currentFamily = Family()
+        state.selectedFamily = Family()
+        nameState = ""
+        imageState = ""
+        state.clear = false
+    }
+
     var saveAndBack by remember { mutableStateOf(false) }
     fun handleBack() {
         if (viewModel.currentFamily != null && state.selectedFamily.didChanged(
@@ -134,7 +141,7 @@ fun ManageFamiliesView(
             activityScopedViewModel.showPopup(true,
                 PopupModel().apply {
                     onDismissRequest = {
-                        viewModel.currentFamily = null
+                        clear()
                         handleBack()
                     }
                     onConfirmation = {
@@ -155,20 +162,15 @@ fun ManageFamiliesView(
         navController?.navigateUp()
     }
 
-    fun clear() {
-        viewModel.currentFamily = null
-        state.selectedFamily = Family()
-        state.selectedFamily.familyCompanyId = ""
-        nameState = ""
-        imageState = ""
-        state.clear = false
+    fun clearAndBack() {
+        clear()
         if (saveAndBack) {
             handleBack()
         }
     }
     LaunchedEffect(state.clear) {
         if (state.clear) {
-            clear()
+            clearAndBack()
         }
     }
     BackHandler {

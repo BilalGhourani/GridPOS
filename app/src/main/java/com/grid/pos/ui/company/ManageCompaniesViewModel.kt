@@ -1,6 +1,5 @@
 package com.grid.pos.ui.company
 
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.grid.pos.data.Company.Company
 import com.grid.pos.data.Company.CompanyRepository
@@ -8,7 +7,6 @@ import com.grid.pos.data.Currency.Currency
 import com.grid.pos.data.Currency.CurrencyRepository
 import com.grid.pos.data.Family.FamilyRepository
 import com.grid.pos.data.PosPrinter.PosPrinterRepository
-import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.data.ThirdParty.ThirdPartyRepository
 import com.grid.pos.data.User.UserRepository
 import com.grid.pos.model.Event
@@ -34,7 +32,7 @@ class ManageCompaniesViewModel @Inject constructor(
 
     private val _manageCompaniesState = MutableStateFlow(ManageCompaniesState())
     val manageCompaniesState: MutableStateFlow<ManageCompaniesState> = _manageCompaniesState
-    var currentCompany: Company? = null
+    var currentCompany: Company = Company()
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
@@ -125,7 +123,6 @@ class ManageCompaniesViewModel @Inject constructor(
                 if(companies.isNotEmpty()) {
                     companies.add(addedCompany)
                 }
-                currentCompany = null
                 withContext(Dispatchers.Main) {
                     manageCompaniesState.value = manageCompaniesState.value.copy(
                         companies = companies,
@@ -144,7 +141,6 @@ class ManageCompaniesViewModel @Inject constructor(
                 ) {
                     SettingsModel.currentCompany = company
                 }
-                currentCompany = null
                 withContext(Dispatchers.Main) {
                     manageCompaniesState.value = manageCompaniesState.value.copy(
                         selectedCompany = company,
@@ -184,7 +180,6 @@ class ManageCompaniesViewModel @Inject constructor(
             companyRepository.delete(company)
             val companies = manageCompaniesState.value.companies
             companies.remove(company)
-            currentCompany = null
             withContext(Dispatchers.Main) {
                 manageCompaniesState.value = manageCompaniesState.value.copy(
                     companies = companies,

@@ -50,6 +50,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.grid.pos.ActivityScopedViewModel
 import com.grid.pos.R
+import com.grid.pos.data.Currency.Currency
 import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.UIButton
@@ -100,14 +101,14 @@ fun ManageCurrenciesView(
 
     var saveAndBack by remember { mutableStateOf(false) }
     fun handleBack() {
-        if (viewModel.currentCurrency != null && state.selectedCurrency.didChanged(
-                viewModel.currentCurrency!!
+        if (state.selectedCurrency.didChanged(
+                viewModel.currentCurrency
             )
         ) {
             activityScopedViewModel.showPopup(true,
                 PopupModel().apply {
                     onDismissRequest = {
-                        viewModel.currentCurrency = null
+                        viewModel.currentCurrency = Currency()
                         handleBack()
                     }
                     onConfirmation = {
@@ -145,7 +146,7 @@ fun ManageCurrenciesView(
     }
     LaunchedEffect(state.isSaved) {
         if (state.isSaved && saveAndBack) {
-            viewModel.currentCurrency = null
+            viewModel.currentCurrency =  state.selectedCurrency
             handleBack()
         }
     }
@@ -347,7 +348,7 @@ fun ManageCurrenciesView(
                                     .padding(3.dp),
                                 text = "Save"
                             ) {
-                                viewModel.currentCurrency = null
+                                viewModel.currentCurrency = state.selectedCurrency
                                 viewModel.saveCurrency()
                             }
 

@@ -191,16 +191,36 @@ fun ManageItemsView(
         viewModel.saveItem(state.selectedItem)
     }
 
+    fun clear() {
+        viewModel.currentITem = Item()
+        state.selectedItem = Item()
+        nameState = ""
+        unitPriceState = ""
+        taxState = SettingsModel.currentCompany?.companyTax.toString()
+        tax1State = SettingsModel.currentCompany?.companyTax1.toString()
+        tax2State = SettingsModel.currentCompany?.companyTax2.toString()
+        barcodeState = ""
+        openCostState = ""
+        openQtyState = ""
+        familyIdState = ""
+        btnColorState = ""
+        btnTextColorState = ""
+        printerState = ""
+        imageState = ""
+        itemPOSState = false
+        state.clear = false
+    }
+
     var saveAndBack by remember { mutableStateOf(false) }
     fun handleBack() {
-        if (viewModel.currentITem != null && state.selectedItem.didChanged(
-                viewModel.currentITem!!
+        if (state.selectedItem.didChanged(
+                viewModel.currentITem
             )
         ) {
             activityScopedViewModel.showPopup(true,
                 PopupModel().apply {
                     onDismissRequest = {
-                        viewModel.currentITem = null
+                        clear()
                         handleBack()
                     }
                     onConfirmation = {
@@ -221,33 +241,15 @@ fun ManageItemsView(
         navController?.navigateUp()
     }
 
-    fun clear() {
-        viewModel.currentITem = null
-        state.selectedItem = Item()
-        state.selectedItem.itemCompId = ""
-        state.selectedItem.itemFaId = ""
-        nameState = ""
-        unitPriceState = ""
-        taxState = SettingsModel.currentCompany?.companyTax.toString()
-        tax1State = SettingsModel.currentCompany?.companyTax1.toString()
-        tax2State = SettingsModel.currentCompany?.companyTax2.toString()
-        barcodeState = ""
-        openCostState = ""
-        openQtyState = ""
-        familyIdState = ""
-        btnColorState = ""
-        btnTextColorState = ""
-        printerState = ""
-        imageState = ""
-        itemPOSState = false
-        state.clear = false
+    fun clearAndBack() {
+        clear()
         if (saveAndBack) {
             handleBack()
         }
     }
     LaunchedEffect(state.clear) {
         if (state.clear) {
-            clear()
+            clearAndBack()
         }
     }
     BackHandler {

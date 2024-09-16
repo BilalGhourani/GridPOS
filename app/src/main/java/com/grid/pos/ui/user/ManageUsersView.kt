@@ -29,7 +29,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -74,7 +73,7 @@ fun ManageUsersView(
         activityScopedViewModel: ActivityScopedViewModel,
         viewModel: ManageUsersViewModel = hiltViewModel()
 ) {
-    val state  by viewModel.manageUsersState.collectAsStateWithLifecycle()
+    val state by viewModel.manageUsersState.collectAsStateWithLifecycle()
 
     val keyboardController = LocalSoftwareKeyboardController.current
     val usernameFocusRequester = remember { FocusRequester() }
@@ -113,16 +112,27 @@ fun ManageUsersView(
         viewModel.saveUser(state.selectedUser)
     }
 
+    fun clear() {
+        viewModel.currentUser = User()
+        state.selectedUser = User()
+        nameState = ""
+        usernameState = ""
+        passwordState = ""
+        posModeState = true
+        tableModeState = true
+        state.clear = false
+    }
+
     var saveAndBack by remember { mutableStateOf(false) }
     fun handleBack() {
-        if (viewModel.currentUser != null && state.selectedUser.didChanged(
-                viewModel.currentUser!!
+        if (state.selectedUser.didChanged(
+                viewModel.currentUser
             )
         ) {
             activityScopedViewModel.showPopup(true,
                 PopupModel().apply {
                     onDismissRequest = {
-                        viewModel.currentUser = null
+                        clear()
                         handleBack()
                     }
                     onConfirmation = {
@@ -142,23 +152,16 @@ fun ManageUsersView(
         viewModel.closeConnectionIfNeeded()
         navController?.navigateUp()
     }
-    fun clear() {
-        viewModel.currentUser = null
-        state.selectedUser = User()
-        state.selectedUser.userCompanyId = ""
-        nameState = ""
-        usernameState = ""
-        passwordState = ""
-        posModeState = true
-        tableModeState = true
-        state.clear = false
+
+    fun clearAndBack() {
+        clear()
         if (saveAndBack) {
             handleBack()
         }
     }
     LaunchedEffect(state.clear) {
         if (state.clear) {
-            clear()
+            clearAndBack()
         }
     }
     BackHandler {
@@ -211,124 +214,132 @@ fun ManageUsersView(
                     .padding(it)
                     .background(color = Color.Transparent)
             ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(top = 90.dp)
-                            .verticalScroll(rememberScrollState()),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        UITextField(modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
-                            defaultValue = nameState,
-                            label = "Name",
-                            placeHolder = "Enter Name",
-                            onAction = { usernameFocusRequester.requestFocus() }) {
-                            nameState = it
-                            state.selectedUser.userName = it.trim()
-                        }
-
-                        UITextField(modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
-                            defaultValue = usernameState,
-                            label = "Username",
-                            placeHolder = "Enter Username",
-                            focusRequester = usernameFocusRequester,
-                            onAction = { passwordFocusRequester.requestFocus() }) {
-                            usernameState = it
-                            state.selectedUser.userUsername = it.trim()
-                        }
-
-                        UITextField(modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
-                            defaultValue = passwordState,
-                            label = "Password",
-                            placeHolder = "Enter Password",
-                            focusRequester = passwordFocusRequester,
-                            keyboardType = KeyboardType.Password,
-                            visualTransformation = if (passwordVisibility) VisualTransformation.None else PasswordVisualTransformation(),
-                            imeAction = ImeAction.Done,
-                            onAction = { keyboardController?.hide() },
-                            trailingIcon = {
-                                IconButton(onClick = { passwordVisibility = !passwordVisibility }) {
-                                    Icon(
-                                        imageVector = if (passwordVisibility) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
-                                        contentDescription = if (passwordVisibility) "Hide password" else "Show password",
-                                        tint = SettingsModel.buttonColor
-                                    )
-                                }
-                            }) {
-                            passwordState = it
-                            state.selectedUser.userPassword = it.trim()
-                        }
-
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .wrapContentHeight()
-                                .padding(
-                                    horizontal = 10.dp,
-                                    vertical = 5.dp
-                                ),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            UiVerticalCheckBox(
-                                modifier = Modifier.weight(.5f),
-                                label = "POS Mode",
-                                checked = posModeState
-                            ) {
-                                posModeState = it
-                                state.selectedUser.userPosMode = posModeState
-                            }
-
-                            UiVerticalCheckBox(
-                                modifier = Modifier.weight(.5f),
-                                label = "Table Mode",
-                                checked = tableModeState
-                            ) {
-                                tableModeState = it
-                                state.selectedUser.userTableMode = tableModeState
-                            }
-                        }
-
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .wrapContentHeight()
-                                .padding(
-                                    horizontal = 10.dp,
-                                    vertical = 5.dp
-                                ),
-                            verticalAlignment = Alignment.Bottom
-                        ) {
-                            UIButton(
-                                modifier = Modifier
-                                    .weight(.33f)
-                                    .padding(3.dp),
-                                text = "Save"
-                            ) {
-                                saveUser()
-                            }
-
-                            UIButton(
-                                modifier = Modifier
-                                    .weight(.33f)
-                                    .padding(3.dp),
-                                text = "Delete"
-                            ) {
-                                viewModel.deleteSelectedUser(state.selectedUser)
-                            }
-
-                            UIButton(
-                                modifier = Modifier
-                                    .weight(.33f)
-                                    .padding(3.dp),
-                                text = "Close"
-                            ) {
-                                handleBack()
-                            }
-                        }
-
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(top = 90.dp)
+                        .verticalScroll(rememberScrollState()),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    UITextField(modifier = Modifier.padding(
+                        horizontal = 10.dp,
+                        vertical = 5.dp
+                    ),
+                        defaultValue = nameState,
+                        label = "Name",
+                        placeHolder = "Enter Name",
+                        onAction = { usernameFocusRequester.requestFocus() }) {
+                        nameState = it
+                        state.selectedUser.userName = it.trim()
                     }
-                SearchableDropdownMenuEx(
-                    items = state.users.toMutableList(),
+
+                    UITextField(modifier = Modifier.padding(
+                        horizontal = 10.dp,
+                        vertical = 5.dp
+                    ),
+                        defaultValue = usernameState,
+                        label = "Username",
+                        placeHolder = "Enter Username",
+                        focusRequester = usernameFocusRequester,
+                        onAction = { passwordFocusRequester.requestFocus() }) {
+                        usernameState = it
+                        state.selectedUser.userUsername = it.trim()
+                    }
+
+                    UITextField(modifier = Modifier.padding(
+                        horizontal = 10.dp,
+                        vertical = 5.dp
+                    ),
+                        defaultValue = passwordState,
+                        label = "Password",
+                        placeHolder = "Enter Password",
+                        focusRequester = passwordFocusRequester,
+                        keyboardType = KeyboardType.Password,
+                        visualTransformation = if (passwordVisibility) VisualTransformation.None else PasswordVisualTransformation(),
+                        imeAction = ImeAction.Done,
+                        onAction = { keyboardController?.hide() },
+                        trailingIcon = {
+                            IconButton(onClick = { passwordVisibility = !passwordVisibility }) {
+                                Icon(
+                                    imageVector = if (passwordVisibility) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
+                                    contentDescription = if (passwordVisibility) "Hide password" else "Show password",
+                                    tint = SettingsModel.buttonColor
+                                )
+                            }
+                        }) {
+                        passwordState = it
+                        state.selectedUser.userPassword = it.trim()
+                    }
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .wrapContentHeight()
+                            .padding(
+                                horizontal = 10.dp,
+                                vertical = 5.dp
+                            ),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        UiVerticalCheckBox(
+                            modifier = Modifier.weight(.5f),
+                            label = "POS Mode",
+                            checked = posModeState
+                        ) {
+                            posModeState = it
+                            state.selectedUser.userPosMode = posModeState
+                        }
+
+                        UiVerticalCheckBox(
+                            modifier = Modifier.weight(.5f),
+                            label = "Table Mode",
+                            checked = tableModeState
+                        ) {
+                            tableModeState = it
+                            state.selectedUser.userTableMode = tableModeState
+                        }
+                    }
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .wrapContentHeight()
+                            .padding(
+                                horizontal = 10.dp,
+                                vertical = 5.dp
+                            ),
+                        verticalAlignment = Alignment.Bottom
+                    ) {
+                        UIButton(
+                            modifier = Modifier
+                                .weight(.33f)
+                                .padding(3.dp),
+                            text = "Save"
+                        ) {
+                            saveUser()
+                        }
+
+                        UIButton(
+                            modifier = Modifier
+                                .weight(.33f)
+                                .padding(3.dp),
+                            text = "Delete"
+                        ) {
+                            viewModel.deleteSelectedUser(state.selectedUser)
+                        }
+
+                        UIButton(
+                            modifier = Modifier
+                                .weight(.33f)
+                                .padding(3.dp),
+                            text = "Close"
+                        ) {
+                            handleBack()
+                        }
+                    }
+
+                }
+                SearchableDropdownMenuEx(items = state.users.toMutableList(),
                     modifier = Modifier.padding(
                         top = 15.dp,
                         start = 10.dp,
@@ -336,7 +347,7 @@ fun ManageUsersView(
                     ),
                     label = "Select User",
                     selectedId = state.selectedUser.userId,
-                    onLoadItems = {viewModel.fetchUsers()},
+                    onLoadItems = { viewModel.fetchUsers() },
                     leadingIcon = {
                         if (state.selectedUser.userId.isNotEmpty()) {
                             Icon(
@@ -349,16 +360,15 @@ fun ManageUsersView(
                     },
                     onLeadingIconClick = {
                         clear()
-                    }
-                ) { selectedUser ->
+                    }) { selectedUser ->
                     selectedUser as User
                     viewModel.currentUser = selectedUser.copy()
                     state.selectedUser = selectedUser
                     nameState = selectedUser.userName ?: ""
                     usernameState = selectedUser.userUsername ?: ""
                     passwordState = selectedUser.userPassword?.decryptCBC() ?: ""
-                    posModeState = selectedUser.userPosMode ?: true
-                    tableModeState = selectedUser.userTableMode ?: true
+                    posModeState = selectedUser.userPosMode
+                    tableModeState = selectedUser.userTableMode
                 }
             }
         }

@@ -22,7 +22,7 @@ class ManageCurrenciesViewModel @Inject constructor(
 
     private val _manageCurrenciesState = MutableStateFlow(ManageCurrenciesState())
     val manageCurrenciesState: MutableStateFlow<ManageCurrenciesState> = _manageCurrenciesState
-    var currentCurrency: Currency? = null
+    var currentCurrency: Currency = Currency()
 
     init {
         fetchCurrencies()

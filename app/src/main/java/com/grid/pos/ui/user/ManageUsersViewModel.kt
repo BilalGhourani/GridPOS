@@ -27,7 +27,7 @@ class ManageUsersViewModel @Inject constructor(
 
     private val _manageUsersState = MutableStateFlow(ManageUsersState())
     val manageUsersState: MutableStateFlow<ManageUsersState> = _manageUsersState
-    var currentUser: User? = null
+    var currentUser: User = User()
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
@@ -81,7 +81,6 @@ class ManageUsersViewModel @Inject constructor(
                 if(users.isNotEmpty()) {
                     users.add(addedModel)
                 }
-                currentUser = null
                 withContext(Dispatchers.Main) {
                     manageUsersState.value = manageUsersState.value.copy(
                         users = users,
@@ -93,7 +92,6 @@ class ManageUsersViewModel @Inject constructor(
                 }
             } else {
                 userRepository.update(user)
-                currentUser = null
                 withContext(Dispatchers.Main) {
                     manageUsersState.value = manageUsersState.value.copy(
                         selectedUser = user,
@@ -132,7 +130,6 @@ class ManageUsersViewModel @Inject constructor(
             userRepository.delete(user)
             val users = manageUsersState.value.users
             users.remove(user)
-            currentUser = null
             withContext(Dispatchers.Main) {
                 manageUsersState.value = manageUsersState.value.copy(
                     users = users,

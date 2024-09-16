@@ -1,12 +1,10 @@
 package com.grid.pos.ui.thirdParty
 
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.grid.pos.data.InvoiceHeader.InvoiceHeaderRepository
 import com.grid.pos.data.ThirdParty.ThirdParty
 import com.grid.pos.data.ThirdParty.ThirdPartyRepository
 import com.grid.pos.model.Event
-import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.BaseViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -24,7 +22,7 @@ class ManageThirdPartiesViewModel @Inject constructor(
 
     private val _manageThirdPartiesState = MutableStateFlow(ManageThirdPartiesState())
     val manageThirdPartiesState: MutableStateFlow<ManageThirdPartiesState> = _manageThirdPartiesState
-    var currentThirdParty: ThirdParty? = null
+    var currentThirdParty: ThirdParty = ThirdParty()
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
@@ -87,7 +85,6 @@ class ManageThirdPartiesViewModel @Inject constructor(
                     thirdParties.add(addedModel)
                 }
                 val isDefaultEnabled = thirdParties.none { it.thirdPartyDefault }
-                currentThirdParty = null
                 withContext(Dispatchers.Main) {
                     manageThirdPartiesState.value = manageThirdPartiesState.value.copy(
                         thirdParties = thirdParties,
@@ -101,7 +98,6 @@ class ManageThirdPartiesViewModel @Inject constructor(
             } else {
                 thirdPartyRepository.update(thirdParty)
                 val isDefaultEnabled = manageThirdPartiesState.value.thirdParties.none { it.thirdPartyDefault }
-                currentThirdParty = null
                 withContext(Dispatchers.Main) {
                     manageThirdPartiesState.value = manageThirdPartiesState.value.copy(
                         selectedThirdParty = thirdParty,
@@ -143,7 +139,6 @@ class ManageThirdPartiesViewModel @Inject constructor(
             val thirdParties = manageThirdPartiesState.value.thirdParties
             thirdParties.remove(thirdParty)
             val isDefaultEnabled = thirdParties.none { it.thirdPartyDefault }
-            currentThirdParty = null
             withContext(Dispatchers.Main) {
                 manageThirdPartiesState.value = manageThirdPartiesState.value.copy(
                     thirdParties = thirdParties,
