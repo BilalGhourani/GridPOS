@@ -237,7 +237,7 @@ class InvoiceHeaderRepositoryImpl(
         }
     }
 
-    override suspend fun getLastInvoiceByType(
+    override suspend fun getLastOrderByType(
             type: String
     ): InvoiceHeader? {
         when (SettingsModel.connectionType) {
@@ -249,6 +249,9 @@ class InvoiceHeaderRepositoryImpl(
                     ).whereEqualTo(
                         "hi_tt_code",
                         type
+                    ).whereNotEqualTo(
+                        "hi_orderno",
+                        null
                     ).orderBy(
                         "hi_timestamp",
                         Query.Direction.DESCENDING
@@ -258,7 +261,7 @@ class InvoiceHeaderRepositoryImpl(
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
-                return invoiceHeaderDao.getLastInvoiceNo(
+                return invoiceHeaderDao.getLastOrderByType(
                     type,
                     SettingsModel.getCompanyID() ?: ""
                 )
@@ -267,7 +270,61 @@ class InvoiceHeaderRepositoryImpl(
             else -> {
                 val invoiceHeaders: MutableList<InvoiceHeader> = mutableListOf()
                 try {
-                    val where = "hi_cmp_id='${SettingsModel.getCompanyID()}' AND hi_tt_code = '$type' ORDER BY hi_timestamp DESC"
+                    val where = "hi_cmp_id='${SettingsModel.getCompanyID()}' AND hi_tt_code = '$type' AND hi_orderno <> '' AND hi_orderno IS NOT NULL ORDER BY hi_timestamp DESC"
+                    val dbResult = SQLServerWrapper.getListOf(
+                        "in_hinvoice",
+                        "TOP 1",
+                        mutableListOf("*"),
+                        where
+                    )
+                    dbResult?.let {
+                        while (it.next()) {
+                            invoiceHeaders.add(fillParams(it))
+                        }
+                        SQLServerWrapper.closeResultSet(it)
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+                return if (invoiceHeaders.size > 0) invoiceHeaders[0] else null
+            }
+        }
+    }
+
+    override suspend fun getLastTransactionByType(
+            type: String
+    ): InvoiceHeader? {
+        when (SettingsModel.connectionType) {
+            CONNECTION_TYPE.FIRESTORE.key -> {
+                val querySnapshot = FirebaseFirestore.getInstance().collection("in_hinvoice")
+                    .whereEqualTo(
+                        "hi_cmp_id",
+                        SettingsModel.getCompanyID()
+                    ).whereEqualTo(
+                        "hi_tt_code",
+                        type
+                    ).whereNotEqualTo(
+                        "hi_transno",
+                        null
+                    ).orderBy(
+                        "hi_timestamp",
+                        Query.Direction.DESCENDING
+                    ).limit(1).get().await()
+                val document = querySnapshot.firstOrNull()
+                return document?.toObject(InvoiceHeader::class.java)
+            }
+
+            CONNECTION_TYPE.LOCAL.key -> {
+                return invoiceHeaderDao.getLastTransactionByType(
+                    type,
+                    SettingsModel.getCompanyID() ?: ""
+                )
+            }
+
+            else -> {
+                val invoiceHeaders: MutableList<InvoiceHeader> = mutableListOf()
+                try {
+                    val where = "hi_cmp_id='${SettingsModel.getCompanyID()}' AND hi_tt_code = '$type' AND hi_transno <> '' AND hi_transno IS NOT NULL ORDER BY hi_timestamp DESC"
                     val dbResult = SQLServerWrapper.getListOf(
                         "in_hinvoice",
                         "TOP 1",

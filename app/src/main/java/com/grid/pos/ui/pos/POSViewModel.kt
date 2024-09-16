@@ -165,22 +165,28 @@ class POSViewModel @Inject constructor(
 
         CoroutineScope(Dispatchers.IO).launch {
             if (isInserting) {
-                val result = invoiceHeaderRepository.getLastInvoiceByType(
-                    POSUtils.getInvoiceType(invoiceHeader)
-                )
                 if (finish) {
+                    val lastTransactionIvn = invoiceHeaderRepository.getLastTransactionByType(
+                        POSUtils.getInvoiceType(invoiceHeader)
+                    )
                     invoiceHeader.invoiceHeadTransNo = POSUtils.getInvoiceTransactionNo(
-                        result?.invoiceHeadTransNo ?: ""
+                        lastTransactionIvn?.invoiceHeadTransNo ?: ""
                     )
                     if (invoiceHeader.invoiceHeadOrderNo.isNullOrEmpty()) {
+                        val lastOrderInv = invoiceHeaderRepository.getLastOrderByType(
+                            POSUtils.getInvoiceType(invoiceHeader)
+                        )
                         invoiceHeader.invoiceHeadOrderNo = POSUtils.getInvoiceNo(
-                            result?.invoiceHeadOrderNo ?: ""
+                            lastOrderInv?.invoiceHeadOrderNo ?: ""
                         )
                     }
                     invoiceHeader.invoiceHeadTtCode = SettingsModel.getTransactionType(invoiceHeader.invoiceHeadGrossAmount)
                 } else {
+                    val lastOrderInv = invoiceHeaderRepository.getLastOrderByType(
+                        POSUtils.getInvoiceType(invoiceHeader)
+                    )
                     invoiceHeader.invoiceHeadOrderNo = POSUtils.getInvoiceNo(
-                        result?.invoiceHeadOrderNo ?: ""
+                        lastOrderInv?.invoiceHeadOrderNo ?: ""
                     )
                     invoiceHeader.invoiceHeadTtCode = null
                     invoiceHeader.invoiceHeadTransNo = null
@@ -198,12 +204,20 @@ class POSViewModel @Inject constructor(
                 )
             } else {
                 if (finish && invoiceHeader.invoiceHeadTransNo.isNullOrEmpty()) {
-                    val result = invoiceHeaderRepository.getLastInvoiceByType(
+                    val lastTransactionIvn = invoiceHeaderRepository.getLastTransactionByType(
                         POSUtils.getInvoiceType(invoiceHeader)
                     )
                     invoiceHeader.invoiceHeadTransNo = POSUtils.getInvoiceTransactionNo(
-                        result?.invoiceHeadTransNo ?: ""
+                        lastTransactionIvn?.invoiceHeadTransNo ?: ""
                     )
+                    if (invoiceHeader.invoiceHeadOrderNo.isNullOrEmpty()) {
+                        val lastOrderInv = invoiceHeaderRepository.getLastOrderByType(
+                            POSUtils.getInvoiceType(invoiceHeader)
+                        )
+                        invoiceHeader.invoiceHeadOrderNo = POSUtils.getInvoiceNo(
+                            lastOrderInv?.invoiceHeadOrderNo ?: ""
+                        )
+                    }
                     invoiceHeader.prepareForInsert()
                     invoiceHeader.invoiceHeadTtCode = SettingsModel.getTransactionType(invoiceHeader.invoiceHeadGrossAmount)
                 }
@@ -219,6 +233,7 @@ class POSViewModel @Inject constructor(
             }
         }
     }
+
 
     private suspend fun savePOSReceipt(
             invoiceHeader: InvoiceHeader,
