@@ -266,7 +266,7 @@ object PrinterUtils {
             )
         }
 
-        result = if (invoiceHeader.invoiceHeadPrint > 1) {
+        result = if (invoiceHeader.invoiceHeadPrinted > 1) {
             result.replace(
                 "{rp_disp}",
                 "flex"

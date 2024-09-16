@@ -707,6 +707,7 @@ fun POSView(
                     onSaveAndPrintOrder = { change, receipt ->
                         activityViewModel.posReceipt = receipt
                         invoiceHeaderState.value.invoiceHeadChange = change
+                        invoiceHeaderState.value.invoiceHeadPrinted += 1
                         activityViewModel.shouldPrintInvoice = true
                         viewModel.saveInvoiceHeader(
                             invoiceHeader = invoiceHeaderState.value,
@@ -718,6 +719,7 @@ fun POSView(
                     onFinishAndPrint = { change, receipt ->
                         activityViewModel.posReceipt = receipt
                         invoiceHeaderState.value.invoiceHeadChange = change
+                        invoiceHeaderState.value.invoiceHeadPrinted += 1
                         activityViewModel.shouldPrintInvoice = true
                         viewModel.saveInvoiceHeader(
                             invoiceHeader = invoiceHeaderState.value,

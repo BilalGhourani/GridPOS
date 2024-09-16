@@ -564,6 +564,7 @@ class InvoiceHeaderRepositoryImpl(
             }
             invoiceHeadClientsCount = obj.getIntValue("hi_clientscount")
             invoiceHeadChange = obj.getDoubleValue("hi_change")
+            invoiceHeadPrinted = obj.getIntValue("hi_printed")
             val timeStamp = obj.getObjectValue("hi_timestamp")
             invoiceHeadTimeStamp = if (timeStamp is Date) timeStamp else DateHelper.getDateFromString(
                 timeStamp as String,
