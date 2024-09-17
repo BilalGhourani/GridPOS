@@ -11,7 +11,6 @@ data class POSState(
         val itemsToDelete: MutableList<InvoiceItemModel> = mutableListOf(),
         var families: MutableList<Family> = mutableListOf(),
         var items: MutableList<Item> = mutableListOf(),
-        var defaultThirdParty: ThirdParty? = null,
         var thirdParties: MutableList<ThirdParty> = mutableListOf(),
         var invoiceHeaders: MutableList<InvoiceHeader> = mutableListOf(),
         var selectedThirdParty: ThirdParty = ThirdParty(),

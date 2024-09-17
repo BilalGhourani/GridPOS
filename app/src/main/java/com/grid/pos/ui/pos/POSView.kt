@@ -526,7 +526,6 @@ fun POSView(
 
                         InvoiceFooterView(invoiceHeader = invoiceHeaderState.value,
                             items = state.items,
-                            defaultThirdParty = state.defaultThirdParty,
                             thirdParties = state.thirdParties.toMutableList(),
                             invoiceHeaders = state.invoiceHeaders,
                             modifier = Modifier

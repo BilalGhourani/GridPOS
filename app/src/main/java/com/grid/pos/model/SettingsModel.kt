@@ -3,6 +3,7 @@ package com.grid.pos.model
 import androidx.compose.ui.graphics.Color
 import com.grid.pos.data.Company.Company
 import com.grid.pos.data.Currency.Currency
+import com.grid.pos.data.ThirdParty.ThirdParty
 import com.grid.pos.data.User.User
 
 object SettingsModel {
@@ -52,6 +53,7 @@ object SettingsModel {
     var rsTransactionType: String = "RS"
     var defaultBranch: String? = null
     var defaultWarehouse: String? = null
+    var defaultThirdParty: ThirdParty? = null
 
     fun getUserType(): UserType {
         if (currentUser?.userPosMode == true && currentUser?.userTableMode == true) {

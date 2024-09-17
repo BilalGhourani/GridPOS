@@ -35,7 +35,6 @@ import com.grid.pos.ui.theme.GridPOSTheme
 fun InvoiceFooterView(
         invoiceHeader: InvoiceHeader,
         items: MutableList<Item> = mutableListOf(),
-        defaultThirdParty: ThirdParty? = null,
         thirdParties: MutableList<ThirdParty> = mutableListOf(),
         invoiceHeaders: MutableList<InvoiceHeader> = mutableListOf(),
         modifier: Modifier = Modifier,
@@ -158,17 +157,17 @@ fun InvoiceFooterView(
                     color = SettingsModel.textColor
                 )
 
-                val defaultThirdParty = if (invoiceHeader.invoiceHeadThirdPartyName.isNullOrEmpty()) {
-                    defaultThirdParty?: thirdParties.firstOrNull { it.thirdPartyDefault }
+                val selectedThirdParty = if (invoiceHeader.invoiceHeadThirdPartyName.isNullOrEmpty()) {
+                    SettingsModel.defaultThirdParty ?: thirdParties.firstOrNull { it.thirdPartyDefault }
                 } else {
                     thirdParties.firstOrNull {
                         it.thirdPartyId.equals(
                             invoiceHeader.invoiceHeadThirdPartyName,
                             ignoreCase = true
                         )
-                    }
+                    } ?: SettingsModel.defaultThirdParty
                 }
-                defaultThirdParty?.let {
+                selectedThirdParty?.let {
                     clientState = it.thirdPartyName ?: ""
                     invoiceHeader.invoiceHeadThirdPartyNewName = it.thirdPartyName
                     onThirdPartySelected.invoke(it)
@@ -177,7 +176,7 @@ fun InvoiceFooterView(
                     invoiceHeader.invoiceHeadThirdPartyNewName = null
                 }
                 SearchableDropdownMenuEx(items = thirdParties.toMutableList(),
-                    selectedId = defaultThirdParty?.thirdPartyId,
+                    selectedId = selectedThirdParty?.thirdPartyId,
                     modifier = Modifier.padding(
                         0.dp,
                         15.dp,

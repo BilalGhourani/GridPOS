@@ -42,7 +42,6 @@ class POSViewModel @Inject constructor(
             openConnectionIfNeeded()
             fetchItems()
             fetchFamilies()
-            fetchDefaultThirdParty()
         }
     }
 
@@ -93,15 +92,6 @@ class POSViewModel @Inject constructor(
                     families = listOfFamilies
                 )
             }
-        }
-    }
-
-    private suspend fun fetchDefaultThirdParty() {
-        val defaultThirdParty = thirdPartyRepository.getDefaultThirdParties()
-        withContext(Dispatchers.Main) {
-            posState.value =  posState.value.copy(
-                defaultThirdParty = defaultThirdParty
-            )
         }
     }
 

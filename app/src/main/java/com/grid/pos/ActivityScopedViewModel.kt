@@ -78,14 +78,12 @@ class ActivityScopedViewModel @Inject constructor(
 
     suspend fun initiateValues() {
         if (SettingsModel.currentUser != null) {
-           openConnectionIfNeeded()
+            openConnectionIfNeeded()
             fetchSettings()
             fetchCompanies()
-            fetchCurrencies()
-            /*
+            fetchCurrencies()/*
             * no need to cash all data after the login
-            * */
-            /* fetchThirdParties()
+            * *//* fetchThirdParties()
             fetchFamilies()
             fetchItems()
             fetchPrinters()*/
@@ -98,6 +96,7 @@ class ActivityScopedViewModel @Inject constructor(
         SettingsModel.rsTransactionType = settingsRepository.getReturnSalesTransType()
         SettingsModel.defaultBranch = settingsRepository.getDefaultBranch()
         SettingsModel.defaultWarehouse = settingsRepository.getDefaultWarehouse()
+        SettingsModel.defaultThirdParty = thirdPartyRepository.getDefaultThirdParties()
     }
 
     private suspend fun fetchCurrencies() {
