@@ -31,6 +31,9 @@ object SQLServerWrapper {
 
     fun openConnection() {
         try {
+            if (mConnection != null && !mConnection!!.isClosed) {
+                return
+            }
             mConnection = getDatabaseConnection()
         } catch (e: Exception) {
             e.printStackTrace()
