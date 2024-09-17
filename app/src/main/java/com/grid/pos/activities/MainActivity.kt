@@ -10,6 +10,8 @@ import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.Uri
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -35,6 +37,7 @@ import com.grid.pos.ActivityScopedUIEvent
 import com.grid.pos.ActivityScopedViewModel
 import com.grid.pos.R
 import com.grid.pos.data.Item.Item
+import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.interfaces.OnActivityResult
 import com.grid.pos.interfaces.OnBarcodeResult
 import com.grid.pos.interfaces.OnGalleryResult
@@ -50,6 +53,7 @@ import com.grid.pos.utils.Extension.getStoragePermissions
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Runnable
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -134,6 +138,17 @@ class MainActivity : ComponentActivity() {
     private val loadingState = mutableStateOf(false)
     private val popupState = mutableStateOf(false)
     private var popupModel: PopupModel? = null
+    private var mLoaderHandler: Handler? = null
+    private val mLoaderRunnable: Runnable = Runnable {
+        loadingState.value = false
+        popupModel = PopupModel(
+            dialogText = "Timeout exceeded!",
+            positiveBtnText = "Close",
+            negativeBtnText = null
+        )
+        popupState.value = true
+        SQLServerWrapper.closeConnection()//to stop any existing task
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -244,6 +259,15 @@ class MainActivity : ComponentActivity() {
                 }
 
                 is ActivityScopedUIEvent.ShowLoading -> {
+                    mLoaderHandler?.removeCallbacks(mLoaderRunnable)
+                    mLoaderHandler = null
+                    if (sharedEvent.show) {
+                        mLoaderHandler = Handler(Looper.getMainLooper())
+                        mLoaderHandler!!.postDelayed(
+                            mLoaderRunnable,
+                            15000
+                        )
+                    }
                     loadingState.value = sharedEvent.show
                 }
 
