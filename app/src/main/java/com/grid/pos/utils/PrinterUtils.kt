@@ -461,13 +461,13 @@ object PrinterUtils {
                 "none"
             )
         }
-        val total1 = Utils.getDoubleOrZero(invoiceHeader.invoiceHeadTotal)
+        val invoiceTotal = Utils.getDoubleOrZero(invoiceHeader.invoiceHeadTotal)
         invAmountVal.append(
             String.format(
                 defaultLocal,
                 "<tr><td style=\"font-weight: bold;font-size: 16px;\">Total %s:&nbsp;&nbsp;</td><td style=\"font-weight: bold;font-size: 16px;\">%,.2f</td></tr>",
                 currency?.currencyCode1 ?: "",
-                total1
+                invoiceTotal
             )
         )
 
@@ -562,7 +562,7 @@ object PrinterUtils {
             )
         }
         val change = Utils.getDoubleOrZero(invoiceHeader.invoiceHeadChange)
-        if (total1 + change != 0.0) {
+        if (invoiceTotal + change != 0.0) {
             posReceiptValues.append(
                 String.format(
                     defaultLocal,
