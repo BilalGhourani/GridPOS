@@ -461,13 +461,13 @@ object PrinterUtils {
                 "none"
             )
         }
-
+        val total1 = Utils.getDoubleOrZero(invoiceHeader.invoiceHeadTotal)
         invAmountVal.append(
             String.format(
                 defaultLocal,
                 "<tr><td style=\"font-weight: bold;font-size: 16px;\">Total %s:&nbsp;&nbsp;</td><td style=\"font-weight: bold;font-size: 16px;\">%,.2f</td></tr>",
                 currency?.currencyCode1 ?: "",
-                Utils.getDoubleOrZero(invoiceHeader.invoiceHeadTotal)
+                total1
             )
         )
 
@@ -561,21 +561,35 @@ object PrinterUtils {
                 )
             )
         }
-
-        posReceiptValues.append(
-            String.format(
-                defaultLocal,
-                "<tr><td>%s</td><td>%s</td><td>%,.2f</td></tr>",
-                "Change",
-                currency?.currencyCode1 ?: "",
-                Utils.getDoubleOrZero(invoiceHeader.invoiceHeadChange)
+        val change = Utils.getDoubleOrZero(invoiceHeader.invoiceHeadChange)
+        if (total1 + change != 0.0) {
+            posReceiptValues.append(
+                String.format(
+                    defaultLocal,
+                    "<tr><td>%s</td><td>%s</td><td>%,.2f</td></tr>",
+                    "Change",
+                    currency?.currencyCode1 ?: "",
+                    change
+                )
             )
-        )
+        }
 
         result = result.replace(
             "{posReceiptValues}",
             posReceiptValues.toString()
         )
+
+        result = if (posReceiptValues.isNotEmpty()) {
+            result.replace(
+                "{prsReceipt_dashed_display}",
+                "block"
+            )
+        } else {
+            result.replace(
+                "{prsReceipt_dashed_display}",
+                "none"
+            )
+        }
 
 
         result = if (!invoiceHeader.invoiceHeadNote.isNullOrEmpty()) {
