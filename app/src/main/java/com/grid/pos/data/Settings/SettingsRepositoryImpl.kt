@@ -6,16 +6,16 @@ import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.Extension.getStringValue
 
 class SettingsRepositoryImpl : SettingsRepository {
-    override suspend fun getSalesInvoiceTransType(): String? {
+    override suspend fun getSalesInvoiceTransType(): String {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
                 // nothing to do
-                return null
+                return "SI"
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
                 //nothing to do
-                return null
+                return "SI"
             }
 
             else -> {
@@ -36,28 +36,28 @@ class SettingsRepositoryImpl : SettingsRepository {
                     )
                     dbResult?.let {
                         if (it.next()) {
-                            return it.getStringValue("tt_code")
+                            return it.getStringValue("tt_code","SI")
                         }
                         SQLServerWrapper.closeResultSet(it)
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
-                return null
+                return "SI"
             }
         }
     }
 
-    override suspend fun getReturnSalesTransType(): String? {
+    override suspend fun getReturnSalesTransType(): String {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
                 // nothing to do
-                return null
+                return "RS"
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
                 //nothing to do
-                return null
+                return "RS"
             }
 
             else -> {
@@ -77,14 +77,14 @@ class SettingsRepositoryImpl : SettingsRepository {
                     )
                     dbResult?.let {
                         if (it.next()) {
-                            return it.getStringValue("tt_code")
+                            return it.getStringValue("tt_code","RS")
                         }
                         SQLServerWrapper.closeResultSet(it)
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
-                return null
+                return "RS"
             }
         }
     }

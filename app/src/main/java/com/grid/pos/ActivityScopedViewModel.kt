@@ -28,6 +28,7 @@ import com.grid.pos.model.Event
 import com.grid.pos.model.InvoiceItemModel
 import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
+import com.grid.pos.ui.common.BaseViewModel
 import com.grid.pos.utils.DataStoreManager
 import com.grid.pos.utils.PrinterUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -48,7 +49,7 @@ class ActivityScopedViewModel @Inject constructor(
         private val familyRepository: FamilyRepository,
         private val itemRepository: ItemRepository,
         private val posPrinterRepository: PosPrinterRepository,
-) : ViewModel() {
+) : BaseViewModel() {
     private val _mainActivityEvent = Channel<ActivityScopedUIEvent>()
     val mainActivityEvent = _mainActivityEvent.receiveAsFlow()
 
@@ -77,10 +78,7 @@ class ActivityScopedViewModel @Inject constructor(
 
     suspend fun initiateValues() {
         if (SettingsModel.currentUser != null) {
-            val isConnectedToSQLServer = SettingsModel.isConnectedToSqlServer()
-            if (isConnectedToSQLServer) {
-                SQLServerWrapper.openConnection()
-            }
+           openConnectionIfNeeded()
             fetchSettings()
             fetchCompanies()
             fetchCurrencies()
@@ -91,15 +89,13 @@ class ActivityScopedViewModel @Inject constructor(
             fetchFamilies()
             fetchItems()
             fetchPrinters()*/
-            if (isConnectedToSQLServer) {
-                SQLServerWrapper.closeConnection()
-            }
+            //closeConnectionIfNeeded()
         }
     }
 
     private suspend fun fetchSettings() {
-        SettingsModel.siTransactionType = settingsRepository.getSalesInvoiceTransType() ?: "SI"
-        SettingsModel.rsTransactionType = settingsRepository.getReturnSalesTransType() ?: "RS"
+        SettingsModel.siTransactionType = settingsRepository.getSalesInvoiceTransType()
+        SettingsModel.rsTransactionType = settingsRepository.getReturnSalesTransType()
         SettingsModel.defaultBranch = settingsRepository.getDefaultBranch()
         SettingsModel.defaultWarehouse = settingsRepository.getDefaultWarehouse()
     }

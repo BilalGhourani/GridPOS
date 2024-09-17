@@ -531,13 +531,14 @@ class InvoiceHeaderRepositoryImpl(
                     }
                 } else {
                     try {
-                        val where = "hi_cmp_id='${SettingsModel.getCompanyID()}' AND ta_hiid IS NOT NULL AND ta_hiid <> ''"
+                        //val where = "hi_cmp_id='${SettingsModel.getCompanyID()}' AND ta_hiid IS NOT NULL AND ta_hiid <> ''"
+                        val where = " ta_hiid IS NOT NULL AND ta_hiid <> ''"
                         val dbResult = SQLServerWrapper.getListOf(
                             "pos_table",
                             "",
                             mutableListOf("*"),
                             where,
-                            " INNER JOIN in_hinvoice on hi_ta_name = ta_name"
+                         ""   /*" INNER JOIN in_hinvoice on hi_ta_name = ta_name"*/
                         )
                         dbResult?.let {
                             while (it.next()) {
@@ -715,7 +716,7 @@ class InvoiceHeaderRepositoryImpl(
             invoiceHeadDate = obj.getString("hi_date")
             invoiceHeadOrderNo = obj.getStringValue("hi_orderno")
             invoiceHeadTtCode = obj.getStringValue("hi_tt_code")
-            invoiceHeadTransNo = obj.getStringValue("hi_transno")
+            invoiceHeadTransNo = obj.getStringValue("hi_transno","0")
             invoiceHeadStatus = obj.getStringValue("hi_status")
             invoiceHeadNote = obj.getStringValue("hi_note")
             invoiceHeadThirdPartyName = obj.getStringValue("hi_tp_name")
@@ -827,7 +828,7 @@ class InvoiceHeaderRepositoryImpl(
                 dateTime,
                 invoiceHeader.invoiceHeadOrderNo,
                 invoiceHeader.invoiceHeadTtCode,
-                invoiceHeader.invoiceHeadTransNo,
+                invoiceHeader.invoiceHeadTransNo?:"0",
                 invoiceHeader.invoiceHeadStatus,
                 invoiceHeader.invoiceHeadNote,
                 invoiceHeader.invoiceHeadThirdPartyName,
@@ -866,7 +867,7 @@ class InvoiceHeaderRepositoryImpl(
                 dateTime,
                 invoiceHeader.invoiceHeadOrderNo,
                 invoiceHeader.invoiceHeadTtCode,
-                invoiceHeader.invoiceHeadTransNo,
+                invoiceHeader.invoiceHeadTransNo?:"0",
                 invoiceHeader.invoiceHeadStatus,
                 invoiceHeader.invoiceHeadNote,
                 invoiceHeader.invoiceHeadThirdPartyName,
@@ -903,13 +904,13 @@ class InvoiceHeaderRepositoryImpl(
     private fun getTableIdByNumber(tableNo: String): TableModel? {
         try {
             val where = if (SettingsModel.isSqlServerWebDb) "ta_cmp_id='${SettingsModel.getCompanyID()}' AND ta_newname = '$tableNo' AND ta_hiid IS NOT NULL AND ta_hiid <> ''"
-            else "hi_cmp_id='${SettingsModel.getCompanyID()}' AND ta_name = '$tableNo' AND ta_hiid IS NOT NULL AND ta_hiid <> ''"
+            else " ta_name = '$tableNo' AND ta_hiid IS NOT NULL AND ta_hiid <> ''"
             val dbResult = SQLServerWrapper.getListOf(
                 "pos_table",
                 "TOP 1",
                 mutableListOf("*"),
                 where,
-                " INNER JOIN in_hinvoice on hi_ta_name = ta_name"
+               "" /*" INNER JOIN in_hinvoice on hi_ta_name = ta_name"*/
             )
             dbResult?.let {
                 if (it.next()) {

@@ -2,13 +2,17 @@ package com.grid.pos.ui.table
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -33,15 +37,21 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -61,7 +71,10 @@ import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.utils.Utils
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(
+    ExperimentalMaterial3Api::class,
+    ExperimentalFoundationApi::class
+)
 @Composable
 fun TablesView(
         modifier: Modifier = Modifier,
@@ -280,39 +293,63 @@ fun TablesView(
                     }
                 }
 
-                LazyColumn(
-                    modifier = modifier
-                        .fillMaxWidth()
-                        .weight(1f),
-                    contentPadding = PaddingValues(0.dp)
-                ) {
-                    state.tables.forEach { tableModel ->
-                        item {
+                if (state.tables.isNotEmpty()) {
+                    LazyColumn(
+                        modifier = modifier
+                            .fillMaxWidth()
+                            .weight(1f),
+                        contentPadding = PaddingValues(0.dp)
+                    ) {
+                        stickyHeader {
                             Text(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(50.dp)
-                                    .padding(
-                                        horizontal = 10.dp,
-                                        vertical = 5.dp
-                                    )
-                                    .border(
-                                        border = BorderStroke(
-                                            1.dp,
-                                            Color.Black
-                                        ),
-                                        shape = RoundedCornerShape(15.dp)
-                                    )
-                                    .clickable {
-                                        tableNameState = tableModel.table_name
-                                    },
-                                text = tableModel.getName(),
+                                text = "Opened Tables",
                                 maxLines = 1,
-                                fontSize = 16.sp,
-                                textAlign = TextAlign.Center,
+                                style = TextStyle(
+                                    textDecoration = TextDecoration.None,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 20.sp
+                                ),
+                                textAlign = TextAlign.Start,
                                 color = SettingsModel.textColor,
                                 overflow = TextOverflow.Ellipsis
                             )
+                        }
+                        state.tables.forEach { tableModel ->
+                            item {
+                                Box(
+                                    modifier = modifier
+                                        .fillMaxWidth()
+                                        .height(50.dp)
+                                        .padding(
+                                            horizontal = 10.dp,
+                                            vertical = 5.dp
+                                        )
+                                        .background(
+                                            color = Color.Transparent,
+                                            RoundedCornerShape(15.dp)
+                                        )
+                                        .border(
+                                            border = BorderStroke(
+                                                1.dp,
+                                                Color.Black
+                                            ),
+                                            shape = RoundedCornerShape(15.dp)
+                                        )
+                                        .clickable {
+                                            tableNameState = tableModel.table_name
+                                        },
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = tableModel.getName(),
+                                        maxLines = 1,
+                                        fontSize = 16.sp,
+                                        textAlign = TextAlign.Center,
+                                        color = SettingsModel.textColor,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                }
+                            }
                         }
                     }
                 }

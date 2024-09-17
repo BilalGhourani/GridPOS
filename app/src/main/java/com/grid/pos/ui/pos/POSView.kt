@@ -403,8 +403,15 @@ fun POSView(
                             .height(70.dp),
                             isPayEnabled = invoicesState.size > 0,
                             isDeleteEnabled = !invoiceHeaderState.value.isNew(),
-                            onAddItem = { isAddItemBottomSheetVisible = true },
-                            onPay = { isPayBottomSheetVisible = true },
+                            onAddItem = {
+                                if (state.items.isEmpty()) {
+                                    viewModel.loadFamiliesAndItems()
+                                }
+                                isAddItemBottomSheetVisible = true
+                            },
+                            onPay = {
+                                isPayBottomSheetVisible = true
+                            },
                             onDelete = {
                                 popupState = PopupState.DELETE_INVOICE
                                 isSavePopupVisible = true
@@ -519,6 +526,7 @@ fun POSView(
 
                         InvoiceFooterView(invoiceHeader = invoiceHeaderState.value,
                             items = state.items,
+                            defaultThirdParty = state.defaultThirdParty,
                             thirdParties = state.thirdParties.toMutableList(),
                             invoiceHeaders = state.invoiceHeaders,
                             modifier = Modifier
@@ -587,6 +595,9 @@ fun POSView(
                             })
                     }
                     if (isLandscape && SettingsModel.showItemsInPOS) {
+                        if (state.items.isEmpty()) {
+                            viewModel.loadFamiliesAndItems()
+                        }
                         AddInvoiceItemView(
                             categories = state.families,
                             items = state.items,

@@ -1,6 +1,5 @@
 package com.grid.pos.ui.pos
 
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.grid.pos.data.Family.FamilyRepository
 import com.grid.pos.data.Invoice.Invoice
@@ -11,7 +10,6 @@ import com.grid.pos.data.Item.Item
 import com.grid.pos.data.Item.ItemRepository
 import com.grid.pos.data.PosReceipt.PosReceipt
 import com.grid.pos.data.PosReceipt.PosReceiptRepository
-import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.data.ThirdParty.ThirdParty
 import com.grid.pos.data.ThirdParty.ThirdPartyRepository
 import com.grid.pos.model.Event
@@ -44,6 +42,7 @@ class POSViewModel @Inject constructor(
             openConnectionIfNeeded()
             fetchItems()
             fetchFamilies()
+            fetchDefaultThirdParty()
         }
     }
 
@@ -94,6 +93,15 @@ class POSViewModel @Inject constructor(
                     families = listOfFamilies
                 )
             }
+        }
+    }
+
+    private suspend fun fetchDefaultThirdParty() {
+        val defaultThirdParty = thirdPartyRepository.getDefaultThirdParties()
+        withContext(Dispatchers.Main) {
+            posState.value =  posState.value.copy(
+                defaultThirdParty = defaultThirdParty
+            )
         }
     }
 
@@ -179,7 +187,7 @@ class POSViewModel @Inject constructor(
                     invoiceHeader.invoiceHeadOrderNo = POSUtils.getInvoiceNo(
                         lastOrderInv?.invoiceHeadOrderNo ?: ""
                     )
-                    invoiceHeader.invoiceHeadTtCode = null
+                    invoiceHeader.invoiceHeadTtCode = SettingsModel.getTransactionType(invoiceHeader.invoiceHeadGrossAmount)
                     invoiceHeader.invoiceHeadTransNo = null
                 }
                 invoiceHeader.prepareForInsert()

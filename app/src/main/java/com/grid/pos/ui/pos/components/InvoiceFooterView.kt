@@ -1,6 +1,5 @@
 package com.grid.pos.ui.pos.components
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -8,10 +7,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.AddCircleOutline
 import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material3.Icon
@@ -32,7 +28,6 @@ import com.grid.pos.data.Item.Item
 import com.grid.pos.data.ThirdParty.ThirdParty
 import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.SettingsModel
-import com.grid.pos.ui.common.SearchableDropdownMenu
 import com.grid.pos.ui.common.SearchableDropdownMenuEx
 import com.grid.pos.ui.theme.GridPOSTheme
 
@@ -40,6 +35,7 @@ import com.grid.pos.ui.theme.GridPOSTheme
 fun InvoiceFooterView(
         invoiceHeader: InvoiceHeader,
         items: MutableList<Item> = mutableListOf(),
+        defaultThirdParty: ThirdParty? = null,
         thirdParties: MutableList<ThirdParty> = mutableListOf(),
         invoiceHeaders: MutableList<InvoiceHeader> = mutableListOf(),
         modifier: Modifier = Modifier,
@@ -163,7 +159,7 @@ fun InvoiceFooterView(
                 )
 
                 val defaultThirdParty = if (invoiceHeader.invoiceHeadThirdPartyName.isNullOrEmpty()) {
-                    thirdParties.firstOrNull { it.thirdPartyDefault }
+                    defaultThirdParty?: thirdParties.firstOrNull { it.thirdPartyDefault }
                 } else {
                     thirdParties.firstOrNull {
                         it.thirdPartyId.equals(

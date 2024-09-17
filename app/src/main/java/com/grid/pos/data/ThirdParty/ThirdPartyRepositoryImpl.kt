@@ -210,7 +210,7 @@ class ThirdPartyRepositoryImpl(
                     val where = if (SettingsModel.isSqlServerWebDb) "tp_cmp_id='${SettingsModel.getCompanyID()}' AND UPPER(tp_newname) = 'CASH'" else "UPPER(tp_name) = 'CASH'"
                     val dbResult = SQLServerWrapper.getListOf(
                         "thirdparty",
-                        "",
+                        "TOP 1",
                         mutableListOf("*"),
                         where
                     )
