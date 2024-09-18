@@ -2,6 +2,7 @@ package com.grid.pos.model
 
 import com.grid.pos.data.Invoice.Invoice
 import com.grid.pos.data.Item.Item
+import com.grid.pos.utils.Extension.isNullOrEmptyOrNullStr
 
 data class InvoiceItemModel(
         val invoice: Invoice = Invoice(),
@@ -23,7 +24,7 @@ data class InvoiceItemModel(
     }
 
     fun getName(): String {
-        return if (invoice.invoiceExtraName.isNullOrEmpty()) {
+        return if (invoice.invoiceExtraName.isNullOrEmptyOrNullStr()) {
             invoiceItem.itemName ?: "Item"
         } else {
             (invoiceItem.itemName ?: "Item") + " - " + invoice.invoiceExtraName
@@ -34,7 +35,7 @@ data class InvoiceItemModel(
         val disc = invoice.getDiscount()
         val discountVal = if (disc > 0.0) "-%${disc.toInt()}" else ""
         val taxableVal = if (getTotalTax() > 0.0) "*" else ""
-        return if (invoice.invoiceExtraName.isNullOrEmpty()) {
+        return if (invoice.invoiceExtraName.isNullOrEmptyOrNullStr()) {
             "${invoiceItem.itemName ?: "Item"}$taxableVal $discountVal"
         } else {
             "${invoiceItem.itemName ?: "Item"}-${invoice.invoiceExtraName}$taxableVal $discountVal"

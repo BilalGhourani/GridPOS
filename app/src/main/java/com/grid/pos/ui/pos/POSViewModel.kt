@@ -95,18 +95,26 @@ class POSViewModel @Inject constructor(
         }
     }
 
-    fun fetchThirdParties() {
-        posState.value = posState.value.copy(
-            isLoading = true
-        )
+    fun fetchThirdParties(withLoading: Boolean = true) {
+        if (withLoading) {
+            posState.value = posState.value.copy(
+                isLoading = true
+            )
+        }
         viewModelScope.launch(Dispatchers.IO) {
             val listOfThirdParties = thirdPartyRepository.getAllThirdParties()
             clientsMao = listOfThirdParties.map { it.thirdPartyId to it }.toMap()
             withContext(Dispatchers.Main) {
-                posState.value = posState.value.copy(
-                    thirdParties = listOfThirdParties,
-                    isLoading = false
-                )
+                posState.value = if (withLoading) {
+                    posState.value.copy(
+                        thirdParties = listOfThirdParties,
+                        isLoading = false
+                    )
+                } else {
+                    posState.value.copy(
+                        thirdParties = listOfThirdParties
+                    )
+                }
             }
         }
     }
@@ -336,6 +344,9 @@ class POSViewModel @Inject constructor(
             isLoading = true
         )
         viewModelScope.launch(Dispatchers.IO) {
+            if (posState.value.thirdParties.isEmpty()) {
+                fetchThirdParties(false)
+            }
             val result = invoiceRepository.getAllInvoices(invoiceHeader.invoiceHeadId)
             val invoices = mutableListOf<InvoiceItemModel>()
             result.forEach { inv ->

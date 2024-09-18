@@ -840,20 +840,11 @@ class InvoiceHeaderRepositoryImpl(
                 invoiceHeader.invoiceHeadTaxAmt,
                 invoiceHeader.invoiceHeadTax1Amt,
                 invoiceHeader.invoiceHeadTax2Amt,
-                String.format(
-                    "%.${POSUtils.getDecimalPartSize(invoiceHeader.invoiceHeadTotal1)}f",
-                    invoiceHeader.invoiceHeadTotal1
-                ),
-                String.format(
-                    "%.${POSUtils.getDecimalPartSize(invoiceHeader.invoiceHeadRate)}f",
-                    invoiceHeader.invoiceHeadRate
-                ),
+                POSUtils.formatDouble( invoiceHeader.invoiceHeadTotal1),
+                POSUtils.formatDouble( invoiceHeader.invoiceHeadRate),
                 invoiceHeader.invoiceHeadTableId ?: invoiceHeader.invoiceHeadTaName,
                 invoiceHeader.invoiceHeadClientsCount,
-                String.format(
-                    "%.${POSUtils.getDecimalPartSize(invoiceHeader.invoiceHeadChange)}f",
-                    invoiceHeader.invoiceHeadChange
-                ),
+                POSUtils.formatDouble( invoiceHeader.invoiceHeadChange),
                 invoiceHeader.invoiceHeadPrinted,
                 SettingsModel.defaultWarehouse,
                 SettingsModel.defaultBranch,
@@ -878,20 +869,11 @@ class InvoiceHeaderRepositoryImpl(
                 invoiceHeader.invoiceHeadTaxAmt,
                 invoiceHeader.invoiceHeadTax1Amt,
                 invoiceHeader.invoiceHeadTax2Amt,
-                String.format(
-                    "%.${POSUtils.getDecimalPartSize(invoiceHeader.invoiceHeadTotal1)}f",
-                    invoiceHeader.invoiceHeadTotal1
-                ),
-                String.format(
-                    "%.${POSUtils.getDecimalPartSize(invoiceHeader.invoiceHeadRate)}f",
-                    invoiceHeader.invoiceHeadRate
-                ),
+                POSUtils.formatDouble( invoiceHeader.invoiceHeadTotal1),
+                POSUtils.formatDouble( invoiceHeader.invoiceHeadRate),
                 invoiceHeader.invoiceHeadTableId ?: invoiceHeader.invoiceHeadTaName,
                 invoiceHeader.invoiceHeadClientsCount,
-                String.format(
-                    "%.${POSUtils.getDecimalPartSize(invoiceHeader.invoiceHeadChange)}f",
-                    invoiceHeader.invoiceHeadChange
-                ),
+                POSUtils.formatDouble( invoiceHeader.invoiceHeadChange),
                 invoiceHeader.invoiceHeadPrinted,
                 SettingsModel.defaultWarehouse,
                 SettingsModel.defaultBranch,

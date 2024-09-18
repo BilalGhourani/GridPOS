@@ -5,7 +5,9 @@ import com.grid.pos.data.InvoiceHeader.InvoiceHeader
 import com.grid.pos.model.InvoiceItemModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.Utils
+import java.math.BigDecimal
 import java.math.BigInteger
+import java.math.RoundingMode
 import kotlin.math.min
 
 object POSUtils {
@@ -102,19 +104,18 @@ object POSUtils {
     fun getInvoiceType(invoiceHeader: InvoiceHeader): String {
         return invoiceHeader.invoiceHeadTtCode ?: SettingsModel.getTransactionType(invoiceHeader.invoiceHeadTotal)
     }
-
-    fun getDecimalPartSize(
+    fun formatDouble(
             number: Double,
-            max: Int = 6
-    ): Int {
-        val numberString = number.toString()
-        return if (numberString.contains('.')) {
-            min(
-                numberString.split(".")[1].length,
-                max
-            )  // Get the part after the decimal point
-        } else {
-            0  // If no decimal part, return 0
-        }
+            defaultScale: Int = 6
+    ): String {
+        val numberString = BigDecimal(number)
+        val newScale = min(
+            numberString.scale(),
+            defaultScale
+        )
+        return numberString.setScale(
+            newScale,
+            RoundingMode.CEILING
+        ).toPlainString()
     }
 }

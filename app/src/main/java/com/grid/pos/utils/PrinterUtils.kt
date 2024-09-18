@@ -125,7 +125,7 @@ object PrinterUtils {
         var result = getPaySlipHtmlContent(context)
         val invDate = DateHelper.getDateFromString(
             invoiceHeader.invoiceHeadDate,
-            "MMMM dd, yyyy 'at' hh:mm:ss a 'Z'"
+            if (invoiceHeader.invoiceHeadDate.contains("at")) "MMMM dd, yyyy 'at' hh:mm:ss a 'Z'" else "yyyy-MM-dd HH:mm:ss.S"
         )
 
         if (!company?.companyLogo.isNullOrEmpty()) {
@@ -162,7 +162,7 @@ object PrinterUtils {
             )
         )
 
-        val invoiceNo = invoiceHeader.invoiceHeadTransNo ?: invoiceHeader.invoiceHeadOrderNo
+        val invoiceNo = invoiceHeader.invoiceHeadTransNo.takeIf { !it.isNullOrEmpty() && it.length > 1 } ?: invoiceHeader.invoiceHeadOrderNo
         result = result.replace(
             "{invoicenumbervalue}",
             "Invoice# ${invoiceNo ?: ""}"

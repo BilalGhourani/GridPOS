@@ -95,7 +95,7 @@ fun ManageCurrenciesView(
     }
     var rateState by remember {
         mutableStateOf(
-            String.format("%.${POSUtils.getDecimalPartSize(state.selectedCurrency.currencyRate)}f",state.selectedCurrency.currencyRate)
+            POSUtils.formatDouble(state.selectedCurrency.currencyRate)
         )
     }
 
@@ -146,7 +146,7 @@ fun ManageCurrenciesView(
     }
     LaunchedEffect(state.isSaved) {
         if (state.isSaved && saveAndBack) {
-            viewModel.currentCurrency =  state.selectedCurrency
+            viewModel.currentCurrency = state.selectedCurrency
             handleBack()
         }
     }
@@ -373,7 +373,7 @@ fun ManageCurrenciesView(
             curCode2State = state.selectedCurrency.currencyCode2 ?: ""
             curName2State = state.selectedCurrency.currencyName2 ?: ""
             curName2DecState = state.selectedCurrency.currencyName2Dec.toString()
-            rateState =  String.format("%.${POSUtils.getDecimalPartSize(state.selectedCurrency.currencyRate)}f",state.selectedCurrency.currencyRate)
+            rateState = POSUtils.formatDouble(state.selectedCurrency.currencyRate)
             state.fillFields = false
         }
     }

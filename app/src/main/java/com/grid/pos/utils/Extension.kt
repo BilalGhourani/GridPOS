@@ -26,6 +26,13 @@ import javax.crypto.spec.IvParameterSpec
 import javax.crypto.spec.SecretKeySpec
 
 object Extension {
+    fun String?.isNullOrEmptyOrNullStr(): Boolean {
+        return this.isNullOrEmpty() || this.equals(
+            "null",
+            ignoreCase = true
+        )
+    }
+
     fun Long?.isNullOrZero(): Boolean {
         return this != null && this != 0L
     }
