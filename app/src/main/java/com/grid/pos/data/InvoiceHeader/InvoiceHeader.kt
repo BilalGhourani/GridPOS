@@ -275,7 +275,7 @@ data class InvoiceHeader(
         val table = if (invoiceHeadTaName.isNullOrEmpty()) "" else " $invoiceHeadTaName"
         val transNo = if (invoiceHeadTtCode.isNullOrEmpty()) "" else " $invoiceHeadTtCode$invoiceHeadTransNo"
         val total = String.format(
-            "%,.${SettingsModel.currentCurrency?.currencyName1Dec ?: 1}f",
+            "%,.${SettingsModel.currentCurrency?.currencyName1Dec ?: 2}f",
             invoiceHeadTotal
         )
         val clientName = invoiceHeadThirdPartyNewName ?: ""

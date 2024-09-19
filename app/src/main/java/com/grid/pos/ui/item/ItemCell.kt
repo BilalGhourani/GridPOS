@@ -117,7 +117,7 @@ fun ItemCell(
                 if (SettingsModel.showPriceInItemBtn) {
                     Text(
                         text = String.format(
-                            "%,.${SettingsModel.currentCurrency?.currencyName1Dec}f %s",
+                            "%,.${SettingsModel.currentCurrency?.currencyName1Dec?:2}f %s",
                             item.itemUnitPrice,
                             SettingsModel.currentCurrency?.currencyCode1 ?: ""
                         ),
