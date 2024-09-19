@@ -721,7 +721,7 @@ class InvoiceHeaderRepositoryImpl(
             invoiceHeadNote = obj.getStringValue("hi_note")
             invoiceHeadThirdPartyName = obj.getStringValue("hi_tp_name")
             invoiceHeadCashName = obj.getStringValue("hi_cashname")
-            invoiceHeadTotalNetAmount = obj.getDoubleValue("hi_netamt", obj.getDoubleValue("hi_total"))
+            invoiceHeadTotalNetAmount = obj.getDoubleValue("hi_netamt")
             invoiceHeadGrossAmount = obj.getDoubleValue("hi_netamt")
             invoiceHeadDiscount = obj.getDoubleValue("hi_disc")
             invoiceHeadDiscountAmount = obj.getDoubleValue("hi_discamt")
@@ -729,9 +729,9 @@ class InvoiceHeaderRepositoryImpl(
             invoiceHeadTax1Amt = obj.getDoubleValue("hi_tax1amt")
             invoiceHeadTax2Amt = obj.getDoubleValue("hi_tax2amt")
             invoiceHeadTotalTax = invoiceHeadTaxAmt + invoiceHeadTax1Amt + invoiceHeadTax2Amt
-            invoiceHeadTotal = obj.getDoubleValue("hi_total", invoiceHeadTotalNetAmount)
             invoiceHeadTotal1 = obj.getDoubleValue("hi_total1")
             invoiceHeadRate = obj.getDoubleValue("hi_rates")
+            invoiceHeadTotal = obj.getDoubleValue("hi_total", invoiceHeadTotal1.div(invoiceHeadRate))
             if (SettingsModel.isSqlServerWebDb) {
                 invoiceHeadTableId = obj.getStringValue("hi_ta_name")
             } else {
@@ -863,7 +863,7 @@ class InvoiceHeaderRepositoryImpl(
                 invoiceHeader.invoiceHeadNote,
                 invoiceHeader.invoiceHeadThirdPartyName,
                 invoiceHeader.invoiceHeadCashName,
-                invoiceHeader.invoiceHeadTotal,
+                invoiceHeader.invoiceHeadGrossAmount,
                 invoiceHeader.invoiceHeadDiscount,
                 invoiceHeader.invoiceHeadDiscountAmount,
                 invoiceHeader.invoiceHeadTaxAmt,
