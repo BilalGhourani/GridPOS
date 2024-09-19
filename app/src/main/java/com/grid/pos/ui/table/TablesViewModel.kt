@@ -24,6 +24,7 @@ class TablesViewModel @Inject constructor(
             openConnectionIfNeeded()
         }
     }
+
     fun showError(message: String) {
         tablesState.value = tablesState.value.copy(
             warning = Event(message),
@@ -58,15 +59,15 @@ class TablesViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             val invoiceHeader = invoiceHeaderRepository.getInvoiceByTable(tableNo)
             viewModelScope.launch(Dispatchers.Main) {
-                invoiceHeader?.let {
+                if (!invoiceHeader.isNew()) {
                     tablesState.value = tablesState.value.copy(
-                        invoiceHeader = it,
+                        invoiceHeader = invoiceHeader,
                         moveToPos = true,
                         isLoading = false
                     )
-                } ?: run {
+                } else {
                     tablesState.value = tablesState.value.copy(
-                        invoiceHeader = InvoiceHeader(),
+                        invoiceHeader = invoiceHeader,
                         step = 2,
                         moveToPos = false,
                         isLoading = false

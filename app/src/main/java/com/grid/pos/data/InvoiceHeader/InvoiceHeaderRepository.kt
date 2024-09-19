@@ -23,7 +23,7 @@ interface InvoiceHeaderRepository {
     suspend fun getLastInvoice(): InvoiceHeader?
 
     suspend fun getAllOpenedTables(): MutableList<TableModel>
-    suspend fun getInvoiceByTable(tableNo: String): InvoiceHeader?
+    suspend fun getInvoiceByTable(tableNo: String): InvoiceHeader
     suspend fun getInvoicesBetween(
             from: Date,
             to: Date
