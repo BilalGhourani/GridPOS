@@ -55,7 +55,7 @@ class InvoiceHeaderRepositoryImpl(
                                     if (isFinished) null else invoiceHeader.invoiceHeadId,
                                     if (isFinished) "Completed" else "Busy",
                                 ),
-                                "where ta_name = '${invoiceHeader.invoiceHeadTableId}'"
+                                "where ta_name = '${invoiceHeader.invoiceHeadTableId}' AND ta_hiid = '${invoiceHeader.invoiceHeadId}'"
                             )
                         }
                     } else {
@@ -69,7 +69,7 @@ class InvoiceHeaderRepositoryImpl(
                                 if (isFinished) null else invoiceHeader.invoiceHeadId,
                                 if (isFinished) "Completed" else "Busy",
                             ),
-                            "where ta_name = '${invoiceHeader.invoiceHeadTableId}'"
+                            "where ta_name = '${invoiceHeader.invoiceHeadTableId}' AND ta_hiid = '${invoiceHeader.invoiceHeadId}'"
                         )
                     }
                 } else if (!invoiceHeader.invoiceHeadTaName.isNullOrEmpty()) {
@@ -223,9 +223,9 @@ class InvoiceHeaderRepositoryImpl(
                             SettingsModel.currentUser?.userName
                         ),
                         if (SettingsModel.isSqlServerWebDb) {
-                            "ta_name = '${invoiceHeader.invoiceHeadTableId}'"
+                            "ta_name = '${invoiceHeader.invoiceHeadTableId}' AND ta_hiid = '${invoiceHeader.invoiceHeadId}'"
                         } else {
-                            "ta_name = '${invoiceHeader.invoiceHeadTaName}'"
+                            "ta_name = '${invoiceHeader.invoiceHeadTaName}' AND ta_hiid = '${invoiceHeader.invoiceHeadId}'"
                         }
                     )
                 }
@@ -869,11 +869,11 @@ class InvoiceHeaderRepositoryImpl(
                 invoiceHeader.invoiceHeadTaxAmt,
                 invoiceHeader.invoiceHeadTax1Amt,
                 invoiceHeader.invoiceHeadTax2Amt,
-                POSUtils.formatDouble( invoiceHeader.invoiceHeadTotal1),
-                POSUtils.formatDouble( invoiceHeader.invoiceHeadRate),
+                invoiceHeader.invoiceHeadTotal1,
+                invoiceHeader.invoiceHeadRate,
                 invoiceHeader.invoiceHeadTableId ?: invoiceHeader.invoiceHeadTaName,
                 invoiceHeader.invoiceHeadClientsCount,
-                POSUtils.formatDouble( invoiceHeader.invoiceHeadChange),
+                invoiceHeader.invoiceHeadChange,
                 invoiceHeader.invoiceHeadPrinted,
                 SettingsModel.defaultWarehouse,
                 SettingsModel.defaultBranch,

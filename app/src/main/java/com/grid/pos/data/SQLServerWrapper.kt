@@ -5,6 +5,7 @@ import java.sql.Connection
 import java.sql.DriverManager
 import java.sql.PreparedStatement
 import java.sql.ResultSet
+import java.sql.Timestamp
 
 object SQLServerWrapper {
 
@@ -144,10 +145,10 @@ object SQLServerWrapper {
                 } else {
                     "'$it'"
                 }
-            }else if(it ==null){
-                "$it"
-            } else {
+            }else if (it is Timestamp) {
                 "'$it'"
+            } else {
+                "$it"
             }
         }
         runDbQuery("INSERT INTO $tableName ($cols) VALUES ($vals)")
@@ -165,12 +166,16 @@ object SQLServerWrapper {
         //val setStatement = columns.joinToString(", ") { "$it = ?" }
         // Combine the lists into the desired format
         val setStatement = columns.zip(values) { param, value ->
-            if (value is String && value.startsWith("hashBytes")) {
-                "$param=$value"
-            } else if (value == null) {
-                "$param=$value"
-            } else {
+            if (value is String) {
+                if (value.startsWith("hashBytes")) {
+                    "$param=$value"
+                } else {
+                    "$param='$value'"
+                }
+            } else if (value is Timestamp) {
                 "$param='$value'"
+            } else {
+                "$param=$value"
             }
         }.joinToString(", ")
         val whereQuery = if (where.isNotEmpty()) "WHERE $where " else ""
