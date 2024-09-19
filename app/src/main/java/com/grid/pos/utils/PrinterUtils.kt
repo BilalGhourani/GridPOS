@@ -162,11 +162,30 @@ object PrinterUtils {
             )
         )
 
-        val invoiceNo = invoiceHeader.invoiceHeadTransNo.takeIf { !it.isNullOrEmpty() && it.length > 1 } ?: invoiceHeader.invoiceHeadOrderNo
-        result = result.replace(
-            "{invoicenumbervalue}",
-            "Invoice# ${invoiceNo ?: ""}"
-        )
+        var invoiceNo = invoiceHeader.invoiceHeadTransNo
+        if (!invoiceNo.isNullOrEmpty() && invoiceNo.length > 1) {
+            result = result.replace(
+                "{invoicenumbervalue}",
+                "Invoice# ${invoiceNo ?: ""}"
+            ).replace(
+                "{invoice_no_display}",
+                "block"
+            )
+        } else if (!invoiceHeader.invoiceHeadOrderNo.isNullOrEmpty()) {
+            invoiceNo = invoiceHeader.invoiceHeadOrderNo
+            result = result.replace(
+                "{invoicenumbervalue}",
+                "Order# ${invoiceNo ?: ""}"
+            ).replace(
+                "{invoice_no_display}",
+                "block"
+            )
+        } else {
+            result = result.replace(
+                "{invoice_no_display}",
+                "none"
+            )
+        }
 
         result = if (!thirdParty?.thirdPartyName.isNullOrEmpty() || !invoiceHeader.invoiceHeadCashName.isNullOrEmpty()) {
             result.replace(
