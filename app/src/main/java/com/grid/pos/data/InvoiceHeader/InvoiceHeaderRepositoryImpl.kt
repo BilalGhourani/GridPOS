@@ -277,7 +277,7 @@ class InvoiceHeaderRepositoryImpl(
             else -> {
                 val invoiceHeaders: MutableList<InvoiceHeader> = mutableListOf()
                 try {
-                    val where = "hi_cmp_id='${SettingsModel.getCompanyID()}' ORDER BY hi_transno DESC"
+                    val where = "hi_cmp_id='${SettingsModel.getCompanyID()}' AND hi_transno IS NOT NULL AND hi_transno <> '' AND hi_transno <> '0' ORDER BY hi_transno DESC"
                     val dbResult = SQLServerWrapper.getListOf(
                         "in_hinvoice",
                         "TOP $limit",
@@ -531,14 +531,13 @@ class InvoiceHeaderRepositoryImpl(
                     }
                 } else {
                     try {
-                        //val where = "hi_cmp_id='${SettingsModel.getCompanyID()}' AND ta_hiid IS NOT NULL AND ta_hiid <> ''"
                         val where = " ta_hiid IS NOT NULL AND ta_hiid <> ''"
                         val dbResult = SQLServerWrapper.getListOf(
                             "pos_table",
                             "",
                             mutableListOf("*"),
                             where,
-                         ""   /*" INNER JOIN in_hinvoice on hi_ta_name = ta_name"*/
+                         ""
                         )
                         dbResult?.let {
                             while (it.next()) {
@@ -892,7 +891,7 @@ class InvoiceHeaderRepositoryImpl(
                 "TOP 1",
                 mutableListOf("*"),
                 where,
-               "" /*" INNER JOIN in_hinvoice on hi_ta_name = ta_name"*/
+               ""
             )
             dbResult?.let {
                 if (it.next()) {
