@@ -89,7 +89,7 @@ class InvoiceHeaderRepositoryImpl(
                             ),
                             listOf(
                                 tableId,
-                                invoiceHeader.invoiceHeadId,
+                                if (isFinished) null else invoiceHeader.invoiceHeadId,
                                 if (isFinished) "Completed" else "Busy",
                                 invoiceHeader.invoiceHeadTaName,
                                 SettingsModel.getCompanyID(),
@@ -115,7 +115,7 @@ class InvoiceHeaderRepositoryImpl(
                             ),
                             listOf(
                                 invoiceHeader.invoiceHeadTaName,
-                                invoiceHeader.invoiceHeadId,
+                                if (isFinished) null else invoiceHeader.invoiceHeadId,
                                 if (isFinished) "Completed" else "Busy",
                                 "table",
                                 DateHelper.getDateInFormat(
@@ -209,13 +209,13 @@ class InvoiceHeaderRepositoryImpl(
                         "pos_table",
                         listOf(
                             "ta_status",
-                            "ta_locked",
+                            "ta_hiid",
                             "ta_timestamp",
                             "ta_userstamp"
                         ),
                         listOf(
                             if (isFinished) "Completed" else "Busy",
-                            if (isFinished) "0" else "1",
+                            if (isFinished) null else invoiceHeader.invoiceHeadId,
                             DateHelper.getDateInFormat(
                                 Date(invoiceHeader.invoiceHeadDateTime),
                                 "yyyy-MM-dd hh:mm:ss.SSS"
@@ -385,7 +385,7 @@ class InvoiceHeaderRepositoryImpl(
             else -> {
                 val invoiceHeaders: MutableList<InvoiceHeader> = mutableListOf()
                 try {
-                    val where = "hi_cmp_id='${SettingsModel.getCompanyID()}' AND hi_tt_code = '$type' AND hi_transno <> '' AND hi_transno IS NOT NULL ORDER BY hi_timestamp DESC"
+                    val where = "hi_cmp_id='${SettingsModel.getCompanyID()}' AND hi_tt_code = '$type' AND hi_transno IS NOT NULL AND hi_transno <> '' AND hi_transno <> '0' ORDER BY hi_timestamp DESC"
                     val dbResult = SQLServerWrapper.getListOf(
                         "in_hinvoice",
                         "TOP 1",
@@ -608,6 +608,7 @@ class InvoiceHeaderRepositoryImpl(
                     dbResult?.let {
                         while (it.next()) {
                             val invoiceHeader = fillParams(it)
+                            invoiceHeader.invoiceHeadTableId = tableModel?.table_id
                             invoiceHeader.invoiceHeadTaName = tableNo
                             invoiceHeader.invoiceHeadTableType = tableModel?.table_type
                             invoiceHeaders.add(invoiceHeader)
@@ -715,12 +716,12 @@ class InvoiceHeaderRepositoryImpl(
             invoiceHeadDate = obj.getString("hi_date")
             invoiceHeadOrderNo = obj.getStringValue("hi_orderno")
             invoiceHeadTtCode = obj.getStringValue("hi_tt_code")
-            invoiceHeadTransNo = obj.getStringValue("hi_transno","0")
+            invoiceHeadTransNo = obj.getStringValue("hi_transno")
             invoiceHeadStatus = obj.getStringValue("hi_status")
             invoiceHeadNote = obj.getStringValue("hi_note")
             invoiceHeadThirdPartyName = obj.getStringValue("hi_tp_name")
             invoiceHeadCashName = obj.getStringValue("hi_cashname")
-            invoiceHeadTotalNetAmount = obj.getDoubleValue("hi_total")
+            invoiceHeadTotalNetAmount = obj.getDoubleValue("hi_netamt", obj.getDoubleValue("hi_total"))
             invoiceHeadGrossAmount = obj.getDoubleValue("hi_netamt")
             invoiceHeadDiscount = obj.getDoubleValue("hi_disc")
             invoiceHeadDiscountAmount = obj.getDoubleValue("hi_discamt")
@@ -728,7 +729,7 @@ class InvoiceHeaderRepositoryImpl(
             invoiceHeadTax1Amt = obj.getDoubleValue("hi_tax1amt")
             invoiceHeadTax2Amt = obj.getDoubleValue("hi_tax2amt")
             invoiceHeadTotalTax = invoiceHeadTaxAmt + invoiceHeadTax1Amt + invoiceHeadTax2Amt
-            invoiceHeadTotal = obj.getDoubleValue("hi_total")
+            invoiceHeadTotal = obj.getDoubleValue("hi_total", invoiceHeadTotalNetAmount)
             invoiceHeadTotal1 = obj.getDoubleValue("hi_total1")
             invoiceHeadRate = obj.getDoubleValue("hi_rates")
             if (SettingsModel.isSqlServerWebDb) {
@@ -827,12 +828,12 @@ class InvoiceHeaderRepositoryImpl(
                 dateTime,
                 invoiceHeader.invoiceHeadOrderNo,
                 invoiceHeader.invoiceHeadTtCode,
-                invoiceHeader.invoiceHeadTransNo?:"0",
+                invoiceHeader.invoiceHeadTransNo,
                 invoiceHeader.invoiceHeadStatus,
                 invoiceHeader.invoiceHeadNote,
                 invoiceHeader.invoiceHeadThirdPartyName,
                 invoiceHeader.invoiceHeadCashName,
-                invoiceHeader.getTotalNetAmount(),
+                POSUtils.formatDouble( invoiceHeader.invoiceHeadTotal),
                 invoiceHeader.invoiceHeadGrossAmount,
                 invoiceHeader.invoiceHeadDiscount,
                 invoiceHeader.invoiceHeadDiscountAmount,
@@ -857,12 +858,12 @@ class InvoiceHeaderRepositoryImpl(
                 dateTime,
                 invoiceHeader.invoiceHeadOrderNo,
                 invoiceHeader.invoiceHeadTtCode,
-                invoiceHeader.invoiceHeadTransNo?:"0",
+                invoiceHeader.invoiceHeadTransNo,
                 invoiceHeader.invoiceHeadStatus,
                 invoiceHeader.invoiceHeadNote,
                 invoiceHeader.invoiceHeadThirdPartyName,
                 invoiceHeader.invoiceHeadCashName,
-                invoiceHeader.invoiceHeadGrossAmount,
+                invoiceHeader.invoiceHeadTotal,
                 invoiceHeader.invoiceHeadDiscount,
                 invoiceHeader.invoiceHeadDiscountAmount,
                 invoiceHeader.invoiceHeadTaxAmt,

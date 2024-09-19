@@ -121,6 +121,10 @@ fun POSView(
                 onSuccess = { receipt, invoiceItems ->
                     invoicesState.clear()
                     invoicesState.addAll(invoiceItems)
+                    invoiceHeaderState.value = POSUtils.refreshValues(
+                        invoiceItems,
+                        invoiceHeader
+                    )
                     activityViewModel.invoiceItemModels = invoiceItems
                     activityViewModel.posReceipt = receipt
                     isInvoiceEdited = false

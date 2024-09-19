@@ -73,7 +73,7 @@ object SQLServerWrapper {
             passwrod: String? = SettingsModel.sqlServerDbPassword
     ): String {
         return try {
-           val connection =  getDatabaseConnection(
+            val connection = getDatabaseConnection(
                 serverPath,
                 dbName,
                 serverName,
@@ -82,7 +82,7 @@ object SQLServerWrapper {
             )
             val query = "SELECT TOP 1 * FROM company"
             val statement = connection.prepareStatement(query)
-             statement.executeQuery()
+            statement.executeQuery()
             connection.close()
             "Connection Successful!"
         } catch (e: Exception) {
@@ -144,6 +144,8 @@ object SQLServerWrapper {
                 } else {
                     "'$it'"
                 }
+            }else if(it ==null){
+                "$it"
             } else {
                 "'$it'"
             }
@@ -164,6 +166,8 @@ object SQLServerWrapper {
         // Combine the lists into the desired format
         val setStatement = columns.zip(values) { param, value ->
             if (value is String && value.startsWith("hashBytes")) {
+                "$param=$value"
+            } else if (value == null) {
                 "$param=$value"
             } else {
                 "$param='$value'"

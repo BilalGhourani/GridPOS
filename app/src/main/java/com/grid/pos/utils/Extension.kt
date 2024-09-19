@@ -168,7 +168,7 @@ object Extension {
             fallback: String = ""
     ): String {
         return try {
-            getString(value)
+            getString(value).takeIf { !it.isNullOrEmptyOrNullStr() }?:fallback
         } catch (e: Exception) {
             e.printStackTrace()
             fallback

@@ -5,6 +5,7 @@ import com.grid.pos.data.Currency.Currency
 import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.SettingsModel
+import com.grid.pos.ui.pos.POSUtils
 import com.grid.pos.utils.DateHelper
 import com.grid.pos.utils.Extension.getDoubleValue
 import com.grid.pos.utils.Extension.getIntValue
@@ -12,6 +13,7 @@ import com.grid.pos.utils.Extension.getObjectValue
 import com.grid.pos.utils.Extension.getStringValue
 import com.grid.pos.utils.Utils
 import kotlinx.coroutines.tasks.await
+import java.sql.Timestamp
 import java.util.Date
 
 class PosReceiptRepositoryImpl(
@@ -131,67 +133,66 @@ class PosReceiptRepositoryImpl(
             else -> {
                 posReceipt.posReceiptCashID?.let {
                     SQLServerWrapper.delete(
+                        "pos_receipt",
+                        "pr_id = '$it'"
+                    )
+                    SQLServerWrapper.delete(
                         "pos_receiptacc",
                         "ra_id =  '${posReceipt.posReceiptCashRaID}'"
                     )
-                    SQLServerWrapper.delete(
-                        "pos_receipt",
-                        "pr_id = '$it'"
-                    )
                 }
 
-                posReceipt.posReceiptCashsID?.let {
+                posReceipt.posReceiptCashsID?.let { SQLServerWrapper.delete(
+                    "pos_receipt",
+                    "pr_id = '$it'"
+                )
                     SQLServerWrapper.delete(
                         "pos_receiptacc",
                         "ra_id =  '${posReceipt.posReceiptCashsRaID}'"
-                    )
-                    SQLServerWrapper.delete(
-                        "pos_receipt",
-                        "pr_id = '$it'"
                     )
                 }
 
                 posReceipt.posReceiptCreditID?.let {
                     SQLServerWrapper.delete(
-                        "pos_receiptacc",
-                        "ra_id =  '${posReceipt.posReceiptCreditRaID}'"
-                    )
-                    SQLServerWrapper.delete(
                         "pos_receipt",
                         "pr_id = '$it'"
+                    )
+                    SQLServerWrapper.delete(
+                        "pos_receiptacc",
+                        "ra_id =  '${posReceipt.posReceiptCreditRaID}'"
                     )
                 }
 
                 posReceipt.posReceiptCreditsID?.let {
                     SQLServerWrapper.delete(
-                        "pos_receiptacc",
-                        "ra_id =  '${posReceipt.posReceiptCreditsRaID}'"
-                    )
-                    SQLServerWrapper.delete(
                         "pos_receipt",
                         "pr_id = '$it'"
+                    )
+                    SQLServerWrapper.delete(
+                        "pos_receiptacc",
+                        "ra_id =  '${posReceipt.posReceiptCreditsRaID}'"
                     )
                 }
 
                 posReceipt.posReceiptDebitID?.let {
                     SQLServerWrapper.delete(
-                        "pos_receiptacc",
-                        "ra_id =  '${posReceipt.posReceiptDebitRaID}'"
-                    )
-                    SQLServerWrapper.delete(
                         "pos_receipt",
                         "pr_id = '$it'"
+                    )
+                    SQLServerWrapper.delete(
+                        "pos_receiptacc",
+                        "ra_id =  '${posReceipt.posReceiptDebitRaID}'"
                     )
                 }
 
                 posReceipt.posReceiptDebitsID?.let {
                     SQLServerWrapper.delete(
-                        "pos_receiptacc",
-                        "ra_id =  '${posReceipt.posReceiptDebitsRaID}'"
-                    )
-                    SQLServerWrapper.delete(
                         "pos_receipt",
                         "pr_id = '$it'"
+                    )
+                    SQLServerWrapper.delete(
+                        "pos_receiptacc",
+                        "ra_id =  '${posReceipt.posReceiptDebitsRaID}'"
                     )
                 }
             }
@@ -495,15 +496,21 @@ class PosReceiptRepositoryImpl(
             index: Int,
             rate: Double
     ): MutableList<Any?> {
+        val dateTime = Timestamp.valueOf(
+            DateHelper.getDateInFormat(
+                Date(),
+                "yyyy-MM-dd HH:mm:ss"
+            )
+        )
         return when (index) {
             0 -> mutableListOf(
                 id,
                 posReceipt.posReceiptInvoiceId,
                 posReceipt.posReceiptCash,
                 posReceipt.posReceiptCash,
-                posReceipt.posReceiptCash.times(rate),
+                POSUtils.formatDouble(posReceipt.posReceiptCash.times(rate)),
                 posReceipt.posReceiptCash,
-                posReceipt.posReceiptTimeStamp,
+                posReceipt.posReceiptTimeStamp ?: dateTime,
                 posReceipt.posReceiptUserStamp,
             )
 
@@ -512,9 +519,9 @@ class PosReceiptRepositoryImpl(
                 posReceipt.posReceiptInvoiceId,
                 posReceipt.posReceiptCashs,
                 posReceipt.posReceiptCashs,
-                posReceipt.posReceiptCash.div(rate),
+                POSUtils.formatDouble(posReceipt.posReceiptCash.div(rate)),
                 posReceipt.posReceiptCashs,
-                posReceipt.posReceiptTimeStamp,
+                posReceipt.posReceiptTimeStamp ?: dateTime,
                 posReceipt.posReceiptUserStamp,
             )
 
@@ -523,9 +530,9 @@ class PosReceiptRepositoryImpl(
                 posReceipt.posReceiptInvoiceId,
                 posReceipt.posReceiptCredit,
                 posReceipt.posReceiptCredit,
-                posReceipt.posReceiptCredit.times(rate),
+                POSUtils.formatDouble(posReceipt.posReceiptCredit.times(rate)),
                 posReceipt.posReceiptCredit,
-                posReceipt.posReceiptTimeStamp,
+                posReceipt.posReceiptTimeStamp ?: dateTime,
                 posReceipt.posReceiptUserStamp,
             )
 
@@ -534,9 +541,9 @@ class PosReceiptRepositoryImpl(
                 posReceipt.posReceiptInvoiceId,
                 posReceipt.posReceiptCredits,
                 posReceipt.posReceiptCredits,
-                posReceipt.posReceiptCredits.div(rate),
+                POSUtils.formatDouble(posReceipt.posReceiptCredits.div(rate)),
                 posReceipt.posReceiptCredits,
-                posReceipt.posReceiptTimeStamp,
+                posReceipt.posReceiptTimeStamp ?: dateTime,
                 posReceipt.posReceiptUserStamp,
             )
 
@@ -545,9 +552,9 @@ class PosReceiptRepositoryImpl(
                 posReceipt.posReceiptInvoiceId,
                 posReceipt.posReceiptDebit,
                 posReceipt.posReceiptDebit,
-                posReceipt.posReceiptDebit.times(rate),
+                POSUtils.formatDouble(posReceipt.posReceiptDebit.times(rate)),
                 posReceipt.posReceiptDebit,
-                posReceipt.posReceiptTimeStamp,
+                posReceipt.posReceiptTimeStamp ?: dateTime,
                 posReceipt.posReceiptUserStamp,
             )
 
@@ -556,9 +563,9 @@ class PosReceiptRepositoryImpl(
                 posReceipt.posReceiptInvoiceId,
                 posReceipt.posReceiptDebits,
                 posReceipt.posReceiptDebits,
-                posReceipt.posReceiptDebits.div(rate),
+                POSUtils.formatDouble(posReceipt.posReceiptDebits.div(rate)),
                 posReceipt.posReceiptDebits,
-                posReceipt.posReceiptTimeStamp,
+                posReceipt.posReceiptTimeStamp ?: dateTime,
                 posReceipt.posReceiptUserStamp,
             )
 
