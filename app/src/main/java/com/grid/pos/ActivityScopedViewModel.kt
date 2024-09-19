@@ -362,5 +362,6 @@ class ActivityScopedViewModel @Inject constructor(
         families.clear()
         invoiceHeaders.clear()
         printers.clear()
+        closeConnectionIfNeeded()
     }
 }

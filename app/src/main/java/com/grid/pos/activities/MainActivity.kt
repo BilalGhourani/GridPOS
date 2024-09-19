@@ -147,7 +147,6 @@ class MainActivity : ComponentActivity() {
             negativeBtnText = null
         )
         popupState.value = true
-        SQLServerWrapper.closeConnection()//to stop any existing task
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -242,6 +241,13 @@ class MainActivity : ComponentActivity() {
     override fun onPause() {
         super.onPause()
         connectivityManager?.unregisterNetworkCallback(networkHandler)
+    }
+
+    override fun onStop() {
+        super.onStop()
+        CoroutineScope(Dispatchers.IO).launch {
+            SQLServerWrapper.closeConnection()
+        }
     }
 
     private fun openAppStorageSettings() {

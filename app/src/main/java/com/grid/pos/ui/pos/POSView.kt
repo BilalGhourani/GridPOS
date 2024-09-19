@@ -254,7 +254,7 @@ fun POSView(
                 popupState = PopupState.BACK_PRESSED
                 isSavePopupVisible = true
             } else {
-                viewModel.closeConnectionIfNeeded()
+                //viewModel.closeConnectionIfNeeded()
                 navController?.navigateUp()
             }
         }
