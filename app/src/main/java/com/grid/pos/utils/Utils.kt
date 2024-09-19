@@ -9,6 +9,7 @@ import android.util.Log
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.grid.pos.BuildConfig
 import com.grid.pos.data.DataModel
 import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.ConnectionModel
@@ -55,6 +56,18 @@ object Utils {
     var isDeviceLargerThan7Inches: Boolean? = null;
 
     fun getHomeList(): MutableList<HomeSectionModel> {
+        if(!BuildConfig.DEBUG && SettingsModel.isConnectedToSqlServer()){
+            return mutableListOf(
+                HomeSectionModel(
+                    "POS",
+                    "POSView"
+                ),
+                HomeSectionModel(
+                    "Table",
+                    "TablesView"
+                )
+            )
+        }
         return mutableListOf(
             HomeSectionModel(
                 "Currency",
