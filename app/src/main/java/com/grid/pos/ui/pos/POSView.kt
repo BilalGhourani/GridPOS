@@ -716,8 +716,14 @@ fun POSView(
                                 "Save your changes at first!",
                                 ""
                             )
+                        } else if (invoiceHeaderState.value.isNew()) {
+                            viewModel.showWarning(
+                                "Save invoice at first!",
+                                ""
+                            )
                         } else {
                             activityViewModel.shouldPrintInvoice = true
+                            invoiceHeaderState.value.invoiceHeadPrinted += 1
                             viewModel.savePrintedNumber(
                                 invoiceHeaderState.value
                             )

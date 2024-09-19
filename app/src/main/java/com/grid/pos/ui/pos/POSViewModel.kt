@@ -311,13 +311,6 @@ class POSViewModel @Inject constructor(
     fun savePrintedNumber(
             invoiceHeader: InvoiceHeader,
     ) {
-        if (invoiceHeader.isNew()) {
-            showWarning(
-                "Save invoice at first!",
-                ""
-            )
-            return
-        }
         posState.value = posState.value.copy(
             isLoading = true
         )
