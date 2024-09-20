@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -246,11 +247,8 @@ fun TablesView(
                             )
                         }
                     }) { tabNo ->
-                    tableNameState = Utils.getDoubleValue(
-                        tabNo,
-                        tableNameState
-                    )
-
+                    tableNameState = tabNo
+                    viewModel.filterTables(tabNo)
                 }
                 if (stepState > 1) {
                     UITextField(modifier = Modifier.padding(10.dp),
@@ -263,13 +261,13 @@ fun TablesView(
                         label = "Client Number",
                         maxLines = 3,
                         focusRequester = clientsCountFocusRequester,
-                        keyboardType = KeyboardType.Decimal,
+                        keyboardType = KeyboardType.Number,
                         placeHolder = "Enter Client Number",
                         imeAction = ImeAction.Done,
                         onAction = {
                             keyboardController?.hide()
                         }) { clients ->
-                        clientsCountState = Utils.getDoubleValue(
+                        clientsCountState = Utils.getIntValue(
                             clients,
                             clientsCountState
                         )
@@ -293,14 +291,23 @@ fun TablesView(
                     }
                 }
 
-                if (state.tables.isNotEmpty()) {
-                    LazyColumn(
-                        modifier = modifier
-                            .fillMaxWidth()
-                            .weight(1f),
-                        contentPadding = PaddingValues(0.dp)
-                    ) {
-                        stickyHeader {
+                LazyColumn(
+                    modifier = modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                    contentPadding = PaddingValues(0.dp)
+                ) {
+                    stickyHeader {
+                        Box(
+                            modifier = modifier
+                                .fillMaxWidth()
+                                .wrapContentHeight()
+                                .padding(
+                                    horizontal = 10.dp,
+                                    vertical = 5.dp
+                                ),
+                            contentAlignment = Alignment.CenterStart
+                        ) {
                             Text(
                                 text = "Opened Tables",
                                 maxLines = 1,
@@ -314,6 +321,8 @@ fun TablesView(
                                 overflow = TextOverflow.Ellipsis
                             )
                         }
+                    }
+                    if (state.tables.isNotEmpty()) {
                         state.tables.forEach { tableModel ->
                             item {
                                 Box(
@@ -349,6 +358,45 @@ fun TablesView(
                                         overflow = TextOverflow.Ellipsis
                                     )
                                 }
+                            }
+                        }
+                    } else if (state.isLoadingTables) {
+                        item {
+                            Box(
+                                modifier = modifier
+                                    .fillMaxWidth()
+                                    .height(80.dp)
+                                    .padding(10.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = "loading...",
+                                    maxLines = 1,
+                                    fontSize = 16.sp,
+                                    textAlign = TextAlign.Center,
+                                    color = SettingsModel.textColor,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
+                        }
+
+                    } else {
+                        item {
+                            Box(
+                                modifier = modifier
+                                    .fillMaxWidth()
+                                    .height(80.dp)
+                                    .padding(10.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = "no tables found!",
+                                    maxLines = 1,
+                                    fontSize = 16.sp,
+                                    textAlign = TextAlign.Center,
+                                    color = SettingsModel.textColor,
+                                    overflow = TextOverflow.Ellipsis
+                                )
                             }
                         }
                     }

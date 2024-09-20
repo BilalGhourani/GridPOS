@@ -1,9 +1,11 @@
 package com.grid.pos.ui.table
 
+import androidx.compose.ui.text.toLowerCase
 import androidx.lifecycle.viewModelScope
 import com.grid.pos.data.InvoiceHeader.InvoiceHeader
 import com.grid.pos.data.InvoiceHeader.InvoiceHeaderRepository
 import com.grid.pos.model.Event
+import com.grid.pos.model.TableModel
 import com.grid.pos.ui.common.BaseViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -18,6 +20,7 @@ class TablesViewModel @Inject constructor(
 
     private val _tablesState = MutableStateFlow(TablesState())
     val tablesState: MutableStateFlow<TablesState> = _tablesState
+    var openedTables: MutableList<TableModel> = mutableListOf()
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
@@ -33,11 +36,29 @@ class TablesViewModel @Inject constructor(
     }
 
     fun fetchAllTables() {
+        tablesState.value = tablesState.value.copy(
+            isLoadingTables = true
+        )
         viewModelScope.launch(Dispatchers.IO) {
-            val tables = invoiceHeaderRepository.getAllOpenedTables()
+            openedTables = invoiceHeaderRepository.getAllOpenedTables()
             viewModelScope.launch(Dispatchers.Main) {
                 tablesState.value = tablesState.value.copy(
-                    tables = tables,
+                    tables = openedTables,
+                    isLoadingTables = false
+                )
+            }
+        }
+    }
+
+    fun filterTables(key: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val tables = openedTables.toMutableList()
+            val filteredTables = tables.filter {
+                it.table_name.lowercase().contains(key.lowercase())
+            }.toMutableList()
+            viewModelScope.launch(Dispatchers.Main) {
+                tablesState.value = tablesState.value.copy(
+                    tables = filteredTables,
                     isLoading = false
                 )
             }
