@@ -461,7 +461,7 @@ object PrinterUtils {
                 "none"
             )
         }
-        result = if (showTotalTax) {
+        if (showTotalTax) {
             invAmountVal.append(
                 String.format(
                     defaultLocal,
@@ -470,16 +470,16 @@ object PrinterUtils {
                     Utils.getDoubleOrZero(invoiceHeader.invoiceHeadTotalTax)
                 )
             )
-            result.replace(
+          /* result = result.replace(
                 "{taxes_display}",
                 "block"
-            )
-        } else {
-            result.replace(
+            )*/
+        } /*else {
+           result = result.replace(
                 "{taxes_display}",
                 "none"
             )
-        }
+        }*/
         val invoiceTotal = Utils.getDoubleOrZero(invoiceHeader.invoiceHeadTotal)
         invAmountVal.append(
             String.format(

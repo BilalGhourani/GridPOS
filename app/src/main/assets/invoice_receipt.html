@@ -8,6 +8,9 @@
     <div style="font-weight: bold;align-items: center;font-size: 16px;">{company_name}</div>
     <div style="font-weight: Normal;align-items: center;font-size: 16px;">{company_addr}</div>
     <div style="font-weight: Normal;align-items: center;font-size: 16px;">{company_phone}</div>
+    <div style="display: {tax_display};font-weight: Normal;font-size: 16px;">Tax No: {taxregno}</div>
+    <div style="display: {tax1_display};font-weight: Normal;font-size: 16px;">Tax1 No: {taxregno1}</div>
+    <div style="display: {tax2_display};font-weight: Normal;font-size: 16px;">Tax2 No: {taxregno2}</div>
     <div style="display:{invoice_no_display};font-weight: Normal;align-items: center;font-size: 16px;">{invoicenumbervalue}</div>
     <div style="font-weight: Normal;align-items: center;font-size: 16px;">{invoicedatevalue}</div>
 </div>
@@ -56,12 +59,6 @@
 <div style="width: 100%;display:{note_display}; align-items: start; justify-content: start; flex-direction: column;">
     <hr style="border-top: 1px dashed; #000;width: 100%;">
     <div style="font-weight: Normal;font-size: 16px;">{invoicenotevalue}</div>
-</div>
-<div style="width: 100%;display: {taxes_display}; align-items: start; justify-content: start; flex-direction: column;">
-    <hr style="border-top: 1px dashed; #000;width: 100%;">
-    <div style="display: {tax_display};font-weight: Normal;font-size: 16px;">Tax &nbsp; No: {taxregno}</div>
-    <div style="display: {tax1_display};font-weight: Normal;font-size: 16px;">Tax1 No: {taxregno1}</div>
-    <div style="display: {tax2_display};font-weight: Normal;font-size: 16px;">Tax2 No: {taxregno2}</div>
 </div>
 <div style="width: 100%;display: {barcode_display}; align-items: start; justify-content: start; flex-direction: column;">
     <div style="height: 10px; width: 100%;"></div>
