@@ -283,12 +283,13 @@ class InvoiceHeaderRepositoryImpl(
             else -> {
                 val invoiceHeaders: MutableList<InvoiceHeader> = mutableListOf()
                 try {
-                    val where = "hi_cmp_id='${SettingsModel.getCompanyID()}' AND hi_transno IS NOT NULL AND hi_transno <> '' AND hi_transno <> '0' ORDER BY hi_transno DESC"
+                    val where = "hi_cmp_id='${SettingsModel.getCompanyID()}' AND hi_transno IS NOT NULL AND hi_transno <> '' AND hi_transno <> '0'"
                     val dbResult = SQLServerWrapper.getListOf(
                         "in_hinvoice",
                         "TOP $limit",
                         mutableListOf("*"),
-                        where
+                        where,
+                        "ORDER BY hi_transno DESC"
                     )
                     dbResult?.let {
                         while (it.next()) {
@@ -329,12 +330,13 @@ class InvoiceHeaderRepositoryImpl(
             else -> {
                 val invoiceHeaders: MutableList<InvoiceHeader> = mutableListOf()
                 try {
-                    val where = "hi_cmp_id='${SettingsModel.getCompanyID()}' AND hi_orderno <> '' AND hi_orderno IS NOT NULL ORDER BY hi_timestamp DESC"
+                    val where = "hi_cmp_id='${SettingsModel.getCompanyID()}' AND hi_orderno <> '' AND hi_orderno IS NOT NULL"
                     val dbResult = SQLServerWrapper.getListOf(
                         "in_hinvoice",
                         "TOP 1",
                         mutableListOf("*"),
-                        where
+                        where,
+                        "ORDER BY hi_timestamp DESC"
                     )
                     dbResult?.let {
                         while (it.next()) {
@@ -383,12 +385,13 @@ class InvoiceHeaderRepositoryImpl(
             else -> {
                 val invoiceHeaders: MutableList<InvoiceHeader> = mutableListOf()
                 try {
-                    val where = "hi_cmp_id='${SettingsModel.getCompanyID()}' AND hi_tt_code = '$type' AND hi_transno IS NOT NULL AND hi_transno <> '' AND hi_transno <> '0' ORDER BY hi_transno DESC"
+                    val where = "hi_cmp_id='${SettingsModel.getCompanyID()}' AND hi_tt_code = '$type' AND hi_transno IS NOT NULL AND hi_transno <> '' AND hi_transno <> '0'"
                     val dbResult = SQLServerWrapper.getListOf(
                         "in_hinvoice",
                         "TOP 1",
                         mutableListOf("*"),
-                        where
+                        where,
+                        "ORDER BY hi_transno DESC"
                     )
                     dbResult?.let {
                         while (it.next()) {
@@ -428,12 +431,13 @@ class InvoiceHeaderRepositoryImpl(
             else -> {
                 val invoiceHeaders: MutableList<InvoiceHeader> = mutableListOf()
                 try {
-                    val where = "hi_cmp_id='${SettingsModel.getCompanyID()}' ORDER BY hi_transno DESC"
+                    val where = "hi_cmp_id='${SettingsModel.getCompanyID()}'"
                     val dbResult = SQLServerWrapper.getListOf(
                         "in_hinvoice",
                         "TOP 1",
                         mutableListOf("*"),
-                        where
+                        where,
+                        "ORDER BY hi_transno DESC"
                     )
                     dbResult?.let {
                         while (it.next()) {
@@ -534,8 +538,7 @@ class InvoiceHeaderRepositoryImpl(
                             "pos_table",
                             "",
                             mutableListOf("*"),
-                            where,
-                            ""
+                            where
                         )
                         dbResult?.let {
                             while (it.next()) {
@@ -907,8 +910,7 @@ class InvoiceHeaderRepositoryImpl(
                 "pos_table",
                 "TOP 1",
                 mutableListOf("*"),
-                where,
-                ""
+                where
             )
             dbResult?.let {
                 if (it.next()) {

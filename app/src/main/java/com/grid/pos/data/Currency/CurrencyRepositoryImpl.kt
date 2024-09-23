@@ -83,16 +83,17 @@ class CurrencyRepositoryImpl(
                 try {
                     val companyID = SettingsModel.getCompanyID()
                     val where = if (SettingsModel.isSqlServerWebDb) {
-                        "cur_cmp_id='$companyID' ORDER BY cur_order ASC"
+                        "cur_cmp_id='$companyID'"
                     } else {
-                        "(cur_order='1' OR cur_order = '2') ORDER BY cur_order ASC"
+                        "(cur_order='1' OR cur_order = '2')"
                     }
 
                     val dbResult = SQLServerWrapper.getListOf(
                         "currency",
                         "TOP 2",
                         mutableListOf("*"),
-                        where
+                        where,
+                        "ORDER BY cur_order ASC"
                     )
                     currency.currencyCompId = companyID
                     dbResult?.let {

@@ -397,12 +397,13 @@ class PosReceiptRepositoryImpl(
             }
 
             else -> {
-                val where = "pr_hi_id='$invoiceHeaderId'  ORDER BY ra_order ASC"
+                val where = "pr_hi_id='$invoiceHeaderId'"
                 val dbResult = SQLServerWrapper.getListOf(
                     "pos_receipt",
                     "",
                     mutableListOf("*"),
                     where,
+                    "ORDER BY ra_order ASC",
                     " INNER JOIN pos_receiptacc on pr_ra_id = ra_id"
                 )
 

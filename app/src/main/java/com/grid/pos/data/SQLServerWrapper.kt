@@ -97,13 +97,14 @@ object SQLServerWrapper {
             colPrefix: String = "",
             columns: MutableList<String>,
             where: String,
+            orderBy: String = "",
             joinSubQuery: String = "",
     ): ResultSet? {
         try {
             val connection = getConnection()
             val cols = columns.joinToString(", ")
             val whereQuery = if (where.isNotEmpty()) "WHERE $where " else ""
-            val query = "SELECT $colPrefix $cols FROM $tableName $joinSubQuery $whereQuery"
+            val query = "SELECT $colPrefix $cols FROM $tableName $joinSubQuery $whereQuery $orderBy"
             val statement = connection.prepareStatement(query)
             return statement.executeQuery()
         } catch (e: Exception) {
