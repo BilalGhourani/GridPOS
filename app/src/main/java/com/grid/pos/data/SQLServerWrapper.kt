@@ -113,6 +113,19 @@ object SQLServerWrapper {
         return null
     }
 
+    fun getQueryResult(
+            query: String
+    ): ResultSet? {
+        try {
+            val connection = getConnection()
+            val statement = connection.prepareStatement(query)
+            return statement.executeQuery()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        return null
+    }
+
     fun executeProcedure(
             procedureName: String,
             params: List<Any>,

@@ -75,14 +75,19 @@ class ItemRepositoryImpl(
 
             else -> {
                 val items: MutableList<Item> = mutableListOf()
-                try {
+                try {/* val dbResult = if (SettingsModel.isSqlServerWebDb) {*/
                     val where = "it_cmp_id='${SettingsModel.getCompanyID()}'"
                     val dbResult = SQLServerWrapper.getListOf(
                         "st_item",
                         "",
                         mutableListOf("*"),
                         where
-                    )
+                    )/* } else {
+                        SQLServerWrapper.getQueryResult(
+                            "select *,0 it_pos from st_item union select st_item.*,1 from st_item,pos_itembutton,pos_groupbutton,pos_station_groupbutton where it_id=ib_it_id and ib_gb_id=gb_id and gb_id=psg_gb_id and psg_sta_name='.'"
+                        )
+                    }*/
+
                     dbResult?.let {
                         while (it.next()) {
                             items.add(Item().apply {
@@ -98,7 +103,10 @@ class ItemRepositoryImpl(
                                 itemPrinter = it.getStringValue("it_di_name")
                                 itemOpenQty = it.getDoubleValue("it_maxqty")
                                 itemOpenCost = it.getDoubleValue("it_cost")
-                                itemPos = it.getIntValue("it_pos", 1) == 1
+                                itemPos = it.getIntValue(
+                                    "it_pos",
+                                    1
+                                ) == 1
                                 itemBtnColor = it.getStringValue("it_color")
                                 itemBtnTextColor = "#000000"
                                 val timeStamp = it.getObjectValue("it_timestamp")
