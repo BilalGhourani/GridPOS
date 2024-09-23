@@ -42,7 +42,6 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -86,11 +85,11 @@ import java.util.TimeZone
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ReportsView(
+fun SalesReportsView(
     modifier: Modifier = Modifier,
     navController: NavController? = null,
     activityViewModel: ActivityScopedViewModel,
-    viewModel: ReportsViewModel = hiltViewModel()
+    viewModel: SalesReportsViewModel = hiltViewModel()
 ) {
     val state by viewModel.reportsState.collectAsStateWithLifecycle()
 

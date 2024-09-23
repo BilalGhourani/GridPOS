@@ -1,7 +1,6 @@
 package com.grid.pos.ui.reports
 
 import android.net.Uri
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.grid.pos.App
 import com.grid.pos.data.Currency.Currency
@@ -11,7 +10,6 @@ import com.grid.pos.data.InvoiceHeader.InvoiceHeader
 import com.grid.pos.data.InvoiceHeader.InvoiceHeaderRepository
 import com.grid.pos.data.Item.Item
 import com.grid.pos.data.Item.ItemRepository
-import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.model.Event
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.BaseViewModel
@@ -29,7 +27,7 @@ import javax.inject.Inject
 import kotlin.math.min
 
 @HiltViewModel
-class ReportsViewModel @Inject constructor(
+class SalesReportsViewModel @Inject constructor(
         private val invoiceHeaderRepository: InvoiceHeaderRepository,
         private val invoiceRepository: InvoiceRepository,
         private val itemRepository: ItemRepository
