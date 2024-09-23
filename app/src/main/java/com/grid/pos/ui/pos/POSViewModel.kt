@@ -179,9 +179,7 @@ class POSViewModel @Inject constructor(
                     )
                     invoiceHeader.invoiceHeadTtCode = SettingsModel.getTransactionType(invoiceHeader.invoiceHeadGrossAmount)
                 } else {
-                    val lastOrderInv = invoiceHeaderRepository.getLastOrderByType(
-                        POSUtils.getInvoiceType(invoiceHeader)
-                    )
+                    val lastOrderInv = invoiceHeaderRepository.getLastOrderByType()
                     invoiceHeader.invoiceHeadOrderNo = POSUtils.getInvoiceNo(
                         lastOrderInv?.invoiceHeadOrderNo ?: ""
                     )

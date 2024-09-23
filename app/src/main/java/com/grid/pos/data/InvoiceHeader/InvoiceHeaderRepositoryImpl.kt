@@ -6,7 +6,6 @@ import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.model.TableModel
-import com.grid.pos.ui.pos.POSUtils
 import com.grid.pos.utils.DateHelper
 import com.grid.pos.utils.Extension.getDoubleValue
 import com.grid.pos.utils.Extension.getIntValue
@@ -42,7 +41,7 @@ class InvoiceHeaderRepositoryImpl(
                         if (isFinished && invoiceHeader.invoiceHeadTableType?.equals("temp") == true) {
                             SQLServerWrapper.delete(
                                 "pos_table",
-                                "where ta_name = '${invoiceHeader.invoiceHeadTableId}'"
+                                " ta_name = '${invoiceHeader.invoiceHeadTableId}'"
                             )
                         } else {
                             SQLServerWrapper.update(
@@ -55,7 +54,7 @@ class InvoiceHeaderRepositoryImpl(
                                     if (isFinished) null else invoiceHeader.invoiceHeadId,
                                     if (isFinished) "Completed" else "Busy",
                                 ),
-                                "where ta_name = '${invoiceHeader.invoiceHeadTableId}'"
+                                " ta_name = '${invoiceHeader.invoiceHeadTableId}'"
                             )
                         }
                     } else {
@@ -69,7 +68,7 @@ class InvoiceHeaderRepositoryImpl(
                                 if (isFinished) null else invoiceHeader.invoiceHeadId,
                                 if (isFinished) "Completed" else "Busy",
                             ),
-                            "where ta_name = '${invoiceHeader.invoiceHeadTableId}'"
+                            " ta_name = '${invoiceHeader.invoiceHeadTableId}'"
                         )
                     }
                 } else if (!invoiceHeader.invoiceHeadTaName.isNullOrEmpty()) {
@@ -208,7 +207,7 @@ class InvoiceHeaderRepositoryImpl(
                     if (isFinished && invoiceHeader.invoiceHeadTableType?.equals("temp") == true) {
                         SQLServerWrapper.delete(
                             "pos_table",
-                            "where ta_name = '${invoiceHeader.invoiceHeadTableId}'"
+                            " ta_name = '${invoiceHeader.invoiceHeadTableId}'"
                         )
                     } else {
                         SQLServerWrapper.update(
@@ -305,18 +304,13 @@ class InvoiceHeaderRepositoryImpl(
         }
     }
 
-    override suspend fun getLastOrderByType(
-            type: String
-    ): InvoiceHeader? {
+    override suspend fun getLastOrderByType(): InvoiceHeader? {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
                 val querySnapshot = FirebaseFirestore.getInstance().collection("in_hinvoice")
                     .whereEqualTo(
                         "hi_cmp_id",
                         SettingsModel.getCompanyID()
-                    ).whereEqualTo(
-                        "hi_tt_code",
-                        type
                     ).whereNotEqualTo(
                         "hi_orderno",
                         null
@@ -329,16 +323,13 @@ class InvoiceHeaderRepositoryImpl(
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
-                return invoiceHeaderDao.getLastOrderByType(
-                    type,
-                    SettingsModel.getCompanyID() ?: ""
-                )
+                return invoiceHeaderDao.getLastOrderByType(SettingsModel.getCompanyID() ?: "")
             }
 
             else -> {
                 val invoiceHeaders: MutableList<InvoiceHeader> = mutableListOf()
                 try {
-                    val where = "hi_cmp_id='${SettingsModel.getCompanyID()}' AND hi_tt_code = '$type' AND hi_orderno <> '' AND hi_orderno IS NOT NULL ORDER BY hi_timestamp DESC"
+                    val where = "hi_cmp_id='${SettingsModel.getCompanyID()}' AND hi_orderno <> '' AND hi_orderno IS NOT NULL ORDER BY hi_timestamp DESC"
                     val dbResult = SQLServerWrapper.getListOf(
                         "in_hinvoice",
                         "TOP 1",
@@ -375,7 +366,7 @@ class InvoiceHeaderRepositoryImpl(
                         "hi_transno",
                         null
                     ).orderBy(
-                        "hi_timestamp",
+                        "hi_transno",
                         Query.Direction.DESCENDING
                     ).limit(1).get().await()
                 val document = querySnapshot.firstOrNull()
@@ -392,7 +383,7 @@ class InvoiceHeaderRepositoryImpl(
             else -> {
                 val invoiceHeaders: MutableList<InvoiceHeader> = mutableListOf()
                 try {
-                    val where = "hi_cmp_id='${SettingsModel.getCompanyID()}' AND hi_tt_code = '$type' AND hi_transno IS NOT NULL AND hi_transno <> '' AND hi_transno <> '0' ORDER BY hi_timestamp DESC"
+                    val where = "hi_cmp_id='${SettingsModel.getCompanyID()}' AND hi_tt_code = '$type' AND hi_transno IS NOT NULL AND hi_transno <> '' AND hi_transno <> '0' ORDER BY hi_transno DESC"
                     val dbResult = SQLServerWrapper.getListOf(
                         "in_hinvoice",
                         "TOP 1",
