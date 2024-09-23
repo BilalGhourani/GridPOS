@@ -35,7 +35,7 @@ class POSViewModel @Inject constructor(
 
     private val _posState = MutableStateFlow(POSState())
     val posState: MutableStateFlow<POSState> = _posState
-    private var clientsMao: Map<String, ThirdParty> = mutableMapOf()
+    private var clientsMap: Map<String, ThirdParty> = mutableMapOf()
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
@@ -103,7 +103,7 @@ class POSViewModel @Inject constructor(
         }
         viewModelScope.launch(Dispatchers.IO) {
             val listOfThirdParties = thirdPartyRepository.getAllThirdParties()
-            clientsMao = listOfThirdParties.map { it.thirdPartyId to it }.toMap()
+            clientsMap = listOfThirdParties.map { it.thirdPartyId to it }.toMap()
             withContext(Dispatchers.Main) {
                 posState.value = if (withLoading) {
                     posState.value.copy(
@@ -126,7 +126,7 @@ class POSViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             val listOfInvoices = invoiceHeaderRepository.getAllInvoiceHeaders()
             listOfInvoices.map {
-                it.invoiceHeadThirdPartyNewName = clientsMao[it.invoiceHeadThirdPartyName]?.thirdPartyName
+                it.invoiceHeadThirdPartyNewName = clientsMap[it.invoiceHeadThirdPartyName]?.thirdPartyName
             }
             withContext(Dispatchers.Main) {
                 posState.value = posState.value.copy(
@@ -191,7 +191,9 @@ class POSViewModel @Inject constructor(
                     invoiceHeader,
                     finish
                 )
-                posState.value.invoiceHeaders.add(addedInv)
+                if (finish) {
+                    posState.value.invoiceHeaders.add(addedInv)
+                }
                 savePOSReceipt(
                     addedInv,
                     posReceipt,
@@ -222,6 +224,8 @@ class POSViewModel @Inject constructor(
                         index,
                         invoiceHeader
                     )
+                }else if (finish) {
+                    posState.value.invoiceHeaders.add(invoiceHeader)
                 }
                 savePOSReceipt(
                     invoiceHeader,

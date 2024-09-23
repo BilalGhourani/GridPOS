@@ -208,6 +208,13 @@ fun POSView(
         invoiceHeaderState.value = activityViewModel.invoiceHeader
     }
 
+    fun cashLoadedData(){
+        activityViewModel.invoiceHeaders = state.invoiceHeaders.toMutableList()
+        activityViewModel.thirdParties = state.thirdParties.toMutableList()
+        activityViewModel.families = state.families.toMutableList()
+        activityViewModel.items = state.items.toMutableList()
+    }
+
     LaunchedEffect(
         state.isSaved,
         state.isDeleted
@@ -217,10 +224,7 @@ fun POSView(
             if (activityViewModel.shouldPrintInvoice) {
                 activityViewModel.invoiceItemModels = invoicesState
                 activityViewModel.invoiceHeader = invoiceHeaderState.value
-                activityViewModel.invoiceHeaders = state.invoiceHeaders.toMutableList()
-                activityViewModel.thirdParties = state.thirdParties.toMutableList()
-                activityViewModel.families = state.families.toMutableList()
-                activityViewModel.items = state.items.toMutableList()
+                cashLoadedData()
                 navController?.navigate("UIWebView")
             } else if (activityViewModel.isFromTable) {
                 navController?.navigateUp()
@@ -254,6 +258,7 @@ fun POSView(
             isSavePopupVisible = true
         } else {
             activityViewModel.clearPosValues()
+            cashLoadedData()
             if (SettingsModel.getUserType() == UserType.POS) {
                 popupState = PopupState.BACK_PRESSED
                 isSavePopupVisible = true
@@ -363,10 +368,7 @@ fun POSView(
                                 IconButton(onClick = {
                                     activityViewModel.invoiceItemModels = invoicesState
                                     activityViewModel.invoiceHeader = invoiceHeaderState.value
-                                    activityViewModel.invoiceHeaders = state.invoiceHeaders.toMutableList()
-                                    activityViewModel.thirdParties = state.thirdParties.toMutableList()
-                                    activityViewModel.families = state.families.toMutableList()
-                                    activityViewModel.items = state.items.toMutableList()
+                                    cashLoadedData()
                                     navController?.navigate("SettingsView")
                                 }) {
                                     Icon(
@@ -549,10 +551,7 @@ fun POSView(
                             onAddItem = {
                                 activityViewModel.invoiceItemModels = invoicesState
                                 activityViewModel.invoiceHeader = invoiceHeaderState.value
-                                activityViewModel.invoiceHeaders = state.invoiceHeaders.toMutableList()
-                                activityViewModel.thirdParties = state.thirdParties.toMutableList()
-                                activityViewModel.families = state.families.toMutableList()
-                                activityViewModel.items = state.items.toMutableList()
+                                cashLoadedData()
                                 state.items.clear()
                                 navController?.navigate(
                                     "ManageItemsView"
@@ -561,10 +560,7 @@ fun POSView(
                             onAddThirdParty = {
                                 activityViewModel.invoiceItemModels = invoicesState
                                 activityViewModel.invoiceHeader = invoiceHeaderState.value
-                                activityViewModel.invoiceHeaders = state.invoiceHeaders.toMutableList()
-                                activityViewModel.thirdParties = state.thirdParties.toMutableList()
-                                activityViewModel.families = state.families.toMutableList()
-                                activityViewModel.items = state.items.toMutableList()
+                                cashLoadedData()
                                 state.thirdParties.clear()
                                 navController?.navigate(
                                     "ManageThirdPartiesView"

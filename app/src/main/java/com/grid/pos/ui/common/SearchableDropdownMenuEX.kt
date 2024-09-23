@@ -72,6 +72,7 @@ fun SearchableDropdownMenuEx(
         selectedId,
         items
     ) {
+        isLoaded = items.isNotEmpty()
         if (showSelected && !selectedId.isNullOrEmpty()) {
             items.forEach {
                 if (it.getId().equals(
