@@ -82,6 +82,10 @@ fun LoginView(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
+    LaunchedEffect(Unit) {
+        viewModel.openConnectionIfNeeded()
+    }
+
     LaunchedEffect(state.warning) {
         state.warning?.value?.let { message ->
             scope.launch {
