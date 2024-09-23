@@ -348,6 +348,24 @@ fun ReportsListView(
                             .padding(horizontal = 5.dp)
                             .clickable {
                                 isOptionPopupExpanded = false
+                                state.isLoading = true
+                                val file = fileModelState.value.getFile(
+                                    File(
+                                        App.getInstance().filesDir,
+                                        "Reports"
+                                    )
+                                )
+                                val savedPath = FileUtils.saveToExternalStorage(
+                                    context = context,
+                                    parent = "invoice reports/${fileModelState.value.parentName}",
+                                    sourceFilePath = Uri.fromFile(file),
+                                    destName = fileModelState.value.fileName,
+                                    type = "html"
+                                )
+                                state.isLoading = false
+                                if (!savedPath.isNullOrEmpty()) {
+                                    viewModel.showError("Report Saved successfully.")
+                                }
                             },
                         horizontalArrangement = Arrangement.Start,
                         verticalAlignment = Alignment.CenterVertically

@@ -251,6 +251,7 @@ object FileUtils {
             "license" -> "*/*"//"text/plain"
             "excel" -> "application/vnd.ms-excel"
             "sqlite" -> "application/octet-stream"
+            "html" -> "text/html"
             else -> "image/jpeg"
         }
         return MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension) ?: fallback

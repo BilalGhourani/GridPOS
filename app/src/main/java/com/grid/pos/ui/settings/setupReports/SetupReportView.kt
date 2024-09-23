@@ -210,7 +210,7 @@ fun SetupReportView(
                         .fillMaxWidth()
                         .height(70.dp)
                         .padding(10.dp),
-                    text = if (activityViewModel.isPaySlip) "Payslip" else "PayTicket",
+                    text = if (activityViewModel.isPaySlip) "Add Payslip" else "Add PayTicket",
                     buttonColor = SettingsModel.buttonColor,
                     textColor = SettingsModel.buttonTextColor
                 ) {
