@@ -90,6 +90,9 @@ object PrinterUtils {
         97,
         2
     )
+    private val LINE_FEED = byteArrayOf(
+        10
+    )
     private val CUT_PAPER = byteArrayOf(
         27,
         109
@@ -300,7 +303,7 @@ object PrinterUtils {
         if (invoiceItemModels.isNotEmpty()) {
             val regex = "\\{rows\\}(.*?)\\{rows\\}".toRegex()
             val matchResult = regex.find(result)
-            val extractedSubstring = matchResult?.groups?.get(1)?.value ?: "<tr><td>item_name</td></tr> <tr><td>item_qty x item_price</td> <td>item_amount</td> </tr>"
+            val extractedSubstring = matchResult?.groups?.get(1)?.value ?: "<tr><td style=\"font-size: 16px;\">item_name</td></tr> <tr><td style=\"font-size: 16px;\">item_qty x item_price</td> <td style=\"font-size: 16px;\">item_amount</td> </tr>"
             val trs = StringBuilder("")
             invoiceItemModels.forEach { item ->
                 discountAmount += item.invoice.getDiscountAmount()
@@ -345,7 +348,7 @@ object PrinterUtils {
             invAmountVal.append(
                 String.format(
                     defaultLocal,
-                    "<tr><td>Disc Amount&nbsp;:</td><td>%,.2f</td></tr>",
+                    "<tr><td style=\"font-size: 16px;\">Disc Amount&nbsp;:</td><td style=\"font-size: 16px;\">%,.2f</td></tr>",
                     Utils.getDoubleOrZero(discountAmount)
                 )
             )
@@ -355,7 +358,7 @@ object PrinterUtils {
             invAmountVal.append(
                 String.format(
                     defaultLocal,
-                    "<tr><td>Before Tax:</td><td>%,.2f</td></tr>",
+                    "<tr><td style=\"font-size: 16px;\">Before Tax:</td><td style=\"font-size: 16px;\">%,.2f</td></tr>",
                     Utils.getDoubleOrZero(invoiceHeader.invoiceHeadTotal - invoiceHeader.invoiceHeadTotalTax)
                 )
             )
@@ -368,7 +371,7 @@ object PrinterUtils {
                 invAmountVal.append(
                     String.format(
                         defaultLocal,
-                        "<tr><td>Tax  (%,.0f%s:</td><td>%,.2f</td></tr>",
+                        "<tr><td style=\"font-size: 16px;\">Tax  (%,.0f%s:</td><td style=\"font-size: 16px;\">%,.2f</td></tr>",
                         Utils.getDoubleOrZero(company?.companyTax),
                         "%)",
                         Utils.getDoubleOrZero(invoiceHeader.invoiceHeadTaxAmt)
@@ -401,7 +404,7 @@ object PrinterUtils {
                 invAmountVal.append(
                     String.format(
                         defaultLocal,
-                        "<tr><td>Tax1 (%,.0f%s:</td><td>%,.2f</td></tr>",
+                        "<tr><td style=\"font-size: 16px;\">Tax1 (%,.0f%s:</td><td style=\"font-size: 16px;\">%,.2f</td></tr>",
                         Utils.getDoubleOrZero(company?.companyTax1),
                         "%)",
                         Utils.getDoubleOrZero(invoiceHeader.invoiceHeadTax1Amt)
@@ -434,7 +437,7 @@ object PrinterUtils {
                 invAmountVal.append(
                     String.format(
                         defaultLocal,
-                        "<tr><td>Tax2 (%,.0f%s:</td><td>%,.2f</td></tr>",
+                        "<tr><td style=\"font-size: 16px;\">Tax2 (%,.0f%s:</td><td style=\"font-size: 16px;\">%,.2f</td></tr>",
                         Utils.getDoubleOrZero(company?.companyTax2),
                         "%)",
                         Utils.getDoubleOrZero(invoiceHeader.invoiceHeadTax2Amt)
@@ -465,12 +468,11 @@ object PrinterUtils {
             invAmountVal.append(
                 String.format(
                     defaultLocal,
-                    "<tr><td>%s</td><td>%,.2f</td></tr>",
+                    "<tr><td style=\"font-size: 16px;\">%s</td><td style=\"font-size: 16px;\">%,.2f</td></tr>",
                     "Total Tax:",
                     Utils.getDoubleOrZero(invoiceHeader.invoiceHeadTotalTax)
                 )
-            )
-          /* result = result.replace(
+            )/* result = result.replace(
                 "{taxes_display}",
                 "block"
             )*/
@@ -655,7 +657,12 @@ object PrinterUtils {
         // Parse HTML content
         val document = Jsoup.parse(htmlContent)
         val body = document.body()
-        return parseHtmlElement(body) + ByteArray(3) { 0x0A } + CUT_PAPER
+        var result = parseHtmlElement(body)
+        for(i in 0 until 5){
+            result += LINE_FEED
+        }
+        result += CUT_PAPER
+        return result
     }
 
     private fun parseHtmlElement(element: Element): ByteArray {
@@ -730,6 +737,7 @@ object PrinterUtils {
 
                     "hr" -> {
                         result += ALIGN_CENTER
+                        result += getFontSizeByteCommand(16f)
                         result += "------------------------------\n".toByteArray()
                         result += ALIGN_LEFT
                     }
@@ -740,7 +748,7 @@ object PrinterUtils {
                             ""
                         )
                         if (!style.contains("display:none")) {
-                            if (style.contains("text-align") || style.contains("justify-content")) {
+                            if (style.contains("align-items") || style.contains("justify-content")|| style.contains("text-align")) {
                                 result += if (style.contains("center")) ALIGN_CENTER else if (style.contains(
                                         "right"
                                     ) || style.contains("end")
@@ -805,8 +813,10 @@ object PrinterUtils {
             ) ALIGN_RIGHT else ALIGN_LEFT
         }
 
-        if (style.contains("font-size")) {
-            res += getFontSizeByteCommand(getFontSizeFromStyle(style.toString()))
+        res += if (style.contains("font-size")) {
+            getFontSizeByteCommand(getFontSizeFromStyle(style))
+        } else {
+            getFontSizeByteCommand(16f)
         }
 
         if (style.contains("font-weight")) {
