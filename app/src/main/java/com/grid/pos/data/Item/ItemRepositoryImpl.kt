@@ -75,18 +75,22 @@ class ItemRepositoryImpl(
 
             else -> {
                 val items: MutableList<Item> = mutableListOf()
-                try {/* val dbResult = if (SettingsModel.isSqlServerWebDb) {*/
-                    val where = "it_cmp_id='${SettingsModel.getCompanyID()}'"
-                    val dbResult = SQLServerWrapper.getListOf(
+                try {
+                    val dbResult = if (SettingsModel.isSqlServerWebDb) {
+                     SQLServerWrapper.getListOf(
                         "st_item",
                         "",
                         mutableListOf("*"),
-                        where
-                    )/* } else {
+                         "it_cmp_id='${SettingsModel.getCompanyID()}'"
+                    ) } else {
                         SQLServerWrapper.getQueryResult(
-                            "select *,0 it_pos from st_item union select st_item.*,1 from st_item,pos_itembutton,pos_groupbutton,pos_station_groupbutton where it_id=ib_it_id and ib_gb_id=gb_id and gb_id=psg_gb_id and psg_sta_name='.'"
+                            "select st_item.*,1 it_pos from st_item,pos_itembutton,pos_groupbutton,pos_station_groupbutton " +
+                                    "where it_id=ib_it_id and ib_gb_id=gb_id and gb_id=psg_gb_id and psg_sta_name='.' " +
+                                    "union " +
+                                    "select *,0 it_pos from st_item where it_id not in (select ib_it_id from pos_itembutton,pos_groupbutton,pos_station_groupbutton " +
+                                    "where ib_gb_id=gb_id and gb_id=psg_gb_id and psg_sta_name='.')"
                         )
-                    }*/
+                    }
 
                     dbResult?.let {
                         while (it.next()) {
