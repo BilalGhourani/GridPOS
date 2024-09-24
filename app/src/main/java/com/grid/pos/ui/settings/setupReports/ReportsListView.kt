@@ -274,9 +274,9 @@ fun ReportsListView(
                                     .height(50.dp)
                                     .padding(horizontal = 10.dp),
                                     fileModel = fileModel,
-                                    onSelect = {
+                                   /* onSelect = {
                                         viewModel.selectFile(fileModel)
-                                    },
+                                    },*/
                                     onOption = {
                                         fileModelState.value = fileModel
                                         isOptionPopupExpanded = !isOptionPopupExpanded

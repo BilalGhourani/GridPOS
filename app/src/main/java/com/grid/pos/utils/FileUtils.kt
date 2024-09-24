@@ -675,8 +675,7 @@ object FileUtils {
 
     fun getFileModels(
             directoryFile: File,
-            selectedPaySlip: String?,
-            selectedPayTicket: String?
+            currentLanguage: String?
     ): MutableList<FileModel> {
         val result = mutableListOf<FileModel>()
 
@@ -687,24 +686,17 @@ object FileUtils {
                     result.addAll(
                         getFileModels(
                             file,
-                            selectedPaySlip,
-                            selectedPayTicket
+                            currentLanguage
                         )
                     )
                 } else {
                     val fileName = file.name
                     val directoryName = directoryFile.name
-                    val isPaySlip = fileName.contains(
-                        "payslip",
-                        ignoreCase = true
-                    )
-                    val selected = if (isPaySlip) selectedPaySlip?.equals("$directoryName/$fileName") == true
-                    else selectedPayTicket?.equals("$directoryName/$fileName") == true
                     val fileModel = FileModel(
                         fileName = fileName,
                         parentName = directoryName,
-                        isPaySlip = isPaySlip,
-                        selected = selected
+                        isPaySlip = fileName.contains("payslip", ignoreCase = true),
+                        selected = currentLanguage.equals(directoryName,ignoreCase = true)
                     )
                     result.add(fileModel)
                 }

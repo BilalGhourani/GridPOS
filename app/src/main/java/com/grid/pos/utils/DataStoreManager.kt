@@ -273,16 +273,6 @@ object DataStoreManager {
             DataStoreKeys.CASH_PRINTER.key,
             ""
         )
-
-        SettingsModel.selectedPayslip = getString(
-            DataStoreKeys.SELECTED_PAYSLIP.key,
-            ""
-        )
-
-        SettingsModel.selectedPayTicket = getString(
-            DataStoreKeys.SELECTED_PAY_TICKET.key,
-            ""
-        )
     }
 
     enum class DataStoreKeys(val key: String) {
@@ -298,7 +288,7 @@ object DataStoreManager {
 
         SQL_SERVER_PATH("SQL_SERVER_PATH"), SQL_SERVER_NAME("SQL_SERVER_NAME"),SQL_SERVER_DB_NAME("SQL_SERVER_DB_NAME"),
         SQL_SERVER_DB_USER("SQL_SERVER_DB_USER"), SQL_SERVER_DB_PASSWORD("SQL_SERVER_DB_PASSWORD"), SQL_SERVER_COMPANY_ID("SQL_SERVER_COMPANY_ID"), IS_SQL_SERVER_WEB_DB("IS_SQL_SERVER_WEB_DB"),
-        CASH_PRINTER("CASH_PRINTER"),SELECTED_PAYSLIP("SELECTED_PAYSLIP"),SELECTED_PAY_TICKET("SELECTED_PAY_TICKET"),
+        CASH_PRINTER("CASH_PRINTER"),
 
         CONNECTION_TYPE("CONNECTION_TYPE"), SHOW_ITEMS_IN_POS("SHOW_ITEMS_IN_POS"), ORIENTATION_TYPE("ORIENTATION_TYPE"), SHOW_TAX("SHOW_TAX"), SHOW_TAX1(
             "SHOW_TAX1"

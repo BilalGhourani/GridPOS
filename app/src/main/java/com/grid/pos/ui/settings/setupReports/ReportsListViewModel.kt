@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.util.Locale
 import javax.inject.Inject
 
 @HiltViewModel
@@ -49,10 +50,10 @@ class ReportsListViewModel @Inject constructor(
             context.filesDir,
             "Reports"
         )
+        val language = Locale.getDefault().language
         val allReports = FileUtils.getFileModels(
             file,
-            SettingsModel.selectedPayslip,
-            SettingsModel.selectedPayTicket
+            language
         )
         val payslips = mutableListOf<FileModel>()
         val payTickets = mutableListOf<FileModel>()
@@ -68,46 +69,6 @@ class ReportsListViewModel @Inject constructor(
                 paySlips = payslips,
                 payTickets = payTickets
             )
-        }
-    }
-
-    fun selectFile(fileModel: FileModel) {
-        state.value = state.value.copy(
-            warning = null,
-            isLoading = true
-        )
-
-        CoroutineScope(Dispatchers.IO).launch {
-            if (fileModel.isPaySlip) {
-                DataStoreManager.putString(
-                    DataStoreManager.DataStoreKeys.SELECTED_PAYSLIP.key,
-                    fileModel.getFullName()
-                )
-            }else{
-                DataStoreManager.putString(
-                    DataStoreManager.DataStoreKeys.SELECTED_PAY_TICKET.key,
-                    fileModel.getFullName()
-                )
-            }
-            val fileModels = if (fileModel.isPaySlip) state.value.paySlips else state.value.payTickets
-            fileModels.forEach {
-                it.selected = it.parentName == fileModel.parentName && it.fileName == fileModel.fileName
-            }
-            withContext(Dispatchers.Main) {
-                if (fileModel.isPaySlip) {
-                    state.value = state.value.copy(
-                        paySlips = fileModels,
-                        isLoading = false,
-                        clear = true
-                    )
-                } else {
-                    state.value = state.value.copy(
-                        payTickets = fileModels,
-                        isLoading = false,
-                        clear = true
-                    )
-                }
-            }
         }
     }
 
