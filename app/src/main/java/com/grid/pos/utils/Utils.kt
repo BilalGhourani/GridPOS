@@ -119,7 +119,7 @@ object Utils {
                 return it
             }
         }
-        return Language.Default
+        return Language.DEFAULT
     }
 
     fun generateRandomUuidString(): String {
