@@ -15,19 +15,15 @@ import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.ConnectionModel
 import com.grid.pos.model.HomeSectionModel
 import com.grid.pos.model.InvoiceItemModel
-import com.grid.pos.model.LANGUAGES
+import com.grid.pos.model.Language
 import com.grid.pos.model.ORIENTATION_TYPE
 import com.grid.pos.model.OrientationModel
 import com.grid.pos.model.ReportLanguage
 import com.grid.pos.model.SettingsModel
 import java.math.BigInteger
-import java.text.SimpleDateFormat
 import java.time.Year
 import java.util.Calendar
-import java.util.Date
-import java.util.Locale
 import java.util.Random
-import java.util.TimeZone
 import java.util.UUID
 import kotlin.math.pow
 import kotlin.math.sqrt
@@ -46,17 +42,11 @@ object Utils {
         OrientationModel(ORIENTATION_TYPE.DEVICE_SENSOR.key)
     )
 
-    val reportLanguages = mutableListOf<DataModel>(
-        ReportLanguage(LANGUAGES.Arabic.key),
-        ReportLanguage(LANGUAGES.English.key),
-        ReportLanguage(LANGUAGES.French.key)
-    )
-
     var isTablet: Boolean? = null;
     var isDeviceLargerThan7Inches: Boolean? = null;
 
     fun getHomeList(): MutableList<HomeSectionModel> {
-        if(!BuildConfig.DEBUG && SettingsModel.isConnectedToSqlServer()){
+        if (!BuildConfig.DEBUG && SettingsModel.isConnectedToSqlServer()) {
             return mutableListOf(
                 HomeSectionModel(
                     "POS",
@@ -112,6 +102,26 @@ object Utils {
         )
     }
 
+    fun getReportLanguages(withDefault: Boolean): MutableList<ReportLanguage> {
+        val result = mutableListOf<ReportLanguage>()
+        Language.entries.forEach {
+            result.add(ReportLanguage(it))
+        }
+        if (!withDefault) {
+            result.removeAt(0)
+        }
+        return result
+    }
+
+    fun getLanguageByCode(code: String): Language {
+        Language.entries.forEach {
+            if (it.code == code) {
+                return it
+            }
+        }
+        return Language.Default
+    }
+
     fun generateRandomUuidString(): String {
         if (!SettingsModel.isSqlServerWebDb && SettingsModel.connectionType == CONNECTION_TYPE.SQL_SERVER.key) {
             val random = Random()
@@ -163,7 +173,7 @@ object Utils {
 
     fun roundDoubleValue(
             value: Double,
-            decimal: Int?=2
+            decimal: Int? = 2
     ): Double {
         val doubleStr = String.format(
             "%.${decimal}f",

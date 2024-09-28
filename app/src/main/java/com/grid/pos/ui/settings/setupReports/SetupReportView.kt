@@ -2,6 +2,8 @@ package com.grid.pos.ui.settings.setupReports
 
 import android.net.Uri
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -42,6 +44,8 @@ import androidx.navigation.NavController
 import com.grid.pos.ActivityScopedViewModel
 import com.grid.pos.interfaces.OnGalleryResult
 import com.grid.pos.model.Event
+import com.grid.pos.model.Language
+import com.grid.pos.model.ReportLanguage
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.SearchableDropdownMenuEx
 import com.grid.pos.ui.common.UIButton
@@ -66,16 +70,11 @@ fun SetupReportView(
     var warning by remember { mutableStateOf(Event("")) }
     var action by remember { mutableStateOf("") }
 
-    var countryState by remember { mutableStateOf("Default") }
-    var languageState by remember { mutableStateOf("") }
+    var languageState by remember { mutableStateOf(Language.Default) }
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
     fun addReport(reportType: String) {
-        if (languageState.isEmpty()) {
-            warning = Event("Please select a language!")
-            return
-        }
         activityViewModel.launchFilePicker("text/html",
             object : OnGalleryResult {
                 override fun onGalleryResult(uris: List<Uri>) {
@@ -84,9 +83,9 @@ fun SetupReportView(
                         CoroutineScope(Dispatchers.IO).launch {
                             FileUtils.saveToInternalStorage(
                                 context,
-                                "Reports/$countryState",
+                               "Reports/${languageState.value}",
                                 uris[0],
-                                "$reportType-$languageState.html"
+                                "$reportType.html"
                             )
                             withContext(Dispatchers.Main) {
                                 isLoading = false
@@ -165,56 +164,45 @@ fun SetupReportView(
                         })
                 }
             }) {
-            Column(
+            Box(
                 modifier = modifier
                     .fillMaxSize()
                     .padding(it)
-                    .verticalScroll(rememberScrollState()),
+                    .background(color = Color.Transparent)
             ) {
-
-                UITextField(
-                    modifier = Modifier.padding(10.dp),
-                    defaultValue = countryState,
-                    enabled = false,
-                    label = "Country",
-                    placeHolder = "Country",
-                ) { country ->
-                    countryState = country
-                }
-
-                SearchableDropdownMenuEx(items = Utils.reportLanguages,
-                    modifier = Modifier.padding(10.dp),
-                    enableSearch = false,
-                    label = languageState.ifEmpty { "Select Language" },
-                    selectedId = languageState,
-                    leadingIcon = { modifier ->
-                        if (languageState.isNotEmpty()) {
-                            Icon(
-                                Icons.Default.RemoveCircleOutline,
-                                contentDescription = "remove family",
-                                tint = Color.Black,
-                                modifier = modifier
-                            )
-                        }
-                    },
-                    onLeadingIconClick = {
-                        languageState = ""
-                    }) { type ->
-                    languageState = type.getName()
-                }
-
-                Spacer(modifier = Modifier.height(20.dp))
-
-                UIButton(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(70.dp)
-                        .padding(10.dp),
-                    text = if (activityViewModel.isPaySlip) "Add Payslip" else "Add PayTicket",
-                    buttonColor = SettingsModel.buttonColor,
-                    textColor = SettingsModel.buttonTextColor
+                Column(
+                    modifier = modifier
+                        .fillMaxSize()
+                        .padding(top = 90.dp)
+                        .verticalScroll(rememberScrollState()),
                 ) {
-                    addReport(if (activityViewModel.isPaySlip) "Payslip" else "PayTicket")
+                    Spacer(modifier = Modifier.height(20.dp))
+
+                    UIButton(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(70.dp)
+                            .padding(10.dp),
+                        text = if (activityViewModel.isPaySlip) "Add Payslip" else "Add PayTicket",
+                        buttonColor = SettingsModel.buttonColor,
+                        textColor = SettingsModel.buttonTextColor
+                    ) {
+                        addReport(if (activityViewModel.isPaySlip) "Payslip" else "PayTicket")
+                    }
+                }
+
+                SearchableDropdownMenuEx(items = Utils.getReportLanguages(true).toMutableList(),
+                    modifier = Modifier.padding(
+                        top = 15.dp,
+                        start = 10.dp,
+                        end = 10.dp
+                    ),
+                    enableSearch = false,
+                    placeholder = "Report Language",
+                    label = languageState.value.ifEmpty { "Select Language" },
+                    selectedId = languageState.code,
+                    maxHeight = 290.dp) { reportLan ->
+                    languageState = (reportLan as ReportLanguage).language
                 }
             }
         }

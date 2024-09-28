@@ -27,6 +27,7 @@ import com.grid.pos.interfaces.OnGalleryResult
 import com.grid.pos.model.Event
 import com.grid.pos.model.InvoiceItemModel
 import com.grid.pos.model.PopupModel
+import com.grid.pos.model.ReportResult
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.BaseViewModel
 import com.grid.pos.utils.DataStoreManager
@@ -183,7 +184,7 @@ class ActivityScopedViewModel @Inject constructor(
         isFromTable = false
     }
 
-    fun print(context: Context) {
+    fun print(context: Context,reportResult: ReportResult?) {
         viewModelScope.launch(Dispatchers.IO) {
             val thirdParty = if (invoiceHeader.invoiceHeadThirdPartyName.isNullOrEmpty()) {
                 thirdParties.firstOrNull { it.thirdPartyDefault }
@@ -209,12 +210,13 @@ class ActivityScopedViewModel @Inject constructor(
                 thirdParty,
                 user,
                 SettingsModel.currentCompany,
-                printers
+                printers,
+                reportResult
             )
         }
     }
 
-    fun getInvoiceReceiptHtmlContent(context: Context): String {
+    fun getInvoiceReceiptHtmlContent(context: Context): ReportResult {
         val defaultThirdParty = if (invoiceHeader.invoiceHeadThirdPartyName.isNullOrEmpty()) {
             thirdParties.firstOrNull { it.thirdPartyDefault }
         } else {

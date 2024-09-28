@@ -18,6 +18,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -39,12 +40,15 @@ fun UIWebView(
         activityViewModel: ActivityScopedViewModel
 ) {
     val context = LocalContext.current
+    val reportResultState = remember {
+        mutableStateOf(activityViewModel.getInvoiceReceiptHtmlContent(context))
+    }
     val webView = remember {
         WebView(context).apply {
             webViewClient = WebViewClient()
             loadDataWithBaseURL(
                 null,
-                activityViewModel.getInvoiceReceiptHtmlContent(context),
+                reportResultState.value.htmlContent,
                 "text/html",
                 "UTF-8",
                 null
@@ -103,13 +107,14 @@ fun UIWebView(
                 AndroidView(modifier = Modifier.weight(1f),
                     factory = { webView }) {}
 
-                UIButton(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(10.dp),
-                    text = "Print"
-                ) {
-                    activityViewModel.print(context)/*val printManager = context.getSystemService(Context.PRINT_SERVICE) as PrintManager
+                if (reportResultState.value.found) {
+                    UIButton(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(10.dp),
+                        text = "Print"
+                    ) {
+                        activityViewModel.print(context,reportResultState.value)/*val printManager = context.getSystemService(Context.PRINT_SERVICE) as PrintManager
                     val jobName = "webpage_" + System.currentTimeMillis()
                     val printAdapter = webView.createPrintDocumentAdapter(jobName)
 
@@ -122,6 +127,7 @@ fun UIWebView(
                         printAdapter,
                         printAttributes
                     )*/
+                    }
                 }
             }
         }

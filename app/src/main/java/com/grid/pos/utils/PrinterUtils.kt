@@ -20,7 +20,9 @@ import com.grid.pos.data.PosReceipt.PosReceipt
 import com.grid.pos.data.ThirdParty.ThirdParty
 import com.grid.pos.data.User.User
 import com.grid.pos.model.InvoiceItemModel
+import com.grid.pos.model.Language
 import com.grid.pos.model.PrintPicture
+import com.grid.pos.model.ReportResult
 import com.grid.pos.model.SettingsModel
 import com.journeyapps.barcodescanner.BarcodeEncoder
 import kotlinx.coroutines.Dispatchers
@@ -98,19 +100,31 @@ object PrinterUtils {
         109
     )
 
-    private fun getPaySlipHtmlContent(context: Context): String {
-        if (!SettingsModel.selectedPayslip.isNullOrEmpty()) {
-            val payslip = FileUtils.getHtmlFile(
+    private fun getPaySlipHtmlContent(context: Context): ReportResult {
+        var payslip = FileUtils.getHtmlFile(
+            context,
+            "Reports/${SettingsModel.defaultReportLanguage}/payslip"
+        )
+        if (payslip.isEmpty()) {
+            payslip = FileUtils.getHtmlFile(
                 context,
-                SettingsModel.selectedPayslip!!
+                "Reports/${Language.Default.code}"
             )
-            if (payslip.isNotEmpty()) {
-                return payslip
-            }
         }
-        return FileUtils.readFileFromAssets(
-            "invoice_receipt.html",
+        if (payslip.isNotEmpty()) {
+            return ReportResult(
+                true,
+                payslip
+            )
+        }
+
+        payslip = FileUtils.readFileFromAssets(
+            "fallback.html",
             context
+        )
+        return ReportResult(
+            false,
+            payslip
         )
     }
 
@@ -123,9 +137,13 @@ object PrinterUtils {
             user: User? = SettingsModel.currentUser,
             company: Company? = SettingsModel.currentCompany,
             currency: Currency? = SettingsModel.currentCurrency,
-    ): String {
+    ): ReportResult {
         val defaultLocal = Locale.getDefault()
-        var result = getPaySlipHtmlContent(context)
+        val result = getPaySlipHtmlContent(context)
+        if (!result.found) {
+            return result
+        }
+        var htmlContent = result.htmlContent
         val invDate = DateHelper.getDateFromString(
             invoiceHeader.invoiceHeadDate,
             if (invoiceHeader.invoiceHeadDate.contains("at")) "MMMM dd, yyyy 'at' hh:mm:ss a 'Z'" else "yyyy-MM-dd HH:mm:ss.S"
@@ -137,18 +155,18 @@ object PrinterUtils {
                 Uri.parse(company?.companyLogo)
             )
             val base64Result = convertBitmapToBase64(logoBitmap)
-            result = result.replace(
+            htmlContent = htmlContent.replace(
                 "{company_logo}",
                 "<img src=\"data:image/png;base64,$base64Result\" width=\"100px\" height=\"50px\"/>"
             )
         } else {
-            result = result.replace(
+            htmlContent = htmlContent.replace(
                 "{company_logo}",
                 ""
             )
         }
 
-        result = result.replace(
+        htmlContent = htmlContent.replace(
             "{company_name}",
             company?.companyName ?: ""
         ).replace(
@@ -167,7 +185,7 @@ object PrinterUtils {
 
         var invoiceNo = invoiceHeader.invoiceHeadTransNo
         if (!invoiceNo.isNullOrEmpty() && invoiceNo.length > 1) {
-            result = result.replace(
+            htmlContent = htmlContent.replace(
                 "{invoicenumbervalue}",
                 "Invoice# ${invoiceNo ?: ""}"
             ).replace(
@@ -176,7 +194,7 @@ object PrinterUtils {
             )
         } else if (!invoiceHeader.invoiceHeadOrderNo.isNullOrEmpty()) {
             invoiceNo = invoiceHeader.invoiceHeadOrderNo
-            result = result.replace(
+            htmlContent = htmlContent.replace(
                 "{invoicenumbervalue}",
                 "Order# ${invoiceNo ?: ""}"
             ).replace(
@@ -184,14 +202,14 @@ object PrinterUtils {
                 "block"
             )
         } else {
-            result = result.replace(
+            htmlContent = htmlContent.replace(
                 "{invoice_no_display}",
                 "none"
             )
         }
 
-        result = if (!thirdParty?.thirdPartyName.isNullOrEmpty() || !invoiceHeader.invoiceHeadCashName.isNullOrEmpty()) {
-            result.replace(
+        htmlContent = if (!thirdParty?.thirdPartyName.isNullOrEmpty() || !invoiceHeader.invoiceHeadCashName.isNullOrEmpty()) {
+            htmlContent.replace(
                 "{clientnamevalue}",
                 "${thirdParty?.thirdPartyName ?: ""} ${invoiceHeader.invoiceHeadCashName ?: ""}"
             ).replace(
@@ -199,14 +217,14 @@ object PrinterUtils {
                 "block"
             )
         } else {
-            result.replace(
+            htmlContent.replace(
                 "{client_display}",
                 "none"
             )
         }
 
-        result = if (!thirdParty?.thirdPartyFn.isNullOrEmpty()) {
-            result.replace(
+        htmlContent = if (!thirdParty?.thirdPartyFn.isNullOrEmpty()) {
+            htmlContent.replace(
                 "{clientfnvalue}",
                 thirdParty?.thirdPartyFn ?: ""
             ).replace(
@@ -214,7 +232,7 @@ object PrinterUtils {
                 "block"
             )
         } else {
-            result.replace(
+            htmlContent.replace(
                 "{fn_display}",
                 "none"
             )
@@ -228,8 +246,8 @@ object PrinterUtils {
             phone += if (phone.isNotEmpty()) " - " + thirdParty?.thirdPartyPhone2 else thirdParty?.thirdPartyPhone2
         }
 
-        result = if (phone.isNotEmpty()) {
-            result.replace(
+        htmlContent = if (phone.isNotEmpty()) {
+            htmlContent.replace(
                 "{clientphonevalue}",
                 phone
             ).replace(
@@ -237,14 +255,14 @@ object PrinterUtils {
                 "block"
             )
         } else {
-            result.replace(
+            htmlContent.replace(
                 "{phone_display}",
                 "none"
             )
         }
 
-        result = if (!thirdParty?.thirdPartyAddress.isNullOrEmpty()) {
-            result.replace(
+        htmlContent = if (!thirdParty?.thirdPartyAddress.isNullOrEmpty()) {
+            htmlContent.replace(
                 "{clientaddressvalue}",
                 thirdParty?.thirdPartyAddress ?: ""
             ).replace(
@@ -252,14 +270,14 @@ object PrinterUtils {
                 "block"
             )
         } else {
-            result.replace(
+            htmlContent.replace(
                 "{addr_display}",
                 "none"
             )
         }
 
-        result = if (!invoiceHeader.invoiceHeadTaName.isNullOrEmpty()) {
-            result.replace(
+        htmlContent = if (!invoiceHeader.invoiceHeadTaName.isNullOrEmpty()) {
+            htmlContent.replace(
                 "{table_name}",
                 invoiceHeader.invoiceHeadTaName ?: ""
             ).replace(
@@ -267,14 +285,14 @@ object PrinterUtils {
                 "block"
             )
         } else {
-            result.replace(
+            htmlContent.replace(
                 "{table_no_display}",
                 "none"
             )
         }
 
-        result = if (!user?.userName.isNullOrEmpty()) {
-            result.replace(
+        htmlContent = if (!user?.userName.isNullOrEmpty()) {
+            htmlContent.replace(
                 "{invoiceuservalue}",
                 user?.userName ?: ""
             ).replace(
@@ -282,19 +300,19 @@ object PrinterUtils {
                 "block"
             )
         } else {
-            result.replace(
+            htmlContent.replace(
                 "{servedby_display}",
                 "none"
             )
         }
 
-        result = if (invoiceHeader.invoiceHeadPrinted > 1) {
-            result.replace(
+        htmlContent = if (invoiceHeader.invoiceHeadPrinted > 1) {
+            htmlContent.replace(
                 "{rp_disp}",
                 "flex"
             )
         } else {
-            result.replace(
+            htmlContent.replace(
                 "{rp_disp}",
                 "none"
             )
@@ -302,7 +320,7 @@ object PrinterUtils {
         var discountAmount = invoiceHeader.invoiceHeadDiscountAmount
         if (invoiceItemModels.isNotEmpty()) {
             val regex = "\\{rows\\}(.*?)\\{rows\\}".toRegex()
-            val matchResult = regex.find(result)
+            val matchResult = regex.find(htmlContent)
             val extractedSubstring = matchResult?.groups?.get(1)?.value ?: "<tr><td style=\"font-size: 16px;\">item_name</td></tr> <tr><td style=\"font-size: 16px;\">item_qty x item_price</td> <td style=\"font-size: 16px;\">item_amount</td> </tr>"
             val trs = StringBuilder("")
             invoiceItemModels.forEach { item ->
@@ -335,7 +353,7 @@ object PrinterUtils {
                     )
                 )
             }
-            result = result.replace(
+            htmlContent = htmlContent.replace(
                 regex,
                 trs.toString()
             ).replace(
@@ -378,8 +396,8 @@ object PrinterUtils {
                     )
                 )
             }
-            result = if (!company?.companyTaxRegno.isNullOrEmpty()) {
-                result.replace(
+            htmlContent = if (!company?.companyTaxRegno.isNullOrEmpty()) {
+                htmlContent.replace(
                     "{taxregno}",
                     company?.companyTaxRegno ?: ""
                 ).replace(
@@ -387,13 +405,13 @@ object PrinterUtils {
                     "block"
                 )
             } else {
-                result.replace(
+                htmlContent.replace(
                     "{tax_display}",
                     "none"
                 )
             }
         } else {
-            result = result.replace(
+            htmlContent = htmlContent.replace(
                 "{tax_display}",
                 "none"
             )
@@ -411,8 +429,8 @@ object PrinterUtils {
                     )
                 )
             }
-            result = if (!company?.companyTax1Regno.isNullOrEmpty()) {
-                result.replace(
+            htmlContent = if (!company?.companyTax1Regno.isNullOrEmpty()) {
+                htmlContent.replace(
                     "{taxregno1}",
                     company?.companyTax1Regno ?: ""
                 ).replace(
@@ -420,13 +438,13 @@ object PrinterUtils {
                     "block"
                 )
             } else {
-                result.replace(
+                htmlContent.replace(
                     "{tax1_display}",
                     "none"
                 )
             }
         } else {
-            result = result.replace(
+            htmlContent = htmlContent.replace(
                 "{tax1_display}",
                 "none"
             )
@@ -444,8 +462,8 @@ object PrinterUtils {
                     )
                 )
             }
-            result = if (!company?.companyTax2Regno.isNullOrEmpty()) {
-                result.replace(
+            htmlContent = if (!company?.companyTax2Regno.isNullOrEmpty()) {
+                htmlContent.replace(
                     "{taxregno2}",
                     company?.companyTax2Regno ?: ""
                 ).replace(
@@ -453,13 +471,13 @@ object PrinterUtils {
                     "block"
                 )
             } else {
-                result.replace(
+                htmlContent.replace(
                     "{tax2_display}",
                     "none"
                 )
             }
         } else {
-            result = result.replace(
+            htmlContent = htmlContent.replace(
                 "{tax2_display}",
                 "none"
             )
@@ -501,7 +519,7 @@ object PrinterUtils {
             )
         )
 
-        result = result.replace(
+        htmlContent = htmlContent.replace(
             "{tableinvoiceAmountvalue}",
             invAmountVal.toString()
         )
@@ -595,26 +613,26 @@ object PrinterUtils {
             )
         }
 
-        result = result.replace(
+        htmlContent = htmlContent.replace(
             "{posReceiptValues}",
             posReceiptValues.toString()
         )
 
-        result = if (posReceiptValues.isNotEmpty()) {
-            result.replace(
+        htmlContent = if (posReceiptValues.isNotEmpty()) {
+            htmlContent.replace(
                 "{prsReceipt_dashed_display}",
                 "block"
             )
         } else {
-            result.replace(
+            htmlContent.replace(
                 "{prsReceipt_dashed_display}",
                 "none"
             )
         }
 
 
-        result = if (!invoiceHeader.invoiceHeadNote.isNullOrEmpty()) {
-            result.replace(
+        htmlContent = if (!invoiceHeader.invoiceHeadNote.isNullOrEmpty()) {
+            htmlContent.replace(
                 "{invoicenotevalue}",
                 invoiceHeader.invoiceHeadNote!!
             ).replace(
@@ -622,7 +640,7 @@ object PrinterUtils {
                 "block"
             )
         } else {
-            result.replace(
+            htmlContent.replace(
                 "{note_display}",
                 "none"
             )
@@ -636,7 +654,7 @@ object PrinterUtils {
                 true
             )
             val base64Barcode = convertBitmapToBase64(barcodeBitmap)
-            result = result.replace(
+            htmlContent = htmlContent.replace(
                 "{barcodeContent}",
                 " <img style=\"width:100%;margin-start: 20px !important;margin-end: 20px !important;height:100px;\" src=\"data:image/png;base64,$base64Barcode\" alt=\"Barcode\"/>"
             ).replace(
@@ -644,13 +662,16 @@ object PrinterUtils {
                 "block"
             )
         } else {
-            result = result.replace(
+            htmlContent = htmlContent.replace(
                 "{barcode_display}",
                 "none"
             )
         }
 
-        return result
+        return ReportResult(
+            true,
+            htmlContent
+        )
     }
 
     private fun parseHtmlContent(htmlContent: String): ByteArray {
@@ -658,7 +679,7 @@ object PrinterUtils {
         val document = Jsoup.parse(htmlContent)
         val body = document.body()
         var result = parseHtmlElement(body)
-        for(i in 0 until 5){
+        for (i in 0 until 5) {
             result += LINE_FEED
         }
         result += CUT_PAPER
@@ -748,7 +769,7 @@ object PrinterUtils {
                             ""
                         )
                         if (!style.contains("display:none")) {
-                            if (style.contains("align-items") || style.contains("justify-content")|| style.contains("text-align")) {
+                            if (style.contains("align-items") || style.contains("justify-content") || style.contains("text-align")) {
                                 result += if (style.contains("center")) ALIGN_CENTER else if (style.contains(
                                         "right"
                                     ) || style.contains("end")
@@ -870,19 +891,31 @@ object PrinterUtils {
         }
     }
 
-    private fun getPayTicketHtmlContent(context: Context): String {
-        if (!SettingsModel.selectedPayTicket.isNullOrEmpty()) {
-            val payslip = FileUtils.getHtmlFile(
+    private fun getPayTicketHtmlContent(context: Context): ReportResult {
+        var payslip = FileUtils.getHtmlFile(
+            context,
+            "Reports/${SettingsModel.defaultReportLanguage}"
+        )
+        if (payslip.isEmpty()) {
+            payslip = FileUtils.getHtmlFile(
                 context,
-                SettingsModel.selectedPayTicket!!
+                "Reports/${Language.Default.code}"
             )
-            if (payslip.isNotEmpty()) {
-                return payslip
-            }
         }
-        return FileUtils.readFileFromAssets(
+        if (payslip.isNotEmpty()) {
+            return ReportResult(
+                true,
+                payslip
+            )
+        }
+
+        payslip = FileUtils.readFileFromAssets(
             "item_receipt.html",
             context
+        )
+        return ReportResult(
+            false,
+            payslip
         )
     }
 
@@ -890,10 +923,14 @@ object PrinterUtils {
             context: Context,
             invoiceHeader: InvoiceHeader,
             invItemModels: List<InvoiceItemModel>
-    ): String {
+    ): ReportResult {
         var result = getPayTicketHtmlContent(context)
-        result = if (!invoiceHeader.invoiceHeadTaName.isNullOrEmpty()) {
-            result.replace(
+        if (!result.found) {
+            return result
+        }
+        var htmlContent = result.htmlContent
+        htmlContent = if (!invoiceHeader.invoiceHeadTaName.isNullOrEmpty()) {
+            htmlContent.replace(
                 "{table_name}",
                 invoiceHeader.invoiceHeadTaName ?: ""
             ).replace(
@@ -901,13 +938,13 @@ object PrinterUtils {
                 "block"
             )
         } else {
-            result.replace(
+            htmlContent.replace(
                 "{table_no_display}",
                 "none"
             )
         }
-        result = if (!invoiceHeader.invoiceHeadOrderNo.isNullOrEmpty()) {
-            result.replace(
+        htmlContent = if (!invoiceHeader.invoiceHeadOrderNo.isNullOrEmpty()) {
+            htmlContent.replace(
                 "{order_no}",
                 invoiceHeader.invoiceHeadOrderNo ?: ""
             ).replace(
@@ -915,13 +952,13 @@ object PrinterUtils {
                 "block"
             )
         } else {
-            result.replace(
+            htmlContent.replace(
                 "{order_no_display}",
                 "none"
             )
         }
-        result = if (!invoiceHeader.invoiceHeadTransNo.isNullOrEmpty() || invoiceHeader.invoiceHeadTransNo.equals("0")) {
-            result.replace(
+        htmlContent = if (!invoiceHeader.invoiceHeadTransNo.isNullOrEmpty() || invoiceHeader.invoiceHeadTransNo.equals("0")) {
+            htmlContent.replace(
                 "{trans_no}",
                 invoiceHeader.invoiceHeadTransNo ?: ""
             ).replace(
@@ -929,13 +966,13 @@ object PrinterUtils {
                 "block"
             )
         } else {
-            result.replace(
+            htmlContent.replace(
                 "{trans_no_display}",
                 "none"
             )
         }
 
-        result = result.replace(
+        htmlContent = htmlContent.replace(
             "{invoice_time}",
             DateHelper.getDateInFormat(
                 invoiceHeader.invoiceHeadTimeStamp ?: Date(
@@ -948,7 +985,7 @@ object PrinterUtils {
         )
         if (invItemModels.isNotEmpty()) {
             val regex = "\\{rows\\}(.*?)\\{rows\\}".toRegex()
-            val matchResult = regex.find(result)
+            val matchResult = regex.find(htmlContent)
             val extractedSubstring = matchResult?.groups?.get(1)?.value ?: "<tr><td>item_name</td></tr> <tr><td>item_qty x item_price</td> <td>item_amount</td> </tr>"
             val trs = StringBuilder("")
             invItemModels.forEach { item ->
@@ -966,12 +1003,15 @@ object PrinterUtils {
                     )
                 )
             }
-            result = result.replace(
+            htmlContent = htmlContent.replace(
                 regex,
                 trs.toString()
             )
         }
-        return result
+        return ReportResult(
+            true,
+            htmlContent
+        )
     }
 
     suspend fun print(
@@ -982,10 +1022,11 @@ object PrinterUtils {
             thirdParty: ThirdParty?,
             user: User?,
             company: Company?,
-            printers: MutableList<PosPrinter>
+            printers: MutableList<PosPrinter>,
+            reportResult: ReportResult?
     ) {
         if (!SettingsModel.cashPrinter.isNullOrEmpty()) {
-            val htmlContent = getInvoiceReceiptHtmlContent(
+            val reportRes = reportResult ?: getInvoiceReceiptHtmlContent(
                 context = context,
                 invoiceHeader = invoiceHeader,
                 invoiceItemModels = invoiceItemModels,
@@ -994,18 +1035,20 @@ object PrinterUtils {
                 user = user,
                 company = company
             )
-            val output = parseHtmlContent(htmlContent)
-            val printerDetails = SettingsModel.cashPrinter?.split(":") ?: listOf()
-            val size = printerDetails.size
-            val ip = if (size > 0) printerDetails[0] else ""
-            val port = if (size > 1) printerDetails[1] else ""
-            printOutput(
-                context = context,
-                output = output,
-                printerName = SettingsModel.cashPrinter,
-                printerIP = ip,
-                printerPort = port.toIntOrNull() ?: -1
-            )
+            if (reportRes.found) {
+                val output = parseHtmlContent(reportRes.htmlContent)
+                val printerDetails = SettingsModel.cashPrinter?.split(":") ?: listOf()
+                val size = printerDetails.size
+                val ip = if (size > 0) printerDetails[0] else ""
+                val port = if (size > 1) printerDetails[1] else ""
+                printOutput(
+                    context = context,
+                    output = output,
+                    printerName = SettingsModel.cashPrinter,
+                    printerIP = ip,
+                    printerPort = port.toIntOrNull() ?: -1
+                )
+            }
         }
 
         val itemsPrintersMap = invoiceItemModels.groupBy { it.invoiceItem.itemPrinter ?: "" }
@@ -1013,19 +1056,21 @@ object PrinterUtils {
             if (entry.key.isNotEmpty()) {
                 val itemsPrinter = printers.firstOrNull { it.posPrinterId == entry.key }
                 if (itemsPrinter != null) {
-                    val htmlContent = getItemReceiptHtmlContent(
+                    val reportResult = getItemReceiptHtmlContent(
                         context = context,
                         invoiceHeader = invoiceHeader,
                         invItemModels = entry.value
                     )
-                    val output = parseHtmlContent(htmlContent)
-                    printOutput(
-                        context = context,
-                        output = output,
-                        printerName = itemsPrinter.posPrinterName,
-                        printerIP = itemsPrinter.posPrinterHost,
-                        printerPort = itemsPrinter.posPrinterPort
-                    )
+                    if (reportResult.found) {
+                        val output = parseHtmlContent(reportResult.htmlContent)
+                        printOutput(
+                            context = context,
+                            output = output,
+                            printerName = itemsPrinter.posPrinterName,
+                            printerIP = itemsPrinter.posPrinterHost,
+                            printerPort = itemsPrinter.posPrinterPort
+                        )
+                    }
                 }
             }
         }

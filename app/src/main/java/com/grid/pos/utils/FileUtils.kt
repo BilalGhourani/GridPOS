@@ -17,6 +17,7 @@ import com.grid.pos.App
 import com.grid.pos.data.AppDatabase
 import com.grid.pos.di.AppModule
 import com.grid.pos.model.FileModel
+import com.grid.pos.model.SettingsModel
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import java.io.BufferedReader
 import java.io.File
@@ -674,8 +675,7 @@ object FileUtils {
     }
 
     fun getFileModels(
-            directoryFile: File,
-            currentLanguage: String?
+            directoryFile: File
     ): MutableList<FileModel> {
         val result = mutableListOf<FileModel>()
 
@@ -685,8 +685,7 @@ object FileUtils {
                 if (file.isDirectory) {
                     result.addAll(
                         getFileModels(
-                            file,
-                            currentLanguage
+                            file
                         )
                     )
                 } else {
@@ -696,7 +695,7 @@ object FileUtils {
                         fileName = fileName,
                         parentName = directoryName,
                         isPaySlip = fileName.contains("payslip", ignoreCase = true),
-                        selected = currentLanguage.equals(directoryName,ignoreCase = true)
+                        selected = SettingsModel.defaultReportLanguage.equals(directoryName,ignoreCase = true)
                     )
                     result.add(fileModel)
                 }

@@ -1,6 +1,5 @@
 package com.grid.pos.model
 
-import com.google.firebase.firestore.Exclude
 import com.grid.pos.data.DataModel
 
 enum class CONNECTION_TYPE(val key: String) {
@@ -41,20 +40,28 @@ data class OrientationModel(
     }
 }
 
-enum class LANGUAGES(val key: String) {
-    Default("Default"), Arabic("Arabic"), English("English"), French("French")
+enum class Language(
+        val code: String,
+        val value: String
+) {
+    Default("default","Default"),
+    Arabic("ar","Arabic"),
+    English("en","English"),
+    French("fr","French"),
+    Spanish("es","Spanish"),
+    Portuguese("pt","Portuguese")
 }
 
 data class ReportLanguage(
-        val language: String
+        val language: Language
 ) : DataModel() {
 
     override fun getId(): String {
-        return language
+        return language.code
     }
 
     override fun getName(): String {
-        return language
+        return language.value
     }
 
     override fun search(key: String): Boolean {

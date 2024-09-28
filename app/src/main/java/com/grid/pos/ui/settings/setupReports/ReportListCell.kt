@@ -35,11 +35,10 @@ import com.grid.pos.ui.theme.LightGreen
 fun ReportListCell(
     modifier: Modifier = Modifier,
     fileModel: FileModel,
-    onSelect: () -> Unit = {},
-    onOption: () -> Unit = {},
+    onClick: () -> Unit = {},
 ) {
     Card(
-        modifier = modifier.clickable { onSelect.invoke() },
+        modifier = modifier.clickable { onClick.invoke() },
         colors = CardDefaults.cardColors(
             containerColor = Color.White,
         ),
@@ -65,16 +64,6 @@ fun ReportListCell(
                 ),
                 color = if (fileModel.selected) LightGreen else SettingsModel.textColor
             )
-            Spacer(modifier = Modifier.width(5.dp))
-            IconButton(modifier = Modifier
-                .size(25.dp),
-                onClick = { onOption.invoke() }) {
-                Icon(
-                    imageVector = Icons.Default.MoreVert,
-                    contentDescription = "Delete",
-                    tint = SettingsModel.buttonColor
-                )
-            }
             Spacer(modifier = Modifier.width(5.dp))
         }
         HorizontalDivider(color = Color.LightGray)

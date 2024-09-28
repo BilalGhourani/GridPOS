@@ -69,7 +69,9 @@ import com.grid.pos.R
 import com.grid.pos.data.Company.Company
 import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.model.CONNECTION_TYPE
+import com.grid.pos.model.Language
 import com.grid.pos.model.PopupModel
+import com.grid.pos.model.ReportLanguage
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.ColorPickerPopup
 import com.grid.pos.ui.common.SearchableDropdownMenuEx
@@ -129,6 +131,7 @@ fun SettingsView(
     val keyboardController = LocalSoftwareKeyboardController.current
 
     var orientationType by remember { mutableStateOf(SettingsModel.orientationType) }
+    var defaultReportLanguage by remember { mutableStateOf(SettingsModel.defaultReportLanguage) }
     var cashPrinterState by remember { mutableStateOf(SettingsModel.cashPrinter ?: "") }
     var showItemsInPOS by remember { mutableStateOf(SettingsModel.showItemsInPOS) }
     var showTax by remember { mutableStateOf(SettingsModel.showTax) }
@@ -262,7 +265,8 @@ fun SettingsView(
                                 modifier = Modifier.padding(10.dp),
                                 enableSearch = false,
                                 color = LightGrey,
-                                label = connectionTypeState.ifEmpty { "Select Type" },
+                                placeholder = "Database",
+                                label = connectionTypeState.ifEmpty { "Select Database" },
                                 leadingIcon = {
                                     if (connectionTypeState == CONNECTION_TYPE.SQL_SERVER.key) {
                                         Icon(
@@ -432,6 +436,7 @@ fun SettingsView(
                                         modifier = Modifier.padding(10.dp),
                                         enableSearch = false,
                                         color = LightGrey,
+                                        placeholder = "Selected Company",
                                         label = localCompanyName.ifEmpty { "Select Company" }) { company ->
                                         company as Company
                                         localCompanyID = company.companyId
@@ -619,6 +624,7 @@ fun SettingsView(
                             modifier = Modifier.padding(10.dp),
                             enableSearch = false,
                             color = LightGrey,
+                            placeholder = "Orientation",
                             label = orientationType.ifEmpty { "Select Type" },
                         ) { type ->
                             orientationType = type.getName()
@@ -629,6 +635,25 @@ fun SettingsView(
                                     orientationType
                                 )
                                 activityScopedViewModel.changeAppOrientation(orientationType)
+                            }
+                        }
+
+                        SearchableDropdownMenuEx(
+                            items = Utils.getReportLanguages(false).toMutableList(),
+                            modifier = Modifier.padding(10.dp),
+                            enableSearch = false,
+                            color = LightGrey,
+                            placeholder = "Report Language",
+                            label = defaultReportLanguage,
+                        ) { lang ->
+                            lang as ReportLanguage
+                            defaultReportLanguage = lang.getName()
+                            SettingsModel.defaultReportLanguage = defaultReportLanguage
+                            CoroutineScope(Dispatchers.IO).launch {
+                                DataStoreManager.putString(
+                                    DataStoreManager.DataStoreKeys.REPORT_LANGUAGE.key,
+                                    defaultReportLanguage
+                                )
                             }
                         }
 

@@ -14,6 +14,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.grid.pos.App
 import com.grid.pos.model.CONNECTION_TYPE
+import com.grid.pos.model.Language
 import com.grid.pos.model.ORIENTATION_TYPE
 import com.grid.pos.model.SettingsModel
 import kotlinx.coroutines.flow.first
@@ -201,6 +202,10 @@ object DataStoreManager {
             DataStoreKeys.ORIENTATION_TYPE.key,
             ORIENTATION_TYPE.DEVICE_SENSOR.key
         )
+        SettingsModel.defaultReportLanguage = getString(
+            DataStoreKeys.REPORT_LANGUAGE.key,
+            Language.English.code
+        )
         SettingsModel.showTax = getBoolean(
             DataStoreKeys.SHOW_TAX.key,
             false
@@ -290,7 +295,7 @@ object DataStoreManager {
         SQL_SERVER_DB_USER("SQL_SERVER_DB_USER"), SQL_SERVER_DB_PASSWORD("SQL_SERVER_DB_PASSWORD"), SQL_SERVER_COMPANY_ID("SQL_SERVER_COMPANY_ID"), IS_SQL_SERVER_WEB_DB("IS_SQL_SERVER_WEB_DB"),
         CASH_PRINTER("CASH_PRINTER"),
 
-        CONNECTION_TYPE("CONNECTION_TYPE"), SHOW_ITEMS_IN_POS("SHOW_ITEMS_IN_POS"), ORIENTATION_TYPE("ORIENTATION_TYPE"), SHOW_TAX("SHOW_TAX"), SHOW_TAX1(
+        CONNECTION_TYPE("CONNECTION_TYPE"), SHOW_ITEMS_IN_POS("SHOW_ITEMS_IN_POS"), ORIENTATION_TYPE("ORIENTATION_TYPE"),REPORT_LANGUAGE("REPORT_LANGUAGE"), SHOW_TAX("SHOW_TAX"), SHOW_TAX1(
             "SHOW_TAX1"
         ),
         SHOW_TAX2("SHOW_TAX2"), SHOW_PRICE_IN_ITEM_BTN("SHOW_PRICE_IN_ITEM_BTN"),

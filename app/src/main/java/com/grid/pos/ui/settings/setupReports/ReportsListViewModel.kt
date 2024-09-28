@@ -7,8 +7,6 @@ import com.grid.pos.App
 import com.grid.pos.data.Company.CompanyRepository
 import com.grid.pos.model.Event
 import com.grid.pos.model.FileModel
-import com.grid.pos.model.SettingsModel
-import com.grid.pos.utils.DataStoreManager
 import com.grid.pos.utils.FileUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -34,7 +32,7 @@ class ReportsListViewModel @Inject constructor(
 
     fun loadData() {
         viewModelScope.launch(Dispatchers.IO) {
-            fetchPayslips(App.getInstance())
+            fetchReportList(App.getInstance())
         }
     }
 
@@ -45,16 +43,12 @@ class ReportsListViewModel @Inject constructor(
         )
     }
 
-    private suspend fun fetchPayslips(context: Context) {
+    private suspend fun fetchReportList(context: Context) {
         val file = File(
             context.filesDir,
             "Reports"
         )
-        val language = Locale.getDefault().language
-        val allReports = FileUtils.getFileModels(
-            file,
-            language
-        )
+        val allReports = FileUtils.getFileModels(file)
         val payslips = mutableListOf<FileModel>()
         val payTickets = mutableListOf<FileModel>()
         allReports.forEach {

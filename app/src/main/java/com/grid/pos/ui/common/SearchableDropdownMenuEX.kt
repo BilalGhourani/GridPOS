@@ -52,6 +52,7 @@ import com.grid.pos.model.SettingsModel
 fun SearchableDropdownMenuEx(
     modifier: Modifier = Modifier,
     items: MutableList<DataModel> = mutableListOf(),
+    placeholder: String? = null,
     label: String = "",
     selectedId: String? = null,
     showSelected: Boolean = true,
@@ -60,6 +61,8 @@ fun SearchableDropdownMenuEx(
     leadingIcon: @Composable ((Modifier) -> Unit)? = null,
     cornerRadius: Dp = 15.dp,
     height :Dp = 70.dp,
+    minHeight : Dp = 50.dp,// 1 row as minimum
+    maxHeight : Dp = 170.dp,// 4 rows as maximum
     onLeadingIconClick: () -> Unit = {},
     onLoadItems: () -> Unit = {},
     onSelectionChange: (DataModel) -> Unit = {},
@@ -93,6 +96,15 @@ fun SearchableDropdownMenuEx(
             .fillMaxWidth()
             .background(color = color)
     ) {
+        if (!placeholder.isNullOrEmpty()) {
+            // If text is present, show placeholder at the top
+            Text(
+                text = placeholder,
+                color = SettingsModel.textColor,
+                fontSize = 12.sp,
+                modifier = Modifier.padding(start = 8.dp, bottom = 4.dp)
+            )
+        }
         Row(modifier = Modifier
             .fillMaxWidth()
             .height(height)
@@ -160,6 +172,7 @@ fun SearchableDropdownMenuEx(
             }
             Surface(
                 modifier = Modifier.padding(top = 2.dp),
+                tonalElevation = 5.dp,
                 shadowElevation = 5.dp,
                 color = color,
                 contentColor = color,
@@ -203,9 +216,10 @@ fun SearchableDropdownMenuEx(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .wrapContentHeight()
+                                .padding(top = 10.dp)
                                 .heightIn(
-                                    min = 40.dp,
-                                    max = 160.dp
+                                    min = minHeight,
+                                    max = maxHeight
                                 ),
                             contentPadding = PaddingValues(horizontal = 10.dp)
                         ) {
