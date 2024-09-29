@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircleOutline
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -33,9 +34,9 @@ import com.grid.pos.ui.theme.LightGreen
 
 @Composable
 fun ReportListCell(
-    modifier: Modifier = Modifier,
-    fileModel: FileModel,
-    onClick: () -> Unit = {},
+        modifier: Modifier = Modifier,
+        fileModel: FileModel,
+        onClick: () -> Unit = {},
 ) {
     Card(
         modifier = modifier.clickable { onClick.invoke() },
@@ -64,6 +65,15 @@ fun ReportListCell(
                 ),
                 color = if (fileModel.selected) LightGreen else SettingsModel.textColor
             )
+            if (fileModel.selected) {
+                Spacer(modifier = Modifier.width(5.dp))
+                Icon(
+                    modifier = Modifier.size(25.dp),
+                    imageVector = Icons.Default.CheckCircleOutline,
+                    contentDescription = "Delete",
+                    tint = LightGreen
+                )
+            }
             Spacer(modifier = Modifier.width(5.dp))
         }
         HorizontalDivider(color = Color.LightGray)
