@@ -9,6 +9,7 @@ import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.PropertyName
 import com.google.firebase.firestore.ServerTimestamp
 import com.grid.pos.data.DataModel
+import com.grid.pos.data.Invoice.Invoice
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.DateHelper
 import com.grid.pos.utils.Utils
@@ -347,5 +348,13 @@ data class InvoiceHeader(
             "hi_userstamp" to invoiceHeadUserStamp,
             "hi_datetime" to invoiceHeadDateTime,
         )
+    }
+
+    @Exclude
+    fun didChanged(invoiceHeader: InvoiceHeader): Boolean {
+        return !invoiceHeader.invoiceHeadNote.equals(invoiceHeadNote) ||
+                !invoiceHeader.invoiceHeadCashName.equals(invoiceHeadCashName) ||
+                invoiceHeader.invoiceHeadDiscount != invoiceHeadDiscount ||
+                invoiceHeader.invoiceHeadDiscountAmount != invoiceHeadDiscountAmount
     }
 }

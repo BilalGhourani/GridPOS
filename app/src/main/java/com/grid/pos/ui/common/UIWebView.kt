@@ -29,7 +29,6 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavController
 import com.grid.pos.ActivityScopedViewModel
 import com.grid.pos.model.SettingsModel
-import com.grid.pos.model.UserType
 import com.grid.pos.ui.theme.GridPOSTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -114,7 +113,12 @@ fun UIWebView(
                             .padding(10.dp),
                         text = "Print"
                     ) {
-                        activityViewModel.print(context,reportResultState.value)/*val printManager = context.getSystemService(Context.PRINT_SERVICE) as PrintManager
+                        activityViewModel.print(
+                            context = context,
+                            printInvoice = true,
+                            printTickets = activityViewModel.printTickets,
+                            reportResult = reportResultState.value
+                        )/*val printManager = context.getSystemService(Context.PRINT_SERVICE) as PrintManager
                     val jobName = "webpage_" + System.currentTimeMillis()
                     val printAdapter = webView.createPrintDocumentAdapter(jobName)
 

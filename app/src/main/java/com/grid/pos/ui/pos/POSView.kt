@@ -83,8 +83,12 @@ import com.grid.pos.ui.pos.components.InvoiceCashView
 import com.grid.pos.ui.pos.components.InvoiceFooterView
 import com.grid.pos.ui.pos.components.InvoiceHeaderDetails
 import com.grid.pos.ui.theme.GridPOSTheme
+import com.grid.pos.utils.PrinterUtils
 import com.grid.pos.utils.Utils
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @SuppressLint("MutableCollectionMutableState")
 @OptIn(ExperimentalMaterial3Api::class)
@@ -121,11 +125,11 @@ fun POSView(
                 onSuccess = { receipt, invoiceItems ->
                     invoicesState.clear()
                     invoicesState.addAll(invoiceItems)
+                    activityViewModel.initialInvoiceItemModels = invoiceItems
                     invoiceHeaderState.value = POSUtils.refreshValues(
                         invoiceItems,
                         invoiceHeader
                     )
-                    activityViewModel.invoiceItemModels = invoiceItems
                     activityViewModel.posReceipt = receipt
                     isInvoiceEdited = false
                 })
@@ -208,7 +212,7 @@ fun POSView(
         invoiceHeaderState.value = activityViewModel.invoiceHeader
     }
 
-    fun cashLoadedData(){
+    fun cashLoadedData() {
         activityViewModel.invoiceHeaders = state.invoiceHeaders.toMutableList()
         activityViewModel.thirdParties = state.thirdParties.toMutableList()
         activityViewModel.families = state.families.toMutableList()
@@ -223,11 +227,37 @@ fun POSView(
             isPayBottomSheetVisible = false
             if (activityViewModel.shouldPrintInvoice) {
                 activityViewModel.invoiceItemModels = invoicesState
+                activityViewModel.deletedInvoiceItems = state.itemsToDelete
                 activityViewModel.invoiceHeader = invoiceHeaderState.value
                 cashLoadedData()
                 navController?.navigate("UIWebView")
             } else if (activityViewModel.isFromTable) {
-                navController?.navigateUp()
+                if (activityViewModel.printTickets) {
+                    state.isLoading = true
+                    val invoices = invoicesState.filter { it.invoice.isNew() || it.shouldPrint }.toMutableList()
+                    invoices.addAll(state.itemsToDelete)
+                    if(invoices.isNotEmpty()) {
+                        CoroutineScope(Dispatchers.Default).launch {
+                            activityViewModel.invoiceHeader = invoiceHeaderState.value
+                            cashLoadedData()
+                            PrinterUtils.printTickets(
+                                context = context,
+                                invoiceHeader = invoiceHeaderState.value,
+                                invoiceItemModels = invoices,
+                                printers = activityViewModel.printers
+                            )
+                            withContext(Dispatchers.Main) {
+                                state.isLoading = false
+                                navController?.navigateUp()
+                            }
+                        }
+                    }else{
+                        navController?.navigateUp()
+                    }
+                } else {
+                    navController?.navigateUp()
+                }
+
             } else {
                 clear()
             }
@@ -257,13 +287,12 @@ fun POSView(
             popupState = PopupState.DISCARD_INVOICE
             isSavePopupVisible = true
         } else {
-            activityViewModel.clearPosValues()
             cashLoadedData()
+            activityViewModel.clearPosValues()
             if (SettingsModel.getUserType() == UserType.POS) {
                 popupState = PopupState.BACK_PRESSED
                 isSavePopupVisible = true
             } else {
-                //viewModel.closeConnectionIfNeeded()
                 navController?.navigateUp()
             }
         }
@@ -367,6 +396,7 @@ fun POSView(
                             if (!isEditBottomSheetVisible && !isAddItemBottomSheetVisible && !isPayBottomSheetVisible) {
                                 IconButton(onClick = {
                                     activityViewModel.invoiceItemModels = invoicesState
+                                    activityViewModel.deletedInvoiceItems = state.itemsToDelete
                                     activityViewModel.invoiceHeader = invoiceHeaderState.value
                                     cashLoadedData()
                                     navController?.navigate("SettingsView")
@@ -446,9 +476,8 @@ fun POSView(
                             },
                             onRemove = { index ->
                                 state.itemsToDelete.add(invoicesState.removeAt(index))
-                                activityViewModel.invoiceItemModels = invoicesState
                                 invoiceHeaderState.value = POSUtils.refreshValues(
-                                    activityViewModel.invoiceItemModels,
+                                    invoicesState,
                                     invoiceHeaderState.value
                                 )
                             })
@@ -481,10 +510,10 @@ fun POSView(
                                                         for (i in 0 until count) {
                                                             val invoiceItemModel = InvoiceItemModel()
                                                             invoiceItemModel.setItem(itm)
+                                                            invoiceItemModel.shouldPrint = true
                                                             invoicesState.add(invoiceItemModel)
-                                                            activityViewModel.invoiceItemModels = invoicesState
                                                             invoiceHeaderState.value = POSUtils.refreshValues(
-                                                                activityViewModel.invoiceItemModels,
+                                                                invoicesState,
                                                                 invoiceHeaderState.value
                                                             )
                                                         }
@@ -550,6 +579,7 @@ fun POSView(
                             },
                             onAddItem = {
                                 activityViewModel.invoiceItemModels = invoicesState
+                                activityViewModel.deletedInvoiceItems = state.itemsToDelete
                                 activityViewModel.invoiceHeader = invoiceHeaderState.value
                                 cashLoadedData()
                                 state.items.clear()
@@ -559,6 +589,7 @@ fun POSView(
                             },
                             onAddThirdParty = {
                                 activityViewModel.invoiceItemModels = invoicesState
+                                activityViewModel.deletedInvoiceItems = state.itemsToDelete
                                 activityViewModel.invoiceHeader = invoiceHeaderState.value
                                 cashLoadedData()
                                 state.thirdParties.clear()
@@ -570,10 +601,10 @@ fun POSView(
                                 isInvoiceEdited = true
                                 val invoiceItemModel = InvoiceItemModel()
                                 invoiceItemModel.setItem(item)
+                                invoiceItemModel.shouldPrint = true
                                 invoicesState.add(invoiceItemModel)
-                                activityViewModel.invoiceItemModels = invoicesState
                                 invoiceHeaderState.value = POSUtils.refreshValues(
-                                    activityViewModel.invoiceItemModels,
+                                    invoicesState,
                                     invoiceHeaderState.value
                                 )
                                 isAddItemBottomSheetVisible = false
@@ -610,12 +641,12 @@ fun POSView(
                             itemList.forEach { item ->
                                 val invoiceItemModel = InvoiceItemModel()
                                 invoiceItemModel.setItem(item)
+                                invoiceItemModel.shouldPrint = true
                                 invoices.add(invoiceItemModel)
                             }
                             invoicesState.addAll(invoices)
-                            activityViewModel.invoiceItemModels = invoicesState
                             invoiceHeaderState.value = POSUtils.refreshValues(
-                                activityViewModel.invoiceItemModels,
+                                invoicesState,
                                 invoiceHeaderState.value
                             )
                             isAddItemBottomSheetVisible = false
@@ -643,10 +674,13 @@ fun POSView(
                         ),
                     onSave = { invHeader, itemModel, isChanged ->
                         isInvoiceEdited = isInvoiceEdited || isChanged
+                        val inv = invoicesState[itemIndexToEdit]
+                        itemModel.shouldPrint = activityViewModel.isInvoiceItemQtyChanged(
+                            inv.invoice.invoiceId,
+                            inv.invoice.invoiceQuantity
+                        )
                         invoicesState[itemIndexToEdit] = itemModel
-                        activityViewModel.invoiceItemModels = invoicesState
                         invoiceHeaderState.value = invHeader
-                        activityViewModel.invoiceHeader = invHeader
                         isEditBottomSheetVisible = false
                     },
                     onClose = {
@@ -679,15 +713,14 @@ fun POSView(
                     itemList.forEach { item ->
                         val invoiceItemModel = InvoiceItemModel()
                         invoiceItemModel.setItem(item)
+                        invoiceItemModel.shouldPrint = true
                         invoices.add(invoiceItemModel)
                     }
                     invoicesState.addAll(invoices)
-                    activityViewModel.invoiceItemModels = invoicesState
                     invoiceHeaderState.value = POSUtils.refreshValues(
-                        activityViewModel.invoiceItemModels,
+                        invoicesState,
                         invoiceHeaderState.value
                     )
-                    activityViewModel.invoiceHeader = invoiceHeaderState.value
                     isAddItemBottomSheetVisible = false
                 }
             }
@@ -733,6 +766,7 @@ fun POSView(
                         activityViewModel.posReceipt = receipt
                         invoiceHeaderState.value.invoiceHeadChange = change
                         activityViewModel.shouldPrintInvoice = false
+                        activityViewModel.printTickets = activityViewModel.isFromTable
                         viewModel.saveInvoiceHeader(
                             invoiceHeader = invoiceHeaderState.value,
                             posReceipt = activityViewModel.posReceipt,
@@ -745,6 +779,7 @@ fun POSView(
                         invoiceHeaderState.value.invoiceHeadChange = change
                         invoiceHeaderState.value.invoiceHeadPrinted += 1
                         activityViewModel.shouldPrintInvoice = true
+                        activityViewModel.printTickets = activityViewModel.isFromTable
                         viewModel.saveInvoiceHeader(
                             invoiceHeader = invoiceHeaderState.value,
                             posReceipt = activityViewModel.posReceipt,
@@ -757,6 +792,7 @@ fun POSView(
                         invoiceHeaderState.value.invoiceHeadChange = change
                         invoiceHeaderState.value.invoiceHeadPrinted += 1
                         activityViewModel.shouldPrintInvoice = true
+                        activityViewModel.printTickets = activityViewModel.isFromTable
                         viewModel.saveInvoiceHeader(
                             invoiceHeader = invoiceHeaderState.value,
                             posReceipt = activityViewModel.posReceipt,

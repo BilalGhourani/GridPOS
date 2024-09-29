@@ -3,7 +3,6 @@ package com.grid.pos
 import android.content.Context
 import android.content.Intent
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.grid.pos.data.Company.Company
 import com.grid.pos.data.Company.CompanyRepository
@@ -17,7 +16,6 @@ import com.grid.pos.data.Item.ItemRepository
 import com.grid.pos.data.PosPrinter.PosPrinter
 import com.grid.pos.data.PosPrinter.PosPrinterRepository
 import com.grid.pos.data.PosReceipt.PosReceipt
-import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.data.Settings.SettingsRepository
 import com.grid.pos.data.ThirdParty.ThirdParty
 import com.grid.pos.data.ThirdParty.ThirdPartyRepository
@@ -58,8 +56,10 @@ class ActivityScopedViewModel @Inject constructor(
     var invoiceHeader: InvoiceHeader = InvoiceHeader()
     var pendingInvHeadState: InvoiceHeader? = null
     var invoiceItemModels: MutableList<InvoiceItemModel> = mutableListOf()
+    var initialInvoiceItemModels: MutableList<InvoiceItemModel> = mutableListOf()
+    var deletedInvoiceItems: MutableList<InvoiceItemModel> = mutableListOf()
     var shouldPrintInvoice: Boolean = false
-    var printInvoiceWithOrder: Boolean = false
+    var printTickets: Boolean = false
     var shouldLoadInvoice: Boolean = false
     var isFromTable: Boolean = false
     var companies: MutableList<Company> = mutableListOf()
@@ -82,7 +82,8 @@ class ActivityScopedViewModel @Inject constructor(
             openConnectionIfNeeded()
             fetchSettings()
             fetchCompanies()
-            fetchCurrencies()/*
+            fetchCurrencies()
+            fetchPrinters()/*
             * no need to cash all data after the login
             * *//* fetchThirdParties()
             fetchFamilies()
@@ -184,7 +185,12 @@ class ActivityScopedViewModel @Inject constructor(
         isFromTable = false
     }
 
-    fun print(context: Context,reportResult: ReportResult?) {
+    fun print(
+            context: Context,
+            printInvoice: Boolean,
+            printTickets: Boolean,
+            reportResult: ReportResult? = null
+    ) {
         viewModelScope.launch(Dispatchers.IO) {
             val thirdParty = if (invoiceHeader.invoiceHeadThirdPartyName.isNullOrEmpty()) {
                 thirdParties.firstOrNull { it.thirdPartyDefault }
@@ -211,7 +217,9 @@ class ActivityScopedViewModel @Inject constructor(
                 user,
                 SettingsModel.currentCompany,
                 printers,
-                reportResult
+                reportResult,
+                printInvoice,
+                printTickets
             )
         }
     }
@@ -340,6 +348,18 @@ class ActivityScopedViewModel @Inject constructor(
 
     fun isLoggedIn(): Boolean {
         return activityState.value.isLoggedIn
+    }
+
+    fun isInvoiceItemQtyChanged(invoiceItemId:String,newQty:Double) : Boolean{
+        if(invoiceItemId.isEmpty()){
+            return false;
+        }
+        initialInvoiceItemModels.forEach {
+            if(it.invoice.invoiceId == invoiceItemId && it.invoice.invoiceQuantity != newQty){
+                return true
+            }
+        }
+        return false
     }
 
     fun logout() {

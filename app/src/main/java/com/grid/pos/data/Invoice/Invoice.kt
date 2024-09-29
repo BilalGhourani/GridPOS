@@ -10,6 +10,7 @@ import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.PropertyName
 import com.google.firebase.firestore.ServerTimestamp
 import com.grid.pos.data.DataModel
+import com.grid.pos.data.Item.Item
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.Utils
 import java.util.Date
@@ -266,6 +267,7 @@ data class Invoice(
         }
         return invoiceTax1
     }
+
     @Exclude
     fun getTax1Value(amount: Double = getAmount()): Double {
         return amount.times(getTax1().times(0.01))
@@ -276,7 +278,6 @@ data class Invoice(
         val netAmount = amount.div(1 + (getTax1().times(0.01)))
         return amount - netAmount
     }
-
 
     @Exclude
     fun getTax2(): Double {
@@ -297,7 +298,6 @@ data class Invoice(
         return amount - netAmount
     }
 
-
     @Exclude
     fun getInvoiceCostOrZero(): Double {
         if (invoiceCost.isNaN()) {
@@ -314,10 +314,14 @@ data class Invoice(
         return invoiceRemQty
     }
 
-
     @Exclude
     fun getNetAmount(): Double {
         val amount = getAmount() - getDiscountAmount()
         return amount + getTaxValue(amount) + getTax1Value(amount) + getTax2Value(amount)
+    }
+
+    @Exclude
+    fun didChanged(invoice: Invoice): Boolean {
+        return !invoice.invoiceExtraName.equals(invoiceExtraName) || !invoice.invoiceNote.equals(invoiceNote) || invoice.invoicePrice != invoicePrice || invoice.invoiceDiscount != invoiceDiscount || invoice.invoiceDiscamt != invoiceDiscamt || invoice.invoiceQuantity != invoiceQuantity || invoice.invoiceTax != invoiceTax || invoice.invoiceTax1 != invoiceTax1 || invoice.invoiceTax2 != invoiceTax2
     }
 }

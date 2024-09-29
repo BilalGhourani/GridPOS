@@ -323,42 +323,46 @@ object PrinterUtils {
             val matchResult = regex.find(htmlContent)
             val extractedSubstring = matchResult?.groups?.get(1)?.value ?: "<tr><td style=\"font-size: 16px;\">item_name</td></tr> <tr><td style=\"font-size: 16px;\">item_qty x item_price</td> <td style=\"font-size: 16px;\">item_amount</td> </tr>"
             val trs = StringBuilder("")
+            var size = 0
             invoiceItemModels.forEach { item ->
-                discountAmount += item.invoice.getDiscountAmount()
-                val qty = String.format(
-                    "%,.0f",
-                    item.invoice.invoiceQuantity
-                )
-                val price = String.format(
-                    "%,.2f",
-                    item.invoice.getPrice()
-                )
-                val amount = String.format(
-                    "%,.2f",
-                    item.invoice.getAmount()
-                )
-                trs.append(
-                    extractedSubstring.replace(
-                        "item_name",
-                        item.getFullName()
-                    ).replace(
-                        "item_qty",
-                        qty
-                    ).replace(
-                        "item_price",
-                        price
-                    ).replace(
-                        "item_amount",
-                        amount
+                if (!item.isDeleted) {
+                    size++
+                    discountAmount += item.invoice.getDiscountAmount()
+                    val qty = String.format(
+                        "%,.0f",
+                        item.invoice.invoiceQuantity
                     )
-                )
+                    val price = String.format(
+                        "%,.2f",
+                        item.invoice.getPrice()
+                    )
+                    val amount = String.format(
+                        "%,.2f",
+                        item.invoice.getAmount()
+                    )
+                    trs.append(
+                        extractedSubstring.replace(
+                            "item_name",
+                            item.getFullName()
+                        ).replace(
+                            "item_qty",
+                            qty
+                        ).replace(
+                            "item_price",
+                            price
+                        ).replace(
+                            "item_amount",
+                            amount
+                        )
+                    )
+                }
             }
             htmlContent = htmlContent.replace(
                 regex,
                 trs.toString()
             ).replace(
                 "{numberofitemsvalue}",
-                "${invoiceItemModels.size}"
+                "$size"
             )
         }
         val invAmountVal = StringBuilder("")
@@ -924,7 +928,7 @@ object PrinterUtils {
             invoiceHeader: InvoiceHeader,
             invItemModels: List<InvoiceItemModel>
     ): ReportResult {
-        var result = getPayTicketHtmlContent(context)
+        val result = getPayTicketHtmlContent(context)
         if (!result.found) {
             return result
         }
@@ -993,13 +997,18 @@ object PrinterUtils {
                     "%,.2f",
                     item.invoice.invoiceQuantity
                 )
+                val itemName = if(item.isDeleted){
+                    item.getFullName()+" - Deleted"
+                }else{
+                    item.getFullName()
+                }
                 trs.append(
                     extractedSubstring.replace(
                         "item_qty",
                         qty
                     ).replace(
                         "item_name",
-                        item.getFullName()
+                       itemName
                     )
                 )
             }
@@ -1023,9 +1032,11 @@ object PrinterUtils {
             user: User?,
             company: Company?,
             printers: MutableList<PosPrinter>,
-            reportResult: ReportResult?
+            reportResult: ReportResult?,
+            printInvoice: Boolean = true,
+            printTickets: Boolean = true
     ) {
-        if (!SettingsModel.cashPrinter.isNullOrEmpty()) {
+        if (printInvoice && !SettingsModel.cashPrinter.isNullOrEmpty()) {
             val reportRes = reportResult ?: getInvoiceReceiptHtmlContent(
                 context = context,
                 invoiceHeader = invoiceHeader,
@@ -1051,6 +1062,22 @@ object PrinterUtils {
             }
         }
 
+        if (printTickets) {
+            printTickets(
+                context = context,
+                invoiceHeader = invoiceHeader,
+                invoiceItemModels = invoiceItemModels,
+                printers = printers
+            )
+        }
+    }
+
+    suspend fun printTickets(
+            context: Context,
+            invoiceHeader: InvoiceHeader,
+            invoiceItemModels: MutableList<InvoiceItemModel>,
+            printers: MutableList<PosPrinter>,
+    ) {
         val itemsPrintersMap = invoiceItemModels.groupBy { it.invoiceItem.itemPrinter ?: "" }
         itemsPrintersMap.entries.forEach { entry ->
             if (entry.key.isNotEmpty()) {
