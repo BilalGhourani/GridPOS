@@ -108,7 +108,7 @@ object PrinterUtils {
         if (payslip.isEmpty()) {
             payslip = FileUtils.getHtmlFile(
                 context,
-                "Reports/${Language.Default.code}"
+                "Reports/${Language.DEFAULT.value}"
             )
         }
         if (payslip.isNotEmpty()) {
@@ -899,7 +899,7 @@ object PrinterUtils {
         if (payslip.isEmpty()) {
             payslip = FileUtils.getHtmlFile(
                 context,
-                "Reports/${Language.Default.code}"
+                "Reports/${Language.DEFAULT.value}"
             )
         }
         if (payslip.isNotEmpty()) {

@@ -48,10 +48,15 @@ class ReportsListViewModel @Inject constructor(
             context.filesDir,
             "Reports"
         )
-        val allReports = FileUtils.getFileModels(file)
+        val filesListResult = FileUtils.getFileModels(file)
+        val findSelected = filesListResult.findSelected
+        val allReports = filesListResult.filesList
         val payslips = mutableListOf<FileModel>()
         val payTickets = mutableListOf<FileModel>()
         allReports.forEach {
+            if(!findSelected && it.parentName.equals("default",ignoreCase = true)){
+                it.selected = true
+            }
             if (it.isPaySlip) {
                 payslips.add(it)
             } else {
@@ -66,7 +71,7 @@ class ReportsListViewModel @Inject constructor(
         }
     }
 
-    fun deleteFile(fileModel: FileModel) {
+    fun deleteFile(context: Context,fileModel: FileModel) {
         state.value = state.value.copy(
             warning = null,
             isLoading = true
@@ -82,6 +87,7 @@ class ReportsListViewModel @Inject constructor(
             val message = if (file.exists()) {
                 if (file.delete()) {
                     fileModels.remove(fileModel)
+                    fetchReportList(context)
                     "file deleted successfully!"
                 } else {
                     "an error has occurred!"
@@ -90,21 +96,11 @@ class ReportsListViewModel @Inject constructor(
                 "file not found!"
             }
             withContext(Dispatchers.Main) {
-                if (fileModel.isPaySlip) {
-                    state.value = state.value.copy(
-                        paySlips = fileModels,
-                        isLoading = false,
-                        clear = true,
-                        warning = Event(message)
-                    )
-                } else {
-                    state.value = state.value.copy(
-                        payTickets = fileModels,
-                        isLoading = false,
-                        clear = true,
-                        warning = Event(message)
-                    )
-                }
+                state.value = state.value.copy(
+                    isLoading = false,
+                    clear = true,
+                    warning = Event(message)
+                )
             }
         }
     }

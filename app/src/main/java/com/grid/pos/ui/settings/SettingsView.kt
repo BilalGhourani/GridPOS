@@ -641,7 +641,6 @@ fun SettingsView(
                         SearchableDropdownMenuEx(
                             items = Utils.getReportLanguages(false).toMutableList(),
                             modifier = Modifier.padding(10.dp),
-                            enableSearch = false,
                             color = LightGrey,
                             placeholder = "Report Language",
                             label = defaultReportLanguage,

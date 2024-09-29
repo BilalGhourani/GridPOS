@@ -70,7 +70,7 @@ fun SetupReportView(
     var warning by remember { mutableStateOf(Event("")) }
     var action by remember { mutableStateOf("") }
 
-    var languageState by remember { mutableStateOf(Language.Default) }
+    var languageState by remember { mutableStateOf(Language.DEFAULT) }
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
@@ -197,7 +197,6 @@ fun SetupReportView(
                         start = 10.dp,
                         end = 10.dp
                     ),
-                    enableSearch = false,
                     placeholder = "Report Language",
                     label = languageState.value.ifEmpty { "Select Language" },
                     selectedId = languageState.code,

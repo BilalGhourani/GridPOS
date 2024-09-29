@@ -113,7 +113,7 @@ fun ReportsListView(
                 }
                 onConfirmation = {
                     deletePopupState = false
-                    viewModel.deleteFile(fileModelState.value)
+                    viewModel.deleteFile(context,fileModelState.value)
                 }
                 dialogText = "Are you sure you want to delete this file?"
                 positiveBtnText = "Delete"
@@ -393,11 +393,7 @@ fun ReportsListView(
                             .padding(horizontal = 5.dp)
                             .clickable {
                                 isOptionPopupExpanded = false
-                                if (fileModelState.value.selected) {
-                                    viewModel.showError("cannot delete selected report!")
-                                } else {
-                                    deletePopupState = true
-                                }
+                                deletePopupState = true
                             },
                         horizontalArrangement = Arrangement.Start,
                         verticalAlignment = Alignment.CenterVertically

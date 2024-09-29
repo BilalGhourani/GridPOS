@@ -17,6 +17,7 @@ import com.grid.pos.App
 import com.grid.pos.data.AppDatabase
 import com.grid.pos.di.AppModule
 import com.grid.pos.model.FileModel
+import com.grid.pos.model.FilesListResult
 import com.grid.pos.model.SettingsModel
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import java.io.BufferedReader
@@ -676,28 +677,34 @@ object FileUtils {
 
     fun getFileModels(
             directoryFile: File
-    ): MutableList<FileModel> {
-        val result = mutableListOf<FileModel>()
+    ): FilesListResult {
+        val result = FilesListResult()
 
         if (directoryFile.exists() && directoryFile.isDirectory) {
             directoryFile.listFiles()?.forEach { file ->
                 // If the current file is a directory, recursively gather its children
                 if (file.isDirectory) {
-                    result.addAll(
-                        getFileModels(
-                            file
-                        )
-                    )
+                    val res = getFileModels(file)
+                    result.findSelected = result.findSelected || res.findSelected
+                    result.filesList.addAll(res.filesList)
                 } else {
                     val fileName = file.name
                     val directoryName = directoryFile.name
+                    val isSelected = SettingsModel.defaultReportLanguage.equals(
+                        directoryName,
+                        ignoreCase = true
+                    )
                     val fileModel = FileModel(
                         fileName = fileName,
                         parentName = directoryName,
-                        isPaySlip = fileName.contains("payslip", ignoreCase = true),
-                        selected = SettingsModel.defaultReportLanguage.equals(directoryName,ignoreCase = true)
+                        isPaySlip = fileName.contains(
+                            "payslip",
+                            ignoreCase = true
+                        ),
+                        selected = isSelected
                     )
-                    result.add(fileModel)
+                    result.findSelected = result.findSelected || isSelected
+                    result.filesList.add(fileModel)
                 }
             }
         }
