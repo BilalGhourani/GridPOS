@@ -22,7 +22,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AddCircleOutline
@@ -430,6 +432,7 @@ fun ReportsListView(
                 AndroidView(modifier = Modifier
                     .fillMaxWidth()
                     .fillMaxHeight(.8f)
+                    .verticalScroll(rememberScrollState())
                     .padding(top = 10.dp),
                     factory = {
                         WebView(context).apply {

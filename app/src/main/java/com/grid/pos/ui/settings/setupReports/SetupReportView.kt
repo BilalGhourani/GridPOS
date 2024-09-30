@@ -89,8 +89,9 @@ fun SetupReportView(
                             )
                             withContext(Dispatchers.Main) {
                                 isLoading = false
-                                warning = Event("$reportType has been added successfully")
+                                warning = Event("$reportType.html has been added successfully")
                                 action = ""
+                                navController?.navigateUp()
                             }
                         }
                     } else {
@@ -187,7 +188,7 @@ fun SetupReportView(
                         buttonColor = SettingsModel.buttonColor,
                         textColor = SettingsModel.buttonTextColor
                     ) {
-                        addReport(if (activityViewModel.isPaySlip) "Payslip" else "PayTicket")
+                        addReport(if (activityViewModel.isPaySlip) "payslip" else "pay_ticket")
                     }
                 }
 
