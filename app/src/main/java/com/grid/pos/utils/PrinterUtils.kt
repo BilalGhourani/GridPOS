@@ -24,6 +24,7 @@ import com.grid.pos.model.Language
 import com.grid.pos.model.PrintPicture
 import com.grid.pos.model.ReportResult
 import com.grid.pos.model.SettingsModel
+import com.grid.pos.ui.pos.POSUtils
 import com.journeyapps.barcodescanner.BarcodeEncoder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -103,12 +104,12 @@ object PrinterUtils {
     private fun getPaySlipHtmlContent(context: Context): ReportResult {
         var payslip = FileUtils.getHtmlFile(
             context,
-            "Reports/${SettingsModel.defaultReportLanguage}/payslip"
+            "${SettingsModel.defaultReportLanguage}/payslip.html"
         )
         if (payslip.isEmpty()) {
             payslip = FileUtils.getHtmlFile(
                 context,
-                "Reports/${Language.DEFAULT.value}"
+                "${Language.DEFAULT.value}/payslip.html"
             )
         }
         if (payslip.isNotEmpty()) {
@@ -318,10 +319,10 @@ object PrinterUtils {
             )
         }
         var discountAmount = invoiceHeader.invoiceHeadDiscountAmount
+        val start = htmlContent.indexOf("{row_start}")
+        val end = htmlContent.indexOf("{row_end}")+9
+       val extractedSubstring =  htmlContent.substring(start,end).replace("{row_start}","").replace("{row_end}","")
         if (invoiceItemModels.isNotEmpty()) {
-            val regex = "\\{rows\\}(.*?)\\{rows\\}".toRegex()
-            val matchResult = regex.find(htmlContent)
-            val extractedSubstring = matchResult?.groups?.get(1)?.value ?: "<tr><td style=\"font-size: 16px;\">item_name</td></tr> <tr><td style=\"font-size: 16px;\">item_qty x item_price</td> <td style=\"font-size: 16px;\">item_amount</td> </tr>"
             val trs = StringBuilder("")
             var size = 0
             invoiceItemModels.forEach { item ->
@@ -357,47 +358,77 @@ object PrinterUtils {
                     )
                 }
             }
-            htmlContent = htmlContent.replace(
-                regex,
+            htmlContent = htmlContent.replaceRange(
+                start,end,
                 trs.toString()
             ).replace(
                 "{numberofitemsvalue}",
                 "$size"
             )
-        }
-        val invAmountVal = StringBuilder("")
-        if (discountAmount > 0.0) {
-            invAmountVal.append(
-                String.format(
-                    defaultLocal,
-                    "<tr><td style=\"font-size: 16px;\">Disc Amount&nbsp;:</td><td style=\"font-size: 16px;\">%,.2f</td></tr>",
-                    Utils.getDoubleOrZero(discountAmount)
-                )
+        } else {
+            htmlContent = htmlContent.replaceRange(
+                start,end,
+                ""
             )
         }
 
-        if (SettingsModel.currentCompany?.companyUpWithTax == true && (SettingsModel.showTax || SettingsModel.showTax1 || SettingsModel.showTax2)) {
-            invAmountVal.append(
-                String.format(
-                    defaultLocal,
-                    "<tr><td style=\"font-size: 16px;\">Before Tax:</td><td style=\"font-size: 16px;\">%,.2f</td></tr>",
-                    Utils.getDoubleOrZero(invoiceHeader.invoiceHeadTotal - invoiceHeader.invoiceHeadTotalTax)
+        htmlContent = if (discountAmount > 0.0) {
+            htmlContent.replace(
+                "{inv_disc_amount}",
+                POSUtils.formatDouble(
+                    discountAmount,
+                    2
                 )
+            ).replace(
+                "{inv_disc_amount_disp}",
+                "table-row"
+            )
+        } else {
+            htmlContent.replace(
+                "{inv_disc_amount_disp}",
+                "none"
+            )
+        }
+
+        htmlContent = if (SettingsModel.currentCompany?.companyUpWithTax == true && (SettingsModel.showTax || SettingsModel.showTax1 || SettingsModel.showTax2)) {
+            htmlContent.replace(
+                "{total_befor_tax}",
+                POSUtils.formatDouble(
+                    invoiceHeader.invoiceHeadTotal - invoiceHeader.invoiceHeadTotalTax,
+                    2
+                )
+            ).replace(
+                "{total_befor_tax_disp}",
+                "table-row"
+            )
+        } else {
+            htmlContent.replace(
+                "{total_befor_tax_disp}",
+                "none"
             )
         }
 
         var showTotalTax = false
         if (SettingsModel.showTax) {
-            if (invoiceHeader.invoiceHeadTaxAmt > 0) {
+            htmlContent = if (invoiceHeader.invoiceHeadTaxAmt > 0) {
                 showTotalTax = true
-                invAmountVal.append(
-                    String.format(
-                        defaultLocal,
-                        "<tr><td style=\"font-size: 16px;\">Tax  (%,.0f%s:</td><td style=\"font-size: 16px;\">%,.2f</td></tr>",
-                        Utils.getDoubleOrZero(company?.companyTax),
-                        "%)",
-                        Utils.getDoubleOrZero(invoiceHeader.invoiceHeadTaxAmt)
+                htmlContent.replace(
+                    "{inv_tax_amount}",
+                    POSUtils.formatDouble(
+                        invoiceHeader.invoiceHeadTaxAmt,
+                        2
                     )
+                ).replace(
+                    "{tax_perc}",
+                    "${Utils.getDoubleOrZero(company?.companyTax)}%"
+                ).replace(
+                    "{inv_tax_disp}",
+                    "table-row"
+                )
+            } else {
+                htmlContent.replace(
+                    "{inv_tax_disp}",
+                    "none"
                 )
             }
             htmlContent = if (!company?.companyTaxRegno.isNullOrEmpty()) {
@@ -421,16 +452,25 @@ object PrinterUtils {
             )
         }
         if (SettingsModel.showTax1) {
-            if (invoiceHeader.invoiceHeadTax1Amt > 0) {
+            htmlContent = if (invoiceHeader.invoiceHeadTax1Amt > 0) {
                 showTotalTax = true
-                invAmountVal.append(
-                    String.format(
-                        defaultLocal,
-                        "<tr><td style=\"font-size: 16px;\">Tax1 (%,.0f%s:</td><td style=\"font-size: 16px;\">%,.2f</td></tr>",
-                        Utils.getDoubleOrZero(company?.companyTax1),
-                        "%)",
-                        Utils.getDoubleOrZero(invoiceHeader.invoiceHeadTax1Amt)
+                htmlContent.replace(
+                    "{inv_tax1_amount}",
+                    POSUtils.formatDouble(
+                        invoiceHeader.invoiceHeadTax1Amt,
+                        2
                     )
+                ).replace(
+                    "{tax1_perc}",
+                    "${Utils.getDoubleOrZero(company?.companyTax1)}%"
+                ).replace(
+                    "{inv_tax1_disp}",
+                    "table-row"
+                )
+            } else {
+                htmlContent.replace(
+                    "{inv_tax1_disp}",
+                    "none"
                 )
             }
             htmlContent = if (!company?.companyTax1Regno.isNullOrEmpty()) {
@@ -454,16 +494,25 @@ object PrinterUtils {
             )
         }
         if (SettingsModel.showTax2) {
-            if (invoiceHeader.invoiceHeadTax2Amt > 0) {
+            htmlContent = if (invoiceHeader.invoiceHeadTax2Amt > 0) {
                 showTotalTax = true
-                invAmountVal.append(
-                    String.format(
-                        defaultLocal,
-                        "<tr><td style=\"font-size: 16px;\">Tax2 (%,.0f%s:</td><td style=\"font-size: 16px;\">%,.2f</td></tr>",
-                        Utils.getDoubleOrZero(company?.companyTax2),
-                        "%)",
-                        Utils.getDoubleOrZero(invoiceHeader.invoiceHeadTax2Amt)
+                htmlContent.replace(
+                    "{inv_tax2_amount}",
+                    POSUtils.formatDouble(
+                        invoiceHeader.invoiceHeadTax2Amt,
+                        2
                     )
+                ).replace(
+                    "{tax2_perc}",
+                    "${Utils.getDoubleOrZero(company?.companyTax2)}%"
+                ).replace(
+                    "{inv_tax2_disp}",
+                    "table-row"
+                )
+            } else {
+                htmlContent.replace(
+                    "{inv_tax2_disp}",
+                    "none"
                 )
             }
             htmlContent = if (!company?.companyTax2Regno.isNullOrEmpty()) {
@@ -486,153 +535,188 @@ object PrinterUtils {
                 "none"
             )
         }
-        if (showTotalTax) {
-            invAmountVal.append(
-                String.format(
-                    defaultLocal,
-                    "<tr><td style=\"font-size: 16px;\">%s</td><td style=\"font-size: 16px;\">%,.2f</td></tr>",
-                    "Total Tax:",
-                    Utils.getDoubleOrZero(invoiceHeader.invoiceHeadTotalTax)
+        htmlContent = if (showTotalTax) {
+            htmlContent.replace(
+                "{inv_total_tax_amount}",
+                POSUtils.formatDouble(
+                    invoiceHeader.invoiceHeadTotalTax,
+                    2
                 )
-            )/* result = result.replace(
-                "{taxes_display}",
-                "block"
-            )*/
-        } /*else {
-           result = result.replace(
-                "{taxes_display}",
+            ).replace(
+                "{inv_total_tax_disp}",
+                "table-row"
+            )
+        } else {
+            htmlContent.replace(
+                "{inv_total_tax_disp}",
                 "none"
             )
-        }*/
+        }
+
         val invoiceTotal = Utils.getDoubleOrZero(invoiceHeader.invoiceHeadTotal)
-        invAmountVal.append(
-            String.format(
-                defaultLocal,
-                "<tr><td style=\"font-weight: bold;font-size: 16px;\">Total %s:&nbsp;&nbsp;</td><td style=\"font-weight: bold;font-size: 16px;\">%,.2f</td></tr>",
-                currency?.currencyCode1 ?: "",
-                invoiceTotal
-            )
-        )
-
-        invAmountVal.append(
-            String.format(
-                defaultLocal,
-                "<tr><td style=\"font-weight: bold;font-size: 16px;\">Total %s:&nbsp;&nbsp;</td><td style=\"font-weight: bold;font-size: 16px;\">%,.2f</td></tr>",
-                currency?.currencyCode2 ?: "",
-                Utils.getDoubleOrZero(invoiceHeader.invoiceHeadTotal1)
-            )
-        )
-
         htmlContent = htmlContent.replace(
-            "{tableinvoiceAmountvalue}",
-            invAmountVal.toString()
+            "{inv_total}",
+            POSUtils.formatDouble(
+                invoiceTotal,
+                2
+            )
+        ).replace(
+            "{curr1_code}",
+            currency?.currencyCode1 ?: ""
+        ).replace(
+            "{inv_total1}",
+            POSUtils.formatDouble(
+                invoiceHeader.invoiceHeadTotal1,
+                2
+            )
+        ).replace(
+            "{curr2_code}",
+            currency?.currencyCode2 ?: ""
         )
 
-        val posReceiptValues = StringBuilder("")
+        var displayReceiptDashed = false
 
         val prCash = Utils.getDoubleOrZero(posReceipt.posReceiptCash)
-        if (prCash > 0.0) {
-            posReceiptValues.append(
-                String.format(
-                    defaultLocal,
-                    "<tr><td>%s</td><td>%s</td><td>%,.2f</td></tr>",
-                    "Cash",
-                    currency?.currencyCode1 ?: "",
-                    prCash
+        htmlContent = if (prCash > 0.0) {
+            displayReceiptDashed = true
+            htmlContent.replace(
+                "{receipt_cash}",
+                POSUtils.formatDouble(
+                    prCash,
+                    2
                 )
+            ).replace(
+                "{receipt_cash_disp}",
+                "table-row"
+            )
+        } else {
+            htmlContent.replace(
+                "{receipt_cash_disp}",
+                "none"
             )
         }
+
         val prCashs = Utils.getDoubleOrZero(posReceipt.posReceiptCashs)
-        if (prCashs > 0.0) {
-            posReceiptValues.append(
-                String.format(
-                    defaultLocal,
-                    "<tr><td>%s</td><td>%s</td><td>%,.2f</td></tr>",
-                    "Cash",
-                    currency?.currencyCode2 ?: "",
-                    prCashs
+        htmlContent = if (prCashs > 0.0) {
+            displayReceiptDashed = true
+            htmlContent.replace(
+                "{receipt_cashs}",
+                POSUtils.formatDouble(
+                    prCashs,
+                    2
                 )
+            ).replace(
+                "{receipt_cashs_disp}",
+                "table-row"
+            )
+        } else {
+            htmlContent.replace(
+                "{receipt_cashs_disp}",
+                "none"
             )
         }
 
         val prCredit = Utils.getDoubleOrZero(posReceipt.posReceiptCredit)
-        if (prCredit > 0.0) {
-            posReceiptValues.append(
-                String.format(
-                    defaultLocal,
-                    "<tr><td>%s</td><td>%s</td><td>%,.2f</td></tr>",
-                    "Credit",
-                    currency?.currencyCode1 ?: "",
-                    prCredit
+        htmlContent = if (prCredit > 0.0) {
+            displayReceiptDashed = true
+            htmlContent.replace(
+                "{receipt_credit}",
+                POSUtils.formatDouble(
+                    prCredit,
+                    2
                 )
+            ).replace(
+                "{receipt_credit_disp}",
+                "table-row"
+            )
+        } else {
+            htmlContent.replace(
+                "{receipt_credit_disp}",
+                "none"
             )
         }
         val prCredits = Utils.getDoubleOrZero(posReceipt.posReceiptCredits)
-        if (prCredits > 0.0) {
-            posReceiptValues.append(
-                String.format(
-                    defaultLocal,
-                    "<tr><td>%s</td><td>%s</td><td>%,.2f</td></tr>",
-                    "Credit",
-                    currency?.currencyCode2 ?: "",
-                    prCredits
+        htmlContent = if (prCredits > 0.0) {
+            displayReceiptDashed = true
+            htmlContent.replace(
+                "{receipt_credits}",
+                POSUtils.formatDouble(
+                    prCredits,
+                    2
                 )
+            ).replace(
+                "{receipt_credits_disp}",
+                "table-row"
+            )
+        } else {
+            htmlContent.replace(
+                "{receipt_credits_disp}",
+                "none"
             )
         }
 
         val prDebit = Utils.getDoubleOrZero(posReceipt.posReceiptDebit)
-        if (prDebit > 0.0) {
-            posReceiptValues.append(
-                String.format(
-                    defaultLocal,
-                    "<tr><td>%s</td><td>%s</td><td>%,.2f</td></tr>",
-                    "Debit",
-                    currency?.currencyCode1 ?: "",
-                    prDebit
+        htmlContent = if (prDebit > 0.0) {
+            displayReceiptDashed = true
+            htmlContent.replace(
+                "{receipt_debit}",
+                POSUtils.formatDouble(
+                    prDebit,
+                    2
                 )
+            ).replace(
+                "{receipt_debit_disp}",
+                "table-row"
+            )
+        } else {
+            htmlContent.replace(
+                "{receipt_debit_disp}",
+                "none"
             )
         }
         val prDebits = Utils.getDoubleOrZero(posReceipt.posReceiptDebits)
-        if (prDebits > 0.0) {
-            posReceiptValues.append(
-                String.format(
-                    defaultLocal,
-                    "<tr><td>%s</td><td>%s</td><td>%,.2f</td></tr>",
-                    "Debit",
-                    currency?.currencyCode2 ?: "",
-                    prDebits
+        htmlContent = if (prDebits > 0.0) {
+            displayReceiptDashed = true
+            htmlContent.replace(
+                "{receipt_debit}",
+                POSUtils.formatDouble(
+                    prDebits,
+                    2
                 )
+            ).replace(
+                "{receipt_debits_disp}",
+                "table-row"
+            )
+        } else {
+            htmlContent.replace(
+                "{receipt_debits_disp}",
+                "none"
             )
         }
         val change = Utils.getDoubleOrZero(invoiceHeader.invoiceHeadChange)
-        if (invoiceTotal + change != 0.0) {
-            posReceiptValues.append(
-                String.format(
-                    defaultLocal,
-                    "<tr><td>%s</td><td>%s</td><td>%,.2f</td></tr>",
-                    "Change",
-                    currency?.currencyCode1 ?: "",
-                    change
+        htmlContent = if (invoiceTotal + change != 0.0) {
+            displayReceiptDashed = true
+            htmlContent.replace(
+                "{inv_change}",
+                POSUtils.formatDouble(
+                    change,
+                    2
                 )
+            ).replace(
+                "{inv_change_disp}",
+                "table-row"
+            )
+        } else {
+            htmlContent.replace(
+                "{inv_change_disp}",
+                "none"
             )
         }
 
         htmlContent = htmlContent.replace(
-            "{posReceiptValues}",
-            posReceiptValues.toString()
+            "{prsReceipt_dashed_display}",
+            if (displayReceiptDashed) "block" else "none"
         )
-
-        htmlContent = if (posReceiptValues.isNotEmpty()) {
-            htmlContent.replace(
-                "{prsReceipt_dashed_display}",
-                "block"
-            )
-        } else {
-            htmlContent.replace(
-                "{prsReceipt_dashed_display}",
-                "none"
-            )
-        }
 
 
         htmlContent = if (!invoiceHeader.invoiceHeadNote.isNullOrEmpty()) {
@@ -898,12 +982,12 @@ object PrinterUtils {
     private fun getPayTicketHtmlContent(context: Context): ReportResult {
         var payslip = FileUtils.getHtmlFile(
             context,
-            "Reports/${SettingsModel.defaultReportLanguage}"
+            "${SettingsModel.defaultReportLanguage}/pay_ticket.html"
         )
         if (payslip.isEmpty()) {
             payslip = FileUtils.getHtmlFile(
                 context,
-                "Reports/${Language.DEFAULT.value}"
+                "${Language.DEFAULT.value}/pay_ticket.html"
             )
         }
         if (payslip.isNotEmpty()) {
@@ -987,19 +1071,19 @@ object PrinterUtils {
                 "dd/MM/yyyy hh:mm:ss"
             )
         )
+        val start = htmlContent.indexOf("{row_start}")
+        val end = htmlContent.indexOf("{row_end}")+9
+        val extractedSubstring =  htmlContent.substring(start,end).replace("{row_start}","").replace("{row_end}","")
         if (invItemModels.isNotEmpty()) {
-            val regex = "\\{rows\\}(.*?)\\{rows\\}".toRegex()
-            val matchResult = regex.find(htmlContent)
-            val extractedSubstring = matchResult?.groups?.get(1)?.value ?: "<tr><td>item_name</td></tr> <tr><td>item_qty x item_price</td> <td>item_amount</td> </tr>"
             val trs = StringBuilder("")
             invItemModels.forEach { item ->
                 val qty = String.format(
                     "%,.2f",
                     item.invoice.invoiceQuantity
                 )
-                val itemName = if(item.isDeleted){
-                    item.getFullName()+" - Deleted"
-                }else{
+                val itemName = if (item.isDeleted) {
+                    item.getFullName() + " - Deleted"
+                } else {
                     item.getFullName()
                 }
                 trs.append(
@@ -1008,13 +1092,18 @@ object PrinterUtils {
                         qty
                     ).replace(
                         "item_name",
-                       itemName
+                        itemName
                     )
                 )
             }
-            htmlContent = htmlContent.replace(
-                regex,
+            htmlContent = htmlContent.replaceRange(
+                start,end,
                 trs.toString()
+            )
+        } else {
+            htmlContent = htmlContent.replaceRange(
+                start,end,
+              ""
             )
         }
         return ReportResult(

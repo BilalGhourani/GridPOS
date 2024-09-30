@@ -8,24 +8,43 @@
     <div style="font-weight: bold;align-items: center;font-size: 16px;">{company_name}</div>
     <div style="font-weight: Normal;align-items: center;font-size: 16px;">{company_addr}</div>
     <div style="font-weight: Normal;align-items: center;font-size: 16px;">{company_phone}</div>
-    <div style="display: {tax_display};font-weight: Normal;align-items: center;font-size: 16px;">Tax No: {taxregno}</div>
-    <div style="display: {tax1_display};font-weight: Normal;align-items: center;font-size: 16px;">Tax1 No: {taxregno1}</div>
-    <div style="display: {tax2_display};font-weight: Normal;align-items: center;font-size: 16px;">Tax2 No: {taxregno2}</div>
-    <div style="display:{invoice_no_display};font-weight: Normal;align-items: center;font-size: 16px;">{invoicenumbervalue}</div>
+    <div style="display: {tax_display};font-weight: Normal;align-items: center;font-size: 16px;">Tax
+        No: {taxregno}
+    </div>
+    <div style="display: {tax1_display};font-weight: Normal;align-items: center;font-size: 16px;">
+        Tax1 No: {taxregno1}
+    </div>
+    <div style="display: {tax2_display};font-weight: Normal;align-items: center;font-size: 16px;">
+        Tax2 No: {taxregno2}
+    </div>
+    <div style="display:{invoice_no_display};font-weight: Normal;align-items: center;font-size: 16px;">
+        {invoicenumbervalue}
+    </div>
     <div style="font-weight: Normal;align-items: center;font-size: 16px;">{invoicedatevalue}</div>
 </div>
 <hr style="border-top: 1px dashed; #000;width: 100%;">
 <div style="width: 100%;display: flex; align-items: start; justify-content: start; flex-direction: column;">
-    <div style="display:{client_display};font-weight: Normal;font-size: 16px;">Client: {clientnamevalue}</div>
-    <div style="display:{fn_display};font-weight: Normal;font-size: 16px;">F/N: {clientfnvalue}</div>
-    <div style="display:{phone_display};font-weight: Normal;font-size: 16px;">Phone: {clientphonevalue}</div>
-    <div style="display:{addr_display};font-weight: Normal;font-size: 16px;">Addr: {clientaddressvalue}</div>
-    <div style="display:{table_no_display};font-weight: Normal;font-size: 16px;">Table No: {table_name}</div>
-    <div style="display:{servedby_display};font-weight: Normal;font-size: 16px;">Served By: {invoiceuservalue}</div>
+    <div style="display:{client_display};font-weight: Normal;font-size: 16px;">Client:
+        {clientnamevalue}
+    </div>
+    <div style="display:{fn_display};font-weight: Normal;font-size: 16px;">F/N: {clientfnvalue}
+    </div>
+    <div style="display:{phone_display};font-weight: Normal;font-size: 16px;">Phone:
+        {clientphonevalue}
+    </div>
+    <div style="display:{addr_display};font-weight: Normal;font-size: 16px;">Addr:
+        {clientaddressvalue}
+    </div>
+    <div style="display:{table_no_display};font-weight: Normal;font-size: 16px;">Table No:
+        {table_name}
+    </div>
+    <div style="display:{servedby_display};font-weight: Normal;font-size: 16px;">Served By:
+        {invoiceuservalue}
+    </div>
 </div>
 <div style="display: {rp_disp}; align-items: center; justify-content: center;flex-direction: column;">
     <hr style="border-top: 1px dashed; #000;width: 100%;">
-    <div style="font-size: 30px;align-items: center;font-weight: bold;"> * * REPRINTED * *</div>
+    <div style="font-size: 30px;align-items: center;text-align: center;font-weight: bold;"> * * REPRINTED * *</div>
 </div>
 
 <hr style="border-top: 1px dashed; #000;width: 100%;">
@@ -34,7 +53,7 @@
         <td><b style="font-size: 16px;align-items: left;">Description</b></td>
         <td><b style="font-size: 16px;align-items: right;">Total</b></td>
     </tr>
-    {rows}
+    {row_start}
     <tr>
         <td style="font-size: 16px;align-items: left;">item_name</td>
     </tr>
@@ -42,11 +61,42 @@
         <td style="font-size: 16px;align-items: left;">item_qty x item_price</td>
         <td style="font-size: 16px;align-items: right">item_amount</td>
     </tr>
-    {rows}
+    {row_end}
 </table>
 <hr style="border-top: 1px dashed; #000;width: 100%;">
-<table style="width: 100%">
-    {tableinvoiceAmountvalue}
+<table style="margin-left: 0;margin-right: auto;">
+    <tr style="display:{inv_disc_amount_disp}">
+        <td style="font-size: 16px;">Disc Amount&nbsp;:</td>
+        <td style="font-size: 16px;">{inv_disc_amount}</td>
+    </tr>
+    <tr style="display:{total_befor_tax_disp}">
+        <td style="font-size: 16px;">Before Tax:</td>
+        <td style="font-size: 16px;">{total_befor_tax}</td>
+    </tr>
+    <tr style="display:{inv_tax_disp}">
+        <td style="font-size: 16px;">Tax ({tax_perc}):</td>
+        <td style="font-size: 16px;">{inv_tax_amount}</td>
+    </tr>
+    <tr style="display:{inv_tax1_disp}">
+        <td style="font-size: 16px;">Tax1 ({tax1_perc}):</td>
+        <td style="font-size: 16px;">{inv_tax1_amount}</td>
+    </tr>
+    <tr style="display:{inv_tax2_disp}">
+        <td style="font-size: 16px;">Tax2 ({tax2_perc}):</td>
+        <td style="font-size: 16px;">{inv_tax2_amount}</td>
+    </tr>
+    <tr style="display:{inv_total_tax_disp}">
+        <td style="font-size: 16px;">Total Tax:</td>
+        <td style="font-size: 16px;">{inv_total_tax_amount}</td>
+    </tr>
+    <tr>
+        <td style="font-weight: bold;font-size: 16px;">Total {curr1_code}:&nbsp;&nbsp;</td>
+        <td style="font-weight: bold;font-size: 16px;">{inv_total}</td>
+    </tr>
+    <tr>
+        <td style="font-weight: bold;font-size: 16px;">Total {curr2_code}:&nbsp;&nbsp;</td>
+        <td style="font-weight: bold;font-size: 16px;">{inv_total1}</td>
+    </tr>
 </table>
 <hr style="border-top: 1px dashed; #000;width: 100%;">
 <div style="width: 100%;display: flex; align-items: start; justify-content: start;">
@@ -54,7 +104,41 @@
 </div>
 <hr style="display:{prsReceipt_dashed_display};border-top: 1px dashed; #000;width: 100%;">
 <table style="margin-left: 0;margin-right: auto;">
-    {posReceiptValues}
+    <tr style="display:{receipt_cash_disp}">
+        <td>Cash</td>
+        <td>{curr1_code}</td>
+        <td>{receipt_cash}</td>
+    </tr>
+    <tr style="display:{receipt_cashs_disp}">
+        <td>Cash</td>
+        <td>{curr2_code}</td>
+        <td>{receipt_cashs}</td>
+    </tr>
+    <tr style="display:{receipt_credit_disp}">
+        <td>Credit</td>
+        <td>{curr1_code}</td>
+        <td>{receipt_credit}</td>
+    </tr>
+    <tr style="display:{receipt_credits_disp}">
+        <td>Credit</td>
+        <td>{curr2_code}</td>
+        <td>{receipt_credits}</td>
+    </tr>
+    <tr style="display:{receipt_debit_disp}">
+        <td>Debit</td>
+        <td>{curr1_code}</td>
+        <td>{receipt_debit}</td>
+    </tr>
+    <tr style="display:{receipt_debits_disp}">
+        <td>Debit</td>
+        <td>{curr2_code}</td>
+        <td>{receipt_debits}</td>
+    </tr>
+    <tr style="display:{inv_change_disp}">
+        <td>Change</td>
+        <td>{curr1_code}</td>
+        <td>{inv_change}</td>
+    </tr>
 </table>
 <div style="width: 100%;display:{note_display}; align-items: start; justify-content: start; flex-direction: column;">
     <hr style="border-top: 1px dashed; #000;width: 100%;">
@@ -67,7 +151,9 @@
 </div>
 <div style="display: flex; align-items: center; justify-content: center; flex-direction: column;">
     <div style="font-weight: Normal;align-items: center;font-size: 16px;">THANK YOU</div>
-    <div style="font-weight: Normal;align-items: center;font-size: 16px;">GRIDS Software - www.gridsco.com</div>
+    <div style="font-weight: Normal;align-items: center;font-size: 16px;">GRIDS Software -
+        www.gridsco.com
+    </div>
 </div>
 </body>
 </html>
