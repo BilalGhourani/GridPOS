@@ -41,6 +41,7 @@ class ManageItemsViewModel @Inject constructor(
             items: MutableList<Item> = mutableListOf(),
             families: MutableList<Family> = mutableListOf()
     ) {
+        if (true) return
         if (manageItemsState.value.items.isEmpty()) {
             manageItemsState.value = manageItemsState.value.copy(
                 items = items.toMutableList()

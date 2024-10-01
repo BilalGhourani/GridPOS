@@ -114,11 +114,11 @@ fun ManageCompaniesView(
     var oldImage: String? = null
 
     LaunchedEffect(
-        activityScopedViewModel.companies,
+        /*activityScopedViewModel.companies,*/
         activityScopedViewModel.currencies
     ) {
         viewModel.fillCachedCompanies(
-            activityScopedViewModel.companies,
+           state.companies /*activityScopedViewModel.companies*/,
             activityScopedViewModel.currencies
         )
     }

@@ -81,9 +81,9 @@ fun ManageThirdPartiesView(
     var addressState by remember { mutableStateOf("") }
     var isDefaultState by remember { mutableStateOf(false) }
 
-    LaunchedEffect(activityScopedViewModel.thirdParties) {
+  /*  LaunchedEffect(activityScopedViewModel.thirdParties) {
         viewModel.fillCachedThirdParties(activityScopedViewModel.thirdParties)
-    }
+    }*/
 
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()

@@ -88,9 +88,9 @@ fun ManageFamiliesView(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
-    LaunchedEffect(activityScopedViewModel.families) {
+    /*LaunchedEffect(activityScopedViewModel.families) {
         viewModel.fillCachedFamilies(activityScopedViewModel.families)
-    }
+    }*/
 
     LaunchedEffect(state.warning) {
         state.warning?.value?.let { message ->

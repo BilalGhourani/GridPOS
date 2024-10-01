@@ -139,7 +139,7 @@ fun ManageItemsView(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
-    LaunchedEffect(
+   /* LaunchedEffect(
         activityScopedViewModel.items,
         activityScopedViewModel.families
     ) {
@@ -147,7 +147,7 @@ fun ManageItemsView(
             activityScopedViewModel.items,
             activityScopedViewModel.families
         )
-    }
+    }*/
 
     LaunchedEffect(state.warning) {
         state.warning?.value?.let { message ->

@@ -82,9 +82,9 @@ fun POSPrinterView(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
-    LaunchedEffect(activityScopedViewModel.printers) {
+  /*  LaunchedEffect(activityScopedViewModel.printers) {
         viewModel.fillCachedPrinters(activityScopedViewModel.printers)
-    }
+    }*/
 
     LaunchedEffect(state.warning) {
         state.warning?.value?.let { message ->
