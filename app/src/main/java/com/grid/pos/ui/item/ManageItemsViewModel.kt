@@ -1,6 +1,8 @@
 package com.grid.pos.ui.item
 
 import androidx.lifecycle.viewModelScope
+import com.grid.pos.data.Currency.Currency
+import com.grid.pos.data.Currency.CurrencyRepository
 import com.grid.pos.data.Family.Family
 import com.grid.pos.data.Family.FamilyRepository
 import com.grid.pos.data.Invoice.InvoiceRepository
@@ -8,6 +10,7 @@ import com.grid.pos.data.Item.Item
 import com.grid.pos.data.Item.ItemRepository
 import com.grid.pos.data.PosPrinter.PosPrinterRepository
 import com.grid.pos.model.Event
+import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.BaseViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -22,6 +25,7 @@ class ManageItemsViewModel @Inject constructor(
         private val itemRepository: ItemRepository,
         private val familyRepository: FamilyRepository,
         private val posPrinterRepository: PosPrinterRepository,
+        private val currencyRepository: CurrencyRepository,
         private val invoiceRepository: InvoiceRepository
 ) : BaseViewModel() {
 
@@ -59,6 +63,11 @@ class ManageItemsViewModel @Inject constructor(
             isLoading = true
         )
         viewModelScope.launch(Dispatchers.IO) {
+            if (SettingsModel.currentCurrency == null && SettingsModel.isConnectedToSqlServer()) {
+                val currencies = currencyRepository.getAllCurrencies()
+                val currency = if (currencies.size > 0) currencies[0] else Currency()
+                SettingsModel.currentCurrency = currency
+            }
             val listOfItems = itemRepository.getAllItems()
             withContext(Dispatchers.Main) {
                 manageItemsState.value = manageItemsState.value.copy(

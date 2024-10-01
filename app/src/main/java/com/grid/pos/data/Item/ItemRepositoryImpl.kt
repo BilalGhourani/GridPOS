@@ -77,21 +77,18 @@ class ItemRepositoryImpl(
                 val items: MutableList<Item> = mutableListOf()
                 try {
                     val dbResult = if (SettingsModel.isSqlServerWebDb) {
-                     SQLServerWrapper.getListOf(
-                        "st_item",
-                        "",
-                        mutableListOf("*"),
-                         "it_cmp_id='${SettingsModel.getCompanyID()}'"
-                    ) } else {
+                        SQLServerWrapper.getListOf(
+                            "st_item",
+                            "",
+                            mutableListOf("*"),
+                            "it_cmp_id='${SettingsModel.getCompanyID()}'"
+                        )
+                    } else {
                         SQLServerWrapper.getQueryResult(
-                            "select st_item.*,1 it_pos from st_item,pos_itembutton,pos_groupbutton,pos_station_groupbutton " +
-                                    "where it_id=ib_it_id and ib_gb_id=gb_id and gb_id=psg_gb_id and psg_sta_name='.' " +
-                                    "union " +
-                                    "select *,0 it_pos from st_item where it_id not in (select ib_it_id from pos_itembutton,pos_groupbutton,pos_station_groupbutton " +
-                                    "where ib_gb_id=gb_id and gb_id=psg_gb_id and psg_sta_name='.')"
+                            "select st_item.*,1 it_pos from st_item,pos_itembutton,pos_groupbutton,pos_station_groupbutton " + "where it_id=ib_it_id and ib_gb_id=gb_id and gb_id=psg_gb_id and psg_sta_name='.' " + "union " + "select *,0 it_pos from st_item where it_id not in (select ib_it_id from pos_itembutton,pos_groupbutton,pos_station_groupbutton " + "where ib_gb_id=gb_id and gb_id=psg_gb_id and psg_sta_name='.')"
                         )
                     }
-
+                    val currency = SettingsModel.currentCurrency
                     dbResult?.let {
                         while (it.next()) {
                             items.add(Item().apply {
@@ -100,13 +97,12 @@ class ItemRepositoryImpl(
                                 itemFaId = it.getStringValue("it_fa_name")
                                 itemName = it.getStringValue("it_name")
                                 itemBarcode = it.getStringValue("it_barcode")
-                                itemUnitPrice = it.getDoubleValue("it_unitprice")
+
                                 itemTax = it.getDoubleValue("it_vat")
                                 itemTax1 = it.getDoubleValue("it_tax1")
                                 itemTax2 = it.getDoubleValue("it_tax2")
                                 itemPrinter = it.getStringValue("it_di_name")
                                 itemOpenQty = it.getDoubleValue("it_maxqty")
-                                itemOpenCost = it.getDoubleValue("it_cost")
                                 itemPos = it.getIntValue(
                                     "it_pos",
                                     1
@@ -120,6 +116,23 @@ class ItemRepositoryImpl(
                                 )
                                 itemDateTime = itemTimeStamp!!.time
                                 itemUserStamp = it.getStringValue("it_userstamp")
+                                if (currency != null) {
+                                    val currencyCode = it.getStringValue("it_cur_code")
+                                    val unitPrice = it.getDoubleValue("it_unitprice")
+                                    val unitCost = it.getDoubleValue("it_cost")
+                                    if (currencyCode == currency.currencyDocumentId) {//second currency
+                                        if (currency.currencyRate < 1.0) {
+                                            itemUnitPrice = unitPrice.div(currency.currencyRate)
+                                            itemOpenCost = unitCost.div(currency.currencyRate)
+                                        } else {
+                                            itemUnitPrice = unitPrice.times(currency.currencyRate)
+                                            itemOpenCost = unitCost.times(currency.currencyRate)
+                                        }
+                                    }
+                                } else {
+                                    itemUnitPrice = it.getDoubleValue("it_unitprice")
+                                    itemOpenCost = it.getDoubleValue("it_cost")
+                                }
                             })
                         }
                         SQLServerWrapper.closeResultSet(it)

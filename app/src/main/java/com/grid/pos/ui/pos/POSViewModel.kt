@@ -1,6 +1,8 @@
 package com.grid.pos.ui.pos
 
 import androidx.lifecycle.viewModelScope
+import com.grid.pos.data.Currency.Currency
+import com.grid.pos.data.Currency.CurrencyRepository
 import com.grid.pos.data.Family.FamilyRepository
 import com.grid.pos.data.Invoice.Invoice
 import com.grid.pos.data.Invoice.InvoiceRepository
@@ -30,6 +32,7 @@ class POSViewModel @Inject constructor(
         private val invoiceRepository: InvoiceRepository,
         private val itemRepository: ItemRepository,
         private val thirdPartyRepository: ThirdPartyRepository,
+        private val currencyRepository: CurrencyRepository,
         private val familyRepository: FamilyRepository
 ) : BaseViewModel() {
 
@@ -64,6 +67,11 @@ class POSViewModel @Inject constructor(
     }
 
     private suspend fun fetchItems(stopLoading: Boolean = false) {
+        if (SettingsModel.currentCurrency == null && SettingsModel.isConnectedToSqlServer()) {
+            val currencies = currencyRepository.getAllCurrencies()
+            val currency = if (currencies.size > 0) currencies[0] else Currency()
+            SettingsModel.currentCurrency = currency
+        }
         val listOfItems = itemRepository.getAllItems()
         withContext(Dispatchers.Main) {
             posState.value = if (stopLoading) {
@@ -192,7 +200,10 @@ class POSViewModel @Inject constructor(
                     finish
                 )
                 if (finish) {
-                    posState.value.invoiceHeaders.add(0,addedInv)
+                    posState.value.invoiceHeaders.add(
+                        0,
+                        addedInv
+                    )
                 }
                 savePOSReceipt(
                     addedInv,
@@ -224,8 +235,11 @@ class POSViewModel @Inject constructor(
                         index,
                         invoiceHeader
                     )
-                }else if (finish) {
-                    posState.value.invoiceHeaders.add(0,invoiceHeader)
+                } else if (finish) {
+                    posState.value.invoiceHeaders.add(
+                        0,
+                        invoiceHeader
+                    )
                 }
                 savePOSReceipt(
                     invoiceHeader,

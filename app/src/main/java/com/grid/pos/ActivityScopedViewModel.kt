@@ -9,10 +9,8 @@ import com.grid.pos.data.Company.CompanyRepository
 import com.grid.pos.data.Currency.Currency
 import com.grid.pos.data.Currency.CurrencyRepository
 import com.grid.pos.data.Family.Family
-import com.grid.pos.data.Family.FamilyRepository
 import com.grid.pos.data.InvoiceHeader.InvoiceHeader
 import com.grid.pos.data.Item.Item
-import com.grid.pos.data.Item.ItemRepository
 import com.grid.pos.data.PosPrinter.PosPrinter
 import com.grid.pos.data.PosPrinter.PosPrinterRepository
 import com.grid.pos.data.PosReceipt.PosReceipt
@@ -45,8 +43,6 @@ class ActivityScopedViewModel @Inject constructor(
         private val currencyRepository: CurrencyRepository,
         private val companyRepository: CompanyRepository,
         private val thirdPartyRepository: ThirdPartyRepository,
-        private val familyRepository: FamilyRepository,
-        private val itemRepository: ItemRepository,
         private val posPrinterRepository: PosPrinterRepository,
 ) : BaseViewModel() {
     private val _mainActivityEvent = Channel<ActivityScopedUIEvent>()
@@ -83,13 +79,7 @@ class ActivityScopedViewModel @Inject constructor(
             fetchSettings()
             fetchCompanies()
             fetchCurrencies()
-            fetchPrinters()/*
-            * no need to cash all data after the login
-            * *//* fetchThirdParties()
-            fetchFamilies()
-            fetchItems()
-            fetchPrinters()*/
-            //closeConnectionIfNeeded()
+            fetchPrinters()
         }
     }
 
@@ -112,9 +102,6 @@ class ActivityScopedViewModel @Inject constructor(
                 ) {
                     SettingsModel.currentCurrency = it
                 }
-            }
-            if (SettingsModel.currentCurrency == null) {
-                SettingsModel.currentCurrency = Currency()
             }
         }
     }
@@ -157,18 +144,6 @@ class ActivityScopedViewModel @Inject constructor(
                 )
             }
         }
-    }
-
-    private suspend fun fetchThirdParties() {
-        thirdParties = thirdPartyRepository.getAllThirdParties()
-    }
-
-    private suspend fun fetchItems() {
-        items = itemRepository.getAllItems()
-    }
-
-    private suspend fun fetchFamilies() {
-        families = familyRepository.getAllFamilies()
     }
 
     private suspend fun fetchPrinters() {
@@ -354,7 +329,7 @@ class ActivityScopedViewModel @Inject constructor(
 
     fun isInvoiceItemQtyChanged(invoiceItemId:String,newQty:Double) : Boolean{
         if(invoiceItemId.isEmpty()){
-            return false;
+            return false
         }
         initialInvoiceItemModels.forEach {
             if(it.invoice.invoiceId == invoiceItemId && it.invoice.invoiceQuantity != newQty){

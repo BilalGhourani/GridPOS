@@ -4,6 +4,7 @@ import android.net.Uri
 import androidx.lifecycle.viewModelScope
 import com.grid.pos.App
 import com.grid.pos.data.Currency.Currency
+import com.grid.pos.data.Currency.CurrencyRepository
 import com.grid.pos.data.Invoice.Invoice
 import com.grid.pos.data.Invoice.InvoiceRepository
 import com.grid.pos.data.InvoiceHeader.InvoiceHeader
@@ -30,6 +31,7 @@ import kotlin.math.min
 class SalesReportsViewModel @Inject constructor(
         private val invoiceHeaderRepository: InvoiceHeaderRepository,
         private val invoiceRepository: InvoiceRepository,
+        private val currencyRepository: CurrencyRepository,
         private val itemRepository: ItemRepository
 ) : BaseViewModel() {
 
@@ -50,6 +52,11 @@ class SalesReportsViewModel @Inject constructor(
     }
 
     private suspend fun fetchItems() {
+        if (SettingsModel.currentCurrency == null && SettingsModel.isConnectedToSqlServer()) {
+            val currencies = currencyRepository.getAllCurrencies()
+            val currency = if (currencies.size > 0) currencies[0] else Currency()
+            SettingsModel.currentCurrency = currency
+        }
         val listOfItems = itemRepository.getAllItems()
         itemMap = listOfItems.map { it.itemId to it }.toMap()
     }
