@@ -1,6 +1,7 @@
 package com.grid.pos.utils
 
 import android.Manifest
+import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
 import android.bluetooth.BluetoothSocket
@@ -23,6 +24,10 @@ class BluetoothPrinter {
             printerName: String
     ): Boolean {
         val bluetoothManager = context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
+        val bluetoothAdapter: BluetoothAdapter = bluetoothManager.adapter ?: BluetoothAdapter.getDefaultAdapter()
+        if (!bluetoothAdapter.isEnabled) {
+            return false
+        }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && ActivityCompat.checkSelfPermission(
                 context,
                 Manifest.permission.BLUETOOTH_CONNECT
@@ -30,7 +35,7 @@ class BluetoothPrinter {
         ) {
             return false
         }
-        val device: BluetoothDevice? = bluetoothManager.adapter.bondedDevices.firstOrNull { it.name == printerName }
+        val device: BluetoothDevice? = bluetoothAdapter.bondedDevices.firstOrNull { it.name == printerName }
 
         if (device == null) {
             Log.e(
@@ -61,7 +66,11 @@ class BluetoothPrinter {
             outputStream?.write(byteArray)
             outputStream?.flush()
         } catch (e: IOException) {
-            Log.e("BluetoothPrinter", "Failed to print data", e)
+            Log.e(
+                "BluetoothPrinter",
+                "Failed to print data",
+                e
+            )
         }
     }
 
