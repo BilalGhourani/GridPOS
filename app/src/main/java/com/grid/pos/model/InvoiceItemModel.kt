@@ -7,7 +7,7 @@ import com.grid.pos.utils.Extension.isNullOrEmptyOrNullStr
 data class InvoiceItemModel(
         val invoice: Invoice = Invoice(),
         var invoiceItem: Item = Item(),
-        val isDeleted : Boolean = false,
+        var isDeleted : Boolean = false,
         var shouldPrint: Boolean = false
 ) {
 

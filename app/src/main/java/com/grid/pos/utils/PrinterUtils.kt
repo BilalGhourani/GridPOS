@@ -320,8 +320,17 @@ object PrinterUtils {
         }
         var discountAmount = invoiceHeader.invoiceHeadDiscountAmount
         val start = htmlContent.indexOf("{row_start}")
-        val end = htmlContent.indexOf("{row_end}")+9
-       val extractedSubstring =  htmlContent.substring(start,end).replace("{row_start}","").replace("{row_end}","")
+        val end = htmlContent.indexOf("{row_end}") + 9
+        val extractedSubstring = htmlContent.substring(
+            start,
+            end
+        ).replace(
+            "{row_start}",
+            ""
+        ).replace(
+            "{row_end}",
+            ""
+        )
         if (invoiceItemModels.isNotEmpty()) {
             val trs = StringBuilder("")
             var size = 0
@@ -359,7 +368,8 @@ object PrinterUtils {
                 }
             }
             htmlContent = htmlContent.replaceRange(
-                start,end,
+                start,
+                end,
                 trs.toString()
             ).replace(
                 "{numberofitemsvalue}",
@@ -367,7 +377,8 @@ object PrinterUtils {
             )
         } else {
             htmlContent = htmlContent.replaceRange(
-                start,end,
+                start,
+                end,
                 ""
             )
         }
@@ -553,11 +564,10 @@ object PrinterUtils {
             )
         }
 
-        val invoiceTotal = Utils.getDoubleOrZero(invoiceHeader.invoiceHeadTotal)
         htmlContent = htmlContent.replace(
             "{inv_total}",
             POSUtils.formatDouble(
-                invoiceTotal,
+                invoiceHeader.invoiceHeadTotal,
                 2
             )
         ).replace(
@@ -694,7 +704,7 @@ object PrinterUtils {
             )
         }
         val change = Utils.getDoubleOrZero(invoiceHeader.invoiceHeadChange)
-        htmlContent = if (invoiceTotal + change != 0.0) {
+        htmlContent = if (change != 0.0) {
             displayReceiptDashed = true
             htmlContent.replace(
                 "{inv_change}",
@@ -1045,7 +1055,7 @@ object PrinterUtils {
                 "none"
             )
         }
-        htmlContent = if (!invoiceHeader.invoiceHeadTransNo.isNullOrEmpty() || invoiceHeader.invoiceHeadTransNo.equals("0")) {
+        htmlContent = if (!invoiceHeader.invoiceHeadTransNo.isNullOrEmpty() && !invoiceHeader.invoiceHeadTransNo.equals("0")) {
             htmlContent.replace(
                 "{trans_no}",
                 invoiceHeader.invoiceHeadTransNo ?: ""
@@ -1072,38 +1082,51 @@ object PrinterUtils {
             )
         )
         val start = htmlContent.indexOf("{row_start}")
-        val end = htmlContent.indexOf("{row_end}")+9
-        val extractedSubstring =  htmlContent.substring(start,end).replace("{row_start}","").replace("{row_end}","")
+        val end = htmlContent.indexOf("{row_end}") + 9
+        val extractedSubstring = htmlContent.substring(
+            start,
+            end
+        ).replace(
+            "{row_start}",
+            ""
+        ).replace(
+            "{row_end}",
+            ""
+        )
         if (invItemModels.isNotEmpty()) {
             val trs = StringBuilder("")
             invItemModels.forEach { item ->
-                val qty = String.format(
-                    "%,.2f",
-                    item.invoice.invoiceQuantity
-                )
-                val itemName = if (item.isDeleted) {
-                    item.getFullName() + " - Deleted"
-                } else {
-                    item.getFullName()
-                }
-                trs.append(
-                    extractedSubstring.replace(
-                        "item_qty",
-                        qty
-                    ).replace(
-                        "item_name",
-                        itemName
+                if (item.shouldPrint || item.isDeleted) {
+                    val qty = String.format(
+                        "%,.2f",
+                        item.invoice.invoiceQuantity
                     )
-                )
+                    val itemName = if (item.isDeleted) {
+                        item.getFullName() + " - Deleted"
+                    } else {
+                        item.getFullName()
+                    }
+                    trs.append(
+                        extractedSubstring.replace(
+                            "item_qty",
+                            qty
+                        ).replace(
+                            "item_name",
+                            itemName
+                        )
+                    )
+                }
             }
             htmlContent = htmlContent.replaceRange(
-                start,end,
+                start,
+                end,
                 trs.toString()
             )
         } else {
             htmlContent = htmlContent.replaceRange(
-                start,end,
-              ""
+                start,
+                end,
+                ""
             )
         }
         return ReportResult(
@@ -1199,47 +1222,52 @@ object PrinterUtils {
             printerIP: String = "",
             printerPort: Int = -1
     ) {
-        val printer = BluetoothPrinter()
-        if (!printerName.isNullOrEmpty() && printer.connectToPrinter(
-                context,
-                printerName
-            )
-        ) {
-            printer.printData(output)
-            delay(2000L)// Assuming it takes 2 seconds to print the data
-            printer.disconnectPrinter()
-        } else if (printerIP.isNotEmpty() && printerPort != -1) {
+        if (printerIP.isNotEmpty() && printerPort != -1) {
             try {
                 withContext(Dispatchers.IO) {
-                    Socket(
-                        printerIP,
-                        printerPort
-                    ).use { socket ->
-                        val outputStream: OutputStream = socket.getOutputStream()
-                        var offset = 0
-                        val batchSize = 1024
-                        while (offset < output.size) {
-                            val end = minOf(
-                                offset + batchSize,
-                                output.size
-                            )
-                            outputStream.write(
-                                output,
-                                offset,
-                                end - offset
-                            )
-                            offset += batchSize
-                        }
-                        outputStream.flush()
-                        delay(2000L)// Assuming it takes 2 seconds to print the data
-                        socket.close()
+                    val socket = Socket()
+                    socket.connect(
+                        java.net.InetSocketAddress(
+                            printerIP,
+                            printerPort
+                        ),
+                        5000
+                    )
+                    val outputStream: OutputStream = socket.getOutputStream()
+                    var offset = 0
+                    val batchSize = 1024
+                    while (offset < output.size) {
+                        val end = minOf(
+                            offset + batchSize,
+                            output.size
+                        )
+                        outputStream.write(
+                            output,
+                            offset,
+                            end - offset
+                        )
+                        offset += batchSize
                     }
+                    outputStream.flush()
+                    delay(2000L)// Assuming it takes 2 seconds to print the data
+                    socket.close()
                 }
             } catch (e: Exception) {
                 Log.e(
                     "exception",
                     e.message.toString()
                 )
+            }
+        } else {
+            val printer = BluetoothPrinter()
+            if (!printerName.isNullOrEmpty() && printer.connectToPrinter(
+                    context,
+                    printerName
+                )
+            ) {
+                printer.printData(output)
+                delay(2000L)// Assuming it takes 2 seconds to print the data
+                printer.disconnectPrinter()
             }
         }
     }

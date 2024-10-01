@@ -339,6 +339,12 @@ class POSViewModel @Inject constructor(
             isLoading = true
         )
         viewModelScope.launch(Dispatchers.IO) {
+            if (posState.value.items.isEmpty()) {
+                fetchItems(false)
+            }
+            if (posState.value.families.isEmpty()) {
+                fetchFamilies(false)
+            }
             if (posState.value.thirdParties.isEmpty()) {
                 fetchThirdParties(false)
             }

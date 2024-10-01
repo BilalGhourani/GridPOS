@@ -476,7 +476,11 @@ fun POSView(
                                 isEditBottomSheetVisible = true
                             },
                             onRemove = { index ->
-                                state.itemsToDelete.add(invoicesState.removeAt(index))
+                                val deletedRow = invoicesState.removeAt(index)
+                                if(!deletedRow.invoice.isNew()) {
+                                    deletedRow.isDeleted = true
+                                    state.itemsToDelete.add(deletedRow)
+                                }
                                 activityViewModel.invoiceItemModels = invoicesState
                                 invoiceHeaderState.value = POSUtils.refreshValues(
                                     activityViewModel.invoiceItemModels,
@@ -679,10 +683,9 @@ fun POSView(
                         ),
                     onSave = { invHeader, itemModel, isChanged ->
                         isInvoiceEdited = isInvoiceEdited || isChanged
-                        val inv = activityViewModel.invoiceItemModels[itemIndexToEdit]
                         itemModel.shouldPrint = activityViewModel.isInvoiceItemQtyChanged(
-                            inv.invoice.invoiceId,
-                            inv.invoice.invoiceQuantity
+                            itemModel.invoice.invoiceId,
+                            itemModel.invoice.invoiceQuantity
                         )
                         invoicesState[itemIndexToEdit] = itemModel
                         activityViewModel.invoiceItemModels = invoicesState

@@ -108,7 +108,7 @@ object POSUtils {
             number: Double,
             defaultScale: Int = 6
     ): String {
-        val numberString = BigDecimal(number)
+        val numberString = BigDecimal(if(number.isNaN()) 0.0 else number)
         val newScale = min(
             numberString.scale(),
             defaultScale

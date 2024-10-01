@@ -191,7 +191,7 @@ class ActivityScopedViewModel @Inject constructor(
             printTickets: Boolean,
             reportResult: ReportResult? = null
     ) {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(Dispatchers.Default) {
             val thirdParty = if (invoiceHeader.invoiceHeadThirdPartyName.isNullOrEmpty()) {
                 thirdParties.firstOrNull { it.thirdPartyDefault }
             } else {
@@ -208,10 +208,12 @@ class ActivityScopedViewModel @Inject constructor(
                     it.userId == invoiceHeader.invoiceHeadUserStamp
                 }
             }
+            val invoiceItems = invoiceItemModels.toMutableList()
+            invoiceItems.addAll(deletedInvoiceItems)
             PrinterUtils.print(
                 context,
                 invoiceHeader,
-                invoiceItemModels,
+                invoiceItems,
                 posReceipt,
                 thirdParty,
                 user,
