@@ -862,20 +862,7 @@ object PrinterUtils {
                     }
 
                     "div" -> {
-                        val style = child.attr("style").replace(
-                            " ",
-                            ""
-                        )
-                        if (!style.contains("display:none")) {
-                            if (style.contains("align-items") || style.contains("justify-content") || style.contains("text-align")) {
-                                result += if (style.contains("center")) ALIGN_CENTER else if (style.contains(
-                                        "right"
-                                    ) || style.contains("end")
-                                ) ALIGN_RIGHT else ALIGN_LEFT
-                            }
-                            result += parseHtmlElement(child)
-                            result += ALIGN_LEFT
-                        }
+                        result += parseHtmlElement(child)
                     }
 
                     "span" -> {
@@ -893,25 +880,38 @@ object PrinterUtils {
                     }
 
                     else -> {
-                        val text = child.text() ?: ""
-                        if (text.isNotEmpty()) {
-                            result += styleElement(child)
-                            result += text.toByteArray()
-                            result += BOLD_OFF + ALIGN_LEFT + NORMAL_SIZE
-                            if (child.tagName().equals("div")) {
-                                result += "\n".toByteArray()
+                        val style = child.attr("style").replace(
+                            " ",
+                            ""
+                        )
+                        if (!style.contains("display:none")) {
+                            val text = child.text() ?: ""
+                            if (text.isNotEmpty()) {
+                                result += styleElement(child)
+                                result += text.toByteArray()
+                                result += BOLD_OFF + ALIGN_LEFT + NORMAL_SIZE
+                                if (child.tagName().equals("div")) {
+                                    result += "\n".toByteArray()
+                                }
                             }
+                            result += ALIGN_LEFT
                         }
                     }
                 }
             }
         } else {
-            val text = element.text() ?: ""
-            if (text.isNotEmpty()) {
-                result += styleElement(element)
-                result += text.toByteArray()
-                if (element.tagName().equals("div")) {
-                    result += "\n".toByteArray()
+            val style = element.attr("style").replace(
+                " ",
+                ""
+            )
+            if (!style.contains("display:none")) {
+                val text = element.text() ?: ""
+                if (text.isNotEmpty()) {
+                    result += styleElement(element)
+                    result += text.toByteArray()
+                    if (element.tagName().equals("div")) {
+                        result += "\n".toByteArray()
+                    }
                 }
             }
         }
