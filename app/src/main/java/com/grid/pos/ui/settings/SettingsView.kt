@@ -138,6 +138,7 @@ fun SettingsView(
     var showTax1 by remember { mutableStateOf(SettingsModel.showTax1) }
     var showTax2 by remember { mutableStateOf(SettingsModel.showTax2) }
     var showPriceInItemBtn by remember { mutableStateOf(SettingsModel.showPriceInItemBtn) }
+    var autoPrintTickets by remember { mutableStateOf(SettingsModel.autoPrintTickets) }
 
     var buttonColorState by remember { mutableStateOf(SettingsModel.buttonColor) }
     var buttonTextColorState by remember { mutableStateOf(SettingsModel.buttonTextColor) }
@@ -747,6 +748,25 @@ fun SettingsView(
                                 DataStoreManager.putBoolean(
                                     DataStoreManager.DataStoreKeys.SHOW_PRICE_IN_ITEM_BTN.key,
                                     showPrice
+                                )
+                            }
+                        }
+
+                        UISwitch(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(60.dp)
+                                .padding(10.dp),
+                            checked = autoPrintTickets,
+                            text = "Auto print tickets",
+                            textColor = textColorState
+                        ) { autoPrint ->
+                            autoPrintTickets = autoPrint
+                            SettingsModel.autoPrintTickets = autoPrint
+                            CoroutineScope(Dispatchers.IO).launch {
+                                DataStoreManager.putBoolean(
+                                    DataStoreManager.DataStoreKeys.AUTO_PRINT_TICKETS.key,
+                                    autoPrintTickets
                                 )
                             }
                         }

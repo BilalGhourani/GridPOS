@@ -1145,8 +1145,7 @@ object PrinterUtils {
             company: Company?,
             printers: MutableList<PosPrinter>,
             reportResult: ReportResult?,
-            printInvoice: Boolean = true,
-            printTickets: Boolean = true
+            printInvoice: Boolean = true
     ) {
         if (printInvoice && !SettingsModel.cashPrinter.isNullOrEmpty()) {
             val reportRes = reportResult ?: getInvoiceReceiptHtmlContent(
@@ -1174,7 +1173,7 @@ object PrinterUtils {
             }
         }
 
-        if (printTickets) {
+        if (SettingsModel.autoPrintTickets) {
             printTickets(
                 context = context,
                 invoiceHeader = invoiceHeader,

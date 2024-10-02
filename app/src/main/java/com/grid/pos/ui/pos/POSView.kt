@@ -104,6 +104,7 @@ fun POSView(
     val invoiceHeaderState = remember { mutableStateOf(activityViewModel.invoiceHeader) }
     var itemIndexToEdit by remember { mutableIntStateOf(-1) }
     var isInvoiceEdited by remember { mutableStateOf(false) }
+    var proceedToPrint by remember { mutableStateOf(false) }
     var isEditBottomSheetVisible by remember { mutableStateOf(false) }
     var isAddItemBottomSheetVisible by remember { mutableStateOf(false) }
     var isPayBottomSheetVisible by remember { mutableStateOf(false) }
@@ -206,7 +207,7 @@ fun POSView(
         activityViewModel.invoiceItemModels.clear()
         activityViewModel.invoiceHeader = InvoiceHeader()
         activityViewModel.posReceipt = PosReceipt()
-        activityViewModel.shouldPrintInvoice = true
+        proceedToPrint = true
         activityViewModel.shouldLoadInvoice = false
         activityViewModel.pendingInvHeadState = null
         invoicesState.clear()
@@ -226,14 +227,14 @@ fun POSView(
     ) {
         if (state.isSaved) {
             isPayBottomSheetVisible = false
-            if (activityViewModel.shouldPrintInvoice) {
+            if (proceedToPrint) {
                 activityViewModel.invoiceItemModels = invoicesState
                 activityViewModel.deletedInvoiceItems = state.itemsToDelete
                 activityViewModel.invoiceHeader = invoiceHeaderState.value
                 cashLoadedData()
                 navController?.navigate("UIWebView")
             } else if (activityViewModel.isFromTable) {
-                if (activityViewModel.printTickets) {
+                if (SettingsModel.autoPrintTickets) {
                     state.isLoading = true
                     val invoices = invoicesState.filter { it.invoice.isNew() || it.shouldPrint }.toMutableList()
                     invoices.addAll(state.itemsToDelete)
@@ -767,7 +768,7 @@ fun POSView(
                                 ""
                             )
                         } else {
-                            activityViewModel.shouldPrintInvoice = true
+                            proceedToPrint = true
                             invoiceHeaderState.value.invoiceHeadPrinted += 1
                             viewModel.savePrintedNumber(
                                 invoiceHeaderState.value
@@ -777,8 +778,7 @@ fun POSView(
                     onSave = { change, receipt ->
                         activityViewModel.posReceipt = receipt
                         invoiceHeaderState.value.invoiceHeadChange = change
-                        activityViewModel.shouldPrintInvoice = false
-                        activityViewModel.printTickets = activityViewModel.isFromTable
+                        proceedToPrint = false
                         viewModel.saveInvoiceHeader(
                             invoiceHeader = invoiceHeaderState.value,
                             posReceipt = activityViewModel.posReceipt,
@@ -790,8 +790,7 @@ fun POSView(
                         activityViewModel.posReceipt = receipt
                         invoiceHeaderState.value.invoiceHeadChange = change
                         invoiceHeaderState.value.invoiceHeadPrinted += 1
-                        activityViewModel.shouldPrintInvoice = true
-                        activityViewModel.printTickets = activityViewModel.isFromTable
+                        proceedToPrint = true
                         viewModel.saveInvoiceHeader(
                             invoiceHeader = invoiceHeaderState.value,
                             posReceipt = activityViewModel.posReceipt,
@@ -803,8 +802,7 @@ fun POSView(
                         activityViewModel.posReceipt = receipt
                         invoiceHeaderState.value.invoiceHeadChange = change
                         invoiceHeaderState.value.invoiceHeadPrinted += 1
-                        activityViewModel.shouldPrintInvoice = true
-                        activityViewModel.printTickets = activityViewModel.isFromTable
+                        proceedToPrint = true
                         viewModel.saveInvoiceHeader(
                             invoiceHeader = invoiceHeaderState.value,
                             posReceipt = activityViewModel.posReceipt,

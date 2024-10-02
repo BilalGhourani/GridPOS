@@ -116,21 +116,8 @@ fun UIWebView(
                         activityViewModel.print(
                             context = context,
                             printInvoice = true,
-                            printTickets = activityViewModel.printTickets,
                             reportResult = reportResultState.value
-                        )/*val printManager = context.getSystemService(Context.PRINT_SERVICE) as PrintManager
-                    val jobName = "webpage_" + System.currentTimeMillis()
-                    val printAdapter = webView.createPrintDocumentAdapter(jobName)
-
-                    // Define Print Attributes (optional)
-                    val printAttributes = PrintAttributes.Builder()
-                        .setMediaSize(PrintAttributes.MediaSize.ISO_A4*//*getMediaSize()*//*)
-                        .setMinMargins(PrintAttributes.Margins.NO_MARGINS).build()
-                    printManager.print(
-                        jobName,
-                        printAdapter,
-                        printAttributes
-                    )*/
+                        )
                     }
                 }
             }

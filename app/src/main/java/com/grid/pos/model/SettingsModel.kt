@@ -35,6 +35,7 @@ object SettingsModel {
     var showTax1: Boolean = false
     var showTax2: Boolean = false
     var showPriceInItemBtn: Boolean = false
+    var autoPrintTickets: Boolean = false
 
     var buttonColor: Color = Color.Blue
     var buttonTextColor: Color = Color.White
