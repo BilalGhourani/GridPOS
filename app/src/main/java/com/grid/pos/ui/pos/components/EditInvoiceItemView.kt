@@ -65,7 +65,7 @@ fun EditInvoiceItemView(
         invoices: MutableList<InvoiceItemModel>,
         invHeader: InvoiceHeader,
         invoiceIndex: Int = 0,
-        onSave: (InvoiceHeader, InvoiceItemModel,Boolean) -> Unit = { _, _,_ -> },
+        onSave: (InvoiceHeader, InvoiceItemModel) -> Unit = { _, _ -> },
         onClose: () -> Unit = {},
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -82,12 +82,7 @@ fun EditInvoiceItemView(
     val tax2FocusRequester = remember { FocusRequester() }
 
     var invoiceHeader = invHeader.copy()
-    var initialInvoiceHeader = invHeader.copy()
     val invoiceItemAtIndex = invoices[invoiceIndex]
-    val initialInvoiceItemModel = InvoiceItemModel(
-        invoice = invoiceItemAtIndex.invoice.copy(),
-        invoiceItem = invoiceItemAtIndex.invoiceItem
-    )
     val invoiceItemModel = InvoiceItemModel(
         invoice = invoiceItemAtIndex.invoice.copy(),
         invoiceItem = invoiceItemAtIndex.invoiceItem
@@ -227,12 +222,9 @@ fun EditInvoiceItemView(
         invoiceItemModel.invoice.invoiceExtraName = itemExtraName
         invoiceItemModel.invoice.invoiceNote = itemNote
 
-        val isInvoiceEdited = initialInvoiceItemModel.invoice.didChanged(invoiceItemModel.invoice)
-                || initialInvoiceHeader.didChanged(invoiceHeader)
         onSave.invoke(
             invoiceHeader,
-            invoiceItemModel,
-            isInvoiceEdited
+            invoiceItemModel
         )
     }
 

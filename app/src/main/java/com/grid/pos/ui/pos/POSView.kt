@@ -236,9 +236,10 @@ fun POSView(
             } else if (activityViewModel.isFromTable) {
                 if (SettingsModel.autoPrintTickets) {
                     state.isLoading = true
-                    val invoices = invoicesState.filter { it.invoice.isNew() || it.shouldPrint }.toMutableList()
+                    val invoices = invoicesState.filter { it.invoice.isNew() || it.shouldPrint }
+                        .toMutableList()
                     invoices.addAll(state.itemsToDelete)
-                    if(invoices.isNotEmpty()) {
+                    if (invoices.isNotEmpty()) {
                         CoroutineScope(Dispatchers.Default).launch {
                             activityViewModel.invoiceHeader = invoiceHeaderState.value
                             cashLoadedData()
@@ -253,7 +254,7 @@ fun POSView(
                                 navController?.navigateUp()
                             }
                         }
-                    }else{
+                    } else {
                         navController?.navigateUp()
                     }
                 } else {
@@ -478,7 +479,7 @@ fun POSView(
                             },
                             onRemove = { index ->
                                 val deletedRow = invoicesState.removeAt(index)
-                                if(!deletedRow.invoice.isNew()) {
+                                if (!deletedRow.invoice.isNew()) {
                                     deletedRow.isDeleted = true
                                     state.itemsToDelete.add(deletedRow)
                                 }
@@ -682,9 +683,10 @@ fun POSView(
                         .background(
                             color = SettingsModel.backgroundColor
                         ),
-                    onSave = { invHeader, itemModel, isChanged ->
+                    onSave = { invHeader, itemModel ->
+                        val isChanged = !itemModel.invoice.isNew() && activityViewModel.initialInvoiceItemModels[itemIndexToEdit].invoice.didChanged(itemModel.invoice) || (activityViewModel.pendingInvHeadState ?: activityViewModel.invoiceHeader).didChanged(invHeader)
                         isInvoiceEdited = isInvoiceEdited || isChanged
-                       /* itemModel.shouldPrint = activityViewModel.isInvoiceItemQtyChanged(
+                        /* itemModel.shouldPrint = activityViewModel.isInvoiceItemQtyChanged(
                             itemModel.invoice.invoiceId,
                             itemModel.invoice.invoiceQuantity
                         )*/
