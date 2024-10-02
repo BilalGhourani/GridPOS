@@ -199,12 +199,10 @@ class POSViewModel @Inject constructor(
                     invoiceHeader,
                     finish
                 )
-                if (finish) {
-                    posState.value.invoiceHeaders.add(
-                        0,
-                        addedInv
-                    )
-                }
+                posState.value.invoiceHeaders.add(
+                    0,
+                    addedInv
+                )
                 savePOSReceipt(
                     addedInv,
                     posReceipt,

@@ -270,7 +270,28 @@ class InvoiceHeaderRepositoryImpl(
                         }
                     }
                 }
-                return invoices
+
+                val tablesQuerySnapshot = FirebaseFirestore.getInstance().collection("in_hinvoice")
+                    .whereEqualTo(
+                        "hi_cmp_id",
+                        SettingsModel.getCompanyID()
+                    ).whereEqualTo(
+                        "hi_transno",
+                        null
+                    ).whereEqualTo(
+                        "hi_ta_name",
+                        null
+                    ).limit(limit.toLong()).get().await()
+                if (tablesQuerySnapshot.size() > 0) {
+                    for (document in tablesQuerySnapshot) {
+                        val obj = document.toObject(InvoiceHeader::class.java)
+                        if (obj.invoiceHeadId.isNotEmpty()) {
+                            obj.invoiceHeadDocumentId = document.id
+                            invoices.add(obj)
+                        }
+                    }
+                }
+                return invoices.sortedByDescending { it.invoiceHeadDate }.toMutableList()
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
@@ -283,13 +304,13 @@ class InvoiceHeaderRepositoryImpl(
             else -> {
                 val invoiceHeaders: MutableList<InvoiceHeader> = mutableListOf()
                 try {
-                    val where = "hi_cmp_id='${SettingsModel.getCompanyID()}' AND hi_transno IS NOT NULL AND hi_transno <> '' AND hi_transno <> '0'"
+                    val where = "hi_cmp_id='${SettingsModel.getCompanyID()}' AND ((hi_transno IS NOT NULL AND hi_transno <> '' AND hi_transno <> '0') OR ((hi_transno IS NULL OR hi_transno = '' OR hi_transno = '0') AND (hi_ta_name IS NULL OR hi_ta_name = '')))"
                     val dbResult = SQLServerWrapper.getListOf(
                         "in_hinvoice",
                         "TOP $limit",
                         mutableListOf("*"),
                         where,
-                        "ORDER BY hi_transno DESC"
+                        "ORDER BY hi_date DESC"
                     )
                     dbResult?.let {
                         while (it.next()) {
@@ -591,17 +612,17 @@ class InvoiceHeaderRepositoryImpl(
                 return invoiceHeaderDao.getInvoiceByTable(
                     tableNo,
                     SettingsModel.getCompanyID() ?: ""
-                )?:  InvoiceHeader()
+                ) ?: InvoiceHeader()
             }
 
             else -> {
                 val invoiceHeaders: MutableList<InvoiceHeader> = mutableListOf()
-                var tableModel:TableModel? = null
+                var tableModel: TableModel? = null
                 try {
                     tableModel = getTableIdByNumber(tableNo)
-                    val subQuery = if (!tableModel?.table_inv_id.isNullOrEmpty()){
+                    val subQuery = if (!tableModel?.table_inv_id.isNullOrEmpty()) {
                         "hi_id = '${tableModel?.table_inv_id}'"
-                    }else if (!tableModel?.table_id.isNullOrEmpty()){
+                    } else if (!tableModel?.table_id.isNullOrEmpty()) {
                         "(hi_ta_name = '${tableModel?.table_id}' OR hi_ta_name = '$tableNo')"
                     } else {
                         "hi_ta_name = '$tableNo'"
