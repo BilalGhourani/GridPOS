@@ -688,7 +688,7 @@ object PrinterUtils {
         htmlContent = if (prDebits > 0.0) {
             displayReceiptDashed = true
             htmlContent.replace(
-                "{receipt_debit}",
+                "{receipt_debits}",
                 POSUtils.formatDouble(
                     prDebits,
                     2
@@ -787,6 +787,13 @@ object PrinterUtils {
     private fun parseHtmlElement(element: Element): ByteArray {
 
         var result = byteArrayOf()
+        val parentStyle = element.attr("style").lowercase().replace(
+            " ",
+            ""
+        )
+        if (parentStyle.contains("display:none")) {
+            return result
+        }
 
         val children = element.children()
         if (children.size > 0) {
@@ -798,39 +805,27 @@ object PrinterUtils {
                     }
 
                     "b", "strong" -> {
-                        val text = child.text() ?: ""
-                        if (text.isNotEmpty()) {
-                            result += BOLD_ON
-                            result += text.toByteArray()
-                            result += BOLD_OFF
-                        }
+                        result += BOLD_ON
+                        result += parseHtmlElement(child)
+                        result += BOLD_OFF
                     }
 
                     "i", "em" -> {
-                        val text = child.text() ?: ""
-                        if (text.isNotEmpty()) {
-                            result += ITALIC_ON
-                            result += text.toByteArray()
-                            result += ITALIC_OFF
-                        }
+                        result += ITALIC_ON
+                        result += parseHtmlElement(child)
+                        result += ITALIC_OFF
                     }
 
                     "u" -> {
-                        val text = child.text() ?: ""
-                        if (text.isNotEmpty()) {
-                            result += UNDERLINE_ON
-                            result += text.toByteArray()
-                            result += UNDERLINE_OFF
-                        }
+                        result += UNDERLINE_ON
+                        result += parseHtmlElement(child)
+                        result += UNDERLINE_OFF
                     }
 
                     "font" -> {
-                        val text = child.text() ?: ""
-                        if (text.isNotEmpty()) {
-                            result += DOUBLE_SIZE
-                            result += text.toByteArray()
-                            result += NORMAL_SIZE
-                        }
+                        result += DOUBLE_SIZE
+                        result += parseHtmlElement(child)
+                        result += NORMAL_SIZE
                     }
 
                     "img" -> {
@@ -871,47 +866,34 @@ object PrinterUtils {
 
                     "table" -> {
                         for (row in child.select("tr")) {
-                            for (cell in row.select("td")) {
-                                result += parseHtmlElement(cell)
-                                result += "\t".toByteArray()// Add tab space between cells
+                            val rowStyle = row.attr("style").lowercase().replace(
+                                " ",
+                                ""
+                            )
+                            if (!rowStyle.contains("display:none")) {
+                                for (cell in row.select("td")) {
+                                    result += parseHtmlElement(cell)
+                                    result += "\t".toByteArray()// Add tab space between cells
+                                }
+                                result += "\n".toByteArray()
                             }
-                            result += "\n".toByteArray()
                         }
                     }
 
                     else -> {
-                        val style = child.attr("style").replace(
-                            " ",
-                            ""
-                        )
-                        if (!style.contains("display:none")) {
-                            val text = child.text() ?: ""
-                            if (text.isNotEmpty()) {
-                                result += styleElement(child)
-                                result += text.toByteArray()
-                                result += BOLD_OFF + ALIGN_LEFT + NORMAL_SIZE
-                                if (child.tagName().equals("div")) {
-                                    result += "\n".toByteArray()
-                                }
-                            }
-                            result += ALIGN_LEFT
-                        }
+                        result += parseHtmlElement(child)
                     }
                 }
             }
         } else {
-            val style = element.attr("style").replace(
-                " ",
-                ""
-            )
-            if (!style.contains("display:none")) {
-                val text = element.text() ?: ""
-                if (text.isNotEmpty()) {
-                    result += styleElement(element)
-                    result += text.toByteArray()
-                    if (element.tagName().equals("div")) {
-                        result += "\n".toByteArray()
-                    }
+            val text = element.text() ?: ""
+            if (text.isNotEmpty()) {
+                result += styleElement(
+                    parentStyle
+                )
+                result += text.toByteArray()
+                if (element.tagName().equals("div")) {
+                    result += "\n".toByteArray()
                 }
             }
         }
@@ -919,17 +901,16 @@ object PrinterUtils {
         return result
     }
 
-    private fun styleElement(element: Element): ByteArray {
+    private fun styleElement(
+            style: String
+    ): ByteArray {
         var res = byteArrayOf()
-        val style = element.attr("style").replace(
-            " ",
-            ""
-        )
-        if (style.contains("text-align") || style.contains("justify-content")) {
-            res += if (style.contains("center")) ALIGN_CENTER else if (style.contains("right") || style.contains(
-                    "end"
-                )
-            ) ALIGN_RIGHT else ALIGN_LEFT
+        res += if (style.contains("align-items:right") || style.contains("text-align:right") || style.contains("justify-content:right")) {
+            ALIGN_RIGHT
+        } else if (style.contains("align-items:center") || style.contains("text-align:center") || style.contains("justify-content:center")) {
+            ALIGN_CENTER
+        } else {
+            ALIGN_LEFT
         }
 
         res += if (style.contains("font-size")) {
@@ -1189,7 +1170,8 @@ object PrinterUtils {
             invoiceItemModels: MutableList<InvoiceItemModel>,
             printers: MutableList<PosPrinter>,
     ) {
-        val itemsPrintersMap = invoiceItemModels.groupBy { it.invoiceItem.itemPrinter ?: "" }
+        val itemsPrintersMap = invoiceItemModels.filter { it.shouldPrint || it.isDeleted }
+            .groupBy { it.invoiceItem.itemPrinter ?: "" }
         itemsPrintersMap.entries.forEach { entry ->
             if (entry.key.isNotEmpty()) {
                 val itemsPrinter = printers.firstOrNull { it.posPrinterId == entry.key }
