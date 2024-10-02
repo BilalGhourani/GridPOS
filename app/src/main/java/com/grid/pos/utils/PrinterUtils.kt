@@ -40,6 +40,8 @@ import java.util.Locale
 object PrinterUtils {
 
     //line space => byteArrayOf(0x1B, 0x33, n.toByte())
+    private val TAG_SPACE = byteArrayOf(0x09)
+    private val NEW_LINE = byteArrayOf(0x0A)
     private val DOUBLE_SIZE = byteArrayOf(
         0x1B,
         0x21,
@@ -799,11 +801,6 @@ object PrinterUtils {
         if (children.size > 0) {
             for (child in children) {
                 when (child.tagName()) {
-                    "p" -> {
-                        result += parseHtmlElement(child)
-                        result += "\n".toByteArray()
-                    }
-
                     "b", "strong" -> {
                         result += BOLD_ON
                         result += parseHtmlElement(child)
@@ -856,14 +853,6 @@ object PrinterUtils {
                         result += ALIGN_LEFT
                     }
 
-                    "div" -> {
-                        result += parseHtmlElement(child)
-                    }
-
-                    "span" -> {
-                        result += parseHtmlElement(child)
-                    }
-
                     "table" -> {
                         for (row in child.select("tr")) {
                             val rowStyle = row.attr("style").lowercase().replace(
@@ -871,11 +860,14 @@ object PrinterUtils {
                                 ""
                             )
                             if (!rowStyle.contains("display:none")) {
-                                for (cell in row.select("td")) {
+                                val cells = row.select("td")
+                                for ((index, cell) in cells.withIndex()) {
                                     result += parseHtmlElement(cell)
-                                    result += "\t".toByteArray()// Add tab space between cells
+                                    if (index < cells.size - 1) {
+                                        result += TAG_SPACE// Add tab space between cells
+                                    }
                                 }
-                                result += "\n".toByteArray()
+                                result += NEW_LINE
                             }
                         }
                     }
@@ -892,8 +884,8 @@ object PrinterUtils {
                     parentStyle
                 )
                 result += text.toByteArray()
-                if (element.tagName().equals("div")) {
-                    result += "\n".toByteArray()
+                if (element.tagName().equals("div") || element.tagName().equals("p")) {
+                    result += NEW_LINE
                 }
             }
         }
