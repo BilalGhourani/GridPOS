@@ -683,10 +683,10 @@ fun POSView(
                         ),
                     onSave = { invHeader, itemModel, isChanged ->
                         isInvoiceEdited = isInvoiceEdited || isChanged
-                        itemModel.shouldPrint = activityViewModel.isInvoiceItemQtyChanged(
+                       /* itemModel.shouldPrint = activityViewModel.isInvoiceItemQtyChanged(
                             itemModel.invoice.invoiceId,
                             itemModel.invoice.invoiceQuantity
-                        )
+                        )*/
                         invoicesState[itemIndexToEdit] = itemModel
                         activityViewModel.invoiceItemModels = invoicesState
                         invoiceHeaderState.value = invHeader
