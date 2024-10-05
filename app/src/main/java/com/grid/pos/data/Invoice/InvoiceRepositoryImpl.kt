@@ -54,7 +54,10 @@ class InvoiceRepositoryImpl(
             else -> {
                 SQLServerWrapper.executeProcedure(
                     "delin_invoice",
-                    listOf(invoice.invoiceId,SettingsModel.currentUser?.userUsername)
+                    listOf(
+                        invoice.invoiceId,
+                        SettingsModel.currentUser?.userUsername
+                    )
                 )
             }
         }
@@ -268,19 +271,26 @@ class InvoiceRepositoryImpl(
             invoice.getTax1(),
             invoice.getTax2()
         )
-        if(SettingsModel.isSqlServerWebDb){
-            parameters.add(0,"Newid()")
-        }else{
-            parameters.add(0,"null")
+        if (SettingsModel.isSqlServerWebDb) {
+            parameters.add(
+                0,
+                "Newid()"
+            )
+        } else {
+            parameters.add(
+                0,
+                "null"
+            )
         }
-        SQLServerWrapper.executeProcedure(
+        invoice.invoiceId = SQLServerWrapper.executeProcedure(
             "addin_invoice",
-            parameters
-        )
+            parameters,
+            true
+        ) ?: ""
     }
 
     private fun updateByProcedure(invoice: Invoice) {
-        val parameters = if(SettingsModel.isSqlServerWebDb){
+        val parameters = if (SettingsModel.isSqlServerWebDb) {
             mutableListOf(
                 invoice.invoiceId,
                 invoice.invoiceHeaderId,
@@ -310,7 +320,7 @@ class InvoiceRepositoryImpl(
                 invoice.getTax1(),
                 invoice.getTax2()
             )
-        }else{
+        } else {
             mutableListOf(
                 invoice.invoiceId,
                 invoice.invoiceHeaderId,

@@ -210,10 +210,11 @@ object SQLServerWrapper {
     fun executeProcedure(
             procedureName: String,
             values: List<Any?>,
+            withResult: Boolean = false
     ): String? {
         var connection: Connection? = null
         var callableStatement: CallableStatement? = null
-        var result: String?=null
+        var result: String? = null
         try {
             val vals = values.joinToString(", ") {
                 if (it is String) {
@@ -231,9 +232,16 @@ object SQLServerWrapper {
             connection = getConnection()
             val query = "{call dbo.$procedureName($vals)"
             callableStatement = connection.prepareCall(query)
-            callableStatement.registerOutParameter(values.size, Types.NVARCHAR)
+            if (withResult) {
+                callableStatement.registerOutParameter(
+                    "resultId",
+                    Types.NVARCHAR
+                )
+            }
             callableStatement.execute()
-            result = callableStatement.getString(values.size)
+            if (withResult) {
+                result = callableStatement.getString("resultId")
+            }
         } catch (e: Exception) {
             e.printStackTrace()
         } finally {

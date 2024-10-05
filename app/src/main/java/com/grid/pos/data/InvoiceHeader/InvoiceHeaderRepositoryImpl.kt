@@ -779,6 +779,7 @@ class InvoiceHeaderRepositoryImpl(
             invoiceHeadUserStamp = obj.getStringValue("hi_userstamp")
         }
     }
+
     private fun getTableIdByNumber(tableNo: String): TableModel? {
         try {
             val where = if (SettingsModel.isSqlServerWebDb) "ta_cmp_id='${SettingsModel.getCompanyID()}' AND ta_newname = '$tableNo'"
@@ -923,7 +924,8 @@ class InvoiceHeaderRepositoryImpl(
         }
         return SQLServerWrapper.executeProcedure(
             "addin_hinvoice",
-            parameters
+            parameters,
+            true
         ) ?: ""
     }
 
@@ -1033,7 +1035,7 @@ class InvoiceHeaderRepositoryImpl(
                 invoiceHeader.invoiceHeadTax2Amt,
             )
         }
-         SQLServerWrapper.executeProcedure(
+        SQLServerWrapper.executeProcedure(
             "updin_hinvoice",
             parameters
         )

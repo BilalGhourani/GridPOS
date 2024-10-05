@@ -34,7 +34,7 @@ class PosReceiptRepositoryImpl(
             else -> {
                 val rate = SettingsModel.currentCurrency?.currencyRate ?: 1.0
                 if (posReceipt.posReceiptCash > 0.0 && !SettingsModel.posReceiptAccCashId.isNullOrEmpty()) {
-                    insertPOSReceiptByProcedure(
+                    posReceipt.posReceiptCashID = insertPOSReceiptByProcedure(
                         posReceipt.posReceiptInvoiceId!!,
                         POSUtils.formatDouble(posReceipt.posReceiptCash),
                         POSUtils.formatDouble(posReceipt.posReceiptCash.times(rate)),
@@ -43,7 +43,7 @@ class PosReceiptRepositoryImpl(
                 }
 
                 if (posReceipt.posReceiptCashs > 0.0 && !SettingsModel.posReceiptAccCash1Id.isNullOrEmpty()) {
-                    insertPOSReceiptByProcedure(
+                    posReceipt.posReceiptCashsID = insertPOSReceiptByProcedure(
                         posReceipt.posReceiptInvoiceId!!,
                         POSUtils.formatDouble(posReceipt.posReceiptCashs),
                         POSUtils.formatDouble(posReceipt.posReceiptCashs.div(rate)),
@@ -52,7 +52,7 @@ class PosReceiptRepositoryImpl(
                 }
 
                 if (posReceipt.posReceiptCredit > 0.0 && !SettingsModel.posReceiptAccCreditId.isNullOrEmpty()) {
-                    insertPOSReceiptByProcedure(
+                    posReceipt.posReceiptCreditID = insertPOSReceiptByProcedure(
                         posReceipt.posReceiptInvoiceId!!,
                         POSUtils.formatDouble(posReceipt.posReceiptCredit),
                         POSUtils.formatDouble(posReceipt.posReceiptCredit.times(rate)),
@@ -61,7 +61,7 @@ class PosReceiptRepositoryImpl(
                 }
 
                 if (posReceipt.posReceiptCredits > 0.0 && !SettingsModel.posReceiptAccCredit1Id.isNullOrEmpty()) {
-                    insertPOSReceiptByProcedure(
+                    posReceipt.posReceiptCreditsID = insertPOSReceiptByProcedure(
                         posReceipt.posReceiptInvoiceId!!,
                         POSUtils.formatDouble(posReceipt.posReceiptCredits),
                         POSUtils.formatDouble(posReceipt.posReceiptCredits.div(rate)),
@@ -70,7 +70,7 @@ class PosReceiptRepositoryImpl(
                 }
 
                 if (posReceipt.posReceiptDebit > 0.0 && !SettingsModel.posReceiptAccDebitId.isNullOrEmpty()) {
-                    insertPOSReceiptByProcedure(
+                    posReceipt.posReceiptDebitID = insertPOSReceiptByProcedure(
                         posReceipt.posReceiptInvoiceId!!,
                         POSUtils.formatDouble(posReceipt.posReceiptDebit),
                         POSUtils.formatDouble(posReceipt.posReceiptDebit.times(rate)),
@@ -79,7 +79,7 @@ class PosReceiptRepositoryImpl(
                 }
 
                 if (posReceipt.posReceiptDebits > 0.0 && !SettingsModel.posReceiptAccDebit1Id.isNullOrEmpty()) {
-                    insertPOSReceiptByProcedure(
+                    posReceipt.posReceiptDebitsID = insertPOSReceiptByProcedure(
                         posReceipt.posReceiptInvoiceId!!,
                         POSUtils.formatDouble(posReceipt.posReceiptDebits),
                         POSUtils.formatDouble(posReceipt.posReceiptDebits.div(rate)),
@@ -180,7 +180,7 @@ class PosReceiptRepositoryImpl(
                         SettingsModel.posReceiptAccCashId!!
                     )
                 } else if (posReceipt.posReceiptCash > 0.0 && !SettingsModel.posReceiptAccCashId.isNullOrEmpty()) {
-                    insertPOSReceiptByProcedure(
+                    posReceipt.posReceiptCashID = insertPOSReceiptByProcedure(
                         posReceipt.posReceiptInvoiceId!!,
                         POSUtils.formatDouble(posReceipt.posReceiptCash),
                         POSUtils.formatDouble(posReceipt.posReceiptCash.times(rate)),
@@ -197,7 +197,7 @@ class PosReceiptRepositoryImpl(
                         SettingsModel.posReceiptAccCash1Id!!
                     )
                 } else if (posReceipt.posReceiptCashs > 0.0 && !SettingsModel.posReceiptAccCash1Id.isNullOrEmpty()) {
-                    insertPOSReceiptByProcedure(
+                    posReceipt.posReceiptCashsID = insertPOSReceiptByProcedure(
                         posReceipt.posReceiptInvoiceId!!,
                         POSUtils.formatDouble(posReceipt.posReceiptCashs),
                         POSUtils.formatDouble(posReceipt.posReceiptCashs.div(rate)),
@@ -214,7 +214,7 @@ class PosReceiptRepositoryImpl(
                         SettingsModel.posReceiptAccCreditId!!
                     )
                 } else if (posReceipt.posReceiptCredit > 0.0 && !SettingsModel.posReceiptAccCreditId.isNullOrEmpty()) {
-                    insertPOSReceiptByProcedure(
+                    posReceipt.posReceiptCreditID = insertPOSReceiptByProcedure(
                         posReceipt.posReceiptInvoiceId!!,
                         POSUtils.formatDouble(posReceipt.posReceiptCredit),
                         POSUtils.formatDouble(posReceipt.posReceiptCredit.times(rate)),
@@ -231,7 +231,7 @@ class PosReceiptRepositoryImpl(
                         SettingsModel.posReceiptAccCredit1Id!!
                     )
                 } else if (posReceipt.posReceiptCredits > 0.0 && !SettingsModel.posReceiptAccCredit1Id.isNullOrEmpty()) {
-                    insertPOSReceiptByProcedure(
+                    posReceipt.posReceiptCreditsID = insertPOSReceiptByProcedure(
                         posReceipt.posReceiptInvoiceId!!,
                         POSUtils.formatDouble(posReceipt.posReceiptCredits),
                         POSUtils.formatDouble(posReceipt.posReceiptCredits.div(rate)),
@@ -248,7 +248,7 @@ class PosReceiptRepositoryImpl(
                         SettingsModel.posReceiptAccDebitId!!
                     )
                 } else if (posReceipt.posReceiptDebit > 0.0 && !SettingsModel.posReceiptAccDebitId.isNullOrEmpty()) {
-                    insertPOSReceiptByProcedure(
+                    posReceipt.posReceiptDebitID = insertPOSReceiptByProcedure(
                         posReceipt.posReceiptInvoiceId!!,
                         POSUtils.formatDouble(posReceipt.posReceiptDebit),
                         POSUtils.formatDouble(posReceipt.posReceiptDebit.times(rate)),
@@ -265,7 +265,7 @@ class PosReceiptRepositoryImpl(
                         SettingsModel.posReceiptAccDebit1Id!!
                     )
                 } else if (posReceipt.posReceiptDebits > 0.0 && !SettingsModel.posReceiptAccDebit1Id.isNullOrEmpty()) {
-                    insertPOSReceiptByProcedure(
+                    posReceipt.posReceiptDebitsID = insertPOSReceiptByProcedure(
                         posReceipt.posReceiptInvoiceId!!,
                         POSUtils.formatDouble(posReceipt.posReceiptDebits),
                         POSUtils.formatDouble(posReceipt.posReceiptDebits.div(rate)),
@@ -484,13 +484,12 @@ class PosReceiptRepositoryImpl(
         }
     }
 
-
     private fun insertPOSReceiptByProcedure(
             posReceiptInvoiceId: String,
             firstValue: String,
             secondValue: String,
             receiptAccId: String
-    ){
+    ): String {
         val parameters = mutableListOf(
             posReceiptInvoiceId,//pr_hi_id
             receiptAccId,//pr_ra_id
@@ -505,17 +504,23 @@ class PosReceiptRepositoryImpl(
             SettingsModel.currentUser?.userUsername,//pr_userstamp
             0,//pr_commission
         )
-        if(SettingsModel.isSqlServerWebDb){
-            parameters.add(0,"Newid()")
+        if (SettingsModel.isSqlServerWebDb) {
+            parameters.add(
+                0,
+                "Newid()"
+            )
             parameters.add("null")//pr_denomination
             parameters.add("null")//pr_count
-        }else{
-            parameters.add(0,"null")
+        } else {
+            parameters.add(
+                0,
+                "null"
+            )
         }
-        SQLServerWrapper.executeProcedure(
+        return SQLServerWrapper.executeProcedure(
             "addpos_receipt",
             parameters
-        )
+        ) ?: ""
     }
 
     private fun updatePOSReceiptByProcedure(
@@ -523,9 +528,9 @@ class PosReceiptRepositoryImpl(
             posReceiptInvoiceId: String,
             firstValue: String,
             secondValue: String,
-            pr_hsid:String?,
+            pr_hsid: String?,
             receiptAccId: String
-    ){
+    ) {
         val parameters = mutableListOf(
             posReceiptId,//pr_id
             posReceiptInvoiceId,//pr_hi_id
@@ -541,7 +546,7 @@ class PosReceiptRepositoryImpl(
             SettingsModel.currentUser?.userUsername,//pr_userstamp
             0,//pr_commission
         )
-        if(SettingsModel.isSqlServerWebDb){
+        if (SettingsModel.isSqlServerWebDb) {
             parameters.add("null")//pr_denomination
             parameters.add("null")//pr_count
         }
