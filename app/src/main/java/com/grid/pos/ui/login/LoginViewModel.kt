@@ -123,7 +123,6 @@ class LoginViewModel @Inject constructor(
                 viewModelScope.launch(Dispatchers.Main) {
                     usersState.value = usersState.value.copy(
                         selectedUser = it,
-                        isLoading = false,
                         isLoggedIn = true
                     )
                 }

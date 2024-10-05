@@ -821,8 +821,8 @@ class InvoiceHeaderRepositoryImpl(
             listOf(
                 invoiceHeader.invoiceHeadCompId,
                 if (invoiceHeader.invoiceHeadTransNo.isNullOrEmpty()) "Proforma Invoice" else "Sale Invoice",
-                "getdate()",
-                "getdate()",
+                Timestamp(System.currentTimeMillis()),
+                Timestamp(System.currentTimeMillis()),
                 if (!invoiceHeader.invoiceHeadTaName.isNullOrEmpty()) "In" else "Carry",
                 invoiceHeader.invoiceHeadOrderNo,
                 invoiceHeader.invoiceHeadTtCode,
@@ -842,7 +842,7 @@ class InvoiceHeaderRepositoryImpl(
                 0,//phoneorder
                 invoiceHeader.invoiceHeadGrossAmount,
                 invoiceHeader.invoiceHeadTaxAmt,
-                "",//round
+                "null",//round
                 invoiceHeader.invoiceHeadTotal1,
                 1,//rate first
                 invoiceHeader.invoiceHeadRate,//rate seconds
@@ -856,12 +856,12 @@ class InvoiceHeaderRepositoryImpl(
                 invoiceHeader.invoiceHeadUserStamp,//hi_userstamp
                 SettingsModel.currentCompany?.cmp_multibranchcode,//branchcode
                 invoiceHeader.invoiceHeadChange,
-                "getdate()",//hi_valuedate
+                Timestamp(System.currentTimeMillis()),//hi_valuedate
                 invoiceHeader.invoiceHeadPrinted,//hi_printed
                 0,//hi_smssent
                 "null",//hi_pathtodoc
                 "null",//hi_cashback
-                "Newid()",//hi_id
+                "null",//hi_id
                 invoiceHeader.invoiceHeadTotal,//@hi_total
                 1,//hi_ratetaxf
                 invoiceHeader.invoiceHeadRate,//hi_ratetaxs
@@ -873,8 +873,8 @@ class InvoiceHeaderRepositoryImpl(
             listOf(
                 invoiceHeader.invoiceHeadCompId,
                 if (invoiceHeader.invoiceHeadTransNo.isNullOrEmpty()) "Proforma Invoice" else "Sale Invoice",
-                "getdate()",
-                "getdate()",
+                Timestamp(System.currentTimeMillis()),
+                Timestamp(System.currentTimeMillis()),
                 if (!invoiceHeader.invoiceHeadTaName.isNullOrEmpty()) "In" else "Carry",
                 invoiceHeader.invoiceHeadOrderNo,
                 invoiceHeader.invoiceHeadTtCode,
@@ -894,7 +894,7 @@ class InvoiceHeaderRepositoryImpl(
                 0,//phoneorder
                 invoiceHeader.invoiceHeadGrossAmount,
                 invoiceHeader.invoiceHeadTaxAmt,
-                "",//round
+                "null",//round
                 invoiceHeader.invoiceHeadTotal1,
                 1,//rate first
                 invoiceHeader.invoiceHeadRate,//rate seconds
@@ -909,7 +909,7 @@ class InvoiceHeaderRepositoryImpl(
                 "null",//hi_sessionpointer
                 SettingsModel.currentCompany?.cmp_multibranchcode,//branchcode
                 invoiceHeader.invoiceHeadChange,
-                "getdate()",//hi_valuedate
+                Timestamp(System.currentTimeMillis()),//hi_valuedate
                 invoiceHeader.invoiceHeadPrinted,//hi_printed
                 0,//hi_smssent
                 "null",//hi_pathtodoc
@@ -935,8 +935,8 @@ class InvoiceHeaderRepositoryImpl(
                 invoiceHeader.invoiceHeadId,
                 invoiceHeader.invoiceHeadCompId,
                 if (invoiceHeader.invoiceHeadTransNo.isNullOrEmpty()) "Proforma Invoice" else "Sale Invoice",
-                "getdate()",
-                "getdate()",
+                Timestamp(System.currentTimeMillis()),
+                Timestamp(System.currentTimeMillis()),
                 if (!invoiceHeader.invoiceHeadTaName.isNullOrEmpty()) "In" else "Carry",
                 invoiceHeader.invoiceHeadOrderNo,
                 invoiceHeader.invoiceHeadTtCode,
@@ -956,7 +956,7 @@ class InvoiceHeaderRepositoryImpl(
                 0,//phoneorder
                 invoiceHeader.invoiceHeadGrossAmount,
                 invoiceHeader.invoiceHeadTaxAmt,
-                "",//round
+                "null",//round
                 invoiceHeader.invoiceHeadTotal1,
                 1,//rate first
                 invoiceHeader.invoiceHeadRate,//rate seconds
@@ -970,7 +970,7 @@ class InvoiceHeaderRepositoryImpl(
                 invoiceHeader.invoiceHeadUserStamp,//hi_userstamp
                 SettingsModel.currentCompany?.cmp_multibranchcode,//branchcode
                 invoiceHeader.invoiceHeadChange,
-                "getdate()",//hi_valuedate
+                Timestamp(System.currentTimeMillis()),//hi_valuedate
                 invoiceHeader.invoiceHeadPrinted,//hi_printed
                 0,//hi_smssent
                 "null",//hi_pathtodoc
@@ -987,8 +987,8 @@ class InvoiceHeaderRepositoryImpl(
                 invoiceHeader.invoiceHeadId,
                 invoiceHeader.invoiceHeadCompId,
                 if (invoiceHeader.invoiceHeadTransNo.isNullOrEmpty()) "Proforma Invoice" else "Sale Invoice",
-                "getdate()",
-                "getdate()",
+                Timestamp(System.currentTimeMillis()),
+                Timestamp(System.currentTimeMillis()),
                 if (!invoiceHeader.invoiceHeadTaName.isNullOrEmpty()) "In" else "Carry",
                 invoiceHeader.invoiceHeadOrderNo,
                 invoiceHeader.invoiceHeadTtCode,
@@ -1008,7 +1008,7 @@ class InvoiceHeaderRepositoryImpl(
                 0,//phoneorder
                 invoiceHeader.invoiceHeadGrossAmount,
                 invoiceHeader.invoiceHeadTaxAmt,
-                "",//round
+                "null",//round
                 invoiceHeader.invoiceHeadTotal1,
                 1,//rate first
                 invoiceHeader.invoiceHeadRate,//rate seconds
@@ -1023,7 +1023,7 @@ class InvoiceHeaderRepositoryImpl(
                 "null",//hi_sessionpointer
                 SettingsModel.currentCompany?.cmp_multibranchcode,//branchcode
                 invoiceHeader.invoiceHeadChange,
-                "getdate()",//hi_valuedate
+                Timestamp(System.currentTimeMillis()),//hi_valuedate
                 invoiceHeader.invoiceHeadPrinted,//hi_printed
                 0,//hi_smssent
                 "null",//hi_pathtodoc

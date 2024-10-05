@@ -217,8 +217,10 @@ object SQLServerWrapper {
         var result: String? = null
         try {
             val vals = values.joinToString(", ") {
-                if (it is String) {
-                    if (it.startsWith("getDate")) {
+                if (it == null) {
+                    "null"
+                } else if (it is String) {
+                    if (it.equals("null",ignoreCase = true)) {
                         it
                     } else {
                         "'$it'"
@@ -230,17 +232,14 @@ object SQLServerWrapper {
                 }
             }
             connection = getConnection()
-            val query = "{call dbo.$procedureName($vals)"
+            val query = "exec dbo.$procedureName $vals"
             callableStatement = connection.prepareCall(query)
-            if (withResult) {
-                callableStatement.registerOutParameter(
-                    "resultId",
-                    Types.NVARCHAR
-                )
+            if(withResult){
+                //callableStatement.registerOutParameter(values.size, Types.VARCHAR);
             }
-            callableStatement.execute()
-            if (withResult) {
-                result = callableStatement.getString("resultId")
+
+            if (callableStatement.execute() && withResult) {
+                //result = callableStatement.getString(values.size)
             }
         } catch (e: Exception) {
             e.printStackTrace()
@@ -284,7 +283,7 @@ object SQLServerWrapper {
         return isSuccess
     }
 
-    private fun getConnection(): Connection {
+    fun getConnection(): Connection {
         if (mConnection != null && !mConnection!!.isClosed) {
             return mConnection!!
         }

@@ -65,10 +65,10 @@ import kotlinx.coroutines.withContext
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginView(
-    modifier: Modifier = Modifier,
-    navController: NavController? = null,
-    activityScopedViewModel: ActivityScopedViewModel,
-    viewModel: LoginViewModel = hiltViewModel()
+        modifier: Modifier = Modifier,
+        navController: NavController? = null,
+        activityScopedViewModel: ActivityScopedViewModel,
+        viewModel: LoginViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
     val state by viewModel.usersState.collectAsStateWithLifecycle()
@@ -120,22 +120,24 @@ fun LoginView(
             CoroutineScope(Dispatchers.IO).launch {
                 activityScopedViewModel.activityState.value.isLoggedIn = true
                 activityScopedViewModel.activityState.value.warning = null
+                withContext(Dispatchers.Main) {
+                    state.isLoading = true
+                }
                 activityScopedViewModel.initiateValues()
-            }
-            withContext(Dispatchers.Main) {
-                state.isLoading = false
-                SettingsModel.currentUser?.let {
-                    if (it.userPosMode && it.userTableMode) {
-                        navController?.navigate("HomeView")
-                    } else if (it.userPosMode) {
-                        navController?.navigate("POSView")
-                    } else if (it.userTableMode) {
-                        navController?.navigate("TablesView")
-                    } else {
-                        navController?.navigate("HomeView")
+                withContext(Dispatchers.Main) {
+                    state.isLoading = false
+                    SettingsModel.currentUser?.let {
+                        if (it.userPosMode && it.userTableMode) {
+                            navController?.navigate("HomeView")
+                        } else if (it.userPosMode) {
+                            navController?.navigate("POSView")
+                        } else if (it.userTableMode) {
+                            navController?.navigate("TablesView")
+                        } else {
+                            navController?.navigate("HomeView")
+                        }
                     }
                 }
-
             }
         }
     }

@@ -244,6 +244,7 @@ class InvoiceRepositoryImpl(
 
     private fun insertByProcedure(invoice: Invoice) {
         val parameters = mutableListOf(
+            "null",//in_id
             invoice.invoiceHeaderId,
             1,//in_group
             invoice.invoiceItemId,
@@ -271,17 +272,6 @@ class InvoiceRepositoryImpl(
             invoice.getTax1(),
             invoice.getTax2()
         )
-        if (SettingsModel.isSqlServerWebDb) {
-            parameters.add(
-                0,
-                "Newid()"
-            )
-        } else {
-            parameters.add(
-                0,
-                "null"
-            )
-        }
         invoice.invoiceId = SQLServerWrapper.executeProcedure(
             "addin_invoice",
             parameters,
