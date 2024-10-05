@@ -1,7 +1,6 @@
 package com.grid.pos.data.PosReceipt
 
 import com.google.firebase.firestore.FirebaseFirestore
-import com.grid.pos.data.Currency.Currency
 import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.SettingsModel
@@ -11,7 +10,6 @@ import com.grid.pos.utils.Extension.getDoubleValue
 import com.grid.pos.utils.Extension.getIntValue
 import com.grid.pos.utils.Extension.getObjectValue
 import com.grid.pos.utils.Extension.getStringValue
-import com.grid.pos.utils.Utils
 import kotlinx.coroutines.tasks.await
 import java.sql.Timestamp
 import java.util.Date
@@ -208,17 +206,12 @@ class PosReceiptRepositoryImpl(
                         ),
                         "pr_id = ${posReceipt.posReceiptCashID!!}"
                     )
-                } else if (posReceipt.posReceiptCash > 0.0) {
-                    val columns = getColumns()
-                    columns.add("pr_ra_id")
-                    insertPosReceipt(
-                        columns,
-                        SettingsModel.currentCurrency,
-                        SettingsModel.getCompanyID(),
-                        posReceipt,
-                        rate,
-                        1,
-                        0
+                } else if (posReceipt.posReceiptCash > 0.0 && !SettingsModel.posReceiptAccCashId.isNullOrEmpty()) {
+                    insertPOSReceiptByProcedure(
+                        posReceipt.posReceiptInvoiceId!!,
+                        POSUtils.formatDouble(posReceipt.posReceiptCash),
+                        POSUtils.formatDouble(posReceipt.posReceiptCash.times(rate)),
+                        SettingsModel.posReceiptAccCashId!!
                     )
                 }
                 if (!posReceipt.posReceiptCashsID.isNullOrEmpty()) {
@@ -233,17 +226,12 @@ class PosReceiptRepositoryImpl(
                         ),
                         "pr_id = ${posReceipt.posReceiptCashsID!!}"
                     )
-                } else if (posReceipt.posReceiptCashs > 0.0) {
-                    val columns = getColumns()
-                    columns.add("pr_ra_id")
-                    insertPosReceipt(
-                        columns,
-                        SettingsModel.currentCurrency,
-                        SettingsModel.getCompanyID(),
-                        posReceipt,
-                        rate,
-                        2,
-                        1
+                } else if (posReceipt.posReceiptCashs > 0.0 && !SettingsModel.posReceiptAccCash1Id.isNullOrEmpty()) {
+                    insertPOSReceiptByProcedure(
+                        posReceipt.posReceiptInvoiceId!!,
+                        POSUtils.formatDouble(posReceipt.posReceiptCashs),
+                        POSUtils.formatDouble(posReceipt.posReceiptCashs.div(rate)),
+                        SettingsModel.posReceiptAccCash1Id!!
                     )
                 }
                 if (!posReceipt.posReceiptCreditID.isNullOrEmpty()) {
@@ -258,17 +246,12 @@ class PosReceiptRepositoryImpl(
                         ),
                         "pr_id = ${posReceipt.posReceiptCreditID!!}"
                     )
-                } else if (posReceipt.posReceiptCredit > 0.0) {
-                    val columns = getColumns()
-                    columns.add("pr_ra_id")
-                    insertPosReceipt(
-                        columns,
-                        SettingsModel.currentCurrency,
-                        SettingsModel.getCompanyID(),
-                        posReceipt,
-                        rate,
-                        1,
-                        2
+                } else if (posReceipt.posReceiptCredit > 0.0 && !SettingsModel.posReceiptAccCreditId.isNullOrEmpty()) {
+                    insertPOSReceiptByProcedure(
+                        posReceipt.posReceiptInvoiceId!!,
+                        POSUtils.formatDouble(posReceipt.posReceiptCredit),
+                        POSUtils.formatDouble(posReceipt.posReceiptCredit.times(rate)),
+                        SettingsModel.posReceiptAccCreditId!!
                     )
                 }
                 if (!posReceipt.posReceiptCreditsID.isNullOrEmpty()) {
@@ -283,17 +266,12 @@ class PosReceiptRepositoryImpl(
                         ),
                         "pr_id = ${posReceipt.posReceiptCreditsID!!}"
                     )
-                } else if (posReceipt.posReceiptCredit > 0.0) {
-                    val columns = getColumns()
-                    columns.add("pr_ra_id")
-                    insertPosReceipt(
-                        columns,
-                        SettingsModel.currentCurrency,
-                        SettingsModel.getCompanyID(),
-                        posReceipt,
-                        rate,
-                        2,
-                        3
+                } else if (posReceipt.posReceiptCredits > 0.0 && !SettingsModel.posReceiptAccCredit1Id.isNullOrEmpty()) {
+                    insertPOSReceiptByProcedure(
+                        posReceipt.posReceiptInvoiceId!!,
+                        POSUtils.formatDouble(posReceipt.posReceiptCredits),
+                        POSUtils.formatDouble(posReceipt.posReceiptCredits.div(rate)),
+                        SettingsModel.posReceiptAccCredit1Id!!
                     )
                 }
                 if (!posReceipt.posReceiptDebitID.isNullOrEmpty()) {
@@ -308,17 +286,12 @@ class PosReceiptRepositoryImpl(
                         ),
                         "pr_id = ${posReceipt.posReceiptDebitID!!}"
                     )
-                } else if (posReceipt.posReceiptDebit > 0.0) {
-                    val columns = getColumns()
-                    columns.add("pr_ra_id")
-                    insertPosReceipt(
-                        columns,
-                        SettingsModel.currentCurrency,
-                        SettingsModel.getCompanyID(),
-                        posReceipt,
-                        rate,
-                        1,
-                        4
+                } else if (posReceipt.posReceiptDebit > 0.0 && !SettingsModel.posReceiptAccDebitId.isNullOrEmpty()) {
+                    insertPOSReceiptByProcedure(
+                        posReceipt.posReceiptInvoiceId!!,
+                        POSUtils.formatDouble(posReceipt.posReceiptDebit),
+                        POSUtils.formatDouble(posReceipt.posReceiptDebit.times(rate)),
+                        SettingsModel.posReceiptAccDebitId!!
                     )
                 }
                 if (!posReceipt.posReceiptDebitsID.isNullOrEmpty()) {
@@ -333,17 +306,12 @@ class PosReceiptRepositoryImpl(
                         ),
                         "pr_id = ${posReceipt.posReceiptDebitsID!!}"
                     )
-                } else if (posReceipt.posReceiptDebits > 0.0) {
-                    val columns = getColumns()
-                    columns.add("pr_ra_id")
-                    insertPosReceipt(
-                        columns,
-                        SettingsModel.currentCurrency,
-                        SettingsModel.getCompanyID(),
-                        posReceipt,
-                        rate,
-                        2,
-                        5
+                } else if (posReceipt.posReceiptDebits > 0.0 && !SettingsModel.posReceiptAccDebit1Id.isNullOrEmpty()) {
+                    insertPOSReceiptByProcedure(
+                        posReceipt.posReceiptInvoiceId!!,
+                        POSUtils.formatDouble(posReceipt.posReceiptDebits),
+                        POSUtils.formatDouble(posReceipt.posReceiptDebits.div(rate)),
+                        SettingsModel.posReceiptAccDebit1Id!!
                     )
                 }
             }
