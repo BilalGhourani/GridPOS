@@ -52,9 +52,9 @@ class InvoiceRepositoryImpl(
             }
 
             else -> {
-                SQLServerWrapper.delete(
-                    "in_invoice",
-                    "in_id = '${invoice.invoiceId}'"
+                SQLServerWrapper.executeProcedure(
+                    "delin_invoice",
+                    listOf(invoice.invoiceId,SettingsModel.currentUser?.userUsername)
                 )
             }
         }
@@ -76,12 +76,7 @@ class InvoiceRepositoryImpl(
             }
 
             else -> {
-                SQLServerWrapper.update(
-                    "in_invoice",
-                    getColumns(),
-                    getValues(invoice),
-                    "in_id = '${invoice.invoiceId}'"
-                )
+                updateByProcedure(invoice)
             }
         }
     }
@@ -244,58 +239,6 @@ class InvoiceRepositoryImpl(
         }
     }
 
-    private fun getColumns(): List<String> {
-        return listOf(
-            "in_id",
-            "in_hi_id",
-            "in_it_id",
-            "in_group",
-            "in_qty",
-            "in_price",
-            "in_disc",
-            "in_discamt",
-            "in_vat",
-            "in_tax1",
-            "in_tax2",
-            "in_note",
-            "in_cost",
-            "in_remqty",
-            "in_extraname",
-            "in_wa_name",
-            "in_timestamp",
-            "in_userstamp"
-        )
-    }
-
-    private fun getValues(invoice: Invoice): List<Any?> {
-        invoice.invoiceTimeStamp = Timestamp.valueOf(
-            DateHelper.getDateInFormat(
-                Date(),
-                "yyyy-MM-dd HH:mm:ss"
-            )
-        )
-        return listOf(
-            invoice.invoiceId,
-            invoice.invoiceHeaderId,
-            invoice.invoiceItemId,
-            0,
-            invoice.invoiceQuantity,
-            invoice.invoicePrice,
-            invoice.getDiscount(),
-            invoice.getDiscountAmount(),
-            invoice.getTax(),
-            invoice.getTax1(),
-            invoice.getTax2(),
-            invoice.invoiceNote,
-            invoice.getInvoiceCostOrZero(),
-            invoice.getRemainingQtyOrZero(),
-            invoice.invoiceExtraName,
-            SettingsModel.defaultWarehouse,
-            invoice.invoiceTimeStamp,
-            invoice.invoiceUserStamp,
-        )
-    }
-
     private fun insertByProcedure(invoice: Invoice) {
         val parameters = mutableListOf(
             invoice.invoiceHeaderId,
@@ -305,7 +248,7 @@ class InvoiceRepositoryImpl(
             invoice.invoicePrice,
             invoice.getDiscount(),
             invoice.getDiscountAmount(),
-            invoice.getTax(),
+            invoice.getVat(),
             SettingsModel.defaultWarehouse,
             invoice.invoiceNote,
             "null",//fromin_id
@@ -332,6 +275,69 @@ class InvoiceRepositoryImpl(
         }
         SQLServerWrapper.executeProcedure(
             "addin_invoice",
+            parameters
+        )
+    }
+
+    private fun updateByProcedure(invoice: Invoice) {
+        val parameters = if(SettingsModel.isSqlServerWebDb){
+            mutableListOf(
+                invoice.invoiceId,
+                invoice.invoiceHeaderId,
+                1,//in_group
+                invoice.invoiceItemId,
+                invoice.invoiceQuantity,
+                invoice.invoicePrice,
+                invoice.getDiscount(),
+                invoice.getDiscountAmount(),
+                invoice.getVat(),
+                SettingsModel.defaultWarehouse,
+                invoice.invoiceNote,
+                "null",//fromin_id
+                SettingsModel.currentUser?.userUsername,//in_userstamp
+                invoice.in_it_div_name,//it_div_name
+                "null",//in_qtyratio
+                "null",//in_counter
+                invoice.invoiceExtraName,
+                "null",//in_packs
+                "null",//in_commission
+                invoice.in_cashback,
+                "null",//in_tax3
+                "null",//in_disc1
+                "null",//in_disc2
+                "null",//in_disc3
+                "null",//in_order
+                invoice.getTax1(),
+                invoice.getTax2()
+            )
+        }else{
+            mutableListOf(
+                invoice.invoiceId,
+                invoice.invoiceHeaderId,
+                1,//in_group
+                invoice.invoiceItemId,
+                invoice.invoiceQuantity,
+                invoice.invoicePrice,
+                invoice.getDiscount(),
+                invoice.getDiscountAmount(),
+                invoice.getVat(),
+                SettingsModel.defaultWarehouse,
+                invoice.invoiceNote,
+                "null",//fromin_id
+                SettingsModel.currentUser?.userUsername,//in_userstamp
+                invoice.in_it_div_name,//it_div_name
+                "null",//in_qtyratio
+                "null",//in_counter
+                invoice.invoiceExtraName,
+                "null",//in_packs
+                "null",//in_commission
+                invoice.in_cashback,
+                invoice.getTax1(),
+                invoice.getTax2()
+            )
+        }
+        SQLServerWrapper.executeProcedure(
+            "updin_invoice",
             parameters
         )
     }

@@ -148,9 +148,12 @@ class InvoiceHeaderRepositoryImpl(
             }
 
             else -> {
-                SQLServerWrapper.delete(
-                    "in_hinvoice",
-                    "hi_id = '${invoiceHeader.invoiceHeadId}'"
+                SQLServerWrapper.executeProcedure(
+                    "delin_hinvoice",
+                    listOf(
+                        invoiceHeader.invoiceHeadId,
+                        SettingsModel.currentUser?.userUsername
+                    )
                 )
             }
         }
@@ -172,12 +175,7 @@ class InvoiceHeaderRepositoryImpl(
             }
 
             else -> {
-                SQLServerWrapper.update(
-                    "in_hinvoice",
-                    getColumns(),
-                    getValues(invoiceHeader),
-                    "hi_id = '${invoiceHeader.invoiceHeadId}'"
-                )
+                updateByProcedure(invoiceHeader)
             }
         }
     }
@@ -231,12 +229,7 @@ class InvoiceHeaderRepositoryImpl(
                         )
                     }
                 }
-                SQLServerWrapper.update(
-                    "in_hinvoice",
-                    getColumns(),
-                    getValues(invoiceHeader),
-                    "hi_id = '${invoiceHeader.invoiceHeadId}'"
-                )
+                updateByProcedure(invoiceHeader)
             }
         }
     }
@@ -786,139 +779,6 @@ class InvoiceHeaderRepositoryImpl(
             invoiceHeadUserStamp = obj.getStringValue("hi_userstamp")
         }
     }
-
-    private fun getColumns(): List<String> {
-        return if (SettingsModel.isSqlServerWebDb) {
-            listOf(
-                "hi_id",
-                "hi_cmp_id",
-                "hi_date",
-                "hi_orderno",
-                "hi_tt_code",
-                "hi_transno",
-                "hi_status",
-                "hi_note",
-                "hi_tp_name",
-                "hi_cashname",
-                "hi_total",
-                "hi_netamt",
-                "hi_disc",
-                "hi_discamt",
-                "hi_taxamt",
-                "hi_tax1amt",
-                "hi_tax2amt",
-                "hi_total1",
-                "hi_rates",
-                "hi_ta_name",
-                "hi_clientscount",
-                "hi_change",
-                "hi_printed",
-                "hi_wa_name",
-                "hi_bra_name",
-                "hi_timestamp",
-                "hi_userstamp",
-            )
-        } else {
-            listOf(
-                "hi_id",
-                "hi_cmp_id",
-                "hi_date",
-                "hi_orderno",
-                "hi_tt_code",
-                "hi_transno",
-                "hi_status",
-                "hi_note",
-                "hi_tp_name",
-                "hi_cashname",
-                "hi_netamt",
-                "hi_disc",
-                "hi_discamt",
-                "hi_taxamt",
-                "hi_tax1amt",
-                "hi_tax2amt",
-                "hi_total1",
-                "hi_rates",
-                "hi_ta_name",
-                "hi_clientscount",
-                "hi_change",
-                "hi_printed",
-                "hi_wa_name",
-                "hi_bra_name",
-                "hi_timestamp",
-                "hi_userstamp",
-            )
-        }
-    }
-
-    private fun getValues(invoiceHeader: InvoiceHeader): List<Any?> {
-        val dateTime = Timestamp.valueOf(
-            DateHelper.getDateInFormat(
-                Date(),
-                "yyyy-MM-dd HH:mm:ss"
-            )
-        )
-        return if (SettingsModel.isSqlServerWebDb) {
-            listOf(
-                invoiceHeader.invoiceHeadId,
-                invoiceHeader.invoiceHeadCompId,
-                dateTime,
-                invoiceHeader.invoiceHeadOrderNo,
-                invoiceHeader.invoiceHeadTtCode,
-                invoiceHeader.invoiceHeadTransNo,
-                invoiceHeader.invoiceHeadStatus,
-                invoiceHeader.invoiceHeadNote,
-                invoiceHeader.invoiceHeadThirdPartyName,
-                invoiceHeader.invoiceHeadCashName,
-                invoiceHeader.invoiceHeadTotal,
-                invoiceHeader.invoiceHeadGrossAmount,
-                invoiceHeader.invoiceHeadDiscount,
-                invoiceHeader.invoiceHeadDiscountAmount,
-                invoiceHeader.invoiceHeadTaxAmt,
-                invoiceHeader.invoiceHeadTax1Amt,
-                invoiceHeader.invoiceHeadTax2Amt,
-                invoiceHeader.invoiceHeadTotal1,
-                invoiceHeader.invoiceHeadRate,
-                invoiceHeader.invoiceHeadTableId ?: invoiceHeader.invoiceHeadTaName,
-                invoiceHeader.invoiceHeadClientsCount,
-                invoiceHeader.invoiceHeadChange,
-                invoiceHeader.invoiceHeadPrinted,
-                SettingsModel.defaultWarehouse,
-                SettingsModel.defaultBranch,
-                dateTime,
-                invoiceHeader.invoiceHeadUserStamp
-            )
-        } else {
-            listOf(
-                invoiceHeader.invoiceHeadId,
-                invoiceHeader.invoiceHeadCompId,
-                dateTime,
-                invoiceHeader.invoiceHeadOrderNo,
-                invoiceHeader.invoiceHeadTtCode,
-                invoiceHeader.invoiceHeadTransNo,
-                invoiceHeader.invoiceHeadStatus,
-                invoiceHeader.invoiceHeadNote,
-                invoiceHeader.invoiceHeadThirdPartyName,
-                invoiceHeader.invoiceHeadCashName,
-                invoiceHeader.invoiceHeadGrossAmount,
-                invoiceHeader.invoiceHeadDiscount,
-                invoiceHeader.invoiceHeadDiscountAmount,
-                invoiceHeader.invoiceHeadTaxAmt,
-                invoiceHeader.invoiceHeadTax1Amt,
-                invoiceHeader.invoiceHeadTax2Amt,
-                invoiceHeader.invoiceHeadTotal1,
-                invoiceHeader.invoiceHeadRate,
-                invoiceHeader.invoiceHeadTableId ?: invoiceHeader.invoiceHeadTaName,
-                invoiceHeader.invoiceHeadClientsCount,
-                invoiceHeader.invoiceHeadChange,
-                invoiceHeader.invoiceHeadPrinted,
-                SettingsModel.defaultWarehouse,
-                SettingsModel.defaultBranch,
-                dateTime,
-                invoiceHeader.invoiceHeadUserStamp
-            )
-        }
-    }
-
     private fun getTableIdByNumber(tableNo: String): TableModel? {
         try {
             val where = if (SettingsModel.isSqlServerWebDb) "ta_cmp_id='${SettingsModel.getCompanyID()}' AND ta_newname = '$tableNo'"
@@ -1064,6 +924,118 @@ class InvoiceHeaderRepositoryImpl(
         return SQLServerWrapper.executeProcedure(
             "addin_hinvoice",
             parameters
-        )?:""
+        ) ?: ""
+    }
+
+    private fun updateByProcedure(invoiceHeader: InvoiceHeader) {
+        val parameters = if (SettingsModel.isSqlServerWebDb) {
+            listOf(
+                invoiceHeader.invoiceHeadId,
+                invoiceHeader.invoiceHeadCompId,
+                if (invoiceHeader.invoiceHeadTransNo.isNullOrEmpty()) "Proforma Invoice" else "Sale Invoice",
+                "getdate()",
+                "getdate()",
+                if (!invoiceHeader.invoiceHeadTaName.isNullOrEmpty()) "In" else "Carry",
+                invoiceHeader.invoiceHeadOrderNo,
+                invoiceHeader.invoiceHeadTtCode,
+                invoiceHeader.invoiceHeadTransNo,
+                "null",
+                "null",
+                SettingsModel.currentCurrency?.currencyId,
+                invoiceHeader.invoiceHeadDiscount,
+                invoiceHeader.invoiceHeadDiscountAmount,
+                SettingsModel.defaultWarehouse,
+                SettingsModel.defaultBranch,
+                "null",
+                invoiceHeader.invoiceHeadNote,
+                invoiceHeader.invoiceHeadThirdPartyName,
+                invoiceHeader.invoiceHeadCashName,
+                0,//notpaid
+                0,//phoneorder
+                invoiceHeader.invoiceHeadGrossAmount,
+                invoiceHeader.invoiceHeadTaxAmt,
+                "",//round
+                invoiceHeader.invoiceHeadTotal1,
+                1,//rate first
+                invoiceHeader.invoiceHeadRate,//rate seconds
+                1,//rate tax
+                0,//tips
+                invoiceHeader.invoiceHeadTableId ?: invoiceHeader.invoiceHeadTaName,
+                invoiceHeader.invoiceHeadClientsCount,
+                0,//mincharge
+                SettingsModel.currentUser?.userUsername,//hi_employee
+                if (invoiceHeader.invoiceHeadTransNo.isNullOrEmpty()) "null" else 1,//delivered
+                invoiceHeader.invoiceHeadUserStamp,//hi_userstamp
+                SettingsModel.currentCompany?.cmp_multibranchcode,//branchcode
+                invoiceHeader.invoiceHeadChange,
+                "getdate()",//hi_valuedate
+                invoiceHeader.invoiceHeadPrinted,//hi_printed
+                0,//hi_smssent
+                "null",//hi_pathtodoc
+                "null",//hi_cashback
+                invoiceHeader.invoiceHeadTotal,//@hi_total
+                1,//hi_ratetaxf
+                invoiceHeader.invoiceHeadRate,//hi_ratetaxs
+                invoiceHeader.invoiceHeadTaxAmt,
+                invoiceHeader.invoiceHeadTax1Amt,
+                invoiceHeader.invoiceHeadTax2Amt,
+            )
+        } else {
+            listOf(
+                invoiceHeader.invoiceHeadId,
+                invoiceHeader.invoiceHeadCompId,
+                if (invoiceHeader.invoiceHeadTransNo.isNullOrEmpty()) "Proforma Invoice" else "Sale Invoice",
+                "getdate()",
+                "getdate()",
+                if (!invoiceHeader.invoiceHeadTaName.isNullOrEmpty()) "In" else "Carry",
+                invoiceHeader.invoiceHeadOrderNo,
+                invoiceHeader.invoiceHeadTtCode,
+                invoiceHeader.invoiceHeadTransNo,
+                "null",
+                "null",
+                SettingsModel.currentCurrency?.currencyId,
+                invoiceHeader.invoiceHeadDiscount,
+                invoiceHeader.invoiceHeadDiscountAmount,
+                SettingsModel.defaultWarehouse,
+                SettingsModel.defaultBranch,
+                "null",
+                invoiceHeader.invoiceHeadNote,
+                invoiceHeader.invoiceHeadThirdPartyName,
+                invoiceHeader.invoiceHeadCashName,
+                0,//notpaid
+                0,//phoneorder
+                invoiceHeader.invoiceHeadGrossAmount,
+                invoiceHeader.invoiceHeadTaxAmt,
+                "",//round
+                invoiceHeader.invoiceHeadTotal1,
+                1,//rate first
+                invoiceHeader.invoiceHeadRate,//rate seconds
+                1,//rate tax
+                0,//tips
+                invoiceHeader.invoiceHeadTableId ?: invoiceHeader.invoiceHeadTaName,
+                invoiceHeader.invoiceHeadClientsCount,
+                0,//mincharge
+                SettingsModel.currentUser?.userUsername,//hi_employee
+                if (invoiceHeader.invoiceHeadTransNo.isNullOrEmpty()) "null" else 1,//delivered
+                invoiceHeader.invoiceHeadUserStamp,//hi_userstamp
+                "null",//hi_sessionpointer
+                SettingsModel.currentCompany?.cmp_multibranchcode,//branchcode
+                invoiceHeader.invoiceHeadChange,
+                "getdate()",//hi_valuedate
+                invoiceHeader.invoiceHeadPrinted,//hi_printed
+                0,//hi_smssent
+                "null",//hi_pathtodoc
+                "null",//hi_cashback
+                1,//hi_ratetaxf
+                invoiceHeader.invoiceHeadRate,//hi_ratetaxs
+                invoiceHeader.invoiceHeadTaxAmt,
+                invoiceHeader.invoiceHeadTax1Amt,
+                invoiceHeader.invoiceHeadTax2Amt,
+            )
+        }
+         SQLServerWrapper.executeProcedure(
+            "updin_hinvoice",
+            parameters
+        )
     }
 }

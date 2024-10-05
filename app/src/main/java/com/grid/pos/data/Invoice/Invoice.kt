@@ -329,6 +329,11 @@ data class Invoice(
     }
 
     @Exclude
+    fun getVat(): Double {
+        return getTax() + getTax1() + getTax2()
+    }
+
+    @Exclude
     fun didChanged(invoice: Invoice): Boolean {
         return !invoice.invoiceExtraName.equals(invoiceExtraName) || !invoice.invoiceNote.equals(invoiceNote) || invoice.invoicePrice != invoicePrice || invoice.invoiceDiscount != invoiceDiscount || invoice.invoiceDiscamt != invoiceDiscamt || invoice.invoiceQuantity != invoiceQuantity || invoice.invoiceTax != invoiceTax || invoice.invoiceTax1 != invoiceTax1 || invoice.invoiceTax2 != invoiceTax2
     }

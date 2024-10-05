@@ -43,6 +43,10 @@ data class PosReceipt(
 
         @Ignore
         @get:Exclude
+        var posReceiptCash_hsid: String? = null,
+
+        @Ignore
+        @get:Exclude
         var posReceiptCashRaID: String? = null,
 
         /**
@@ -56,6 +60,10 @@ data class PosReceipt(
         @Ignore
         @get:Exclude
         var posReceiptCashsID: String? = null,
+
+        @Ignore
+        @get:Exclude
+        var posReceiptCashs_hsid: String? = null,
 
         @Ignore
         @get:Exclude
@@ -75,6 +83,10 @@ data class PosReceipt(
 
         @Ignore
         @get:Exclude
+        var posReceiptCredit_hsid: String? = null,
+
+        @Ignore
+        @get:Exclude
         var posReceiptCreditRaID: String? = null,
 
         /**
@@ -88,6 +100,10 @@ data class PosReceipt(
         @Ignore
         @get:Exclude
         var posReceiptCreditsID: String? = null,
+
+        @Ignore
+        @get:Exclude
+        var posReceiptCredits_hsid: String? = null,
 
         @Ignore
         @get:Exclude
@@ -107,6 +123,10 @@ data class PosReceipt(
 
         @Ignore
         @get:Exclude
+        var posReceiptDebit_hsid: String? = null,
+
+        @Ignore
+        @get:Exclude
         var posReceiptDebitRaID: String? = null,
 
         /**
@@ -120,6 +140,10 @@ data class PosReceipt(
         @Ignore
         @get:Exclude
         var posReceiptDebitsID: String? = null,
+
+        @Ignore
+        @get:Exclude
+        var posReceiptDebits_hsid: String? = null,
 
         @Ignore
         @get:Exclude
