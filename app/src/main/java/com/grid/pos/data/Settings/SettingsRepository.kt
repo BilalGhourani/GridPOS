@@ -5,4 +5,5 @@ interface SettingsRepository {
     suspend fun getReturnSalesTransType():String
     suspend fun getDefaultBranch():String?
     suspend fun getDefaultWarehouse():String?
+    suspend fun getPosReceiptAccIdBy(type:String,currCode:String): String?
 }

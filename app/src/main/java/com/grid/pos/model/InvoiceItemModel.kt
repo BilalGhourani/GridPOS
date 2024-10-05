@@ -23,6 +23,8 @@ data class InvoiceItemModel(
         invoice.invoiceTax2 = item.itemTax2
         invoice.invoiceCost = item.itemOpenCost
         invoice.invoiceRemQty = item.itemOpenQty
+        invoice.in_it_div_name = item.it_div_name
+        invoice.in_cashback = item.it_div_name
     }
 
     fun getName(): String {

@@ -29,6 +29,14 @@ data class Item(
         @get:Exclude
         var itemDocumentId: String? = null,
 
+        @Ignore
+        @get:Exclude
+        var it_div_name: String? = null,
+
+        @Ignore
+        @get:Exclude
+        var it_cashback: String? = null,
+
         /**
          * Item name
          * */

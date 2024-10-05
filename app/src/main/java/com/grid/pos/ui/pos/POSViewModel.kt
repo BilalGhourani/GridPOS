@@ -199,15 +199,22 @@ class POSViewModel @Inject constructor(
                     invoiceHeader,
                     finish
                 )
-                posState.value.invoiceHeaders.add(
-                    0,
-                    addedInv
-                )
-                savePOSReceipt(
-                    addedInv,
-                    posReceipt,
-                    invoiceItems
-                )
+                if (addedInv.invoiceHeadId.isNotEmpty()) {
+                    posState.value.invoiceHeaders.add(
+                        0,
+                        addedInv
+                    )
+                    savePOSReceipt(
+                        addedInv,
+                        posReceipt,
+                        invoiceItems
+                    )
+                } else {
+                    showWarning(
+                        "An error has occurd!.",
+                        ""
+                    )
+                }
             } else {
                 if (finish) {
                     if (invoiceHeader.invoiceHeadTransNo.isNullOrEmpty() || invoiceHeader.invoiceHeadTransNo.equals("0")) {

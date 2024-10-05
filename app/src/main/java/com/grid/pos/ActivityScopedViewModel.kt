@@ -87,6 +87,14 @@ class ActivityScopedViewModel @Inject constructor(
         SettingsModel.defaultBranch = settingsRepository.getDefaultBranch()
         SettingsModel.defaultWarehouse = settingsRepository.getDefaultWarehouse()
         SettingsModel.defaultThirdParty = thirdPartyRepository.getDefaultThirdParties()
+        val currency = SettingsModel.currentCurrency?:return
+
+        SettingsModel.posReceiptAccCashId = settingsRepository.getPosReceiptAccIdBy("Cash",currency.currencyCode1?:"")
+        SettingsModel.posReceiptAccCashId = settingsRepository.getPosReceiptAccIdBy("Cash",currency.currencyCode2?:"")
+        SettingsModel.posReceiptAccCashId = settingsRepository.getPosReceiptAccIdBy("Credit Card",currency.currencyCode1?:"")
+        SettingsModel.posReceiptAccCashId = settingsRepository.getPosReceiptAccIdBy("Credit Card",currency.currencyCode2?:"")
+        SettingsModel.posReceiptAccCashId = settingsRepository.getPosReceiptAccIdBy("Debit Card",currency.currencyCode1?:"")
+        SettingsModel.posReceiptAccCashId = settingsRepository.getPosReceiptAccIdBy("Debit Card",currency.currencyCode2?:"")
     }
 
     private suspend fun fetchCurrencies() {

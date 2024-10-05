@@ -30,6 +30,14 @@ data class Invoice(
         @get:Exclude
         var invoiceDocumentId: String? = null,
 
+        @Ignore
+        @get:Exclude
+        var in_it_div_name: String? = null,
+
+        @Ignore
+        @get:Exclude
+        var in_cashback: String? = null,
+
         /**
          * related Invoice header id
          * */

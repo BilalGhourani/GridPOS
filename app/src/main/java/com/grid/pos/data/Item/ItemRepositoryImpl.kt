@@ -97,6 +97,8 @@ class ItemRepositoryImpl(
                                 itemFaId = it.getStringValue("it_fa_name")
                                 itemName = it.getStringValue("it_name")
                                 itemBarcode = it.getStringValue("it_barcode")
+                                it_div_name = it.getStringValue("it_div_name")
+                                it_cashback = it.getStringValue("it_cashback")
 
                                 itemTax = it.getDoubleValue("it_vat")
                                 itemTax1 = it.getDoubleValue("it_tax1")

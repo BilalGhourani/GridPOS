@@ -25,6 +25,10 @@ data class Company(
         @get:Exclude
         var companyDocumentId: String? = null,
 
+        @Ignore
+        @get:Exclude
+        var cmp_multibranchcode: String? = null,
+
         /**
          * Company name
          * */

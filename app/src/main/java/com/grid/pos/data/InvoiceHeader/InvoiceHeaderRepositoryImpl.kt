@@ -126,11 +126,7 @@ class InvoiceHeaderRepositoryImpl(
                         )
                     }
                 }
-                SQLServerWrapper.insert(
-                    "in_hinvoice",
-                    getColumns(),
-                    getValues(invoiceHeader)
-                )
+                invoiceHeader.invoiceHeadId = insertByProcedure(invoiceHeader)
             }
         }
         return invoiceHeader
@@ -957,5 +953,117 @@ class InvoiceHeaderRepositoryImpl(
             e.printStackTrace()
         }
         return null
+    }
+
+    private fun insertByProcedure(invoiceHeader: InvoiceHeader): String {
+        val parameters = if (SettingsModel.isSqlServerWebDb) {
+            listOf(
+                invoiceHeader.invoiceHeadCompId,
+                if (invoiceHeader.invoiceHeadTransNo.isNullOrEmpty()) "Proforma Invoice" else "Sale Invoice",
+                "getdate()",
+                "getdate()",
+                if (!invoiceHeader.invoiceHeadTaName.isNullOrEmpty()) "In" else "Carry",
+                invoiceHeader.invoiceHeadOrderNo,
+                invoiceHeader.invoiceHeadTtCode,
+                invoiceHeader.invoiceHeadTransNo,
+                "null",
+                "null",
+                SettingsModel.currentCurrency?.currencyId,
+                invoiceHeader.invoiceHeadDiscount,
+                invoiceHeader.invoiceHeadDiscountAmount,
+                SettingsModel.defaultWarehouse,
+                SettingsModel.defaultBranch,
+                "null",
+                invoiceHeader.invoiceHeadNote,
+                invoiceHeader.invoiceHeadThirdPartyName,
+                invoiceHeader.invoiceHeadCashName,
+                0,//notpaid
+                0,//phoneorder
+                invoiceHeader.invoiceHeadGrossAmount,
+                invoiceHeader.invoiceHeadTaxAmt,
+                "",//round
+                invoiceHeader.invoiceHeadTotal1,
+                1,//rate first
+                invoiceHeader.invoiceHeadRate,//rate seconds
+                1,//rate tax
+                0,//tips
+                invoiceHeader.invoiceHeadTableId ?: invoiceHeader.invoiceHeadTaName,
+                invoiceHeader.invoiceHeadClientsCount,
+                0,//mincharge
+                SettingsModel.currentUser?.userUsername,//hi_employee
+                if (invoiceHeader.invoiceHeadTransNo.isNullOrEmpty()) "null" else 1,//delivered
+                invoiceHeader.invoiceHeadUserStamp,//hi_userstamp
+                SettingsModel.currentCompany?.cmp_multibranchcode,//branchcode
+                invoiceHeader.invoiceHeadChange,
+                "getdate()",//hi_valuedate
+                invoiceHeader.invoiceHeadPrinted,//hi_printed
+                0,//hi_smssent
+                "null",//hi_pathtodoc
+                "null",//hi_cashback
+                "Newid()",//hi_id
+                invoiceHeader.invoiceHeadTotal,//@hi_total
+                1,//hi_ratetaxf
+                invoiceHeader.invoiceHeadRate,//hi_ratetaxs
+                invoiceHeader.invoiceHeadTaxAmt,
+                invoiceHeader.invoiceHeadTax1Amt,
+                invoiceHeader.invoiceHeadTax2Amt,
+            )
+        } else {
+            listOf(
+                invoiceHeader.invoiceHeadCompId,
+                if (invoiceHeader.invoiceHeadTransNo.isNullOrEmpty()) "Proforma Invoice" else "Sale Invoice",
+                "getdate()",
+                "getdate()",
+                if (!invoiceHeader.invoiceHeadTaName.isNullOrEmpty()) "In" else "Carry",
+                invoiceHeader.invoiceHeadOrderNo,
+                invoiceHeader.invoiceHeadTtCode,
+                invoiceHeader.invoiceHeadTransNo,
+                "null",
+                "null",
+                SettingsModel.currentCurrency?.currencyId,
+                invoiceHeader.invoiceHeadDiscount,
+                invoiceHeader.invoiceHeadDiscountAmount,
+                SettingsModel.defaultWarehouse,
+                SettingsModel.defaultBranch,
+                "null",
+                invoiceHeader.invoiceHeadNote,
+                invoiceHeader.invoiceHeadThirdPartyName,
+                invoiceHeader.invoiceHeadCashName,
+                0,//notpaid
+                0,//phoneorder
+                invoiceHeader.invoiceHeadGrossAmount,
+                invoiceHeader.invoiceHeadTaxAmt,
+                "",//round
+                invoiceHeader.invoiceHeadTotal1,
+                1,//rate first
+                invoiceHeader.invoiceHeadRate,//rate seconds
+                1,//rate tax
+                0,//tips
+                invoiceHeader.invoiceHeadTableId ?: invoiceHeader.invoiceHeadTaName,
+                invoiceHeader.invoiceHeadClientsCount,
+                0,//mincharge
+                SettingsModel.currentUser?.userUsername,//hi_employee
+                if (invoiceHeader.invoiceHeadTransNo.isNullOrEmpty()) "null" else 1,//delivered
+                invoiceHeader.invoiceHeadUserStamp,//hi_userstamp
+                "null",//hi_sessionpointer
+                SettingsModel.currentCompany?.cmp_multibranchcode,//branchcode
+                invoiceHeader.invoiceHeadChange,
+                "getdate()",//hi_valuedate
+                invoiceHeader.invoiceHeadPrinted,//hi_printed
+                0,//hi_smssent
+                "null",//hi_pathtodoc
+                "null",//hi_cashback
+                "null",//hi_id
+                1,//hi_ratetaxf
+                invoiceHeader.invoiceHeadRate,//hi_ratetaxs
+                invoiceHeader.invoiceHeadTaxAmt,
+                invoiceHeader.invoiceHeadTax1Amt,
+                invoiceHeader.invoiceHeadTax2Amt,
+            )
+        }
+        return SQLServerWrapper.executeProcedure(
+            "addin_hinvoice",
+            parameters
+        )?:""
     }
 }

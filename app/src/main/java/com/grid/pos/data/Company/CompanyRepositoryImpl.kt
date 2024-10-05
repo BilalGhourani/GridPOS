@@ -97,6 +97,7 @@ class CompanyRepositoryImpl(
                                 companyTax1Regno = it.getStringValue("cmp_tax1regno")
                                 companyTax2 = it.getDoubleValue("cmp_tax2")
                                 companyTax2Regno = it.getStringValue("cmp_tax2regno")
+                                cmp_multibranchcode = it.getStringValue("cmp_multibranchcode")
                             })
                         }
                         SQLServerWrapper.closeResultSet(it)
@@ -160,6 +161,7 @@ class CompanyRepositoryImpl(
                                 companyTax1Regno = it.getStringValue("cmp_tax1regno")
                                 companyTax2 = it.getDoubleValue("cmp_tax2")
                                 companyTax2Regno = it.getStringValue("cmp_tax2regno")
+                                cmp_multibranchcode = it.getStringValue("cmp_multibranchcode")
                             })
                         }
                         SQLServerWrapper.closeResultSet(it)

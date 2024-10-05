@@ -55,6 +55,13 @@ object SettingsModel {
     var defaultWarehouse: String? = null
     var defaultThirdParty: ThirdParty? = null
 
+    var posReceiptAccCashId: String? = null
+    var posReceiptAccCash1Id: String? = null
+    var posReceiptAccCreditId: String? = null
+    var posReceiptAccCredit1Id: String? = null
+    var posReceiptAccDebitId: String? = null
+    var posReceiptAccDebit1Id: String? = null
+
     fun getUserType(): UserType {
         if (currentUser?.userPosMode == true && currentUser?.userTableMode == true) {
             return UserType.BOTH

@@ -1,6 +1,7 @@
 package com.grid.pos.data.Invoice
 
 import com.google.firebase.firestore.FirebaseFirestore
+import com.grid.pos.data.InvoiceHeader.InvoiceHeader
 import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.SettingsModel
@@ -28,11 +29,7 @@ class InvoiceRepositoryImpl(
             }
 
             else -> {
-                SQLServerWrapper.insert(
-                    "in_invoice",
-                    getColumns(),
-                    getValues(invoice)
-                )
+                insertByProcedure(invoice)
             }
         }
 
@@ -296,6 +293,46 @@ class InvoiceRepositoryImpl(
             SettingsModel.defaultWarehouse,
             invoice.invoiceTimeStamp,
             invoice.invoiceUserStamp,
+        )
+    }
+
+    private fun insertByProcedure(invoice: Invoice) {
+        val parameters = mutableListOf(
+            invoice.invoiceHeaderId,
+            1,//in_group
+            invoice.invoiceItemId,
+            invoice.invoiceQuantity,
+            invoice.invoicePrice,
+            invoice.getDiscount(),
+            invoice.getDiscountAmount(),
+            invoice.getTax(),
+            SettingsModel.defaultWarehouse,
+            invoice.invoiceNote,
+            "null",//fromin_id
+            SettingsModel.currentUser?.userUsername,//in_userstamp
+            SettingsModel.currentCompany?.cmp_multibranchcode,//branchcode
+            invoice.in_it_div_name,//it_div_name
+            "null",//serialnumber
+            "null",//in_qtyratio
+            "null",//in_counter
+            invoice.invoiceExtraName,
+            "null",//in_expirydate
+            "null",//in_packs
+            "null",//in_commission
+            "null",//counterenable
+            false,//autocalccost
+            invoice.in_cashback,
+            invoice.getTax1(),
+            invoice.getTax2()
+        )
+        if(SettingsModel.isSqlServerWebDb){
+            parameters.add(0,"Newid()")
+        }else{
+            parameters.add(0,"null")
+        }
+        SQLServerWrapper.executeProcedure(
+            "addin_invoice",
+            parameters
         )
     }
 }

@@ -35,79 +35,57 @@ class PosReceiptRepositoryImpl(
 
             else -> {
                 val rate = SettingsModel.currentCurrency?.currencyRate ?: 1.0
-                val currency = SettingsModel.currentCurrency
-                val companyId = SettingsModel.getCompanyID()
-                val columns = getColumns()
-                columns.add("pr_ra_id")
-                if (posReceipt.posReceiptCash > 0.0) {
-                    insertPosReceipt(
-                        columns,
-                        currency,
-                        companyId,
-                        posReceipt,
-                        rate,
-                        1,
-                        0
+                if (posReceipt.posReceiptCash > 0.0 && !SettingsModel.posReceiptAccCashId.isNullOrEmpty()) {
+                    insertPOSReceiptByProcedure(
+                        posReceipt.posReceiptInvoiceId!!,
+                        POSUtils.formatDouble(posReceipt.posReceiptCash),
+                        POSUtils.formatDouble(posReceipt.posReceiptCash.times(rate)),
+                        SettingsModel.posReceiptAccCashId!!
                     )
                 }
 
-                if (posReceipt.posReceiptCashs > 0.0) {
-                    insertPosReceipt(
-                        columns,
-                        currency,
-                        companyId,
-                        posReceipt,
-                        rate,
-                        2,
-                        1
+                if (posReceipt.posReceiptCashs > 0.0 && !SettingsModel.posReceiptAccCash1Id.isNullOrEmpty()) {
+                    insertPOSReceiptByProcedure(
+                        posReceipt.posReceiptInvoiceId!!,
+                        POSUtils.formatDouble(posReceipt.posReceiptCashs),
+                        POSUtils.formatDouble(posReceipt.posReceiptCashs.div(rate)),
+                        SettingsModel.posReceiptAccCash1Id!!
                     )
                 }
 
-                if (posReceipt.posReceiptCredit > 0.0) {
-                    insertPosReceipt(
-                        columns,
-                        currency,
-                        companyId,
-                        posReceipt,
-                        rate,
-                        1,
-                        2
+                if (posReceipt.posReceiptCredit > 0.0 && !SettingsModel.posReceiptAccCreditId.isNullOrEmpty()) {
+                    insertPOSReceiptByProcedure(
+                        posReceipt.posReceiptInvoiceId!!,
+                        POSUtils.formatDouble(posReceipt.posReceiptCredit),
+                        POSUtils.formatDouble(posReceipt.posReceiptCredit.times(rate)),
+                        SettingsModel.posReceiptAccCreditId!!
                     )
                 }
 
-                if (posReceipt.posReceiptCredits > 0.0) {
-                    insertPosReceipt(
-                        columns,
-                        currency,
-                        companyId,
-                        posReceipt,
-                        rate,
-                        2,
-                        3
+                if (posReceipt.posReceiptCredits > 0.0 && !SettingsModel.posReceiptAccCredit1Id.isNullOrEmpty()) {
+                    insertPOSReceiptByProcedure(
+                        posReceipt.posReceiptInvoiceId!!,
+                        POSUtils.formatDouble(posReceipt.posReceiptCredits),
+                        POSUtils.formatDouble(posReceipt.posReceiptCredits.div(rate)),
+                        SettingsModel.posReceiptAccCredit1Id!!
                     )
                 }
 
-                if (posReceipt.posReceiptDebit > 0.0) {
-                    insertPosReceipt(
-                        columns,
-                        currency,
-                        companyId,
-                        posReceipt,
-                        rate,
-                        1,
-                        4
+                if (posReceipt.posReceiptDebit > 0.0 && !SettingsModel.posReceiptAccDebitId.isNullOrEmpty()) {
+                    insertPOSReceiptByProcedure(
+                        posReceipt.posReceiptInvoiceId!!,
+                        POSUtils.formatDouble(posReceipt.posReceiptDebit),
+                        POSUtils.formatDouble(posReceipt.posReceiptDebit.times(rate)),
+                        SettingsModel.posReceiptAccDebitId!!
                     )
                 }
 
-                if (posReceipt.posReceiptDebits > 0.0) {
-                    insertPosReceipt(
-                        columns,
-                        currency,
-                        companyId,
-                        posReceipt,
-                        rate,
-                        2,
-                        5
+                if (posReceipt.posReceiptDebits > 0.0 && !SettingsModel.posReceiptAccDebit1Id.isNullOrEmpty()) {
+                    insertPOSReceiptByProcedure(
+                        posReceipt.posReceiptInvoiceId!!,
+                        POSUtils.formatDouble(posReceipt.posReceiptDebits),
+                        POSUtils.formatDouble(posReceipt.posReceiptDebits.div(rate)),
+                        SettingsModel.posReceiptAccDebit1Id!!
                     )
                 }
             }
@@ -142,10 +120,11 @@ class PosReceiptRepositoryImpl(
                     )
                 }
 
-                posReceipt.posReceiptCashsID?.let { SQLServerWrapper.delete(
-                    "pos_receipt",
-                    "pr_id = '$it'"
-                )
+                posReceipt.posReceiptCashsID?.let {
+                    SQLServerWrapper.delete(
+                        "pos_receipt",
+                        "pr_id = '$it'"
+                    )
                     SQLServerWrapper.delete(
                         "pos_receiptacc",
                         "ra_id =  '${posReceipt.posReceiptCashsRaID}'"
@@ -596,52 +575,37 @@ class PosReceiptRepositoryImpl(
         }
     }
 
-    private fun insertPosReceipt(
-            columns: MutableList<String>,
-            currency: Currency?,
-            companyId: String?,
-            posReceipt: PosReceipt,
-            rate: Double,
-            order: Int,
-            index: Int
-    ) {
-        val prId = Utils.generateRandomUuidString()
-        val raIdCash1 = Utils.generateRandomUuidString()
-        SQLServerWrapper.insert(
-            "pos_receiptacc",
-            getReceiptAccColumns(),
-            if (SettingsModel.isSqlServerWebDb) {
-                listOf(
-                    raIdCash1,
-                    530,
-                    currency?.currencyId,
-                    "Cash $order",
-                    order,
-                    "Cash",
-                    companyId
-                )
-            } else {
-                listOf(
-                    raIdCash1,
-                    530,
-                    currency?.currencyId,
-                    "Cash $order",
-                    order,
-                    "Cash"
-                )
-            }
+
+    private fun insertPOSReceiptByProcedure(
+            posReceiptInvoiceId: String,
+            firstValue: String,
+            secondValue: String,
+            receiptAccId: String
+    ){
+        val parameters = mutableListOf(
+            posReceiptInvoiceId,//pr_hi_id
+            receiptAccId,//pr_ra_id
+            firstValue,
+            firstValue,
+            secondValue,
+            SettingsModel.currentCompany?.cmp_multibranchcode,
+            firstValue,//pr_amtinvcurr
+            "null",//pr_note
+            "getDate()",//pr_date
+            "getDate()",//pr_timestamp
+            SettingsModel.currentUser?.userUsername,//pr_userstamp
+            0,//pr_commission
         )
-        val values = getValues(
-            prId,
-            posReceipt,
-            index,
-            rate
-        )
-        values.add(raIdCash1)
-        SQLServerWrapper.insert(
-            "pos_receipt",
-            columns,
-            values
+        if(SettingsModel.isSqlServerWebDb){
+            parameters.add(0,"Newid()")
+            parameters.add("null")//pr_denomination
+            parameters.add("null")//pr_count
+        }else{
+            parameters.add(0,"null")
+        }
+        SQLServerWrapper.executeProcedure(
+            "addpos_receipt",
+            parameters
         )
     }
 

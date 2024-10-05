@@ -1,11 +1,13 @@
 package com.grid.pos.data
 
 import com.grid.pos.model.SettingsModel
+import java.sql.CallableStatement
 import java.sql.Connection
 import java.sql.DriverManager
 import java.sql.PreparedStatement
 import java.sql.ResultSet
 import java.sql.Timestamp
+import java.sql.Types
 
 object SQLServerWrapper {
 
@@ -126,7 +128,7 @@ object SQLServerWrapper {
         return null
     }
 
-    fun executeProcedure(
+    fun selectFromProcedure(
             procedureName: String,
             params: List<Any>,
     ): ResultSet? {
@@ -159,7 +161,7 @@ object SQLServerWrapper {
                 } else {
                     "'$it'"
                 }
-            }else if (it is Timestamp) {
+            } else if (it is Timestamp) {
                 "'$it'"
             } else {
                 "$it"
@@ -203,6 +205,44 @@ object SQLServerWrapper {
     ) {
         val whereQuery = if (where.isNotEmpty()) "WHERE $where " else ""
         runDbQuery("DELETE FROM $tableName $innerJoin $whereQuery")
+    }
+
+    fun executeProcedure(
+            procedureName: String,
+            values: List<Any?>,
+    ): String? {
+        var connection: Connection? = null
+        var callableStatement: CallableStatement? = null
+        var result: String?=null
+        try {
+            val vals = values.joinToString(", ") {
+                if (it is String) {
+                    if (it.startsWith("getDate")) {
+                        it
+                    } else {
+                        "'$it'"
+                    }
+                } else if (it is Timestamp) {
+                    "'$it'"
+                } else {
+                    "$it"
+                }
+            }
+            connection = getConnection()
+            val query = "{call dbo.$procedureName($vals)"
+            callableStatement = connection.prepareCall(query)
+            callableStatement.registerOutParameter(values.size, Types.NVARCHAR)
+            callableStatement.execute()
+            result = callableStatement.getString(values.size)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        } finally {
+            callableStatement?.close()
+            if (mConnection == null) {
+                connection?.close()
+            }
+        }
+        return result
     }
 
     private fun runDbQuery(

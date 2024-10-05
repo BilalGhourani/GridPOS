@@ -9,8 +9,6 @@ import com.grid.pos.utils.Extension.getDoubleValue
 import com.grid.pos.utils.Extension.getIntValue
 import com.grid.pos.utils.Extension.getStringValue
 import kotlinx.coroutines.tasks.await
-import java.math.BigDecimal
-import java.math.RoundingMode
 import java.sql.Timestamp
 import java.util.Date
 
@@ -123,7 +121,7 @@ class CurrencyRepositoryImpl(
                             "yyyy-MM-dd HH:mm:ss"
                         )
                     )
-                    val rateDbResult = SQLServerWrapper.executeProcedure(
+                    val rateDbResult = SQLServerWrapper.selectFromProcedure(
                         "getrate",
                         listOf(
                             "'${currency.currencyId}'",

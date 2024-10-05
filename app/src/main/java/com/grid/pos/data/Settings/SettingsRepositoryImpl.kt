@@ -19,6 +19,7 @@ class SettingsRepositoryImpl : SettingsRepository {
             }
 
             else -> {
+                var result = "SI"
                 try {
                     val where = if (SettingsModel.isSqlServerWebDb) {
                         "tt_type='Sales Invoice' and tt_cmp_id='${SettingsModel.getCompanyID()}'"
@@ -36,14 +37,17 @@ class SettingsRepositoryImpl : SettingsRepository {
                     )
                     dbResult?.let {
                         if (it.next()) {
-                            return it.getStringValue("tt_code","SI")
+                            result = it.getStringValue(
+                                "tt_code",
+                                "SI"
+                            )
                         }
                         SQLServerWrapper.closeResultSet(it)
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
-                return "SI"
+                return result
             }
         }
     }
@@ -61,6 +65,7 @@ class SettingsRepositoryImpl : SettingsRepository {
             }
 
             else -> {
+                var result = "RS"
                 try {
                     val where = if (SettingsModel.isSqlServerWebDb) {
                         "tt_type='Return Sale' and tt_cmp_id='${SettingsModel.getCompanyID()}'"
@@ -77,14 +82,17 @@ class SettingsRepositoryImpl : SettingsRepository {
                     )
                     dbResult?.let {
                         if (it.next()) {
-                            return it.getStringValue("tt_code","RS")
+                            result = it.getStringValue(
+                                "tt_code",
+                                "RS"
+                            )
                         }
                         SQLServerWrapper.closeResultSet(it)
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
-                return "RS"
+                return result
             }
         }
     }
@@ -102,6 +110,7 @@ class SettingsRepositoryImpl : SettingsRepository {
             }
 
             else -> {
+                var result: String? = null
                 try {
                     val where = if (SettingsModel.isSqlServerWebDb) {
                         "bra_default=1 and bra_cmp_id='${SettingsModel.getCompanyID()}'"
@@ -118,14 +127,14 @@ class SettingsRepositoryImpl : SettingsRepository {
                     )
                     dbResult?.let {
                         if (it.next()) {
-                            return it.getStringValue("bra_name")
+                            result = it.getStringValue("bra_name")
                         }
                         SQLServerWrapper.closeResultSet(it)
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
-                return null
+                return result
             }
         }
     }
@@ -143,6 +152,7 @@ class SettingsRepositoryImpl : SettingsRepository {
             }
 
             else -> {
+                var result: String? = null
                 try {
                     val where = if (SettingsModel.isSqlServerWebDb) {
                         "wa_order=1 and wa_cmp_id='${SettingsModel.getCompanyID()}'"
@@ -159,16 +169,58 @@ class SettingsRepositoryImpl : SettingsRepository {
                     )
                     dbResult?.let {
                         if (it.next()) {
-                            return it.getStringValue("wa_name")
+                            result = it.getStringValue("wa_name")
                         }
                         SQLServerWrapper.closeResultSet(it)
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
-                return null
+                return result
             }
         }
+    }
+
+    override suspend fun getPosReceiptAccIdBy(
+            type: String,
+            currCode: String
+    ): String? {
+        when (SettingsModel.connectionType) {
+            CONNECTION_TYPE.FIRESTORE.key -> {
+                return null
+            }
+
+            CONNECTION_TYPE.LOCAL.key -> {
+                return null
+            }
+
+            else -> {
+                var result: String? = null
+                try {
+                    var where = "ra_cur_code='$currCode' AND ra_type = '$type'"
+                    if (SettingsModel.isSqlServerWebDb) {
+                        where += " AND ra_cmp_id = '${SettingsModel.getCompanyID()}'"
+                    }
+                    val dbResult = SQLServerWrapper.getListOf(
+                        "pos_receiptacc",
+                        "TOP 1",
+                        mutableListOf("ra_id"),
+                        where,
+                        "group by ra_id"
+                    )
+                    dbResult?.let {
+                        if (it.next()) {
+                            result = it.getStringValue("tp_name")
+                        }
+                        SQLServerWrapper.closeResultSet(it)
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+                return result
+            }
+        }
+        return null
     }
 
 }
