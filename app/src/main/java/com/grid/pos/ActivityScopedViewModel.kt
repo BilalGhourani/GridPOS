@@ -150,6 +150,8 @@ class ActivityScopedViewModel @Inject constructor(
 
     fun clearPosValues() {
         invoiceItemModels = mutableListOf()
+        initialInvoiceItemModels = mutableListOf()
+        deletedInvoiceItems = mutableListOf()
         invoiceHeader = InvoiceHeader()
         posReceipt = PosReceipt()
         pendingInvHeadState = null

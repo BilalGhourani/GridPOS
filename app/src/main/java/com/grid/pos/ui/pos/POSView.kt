@@ -204,12 +204,8 @@ fun POSView(
         }
     }
     fun clear() {
-        activityViewModel.invoiceItemModels.clear()
-        activityViewModel.invoiceHeader = InvoiceHeader()
-        activityViewModel.posReceipt = PosReceipt()
+        activityViewModel.clearPosValues()
         proceedToPrint = true
-        activityViewModel.shouldLoadInvoice = false
-        activityViewModel.pendingInvHeadState = null
         invoicesState.clear()
         invoiceHeaderState.value = activityViewModel.invoiceHeader
     }
@@ -251,13 +247,16 @@ fun POSView(
                             )
                             withContext(Dispatchers.Main) {
                                 state.isLoading = false
+                                clear()
                                 navController?.navigateUp()
                             }
                         }
                     } else {
+                        clear()
                         navController?.navigateUp()
                     }
                 } else {
+                    clear()
                     navController?.navigateUp()
                 }
 
