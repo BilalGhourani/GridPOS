@@ -267,7 +267,7 @@ class MainActivity : ComponentActivity() {
                 is ActivityScopedUIEvent.ShowLoading -> {
                     mLoaderHandler?.removeCallbacks(mLoaderRunnable)
                     mLoaderHandler = null
-                    if (false && sharedEvent.show) {
+                    if (sharedEvent.show) {
                         mLoaderHandler = Handler(Looper.getMainLooper())
                         mLoaderHandler!!.postDelayed(
                             mLoaderRunnable,
