@@ -210,7 +210,7 @@ class SettingsRepositoryImpl : SettingsRepository {
                     )
                     dbResult?.let {
                         if (it.next()) {
-                            result = it.getStringValue("tp_name")
+                            result = it.getStringValue("ra_id")
                         }
                         SQLServerWrapper.closeResultSet(it)
                     }
