@@ -74,9 +74,9 @@ class ActivityScopedViewModel @Inject constructor(
     suspend fun initiateValues() {
         if (SettingsModel.currentUser != null) {
             openConnectionIfNeeded()
-            fetchSettings()
             fetchCompanies()
             fetchCurrencies()
+            fetchSettings()
             fetchPrinters()
         }
     }
@@ -87,14 +87,32 @@ class ActivityScopedViewModel @Inject constructor(
         SettingsModel.defaultBranch = settingsRepository.getDefaultBranch()
         SettingsModel.defaultWarehouse = settingsRepository.getDefaultWarehouse()
         SettingsModel.defaultThirdParty = thirdPartyRepository.getDefaultThirdParties()
-        val currency = SettingsModel.currentCurrency?:return
+        val currency = SettingsModel.currentCurrency ?: return
 
-        SettingsModel.posReceiptAccCashId = settingsRepository.getPosReceiptAccIdBy("Cash",currency.currencyCode1?:"")
-        SettingsModel.posReceiptAccCashId = settingsRepository.getPosReceiptAccIdBy("Cash",currency.currencyCode2?:"")
-        SettingsModel.posReceiptAccCashId = settingsRepository.getPosReceiptAccIdBy("Credit Card",currency.currencyCode1?:"")
-        SettingsModel.posReceiptAccCashId = settingsRepository.getPosReceiptAccIdBy("Credit Card",currency.currencyCode2?:"")
-        SettingsModel.posReceiptAccCashId = settingsRepository.getPosReceiptAccIdBy("Debit Card",currency.currencyCode1?:"")
-        SettingsModel.posReceiptAccCashId = settingsRepository.getPosReceiptAccIdBy("Debit Card",currency.currencyCode2?:"")
+        SettingsModel.posReceiptAccCashId = settingsRepository.getPosReceiptAccIdBy(
+            "Cash",
+            currency.currencyCode1 ?: ""
+        )
+        SettingsModel.posReceiptAccCashId = settingsRepository.getPosReceiptAccIdBy(
+            "Cash",
+            currency.currencyCode2 ?: ""
+        )
+        SettingsModel.posReceiptAccCashId = settingsRepository.getPosReceiptAccIdBy(
+            "Credit Card",
+            currency.currencyCode1 ?: ""
+        )
+        SettingsModel.posReceiptAccCashId = settingsRepository.getPosReceiptAccIdBy(
+            "Credit Card",
+            currency.currencyCode2 ?: ""
+        )
+        SettingsModel.posReceiptAccCashId = settingsRepository.getPosReceiptAccIdBy(
+            "Debit Card",
+            currency.currencyCode1 ?: ""
+        )
+        SettingsModel.posReceiptAccCashId = settingsRepository.getPosReceiptAccIdBy(
+            "Debit Card",
+            currency.currencyCode2 ?: ""
+        )
     }
 
     private suspend fun fetchCurrencies() {
@@ -332,12 +350,15 @@ class ActivityScopedViewModel @Inject constructor(
         return activityState.value.isLoggedIn
     }
 
-    fun isInvoiceItemQtyChanged(invoiceItemId:String,newQty:Double) : Boolean{
-        if(invoiceItemId.isEmpty()){
+    fun isInvoiceItemQtyChanged(
+            invoiceItemId: String,
+            newQty: Double
+    ): Boolean {
+        if (invoiceItemId.isEmpty()) {
             return false
         }
         initialInvoiceItemModels.forEach {
-            if(it.invoice.invoiceId == invoiceItemId && it.invoice.invoiceQuantity != newQty){
+            if (it.invoice.invoiceId == invoiceItemId && it.invoice.invoiceQuantity != newQty) {
                 return true
             }
         }
