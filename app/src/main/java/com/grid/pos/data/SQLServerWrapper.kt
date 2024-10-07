@@ -1,6 +1,8 @@
 package com.grid.pos.data
 
+import android.util.Log
 import com.grid.pos.model.SettingsModel
+import com.grid.pos.utils.Extension.getStringValue
 import java.sql.CallableStatement
 import java.sql.Connection
 import java.sql.DriverManager
@@ -216,30 +218,91 @@ object SQLServerWrapper {
         var callableStatement: CallableStatement? = null
         var result: String? = null
         try {
-            val vals = values.joinToString(", ") {
-                if (it == null) {
-                    "null"
-                } else if (it is String) {
-                    if (it.equals("null",ignoreCase = true)) {
-                        it
-                    } else {
-                        "'$it'"
-                    }
-                } else if (it is Timestamp) {
-                    "'$it'"
+            val params = values.joinToString(", ") {
+                if (it is String && it.contains("OUTPUT")) {
+                    "? OUTPUT"
                 } else {
-                    "$it"
+                    "?"
                 }
             }
             connection = getConnection()
-            val query = "exec dbo.$procedureName $vals"
+            //val query = "exec dbo.$procedureName $vals"
+            val query = "{call $procedureName($params)}"
             callableStatement = connection.prepareCall(query)
-            if(withResult){
-                //callableStatement.registerOutParameter(values.size, Types.VARCHAR);
+            var outputIndex = -1
+            values.forEachIndexed { index, any ->
+                if (any == null) {
+                    callableStatement.setNull(
+                        index + 1,
+                        Types.NULL
+                    )
+                }
+                when (any) {
+                    is String -> {
+                        outputIndex = index + 1
+                        if (any.equals("null output",ignoreCase = true)) {
+                            callableStatement.registerOutParameter(
+                                index + 1,
+                                Types.NVARCHAR
+                            )
+                            callableStatement.setNull(
+                                index + 1,
+                                Types.NVARCHAR
+                            )
+                        }else{
+                            callableStatement.setString(
+                                index + 1,
+                                any
+                            )
+                        }
+                    }
+
+                    is Timestamp -> {
+                        callableStatement.setTimestamp(
+                            index + 1,
+                            any
+                        )
+                    }
+
+                    is Double -> {
+                        callableStatement.setDouble(
+                            index + 1,
+                            any
+                        )
+                    }
+
+                    is Int -> {
+                        callableStatement.setInt(
+                            index + 1,
+                            any
+                        )
+                    }
+
+                    is Boolean -> {
+                        callableStatement.setBoolean(
+                            index + 1,
+                            any
+                        )
+                    }
+
+                    is Float -> {
+                        callableStatement.setFloat(
+                            index + 1,
+                            any
+                        )
+                    }
+
+                    else -> {
+                        Log.d(
+                            SQLServerWrapper::class.java.name,
+                            "missing params"
+                        )
+                    }
+                }
             }
 
-            if (callableStatement.execute() && withResult) {
-                //result = callableStatement.getString(values.size)
+            if (callableStatement.execute() && outputIndex >= 0) {
+                result = callableStatement.getString(outputIndex)
             }
         } catch (e: Exception) {
             e.printStackTrace()
