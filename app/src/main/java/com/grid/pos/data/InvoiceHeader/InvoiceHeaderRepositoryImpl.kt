@@ -738,8 +738,9 @@ class InvoiceHeaderRepositoryImpl(
     private fun fillParams(obj: ResultSet): InvoiceHeader {
         return InvoiceHeader().apply {
             invoiceHeadId = obj.getStringValue("hi_id")
+            invoiceHeadNo = obj.getStringValue("hi_no")
             invoiceHeadCompId = obj.getStringValue("hi_cmp_id")
-            invoiceHeadDate = obj.getString("hi_date")
+            invoiceHeadDate = obj.getStringValue("hi_date")
             invoiceHeadOrderNo = obj.getStringValue("hi_orderno")
             invoiceHeadTtCode = obj.getStringValue("hi_tt_code")
             invoiceHeadTransNo = obj.getStringValue("hi_transno")
@@ -841,7 +842,7 @@ class InvoiceHeaderRepositoryImpl(
                 0,//notpaid
                 0,//phoneorder
                 invoiceHeader.invoiceHeadGrossAmount,
-                invoiceHeader.invoiceHeadTaxAmt,
+                invoiceHeader.getVatAmount(),
                 null,//round
                 invoiceHeader.invoiceHeadTotal1,
                 1,//rate first
@@ -893,7 +894,7 @@ class InvoiceHeaderRepositoryImpl(
                 0,//notpaid
                 0,//phoneorder
                 invoiceHeader.invoiceHeadGrossAmount,
-                invoiceHeader.invoiceHeadTaxAmt,
+                invoiceHeader.getVatAmount(),
                 null,//round
                 invoiceHeader.invoiceHeadTotal1,
                 1,//rate first
@@ -932,6 +933,7 @@ class InvoiceHeaderRepositoryImpl(
         val parameters = if (SettingsModel.isSqlServerWebDb) {
             listOf(
                 invoiceHeader.invoiceHeadId,
+                invoiceHeader.invoiceHeadNo,
                 invoiceHeader.invoiceHeadCompId,
                 if (invoiceHeader.invoiceHeadTransNo.isNullOrEmpty()) "Proforma Invoice" else "Sale Invoice",
                 Timestamp(System.currentTimeMillis()),
@@ -954,7 +956,7 @@ class InvoiceHeaderRepositoryImpl(
                 0,//notpaid
                 0,//phoneorder
                 invoiceHeader.invoiceHeadGrossAmount,
-                invoiceHeader.invoiceHeadTaxAmt,
+                invoiceHeader.getVatAmount(),
                 null,//round
                 invoiceHeader.invoiceHeadTotal1,
                 1,//rate first
@@ -984,6 +986,7 @@ class InvoiceHeaderRepositoryImpl(
         } else {
             listOf(
                 invoiceHeader.invoiceHeadId,
+                invoiceHeader.invoiceHeadNo,
                 invoiceHeader.invoiceHeadCompId,
                 if (invoiceHeader.invoiceHeadTransNo.isNullOrEmpty()) "Proforma Invoice" else "Sale Invoice",
                 Timestamp(System.currentTimeMillis()),
@@ -1006,7 +1009,7 @@ class InvoiceHeaderRepositoryImpl(
                 0,//notpaid
                 0,//phoneorder
                 invoiceHeader.invoiceHeadGrossAmount,
-                invoiceHeader.invoiceHeadTaxAmt,
+                invoiceHeader.getVatAmount(),
                 null,//round
                 invoiceHeader.invoiceHeadTotal1,
                 1,//rate first
@@ -1019,11 +1022,8 @@ class InvoiceHeaderRepositoryImpl(
                 SettingsModel.currentUser?.userUsername,//hi_employee
                 if (invoiceHeader.invoiceHeadTransNo.isNullOrEmpty()) null else 1,//delivered
                 invoiceHeader.invoiceHeadUserStamp,//hi_userstamp
-                null,//hi_sessionpointer
-                SettingsModel.currentCompany?.cmp_multibranchcode,//branchcode
                 invoiceHeader.invoiceHeadChange,
                 Timestamp(System.currentTimeMillis()),//hi_valuedate
-                invoiceHeader.invoiceHeadPrinted,//hi_printed
                 0,//hi_smssent
                 null,//hi_pathtodoc
                 null,//hi_cashback

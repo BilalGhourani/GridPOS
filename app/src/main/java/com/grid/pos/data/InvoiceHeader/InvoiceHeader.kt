@@ -30,6 +30,10 @@ data class InvoiceHeader(
         @get:Exclude
         var invoiceHeadDocumentId: String? = null,
 
+        @Ignore
+        @get:Exclude
+        var invoiceHeadNo: String? = null,
+
         /**
          * related Invoice header id
          * */
@@ -274,7 +278,7 @@ data class InvoiceHeader(
     @Exclude
     override fun getName(): String {
         val table = if (invoiceHeadTaName.isNullOrEmpty()) "" else " $invoiceHeadTaName"
-        val transNo = if(invoiceHeadTransNo.isNullOrEmpty()) "$invoiceHeadOrderNo" else if (invoiceHeadTtCode.isNullOrEmpty()) "" else " $invoiceHeadTtCode$invoiceHeadTransNo"
+        val transNo = if (invoiceHeadTransNo.isNullOrEmpty()) "$invoiceHeadOrderNo" else if (invoiceHeadTtCode.isNullOrEmpty()) "" else " $invoiceHeadTtCode$invoiceHeadTransNo"
         val total = String.format(
             "%,.${SettingsModel.currentCurrency?.currencyName1Dec ?: 2}f",
             invoiceHeadTotal
@@ -352,9 +356,10 @@ data class InvoiceHeader(
 
     @Exclude
     fun didChanged(invoiceHeader: InvoiceHeader): Boolean {
-        return !invoiceHeader.invoiceHeadNote.equals(invoiceHeadNote) ||
-                !invoiceHeader.invoiceHeadCashName.equals(invoiceHeadCashName) ||
-                invoiceHeader.invoiceHeadDiscount != invoiceHeadDiscount ||
-                invoiceHeader.invoiceHeadDiscountAmount != invoiceHeadDiscountAmount
+        return !invoiceHeader.invoiceHeadNote.equals(invoiceHeadNote) || !invoiceHeader.invoiceHeadCashName.equals(invoiceHeadCashName) || invoiceHeader.invoiceHeadDiscount != invoiceHeadDiscount || invoiceHeader.invoiceHeadDiscountAmount != invoiceHeadDiscountAmount
+    }
+
+    fun getVatAmount(): Double {
+        return invoiceHeadTaxAmt + invoiceHeadTax1Amt + invoiceHeadTax2Amt
     }
 }
