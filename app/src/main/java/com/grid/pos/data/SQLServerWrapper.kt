@@ -211,8 +211,7 @@ object SQLServerWrapper {
 
     fun executeProcedure(
             procedureName: String,
-            values: List<Any?>,
-            withResult: Boolean = false
+            values: List<Any?>
     ): String? {
         var connection: Connection? = null
         var callableStatement: CallableStatement? = null
@@ -239,15 +238,22 @@ object SQLServerWrapper {
                 }
                 when (any) {
                     is String -> {
-                        outputIndex = index + 1
-                        if (any.equals("null output",ignoreCase = true)) {
+                        if (any.equals("null_int_output",ignoreCase = true)) {
+                            outputIndex = index + 1
+                            callableStatement.registerOutParameter(
+                                index + 1,
+                                Types.BIGINT
+                            )
+                        }else if (any.equals("null_string_output",ignoreCase = true)) {
+                            outputIndex = index + 1
                             callableStatement.registerOutParameter(
                                 index + 1,
                                 Types.NVARCHAR
                             )
+                        }else if (any.equals("null",ignoreCase = true)) {
                             callableStatement.setNull(
                                 index + 1,
-                                Types.NVARCHAR
+                                Types.NULL
                             )
                         }else{
                             callableStatement.setString(
@@ -300,8 +306,8 @@ object SQLServerWrapper {
                     }
                 }
             }
-
-            if (callableStatement.execute() && outputIndex >= 0) {
+            callableStatement.execute()
+            if (outputIndex >= 0) {
                 result = callableStatement.getString(outputIndex)
             }
         } catch (e: Exception) {

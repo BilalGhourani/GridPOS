@@ -36,7 +36,7 @@ data class Invoice(
 
         @Ignore
         @get:Exclude
-        var in_cashback: String? = null,
+        var in_cashback: Double = 0.0,
 
         /**
          * related Invoice header id

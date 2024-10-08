@@ -491,7 +491,7 @@ class PosReceiptRepositoryImpl(
             receiptAccId: String
     ): String {
         val parameters = mutableListOf(
-            "null",//pr_id
+            null,//pr_id
             posReceiptInvoiceId,//pr_hi_id
             receiptAccId,//pr_ra_id
             firstValue,
@@ -499,15 +499,15 @@ class PosReceiptRepositoryImpl(
             secondValue,
             SettingsModel.currentCompany?.cmp_multibranchcode,
             firstValue,//pr_amtinvcurr
-            "null",//pr_note
+            null,//pr_note
             Timestamp(System.currentTimeMillis()),//pr_date
             Timestamp(System.currentTimeMillis()),//pr_timestamp
             SettingsModel.currentUser?.userUsername,//pr_userstamp
             0,//pr_commission
         )
         if (SettingsModel.isSqlServerWebDb) {
-            parameters.add("null")//pr_denomination
-            parameters.add("null")//pr_count
+            parameters.add(null)//pr_denomination
+            parameters.add(null)//pr_count
         }
         return SQLServerWrapper.executeProcedure(
             "addpos_receipt",
@@ -531,7 +531,7 @@ class PosReceiptRepositoryImpl(
             firstValue,
             secondValue,
             firstValue,//pr_amtinvcurr
-            "null",//pr_note
+            null,//pr_note
             Timestamp(System.currentTimeMillis()),//pr_date
             pr_hsid,//@pr_hsid
             Timestamp(System.currentTimeMillis()),//pr_timestamp
@@ -539,8 +539,8 @@ class PosReceiptRepositoryImpl(
             0,//pr_commission
         )
         if (SettingsModel.isSqlServerWebDb) {
-            parameters.add("null")//pr_denomination
-            parameters.add("null")//pr_count
+            parameters.add(null)//pr_denomination
+            parameters.add(null)//pr_count
         }
         SQLServerWrapper.executeProcedure(
             "updpos_receipt",

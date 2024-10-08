@@ -244,7 +244,7 @@ class InvoiceRepositoryImpl(
 
     private fun insertByProcedure(invoice: Invoice) {
         val parameters = mutableListOf(
-            "null",//in_id
+            null,//in_id
             invoice.invoiceHeaderId,
             1,//in_group
             invoice.invoiceItemId,
@@ -255,18 +255,18 @@ class InvoiceRepositoryImpl(
             invoice.getVat(),
             SettingsModel.defaultWarehouse,
             invoice.invoiceNote,
-            "null",//fromin_id
+            null,//fromin_id
             SettingsModel.currentUser?.userUsername,//in_userstamp
             SettingsModel.currentCompany?.cmp_multibranchcode,//branchcode
             invoice.in_it_div_name,//it_div_name
-            "null",//serialnumber
-            "null",//in_qtyratio
-            "null",//in_counter
+            null,//serialnumber
+            null,//in_qtyratio
+            null,//in_counter
             invoice.invoiceExtraName,
-            "null",//in_expirydate
-            "null",//in_packs
-            "null",//in_commission
-            "null",//counterenable
+            null,//in_expirydate
+            null,//in_packs
+            null,//in_commission
+            null,//counterenable
             false,//autocalccost
             invoice.in_cashback,
             invoice.getTax1(),
@@ -274,8 +274,7 @@ class InvoiceRepositoryImpl(
         )
         invoice.invoiceId = SQLServerWrapper.executeProcedure(
             "addin_invoice",
-            parameters,
-            true
+            parameters
         ) ?: ""
     }
 
@@ -293,20 +292,20 @@ class InvoiceRepositoryImpl(
                 invoice.getVat(),
                 SettingsModel.defaultWarehouse,
                 invoice.invoiceNote,
-                "null",//fromin_id
+                null,//fromin_id
                 SettingsModel.currentUser?.userUsername,//in_userstamp
                 invoice.in_it_div_name,//it_div_name
-                "null",//in_qtyratio
-                "null",//in_counter
+                null,//in_qtyratio
+                null,//in_counter
                 invoice.invoiceExtraName,
-                "null",//in_packs
-                "null",//in_commission
+                null,//in_packs
+                null,//in_commission
                 invoice.in_cashback,
-                "null",//in_tax3
-                "null",//in_disc1
-                "null",//in_disc2
-                "null",//in_disc3
-                "null",//in_order
+                null,//in_tax3
+                null,//in_disc1
+                null,//in_disc2
+                null,//in_disc3
+                null,//in_order
                 invoice.getTax1(),
                 invoice.getTax2()
             )
@@ -323,14 +322,14 @@ class InvoiceRepositoryImpl(
                 invoice.getVat(),
                 SettingsModel.defaultWarehouse,
                 invoice.invoiceNote,
-                "null",//fromin_id
+                null,//fromin_id
                 SettingsModel.currentUser?.userUsername,//in_userstamp
                 invoice.in_it_div_name,//it_div_name
-                "null",//in_qtyratio
-                "null",//in_counter
+                null,//in_qtyratio
+                null,//in_counter
                 invoice.invoiceExtraName,
-                "null",//in_packs
-                "null",//in_commission
+                null,//in_packs
+                null,//in_commission
                 invoice.in_cashback,
                 invoice.getTax1(),
                 invoice.getTax2()

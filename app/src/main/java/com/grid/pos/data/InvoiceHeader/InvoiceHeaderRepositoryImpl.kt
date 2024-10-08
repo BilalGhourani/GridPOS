@@ -827,14 +827,14 @@ class InvoiceHeaderRepositoryImpl(
                 invoiceHeader.invoiceHeadOrderNo,
                 invoiceHeader.invoiceHeadTtCode,
                 invoiceHeader.invoiceHeadTransNo,
-                "null",
-                "null",
+                null,
+                null,
                 SettingsModel.currentCurrency?.currencyId,
                 invoiceHeader.invoiceHeadDiscount,
                 invoiceHeader.invoiceHeadDiscountAmount,
                 SettingsModel.defaultWarehouse,
                 SettingsModel.defaultBranch,
-                "null",
+                null,
                 invoiceHeader.invoiceHeadNote,
                 invoiceHeader.invoiceHeadThirdPartyName,
                 invoiceHeader.invoiceHeadCashName,
@@ -842,7 +842,7 @@ class InvoiceHeaderRepositoryImpl(
                 0,//phoneorder
                 invoiceHeader.invoiceHeadGrossAmount,
                 invoiceHeader.invoiceHeadTaxAmt,
-                "null",//round
+                null,//round
                 invoiceHeader.invoiceHeadTotal1,
                 1,//rate first
                 invoiceHeader.invoiceHeadRate,//rate seconds
@@ -852,16 +852,16 @@ class InvoiceHeaderRepositoryImpl(
                 invoiceHeader.invoiceHeadClientsCount,
                 0,//mincharge
                 SettingsModel.currentUser?.userUsername,//hi_employee
-                if (invoiceHeader.invoiceHeadTransNo.isNullOrEmpty()) "null" else 1,//delivered
+                if (invoiceHeader.invoiceHeadTransNo.isNullOrEmpty()) null else 1,//delivered
                 invoiceHeader.invoiceHeadUserStamp,//hi_userstamp
                 SettingsModel.currentCompany?.cmp_multibranchcode,//branchcode
                 invoiceHeader.invoiceHeadChange,
                 Timestamp(System.currentTimeMillis()),//hi_valuedate
                 invoiceHeader.invoiceHeadPrinted,//hi_printed
                 0,//hi_smssent
-                "null",//hi_pathtodoc
-                "null",//hi_cashback
-                "null",//hi_id
+                null,//hi_pathtodoc
+                null,//hi_cashback
+                "null_string_output",//hi_id
                 invoiceHeader.invoiceHeadTotal,//@hi_total
                 1,//hi_ratetaxf
                 invoiceHeader.invoiceHeadRate,//hi_ratetaxs
@@ -879,14 +879,14 @@ class InvoiceHeaderRepositoryImpl(
                 invoiceHeader.invoiceHeadOrderNo,
                 invoiceHeader.invoiceHeadTtCode,
                 invoiceHeader.invoiceHeadTransNo,
-                "null",
-                "null",
+                null,
+                null,
                 SettingsModel.currentCurrency?.currencyId,
                 invoiceHeader.invoiceHeadDiscount,
                 invoiceHeader.invoiceHeadDiscountAmount,
                 SettingsModel.defaultWarehouse,
                 SettingsModel.defaultBranch,
-                "null",
+                null,
                 invoiceHeader.invoiceHeadNote,
                 invoiceHeader.invoiceHeadThirdPartyName,
                 invoiceHeader.invoiceHeadCashName,
@@ -894,7 +894,7 @@ class InvoiceHeaderRepositoryImpl(
                 0,//phoneorder
                 invoiceHeader.invoiceHeadGrossAmount,
                 invoiceHeader.invoiceHeadTaxAmt,
-                "null",//round
+                null,//round
                 invoiceHeader.invoiceHeadTotal1,
                 1,//rate first
                 invoiceHeader.invoiceHeadRate,//rate seconds
@@ -904,17 +904,17 @@ class InvoiceHeaderRepositoryImpl(
                 invoiceHeader.invoiceHeadClientsCount,
                 0,//mincharge
                 SettingsModel.currentUser?.userUsername,//hi_employee
-                if (invoiceHeader.invoiceHeadTransNo.isNullOrEmpty()) "null" else 1,//delivered
+                if (invoiceHeader.invoiceHeadTransNo.isNullOrEmpty()) null else 1,//delivered
                 invoiceHeader.invoiceHeadUserStamp,//hi_userstamp
-                "null",//hi_sessionpointer
+                null,//hi_sessionpointer
                 SettingsModel.currentCompany?.cmp_multibranchcode,//branchcode
                 invoiceHeader.invoiceHeadChange,
                 Timestamp(System.currentTimeMillis()),//hi_valuedate
                 invoiceHeader.invoiceHeadPrinted,//hi_printed
                 0,//hi_smssent
-                "null",//hi_pathtodoc
-                "null",//hi_cashback
-                "null",//hi_id
+                null,//hi_pathtodoc
+                null,//hi_cashback
+                "null_int_output",//hi_id
                 1,//hi_ratetaxf
                 invoiceHeader.invoiceHeadRate,//hi_ratetaxs
                 invoiceHeader.invoiceHeadTaxAmt,
@@ -924,8 +924,7 @@ class InvoiceHeaderRepositoryImpl(
         }
         return SQLServerWrapper.executeProcedure(
             "addin_hinvoice",
-            parameters,
-            true
+            parameters
         ) ?: ""
     }
 
@@ -941,14 +940,14 @@ class InvoiceHeaderRepositoryImpl(
                 invoiceHeader.invoiceHeadOrderNo,
                 invoiceHeader.invoiceHeadTtCode,
                 invoiceHeader.invoiceHeadTransNo,
-                "null",
-                "null",
+                null,
+                null,
                 SettingsModel.currentCurrency?.currencyId,
                 invoiceHeader.invoiceHeadDiscount,
                 invoiceHeader.invoiceHeadDiscountAmount,
                 SettingsModel.defaultWarehouse,
                 SettingsModel.defaultBranch,
-                "null",
+                null,
                 invoiceHeader.invoiceHeadNote,
                 invoiceHeader.invoiceHeadThirdPartyName,
                 invoiceHeader.invoiceHeadCashName,
@@ -956,7 +955,7 @@ class InvoiceHeaderRepositoryImpl(
                 0,//phoneorder
                 invoiceHeader.invoiceHeadGrossAmount,
                 invoiceHeader.invoiceHeadTaxAmt,
-                "null",//round
+                null,//round
                 invoiceHeader.invoiceHeadTotal1,
                 1,//rate first
                 invoiceHeader.invoiceHeadRate,//rate seconds
@@ -966,15 +965,15 @@ class InvoiceHeaderRepositoryImpl(
                 invoiceHeader.invoiceHeadClientsCount,
                 0,//mincharge
                 SettingsModel.currentUser?.userUsername,//hi_employee
-                if (invoiceHeader.invoiceHeadTransNo.isNullOrEmpty()) "null" else 1,//delivered
+                if (invoiceHeader.invoiceHeadTransNo.isNullOrEmpty()) null else 1,//delivered
                 invoiceHeader.invoiceHeadUserStamp,//hi_userstamp
                 SettingsModel.currentCompany?.cmp_multibranchcode,//branchcode
                 invoiceHeader.invoiceHeadChange,
                 Timestamp(System.currentTimeMillis()),//hi_valuedate
                 invoiceHeader.invoiceHeadPrinted,//hi_printed
                 0,//hi_smssent
-                "null",//hi_pathtodoc
-                "null",//hi_cashback
+                null,//hi_pathtodoc
+                null,//hi_cashback
                 invoiceHeader.invoiceHeadTotal,//@hi_total
                 1,//hi_ratetaxf
                 invoiceHeader.invoiceHeadRate,//hi_ratetaxs
@@ -993,14 +992,14 @@ class InvoiceHeaderRepositoryImpl(
                 invoiceHeader.invoiceHeadOrderNo,
                 invoiceHeader.invoiceHeadTtCode,
                 invoiceHeader.invoiceHeadTransNo,
-                "null",
-                "null",
+                null,
+                null,
                 SettingsModel.currentCurrency?.currencyId,
                 invoiceHeader.invoiceHeadDiscount,
                 invoiceHeader.invoiceHeadDiscountAmount,
                 SettingsModel.defaultWarehouse,
                 SettingsModel.defaultBranch,
-                "null",
+                null,
                 invoiceHeader.invoiceHeadNote,
                 invoiceHeader.invoiceHeadThirdPartyName,
                 invoiceHeader.invoiceHeadCashName,
@@ -1008,7 +1007,7 @@ class InvoiceHeaderRepositoryImpl(
                 0,//phoneorder
                 invoiceHeader.invoiceHeadGrossAmount,
                 invoiceHeader.invoiceHeadTaxAmt,
-                "null",//round
+                null,//round
                 invoiceHeader.invoiceHeadTotal1,
                 1,//rate first
                 invoiceHeader.invoiceHeadRate,//rate seconds
@@ -1018,16 +1017,16 @@ class InvoiceHeaderRepositoryImpl(
                 invoiceHeader.invoiceHeadClientsCount,
                 0,//mincharge
                 SettingsModel.currentUser?.userUsername,//hi_employee
-                if (invoiceHeader.invoiceHeadTransNo.isNullOrEmpty()) "null" else 1,//delivered
+                if (invoiceHeader.invoiceHeadTransNo.isNullOrEmpty()) null else 1,//delivered
                 invoiceHeader.invoiceHeadUserStamp,//hi_userstamp
-                "null",//hi_sessionpointer
+                null,//hi_sessionpointer
                 SettingsModel.currentCompany?.cmp_multibranchcode,//branchcode
                 invoiceHeader.invoiceHeadChange,
                 Timestamp(System.currentTimeMillis()),//hi_valuedate
                 invoiceHeader.invoiceHeadPrinted,//hi_printed
                 0,//hi_smssent
-                "null",//hi_pathtodoc
-                "null",//hi_cashback
+                null,//hi_pathtodoc
+                null,//hi_cashback
                 1,//hi_ratetaxf
                 invoiceHeader.invoiceHeadRate,//hi_ratetaxs
                 invoiceHeader.invoiceHeadTaxAmt,

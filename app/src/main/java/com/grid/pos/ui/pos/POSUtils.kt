@@ -35,15 +35,19 @@ object POSUtils {
             "0"
         ) else oldInvoiceNo.split("-")
         var invYearStr = if (sections.isNotEmpty()) sections[0] else currentYear
-        val serialNo = if (sections.size > 1) sections[1] else "0"
+        var serialNo = if (sections.size > 1) sections[1] else "0"
         if (!invYearStr.equals(
                 currentYear,
                 ignoreCase = true
             )
         ) {
             invYearStr = currentYear
+            serialNo = "0"
         }
         val serialInt = (serialNo.toIntOrNull() ?: 1) + 1
+        if (serialInt < 10) {
+            return "$invYearStr-0${serialInt}"
+        }
         return "$invYearStr-${serialInt}"
     }
 
@@ -104,11 +108,12 @@ object POSUtils {
     fun getInvoiceType(invoiceHeader: InvoiceHeader): String {
         return invoiceHeader.invoiceHeadTtCode ?: SettingsModel.getTransactionType(invoiceHeader.invoiceHeadTotal)
     }
+
     fun formatDouble(
             number: Double,
             defaultScale: Int = 6
     ): String {
-        val numberString = BigDecimal(if(number.isNaN()) 0.0 else number)
+        val numberString = BigDecimal(if (number.isNaN()) 0.0 else number)
         val newScale = min(
             numberString.scale(),
             defaultScale

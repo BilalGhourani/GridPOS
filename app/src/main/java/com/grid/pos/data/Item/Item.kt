@@ -35,7 +35,7 @@ data class Item(
 
         @Ignore
         @get:Exclude
-        var it_cashback: String? = null,
+        var it_cashback: Double = 0.0,
 
         /**
          * Item name
