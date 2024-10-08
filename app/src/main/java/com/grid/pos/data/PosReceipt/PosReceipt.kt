@@ -45,10 +45,6 @@ data class PosReceipt(
         @get:Exclude
         var posReceiptCash_hsid: String? = null,
 
-        @Ignore
-        @get:Exclude
-        var posReceiptCashRaID: String? = null,
-
         /**
          *  POS Receipt Cash Amount
          * */
@@ -64,10 +60,6 @@ data class PosReceipt(
         @Ignore
         @get:Exclude
         var posReceiptCashs_hsid: String? = null,
-
-        @Ignore
-        @get:Exclude
-        var posReceiptCashsRaID: String? = null,
 
         /**
          *  POS Receipt Cash Amount 2
@@ -85,9 +77,6 @@ data class PosReceipt(
         @get:Exclude
         var posReceiptCredit_hsid: String? = null,
 
-        @Ignore
-        @get:Exclude
-        var posReceiptCreditRaID: String? = null,
 
         /**
          *  POS Receipt Credit Amount
@@ -105,10 +94,6 @@ data class PosReceipt(
         @get:Exclude
         var posReceiptCredits_hsid: String? = null,
 
-        @Ignore
-        @get:Exclude
-        var posReceiptCreditsRaID: String? = null,
-
         /**
          *  POS Receipt Credit Amounts
          * */
@@ -125,10 +110,6 @@ data class PosReceipt(
         @get:Exclude
         var posReceiptDebit_hsid: String? = null,
 
-        @Ignore
-        @get:Exclude
-        var posReceiptDebitRaID: String? = null,
-
         /**
          *  POS Receipt Debit Amount
          * */
@@ -144,10 +125,6 @@ data class PosReceipt(
         @Ignore
         @get:Exclude
         var posReceiptDebits_hsid: String? = null,
-
-        @Ignore
-        @get:Exclude
-        var posReceiptDebitsRaID: String? = null,
 
         /**
          *  POS Receipt Debit Amount 2

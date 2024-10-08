@@ -169,7 +169,6 @@ class PosReceiptRepositoryImpl(
 
             else -> {
                 val rate = SettingsModel.currentCurrency?.currencyRate ?: 1.0
-                val defColumns = getColumns()
                 if (!posReceipt.posReceiptCashID.isNullOrEmpty()) {
                     updatePOSReceiptByProcedure(
                         posReceipt.posReceiptCashID!!,
@@ -336,12 +335,10 @@ class PosReceiptRepositoryImpl(
                                 "Cash" -> {
                                     if (raOrder == 1) {
                                         posReceipt.posReceiptCashID = it.getStringValue("pr_id")
-                                        posReceipt.posReceiptCashRaID = it.getStringValue("pr_ra_id")
                                         posReceipt.posReceiptCash_hsid = it.getStringValue("pr_hsid")
                                         posReceipt.posReceiptCash = it.getDoubleValue("pr_amt")
                                     } else {
                                         posReceipt.posReceiptCashsID = it.getStringValue("pr_id")
-                                        posReceipt.posReceiptCashsRaID = it.getStringValue("pr_ra_id")
                                         posReceipt.posReceiptCashs_hsid = it.getStringValue("pr_hsid")
                                         posReceipt.posReceiptCashs = it.getDoubleValue("pr_amt")
                                     }
@@ -350,12 +347,10 @@ class PosReceiptRepositoryImpl(
                                 "Credit" -> {
                                     if (raOrder == 1) {
                                         posReceipt.posReceiptCreditID = it.getStringValue("pr_id")
-                                        posReceipt.posReceiptCreditRaID = it.getStringValue("pr_ra_id")
                                         posReceipt.posReceiptCredit_hsid = it.getStringValue("pr_hsid")
                                         posReceipt.posReceiptCredit = it.getDoubleValue("pr_amt")
                                     } else {
                                         posReceipt.posReceiptCreditsID = it.getStringValue("pr_id")
-                                        posReceipt.posReceiptCreditsRaID = it.getStringValue("pr_ra_id")
                                         posReceipt.posReceiptCredits_hsid = it.getStringValue("pr_hsid")
                                         posReceipt.posReceiptCredits = it.getDoubleValue("pr_amt")
                                     }
@@ -365,12 +360,10 @@ class PosReceiptRepositoryImpl(
                                 "Debit" -> {
                                     if (raOrder == 1) {
                                         posReceipt.posReceiptDebitID = it.getStringValue("pr_id")
-                                        posReceipt.posReceiptDebitRaID = it.getStringValue("pr_ra_id")
                                         posReceipt.posReceiptDebit_hsid = it.getStringValue("pr_hsid")
                                         posReceipt.posReceiptDebit = it.getDoubleValue("pr_amt")
                                     } else {
                                         posReceipt.posReceiptDebitsID = it.getStringValue("pr_id")
-                                        posReceipt.posReceiptDebitsRaID = it.getStringValue("pr_ra_id")
                                         posReceipt.posReceiptDebits_hsid = it.getStringValue("pr_hsid")
                                         posReceipt.posReceiptDebits = it.getDoubleValue("pr_amt")
                                     }
@@ -386,101 +379,6 @@ class PosReceiptRepositoryImpl(
                 }
                 return null
             }
-        }
-    }
-
-    private fun getColumns(): MutableList<String> {
-        return mutableListOf(
-            "pr_id",
-            "pr_hi_id",
-            "pr_amt",
-            "pr_amtf",
-            "pr_amts",
-            "pr_amtinvcurr",
-            "pr_timestamp",
-            "pr_userstamp",
-        )
-    }
-
-    private fun getValues(
-            id: String,
-            posReceipt: PosReceipt,
-            index: Int,
-            rate: Double
-    ): MutableList<Any?> {
-        val dateTime = Timestamp.valueOf(
-            DateHelper.getDateInFormat(
-                Date(),
-                "yyyy-MM-dd HH:mm:ss"
-            )
-        )
-        return when (index) {
-            0 -> mutableListOf(
-                id,
-                posReceipt.posReceiptInvoiceId,
-                posReceipt.posReceiptCash,
-                posReceipt.posReceiptCash,
-                POSUtils.formatDouble(posReceipt.posReceiptCash.times(rate)),
-                posReceipt.posReceiptCash,
-                posReceipt.posReceiptTimeStamp ?: dateTime,
-                posReceipt.posReceiptUserStamp,
-            )
-
-            1 -> mutableListOf(
-                id,
-                posReceipt.posReceiptInvoiceId,
-                posReceipt.posReceiptCashs,
-                posReceipt.posReceiptCashs,
-                POSUtils.formatDouble(posReceipt.posReceiptCash.div(rate)),
-                posReceipt.posReceiptCashs,
-                posReceipt.posReceiptTimeStamp ?: dateTime,
-                posReceipt.posReceiptUserStamp,
-            )
-
-            2 -> mutableListOf(
-                id,
-                posReceipt.posReceiptInvoiceId,
-                posReceipt.posReceiptCredit,
-                posReceipt.posReceiptCredit,
-                POSUtils.formatDouble(posReceipt.posReceiptCredit.times(rate)),
-                posReceipt.posReceiptCredit,
-                posReceipt.posReceiptTimeStamp ?: dateTime,
-                posReceipt.posReceiptUserStamp,
-            )
-
-            3 -> mutableListOf(
-                id,
-                posReceipt.posReceiptInvoiceId,
-                posReceipt.posReceiptCredits,
-                posReceipt.posReceiptCredits,
-                POSUtils.formatDouble(posReceipt.posReceiptCredits.div(rate)),
-                posReceipt.posReceiptCredits,
-                posReceipt.posReceiptTimeStamp ?: dateTime,
-                posReceipt.posReceiptUserStamp,
-            )
-
-            4 -> mutableListOf(
-                id,
-                posReceipt.posReceiptInvoiceId,
-                posReceipt.posReceiptDebit,
-                posReceipt.posReceiptDebit,
-                POSUtils.formatDouble(posReceipt.posReceiptDebit.times(rate)),
-                posReceipt.posReceiptDebit,
-                posReceipt.posReceiptTimeStamp ?: dateTime,
-                posReceipt.posReceiptUserStamp,
-            )
-
-            else -> mutableListOf(
-                id,
-                posReceipt.posReceiptInvoiceId,
-                posReceipt.posReceiptDebits,
-                posReceipt.posReceiptDebits,
-                POSUtils.formatDouble(posReceipt.posReceiptDebits.div(rate)),
-                posReceipt.posReceiptDebits,
-                posReceipt.posReceiptTimeStamp ?: dateTime,
-                posReceipt.posReceiptUserStamp,
-            )
-
         }
     }
 
