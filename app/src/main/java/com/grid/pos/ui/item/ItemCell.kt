@@ -64,7 +64,7 @@ fun ItemCell(
     }
     Box(
         modifier = modifier
-            .width(120.dp)
+            .width(SettingsModel.getItemCellWidth())
             .height(120.dp)
             .padding(2.dp)
             .background(color = Color.Transparent)

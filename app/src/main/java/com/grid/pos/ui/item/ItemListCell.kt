@@ -9,6 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.grid.pos.data.Item.Item
+import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.utils.Utils
 
@@ -23,7 +24,7 @@ fun ItemListCell(
         modifier = modifier
             .fillMaxWidth()
             .wrapContentHeight(),
-        columns = GridCells.Adaptive(120.dp)
+        columns = GridCells.Adaptive(SettingsModel.getItemCellWidth())
     ) {
         items.forEach { item ->
             item {

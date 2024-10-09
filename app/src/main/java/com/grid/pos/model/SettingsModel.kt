@@ -1,6 +1,8 @@
 package com.grid.pos.model
 
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import com.grid.pos.data.Company.Company
 import com.grid.pos.data.Currency.Currency
 import com.grid.pos.data.ThirdParty.ThirdParty
@@ -97,6 +99,10 @@ object SettingsModel {
 
     fun getTransactionType(amount: Double): String {
         return if (amount >= 0) siTransactionType else rsTransactionType
+    }
+
+    fun getItemCellWidth(): Dp {
+        return if (showPriceInItemBtn) 150.dp else 120.dp
     }
 }
 
