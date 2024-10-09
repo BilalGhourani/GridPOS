@@ -152,6 +152,7 @@ class CompanyRepositoryImpl(
                                 companyTaxRegno = it.getStringValue("cmp_vatregno")
                                 companyTax = it.getDoubleValue("cmp_vat")
                                 companyCurCodeTax = it.getStringValue("cmp_cur_codetax")
+                                companyUpWithTax = it.getBooleanValue("cmp_upwithtax")
                                 companyEmail = it.getStringValue("cmp_email")
                                 companyWeb = it.getStringValue("cmp_web")
                                 companyLogo = it.getStringValue("cmp_logo")
