@@ -96,7 +96,7 @@ object SettingsModel {
     }
 
     fun getTransactionType(amount: Double): String {
-        return if (amount > 0) siTransactionType else rsTransactionType
+        return if (amount >= 0) siTransactionType else rsTransactionType
     }
 }
 
