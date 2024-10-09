@@ -124,8 +124,8 @@ class CurrencyRepositoryImpl(
                     val rateDbResult = SQLServerWrapper.selectFromProcedure(
                         "getrate",
                         listOf(
-                            "'${currency.currencyId}'",
                             "'${currency.currencyDocumentId!!}'",
+                            "'${currency.currencyId}'",
                             "'$timestamp'"
                         )
                     )
