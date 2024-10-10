@@ -30,6 +30,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -88,65 +89,49 @@ fun EditInvoiceItemView(
         invoiceItem = invoiceItemAtIndex.invoiceItem
     )
 
-
     val curr1Decimal = SettingsModel.currentCurrency?.currencyName1Dec ?: 2
     val curr2Decimal = SettingsModel.currentCurrency?.currencyName2Dec ?: 2
 
-    var price by remember {
-        mutableStateOf(
-            String.format(
-                "%,.${curr1Decimal}f",
-                invoiceItemModel.invoice.invoicePrice
-            )
+    var isFillingDefaults by remember { mutableStateOf(true) } // Flag to track default filling
+
+    var price by remember { mutableStateOf("") }
+    var qty by remember { mutableIntStateOf(1) }
+    var rDiscount1 by remember { mutableStateOf("") }
+    var rDiscount2 by remember { mutableStateOf("") }
+    var discount1 by remember { mutableStateOf("") }
+    var discount2 by remember { mutableStateOf("") }
+    var itemExtraName by remember { mutableStateOf("") }
+    var itemNote by remember { mutableStateOf("") }
+    var invoiceNote by remember { mutableStateOf("") }
+    var clientExtraName by remember { mutableStateOf("") }
+    var taxState by remember { mutableStateOf("") }
+    var tax1State by remember { mutableStateOf("") }
+    var tax2State by remember { mutableStateOf("") }
+    var isPercentageChanged by remember { mutableStateOf(true) }
+
+    LaunchedEffect(Unit) {
+        isFillingDefaults = true
+        price = POSUtils.formatDouble(
+            invoiceItemModel.invoice.invoicePrice,
+            curr1Decimal
         )
-    }
-    var qty by remember {
-        mutableIntStateOf(
-            invoiceItemModel.invoice.invoiceQuantity.toInt()
-        )
-    }
-    var rDiscount1 by remember {
-        mutableStateOf(
-            if (invoiceItemModel.invoice.invoiceDiscount > 0.0) invoiceItemModel.invoice.invoiceDiscount.toString() else ""
-        )
-    }
-    var rDiscount2 by remember {
-        mutableStateOf(
-            if (invoiceItemModel.invoice.invoiceDiscamt > 0.0) invoiceItemModel.invoice.invoiceDiscamt.toString() else ""
-        )
-    }
-    var discount1 by remember {
-        mutableStateOf(
-            if (invoiceHeader.invoiceHeadDiscount > 0.0) invoiceHeader.invoiceHeadDiscount.toString() else ""
-        )
-    }
-    var discount2 by remember {
-        mutableStateOf(
-            if (invoiceHeader.invoiceHeadDiscountAmount > 0.0) invoiceHeader.invoiceHeadDiscountAmount.toString() else ""
-        )
-    }
-    var itemExtraName by remember {
-        mutableStateOf(
-            invoiceItemModel.invoice.invoiceExtraName ?: ""
-        )
-    }
-    var itemNote by remember { mutableStateOf(invoiceItemModel.invoice.invoiceNote ?: "") }
-    var invoiceNote by remember { mutableStateOf(invoiceHeader.invoiceHeadNote ?: "") }
-    var clientExtraName by remember { mutableStateOf(invoiceHeader.invoiceHeadCashName ?: "") }
-    var taxState by remember {
-        mutableStateOf(invoiceItemModel.invoice.invoiceTax.toString().takeIf { it != "0.0" } ?: "")
-    }
-    var tax1State by remember {
-        mutableStateOf(invoiceItemModel.invoice.invoiceTax1.toString().takeIf { it != "0.0" } ?: "")
-    }
-    var tax2State by remember {
-        mutableStateOf(invoiceItemModel.invoice.invoiceTax2.toString().takeIf { it != "0.0" } ?: "")
-    }
-    var isPercentageChanged by remember {
-        mutableStateOf(true)
+        qty = invoiceItemModel.invoice.invoiceQuantity.toInt()
+        rDiscount1 = invoiceItemModel.invoice.invoiceDiscount.toString().takeIf { it != "0.0" } ?: ""
+        rDiscount1 = invoiceItemModel.invoice.invoiceDiscamt.toString().takeIf { it != "0.0" } ?: ""
+        discount1 = invoiceHeader.invoiceHeadDiscount.toString().takeIf { it != "0.0" } ?: ""
+        discount2 = invoiceHeader.invoiceHeadDiscountAmount.toString().takeIf { it != "0.0" } ?: ""
+        itemExtraName = invoiceItemModel.invoice.invoiceExtraName ?: ""
+        itemNote = invoiceItemModel.invoice.invoiceNote ?: ""
+        invoiceNote = invoiceHeader.invoiceHeadNote ?: ""
+        clientExtraName = invoiceHeader.invoiceHeadCashName ?: ""
+        taxState = invoiceItemModel.invoice.invoiceTax.toString().takeIf { it != "0.0" } ?: ""
+        tax1State = invoiceItemModel.invoice.invoiceTax1.toString().takeIf { it != "0.0" } ?: ""
+        tax2State = invoiceItemModel.invoice.invoiceTax2.toString().takeIf { it != "0.0" } ?: ""
+        isFillingDefaults = false
     }
 
     fun calculateItemDiscount() {
+        if (isFillingDefaults) return
         invoiceItemModel.invoice.invoicePrice = price.toDoubleOrNull() ?: 0.0
         invoiceItemModel.invoice.invoiceQuantity = qty.toDouble()
         invoiceItemModel.invoice.invoiceTax = taxState.toDoubleOrNull() ?: 0.0
@@ -164,7 +149,7 @@ fun EditInvoiceItemView(
             invoiceItemModel.invoice.invoiceDiscount = itemDiscount
             invoiceItemModel.invoice.invoiceDiscamt = disc
         } else {
-            val disc = (itemDiscountAmount.div(itemPrice)).times(100.0)
+            val disc = if (itemPrice == 0.0) 0.0 else (itemDiscountAmount.div(itemPrice)).times(100.0)
             rDiscount1 = String.format(
                 "%,.${curr1Decimal}f",
                 disc
@@ -175,6 +160,7 @@ fun EditInvoiceItemView(
     }
 
     fun calculateInvoiceDiscount() {
+        if (isFillingDefaults) return
         invoices[invoiceIndex] = invoiceItemModel
         invoiceHeader = POSUtils.refreshValues(
             invoices,
@@ -191,9 +177,13 @@ fun EditInvoiceItemView(
             )
         } else {
             invoiceHeader.invoiceHeadDiscountAmount = discount2.toDoubleOrNull() ?: 0.0
-            invoiceHeader.invoiceHeadDiscount = (invoiceHeader.invoiceHeadDiscountAmount.div(invoiceHeader.invoiceHeadGrossAmount)).times(
-                100.0
-            )
+            if (invoiceHeader.invoiceHeadGrossAmount == 0.0) {
+                invoiceHeader.invoiceHeadDiscount = 0.0
+            } else {
+                invoiceHeader.invoiceHeadDiscount = (invoiceHeader.invoiceHeadDiscountAmount.div(invoiceHeader.invoiceHeadGrossAmount)).times(
+                    100.0
+                )
+            }
             discount1 = String.format(
                 "%,.${curr1Decimal}f",
                 invoiceHeader.invoiceHeadDiscount
@@ -258,8 +248,7 @@ fun EditInvoiceItemView(
                     calculateItemDiscount()
                     calculateInvoiceDiscount()
                 },
-                modifier = Modifier
-                    .weight(1f),
+                modifier = Modifier.weight(1f),
                 shape = RoundedCornerShape(15.dp),
                 label = {
                     Text(
