@@ -217,7 +217,7 @@ class SalesReportsViewModel @Inject constructor(
                 }
                 totalCost += it.invoiceQuantity.times(it.invoiceCost)
                 quantitiesSold += it.invoiceQuantity
-                totalSale += if (priceWithTax) it.getAmount() else it.getNetAmount()
+                totalSale += if (priceWithTax) (it.getAmount() - it.getDiscountAmount()) else it.getNetAmount()
             }
             val row = sheet.createRow(index + 1)
             row.createCell(0).setCellValue(item.itemName)
