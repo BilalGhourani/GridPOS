@@ -678,8 +678,8 @@ class InvoiceHeaderRepositoryImpl(
             return invoices
         } else {
             return invoiceHeaderDao.getInvoicesBetween(
-                from.time * 1000,
-                to.time * 1000,
+                from.time ,
+                to.time ,
                 SettingsModel.getCompanyID() ?: ""
             )
         }
