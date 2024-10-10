@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.grid.pos.data.Currency.Currency
 import com.grid.pos.data.Currency.CurrencyRepository
+import com.grid.pos.data.InvoiceHeader.InvoiceHeaderRepository
 import com.grid.pos.model.Event
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.BaseViewModel
@@ -17,7 +18,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ManageCurrenciesViewModel @Inject constructor(
-        private val currencyRepository: CurrencyRepository
+        private val currencyRepository: CurrencyRepository,
+        private val invoiceHeaderRepository: InvoiceHeaderRepository
 ) : BaseViewModel() {
 
     private val _manageCurrenciesState = MutableStateFlow(ManageCurrenciesState())
@@ -74,6 +76,15 @@ class ManageCurrenciesViewModel @Inject constructor(
         )
         val isInserting = currency.isNew()
         CoroutineScope(Dispatchers.IO).launch {
+            if (hasRelations(currency)) {
+                withContext(Dispatchers.Main) {
+                    manageCurrenciesState.value = manageCurrenciesState.value.copy(
+                        warning = Event("You can't update the Currency code!"),
+                        isLoading = false
+                    )
+                }
+                return@launch
+            }
             if (isInserting) {
                 currency.prepareForInsert()
                 val addedCurr = currencyRepository.insert(currency)
@@ -101,6 +112,15 @@ class ManageCurrenciesViewModel @Inject constructor(
                 }
             }
         }
+    }
+
+    private suspend fun hasRelations(currency: Currency): Boolean {
+        // check only if currency code has changed
+        if (SettingsModel.currentCurrency?.didChangedCurrencyCode(currency) == true) {
+            // if we have at least one invoice
+            return invoiceHeaderRepository.getLastInvoice() != null
+        }
+        return false
     }
 
 }

@@ -134,6 +134,13 @@ data class Currency(
                 || !currency.currencyCode2.equals(currencyCode2)
                 || !currency.currencyName2.equals(currencyName2)
                 || !currency.currencyName2Dec.equals(currencyName2Dec)
+                || !currency.currencyRate.equals(currencyRate)
+    }
+
+    @Exclude
+    fun didChangedCurrencyCode(currency: Currency): Boolean {
+        return !currency.currencyCode1.equals(currencyCode1)
+                || !currency.currencyCode2.equals(currencyCode2)
     }
 
     @Exclude
