@@ -1074,18 +1074,13 @@ object PrinterUtils {
                         "%,.2f",
                         item.invoice.invoiceQuantity
                     )
-                    val itemName = if (item.isDeleted) {
-                        item.getFullName() + " - Deleted"
-                    } else {
-                        item.getFullName()
-                    }
                     trs.append(
                         extractedSubstring.replace(
                             "item_qty",
                             qty
                         ).replace(
                             "item_name",
-                            itemName
+                            item.getTicketFullName()
                         )
                     )
                 }

@@ -46,6 +46,18 @@ data class InvoiceItemModel(
         }
     }
 
+    fun getTicketFullName(): String {
+        val disc = invoice.getDiscount()
+        val discountVal = if (disc > 0.0) "-%${disc.toInt()}" else ""
+        val taxableVal = if (getTotalTax() > 0.0) "*" else ""
+        val deleted = if(isDeleted) "- Deleted" else ""
+        return if (invoice.invoiceNote.isNullOrEmptyOrNullStr()) {
+            "${invoiceItem.itemName ?: "Item"}$taxableVal $discountVal $deleted"
+        } else {
+            "${invoiceItem.itemName ?: "Item"}-${invoice.invoiceNote}$taxableVal $discountVal $deleted"
+        }
+    }
+
     private fun getTotalTax(): Double {
         return invoice.getTax() + invoice.getTax1() + invoice.getTax2()
     }
