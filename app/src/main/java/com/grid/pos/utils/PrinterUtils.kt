@@ -406,7 +406,135 @@ object PrinterUtils {
             )
         }
 
-        htmlContent = if (SettingsModel.currentCompany?.companyUpWithTax == true && (SettingsModel.showTax || SettingsModel.showTax1 || SettingsModel.showTax2)) {
+        var showTotalTax = false
+        if (SettingsModel.showTax) {
+            if (invoiceHeader.invoiceHeadTaxAmt > 0) {
+                showTotalTax = true
+                htmlContent = htmlContent.replace(
+                    "{inv_tax_amount}",
+                    POSUtils.formatDouble(
+                        invoiceHeader.invoiceHeadTaxAmt,
+                        2
+                    )
+                ).replace(
+                    "{tax_perc}",
+                    "${Utils.getDoubleOrZero(company?.companyTax)}%"
+                ).replace(
+                    "{inv_tax_disp}",
+                    "table-row"
+                )
+                htmlContent = if (!company?.companyTaxRegno.isNullOrEmpty()) {
+                    htmlContent.replace(
+                        "{taxregno}",
+                        company?.companyTaxRegno ?: ""
+                    ).replace(
+                        "{tax_display}",
+                        "block"
+                    )
+                } else {
+                    htmlContent.replace(
+                        "{tax_display}",
+                        "none"
+                    )
+                }
+            } else {
+                htmlContent = htmlContent.replace(
+                    "{inv_tax_disp}",
+                    "none"
+                )
+            }
+        } else {
+            htmlContent = htmlContent.replace(
+                "{tax_display}",
+                "none"
+            )
+        }
+        if (SettingsModel.showTax1) {
+            if (invoiceHeader.invoiceHeadTax1Amt > 0) {
+                showTotalTax = true
+                htmlContent = htmlContent.replace(
+                    "{inv_tax1_amount}",
+                    POSUtils.formatDouble(
+                        invoiceHeader.invoiceHeadTax1Amt,
+                        2
+                    )
+                ).replace(
+                    "{tax1_perc}",
+                    "${Utils.getDoubleOrZero(company?.companyTax1)}%"
+                ).replace(
+                    "{inv_tax1_disp}",
+                    "table-row"
+                )
+                htmlContent = if (!company?.companyTax1Regno.isNullOrEmpty()) {
+                    htmlContent.replace(
+                        "{taxregno1}",
+                        company?.companyTax1Regno ?: ""
+                    ).replace(
+                        "{tax1_display}",
+                        "block"
+                    )
+                } else {
+                    htmlContent.replace(
+                        "{tax1_display}",
+                        "none"
+                    )
+                }
+            } else {
+                htmlContent = htmlContent.replace(
+                    "{inv_tax1_disp}",
+                    "none"
+                )
+            }
+
+        } else {
+            htmlContent = htmlContent.replace(
+                "{tax1_display}",
+                "none"
+            )
+        }
+        if (SettingsModel.showTax2) {
+            if (invoiceHeader.invoiceHeadTax2Amt > 0) {
+                showTotalTax = true
+                htmlContent = htmlContent.replace(
+                    "{inv_tax2_amount}",
+                    POSUtils.formatDouble(
+                        invoiceHeader.invoiceHeadTax2Amt,
+                        2
+                    )
+                ).replace(
+                    "{tax2_perc}",
+                    "${Utils.getDoubleOrZero(company?.companyTax2)}%"
+                ).replace(
+                    "{inv_tax2_disp}",
+                    "table-row"
+                )
+                htmlContent = if (!company?.companyTax2Regno.isNullOrEmpty()) {
+                    htmlContent.replace(
+                        "{taxregno2}",
+                        company?.companyTax2Regno ?: ""
+                    ).replace(
+                        "{tax2_display}",
+                        "block"
+                    )
+                } else {
+                    htmlContent.replace(
+                        "{tax2_display}",
+                        "none"
+                    )
+                }
+            } else {
+                htmlContent = htmlContent.replace(
+                    "{inv_tax2_disp}",
+                    "none"
+                )
+            }
+        } else {
+            htmlContent = htmlContent.replace(
+                "{tax2_display}",
+                "none"
+            )
+        }
+        htmlContent = if (SettingsModel.currentCompany?.companyUpWithTax == true && (showTotalTax)) {
             htmlContent.replace(
                 "{total_befor_tax}",
                 POSUtils.formatDouble(
@@ -420,134 +548,6 @@ object PrinterUtils {
         } else {
             htmlContent.replace(
                 "{total_befor_tax_disp}",
-                "none"
-            )
-        }
-
-        var showTotalTax = false
-        if (SettingsModel.showTax) {
-            htmlContent = if (invoiceHeader.invoiceHeadTaxAmt > 0) {
-                showTotalTax = true
-                htmlContent.replace(
-                    "{inv_tax_amount}",
-                    POSUtils.formatDouble(
-                        invoiceHeader.invoiceHeadTaxAmt,
-                        2
-                    )
-                ).replace(
-                    "{tax_perc}",
-                    "${Utils.getDoubleOrZero(company?.companyTax)}%"
-                ).replace(
-                    "{inv_tax_disp}",
-                    "table-row"
-                )
-            } else {
-                htmlContent.replace(
-                    "{inv_tax_disp}",
-                    "none"
-                )
-            }
-            htmlContent = if (!company?.companyTaxRegno.isNullOrEmpty()) {
-                htmlContent.replace(
-                    "{taxregno}",
-                    company?.companyTaxRegno ?: ""
-                ).replace(
-                    "{tax_display}",
-                    "block"
-                )
-            } else {
-                htmlContent.replace(
-                    "{tax_display}",
-                    "none"
-                )
-            }
-        } else {
-            htmlContent = htmlContent.replace(
-                "{tax_display}",
-                "none"
-            )
-        }
-        if (SettingsModel.showTax1) {
-            htmlContent = if (invoiceHeader.invoiceHeadTax1Amt > 0) {
-                showTotalTax = true
-                htmlContent.replace(
-                    "{inv_tax1_amount}",
-                    POSUtils.formatDouble(
-                        invoiceHeader.invoiceHeadTax1Amt,
-                        2
-                    )
-                ).replace(
-                    "{tax1_perc}",
-                    "${Utils.getDoubleOrZero(company?.companyTax1)}%"
-                ).replace(
-                    "{inv_tax1_disp}",
-                    "table-row"
-                )
-            } else {
-                htmlContent.replace(
-                    "{inv_tax1_disp}",
-                    "none"
-                )
-            }
-            htmlContent = if (!company?.companyTax1Regno.isNullOrEmpty()) {
-                htmlContent.replace(
-                    "{taxregno1}",
-                    company?.companyTax1Regno ?: ""
-                ).replace(
-                    "{tax1_display}",
-                    "block"
-                )
-            } else {
-                htmlContent.replace(
-                    "{tax1_display}",
-                    "none"
-                )
-            }
-        } else {
-            htmlContent = htmlContent.replace(
-                "{tax1_display}",
-                "none"
-            )
-        }
-        if (SettingsModel.showTax2) {
-            htmlContent = if (invoiceHeader.invoiceHeadTax2Amt > 0) {
-                showTotalTax = true
-                htmlContent.replace(
-                    "{inv_tax2_amount}",
-                    POSUtils.formatDouble(
-                        invoiceHeader.invoiceHeadTax2Amt,
-                        2
-                    )
-                ).replace(
-                    "{tax2_perc}",
-                    "${Utils.getDoubleOrZero(company?.companyTax2)}%"
-                ).replace(
-                    "{inv_tax2_disp}",
-                    "table-row"
-                )
-            } else {
-                htmlContent.replace(
-                    "{inv_tax2_disp}",
-                    "none"
-                )
-            }
-            htmlContent = if (!company?.companyTax2Regno.isNullOrEmpty()) {
-                htmlContent.replace(
-                    "{taxregno2}",
-                    company?.companyTax2Regno ?: ""
-                ).replace(
-                    "{tax2_display}",
-                    "block"
-                )
-            } else {
-                htmlContent.replace(
-                    "{tax2_display}",
-                    "none"
-                )
-            }
-        } else {
-            htmlContent = htmlContent.replace(
-                "{tax2_display}",
                 "none"
             )
         }
