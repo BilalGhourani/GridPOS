@@ -6,9 +6,12 @@ import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Typeface
+import android.net.InetAddresses
 import android.net.Uri
+import android.os.Build
 import android.util.Base64
 import android.util.Log
+import android.util.Patterns
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.EncodeHintType
 import com.google.zxing.WriterException
@@ -1127,16 +1130,29 @@ object PrinterUtils {
             )
             if (reportRes.found) {
                 val output = parseHtmlContent(reportRes.htmlContent)
-                val printerDetails = SettingsModel.cashPrinter?.split(":") ?: listOf()
-                val size = printerDetails.size
-                val ip = if (size > 0) printerDetails[0] else ""
-                val port = if (size > 1) printerDetails[1] else ""
+                var ipAddress = ""
+                var port = ""
+                if (SettingsModel.cashPrinter!!.contains(":")) {
+                    val printerDetails = SettingsModel.cashPrinter!!.split(":")
+                    if (printerDetails.size == 2) {
+                        if (isIpValid(printerDetails[0])) {
+                            ipAddress = printerDetails[0]
+                            port = printerDetails[1]
+                        } else {
+                            ipAddress = SettingsModel.cashPrinter!!
+                            port = "9100"
+                        }
+                    }
+                } else {
+                    ipAddress = SettingsModel.cashPrinter!!
+                    port = "9100"
+                }
                 printOutput(
                     context = context,
                     output = output,
                     printerName = SettingsModel.cashPrinter,
-                    printerIP = ip,
-                    printerPort = port.toIntOrNull() ?: -1
+                    printerIP = ipAddress,
+                    printerPort = port.toIntOrNull() ?: 9100
                 )
             }
         }
@@ -1188,7 +1204,7 @@ object PrinterUtils {
             output: ByteArray,
             printerName: String? = null,
             printerIP: String = "",
-            printerPort: Int = -1
+            printerPort: Int = 9100
     ) {
         if (printerIP.isNotEmpty() && printerPort != -1) {
             try {
@@ -1323,5 +1339,13 @@ object PrinterUtils {
             byteArray,
             Base64.NO_PADDING
         )
+    }
+
+    fun isIpValid(ip: String): Boolean {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            InetAddresses.isNumericAddress(ip)
+        } else {
+            Patterns.IP_ADDRESS.matcher(ip).matches()
+        }
     }
 }
