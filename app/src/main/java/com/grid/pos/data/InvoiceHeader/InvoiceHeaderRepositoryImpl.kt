@@ -297,9 +297,10 @@ class InvoiceHeaderRepositoryImpl(
                     val dbResult = SQLServerWrapper.getListOf(
                         "in_hinvoice",
                         "TOP $limit",
-                        mutableListOf("*"),
+                        if (SettingsModel.isSqlServerWebDb) mutableListOf("*,tt.tt_newcode") else  mutableListOf("*"),
                         where,
-                        "ORDER BY hi_date DESC"
+                        "ORDER BY hi_date DESC",
+                        if (SettingsModel.isSqlServerWebDb) "INNER JOIN acc_transactiontype tt on hi_tt_code = tt.tt_code" else ""
                     )
                     dbResult?.let {
                         while (it.next()) {
@@ -678,8 +679,8 @@ class InvoiceHeaderRepositoryImpl(
             return invoices
         } else {
             return invoiceHeaderDao.getInvoicesBetween(
-                from.time ,
-                to.time ,
+                from.time,
+                to.time,
                 SettingsModel.getCompanyID() ?: ""
             )
         }
@@ -742,7 +743,7 @@ class InvoiceHeaderRepositoryImpl(
             invoiceHeadCompId = obj.getStringValue("hi_cmp_id")
             invoiceHeadDate = obj.getStringValue("hi_date")
             invoiceHeadOrderNo = obj.getStringValue("hi_orderno")
-            invoiceHeadTtCode = obj.getStringValue("hi_tt_code")
+            invoiceHeadTtCode = obj.getStringValue("tt_newcode",obj.getStringValue("hi_tt_code"))
             invoiceHeadTransNo = obj.getStringValue("hi_transno")
             invoiceHeadStatus = obj.getStringValue("hi_status")
             invoiceHeadNote = obj.getStringValue("hi_note")
