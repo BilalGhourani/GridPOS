@@ -156,11 +156,11 @@ fun POSView(
     ) {
         state.thirdParties = activityViewModel.thirdParties.toMutableList()
     }
-    LaunchedEffect(
+    /*LaunchedEffect(
         activityViewModel.invoiceHeaders
     ) {
         state.invoiceHeaders = activityViewModel.invoiceHeaders.toMutableList()
-    }
+    }*/
 
     LaunchedEffect(key1 = Unit) {
         if (activityViewModel.shouldLoadInvoice) {

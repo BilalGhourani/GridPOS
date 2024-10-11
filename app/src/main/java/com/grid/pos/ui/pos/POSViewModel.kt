@@ -200,7 +200,7 @@ class POSViewModel @Inject constructor(
                     finish
                 )
                 if (addedInv.invoiceHeadId.isNotEmpty()) {
-                    if (finish || invoiceHeader.invoiceHeadTaName.isNullOrEmpty()) {
+                    if ((finish || invoiceHeader.invoiceHeadTaName.isNullOrEmpty()) && posState.value.invoiceHeaders.isNotEmpty()) {
                         posState.value.invoiceHeaders.add(
                             0,
                             addedInv
@@ -242,7 +242,7 @@ class POSViewModel @Inject constructor(
                         index,
                         invoiceHeader
                     )
-                } else if (finish || invoiceHeader.invoiceHeadTaName.isNullOrEmpty()) {
+                } else if ((finish || invoiceHeader.invoiceHeadTaName.isNullOrEmpty()) && posState.value.invoiceHeaders.isNotEmpty()) {
                     posState.value.invoiceHeaders.add(
                         0,
                         invoiceHeader
