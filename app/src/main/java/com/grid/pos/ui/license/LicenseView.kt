@@ -78,6 +78,9 @@ fun LicenseView(
     val scope = rememberCoroutineScope()
 
     fun handleBack() {
+        if(state.isLoading){
+            return
+        }
         navController?.navigateUp()
     }
 

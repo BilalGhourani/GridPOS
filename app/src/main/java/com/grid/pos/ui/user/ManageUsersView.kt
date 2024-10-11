@@ -125,6 +125,9 @@ fun ManageUsersView(
 
     var saveAndBack by remember { mutableStateOf(false) }
     fun handleBack() {
+        if(state.isLoading){
+            return
+        }
         if (state.selectedUser.didChanged(
                 viewModel.currentUser
             )

@@ -134,8 +134,11 @@ fun ManageFamiliesView(
 
     var saveAndBack by remember { mutableStateOf(false) }
     fun handleBack() {
-        if (viewModel.currentFamily != null && state.selectedFamily.didChanged(
-                viewModel.currentFamily!!
+        if(state.isLoading){
+            return
+        }
+        if ( state.selectedFamily.didChanged(
+                viewModel.currentFamily
             )
         ) {
             activityScopedViewModel.showPopup(true,

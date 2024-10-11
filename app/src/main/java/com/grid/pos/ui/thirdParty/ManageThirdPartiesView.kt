@@ -116,6 +116,9 @@ fun ManageThirdPartiesView(
 
     var saveAndBack by remember { mutableStateOf(false) }
     fun handleBack() {
+        if(state.isLoading){
+            return
+        }
         if (state.selectedThirdParty.didChanged(
                 viewModel.currentThirdParty
             )

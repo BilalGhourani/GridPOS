@@ -221,6 +221,9 @@ fun ManageItemsView(
 
     var saveAndBack by remember { mutableStateOf(false) }
     fun handleBack() {
+        if(state.isLoading){
+            return
+        }
         if (state.selectedItem.didChanged(
                 viewModel.currentITem
             )

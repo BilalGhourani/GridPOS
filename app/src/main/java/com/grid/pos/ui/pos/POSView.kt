@@ -280,6 +280,9 @@ fun POSView(
     }
     val isImeVisible = WindowInsets.ime.getBottom(LocalDensity.current) > 0
     fun handleBack() {
+        if(state.isLoading){
+            return
+        }
         if (isImeVisible) {
             keyboardController?.hide()
         } else if (isAddItemBottomSheetVisible) {

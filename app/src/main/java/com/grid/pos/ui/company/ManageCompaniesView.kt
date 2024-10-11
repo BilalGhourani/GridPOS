@@ -180,6 +180,9 @@ fun ManageCompaniesView(
 
     var saveAndBack by remember { mutableStateOf(false) }
     fun handleBack() {
+        if(state.isLoading){
+            return
+        }
         if (state.selectedCompany.didChanged(
                 viewModel.currentCompany
             )

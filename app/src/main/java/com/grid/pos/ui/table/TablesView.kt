@@ -170,6 +170,9 @@ fun TablesView(
     }
 
     fun handleBack() {
+        if(state.isLoading){
+            return
+        }
         if (stepState > 1) {
             stepState = 1
             state.step = 1
