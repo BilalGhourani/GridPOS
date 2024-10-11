@@ -72,6 +72,7 @@ import com.grid.pos.R
 import com.grid.pos.data.InvoiceHeader.InvoiceHeader
 import com.grid.pos.data.PosReceipt.PosReceipt
 import com.grid.pos.interfaces.OnBarcodeResult
+import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.InvoiceItemModel
 import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
@@ -156,11 +157,13 @@ fun POSView(
     ) {
         state.thirdParties = activityViewModel.thirdParties.toMutableList()
     }
-    /*LaunchedEffect(
+    LaunchedEffect(
         activityViewModel.invoiceHeaders
     ) {
-        state.invoiceHeaders = activityViewModel.invoiceHeaders.toMutableList()
-    }*/
+        if (SettingsModel.connectionType == CONNECTION_TYPE.LOCAL.key) {
+            state.invoiceHeaders = activityViewModel.invoiceHeaders.toMutableList()
+        }
+    }
 
     LaunchedEffect(key1 = Unit) {
         if (activityViewModel.shouldLoadInvoice) {
@@ -684,8 +687,7 @@ fun POSView(
                         ),
                     onSave = { invHeader, itemModel ->
                         val isChanged = !itemModel.invoice.isNew() && activityViewModel.initialInvoiceItemModels[itemIndexToEdit].invoice.didChanged(itemModel.invoice) || (activityViewModel.pendingInvHeadState ?: activityViewModel.invoiceHeader).didChanged(invHeader)
-                        isInvoiceEdited = isInvoiceEdited || isChanged
-                        /* itemModel.shouldPrint = activityViewModel.isInvoiceItemQtyChanged(
+                        isInvoiceEdited = isInvoiceEdited || isChanged/* itemModel.shouldPrint = activityViewModel.isInvoiceItemQtyChanged(
                             itemModel.invoice.invoiceId,
                             itemModel.invoice.invoiceQuantity
                         )*/
