@@ -71,7 +71,7 @@ class CompanyRepositoryImpl(
             else -> {//CONNECTION_TYPE.SQL_SERVER.key
                 val companies: MutableList<Company> = mutableListOf()
                 try {
-                    val where = "cmp_id='${SettingsModel.getCompanyID()}'"
+                    val where = "cmp_id='$id'"
                     val dbResult = SQLServerWrapper.getListOf(
                         "company",
                         "",
