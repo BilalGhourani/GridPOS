@@ -271,7 +271,7 @@ class MainActivity : ComponentActivity() {
                         mLoaderHandler = Handler(Looper.getMainLooper())
                         mLoaderHandler!!.postDelayed(
                             mLoaderRunnable,
-                            15000
+                            30000
                         )
                     }
                     loadingState.value = sharedEvent.show

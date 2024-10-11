@@ -2,7 +2,6 @@ package com.grid.pos.data
 
 import android.util.Log
 import com.grid.pos.model.SettingsModel
-import com.grid.pos.utils.Extension.getStringValue
 import java.sql.CallableStatement
 import java.sql.Connection
 import java.sql.DriverManager
@@ -11,16 +10,18 @@ import java.sql.ResultSet
 import java.sql.Timestamp
 import java.sql.Types
 
+/*Grids_web_big companies :
+592045FA-5771-4095-AD9A-24DEEC9F318E,E3F3723E-D652-4591-BAF2-338308421A5D,18F082BE-8B13-49D0-87CF-440892778A46,C7F61C93-46C0-47A7-818D-5E1E0A5A9A8A,106F3129-FD52-4EE7-A9B0-679B605D36BB,DF6523E4-BE1B-475F-85CA-8637CD548B80,FDE0B280-1C6A-4521-92AD-8A65A6A01DE0,56244666-F26F-4A53-AFC3-914C6A1A8EDF,F84A238C-B07C-4028-97AD-B494E0E9752A*/
 object SQLServerWrapper {
 
     private var mConnection: Connection? = null
 
     private fun getDatabaseConnection(
-            serverPath: String? = SettingsModel.sqlServerPath,
-            dbName: String? = SettingsModel.sqlServerDbName,
-            serverName: String? = SettingsModel.sqlServerName,
-            username: String? = SettingsModel.sqlServerDbUser,
-            password: String? = SettingsModel.sqlServerDbPassword
+        serverPath: String? = SettingsModel.sqlServerPath,
+        dbName: String? = SettingsModel.sqlServerDbName,
+        serverName: String? = SettingsModel.sqlServerName,
+        username: String? = SettingsModel.sqlServerDbUser,
+        password: String? = SettingsModel.sqlServerDbPassword
     ): Connection {
         try {
             Class.forName("net.sourceforge.jtds.jdbc.Driver")
@@ -40,7 +41,7 @@ object SQLServerWrapper {
                 return
             }
             mConnection = getDatabaseConnection()
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             e.printStackTrace()
         }
     }
@@ -71,11 +72,11 @@ object SQLServerWrapper {
     }
 
     fun isConnectionSucceeded(
-            serverPath: String? = SettingsModel.sqlServerPath,
-            dbName: String? = SettingsModel.sqlServerDbName,
-            serverName: String? = SettingsModel.sqlServerName,
-            username: String? = SettingsModel.sqlServerDbUser,
-            passwrod: String? = SettingsModel.sqlServerDbPassword
+        serverPath: String? = SettingsModel.sqlServerPath,
+        dbName: String? = SettingsModel.sqlServerDbName,
+        serverName: String? = SettingsModel.sqlServerName,
+        username: String? = SettingsModel.sqlServerDbUser,
+        passwrod: String? = SettingsModel.sqlServerDbPassword
     ): String {
         return try {
             val connection = getDatabaseConnection(
@@ -97,12 +98,12 @@ object SQLServerWrapper {
     }
 
     fun getListOf(
-            tableName: String,
-            colPrefix: String = "",
-            columns: MutableList<String>,
-            where: String,
-            orderBy: String = "",
-            joinSubQuery: String = "",
+        tableName: String,
+        colPrefix: String = "",
+        columns: MutableList<String>,
+        where: String,
+        orderBy: String = "",
+        joinSubQuery: String = "",
     ): ResultSet? {
         try {
             val connection = getConnection()
@@ -118,7 +119,7 @@ object SQLServerWrapper {
     }
 
     fun getQueryResult(
-            query: String
+        query: String
     ): ResultSet? {
         try {
             val connection = getConnection()
@@ -131,14 +132,15 @@ object SQLServerWrapper {
     }
 
     fun selectFromProcedure(
-            procedureName: String,
-            params: List<Any>,
+        procedureName: String,
+        params: List<Any>,
     ): ResultSet? {
         try {
             val connection = getConnection()
             val parameters = params.joinToString(", ")
             // Prepare the stored procedure call
-            val query = "select dbo.$procedureName($parameters) as $procedureName" // Modify with your procedure and parameters
+            val query =
+                "select dbo.$procedureName($parameters) as $procedureName" // Modify with your procedure and parameters
             val statement = connection.prepareStatement(query)
             return statement.executeQuery()
         } catch (e: Exception) {
@@ -148,9 +150,9 @@ object SQLServerWrapper {
     }
 
     fun insert(
-            tableName: String,
-            columns: List<String>,
-            values: List<Any?>
+        tableName: String,
+        columns: List<String>,
+        values: List<Any?>
     ) {
         if (columns.size != values.size) {
             return
@@ -173,10 +175,10 @@ object SQLServerWrapper {
     }
 
     fun update(
-            tableName: String,
-            columns: List<String>,
-            values: List<Any?>,
-            where: String
+        tableName: String,
+        columns: List<String>,
+        values: List<Any?>,
+        where: String
     ) {
         if (columns.size != values.size) {
             return
@@ -201,111 +203,93 @@ object SQLServerWrapper {
     }
 
     fun delete(
-            tableName: String,
-            where: String,
-            innerJoin: String = ""
+        tableName: String,
+        where: String,
+        innerJoin: String = ""
     ) {
         val whereQuery = if (where.isNotEmpty()) "WHERE $where " else ""
         runDbQuery("DELETE FROM $tableName $innerJoin $whereQuery")
     }
 
     fun executeProcedure(
-            procedureName: String,
-            values: List<Any?>
+        procedureName: String,
+        values: List<Any?>
     ): String? {
         var connection: Connection? = null
         var callableStatement: CallableStatement? = null
         var result: String? = null
         try {
-            val params = values.joinToString(", ") {
-                if (it is String && it.contains("OUTPUT")) {
-                    "? OUTPUT"
+            val params = values.joinToString(", ") { "?" }
+            var outputIndex = -1
+            var index = -1
+            val vals = values.joinToString(", ") {
+                index +=1
+                if (it is String) {
+                    if (it.startsWith("null_int_output")) {
+                        outputIndex = index
+                        "null output"
+                    } else if (it.startsWith("null_string_output")) {
+                        outputIndex = index
+                        "Default output"
+                    } else {
+                        "'$it'"
+                    }
+                } else if (it is Timestamp) {
+                    "'$it'"
                 } else {
-                    "?"
+                    "$it"
                 }
             }
             connection = getConnection()
-            //val query = "exec dbo.$procedureName $vals"
-            val query = "{call $procedureName($params)}"
+            val query = "{call $procedureName($vals)}"
             callableStatement = connection.prepareCall(query)
-            var outputIndex = -1
-            values.forEachIndexed { index, any ->
+
+            /*values.forEachIndexed { index, any ->
                 if (any == null) {
-                    callableStatement.setNull(
-                        index + 1,
-                        Types.NULL
-                    )
-                }
-                when (any) {
-                    is String -> {
-                        if (any.equals("null_int_output",ignoreCase = true)) {
-                            outputIndex = index + 1
-                            callableStatement.registerOutParameter(
-                                index + 1,
-                                Types.BIGINT
-                            )
-                        }else if (any.equals("null_string_output",ignoreCase = true)) {
-                            outputIndex = index + 1
-                            callableStatement.registerOutParameter(
-                                index + 1,
-                                Types.NVARCHAR
-                            )
-                        }else if (any.equals("null",ignoreCase = true)) {
-                            callableStatement.setNull(
-                                index + 1,
-                                Types.NULL
-                            )
-                        }else{
-                            callableStatement.setString(
-                                index + 1,
-                                any
-                            )
+                    callableStatement.setNull(index + 1, Types.NULL)
+                } else {
+                    when (any) {
+                        is String -> {
+                            if (any.equals("null_int_output", ignoreCase = true)) {
+                                outputIndex = index + 1
+                                callableStatement.registerOutParameter(index + 1, Types.BIGINT)
+                            } else if (any.equals("null_string_output", ignoreCase = true)) {
+                                outputIndex = index + 1
+                                callableStatement.setNull(index + 1, Types.LONGVARCHAR)
+                                callableStatement.registerOutParameter(index + 1, Types.LONGVARCHAR)
+                            } else if (any.equals("null", ignoreCase = true)) {
+                                callableStatement.setNull(index + 1, Types.NULL)
+                            } else {
+                                callableStatement.setString(index + 1, any)
+                            }
+                        }
+
+                        is Timestamp -> {
+                            callableStatement.setTimestamp(index + 1, any)
+                        }
+
+                        is Double -> {
+                            callableStatement.setDouble(index + 1, any)
+                        }
+
+                        is Int -> {
+                            callableStatement.setInt(index + 1, any)
+                        }
+
+                        is Boolean -> {
+                            callableStatement.setBoolean(index + 1, any)
+                        }
+
+                        is Float -> {
+                            callableStatement.setFloat(index + 1, any)
+                        }
+
+                        else -> {
+                            Log.d(SQLServerWrapper::class.java.name, "missing params")
                         }
                     }
-
-                    is Timestamp -> {
-                        callableStatement.setTimestamp(
-                            index + 1,
-                            any
-                        )
-                    }
-
-                    is Double -> {
-                        callableStatement.setDouble(
-                            index + 1,
-                            any
-                        )
-                    }
-
-                    is Int -> {
-                        callableStatement.setInt(
-                            index + 1,
-                            any
-                        )
-                    }
-
-                    is Boolean -> {
-                        callableStatement.setBoolean(
-                            index + 1,
-                            any
-                        )
-                    }
-
-                    is Float -> {
-                        callableStatement.setFloat(
-                            index + 1,
-                            any
-                        )
-                    }
-
-                    else -> {
-                        Log.d(
-                            SQLServerWrapper::class.java.name,
-                            "missing params"
-                        )
-                    }
                 }
-            }
+            }*/
             callableStatement.execute()
             if (outputIndex >= 0) {
                 result = callableStatement.getString(outputIndex)
@@ -322,8 +306,8 @@ object SQLServerWrapper {
     }
 
     private fun runDbQuery(
-            query: String,
-            params: List<Any?>? = null
+        query: String,
+        params: List<Any?>? = null
     ): Boolean {
         var connection: Connection? = null
         var statement: PreparedStatement? = null
