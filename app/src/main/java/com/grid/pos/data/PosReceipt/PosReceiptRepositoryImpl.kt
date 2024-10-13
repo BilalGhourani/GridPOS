@@ -344,7 +344,7 @@ class PosReceiptRepositoryImpl(
                                     }
                                 }
 
-                                "Credit" -> {
+                                "Credit","Credit Card" -> {
                                     if (raOrder == 1) {
                                         posReceipt.posReceiptCreditID = it.getStringValue("pr_id")
                                         posReceipt.posReceiptCredit_hsid = it.getStringValue("pr_hsid")
@@ -357,7 +357,7 @@ class PosReceiptRepositoryImpl(
 
                                 }
 
-                                "Debit" -> {
+                                "Debit","Debit Card" -> {
                                     if (raOrder == 1) {
                                         posReceipt.posReceiptDebitID = it.getStringValue("pr_id")
                                         posReceipt.posReceiptDebit_hsid = it.getStringValue("pr_hsid")

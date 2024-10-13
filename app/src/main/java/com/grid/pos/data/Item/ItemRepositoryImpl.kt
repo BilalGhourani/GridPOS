@@ -97,7 +97,7 @@ class ItemRepositoryImpl(
                                 itemFaId = it.getStringValue("it_fa_name")
                                 itemName = it.getStringValue("it_name")
                                 itemBarcode = it.getStringValue("it_barcode")
-                                it_div_name = it.getStringValue("it_div_name")
+                                it_div_name = it.getStringValue("it_div_name","null")
                                 it_cashback = it.getDoubleValue("it_cashback")
 
                                 itemTax = it.getDoubleValue("it_vat")
@@ -118,10 +118,10 @@ class ItemRepositoryImpl(
                                 )
                                 itemDateTime = itemTimeStamp!!.time
                                 itemUserStamp = it.getStringValue("it_userstamp")
+                                val unitPrice = it.getDoubleValue("it_unitprice")
+                                val unitCost = it.getDoubleValue("it_cost")
                                 if (currency != null) {
                                     val currencyCode = it.getStringValue("it_cur_code")
-                                    val unitPrice = it.getDoubleValue("it_unitprice")
-                                    val unitCost = it.getDoubleValue("it_cost")
                                     if (currencyCode == currency.currencyDocumentId) {//second currency
                                         if (currency.currencyRate < 1.0) {
                                             itemUnitPrice = unitPrice.div(currency.currencyRate)
@@ -130,10 +130,13 @@ class ItemRepositoryImpl(
                                             itemUnitPrice = unitPrice.times(currency.currencyRate)
                                             itemOpenCost = unitCost.times(currency.currencyRate)
                                         }
+                                    } else {
+                                        itemUnitPrice = unitPrice
+                                        itemOpenCost = unitCost
                                     }
                                 } else {
-                                    itemUnitPrice = it.getDoubleValue("it_unitprice")
-                                    itemOpenCost = it.getDoubleValue("it_cost")
+                                    itemUnitPrice = unitPrice
+                                    itemOpenCost = unitCost
                                 }
                             })
                         }

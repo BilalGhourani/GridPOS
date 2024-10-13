@@ -91,27 +91,27 @@ class ActivityScopedViewModel @Inject constructor(
 
         SettingsModel.posReceiptAccCashId = settingsRepository.getPosReceiptAccIdBy(
             "Cash",
-            currency.currencyCode1 ?: ""
+            currency.currencyId ?: ""
         )
         SettingsModel.posReceiptAccCash1Id = settingsRepository.getPosReceiptAccIdBy(
             "Cash",
-            currency.currencyCode2 ?: ""
+            currency.currencyDocumentId ?: ""
         )
         SettingsModel.posReceiptAccCreditId = settingsRepository.getPosReceiptAccIdBy(
             "Credit Card",
-            currency.currencyCode1 ?: ""
+            currency.currencyId ?: ""
         )
         SettingsModel.posReceiptAccCredit1Id = settingsRepository.getPosReceiptAccIdBy(
             "Credit Card",
-            currency.currencyCode2 ?: ""
+            currency.currencyDocumentId ?: ""
         )
         SettingsModel.posReceiptAccDebitId = settingsRepository.getPosReceiptAccIdBy(
             "Debit Card",
-            currency.currencyCode1 ?: ""
+            currency.currencyId ?: ""
         )
         SettingsModel.posReceiptAccDebit1Id = settingsRepository.getPosReceiptAccIdBy(
             "Debit Card",
-            currency.currencyCode2 ?: ""
+            currency.currencyDocumentId ?: ""
         )
     }
 

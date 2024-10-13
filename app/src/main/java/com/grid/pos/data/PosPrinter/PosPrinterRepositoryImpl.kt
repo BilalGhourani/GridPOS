@@ -92,7 +92,6 @@ class PosPrinterRepositoryImpl(
                                     posPrinterHost = if (size > 0) diaAppPrinters[0] else ""
                                     val port = if (size > 1) diaAppPrinters[1] else "-1"
                                     posPrinterPort = port.toIntOrNull() ?: -1
-                                    posPrinterType = it.getStringValue("usr_cmp_id")
                                 })
                             }
                             SQLServerWrapper.closeResultSet(it)

@@ -314,7 +314,7 @@ data class InvoiceHeader(
 
     @Exclude
     override fun prepareForInsert() {
-        if (invoiceHeadId.isEmpty()) {
+        if (invoiceHeadId.isEmpty() && !SettingsModel.isConnectedToSqlServer()) {
             invoiceHeadId = Utils.generateRandomUuidString()
         }
         invoiceHeadCompId = SettingsModel.getCompanyID()

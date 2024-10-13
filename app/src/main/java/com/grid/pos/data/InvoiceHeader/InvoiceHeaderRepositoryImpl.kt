@@ -304,7 +304,7 @@ class InvoiceHeaderRepositoryImpl(
                     )
                     dbResult?.let {
                         while (it.next()) {
-                            invoiceHeaders.add(fillParams(it))
+                            invoiceHeaders.add(fillParams(it,"tt_newcode"))
                         }
                         SQLServerWrapper.closeResultSet(it)
                     }
@@ -736,14 +736,14 @@ class InvoiceHeaderRepositoryImpl(
         }
     }
 
-    private fun fillParams(obj: ResultSet): InvoiceHeader {
+    private fun fillParams(obj: ResultSet,ttCodeKey:String = "hi_tt_code"): InvoiceHeader {
         return InvoiceHeader().apply {
             invoiceHeadId = obj.getStringValue("hi_id")
             invoiceHeadNo = obj.getStringValue("hi_no")
             invoiceHeadCompId = obj.getStringValue("hi_cmp_id")
             invoiceHeadDate = obj.getStringValue("hi_date")
             invoiceHeadOrderNo = obj.getStringValue("hi_orderno")
-            invoiceHeadTtCode = obj.getStringValue("tt_newcode",obj.getStringValue("hi_tt_code"))
+            invoiceHeadTtCode = obj.getStringValue(ttCodeKey)
             invoiceHeadTransNo = obj.getStringValue("hi_transno")
             invoiceHeadStatus = obj.getStringValue("hi_status")
             invoiceHeadNote = obj.getStringValue("hi_note")

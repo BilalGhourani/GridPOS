@@ -221,16 +221,16 @@ object SQLServerWrapper {
         try {
             val params = values.joinToString(", ") { "?" }
             var outputIndex = -1
-            var index = -1
+        /*    var index = -1
             val vals = values.joinToString(", ") {
                 index +=1
                 if (it is String) {
                     if (it.startsWith("null_int_output")) {
                         outputIndex = index
-                        "null output"
+                        "null"
                     } else if (it.startsWith("null_string_output")) {
                         outputIndex = index
-                        "Default output"
+                        "Default"
                     } else {
                         "'$it'"
                     }
@@ -239,12 +239,12 @@ object SQLServerWrapper {
                 } else {
                     "$it"
                 }
-            }
+            }*/
             connection = getConnection()
-            val query = "{call $procedureName($vals)}"
+            val query = "{call $procedureName($params)}"
             callableStatement = connection.prepareCall(query)
 
-            /*values.forEachIndexed { index, any ->
+            values.forEachIndexed { index, any ->
                 if (any == null) {
                     callableStatement.setNull(index + 1, Types.NULL)
                 } else {
@@ -255,8 +255,7 @@ object SQLServerWrapper {
                                 callableStatement.registerOutParameter(index + 1, Types.BIGINT)
                             } else if (any.equals("null_string_output", ignoreCase = true)) {
                                 outputIndex = index + 1
-                                callableStatement.setNull(index + 1, Types.LONGVARCHAR)
-                                callableStatement.registerOutParameter(index + 1, Types.LONGVARCHAR)
+                                callableStatement.registerOutParameter(index + 1, Types.VARCHAR)
                             } else if (any.equals("null", ignoreCase = true)) {
                                 callableStatement.setNull(index + 1, Types.NULL)
                             } else {
@@ -289,7 +288,7 @@ object SQLServerWrapper {
                         }
                     }
                 }
-            }*/
+            }
             callableStatement.execute()
             if (outputIndex >= 0) {
                 result = callableStatement.getString(outputIndex)
