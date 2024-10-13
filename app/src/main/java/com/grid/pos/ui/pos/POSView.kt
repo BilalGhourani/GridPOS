@@ -155,7 +155,9 @@ fun POSView(
     LaunchedEffect(
         activityViewModel.thirdParties
     ) {
-        state.thirdParties = activityViewModel.thirdParties.toMutableList()
+        if (SettingsModel.connectionType == CONNECTION_TYPE.LOCAL.key) {
+            state.thirdParties = activityViewModel.thirdParties.toMutableList()
+        }
     }
     LaunchedEffect(
         activityViewModel.invoiceHeaders
@@ -280,7 +282,7 @@ fun POSView(
     }
     val isImeVisible = WindowInsets.ime.getBottom(LocalDensity.current) > 0
     fun handleBack() {
-        if(state.isLoading){
+        if (state.isLoading) {
             return
         }
         if (isImeVisible) {
