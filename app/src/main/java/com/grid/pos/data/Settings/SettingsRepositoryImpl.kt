@@ -6,7 +6,7 @@ import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.Extension.getStringValue
 
 class SettingsRepositoryImpl : SettingsRepository {
-    override suspend fun getSalesInvoiceTransType(): String {
+    override suspend fun getTransactionTypeId(type: String): String? {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
                 // nothing to do
@@ -19,12 +19,12 @@ class SettingsRepositoryImpl : SettingsRepository {
             }
 
             else -> {
-                var result = "SI"
+                var result: String? = null
                 try {
                     val where = if (SettingsModel.isSqlServerWebDb) {
-                        "tt_type='Sales Invoice' and tt_cmp_id='${SettingsModel.getCompanyID()}'"
+                        "tt_type='$type' and tt_cmp_id='${SettingsModel.getCompanyID()}'"
                     } else {
-                        "tt_type='Sales Invoice'"
+                        "tt_type='Sale Invoice'"
                     }
 
                     val dbResult = SQLServerWrapper.getListOf(
@@ -37,55 +37,7 @@ class SettingsRepositoryImpl : SettingsRepository {
                     )
                     dbResult?.let {
                         if (it.next()) {
-                            result = it.getStringValue(
-                                "tt_code",
-                                "SI"
-                            )
-                        }
-                        SQLServerWrapper.closeResultSet(it)
-                    }
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }
-                return result
-            }
-        }
-    }
-
-    override suspend fun getReturnSalesTransType(): String {
-        when (SettingsModel.connectionType) {
-            CONNECTION_TYPE.FIRESTORE.key -> {
-                // nothing to do
-                return "RS"
-            }
-
-            CONNECTION_TYPE.LOCAL.key -> {
-                //nothing to do
-                return "RS"
-            }
-
-            else -> {
-                var result = "RS"
-                try {
-                    val where = if (SettingsModel.isSqlServerWebDb) {
-                        "tt_type='Return Sale' and tt_cmp_id='${SettingsModel.getCompanyID()}'"
-                    } else {
-                        "tt_type='Return Sale'"
-                    }
-                    val dbResult = SQLServerWrapper.getListOf(
-                        "acc_transactiontype",
-                        "",
-                        mutableListOf(
-                            "tt_code"
-                        ),
-                        where
-                    )
-                    dbResult?.let {
-                        if (it.next()) {
-                            result = it.getStringValue(
-                                "tt_code",
-                                "RS"
-                            )
+                            result = it.getStringValue("tt_code")
                         }
                         SQLServerWrapper.closeResultSet(it)
                     }
