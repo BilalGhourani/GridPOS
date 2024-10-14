@@ -7,7 +7,8 @@ import com.grid.pos.utils.Extension.isNullOrEmptyOrNullStr
 data class InvoiceItemModel(
         val invoice: Invoice = Invoice(),
         var invoiceItem: Item = Item(),
-        var isDeleted : Boolean = false,
+        var initialQty: Double = 0.0,
+        var isDeleted: Boolean = false,
         var shouldPrint: Boolean = false
 ) {
 
@@ -50,7 +51,7 @@ data class InvoiceItemModel(
         val disc = invoice.getDiscount()
         val discountVal = if (disc > 0.0) "-%${disc.toInt()}" else ""
         val taxableVal = if (getTotalTax() > 0.0) "*" else ""
-        val deleted = if(isDeleted) "- Deleted" else ""
+        val deleted = if (isDeleted) "- Deleted" else ""
         return if (invoice.invoiceNote.isNullOrEmptyOrNullStr()) {
             "${invoiceItem.itemName ?: "Item"}$taxableVal $discountVal $deleted"
         } else {

@@ -284,49 +284,54 @@ class POSViewModel @Inject constructor(
         val itemsToUpdate = invoiceItems.filter { !it.invoice.isNew() }
         val itemsToDelete = posState.value.itemsToDelete.filter { !it.invoice.isNew() }
 
-        val size = itemsToInsert.size
-        itemsToInsert.forEachIndexed { index, invoiceItem ->
+        itemsToInsert.forEach { invoiceItem ->
             invoiceItem.invoice.invoiceHeaderId = invoiceHeader.invoiceHeadId
             saveInvoiceItem(
-                invoiceItem.invoice,
-                true,
-                index == size - 1
+                invoiceItem,
+                true
             )
         }
 
-        val size2 = itemsToUpdate.size
-        itemsToUpdate.forEachIndexed { index, invoiceItem ->
+        itemsToUpdate.forEach { invoiceItem ->
             invoiceItem.invoice.invoiceHeaderId = invoiceHeader.invoiceHeadId
             saveInvoiceItem(
-                invoiceItem.invoice,
-                false,
-                index == size2 - 1
+                invoiceItem,
+                false
             )
         }
 
         itemsToDelete.forEach { invoiceItem ->
             invoiceRepository.delete(invoiceItem.invoice)
+            invoiceItem.invoiceItem.itemOpenQty += invoiceItem.invoice.invoiceQuantity
+            itemRepository.update(invoiceItem.invoiceItem)
+        }
+
+        withContext(Dispatchers.Main) {
+            posState.value = posState.value.copy(
+                isLoading = false,
+                isSaved = true,
+                warning = Event("Invoice saved successfully."),
+            )
         }
     }
 
     private suspend fun saveInvoiceItem(
-            invoice: Invoice,
-            isInserting: Boolean,
-            notify: Boolean = false
+            invoiceModel: InvoiceItemModel,
+            isInserting: Boolean
     ) {
         if (isInserting) {
-            invoice.prepareForInsert()
-            invoiceRepository.insert(invoice)
+            invoiceModel.invoice.prepareForInsert()
+            invoiceRepository.insert(invoiceModel.invoice)
+            invoiceModel.invoiceItem.itemOpenQty -= invoiceModel.invoice.invoiceQuantity
+            itemRepository.update(invoiceModel.invoiceItem)
         } else {
-            invoiceRepository.update(invoice)
-        }
-        if (notify) {
-            withContext(Dispatchers.Main) {
-                posState.value = posState.value.copy(
-                    isLoading = false,
-                    isSaved = true,
-                    warning = Event("Invoice saved successfully."),
-                )
+            invoiceRepository.update(invoiceModel.invoice)
+            if (invoiceModel.initialQty > invoiceModel.invoice.invoiceQuantity) {// was 4 and now is 3 => increase by 1
+                invoiceModel.invoiceItem.itemOpenQty += invoiceModel.initialQty - invoiceModel.invoice.invoiceQuantity
+                itemRepository.update(invoiceModel.invoiceItem)
+            } else if (invoiceModel.initialQty < invoiceModel.invoice.invoiceQuantity) { // was 4 and now is 5 => decrease by 1
+                invoiceModel.invoiceItem.itemOpenQty -= invoiceModel.invoice.invoiceQuantity - invoiceModel.initialQty
+                itemRepository.update(invoiceModel.invoiceItem)
             }
         }
     }
@@ -373,6 +378,7 @@ class POSViewModel @Inject constructor(
             val invoices = mutableListOf<InvoiceItemModel>()
             result.forEach { inv ->
                 invoices.add(InvoiceItemModel(invoice = inv,
+                    initialQty = inv.invoiceQuantity,
                     invoiceItem = posState.value.items.firstOrNull {
                         it.itemId.equals(
                             inv.invoiceItemId,
