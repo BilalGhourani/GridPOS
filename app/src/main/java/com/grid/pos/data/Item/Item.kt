@@ -78,6 +78,14 @@ data class Item(
         var itemUnitPrice: Double = 0.0,
 
         /**
+         * Item unit price
+         * */
+        @ColumnInfo(name = "it_cur_code")
+        @set:PropertyName("it_cur_code")
+        @get:PropertyName("it_cur_code")
+        var itemCurrencyId: String? = null,
+
+        /**
          * Item tax
          * */
         @ColumnInfo(name = "it_tax")
@@ -251,6 +259,7 @@ data class Item(
             "it_name" to itemName,
             "it_barcode" to itemBarcode,
             "it_unitprice" to itemUnitPrice,
+            "it_cur_code" to itemCurrencyId,
             "it_tax" to itemTax,
             "it_tax1" to itemTax1,
             "it_tax2" to itemTax2,

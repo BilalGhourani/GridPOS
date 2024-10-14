@@ -66,6 +66,7 @@ import com.grid.pos.data.Item.Item
 import com.grid.pos.data.PosPrinter.PosPrinter
 import com.grid.pos.interfaces.OnBarcodeResult
 import com.grid.pos.interfaces.OnGalleryResult
+import com.grid.pos.model.CurrencyModel
 import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.ColorPickerPopup
@@ -124,6 +125,7 @@ fun ManageItemsView(
     var barcodeState by remember { mutableStateOf("") }
     var openCostState by remember { mutableStateOf("") }
     var openQtyState by remember { mutableStateOf("") }
+    var itemCurrState by remember { mutableStateOf("") }
     var familyIdState by remember { mutableStateOf("") }
     var btnColorState by remember { mutableStateOf("") }
     var btnTextColorState by remember { mutableStateOf("") }
@@ -139,15 +141,15 @@ fun ManageItemsView(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
-   /* LaunchedEffect(
-        activityScopedViewModel.items,
-        activityScopedViewModel.families
-    ) {
-        viewModel.fillCachedItems(
-            activityScopedViewModel.items,
-            activityScopedViewModel.families
-        )
-    }*/
+    /* LaunchedEffect(
+         activityScopedViewModel.items,
+         activityScopedViewModel.families
+     ) {
+         viewModel.fillCachedItems(
+             activityScopedViewModel.items,
+             activityScopedViewModel.families
+         )
+     }*/
 
     LaunchedEffect(state.warning) {
         state.warning?.value?.let { message ->
@@ -210,6 +212,7 @@ fun ManageItemsView(
         barcodeState = ""
         openCostState = ""
         openQtyState = ""
+        itemCurrState = SettingsModel.currentCurrency?.currencyCode1 ?: ""
         familyIdState = ""
         btnColorState = ""
         btnTextColorState = ""
@@ -221,7 +224,7 @@ fun ManageItemsView(
 
     var saveAndBack by remember { mutableStateOf(false) }
     fun handleBack() {
-        if(state.isLoading){
+        if (state.isLoading) {
             return
         }
         if (state.selectedItem.didChanged(
@@ -512,6 +515,22 @@ fun ManageItemsView(
                         state.selectedItem.itemOpenQty = openQtyState.toDoubleOrNull() ?: 0.0
                     }
 
+                    if (viewModel.currencies.isNotEmpty()) {
+                        SearchableDropdownMenuEx(
+                            items = viewModel.currencies,
+                            modifier = Modifier.padding(
+                                horizontal = 10.dp,
+                                vertical = 5.dp
+                            ),
+                            label = "Select Currency",
+                            selectedId = itemCurrState
+                        ) { currModel ->
+                            currModel as CurrencyModel
+                            itemCurrState = currModel.currencyCode
+                            state.selectedItem.itemCurrencyId = itemCurrState
+                        }
+                    }
+
                     SearchableDropdownMenuEx(items = state.families.toMutableList(),
                         modifier = Modifier.padding(
                             horizontal = 10.dp,
@@ -767,6 +786,7 @@ fun ManageItemsView(
                     barcodeState = item.itemBarcode ?: ""
                     openCostState = item.itemOpenCost.toString()
                     openQtyState = item.itemOpenQty.toString()
+                    itemCurrState = item.itemCurrencyId ?: SettingsModel.currentCurrency?.currencyCode1 ?: ""
                     familyIdState = item.itemFaId ?: ""
                     btnColorState = item.itemBtnColor ?: ""
                     btnTextColorState = item.itemBtnTextColor ?: ""

@@ -128,19 +128,25 @@ data class Currency(
 
     @Exclude
     fun didChanged(currency: Currency): Boolean {
-        return !currency.currencyCode1.equals(currencyCode1)
-                || !currency.currencyName1.equals(currencyName1)
-                || !currency.currencyName1Dec.equals(currencyName1Dec)
-                || !currency.currencyCode2.equals(currencyCode2)
-                || !currency.currencyName2.equals(currencyName2)
-                || !currency.currencyName2Dec.equals(currencyName2Dec)
-                || !currency.currencyRate.equals(currencyRate)
+        return !currency.currencyCode1.equals(currencyCode1) || !currency.currencyName1.equals(currencyName1) || !currency.currencyName1Dec.equals(currencyName1Dec) || !currency.currencyCode2.equals(currencyCode2) || !currency.currencyName2.equals(currencyName2) || !currency.currencyName2Dec.equals(currencyName2Dec) || !currency.currencyRate.equals(currencyRate)
     }
 
     @Exclude
     fun didChangedCurrencyCode(currency: Currency): Boolean {
-        return !currency.currencyCode1.equals(currencyCode1)
-                || !currency.currencyCode2.equals(currencyCode2)
+        return !currency.currencyCode1.equals(currencyCode1) || !currency.currencyCode2.equals(currencyCode2)
+    }
+
+    @Exclude
+    fun getCurrencyCode(currId: String?): String? {
+        if (currId.isNullOrEmpty()) {
+            return currencyCode1
+        }
+        if (currId == currencyCode1 || currId == currencyId) {
+            return currencyCode1
+        } else if (currId == currencyCode2 || currId == currencyDocumentId) {
+            return currencyCode2
+        }
+        return null
     }
 
     @Exclude

@@ -1,6 +1,7 @@
 package com.grid.pos.data.Item
 
 import com.google.firebase.firestore.FirebaseFirestore
+import com.grid.pos.data.Currency.Currency
 import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.SettingsModel
@@ -58,10 +59,22 @@ class ItemRepositoryImpl(
 
                 val items = mutableListOf<Item>()
                 if (querySnapshot.size() > 0) {
+                    val currency = SettingsModel.currentCurrency
                     for (document in querySnapshot) {
                         val obj = document.toObject(Item::class.java)
                         if (obj.itemId.isNotEmpty()) {
                             obj.itemDocumentId = document.id
+                            if (currency != null) {
+                                if (obj.itemCurrencyId == currency.currencyCode2) {//second currency
+                                    if (currency.currencyRate < 1.0) {
+                                        obj.itemUnitPrice = obj.itemUnitPrice.div(currency.currencyRate)
+                                        obj.itemOpenCost = obj.itemOpenCost.div(currency.currencyRate)
+                                    } else {
+                                        obj.itemUnitPrice = obj.itemUnitPrice.times(currency.currencyRate)
+                                        obj.itemOpenCost = obj.itemOpenCost.times(currency.currencyRate)
+                                    }
+                                }
+                            }
                             items.add(obj)
                         }
                     }
@@ -70,7 +83,22 @@ class ItemRepositoryImpl(
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
-                return itemDao.getAllItems(SettingsModel.getCompanyID() ?: "")
+                val itemList = itemDao.getAllItems(SettingsModel.getCompanyID() ?: "")
+                val currency = SettingsModel.currentCurrency
+                itemList.forEach {
+                    if (currency != null) {
+                        if (it.itemCurrencyId == currency.currencyCode2) {//second currency
+                            if (currency.currencyRate < 1.0) {
+                                it.itemUnitPrice = it.itemUnitPrice.div(currency.currencyRate)
+                                it.itemOpenCost = it.itemOpenCost.div(currency.currencyRate)
+                            } else {
+                                it.itemUnitPrice = it.itemUnitPrice.times(currency.currencyRate)
+                                it.itemOpenCost = it.itemOpenCost.times(currency.currencyRate)
+                            }
+                        }
+                    }
+                }
+                return itemList
             }
 
             else -> {
@@ -97,7 +125,10 @@ class ItemRepositoryImpl(
                                 itemFaId = it.getStringValue("it_fa_name")
                                 itemName = it.getStringValue("it_name")
                                 itemBarcode = it.getStringValue("it_barcode")
-                                it_div_name = it.getStringValue("it_div_name","null")
+                                it_div_name = it.getStringValue(
+                                    "it_div_name",
+                                    "null"
+                                )
                                 it_cashback = it.getDoubleValue("it_cashback")
 
                                 itemTax = it.getDoubleValue("it_vat")
@@ -118,25 +149,19 @@ class ItemRepositoryImpl(
                                 )
                                 itemDateTime = itemTimeStamp!!.time
                                 itemUserStamp = it.getStringValue("it_userstamp")
-                                val unitPrice = it.getDoubleValue("it_unitprice")
-                                val unitCost = it.getDoubleValue("it_cost")
+                                itemCurrencyId = it.getStringValue("it_cur_code")
+                                itemUnitPrice = it.getDoubleValue("it_unitprice")
+                                itemOpenCost = it.getDoubleValue("it_cost")
                                 if (currency != null) {
-                                    val currencyCode = it.getStringValue("it_cur_code")
-                                    if (currencyCode == currency.currencyDocumentId) {//second currency
+                                    if (itemCurrencyId == currency.currencyDocumentId) {//second currency
                                         if (currency.currencyRate < 1.0) {
-                                            itemUnitPrice = unitPrice.div(currency.currencyRate)
-                                            itemOpenCost = unitCost.div(currency.currencyRate)
+                                            itemUnitPrice = itemUnitPrice.div(currency.currencyRate)
+                                            itemOpenCost = itemOpenCost.div(currency.currencyRate)
                                         } else {
-                                            itemUnitPrice = unitPrice.times(currency.currencyRate)
-                                            itemOpenCost = unitCost.times(currency.currencyRate)
+                                            itemUnitPrice = itemUnitPrice.times(currency.currencyRate)
+                                            itemOpenCost = itemOpenCost.times(currency.currencyRate)
                                         }
-                                    } else {
-                                        itemUnitPrice = unitPrice
-                                        itemOpenCost = unitCost
                                     }
-                                } else {
-                                    itemUnitPrice = unitPrice
-                                    itemOpenCost = unitCost
                                 }
                             })
                         }
