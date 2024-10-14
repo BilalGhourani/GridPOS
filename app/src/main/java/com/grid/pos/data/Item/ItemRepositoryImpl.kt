@@ -67,13 +67,15 @@ class ItemRepositoryImpl(
                             if (currency != null) {
                                 if (obj.itemCurrencyId == currency.currencyCode2) {//second currency
                                     if (currency.currencyRate < 1.0) {
-                                        obj.itemUnitPrice = obj.itemUnitPrice.div(currency.currencyRate)
-                                        obj.itemOpenCost = obj.itemOpenCost.div(currency.currencyRate)
+                                        obj.displayedUnitPrice = obj.itemUnitPrice.div(currency.currencyRate)
                                     } else {
-                                        obj.itemUnitPrice = obj.itemUnitPrice.times(currency.currencyRate)
-                                        obj.itemOpenCost = obj.itemOpenCost.times(currency.currencyRate)
+                                        obj.displayedUnitPrice = obj.itemUnitPrice.times(currency.currencyRate)
                                     }
+                                } else {
+                                    obj.displayedUnitPrice = obj.itemUnitPrice
                                 }
+                            } else {
+                                obj.displayedUnitPrice = obj.itemUnitPrice
                             }
                             items.add(obj)
                         }
@@ -89,13 +91,15 @@ class ItemRepositoryImpl(
                     if (currency != null) {
                         if (it.itemCurrencyId == currency.currencyCode2) {//second currency
                             if (currency.currencyRate < 1.0) {
-                                it.itemUnitPrice = it.itemUnitPrice.div(currency.currencyRate)
-                                it.itemOpenCost = it.itemOpenCost.div(currency.currencyRate)
+                                it.displayedUnitPrice = it.itemUnitPrice.div(currency.currencyRate)
                             } else {
-                                it.itemUnitPrice = it.itemUnitPrice.times(currency.currencyRate)
-                                it.itemOpenCost = it.itemOpenCost.times(currency.currencyRate)
+                                it.displayedUnitPrice = it.itemUnitPrice.times(currency.currencyRate)
                             }
+                        } else {
+                            it.displayedUnitPrice = it.itemUnitPrice
                         }
+                    } else {
+                        it.displayedUnitPrice = it.itemUnitPrice
                     }
                 }
                 return itemList
@@ -155,13 +159,15 @@ class ItemRepositoryImpl(
                                 if (currency != null) {
                                     if (itemCurrencyId == currency.currencyDocumentId) {//second currency
                                         if (currency.currencyRate < 1.0) {
-                                            itemUnitPrice = itemUnitPrice.div(currency.currencyRate)
-                                            itemOpenCost = itemOpenCost.div(currency.currencyRate)
+                                            displayedUnitPrice = itemUnitPrice.div(currency.currencyRate)
                                         } else {
-                                            itemUnitPrice = itemUnitPrice.times(currency.currencyRate)
-                                            itemOpenCost = itemOpenCost.times(currency.currencyRate)
+                                            displayedUnitPrice = itemUnitPrice.times(currency.currencyRate)
                                         }
+                                    } else {
+                                        displayedUnitPrice = itemUnitPrice
                                     }
+                                } else {
+                                    displayedUnitPrice = itemUnitPrice
                                 }
                             })
                         }

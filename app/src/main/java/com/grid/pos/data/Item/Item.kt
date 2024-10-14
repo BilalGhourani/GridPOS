@@ -77,6 +77,10 @@ data class Item(
         @get:PropertyName("it_unitprice")
         var itemUnitPrice: Double = 0.0,
 
+        @Ignore
+        @get:Exclude
+        var displayedUnitPrice: Double = 0.0,
+
         /**
          * Item unit price
          * */
