@@ -1,7 +1,6 @@
 package com.grid.pos.data.Item
 
 import com.google.firebase.firestore.FirebaseFirestore
-import com.grid.pos.data.Currency.Currency
 import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.SettingsModel
@@ -67,15 +66,15 @@ class ItemRepositoryImpl(
                             if (currency != null) {
                                 if (obj.itemCurrencyId == currency.currencyCode2) {//second currency
                                     if (currency.currencyRate < 1.0) {
-                                        obj.displayedUnitPrice = obj.itemUnitPrice.div(currency.currencyRate)
+                                        obj.itemRealUnitPrice = obj.itemUnitPrice.div(currency.currencyRate)
                                     } else {
-                                        obj.displayedUnitPrice = obj.itemUnitPrice.times(currency.currencyRate)
+                                        obj.itemRealUnitPrice = obj.itemUnitPrice.times(currency.currencyRate)
                                     }
                                 } else {
-                                    obj.displayedUnitPrice = obj.itemUnitPrice
+                                    obj.itemRealUnitPrice = obj.itemUnitPrice
                                 }
                             } else {
-                                obj.displayedUnitPrice = obj.itemUnitPrice
+                                obj.itemRealUnitPrice = obj.itemUnitPrice
                             }
                             items.add(obj)
                         }
@@ -91,15 +90,15 @@ class ItemRepositoryImpl(
                     if (currency != null) {
                         if (it.itemCurrencyId == currency.currencyCode2) {//second currency
                             if (currency.currencyRate < 1.0) {
-                                it.displayedUnitPrice = it.itemUnitPrice.div(currency.currencyRate)
+                                it.itemRealUnitPrice = it.itemUnitPrice.div(currency.currencyRate)
                             } else {
-                                it.displayedUnitPrice = it.itemUnitPrice.times(currency.currencyRate)
+                                it.itemRealUnitPrice = it.itemUnitPrice.times(currency.currencyRate)
                             }
                         } else {
-                            it.displayedUnitPrice = it.itemUnitPrice
+                            it.itemRealUnitPrice = it.itemUnitPrice
                         }
                     } else {
-                        it.displayedUnitPrice = it.itemUnitPrice
+                        it.itemRealUnitPrice = it.itemUnitPrice
                     }
                 }
                 return itemList
@@ -163,15 +162,15 @@ class ItemRepositoryImpl(
                                 if (currency != null) {
                                     if (itemCurrencyId == currency.currencyDocumentId) {//second currency
                                         if (currency.currencyRate < 1.0) {
-                                            displayedUnitPrice = itemUnitPrice.div(currency.currencyRate)
+                                            itemRealUnitPrice = itemUnitPrice.div(currency.currencyRate)
                                         } else {
-                                            displayedUnitPrice = itemUnitPrice.times(currency.currencyRate)
+                                            itemRealUnitPrice = itemUnitPrice.times(currency.currencyRate)
                                         }
                                     } else {
-                                        displayedUnitPrice = itemUnitPrice
+                                        itemRealUnitPrice = itemUnitPrice
                                     }
                                 } else {
-                                    displayedUnitPrice = itemUnitPrice
+                                    itemRealUnitPrice = itemUnitPrice
                                 }
                             })
                         }

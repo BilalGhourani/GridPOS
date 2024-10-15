@@ -11,7 +11,6 @@ import com.google.firebase.firestore.ServerTimestamp
 import com.grid.pos.data.DataModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.Utils
-import java.io.Serializable
 import java.util.Date
 
 @Entity(tableName = "st_item")
@@ -79,7 +78,7 @@ data class Item(
 
         @Ignore
         @get:Exclude
-        var displayedUnitPrice: Double = 0.0,
+        var itemRealUnitPrice: Double = 0.0,
 
         /**
          * Item unit price

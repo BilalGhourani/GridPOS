@@ -16,7 +16,7 @@ data class InvoiceItemModel(
         invoiceItem = item
         invoice.invoiceItemId = item.itemId
         invoice.invoiceQuantity = 1.0
-        invoice.invoicePrice = item.itemUnitPrice
+        invoice.invoicePrice = if(item.itemRealUnitPrice==0.0) item.itemUnitPrice else item.itemRealUnitPrice
         invoice.invoiceDiscount = 0.0
         invoice.invoiceDiscamt = 0.0
         invoice.invoiceTax = item.itemTax

@@ -118,7 +118,7 @@ fun ItemCell(
                     Text(
                         text = String.format(
                             "%,.${SettingsModel.currentCurrency?.currencyName1Dec?:2}f %s",
-                            item.displayedUnitPrice,
+                            item.itemUnitPrice,
                             SettingsModel.currentCurrency?.getCurrencyCode(item.itemCurrencyId) ?: ""
                         ),
                         color = itemTextColor,
