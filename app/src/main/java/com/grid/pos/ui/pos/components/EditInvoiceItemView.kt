@@ -86,7 +86,9 @@ fun EditInvoiceItemView(
     val invoiceItemAtIndex = invoices[invoiceIndex]
     val invoiceItemModel = InvoiceItemModel(
         invoice = invoiceItemAtIndex.invoice.copy(),
-        invoiceItem = invoiceItemAtIndex.invoiceItem
+        invoiceItem = invoiceItemAtIndex.invoiceItem,
+        shouldPrint =  invoiceItemAtIndex.shouldPrint,
+        isDeleted =  invoiceItemAtIndex.isDeleted
     )
 
     val curr1Decimal = SettingsModel.currentCurrency?.currencyName1Dec ?: 2
