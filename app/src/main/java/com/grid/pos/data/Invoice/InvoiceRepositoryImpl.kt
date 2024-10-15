@@ -233,10 +233,14 @@ class InvoiceRepositoryImpl(
             invoiceRemQty = obj.getDouble("in_remqty")
             invoiceExtraName = obj.getString("in_extraname")
             val timeStamp = obj.getObject("in_timestamp")
-            invoiceTimeStamp = if (timeStamp is Date) timeStamp else DateHelper.getDateFromString(
-                timeStamp as String,
-                "yyyy-MM-dd hh:mm:ss.SSS"
-            )
+            invoiceTimeStamp = when (timeStamp) {
+                is Date -> timeStamp
+                is String -> DateHelper.getDateFromString(
+                    timeStamp,
+                    "yyyy-MM-dd hh:mm:ss.SSS"
+                )
+                else -> null
+            }
             invoiceDateTime = invoiceTimeStamp!!.time
             invoiceUserStamp = obj.getString("in_userstamp")
         }

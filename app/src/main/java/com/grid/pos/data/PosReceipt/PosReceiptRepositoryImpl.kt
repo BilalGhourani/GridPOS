@@ -322,10 +322,14 @@ class PosReceiptRepositoryImpl(
                                 posReceipt.posReceiptInvoiceId = it.getStringValue("pr_hi_id")
 
                                 val timeStamp = it.getObjectValue("pr_timestamp")
-                                posReceipt.posReceiptTimeStamp = if (timeStamp is Date) timeStamp else DateHelper.getDateFromString(
-                                    timeStamp as String,
-                                    "yyyy-MM-dd hh:mm:ss.SSS"
-                                )
+                                posReceipt.posReceiptTimeStamp = when (timeStamp) {
+                                    is Date -> timeStamp
+                                    is String -> DateHelper.getDateFromString(
+                                        timeStamp,
+                                        "yyyy-MM-dd hh:mm:ss.SSS"
+                                    )
+                                    else -> null
+                                }
                                 posReceipt.posReceiptDateTime = posReceipt.posReceiptTimeStamp!!.time
                                 posReceipt.posReceiptUserStamp = it.getStringValue("pr_userstamp")
                             }

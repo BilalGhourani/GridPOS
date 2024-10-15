@@ -147,10 +147,14 @@ class ItemRepositoryImpl(
                                 itemBtnColor = it.getStringValue("it_color")
                                 itemBtnTextColor = "#000000"
                                 val timeStamp = it.getObjectValue("it_timestamp")
-                                itemTimeStamp = if (timeStamp is Date) timeStamp else DateHelper.getDateFromString(
-                                    timeStamp as String,
-                                    "yyyy-MM-dd hh:mm:ss.SSS"
-                                )
+                                itemTimeStamp = when (timeStamp) {
+                                    is Date -> timeStamp
+                                    is String -> DateHelper.getDateFromString(
+                                        timeStamp,
+                                        "yyyy-MM-dd hh:mm:ss.SSS"
+                                    )
+                                    else -> null
+                                }
                                 itemDateTime = itemTimeStamp!!.time
                                 itemUserStamp = it.getStringValue("it_userstamp")
                                 itemCurrencyId = it.getStringValue("it_cur_code")

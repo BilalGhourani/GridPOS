@@ -95,11 +95,15 @@ class ThirdPartyRepositoryImpl(
                                 thirdPartyPhone2 = it.getStringValue("tp_phone2")
                                 thirdPartyAddress = it.getStringValue("tp_address")
                                 val timeStamp = it.getObjectValue("tp_timestamp")
-                                thirdPartyTimeStamp = if (timeStamp is Date) timeStamp else DateHelper.getDateFromString(
-                                    timeStamp as String,
-                                    "yyyy-MM-dd hh:mm:ss.SSS"
-                                )
-                                thirdPartyDateTime = thirdPartyTimeStamp!!.time
+                                thirdPartyTimeStamp = when (timeStamp) {
+                                    is Date -> timeStamp
+                                    is String -> DateHelper.getDateFromString(
+                                        timeStamp,
+                                        "yyyy-MM-dd hh:mm:ss.SSS"
+                                    )
+                                    else -> null
+                                }
+                                thirdPartyDateTime = (thirdPartyTimeStamp?:Date()).time
                                 thirdPartyUserStamp = it.getStringValue("tp_userstamp")
                                 thirdPartyDefault = !isDefaultOneFound && thirdPartyName.equals(
                                     "cash",
@@ -227,11 +231,15 @@ class ThirdPartyRepositoryImpl(
                                 thirdPartyPhone2 = it.getStringValue("tp_phone2")
                                 thirdPartyAddress = it.getStringValue("tp_address")
                                 val timeStamp = it.getObjectValue("tp_timestamp")
-                                thirdPartyTimeStamp = if (timeStamp is Date) timeStamp else DateHelper.getDateFromString(
-                                    timeStamp as String,
-                                    "yyyy-MM-dd hh:mm:ss.SSS"
-                                )
-                                thirdPartyDateTime = thirdPartyTimeStamp!!.time
+                                thirdPartyTimeStamp = when (timeStamp) {
+                                    is Date -> timeStamp
+                                    is String -> DateHelper.getDateFromString(
+                                        timeStamp,
+                                        "yyyy-MM-dd hh:mm:ss.SSS"
+                                    )
+                                    else -> null
+                                }
+                                thirdPartyDateTime = (thirdPartyTimeStamp?:Date()).time
                                 thirdPartyUserStamp = it.getStringValue("tp_userstamp")
                                 thirdPartyDefault = true
                             }
