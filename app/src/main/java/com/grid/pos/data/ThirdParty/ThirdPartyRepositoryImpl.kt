@@ -74,7 +74,7 @@ class ThirdPartyRepositoryImpl(
             else -> {
                 val thirdParties: MutableList<ThirdParty> = mutableListOf()
                 try {
-                    val where = if (SettingsModel.isSqlServerWebDb) "tp_cmp_id='${SettingsModel.getCompanyID()}'" else ""
+                    val where = if (SettingsModel.isSqlServerWebDb) "tp_cse = 'Receivable' AND tp_cmp_id='${SettingsModel.getCompanyID()}'" else "tp_cse = 'Receivable'"
                     val dbResult = SQLServerWrapper.getListOf(
                         "thirdparty",
                         "",
@@ -211,7 +211,7 @@ class ThirdPartyRepositoryImpl(
 
             else -> {
                 try {
-                    val where = if (SettingsModel.isSqlServerWebDb) "tp_cmp_id='${SettingsModel.getCompanyID()}' AND UPPER(tp_newname) = 'CASH'" else "UPPER(tp_name) = 'CASH'"
+                    val where = if (SettingsModel.isSqlServerWebDb) "tp_cse = 'Receivable' AND tp_cmp_id='${SettingsModel.getCompanyID()}' AND UPPER(tp_newname) = 'CASH'" else "tp_cse = 'Receivable' AND UPPER(tp_name) = 'CASH'"
                     val dbResult = SQLServerWrapper.getListOf(
                         "thirdparty",
                         "TOP 1",
