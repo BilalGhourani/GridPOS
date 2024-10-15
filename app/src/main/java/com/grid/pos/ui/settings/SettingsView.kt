@@ -469,6 +469,9 @@ fun SettingsView(
                             ) {
                                 isLoading = true
                                 CoroutineScope(Dispatchers.IO).launch {
+                                    if(SettingsModel.connectionType == CONNECTION_TYPE.SQL_SERVER.key){
+                                        SQLServerWrapper.closeConnection()
+                                    }
                                     SettingsModel.connectionType = connectionTypeState
                                     DataStoreManager.putString(
                                         DataStoreManager.DataStoreKeys.CONNECTION_TYPE.key,
@@ -551,6 +554,9 @@ fun SettingsView(
                                                 DataStoreManager.DataStoreKeys.IS_SQL_SERVER_WEB_DB.key,
                                                 isSqlServerWebDb
                                             )
+                                            if(SettingsModel.connectionType == CONNECTION_TYPE.SQL_SERVER.key){
+                                                SQLServerWrapper.openConnection()
+                                            }
                                         }
 
                                         CONNECTION_TYPE.LOCAL.key -> {
