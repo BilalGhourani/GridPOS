@@ -333,15 +333,15 @@ class PosReceiptRepositoryImpl(
                                 posReceipt.posReceiptDateTime = posReceipt.posReceiptTimeStamp!!.time
                                 posReceipt.posReceiptUserStamp = it.getStringValue("pr_userstamp")
                             }
+                            val raAccId = it.getStringValue("pr_ra_id","unknown")
                             val raType = it.getStringValue("ra_type")
-                            val raOrder = it.getIntValue("ra_order")
                             when (raType) {
                                 "Cash" -> {
-                                    if (raOrder == 1) {
+                                    if (raAccId == SettingsModel.posReceiptAccCashId) {
                                         posReceipt.posReceiptCashID = it.getStringValue("pr_id")
                                         posReceipt.posReceiptCash_hsid = it.getStringValue("pr_hsid")
                                         posReceipt.posReceiptCash = it.getDoubleValue("pr_amt")
-                                    } else {
+                                    } else if (raAccId == SettingsModel.posReceiptAccCash1Id) {
                                         posReceipt.posReceiptCashsID = it.getStringValue("pr_id")
                                         posReceipt.posReceiptCashs_hsid = it.getStringValue("pr_hsid")
                                         posReceipt.posReceiptCashs = it.getDoubleValue("pr_amt")
@@ -349,11 +349,11 @@ class PosReceiptRepositoryImpl(
                                 }
 
                                 "Credit","Credit Card" -> {
-                                    if (raOrder == 1) {
+                                    if (raAccId == SettingsModel.posReceiptAccCreditId) {
                                         posReceipt.posReceiptCreditID = it.getStringValue("pr_id")
                                         posReceipt.posReceiptCredit_hsid = it.getStringValue("pr_hsid")
                                         posReceipt.posReceiptCredit = it.getDoubleValue("pr_amt")
-                                    } else {
+                                    } else if (raAccId == SettingsModel.posReceiptAccCredit1Id)  {
                                         posReceipt.posReceiptCreditsID = it.getStringValue("pr_id")
                                         posReceipt.posReceiptCredits_hsid = it.getStringValue("pr_hsid")
                                         posReceipt.posReceiptCredits = it.getDoubleValue("pr_amt")
@@ -362,11 +362,11 @@ class PosReceiptRepositoryImpl(
                                 }
 
                                 "Debit","Debit Card" -> {
-                                    if (raOrder == 1) {
+                                    if (raAccId == SettingsModel.posReceiptAccDebitId) {
                                         posReceipt.posReceiptDebitID = it.getStringValue("pr_id")
                                         posReceipt.posReceiptDebit_hsid = it.getStringValue("pr_hsid")
                                         posReceipt.posReceiptDebit = it.getDoubleValue("pr_amt")
-                                    } else {
+                                    } else if (raAccId == SettingsModel.posReceiptAccDebit1Id) {
                                         posReceipt.posReceiptDebitsID = it.getStringValue("pr_id")
                                         posReceipt.posReceiptDebits_hsid = it.getStringValue("pr_hsid")
                                         posReceipt.posReceiptDebits = it.getDoubleValue("pr_amt")
