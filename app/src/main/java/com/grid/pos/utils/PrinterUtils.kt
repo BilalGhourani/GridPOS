@@ -441,10 +441,16 @@ object PrinterUtils {
                 htmlContent = htmlContent.replace(
                     "{inv_tax_disp}",
                     "none"
+                ).replace(
+                    "{tax_display}",
+                    "none"
                 )
             }
         } else {
             htmlContent = htmlContent.replace(
+                "{tax_display}",
+                "none"
+            ).replace(
                 "{tax_display}",
                 "none"
             )
@@ -481,6 +487,9 @@ object PrinterUtils {
                 }
             } else {
                 htmlContent = htmlContent.replace(
+                    "{tax1_display}",
+                    "none"
+                ).replace(
                     "{inv_tax1_disp}",
                     "none"
                 )
@@ -489,6 +498,9 @@ object PrinterUtils {
         } else {
             htmlContent = htmlContent.replace(
                 "{tax1_display}",
+                "none"
+            ).replace(
+                "{inv_tax1_disp}",
                 "none"
             )
         }
@@ -524,6 +536,9 @@ object PrinterUtils {
                 }
             } else {
                 htmlContent = htmlContent.replace(
+                    "{tax2_display}",
+                    "none"
+                ).replace(
                     "{inv_tax2_disp}",
                     "none"
                 )
@@ -531,6 +546,9 @@ object PrinterUtils {
         } else {
             htmlContent = htmlContent.replace(
                 "{tax2_display}",
+                "none"
+            ).replace(
+                "{inv_tax2_disp}",
                 "none"
             )
         }

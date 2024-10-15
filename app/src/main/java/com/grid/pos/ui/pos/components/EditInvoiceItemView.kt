@@ -197,11 +197,6 @@ fun EditInvoiceItemView(
         invoiceHeader.invoiceHeadDiscount = discount1.toDoubleOrNull() ?: 0.0
         invoiceHeader.invoiceHeadDiscountAmount = discount2.toDoubleOrNull() ?: 0.0
 
-        invoiceHeader = POSUtils.refreshValues(
-            invoices,
-            invoiceHeader
-        )
-
         invoiceItemModel.invoice.invoicePrice = price.toDoubleOrNull() ?: invoiceItemModel.invoiceItem.itemUnitPrice
         invoiceItemModel.invoice.invoiceTax = taxState.toDoubleOrNull() ?: 0.0
         invoiceItemModel.invoice.invoiceTax1 = tax1State.toDoubleOrNull() ?: 0.0
@@ -211,6 +206,11 @@ fun EditInvoiceItemView(
         invoiceItemModel.invoice.invoiceQuantity = qty.toDouble()
         invoiceItemModel.invoice.invoiceExtraName = itemExtraName
         invoiceItemModel.invoice.invoiceNote = itemNote
+        invoices[invoiceIndex] = invoiceItemModel
+        invoiceHeader = POSUtils.refreshValues(
+            invoices,
+            invoiceHeader
+        )
 
         onSave.invoke(
             invoiceHeader,

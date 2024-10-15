@@ -278,7 +278,7 @@ data class InvoiceHeader(
     @Exclude
     override fun getName(): String {
         val table = if (invoiceHeadTaName.isNullOrEmpty()) "" else " $invoiceHeadTaName"
-        val transNo = if (invoiceHeadTransNo.isNullOrEmpty()) "$invoiceHeadOrderNo" else if (invoiceHeadTtCode.isNullOrEmpty()) "" else " $invoiceHeadTtCode$invoiceHeadTransNo"
+        val transNo = if (invoiceHeadTransNo.isNullOrEmpty()) "$invoiceHeadOrderNo" else if (invoiceHeadTtCode.isNullOrEmpty()) "$invoiceHeadTransNo" else " $invoiceHeadTtCode$invoiceHeadTransNo"
         val total = String.format(
             "%,.${SettingsModel.currentCurrency?.currencyName1Dec ?: 2}f",
             invoiceHeadTotal

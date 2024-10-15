@@ -235,7 +235,7 @@ class POSViewModel @Inject constructor(
                     invoiceHeader,
                     finish
                 )
-                val index = posState.value.invoiceHeaders.indexOf(invoiceHeader)
+                val index = posState.value.invoiceHeaders.indexOfFirst { it.invoiceHeadId == invoiceHeader.invoiceHeadId }
                 if (index >= 0) {
                     posState.value.invoiceHeaders.removeAt(index)
                     posState.value.invoiceHeaders.add(
