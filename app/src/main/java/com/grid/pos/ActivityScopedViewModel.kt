@@ -86,7 +86,7 @@ class ActivityScopedViewModel @Inject constructor(
         SettingsModel.rsTransactionType = settingsRepository.getTransactionTypeId("Return Sale") ?: "RS"
         SettingsModel.defaultBranch = settingsRepository.getDefaultBranch()
         SettingsModel.defaultWarehouse = settingsRepository.getDefaultWarehouse()
-        SettingsModel.defaultThirdParty = thirdPartyRepository.getDefaultThirdParties()
+        SettingsModel.defaultThirdParty = thirdPartyRepository.getDefaultThirdParty()
         val currency = SettingsModel.currentCurrency ?: return
 
         SettingsModel.posReceiptAccCashId = settingsRepository.getPosReceiptAccIdBy(

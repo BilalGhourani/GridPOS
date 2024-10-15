@@ -182,7 +182,7 @@ class ThirdPartyRepositoryImpl(
         }
     }
 
-    override suspend fun getDefaultThirdParties(): ThirdParty? {
+    override suspend fun getDefaultThirdParty(): ThirdParty? {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
                 val querySnapshot = FirebaseFirestore.getInstance().collection("thirdParty")
@@ -211,7 +211,7 @@ class ThirdPartyRepositoryImpl(
 
             else -> {
                 try {
-                    val where = if (SettingsModel.isSqlServerWebDb) "tp_cse = 'Receivable' AND tp_cmp_id='${SettingsModel.getCompanyID()}' AND UPPER(tp_newname) = 'CASH'" else "tp_cse = 'Receivable' AND UPPER(tp_name) = 'CASH'"
+                    val where = if (SettingsModel.isSqlServerWebDb) "tp_cse in ('Receivable','Payable and Receivable') AND tp_cmp_id='${SettingsModel.getCompanyID()}' AND UPPER(tp_newname) = 'CASH'" else "tp_cse in ('Receivable','Payable and Receivable') AND UPPER(tp_name) = 'CASH'"
                     val dbResult = SQLServerWrapper.getListOf(
                         "thirdparty",
                         "TOP 1",
