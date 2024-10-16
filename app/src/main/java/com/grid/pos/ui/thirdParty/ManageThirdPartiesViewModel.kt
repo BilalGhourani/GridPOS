@@ -27,7 +27,7 @@ class ManageThirdPartiesViewModel @Inject constructor(
     init {
         viewModelScope.launch(Dispatchers.IO) {
             openConnectionIfNeeded()
-            val isDefaultEnabled = thirdPartyRepository.getDefaultThirdParty() != null
+            val isDefaultEnabled = thirdPartyRepository.getDefaultThirdParty() == null
             withContext(Dispatchers.Main) {
                 manageThirdPartiesState.value = manageThirdPartiesState.value.copy(
                     enableIsDefault = isDefaultEnabled
