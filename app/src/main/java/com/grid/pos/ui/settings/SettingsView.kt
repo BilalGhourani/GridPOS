@@ -139,6 +139,7 @@ fun SettingsView(
     var showTax2 by remember { mutableStateOf(SettingsModel.showTax2) }
     var showPriceInItemBtn by remember { mutableStateOf(SettingsModel.showPriceInItemBtn) }
     var autoPrintTickets by remember { mutableStateOf(SettingsModel.autoPrintTickets) }
+    var showItemQtyAlert by remember { mutableStateOf(SettingsModel.showItemQtyAlert) }
 
     var buttonColorState by remember { mutableStateOf(SettingsModel.buttonColor) }
     var buttonTextColorState by remember { mutableStateOf(SettingsModel.buttonTextColor) }
@@ -773,6 +774,25 @@ fun SettingsView(
                                 DataStoreManager.putBoolean(
                                     DataStoreManager.DataStoreKeys.AUTO_PRINT_TICKETS.key,
                                     autoPrintTickets
+                                )
+                            }
+                        }
+
+                        UISwitch(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(60.dp)
+                                .padding(10.dp),
+                            checked = showItemQtyAlert,
+                            text = "Show Quantity Alert",
+                            textColor = textColorState
+                        ) { showAlert ->
+                            showItemQtyAlert = showAlert
+                            SettingsModel.showItemQtyAlert = showAlert
+                            CoroutineScope(Dispatchers.IO).launch {
+                                DataStoreManager.putBoolean(
+                                    DataStoreManager.DataStoreKeys.SHOW_ITEM_QTY_ALERT.key,
+                                    showItemQtyAlert
                                 )
                             }
                         }

@@ -63,18 +63,14 @@ class ItemRepositoryImpl(
                         val obj = document.toObject(Item::class.java)
                         if (obj.itemId.isNotEmpty()) {
                             obj.itemDocumentId = document.id
-                            if (currency != null) {
+                            obj.itemRealUnitPrice = if (currency != null) {
                                 if (obj.itemCurrencyId == currency.currencyCode2) {//second currency
-                                    if (currency.currencyRate < 1.0) {
-                                        obj.itemRealUnitPrice = obj.itemUnitPrice.div(currency.currencyRate)
-                                    } else {
-                                        obj.itemRealUnitPrice = obj.itemUnitPrice.times(currency.currencyRate)
-                                    }
+                                    obj.itemUnitPrice.div(currency.currencyRate)
                                 } else {
-                                    obj.itemRealUnitPrice = obj.itemUnitPrice
+                                    obj.itemUnitPrice
                                 }
                             } else {
-                                obj.itemRealUnitPrice = obj.itemUnitPrice
+                                obj.itemUnitPrice
                             }
                             items.add(obj)
                         }
@@ -87,18 +83,14 @@ class ItemRepositoryImpl(
                 val itemList = itemDao.getAllItems(SettingsModel.getCompanyID() ?: "")
                 val currency = SettingsModel.currentCurrency
                 itemList.forEach {
-                    if (currency != null) {
+                    it.itemRealUnitPrice = if (currency != null) {
                         if (it.itemCurrencyId == currency.currencyCode2) {//second currency
-                            if (currency.currencyRate < 1.0) {
-                                it.itemRealUnitPrice = it.itemUnitPrice.div(currency.currencyRate)
-                            } else {
-                                it.itemRealUnitPrice = it.itemUnitPrice.times(currency.currencyRate)
-                            }
+                            it.itemUnitPrice.div(currency.currencyRate)
                         } else {
-                            it.itemRealUnitPrice = it.itemUnitPrice
+                            it.itemUnitPrice
                         }
                     } else {
-                        it.itemRealUnitPrice = it.itemUnitPrice
+                        it.itemUnitPrice
                     }
                 }
                 return itemList
@@ -152,6 +144,7 @@ class ItemRepositoryImpl(
                                         timeStamp,
                                         "yyyy-MM-dd hh:mm:ss.SSS"
                                     )
+
                                     else -> null
                                 }
                                 itemDateTime = itemTimeStamp!!.time
@@ -159,18 +152,14 @@ class ItemRepositoryImpl(
                                 itemCurrencyId = it.getStringValue("it_cur_code")
                                 itemUnitPrice = it.getDoubleValue("it_unitprice")
                                 itemOpenCost = it.getDoubleValue("it_cost")
-                                if (currency != null) {
+                                itemRealUnitPrice = if (currency != null) {
                                     if (itemCurrencyId == currency.currencyDocumentId) {//second currency
-                                        if (currency.currencyRate < 1.0) {
-                                            itemRealUnitPrice = itemUnitPrice.div(currency.currencyRate)
-                                        } else {
-                                            itemRealUnitPrice = itemUnitPrice.times(currency.currencyRate)
-                                        }
+                                        itemUnitPrice.div(currency.currencyRate)
                                     } else {
-                                        itemRealUnitPrice = itemUnitPrice
+                                        itemUnitPrice
                                     }
                                 } else {
-                                    itemRealUnitPrice = itemUnitPrice
+                                    itemUnitPrice
                                 }
                             })
                         }

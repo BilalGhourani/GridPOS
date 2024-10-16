@@ -615,16 +615,29 @@ fun POSView(
                             },
                             onItemSelected = { item ->
                                 isInvoiceEdited = true
-                                val invoiceItemModel = InvoiceItemModel()
-                                invoiceItemModel.setItem(item)
-                                invoiceItemModel.shouldPrint = true
-                                invoicesState.add(invoiceItemModel)
-                                activityViewModel.invoiceItemModels = invoicesState
-                                invoiceHeaderState.value = POSUtils.refreshValues(
-                                    activityViewModel.invoiceItemModels,
-                                    invoiceHeaderState.value
-                                )
-                                isAddItemBottomSheetVisible = false
+                                if (item.itemOpenQty <= 0) {
+                                    if (SettingsModel.showItemQtyAlert) {
+                                        activityViewModel.showPopup(
+                                            true,
+                                            PopupModel(
+                                                dialogText = "Not enough stock available for ${item.itemName}. Please adjust the quantity.",
+                                                positiveBtnText = "Close",
+                                                negativeBtnText = null
+                                            )
+                                        )
+                                    }
+                                } else {
+                                    val invoiceItemModel = InvoiceItemModel()
+                                    invoiceItemModel.setItem(item)
+                                    invoiceItemModel.shouldPrint = true
+                                    invoicesState.add(invoiceItemModel)
+                                    activityViewModel.invoiceItemModels = invoicesState
+                                    invoiceHeaderState.value = POSUtils.refreshValues(
+                                        activityViewModel.invoiceItemModels,
+                                        invoiceHeaderState.value
+                                    )
+                                    isAddItemBottomSheetVisible = false
+                                }
                             },
                             onThirdPartySelected = { thirdParty ->
                                 isInvoiceEdited = isInvoiceEdited || invoiceHeaderState.value.invoiceHeadThirdPartyName != thirdParty.thirdPartyId
@@ -646,6 +659,7 @@ fun POSView(
                             viewModel.loadFamiliesAndItems()
                         }
                         AddInvoiceItemView(
+                            activityViewModel = activityViewModel,
                             categories = state.families,
                             items = state.items,
                             notifyDirectly = true,
@@ -716,7 +730,9 @@ fun POSView(
                     animationSpec = tween(durationMillis = 250)
                 )
             ) {
-                AddInvoiceItemView(categories = state.families,
+                AddInvoiceItemView(
+                    activityViewModel = activityViewModel,
+                    categories = state.families,
                     items = state.items,
                     modifier = Modifier
                         .fillMaxSize()

@@ -227,6 +227,10 @@ object DataStoreManager {
             DataStoreKeys.AUTO_PRINT_TICKETS.key,
             false
         ) == true
+        SettingsModel.showItemQtyAlert = getBoolean(
+            DataStoreKeys.SHOW_ITEM_QTY_ALERT.key,
+            false
+        ) == true
 
         SettingsModel.firebaseApplicationId = getString(DataStoreKeys.FIREBASE_APP_ID.key)
         SettingsModel.firebaseApiKey = getString(DataStoreKeys.FIREBASE_API_KEY.key)
@@ -303,7 +307,7 @@ object DataStoreManager {
         CONNECTION_TYPE("CONNECTION_TYPE"), SHOW_ITEMS_IN_POS("SHOW_ITEMS_IN_POS"), ORIENTATION_TYPE("ORIENTATION_TYPE"),REPORT_LANGUAGE("REPORT_LANGUAGE"), SHOW_TAX("SHOW_TAX"), SHOW_TAX1(
             "SHOW_TAX1"
         ),
-        SHOW_TAX2("SHOW_TAX2"), SHOW_PRICE_IN_ITEM_BTN("SHOW_PRICE_IN_ITEM_BTN"),AUTO_PRINT_TICKETS("AUTO_PRINT_TICKETS"),
+        SHOW_TAX2("SHOW_TAX2"), SHOW_PRICE_IN_ITEM_BTN("SHOW_PRICE_IN_ITEM_BTN"),AUTO_PRINT_TICKETS("AUTO_PRINT_TICKETS"),SHOW_ITEM_QTY_ALERT("SHOW_ITEM_QTY_ALERT"),
 
         BUTTON_COLOR("BUTTON_COLOR"), BUTTON_TEXT_COLOR("BUTTON_TEXT_COLOR"), BACKGROUND_COLOR(
             "BACKGROUND_COLOR"

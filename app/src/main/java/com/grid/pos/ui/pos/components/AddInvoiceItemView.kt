@@ -31,8 +31,10 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.grid.pos.ActivityScopedViewModel
 import com.grid.pos.data.Family.Family
 import com.grid.pos.data.Item.Item
+import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.family.CategoryListCell
 import com.grid.pos.ui.item.ItemListCell
@@ -42,6 +44,7 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun AddInvoiceItemView(
+        activityViewModel: ActivityScopedViewModel? = null,
         categories: MutableList<Family> = mutableListOf(),
         items: MutableList<Item> = mutableListOf(),
         modifier: Modifier = Modifier,
@@ -100,13 +103,27 @@ fun AddInvoiceItemView(
             ItemListCell(items = familyItems.toMutableList(),
                 notifyDirectly = notifyDirectly,
                 onClick = { item ->
-                    if (notifyDirectly) {
-                        onSelect.invoke(listOf(item))
+                    if (item.itemOpenQty <= 0) {
+                        item.selected = false
+                        if (SettingsModel.showItemQtyAlert) {
+                            activityViewModel?.showPopup(
+                                true,
+                                PopupModel(
+                                    dialogText = "Not enough stock available for ${item.itemName}. Please adjust the quantity.",
+                                    positiveBtnText = "Close",
+                                    negativeBtnText = null
+                                )
+                            )
+                        }
                     } else {
-                        if (item.selected) {
-                            itemsState.add(item)
+                        if (notifyDirectly) {
+                            onSelect.invoke(listOf(item))
                         } else {
-                            itemsState.remove(item)
+                            if (item.selected) {
+                                itemsState.add(item)
+                            } else {
+                                itemsState.remove(item)
+                            }
                         }
                     }
                 })
