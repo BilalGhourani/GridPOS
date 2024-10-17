@@ -40,6 +40,36 @@ data class OrientationModel(
     }
 }
 
+enum class Country(
+        val code: String,
+        val value: String
+) {
+    DEFAULT(
+        "default",
+        "Default"
+    )
+}
+
+data class ReportCountry(
+        val country: Country
+) : DataModel() {
+
+    override fun getId(): String {
+        return country.code
+    }
+
+    override fun getName(): String {
+        return country.value
+    }
+
+    override fun search(key: String): Boolean {
+        return getName().contains(
+            key,
+            ignoreCase = true
+        )
+    }
+}
+
 enum class Language(
         val code: String,
         val value: String

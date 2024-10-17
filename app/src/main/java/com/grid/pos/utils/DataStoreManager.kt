@@ -14,6 +14,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.grid.pos.App
 import com.grid.pos.model.CONNECTION_TYPE
+import com.grid.pos.model.Country
 import com.grid.pos.model.Language
 import com.grid.pos.model.ORIENTATION_TYPE
 import com.grid.pos.model.SettingsModel
@@ -202,6 +203,10 @@ object DataStoreManager {
             DataStoreKeys.ORIENTATION_TYPE.key,
             ORIENTATION_TYPE.DEVICE_SENSOR.key
         )
+        SettingsModel.defaultReportCountry = getString(
+            DataStoreKeys.REPORT_COUNTRY.key,
+            Country.DEFAULT.code
+        )
         SettingsModel.defaultReportLanguage = getString(
             DataStoreKeys.REPORT_LANGUAGE.key,
             Language.ENGLISH.code
@@ -304,7 +309,7 @@ object DataStoreManager {
         SQL_SERVER_DB_USER("SQL_SERVER_DB_USER"), SQL_SERVER_DB_PASSWORD("SQL_SERVER_DB_PASSWORD"), SQL_SERVER_COMPANY_ID("SQL_SERVER_COMPANY_ID"), IS_SQL_SERVER_WEB_DB("IS_SQL_SERVER_WEB_DB"),
         CASH_PRINTER("CASH_PRINTER"),
 
-        CONNECTION_TYPE("CONNECTION_TYPE"), SHOW_ITEMS_IN_POS("SHOW_ITEMS_IN_POS"), ORIENTATION_TYPE("ORIENTATION_TYPE"),REPORT_LANGUAGE("REPORT_LANGUAGE"), SHOW_TAX("SHOW_TAX"), SHOW_TAX1(
+        CONNECTION_TYPE("CONNECTION_TYPE"), SHOW_ITEMS_IN_POS("SHOW_ITEMS_IN_POS"), ORIENTATION_TYPE("ORIENTATION_TYPE"),REPORT_LANGUAGE("REPORT_LANGUAGE"),REPORT_COUNTRY("REPORT_COUNTRY"), SHOW_TAX("SHOW_TAX"), SHOW_TAX1(
             "SHOW_TAX1"
         ),
         SHOW_TAX2("SHOW_TAX2"), SHOW_PRICE_IN_ITEM_BTN("SHOW_PRICE_IN_ITEM_BTN"),AUTO_PRINT_TICKETS("AUTO_PRINT_TICKETS"),SHOW_ITEM_QTY_ALERT("SHOW_ITEM_QTY_ALERT"),

@@ -22,12 +22,14 @@ import com.grid.pos.data.PosPrinter.PosPrinter
 import com.grid.pos.data.PosReceipt.PosReceipt
 import com.grid.pos.data.ThirdParty.ThirdParty
 import com.grid.pos.data.User.User
+import com.grid.pos.model.Country
 import com.grid.pos.model.InvoiceItemModel
 import com.grid.pos.model.Language
 import com.grid.pos.model.PrintPicture
 import com.grid.pos.model.ReportResult
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.pos.POSUtils
+import com.grid.pos.ui.settings.setupReports.ReportTypeEnum
 import com.journeyapps.barcodescanner.BarcodeEncoder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -109,12 +111,24 @@ object PrinterUtils {
     private fun getPaySlipHtmlContent(context: Context): ReportResult {
         var payslip = FileUtils.getHtmlFile(
             context,
-            "${SettingsModel.defaultReportLanguage}/payslip.html"
+            "${SettingsModel.defaultReportCountry}/${SettingsModel.defaultReportLanguage}/${ReportTypeEnum.PAY_SLIP.key}.html"
         )
         if (payslip.isEmpty()) {
             payslip = FileUtils.getHtmlFile(
                 context,
-                "${Language.DEFAULT.value}/payslip.html"
+                "${Country.DEFAULT.value}/${SettingsModel.defaultReportLanguage}/${ReportTypeEnum.PAY_SLIP.key}.html"
+            )
+        }
+        if (payslip.isEmpty()) {
+            payslip = FileUtils.getHtmlFile(
+                context,
+                "${SettingsModel.defaultReportCountry}/${Language.DEFAULT.value}/${ReportTypeEnum.PAY_SLIP.key}.html"
+            )
+        }
+        if (payslip.isEmpty()) {
+            payslip = FileUtils.getHtmlFile(
+                context,
+                "${Country.DEFAULT.value}/${Language.DEFAULT.value}/${ReportTypeEnum.PAY_SLIP.key}.html"
             )
         }
         if (payslip.isNotEmpty()) {
@@ -984,30 +998,38 @@ object PrinterUtils {
     }
 
     private fun getPayTicketHtmlContent(context: Context): ReportResult {
-        var payslip = FileUtils.getHtmlFile(
+        var payTicket = FileUtils.getHtmlFile(
             context,
-            "${SettingsModel.defaultReportLanguage}/pay_ticket.html"
+            "${SettingsModel.defaultReportCountry}/${SettingsModel.defaultReportLanguage}/${ReportTypeEnum.PAY_TICKET.key}.html"
         )
-        if (payslip.isEmpty()) {
-            payslip = FileUtils.getHtmlFile(
+        if (payTicket.isEmpty()) {
+            payTicket = FileUtils.getHtmlFile(
                 context,
-                "${Language.DEFAULT.value}/pay_ticket.html"
+                "${Country.DEFAULT.value}/${SettingsModel.defaultReportLanguage}/${ReportTypeEnum.PAY_TICKET.key}.html"
             )
         }
-        if (payslip.isNotEmpty()) {
+        if (payTicket.isEmpty()) {
+            payTicket = FileUtils.getHtmlFile(
+                context,
+                "${SettingsModel.defaultReportCountry}/${Language.DEFAULT.value}/${ReportTypeEnum.PAY_TICKET.key}.html"
+            )
+        }
+        if (payTicket.isEmpty()) {
+            payTicket = FileUtils.getHtmlFile(
+                context,
+                "${Country.DEFAULT.value}/${Language.DEFAULT.value}/${ReportTypeEnum.PAY_TICKET.key}.html"
+            )
+        }
+        if (payTicket.isNotEmpty()) {
             return ReportResult(
                 true,
-                payslip
+                payTicket
             )
         }
 
-        payslip = FileUtils.readFileFromAssets(
-            "item_receipt.html",
-            context
-        )
         return ReportResult(
             false,
-            payslip
+            payTicket
         )
     }
 

@@ -62,6 +62,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.grid.pos.ActivityScopedViewModel
 import com.grid.pos.App
@@ -71,6 +72,7 @@ import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.Language
 import com.grid.pos.model.PopupModel
+import com.grid.pos.model.ReportCountry
 import com.grid.pos.model.ReportLanguage
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.ColorPickerPopup
@@ -78,6 +80,7 @@ import com.grid.pos.ui.common.SearchableDropdownMenuEx
 import com.grid.pos.ui.common.UIButton
 import com.grid.pos.ui.common.UISwitch
 import com.grid.pos.ui.common.UITextField
+import com.grid.pos.ui.reports.SalesReportsViewModel
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.ui.theme.LightGrey
 import com.grid.pos.utils.DataStoreManager
@@ -94,7 +97,8 @@ import kotlinx.coroutines.withContext
 fun SettingsView(
         modifier: Modifier = Modifier,
         navController: NavController? = null,
-        activityScopedViewModel: ActivityScopedViewModel
+        activityScopedViewModel: ActivityScopedViewModel,
+        viewModel: SettingsViewModel = hiltViewModel()
 ) {
     var firebaseApplicationId by remember {
         mutableStateOf(
@@ -131,6 +135,7 @@ fun SettingsView(
     val keyboardController = LocalSoftwareKeyboardController.current
 
     var orientationType by remember { mutableStateOf(SettingsModel.orientationType) }
+    var defaultReportCountry by remember { mutableStateOf(SettingsModel.defaultReportCountry) }
     var defaultReportLanguage by remember { mutableStateOf(SettingsModel.defaultReportLanguage) }
     var cashPrinterState by remember { mutableStateOf(SettingsModel.cashPrinter ?: "") }
     var showItemsInPOS by remember { mutableStateOf(SettingsModel.showItemsInPOS) }
@@ -165,7 +170,7 @@ fun SettingsView(
 
     LaunchedEffect(Unit) {
         if (companies.isEmpty()) {
-            activityScopedViewModel.getLocalCompanies { comps ->
+            viewModel.fetchLocalCompanies { comps ->
                 companies.addAll(comps)
                 val selected = comps.firstOrNull { it.companyId.equals(localCompanyID) }
                 localCompanyName = selected?.companyName ?: ""
@@ -643,6 +648,24 @@ fun SettingsView(
                                     orientationType
                                 )
                                 activityScopedViewModel.changeAppOrientation(orientationType)
+                            }
+                        }
+
+                        SearchableDropdownMenuEx(
+                            items = Utils.getReportCountry().toMutableList(),
+                            modifier = Modifier.padding(10.dp),
+                            color = LightGrey,
+                            placeholder = "Report Language",
+                            label = defaultReportCountry,
+                        ) { country ->
+                            country as ReportCountry
+                            defaultReportCountry = country.getName()
+                            SettingsModel.defaultReportCountry = defaultReportCountry
+                            CoroutineScope(Dispatchers.IO).launch {
+                                DataStoreManager.putString(
+                                    DataStoreManager.DataStoreKeys.REPORT_COUNTRY.key,
+                                    defaultReportCountry
+                                )
                             }
                         }
 

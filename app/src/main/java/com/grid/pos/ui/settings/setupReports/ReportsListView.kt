@@ -13,11 +13,10 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.requiredHeight
-import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
@@ -41,9 +40,6 @@ import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
-import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -52,7 +48,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -71,8 +66,11 @@ import com.grid.pos.ActivityScopedViewModel
 import com.grid.pos.App
 import com.grid.pos.model.FileModel
 import com.grid.pos.model.PopupModel
+import com.grid.pos.model.ReportTypeModel
 import com.grid.pos.model.SettingsModel
+import com.grid.pos.ui.common.SearchableDropdownMenuEx
 import com.grid.pos.ui.theme.GridPOSTheme
+import com.grid.pos.ui.theme.LightGrey
 import com.grid.pos.utils.FileUtils
 import kotlinx.coroutines.launch
 import java.io.File
@@ -94,7 +92,7 @@ fun ReportsListView(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
-    var selectedTabIndex by remember { mutableIntStateOf(0) }
+    var selectedType by remember { mutableStateOf(ReportTypeEnum.PAY_SLIP.key) }
     var deletePopupState by remember { mutableStateOf(false) }
     val fileModelState = remember { mutableStateOf(FileModel()) }
 
@@ -115,7 +113,10 @@ fun ReportsListView(
                 }
                 onConfirmation = {
                     deletePopupState = false
-                    viewModel.deleteFile(context,fileModelState.value)
+                    viewModel.deleteFile(
+                        context,
+                        fileModelState.value
+                    )
                 }
                 dialogText = "Are you sure you want to delete this file?"
                 positiveBtnText = "Delete"
@@ -185,7 +186,7 @@ fun ReportsListView(
                         },
                         actions = {
                             IconButton(onClick = {
-                                activityViewModel.isPaySlip = selectedTabIndex == 0
+                                activityViewModel.selectedReportType = selectedType
                                 navController?.navigate("SetupReportView")
                             }) {
                                 Icon(
@@ -197,93 +198,68 @@ fun ReportsListView(
                         })
                 }
             }) { padding ->
-            Column(
-                modifier = modifier.padding(padding),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally,
+            Box(
+                modifier = modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .background(color = Color.Transparent)
             ) {
-                // TabRow with tabs
-                TabRow(selectedTabIndex = selectedTabIndex,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(48.dp),
-                    containerColor = SettingsModel.backgroundColor,
-                    contentColor = SettingsModel.textColor,
-                    indicator = { tabPositions ->
-                        if (selectedTabIndex < tabPositions.size) {
-                            Spacer(
-                                Modifier
-                                    .tabIndicatorOffset(tabPositions[selectedTabIndex])
-                                    .requiredHeight(3.dp)
-                                    .requiredWidth(100.dp)
-                                    .background(
-                                        color = SettingsModel.buttonColor,
-                                        shape = RoundedCornerShape(3.0.dp)
-                                    )
-                            )
-                        }
-                    },
-                    divider = { }) {
-                    viewModel.tabs.forEachIndexed { index, title ->
-                        Tab(
-                            selected = selectedTabIndex == index,
-                            onClick = { selectedTabIndex = index },
-                            selectedContentColor = SettingsModel.buttonColor,
-                            unselectedContentColor = SettingsModel.textColor
+                Column(
+                    modifier = modifier.padding(top = 90.dp),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    val dataArray = state.getFileModels(selectedType)
+                    if (dataArray.isEmpty()) {
+                        Spacer(
+                            modifier = Modifier.height(20.dp)
+                        )
+                        Text(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .wrapContentHeight()
+                                .padding(horizontal = 10.dp),
+                            text = "No reports found.",
+                            color = SettingsModel.textColor,
+                            fontSize = 16.sp,
+                            textAlign = TextAlign.Center
+                        )
+
+                    } else {
+                        LazyColumn(
+                            modifier = modifier
+                                .fillMaxWidth()
+                                .weight(1f),
+                            contentPadding = PaddingValues(0.dp)
                         ) {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(48.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = title,
-                                    fontSize = 16.sp,
-                                    textAlign = TextAlign.Center,
-                                )
+                            dataArray.forEach { fileModel ->
+                                item {
+                                    ReportListCell(modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(50.dp)
+                                        .padding(horizontal = 10.dp),
+                                        fileModel = fileModel,
+                                        onClick = {
+                                            fileModelState.value = fileModel
+                                            isOptionPopupExpanded = !isOptionPopupExpanded
+                                        })
+
+                                }
                             }
                         }
                     }
                 }
 
-                Spacer(modifier = Modifier.height(10.dp))
-
-                val dataArray = state.getFileModels(selectedTabIndex == 0)
-                if (dataArray.isEmpty()) {
-                    Spacer(modifier = Modifier.fillMaxHeight(.4f))
-                    Text(
-                        modifier = Modifier
-                            .wrapContentSize(Alignment.Center)
-                            .padding(horizontal = 10.dp),
-                        text = "no reports found.",
-                        color = SettingsModel.textColor,
-                        fontSize = 16.sp,
-                        textAlign = TextAlign.Center
-                    )
-
-                } else {
-                    LazyColumn(
-                        modifier = modifier
-                            .fillMaxWidth()
-                            .weight(1f),
-                        contentPadding = PaddingValues(0.dp)
-                    ) {
-                        dataArray.forEach { fileModel ->
-                            item {
-                                ReportListCell(modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(50.dp)
-                                    .padding(horizontal = 10.dp),
-                                    fileModel = fileModel,
-                                    onClick = {
-                                        fileModelState.value = fileModel
-                                        isOptionPopupExpanded = !isOptionPopupExpanded
-                                    })
-
-                            }
-                        }
-                    }
+                SearchableDropdownMenuEx(items = viewModel.tabs.toMutableList(),
+                    modifier = Modifier.padding(
+                        top = 15.dp,
+                        start = 10.dp,
+                        end = 10.dp
+                    ),
+                    enableSearch = false,
+                    label = selectedType.ifEmpty { "Select Type" }) { reportType ->
+                    reportType as ReportTypeModel
+                    selectedType = reportType.getName()
                 }
             }
         }

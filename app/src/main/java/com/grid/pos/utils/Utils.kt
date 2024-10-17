@@ -13,11 +13,13 @@ import com.grid.pos.BuildConfig
 import com.grid.pos.data.DataModel
 import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.ConnectionModel
+import com.grid.pos.model.Country
 import com.grid.pos.model.HomeSectionModel
 import com.grid.pos.model.InvoiceItemModel
 import com.grid.pos.model.Language
 import com.grid.pos.model.ORIENTATION_TYPE
 import com.grid.pos.model.OrientationModel
+import com.grid.pos.model.ReportCountry
 import com.grid.pos.model.ReportLanguage
 import com.grid.pos.model.SettingsModel
 import java.math.BigInteger
@@ -100,6 +102,14 @@ object Utils {
                 "TablesView"
             )
         )
+    }
+
+    fun getReportCountry(): MutableList<ReportCountry> {
+        val result = mutableListOf<ReportCountry>()
+        Country.entries.forEach {
+            result.add(ReportCountry(it))
+        }
+        return result
     }
 
     fun getReportLanguages(withDefault: Boolean): MutableList<ReportLanguage> {

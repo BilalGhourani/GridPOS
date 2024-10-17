@@ -7,6 +7,7 @@ import com.grid.pos.App
 import com.grid.pos.data.Company.CompanyRepository
 import com.grid.pos.model.Event
 import com.grid.pos.model.FileModel
+import com.grid.pos.model.ReportTypeModel
 import com.grid.pos.utils.FileUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -15,7 +16,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
-import java.util.Locale
 import javax.inject.Inject
 
 @HiltViewModel
@@ -26,8 +26,8 @@ class ReportsListViewModel @Inject constructor(
     private val _state = MutableStateFlow(ReportsListState())
     val state: MutableStateFlow<ReportsListState> = _state
     val tabs = listOf(
-        "Pay-Slip",
-        "Pay-Ticket"
+        ReportTypeModel(ReportTypeEnum.PAY_SLIP.key),
+        ReportTypeModel(ReportTypeEnum.PAY_TICKET.key)
     )
 
     fun loadData() {
@@ -54,7 +54,11 @@ class ReportsListViewModel @Inject constructor(
         val payslips = mutableListOf<FileModel>()
         val payTickets = mutableListOf<FileModel>()
         allReports.forEach {
-            if(!findSelected && it.parentName.equals("default",ignoreCase = true)){
+            if (!findSelected && it.parentName.equals(
+                    "default",
+                    ignoreCase = true
+                )
+            ) {
                 it.selected = true
             }
             if (it.isPaySlip) {
@@ -71,7 +75,10 @@ class ReportsListViewModel @Inject constructor(
         }
     }
 
-    fun deleteFile(context: Context,fileModel: FileModel) {
+    fun deleteFile(
+            context: Context,
+            fileModel: FileModel
+    ) {
         state.value = state.value.copy(
             warning = null,
             isLoading = true
@@ -104,4 +111,11 @@ class ReportsListViewModel @Inject constructor(
             }
         }
     }
+}
+
+enum class ReportTypeEnum(
+        val key: String
+) {
+    PAY_SLIP("Pay-Slip"),
+    PAY_TICKET("Pay-Ticket")
 }

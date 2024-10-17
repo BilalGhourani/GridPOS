@@ -31,6 +31,7 @@ object SettingsModel {
 
 
     var orientationType: String = ORIENTATION_TYPE.DEVICE_SENSOR.key
+    var defaultReportCountry: String = Country.DEFAULT.value
     var defaultReportLanguage: String = Language.ENGLISH.value
     var showItemsInPOS: Boolean = false
     var showTax: Boolean = false

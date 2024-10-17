@@ -43,8 +43,10 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.grid.pos.ActivityScopedViewModel
 import com.grid.pos.interfaces.OnGalleryResult
+import com.grid.pos.model.Country
 import com.grid.pos.model.Event
 import com.grid.pos.model.Language
+import com.grid.pos.model.ReportCountry
 import com.grid.pos.model.ReportLanguage
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.SearchableDropdownMenuEx
@@ -70,6 +72,7 @@ fun SetupReportView(
     var warning by remember { mutableStateOf(Event("")) }
     var action by remember { mutableStateOf("") }
 
+    var countryState by remember { mutableStateOf(Country.DEFAULT) }
     var languageState by remember { mutableStateOf(Language.DEFAULT) }
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -83,7 +86,7 @@ fun SetupReportView(
                         CoroutineScope(Dispatchers.IO).launch {
                             FileUtils.saveToInternalStorage(
                                 context,
-                               "Reports/${languageState.value}",
+                                "Reports/${countryState.value}/${languageState.value}",
                                 uris[0],
                                 "$reportType.html"
                             )
@@ -174,35 +177,51 @@ fun SetupReportView(
                 Column(
                     modifier = modifier
                         .fillMaxSize()
-                        .padding(top = 90.dp)
+                        .padding(top = 240.dp)
                         .verticalScroll(rememberScrollState()),
                 ) {
-                    Spacer(modifier = Modifier.height(20.dp))
-
                     UIButton(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(70.dp)
-                            .padding(10.dp),
-                        text = if (activityViewModel.isPaySlip) "Add Payslip" else "Add PayTicket",
+                            .padding(
+                                10.dp
+                            ),
+                        text = "Add ${activityViewModel.selectedReportType!!}",
                         buttonColor = SettingsModel.buttonColor,
                         textColor = SettingsModel.buttonTextColor
                     ) {
-                        addReport(if (activityViewModel.isPaySlip) "payslip" else "pay_ticket")
+                        addReport(activityViewModel.selectedReportType!!)
                     }
                 }
 
-                SearchableDropdownMenuEx(items = Utils.getReportLanguages(true).toMutableList(),
+                SearchableDropdownMenuEx(
+                    items = Utils.getReportLanguages(true).toMutableList(),
                     modifier = Modifier.padding(
-                        top = 15.dp,
+                        top = 120.dp,
                         start = 10.dp,
                         end = 10.dp
                     ),
                     placeholder = "Report Language",
                     label = languageState.value.ifEmpty { "Select Language" },
                     selectedId = languageState.code,
-                    maxHeight = 290.dp) { reportLan ->
+                    maxHeight = 290.dp
+                ) { reportLan ->
                     languageState = (reportLan as ReportLanguage).language
+                }
+                SearchableDropdownMenuEx(
+                    items = Utils.getReportCountry().toMutableList(),
+                    modifier = Modifier.padding(
+                        top = 15.dp,
+                        start = 10.dp,
+                        end = 10.dp
+                    ),
+                    placeholder = "Report Country",
+                    label = countryState.value.ifEmpty { "Select Language" },
+                    selectedId = countryState.code,
+                    maxHeight = 290.dp
+                ) { reportCountry ->
+                    countryState = (reportCountry as ReportCountry).country
                 }
             }
         }

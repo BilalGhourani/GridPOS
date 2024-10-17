@@ -11,7 +11,18 @@ data class ReportsListState(
         var clear: Boolean = false,
         var warning: Event<String>? = null,
 ) {
-    fun getFileModels(isPaySlip: Boolean): MutableList<FileModel> {
-        return if (isPaySlip) paySlips else payTickets
+    fun getFileModels(type: String): MutableList<FileModel> {
+       return when (type){
+            ReportTypeEnum.PAY_SLIP.key->{
+                paySlips
+            }
+           ReportTypeEnum.PAY_TICKET.key->{
+               payTickets
+            }
+
+           else -> {
+               paySlips
+           }
+       }
     }
 }

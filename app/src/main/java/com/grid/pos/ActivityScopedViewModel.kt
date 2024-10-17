@@ -57,7 +57,6 @@ class ActivityScopedViewModel @Inject constructor(
     var shouldLoadInvoice: Boolean = false
     var isFromTable: Boolean = false
     var companies: MutableList<Company> = mutableListOf()
-    private var localCompanies: MutableList<Company> = mutableListOf()
     var currencies: MutableList<Currency> = mutableListOf()
     var users: MutableList<User> = mutableListOf()
     var thirdParties: MutableList<ThirdParty> = mutableListOf()
@@ -66,7 +65,7 @@ class ActivityScopedViewModel @Inject constructor(
     var invoiceHeaders: MutableList<InvoiceHeader> = mutableListOf()
     var printers: MutableList<PosPrinter> = mutableListOf()
 
-    var isPaySlip: Boolean = true
+    var selectedReportType: String? = null
 
     private val _activityState = MutableStateFlow(ActivityState())
     val activityState: MutableStateFlow<ActivityState> = _activityState
@@ -127,19 +126,6 @@ class ActivityScopedViewModel @Inject constructor(
                     SettingsModel.currentCurrency = it
                 }
             }
-        }
-    }
-
-    fun getLocalCompanies(onResult: (MutableList<Company>) -> Unit) {
-        if (localCompanies.isEmpty()) {
-            viewModelScope.launch(Dispatchers.IO) {
-                localCompanies = companyRepository.getLocalCompanies()
-                withContext(Dispatchers.IO) {
-                    onResult.invoke(localCompanies)
-                }
-            }
-        } else {
-            onResult.invoke(localCompanies)
         }
     }
 
