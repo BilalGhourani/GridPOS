@@ -107,7 +107,7 @@ object Utils {
     fun getReportCountry(): MutableList<ReportCountry> {
         val result = mutableListOf<ReportCountry>()
         Country.entries.forEach {
-            result.add(ReportCountry(it))
+            result.add(ReportCountry(it.code,it.value))
         }
         return result
     }

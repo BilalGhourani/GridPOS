@@ -121,6 +121,7 @@ fun SettingsView(
     var isSqlServerWebDb by remember { mutableStateOf(SettingsModel.isSqlServerWebDb) }
     var passwordVisibility by remember { mutableStateOf(false) }
 
+    val countries = remember { mutableStateListOf<ReportCountry>() }
     val companies = remember { mutableStateListOf<Company>() }
 
     val firebaseApiKeyRequester = remember { FocusRequester() }
@@ -174,6 +175,11 @@ fun SettingsView(
                 companies.addAll(comps)
                 val selected = comps.firstOrNull { it.companyId.equals(localCompanyID) }
                 localCompanyName = selected?.companyName ?: ""
+            }
+        }
+        if (countries.isEmpty()) {
+            viewModel.fetchCountries { list ->
+                countries.addAll(list)
             }
         }
     }

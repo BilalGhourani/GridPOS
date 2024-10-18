@@ -158,7 +158,6 @@ object PrinterUtils {
             company: Company? = SettingsModel.currentCompany,
             currency: Currency? = SettingsModel.currentCurrency,
     ): ReportResult {
-        val defaultLocal = Locale.getDefault()
         val result = getPaySlipHtmlContent(context)
         if (!result.found) {
             return result

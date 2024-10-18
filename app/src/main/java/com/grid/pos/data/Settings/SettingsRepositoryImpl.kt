@@ -2,6 +2,8 @@ package com.grid.pos.data.Settings
 
 import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.model.CONNECTION_TYPE
+import com.grid.pos.model.Country
+import com.grid.pos.model.ReportCountry
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.Extension.getStringValue
 
@@ -172,7 +174,68 @@ class SettingsRepositoryImpl : SettingsRepository {
                 return result
             }
         }
-        return null
+    }
+
+    override suspend fun getCountries(): MutableList<ReportCountry> {
+        when (SettingsModel.connectionType) {
+            CONNECTION_TYPE.FIRESTORE.key -> {
+                return mutableListOf(
+                    ReportCountry(
+                        Country.DEFAULT.code,
+                        Country.DEFAULT.value
+                    )
+                )
+            }
+
+            CONNECTION_TYPE.LOCAL.key -> {
+                return mutableListOf(
+                    ReportCountry(
+                        Country.DEFAULT.code,
+                        Country.DEFAULT.value
+                    )
+                )
+            }
+
+            else -> {
+                if (SettingsModel.isSqlServerWebDb) {
+                    val result: MutableList<ReportCountry> = mutableListOf(
+                        ReportCountry(
+                            Country.DEFAULT.code,
+                            Country.DEFAULT.value
+                        )
+                    )
+                    try {
+                        val dbResult = SQLServerWrapper.getListOf(
+                            "set_country",
+                            "",
+                            mutableListOf("cu_name,cu_countryshortname"),
+                            ""
+                        )
+                        dbResult?.let {
+                            if (it.next()) {
+                                result.add(
+                                    ReportCountry(
+                                        it.getStringValue("cu_countryshortname"),
+                                        it.getStringValue("cu_name"),
+                                    )
+                                )
+                            }
+                            SQLServerWrapper.closeResultSet(it)
+                        }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                    return result
+                } else {
+                    return mutableListOf(
+                        ReportCountry(
+                            Country.DEFAULT.code,
+                            Country.DEFAULT.value
+                        )
+                    )
+                }
+            }
+        }
     }
 
 }

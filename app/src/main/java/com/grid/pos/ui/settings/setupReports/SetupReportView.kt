@@ -72,7 +72,7 @@ fun SetupReportView(
     var warning by remember { mutableStateOf(Event("")) }
     var action by remember { mutableStateOf("") }
 
-    var countryState by remember { mutableStateOf(Country.DEFAULT) }
+    var countryState by remember { mutableStateOf(Country.DEFAULT.value) }
     var languageState by remember { mutableStateOf(Language.DEFAULT) }
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -86,7 +86,7 @@ fun SetupReportView(
                         CoroutineScope(Dispatchers.IO).launch {
                             FileUtils.saveToInternalStorage(
                                 context,
-                                "Reports/${countryState.value}/${languageState.value}",
+                                "Reports/${countryState}/${languageState.value}",
                                 uris[0],
                                 "$reportType.html"
                             )
@@ -217,11 +217,11 @@ fun SetupReportView(
                         end = 10.dp
                     ),
                     placeholder = "Report Country",
-                    label = countryState.value.ifEmpty { "Select Language" },
-                    selectedId = countryState.code,
+                    label = countryState.ifEmpty { "Select Language" },
+                    selectedId = countryState,
                     maxHeight = 290.dp
                 ) { reportCountry ->
-                    countryState = (reportCountry as ReportCountry).country
+                    countryState = (reportCountry as ReportCountry).value
                 }
             }
         }

@@ -51,15 +51,16 @@ enum class Country(
 }
 
 data class ReportCountry(
-        val country: Country
+        val code: String,
+        val value: String
 ) : DataModel() {
 
     override fun getId(): String {
-        return country.code
+        return code
     }
 
     override fun getName(): String {
-        return country.value
+        return value
     }
 
     override fun search(key: String): Boolean {
