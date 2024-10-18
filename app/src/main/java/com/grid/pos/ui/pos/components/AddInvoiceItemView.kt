@@ -103,7 +103,7 @@ fun AddInvoiceItemView(
             ItemListCell(items = familyItems.toMutableList(),
                 notifyDirectly = notifyDirectly,
                 onClick = { item ->
-                    if (item.itemOpenQty <= 0) {
+                    if (item.itemRemQty <= 0) {
                         item.selected = false
                         if (SettingsModel.showItemQtyAlert) {
                             activityViewModel?.showPopup(

@@ -125,6 +125,7 @@ fun ManageItemsView(
     var barcodeState by remember { mutableStateOf("") }
     var openCostState by remember { mutableStateOf("") }
     var openQtyState by remember { mutableStateOf("") }
+    var remQtyState by remember { mutableStateOf("") }
     var itemCurrState by remember { mutableStateOf("") }
     var familyIdState by remember { mutableStateOf("") }
     var btnColorState by remember { mutableStateOf("") }
@@ -212,6 +213,7 @@ fun ManageItemsView(
         barcodeState = ""
         openCostState = ""
         openQtyState = ""
+        remQtyState = ""
         itemCurrState = SettingsModel.currentCurrency?.currencyCode1 ?: ""
         familyIdState = ""
         btnColorState = ""
@@ -515,6 +517,24 @@ fun ManageItemsView(
                         state.selectedItem.itemOpenQty = openQtyState.toDoubleOrNull() ?: 0.0
                     }
 
+                    //Rem quantity
+                    UITextField(modifier = Modifier.padding(
+                        horizontal = 10.dp,
+                        vertical = 5.dp
+                    ),
+                        defaultValue = remQtyState,
+                        label = "Remaining Qty",
+                        keyboardType = KeyboardType.Decimal,
+                        placeHolder = "Enter Remaining Qty",
+                        focusRequester = openQtyFocusRequester,
+                        onAction = { btnColorFocusRequester.requestFocus() }) { openQty ->
+                        remQtyState = Utils.getDoubleValue(
+                            openQty,
+                            remQtyState
+                        )
+                        state.selectedItem.itemRemQty = remQtyState.toDoubleOrNull() ?: 0.0
+                    }
+
                     if (viewModel.currencies.isNotEmpty()) {
                         SearchableDropdownMenuEx(
                             items = viewModel.currencies,
@@ -786,6 +806,7 @@ fun ManageItemsView(
                     barcodeState = item.itemBarcode ?: ""
                     openCostState = item.itemOpenCost.toString()
                     openQtyState = item.itemOpenQty.toString()
+                    remQtyState = item.itemRemQty.toString()
                     itemCurrState = item.itemCurrencyId ?: SettingsModel.currentCurrency?.currencyCode1 ?: ""
                     familyIdState = item.itemFaId ?: ""
                     btnColorState = item.itemBtnColor ?: ""

@@ -23,7 +23,7 @@ data class InvoiceItemModel(
         invoice.invoiceTax1 = item.itemTax1
         invoice.invoiceTax2 = item.itemTax2
         invoice.invoiceCost = item.itemOpenCost
-        invoice.invoiceRemQty = item.itemOpenQty
+        invoice.invoiceRemQty = item.itemRemQty
         invoice.in_it_div_name = item.it_div_name
         invoice.in_cashback = item.it_cashback
     }

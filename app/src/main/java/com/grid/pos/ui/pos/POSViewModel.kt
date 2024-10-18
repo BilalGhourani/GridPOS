@@ -302,7 +302,7 @@ class POSViewModel @Inject constructor(
 
         itemsToDelete.forEach { invoiceItem ->
             invoiceRepository.delete(invoiceItem.invoice)
-            invoiceItem.invoiceItem.itemOpenQty += invoiceItem.invoice.invoiceQuantity
+            invoiceItem.invoiceItem.itemRemQty += invoiceItem.invoice.invoiceQuantity
             itemRepository.update(invoiceItem.invoiceItem)
         }
 
@@ -321,20 +321,20 @@ class POSViewModel @Inject constructor(
     ) {
         if (isInserting) {
             invoiceModel.invoice.prepareForInsert()
-            val remQty = invoiceModel.invoiceItem.itemOpenQty - invoiceModel.invoice.invoiceQuantity
+            val remQty = invoiceModel.invoiceItem.itemRemQty - invoiceModel.invoice.invoiceQuantity
             invoiceModel.invoice.invoiceRemQty = remQty
             invoiceRepository.insert(invoiceModel.invoice)
-            invoiceModel.invoiceItem.itemOpenQty = remQty
+            invoiceModel.invoiceItem.itemRemQty = remQty
             itemRepository.update(invoiceModel.invoiceItem)
         } else {
             if (invoiceModel.initialQty > invoiceModel.invoice.invoiceQuantity) {// was 4 and now is 3 => increase by 1
-                invoiceModel.invoiceItem.itemOpenQty += invoiceModel.initialQty - invoiceModel.invoice.invoiceQuantity
-                invoiceModel.invoice.invoiceRemQty = invoiceModel.invoiceItem.itemOpenQty
+                invoiceModel.invoiceItem.itemRemQty += invoiceModel.initialQty - invoiceModel.invoice.invoiceQuantity
+                invoiceModel.invoice.invoiceRemQty = invoiceModel.invoiceItem.itemRemQty
                 invoiceRepository.update(invoiceModel.invoice)
                 itemRepository.update(invoiceModel.invoiceItem)
             } else if (invoiceModel.initialQty < invoiceModel.invoice.invoiceQuantity) { // was 4 and now is 5 => decrease by 1
-                invoiceModel.invoiceItem.itemOpenQty -= invoiceModel.invoice.invoiceQuantity - invoiceModel.initialQty
-                invoiceModel.invoice.invoiceRemQty = invoiceModel.invoiceItem.itemOpenQty
+                invoiceModel.invoiceItem.itemRemQty -= invoiceModel.invoice.invoiceQuantity - invoiceModel.initialQty
+                invoiceModel.invoice.invoiceRemQty = invoiceModel.invoiceItem.itemRemQty
                 invoiceRepository.update(invoiceModel.invoice)
                 itemRepository.update(invoiceModel.invoiceItem)
             }

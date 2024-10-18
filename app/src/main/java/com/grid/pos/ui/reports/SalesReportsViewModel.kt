@@ -210,11 +210,7 @@ class SalesReportsViewModel @Inject constructor(
             var quantitiesSold = 0.0
             var totalCost = 0.0
             var totalSale = 0.0
-            var remQty = -1.0
             itemInvoices?.map {
-                if (remQty < 0) {//to take the last invoice remQty
-                    remQty = it.invoiceRemQty
-                }
                 totalCost += it.invoiceQuantity.times(it.invoiceCost)
                 quantitiesSold += it.invoiceQuantity
                 totalSale += if (priceWithTax) (it.getAmount() - it.getDiscountAmount()) else it.getNetAmount()
@@ -235,7 +231,7 @@ class SalesReportsViewModel @Inject constructor(
                     totalSale
                 )
             )
-            row.createCell(5).setCellValue(remQty)
+            row.createCell(5).setCellValue(item.itemRemQty)
             row.createCell(6).setCellValue(
                 String.format(
                     "%,.${currency.currencyName1Dec}f",

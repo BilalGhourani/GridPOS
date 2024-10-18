@@ -258,7 +258,7 @@ data class Item(
 
     @Exclude
     fun didChanged(item: Item): Boolean {
-        return !item.itemName.equals(itemName) || !item.itemFaId.equals(itemFaId) || !item.itemBarcode.equals(itemBarcode) || !item.itemUnitPrice.equals(itemUnitPrice) || !item.itemTax.equals(itemTax) || !item.itemTax1.equals(itemTax1) || !item.itemTax2.equals(itemTax2) || !item.itemPrinter.equals(itemPrinter) || !item.itemOpenQty.equals(itemOpenQty) || !item.itemOpenCost.equals(itemOpenCost) || item.itemPos != itemPos || !item.itemImage.equals(itemImage) || !item.itemBtnColor.equals(itemBtnColor) || !item.itemBtnTextColor.equals(itemBtnTextColor)
+        return !item.itemName.equals(itemName) || !item.itemFaId.equals(itemFaId) || !item.itemBarcode.equals(itemBarcode) || !item.itemUnitPrice.equals(itemUnitPrice) || !item.itemTax.equals(itemTax) || !item.itemTax1.equals(itemTax1) || !item.itemTax2.equals(itemTax2) || !item.itemPrinter.equals(itemPrinter) || !item.itemOpenQty.equals(itemOpenQty) || !item.itemRemQty.equals(itemRemQty) || !item.itemOpenCost.equals(itemOpenCost) || item.itemPos != itemPos || !item.itemImage.equals(itemImage) || !item.itemBtnColor.equals(itemBtnColor) || !item.itemBtnTextColor.equals(itemBtnTextColor)
     }
 
     @Exclude

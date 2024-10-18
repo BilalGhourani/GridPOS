@@ -615,7 +615,7 @@ fun POSView(
                             },
                             onItemSelected = { item ->
                                 isInvoiceEdited = true
-                                if (item.itemOpenQty <= 0) {
+                                if (item.itemRemQty <= 0) {
                                     if (SettingsModel.showItemQtyAlert) {
                                         activityViewModel.showPopup(
                                             true,

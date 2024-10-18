@@ -131,6 +131,7 @@ class ItemRepositoryImpl(
                                 itemTax2 = it.getDoubleValue("it_tax2")
                                 itemPrinter = it.getStringValue("it_di_name")
                                 itemOpenQty = it.getDoubleValue("it_maxqty")
+                                itemRemQty = it.getDoubleValue("it_remqty")
                                 itemPos = it.getIntValue(
                                     "it_pos",
                                     1
