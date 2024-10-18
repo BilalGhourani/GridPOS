@@ -27,7 +27,7 @@ import com.grid.pos.data.User.UserDao
 
 @Database(
     entities = [Family::class, Item::class, PosPrinter::class, PosReceipt::class, ThirdParty::class, User::class, Currency::class, Company::class, Invoice::class, InvoiceHeader::class],
-    version = 4,
+    version = 5,
     exportSchema = false
 )
 
@@ -57,5 +57,11 @@ val MIGRATION_2_3: Migration = object : Migration(2, 3) {
 val MIGRATION_3_4: Migration = object : Migration(3, 4) {
     override fun migrate(database: SupportSQLiteDatabase) {
         database.execSQL("ALTER TABLE 'st_item' ADD COLUMN 'it_cur_code' TEXT")
+    }
+}
+
+val MIGRATION_4_5: Migration = object : Migration(4, 5) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+        database.execSQL("ALTER TABLE 'st_item' ADD COLUMN 'it_remqty' DOUBLE DEFAULT 0.0")
     }
 }

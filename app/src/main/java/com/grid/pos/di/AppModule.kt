@@ -20,6 +20,7 @@ import com.grid.pos.data.Item.ItemRepositoryImpl
 import com.grid.pos.data.MIGRATION_1_2
 import com.grid.pos.data.MIGRATION_2_3
 import com.grid.pos.data.MIGRATION_3_4
+import com.grid.pos.data.MIGRATION_4_5
 import com.grid.pos.data.PosPrinter.PosPrinterRepository
 import com.grid.pos.data.PosPrinter.PosPrinterRepositoryImpl
 import com.grid.pos.data.PosReceipt.PosReceiptRepository
@@ -55,7 +56,12 @@ object AppModule {
             app,
             AppDatabase::class.java,
             Constants.DATABASE_NAME
-        ).addMigrations(MIGRATION_1_2).addMigrations(MIGRATION_2_3).addMigrations(MIGRATION_3_4).addCallback(callback).build()
+        )
+            .addMigrations(MIGRATION_1_2)
+            .addMigrations(MIGRATION_2_3)
+            .addMigrations(MIGRATION_3_4)
+            .addMigrations(MIGRATION_4_5)
+            .addCallback(callback).build()
     }
 
     @Provides

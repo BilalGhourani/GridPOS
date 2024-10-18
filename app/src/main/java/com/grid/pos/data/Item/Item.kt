@@ -129,6 +129,14 @@ data class Item(
         var itemOpenQty: Double = 0.0,
 
         /**
+         * Item rem quantity
+         * */
+        @ColumnInfo(name = "it_remqty")
+        @set:PropertyName("it_remqty")
+        @get:PropertyName("it_remqty")
+        var itemRemQty: Double = 0.0,
+
+        /**
          * Item open cost
          * */
         @ColumnInfo(name = "it_opencost")
