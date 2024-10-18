@@ -40,6 +40,7 @@ object SettingsModel {
     var showPriceInItemBtn: Boolean = false
     var autoPrintTickets: Boolean = false
     var showItemQtyAlert: Boolean = false
+    var allowOutOfStockSale: Boolean = false
 
     var buttonColor: Color = Color.Blue
     var buttonTextColor: Color = Color.White

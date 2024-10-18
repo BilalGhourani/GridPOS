@@ -615,7 +615,9 @@ fun POSView(
                             },
                             onItemSelected = { item ->
                                 isInvoiceEdited = true
+                                var proceed = true
                                 if (item.itemRemQty <= 0) {
+                                    proceed = SettingsModel.allowOutOfStockSale
                                     if (SettingsModel.showItemQtyAlert) {
                                         activityViewModel.showPopup(
                                             true,
@@ -626,7 +628,8 @@ fun POSView(
                                             )
                                         )
                                     }
-                                } else {
+                                }
+                                if (proceed) {
                                     val invoiceItemModel = InvoiceItemModel()
                                     invoiceItemModel.setItem(item)
                                     invoiceItemModel.shouldPrint = true
@@ -730,8 +733,7 @@ fun POSView(
                     animationSpec = tween(durationMillis = 250)
                 )
             ) {
-                AddInvoiceItemView(
-                    activityViewModel = activityViewModel,
+                AddInvoiceItemView(activityViewModel = activityViewModel,
                     categories = state.families,
                     items = state.items,
                     modifier = Modifier

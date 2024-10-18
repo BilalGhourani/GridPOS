@@ -103,8 +103,9 @@ fun AddInvoiceItemView(
             ItemListCell(items = familyItems.toMutableList(),
                 notifyDirectly = notifyDirectly,
                 onClick = { item ->
+                    var proceed = true
                     if (item.itemRemQty <= 0) {
-                        item.selected = false
+                        proceed = SettingsModel.allowOutOfStockSale
                         if (SettingsModel.showItemQtyAlert) {
                             activityViewModel?.showPopup(
                                 true,
@@ -115,7 +116,8 @@ fun AddInvoiceItemView(
                                 )
                             )
                         }
-                    } else {
+                    }
+                    if (proceed) {
                         if (notifyDirectly) {
                             onSelect.invoke(listOf(item))
                         } else {
@@ -125,6 +127,8 @@ fun AddInvoiceItemView(
                                 itemsState.remove(item)
                             }
                         }
+                    }else{
+                        item.selected = false
                     }
                 })
         }

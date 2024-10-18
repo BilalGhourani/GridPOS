@@ -146,6 +146,7 @@ fun SettingsView(
     var showPriceInItemBtn by remember { mutableStateOf(SettingsModel.showPriceInItemBtn) }
     var autoPrintTickets by remember { mutableStateOf(SettingsModel.autoPrintTickets) }
     var showItemQtyAlert by remember { mutableStateOf(SettingsModel.showItemQtyAlert) }
+    var allowOutOfStockSale by remember { mutableStateOf(SettingsModel.allowOutOfStockSale) }
 
     var buttonColorState by remember { mutableStateOf(SettingsModel.buttonColor) }
     var buttonTextColorState by remember { mutableStateOf(SettingsModel.buttonTextColor) }
@@ -480,6 +481,7 @@ fun SettingsView(
                                 text = "Save"
                             ) {
                                 isLoading = true
+                                keyboardController?.hide()
                                 CoroutineScope(Dispatchers.IO).launch {
                                     if(SettingsModel.connectionType == CONNECTION_TYPE.SQL_SERVER.key){
                                         SQLServerWrapper.closeConnection()
@@ -822,6 +824,25 @@ fun SettingsView(
                                 DataStoreManager.putBoolean(
                                     DataStoreManager.DataStoreKeys.SHOW_ITEM_QTY_ALERT.key,
                                     showItemQtyAlert
+                                )
+                            }
+                        }
+
+                        UISwitch(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(60.dp)
+                                .padding(10.dp),
+                            checked = allowOutOfStockSale,
+                            text = "Allow out of stock sale",
+                            textColor = textColorState
+                        ) { allow ->
+                            allowOutOfStockSale = allow
+                            SettingsModel.allowOutOfStockSale = allowOutOfStockSale
+                            CoroutineScope(Dispatchers.IO).launch {
+                                DataStoreManager.putBoolean(
+                                    DataStoreManager.DataStoreKeys.ALLOW_OUT_OF_STOCK_SALE.key,
+                                    allowOutOfStockSale
                                 )
                             }
                         }
