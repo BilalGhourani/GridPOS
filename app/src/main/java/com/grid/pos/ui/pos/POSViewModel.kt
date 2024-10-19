@@ -111,7 +111,14 @@ class POSViewModel @Inject constructor(
         }
         viewModelScope.launch(Dispatchers.IO) {
             val listOfThirdParties = thirdPartyRepository.getAllThirdParties()
-            clientsMap = listOfThirdParties.map { it.thirdPartyId to it }.toMap()
+            val defaultTp = posState.value.selectedThirdParty
+            if (defaultTp.thirdPartyId.isNotEmpty()) {
+                val defTp = listOfThirdParties.firstOrNull { it.thirdPartyId == defaultTp.thirdPartyId }
+                if (defTp == null) {
+                    listOfThirdParties.add(0,defaultTp)
+                }
+            }
+            clientsMap = listOfThirdParties.associateBy { it.thirdPartyId }
             withContext(Dispatchers.Main) {
                 posState.value = if (withLoading) {
                     posState.value.copy(
