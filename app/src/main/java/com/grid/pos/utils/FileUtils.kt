@@ -685,25 +685,33 @@ object FileUtils {
                 // If the current file is a directory, recursively gather its children
                 if (file.isDirectory) {
                     val res = getFileModels(file)
-                    result.findSelected = result.findSelected || res.findSelected
+                    for ((key, value) in res.findSelected) {
+                        result.findSelected.merge(
+                            key,
+                            value
+                        ) { oldValue, newValue ->
+                            // Custom prediction logic: sum of values
+                            oldValue || newValue
+                        }
+                    }
                     result.filesList.addAll(res.filesList)
                 } else {
                     val fileName = file.name
-                    val directoryName = directoryFile.name
-                    val isSelected = SettingsModel.defaultReportLanguage.equals(
-                        directoryName,
-                        ignoreCase = true
+                    val type = fileName.replace(
+                        ".html",
+                        ""
                     )
+                    val parentCountry = directoryFile.parentFile?.name ?: directoryFile.parent
+                    val parentLang = directoryFile.name
+                    val isSelected = SettingsModel.defaultReportLanguage == parentLang && SettingsModel.defaultReportCountry == parentCountry
                     val fileModel = FileModel(
                         fileName = fileName,
-                        parentName = directoryName,
-                        isPaySlip = fileName.contains(
-                            "payslip",
-                            ignoreCase = true
-                        ),
+                        parentCountryName = parentCountry,
+                        parentLanguageName = parentLang,
+                        reportType = type,
                         selected = isSelected
                     )
-                    result.findSelected = result.findSelected || isSelected
+                    result.findSelected[type] = (result.findSelected[type] ?: false) || isSelected
                     result.filesList.add(fileModel)
                 }
             }

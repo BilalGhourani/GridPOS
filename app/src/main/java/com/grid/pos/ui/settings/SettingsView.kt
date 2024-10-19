@@ -178,11 +178,6 @@ fun SettingsView(
                 localCompanyName = selected?.companyName ?: ""
             }
         }
-        if (countries.isEmpty()) {
-            viewModel.fetchCountries { list ->
-                countries.addAll(list)
-            }
-        }
     }
     LaunchedEffect(isLoading) {
         activityScopedViewModel.showLoading(isLoading)
@@ -485,6 +480,8 @@ fun SettingsView(
                                 CoroutineScope(Dispatchers.IO).launch {
                                     if(SettingsModel.connectionType == CONNECTION_TYPE.SQL_SERVER.key){
                                         SQLServerWrapper.closeConnection()
+                                        countries.clear()
+                                        activityScopedViewModel.reportCountries.clear()
                                     }
                                     SettingsModel.connectionType = connectionTypeState
                                     DataStoreManager.putString(
@@ -660,11 +657,16 @@ fun SettingsView(
                         }
 
                         SearchableDropdownMenuEx(
-                            items = Utils.getReportCountry().toMutableList(),
+                            items = countries.toMutableList(),
                             modifier = Modifier.padding(10.dp),
                             color = LightGrey,
-                            placeholder = "Report Language",
+                            placeholder = "Report Country",
                             label = defaultReportCountry,
+                            onLoadItems = {
+                                activityScopedViewModel.fetchCountries { list ->
+                                    countries.addAll(list)
+                                }
+                            }
                         ) { country ->
                             country as ReportCountry
                             defaultReportCountry = country.getName()

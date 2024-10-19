@@ -30,6 +30,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -40,6 +41,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.grid.pos.ActivityScopedViewModel
 import com.grid.pos.interfaces.OnGalleryResult
@@ -71,6 +73,7 @@ fun SetupReportView(
     var isLoading by remember { mutableStateOf(false) }
     var warning by remember { mutableStateOf(Event("")) }
     var action by remember { mutableStateOf("") }
+    val countries = remember { mutableStateListOf<ReportCountry>() }
 
     var countryState by remember { mutableStateOf(Country.DEFAULT.value) }
     var languageState by remember { mutableStateOf(Language.DEFAULT) }
@@ -210,12 +213,17 @@ fun SetupReportView(
                     languageState = (reportLan as ReportLanguage).language
                 }
                 SearchableDropdownMenuEx(
-                    items = Utils.getReportCountry().toMutableList(),
+                    items = countries.toMutableList(),
                     modifier = Modifier.padding(
                         top = 15.dp,
                         start = 10.dp,
                         end = 10.dp
                     ),
+                    onLoadItems = {
+                        activityViewModel.fetchCountries { list ->
+                            countries.addAll(list)
+                        }
+                    },
                     placeholder = "Report Country",
                     label = countryState.ifEmpty { "Select Language" },
                     selectedId = countryState,

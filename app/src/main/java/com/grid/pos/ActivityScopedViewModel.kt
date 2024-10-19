@@ -23,6 +23,7 @@ import com.grid.pos.interfaces.OnGalleryResult
 import com.grid.pos.model.Event
 import com.grid.pos.model.InvoiceItemModel
 import com.grid.pos.model.PopupModel
+import com.grid.pos.model.ReportCountry
 import com.grid.pos.model.ReportResult
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.BaseViewModel
@@ -64,6 +65,7 @@ class ActivityScopedViewModel @Inject constructor(
     var items: MutableList<Item> = mutableListOf()
     var invoiceHeaders: MutableList<InvoiceHeader> = mutableListOf()
     var printers: MutableList<PosPrinter> = mutableListOf()
+    var reportCountries: MutableList<ReportCountry> = mutableListOf()
 
     var selectedReportType: String? = null
 
@@ -112,6 +114,21 @@ class ActivityScopedViewModel @Inject constructor(
             "Debit Card",
             currency.currencyDocumentId ?: ""
         )
+    }
+
+    fun fetchCountries(onResult: (MutableList<ReportCountry>) -> Unit) {
+        if (reportCountries.isEmpty()) {
+            showLoading(true)
+            viewModelScope.launch(Dispatchers.IO) {
+                reportCountries = settingsRepository.getCountries()
+                withContext(Dispatchers.Main) {
+                    showLoading(false)
+                    onResult.invoke(reportCountries)
+                }
+            }
+        } else {
+            onResult.invoke(reportCountries)
+        }
     }
 
     private suspend fun fetchCurrencies() {

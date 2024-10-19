@@ -205,7 +205,7 @@ object DataStoreManager {
         )
         SettingsModel.defaultReportCountry = getString(
             DataStoreKeys.REPORT_COUNTRY.key,
-            Country.DEFAULT.code
+            Country.DEFAULT.value
         )
         SettingsModel.defaultReportLanguage = getString(
             DataStoreKeys.REPORT_LANGUAGE.key,

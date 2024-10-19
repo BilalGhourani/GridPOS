@@ -18,7 +18,6 @@ class SettingsViewModel @Inject constructor(
     private val settingsRepository: SettingsRepository
 ) : BaseViewModel() {
     private var localCompanies: MutableList<Company> = mutableListOf()
-    private var reportCountries: MutableList<ReportCountry> = mutableListOf()
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
@@ -36,19 +35,6 @@ class SettingsViewModel @Inject constructor(
             }
         } else {
             onResult.invoke(localCompanies)
-        }
-    }
-
-    fun fetchCountries(onResult: (MutableList<ReportCountry>) -> Unit){
-        if (localCompanies.isEmpty()) {
-            viewModelScope.launch(Dispatchers.IO) {
-                reportCountries =   settingsRepository.getCountries()
-                withContext(Dispatchers.IO) {
-                    onResult.invoke(reportCountries)
-                }
-            }
-        } else {
-            onResult.invoke(reportCountries)
         }
     }
 

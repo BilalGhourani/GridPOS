@@ -332,7 +332,7 @@ fun ReportsListView(
                                 )
                                 val savedPath = FileUtils.saveToExternalStorage(
                                     context = context,
-                                    parent = "invoice reports/${fileModelState.value.parentName}",
+                                    parent = "invoice reports/${fileModelState.value.getParents()}",
                                     sourceFilePath = Uri.fromFile(file),
                                     destName = fileModelState.value.fileName,
                                     type = "html"

@@ -87,9 +87,10 @@ fun LicenseListCellPreview() {
         ReportListCell(
             Modifier,
             FileModel(
-                "PaySlip_en",
+                ReportTypeEnum.PAY_SLIP.key,
                 "Default",
-                true
+                "Default",
+                ReportTypeEnum.PAY_SLIP.key
             )
         )
     }

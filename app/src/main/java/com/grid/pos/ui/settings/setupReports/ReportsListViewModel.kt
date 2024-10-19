@@ -4,9 +4,10 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.grid.pos.App
-import com.grid.pos.data.Company.CompanyRepository
+import com.grid.pos.data.Settings.SettingsRepository
 import com.grid.pos.model.Event
 import com.grid.pos.model.FileModel
+import com.grid.pos.model.ReportCountry
 import com.grid.pos.model.ReportTypeModel
 import com.grid.pos.utils.FileUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -19,9 +20,7 @@ import java.io.File
 import javax.inject.Inject
 
 @HiltViewModel
-class ReportsListViewModel @Inject constructor(
-        private val companyRepository: CompanyRepository
-) : ViewModel() {
+class ReportsListViewModel @Inject constructor() : ViewModel() {
 
     private val _state = MutableStateFlow(ReportsListState())
     val state: MutableStateFlow<ReportsListState> = _state
@@ -51,26 +50,18 @@ class ReportsListViewModel @Inject constructor(
         val filesListResult = FileUtils.getFileModels(file)
         val findSelected = filesListResult.findSelected
         val allReports = filesListResult.filesList
-        val payslips = mutableListOf<FileModel>()
-        val payTickets = mutableListOf<FileModel>()
-        allReports.forEach {
-            if (!findSelected && it.parentName.equals(
-                    "default",
-                    ignoreCase = true
-                )
-            ) {
-                it.selected = true
-            }
-            if (it.isPaySlip) {
-                payslips.add(it)
-            } else {
-                payTickets.add(it)
+        for ((key, value) in findSelected) {
+            if (!value) {
+                var selected = allReports.firstOrNull { it.reportType == key && it.isLangSelected() }
+                if (selected == null) {
+                    selected = allReports.firstOrNull { it.reportType == key && it.isBothDefault() }
+                }
+                selected?.selected = true
             }
         }
         withContext(Dispatchers.Main) {
             state.value = state.value.copy(
-                paySlips = payslips,
-                payTickets = payTickets
+                allReports = allReports
             )
         }
     }
@@ -89,7 +80,7 @@ class ReportsListViewModel @Inject constructor(
                 App.getInstance().filesDir,
                 "Reports"
             )
-            val fileModels = if (fileModel.isPaySlip) state.value.paySlips else state.value.payTickets
+            val fileModels = state.value.allReports
             val file = fileModel.getFile(rootFile)
             val message = if (file.exists()) {
                 if (file.delete()) {
@@ -104,6 +95,7 @@ class ReportsListViewModel @Inject constructor(
             }
             withContext(Dispatchers.Main) {
                 state.value = state.value.copy(
+                    allReports = fileModels,
                     isLoading = false,
                     clear = true,
                     warning = Event(message)
@@ -116,6 +108,5 @@ class ReportsListViewModel @Inject constructor(
 enum class ReportTypeEnum(
         val key: String
 ) {
-    PAY_SLIP("Pay-Slip"),
-    PAY_TICKET("Pay-Ticket")
+    PAY_SLIP("Pay-Slip"), PAY_TICKET("Pay-Ticket")
 }
