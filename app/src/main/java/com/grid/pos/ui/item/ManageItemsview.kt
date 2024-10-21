@@ -523,9 +523,10 @@ fun ManageItemsView(
                         vertical = 5.dp
                     ),
                         defaultValue = remQtyState,
+                        readOnly = true,
                         label = "Remaining Qty",
                         keyboardType = KeyboardType.Decimal,
-                        placeHolder = "Enter Remaining Qty",
+                        placeHolder = "Remaining Qty",
                         focusRequester = openQtyFocusRequester,
                         onAction = { btnColorFocusRequester.requestFocus() }) { openQty ->
                         remQtyState = Utils.getDoubleValue(
