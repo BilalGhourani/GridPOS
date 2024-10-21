@@ -297,14 +297,19 @@ class InvoiceHeaderRepositoryImpl(
                     val dbResult = SQLServerWrapper.getListOf(
                         "in_hinvoice",
                         "TOP $limit",
-                        if (SettingsModel.isSqlServerWebDb) mutableListOf("*,tt.tt_newcode") else  mutableListOf("*"),
+                        if (SettingsModel.isSqlServerWebDb) mutableListOf("*,tt.tt_newcode") else mutableListOf("*"),
                         where,
                         "ORDER BY hi_date DESC",
                         if (SettingsModel.isSqlServerWebDb) "INNER JOIN acc_transactiontype tt on hi_tt_code = tt.tt_code" else ""
                     )
                     dbResult?.let {
                         while (it.next()) {
-                            invoiceHeaders.add(fillParams(it,"tt_newcode"))
+                            invoiceHeaders.add(
+                                fillParams(
+                                    it,
+                                    "tt_newcode"
+                                )
+                            )
                         }
                         SQLServerWrapper.closeResultSet(it)
                     }
@@ -736,7 +741,10 @@ class InvoiceHeaderRepositoryImpl(
         }
     }
 
-    private fun fillParams(obj: ResultSet,ttCodeKey:String = "hi_tt_code"): InvoiceHeader {
+    private fun fillParams(
+            obj: ResultSet,
+            ttCodeKey: String = "hi_tt_code"
+    ): InvoiceHeader {
         return InvoiceHeader().apply {
             invoiceHeadId = obj.getStringValue("hi_id")
             invoiceHeadNo = obj.getStringValue("hi_no")
@@ -847,8 +855,8 @@ class InvoiceHeaderRepositoryImpl(
                 null,//round
                 invoiceHeader.invoiceHeadTotal1,
                 1,//rate first
-                invoiceHeader.invoiceHeadRate,//rate seconds
-                1,//rate tax
+                1 / invoiceHeader.invoiceHeadRate,//rate seconds
+                getRateTax(),//rate tax
                 0,//tips
                 invoiceHeader.invoiceHeadTableId ?: invoiceHeader.invoiceHeadTaName,
                 invoiceHeader.invoiceHeadClientsCount,
@@ -866,7 +874,7 @@ class InvoiceHeaderRepositoryImpl(
                 "null_string_output",//hi_id
                 invoiceHeader.invoiceHeadTotal,//@hi_total
                 1,//hi_ratetaxf
-                invoiceHeader.invoiceHeadRate,//hi_ratetaxs
+                1 / invoiceHeader.invoiceHeadRate,//hi_ratetaxs
                 invoiceHeader.invoiceHeadTaxAmt,
                 invoiceHeader.invoiceHeadTax1Amt,
                 invoiceHeader.invoiceHeadTax2Amt,
@@ -899,8 +907,8 @@ class InvoiceHeaderRepositoryImpl(
                 null,//round
                 invoiceHeader.invoiceHeadTotal1,
                 1,//rate first
-                invoiceHeader.invoiceHeadRate,//rate seconds
-                1,//rate tax
+                1 / invoiceHeader.invoiceHeadRate,//rate seconds
+                getRateTax(),//rate tax
                 0,//tips
                 invoiceHeader.invoiceHeadTableId ?: invoiceHeader.invoiceHeadTaName,
                 invoiceHeader.invoiceHeadClientsCount,
@@ -918,7 +926,7 @@ class InvoiceHeaderRepositoryImpl(
                 null,//hi_cashback
                 "null_int_output",//hi_id
                 1,//hi_ratetaxf
-                invoiceHeader.invoiceHeadRate,//hi_ratetaxs
+                1 / invoiceHeader.invoiceHeadRate,//hi_ratetaxs
                 invoiceHeader.invoiceHeadTaxAmt,
                 invoiceHeader.invoiceHeadTax1Amt,
                 invoiceHeader.invoiceHeadTax2Amt,
@@ -961,8 +969,8 @@ class InvoiceHeaderRepositoryImpl(
                 null,//round
                 invoiceHeader.invoiceHeadTotal1,
                 1,//rate first
-                invoiceHeader.invoiceHeadRate,//rate seconds
-                1,//rate tax
+                1 / invoiceHeader.invoiceHeadRate,//rate seconds
+                getRateTax(),//rate tax
                 0,//tips
                 invoiceHeader.invoiceHeadTableId ?: invoiceHeader.invoiceHeadTaName,
                 invoiceHeader.invoiceHeadClientsCount,
@@ -979,7 +987,7 @@ class InvoiceHeaderRepositoryImpl(
                 null,//hi_cashback
                 invoiceHeader.invoiceHeadTotal,//@hi_total
                 1,//hi_ratetaxf
-                invoiceHeader.invoiceHeadRate,//hi_ratetaxs
+                1 / invoiceHeader.invoiceHeadRate,//hi_ratetaxs
                 invoiceHeader.invoiceHeadTaxAmt,
                 invoiceHeader.invoiceHeadTax1Amt,
                 invoiceHeader.invoiceHeadTax2Amt,
@@ -1014,8 +1022,8 @@ class InvoiceHeaderRepositoryImpl(
                 null,//round
                 invoiceHeader.invoiceHeadTotal1,
                 1,//rate first
-                invoiceHeader.invoiceHeadRate,//rate seconds
-                1,//rate tax
+                1 / invoiceHeader.invoiceHeadRate,//rate seconds
+                getRateTax(),//rate tax
                 0,//tips
                 invoiceHeader.invoiceHeadTableId ?: invoiceHeader.invoiceHeadTaName,
                 invoiceHeader.invoiceHeadClientsCount,
@@ -1029,7 +1037,7 @@ class InvoiceHeaderRepositoryImpl(
                 null,//hi_pathtodoc
                 null,//hi_cashback
                 1,//hi_ratetaxf
-                invoiceHeader.invoiceHeadRate,//hi_ratetaxs
+                1 / invoiceHeader.invoiceHeadRate,//hi_ratetaxs
                 invoiceHeader.invoiceHeadTaxAmt,
                 invoiceHeader.invoiceHeadTax1Amt,
                 invoiceHeader.invoiceHeadTax2Amt,
@@ -1039,5 +1047,15 @@ class InvoiceHeaderRepositoryImpl(
             "updin_hinvoice",
             parameters
         )
+    }
+
+    private fun getRateTax(): Double {
+        val fallback = 1.0
+        val taxCurrency = SettingsModel.currentCompany?.companyCurCodeTax ?: return fallback
+        val secondCurrency = SettingsModel.currentCurrency?.currencyDocumentId ?: return fallback
+        if (taxCurrency == secondCurrency) {
+            return 1.0 / (SettingsModel.currentCurrency?.currencyRate ?: 1.0)
+        }
+        return fallback
     }
 }
