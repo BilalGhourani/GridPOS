@@ -115,35 +115,58 @@ class CurrencyRepositoryImpl(
                 }
 
                 if (currency.currencyId.isNotEmpty() && !currency.currencyDocumentId.isNullOrEmpty()) {
-                    val timestamp = Timestamp.valueOf(
-                        DateHelper.getDateInFormat(
-                            Date(),
-                            "yyyy-MM-dd HH:mm:ss"
-                        )
+                    currency.currencyRate = getRate(
+                        currency.currencyId,
+                        currency.currencyDocumentId!!
                     )
-                    val rateDbResult = SQLServerWrapper.selectFromProcedure(
-                        "getrate",
-                        listOf(
-                            "'${currency.currencyId}'",
-                            "'${currency.currencyDocumentId!!}'",
-                            "'$timestamp'"
-                        )
-                    )
-                    try {
-                        rateDbResult?.let {
-                            if (it.next()) {
-                                currency.currencyRate = it.getDoubleValue("getrate")
-                            }
-                            SQLServerWrapper.closeResultSet(it)
-                        }
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    }
                 }
 
                 mutableListOf(currency)
             }
         }
+    }
 
+    override suspend fun getRate(
+            firstCurr: String,
+            secondCurr: String
+    ): Double {
+        return when (SettingsModel.connectionType) {
+            CONNECTION_TYPE.FIRESTORE.key -> {
+                return SettingsModel.currentCurrency?.currencyRate ?: 1.0
+            }
+
+            CONNECTION_TYPE.LOCAL.key -> {
+                return SettingsModel.currentCurrency?.currencyRate ?: 1.0
+            }
+
+            else -> {
+                var result = 1.0
+                val timestamp = Timestamp.valueOf(
+                    DateHelper.getDateInFormat(
+                        Date(),
+                        "yyyy-MM-dd HH:mm:ss"
+                    )
+                )
+                val rateDbResult = SQLServerWrapper.selectFromProcedure(
+                    "getrate",
+                    listOf(
+                        "'${firstCurr}'",
+                        "'${secondCurr}'",
+                        "'$timestamp'"
+                    )
+                )
+                try {
+                    rateDbResult?.let {
+                        if (it.next()) {
+                            result = it.getDoubleValue("getrate")
+                        }
+                        SQLServerWrapper.closeResultSet(it)
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+                result
+            }
+        }
     }
 }

@@ -33,7 +33,7 @@ class ManageCurrenciesViewModel @Inject constructor(
     private fun fetchCurrencies() {
         SettingsModel.currentCurrency?.let {
             manageCurrenciesState.value = manageCurrenciesState.value.copy(
-                selectedCurrency = it,
+                selectedCurrency = it.copy(),
                 fillFields = true,
                 isLoading = false
             )
@@ -49,7 +49,7 @@ class ManageCurrenciesViewModel @Inject constructor(
             openConnectionIfNeeded()
             val currencies = currencyRepository.getAllCurrencies()
             val currency = if (currencies.size > 0) currencies[0] else Currency()
-            SettingsModel.currentCurrency = currency
+            SettingsModel.currentCurrency = currency.copy()
             withContext(Dispatchers.Main) {
                 manageCurrenciesState.value = manageCurrenciesState.value.copy(
                     selectedCurrency = currency,
@@ -88,7 +88,7 @@ class ManageCurrenciesViewModel @Inject constructor(
             if (isInserting) {
                 currency.prepareForInsert()
                 val addedCurr = currencyRepository.insert(currency)
-                SettingsModel.currentCurrency = addedCurr
+                SettingsModel.currentCurrency = addedCurr.copy()
                 withContext(Dispatchers.Main) {
                     manageCurrenciesState.value = manageCurrenciesState.value.copy(
                         selectedCurrency = addedCurr,
@@ -101,7 +101,7 @@ class ManageCurrenciesViewModel @Inject constructor(
                 currencyRepository.update(
                     currency
                 )
-                SettingsModel.currentCurrency = currency
+                SettingsModel.currentCurrency = currency.copy()
                 withContext(Dispatchers.Main) {
                     manageCurrenciesState.value = manageCurrenciesState.value.copy(
                         selectedCurrency = currency,
