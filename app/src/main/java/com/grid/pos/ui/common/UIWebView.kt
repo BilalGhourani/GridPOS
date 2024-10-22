@@ -26,10 +26,15 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import com.grid.pos.ActivityScopedViewModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.theme.GridPOSTheme
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -113,11 +118,18 @@ fun UIWebView(
                             .padding(10.dp),
                         text = "Print"
                     ) {
-                        activityViewModel.print(
-                            context = context,
-                            printInvoice = true,
-                            reportResult = reportResultState.value
-                        )
+                        activityViewModel.showLoading(true)
+                        CoroutineScope(Dispatchers.Default).launch {
+                            activityViewModel.print(
+                                context = context,
+                                printInvoice = true,
+                                reportResult = reportResultState.value
+                            )
+                            withContext(Dispatchers.Main){
+                                activityViewModel.showLoading(false)
+                                handleBack()
+                            }
+                        }
                     }
                 }
             }

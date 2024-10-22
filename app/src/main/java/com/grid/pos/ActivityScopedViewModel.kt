@@ -177,7 +177,7 @@ class ActivityScopedViewModel @Inject constructor(
         printers = posPrinterRepository.getAllPosPrinters()
     }
 
-     suspend fun updateRealItemPrice(item: Item): Double {
+    suspend fun updateRealItemPrice(item: Item): Double {
         if (item.itemRealUnitPrice > 0.0 || item.itemCurrencyId.isNullOrEmpty()) {
             return item.itemRealUnitPrice
         }
@@ -186,9 +186,11 @@ class ActivityScopedViewModel @Inject constructor(
             currency.currencyDocumentId -> {//second currency
                 item.itemRealUnitPrice = item.itemUnitPrice.div(currency.currencyRate)
             }
+
             currency.currencyId -> {//first currency
                 item.itemRealUnitPrice = item.itemUnitPrice
             }
+
             else -> {
                 withContext(Dispatchers.Main) {
                     showLoading(true)
@@ -217,43 +219,41 @@ class ActivityScopedViewModel @Inject constructor(
         isFromTable = false
     }
 
-    fun print(
+    suspend fun print(
             context: Context,
             printInvoice: Boolean,
             reportResult: ReportResult? = null
     ) {
-        viewModelScope.launch(Dispatchers.Default) {
-            val thirdParty = if (invoiceHeader.invoiceHeadThirdPartyName.isNullOrEmpty()) {
-                thirdParties.firstOrNull { it.thirdPartyDefault }
-            } else {
-                thirdParties.firstOrNull {
-                    it.thirdPartyId == invoiceHeader.invoiceHeadThirdPartyName
-                }
+        val thirdParty = if (invoiceHeader.invoiceHeadThirdPartyName.isNullOrEmpty()) {
+            thirdParties.firstOrNull { it.thirdPartyDefault }
+        } else {
+            thirdParties.firstOrNull {
+                it.thirdPartyId == invoiceHeader.invoiceHeadThirdPartyName
             }
-            val user = if (invoiceHeader.invoiceHeadUserStamp.isNullOrEmpty()) {
-                null
-            } else if (SettingsModel.currentUser?.userId.equals(invoiceHeader.invoiceHeadUserStamp)) {
-                SettingsModel.currentUser
-            } else {
-                users.firstOrNull {
-                    it.userId == invoiceHeader.invoiceHeadUserStamp
-                }
-            }
-            val invoiceItems = invoiceItemModels.toMutableList()
-            invoiceItems.addAll(deletedInvoiceItems)
-            PrinterUtils.print(
-                context,
-                invoiceHeader,
-                invoiceItems,
-                posReceipt,
-                thirdParty,
-                user,
-                SettingsModel.currentCompany,
-                printers,
-                reportResult,
-                printInvoice
-            )
         }
+        val user = if (invoiceHeader.invoiceHeadUserStamp.isNullOrEmpty()) {
+            null
+        } else if (SettingsModel.currentUser?.userId.equals(invoiceHeader.invoiceHeadUserStamp)) {
+            SettingsModel.currentUser
+        } else {
+            users.firstOrNull {
+                it.userId == invoiceHeader.invoiceHeadUserStamp
+            }
+        }
+        val invoiceItems = invoiceItemModels.toMutableList()
+        invoiceItems.addAll(deletedInvoiceItems)
+        PrinterUtils.print(
+            context,
+            invoiceHeader,
+            invoiceItems,
+            posReceipt,
+            thirdParty,
+            user,
+            SettingsModel.currentCompany,
+            printers,
+            reportResult,
+            printInvoice
+        )
     }
 
     fun getInvoiceReceiptHtmlContent(context: Context): ReportResult {
