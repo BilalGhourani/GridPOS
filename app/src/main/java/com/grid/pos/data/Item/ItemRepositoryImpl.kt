@@ -63,15 +63,6 @@ class ItemRepositoryImpl(
                         val obj = document.toObject(Item::class.java)
                         if (obj.itemId.isNotEmpty()) {
                             obj.itemDocumentId = document.id
-                            obj.itemRealUnitPrice = if (currency != null) {
-                                if (obj.itemCurrencyId == currency.currencyCode2) {//second currency
-                                    obj.itemUnitPrice.div(currency.currencyRate)
-                                } else {
-                                    obj.itemUnitPrice
-                                }
-                            } else {
-                                obj.itemUnitPrice
-                            }
                             items.add(obj)
                         }
                     }
@@ -80,20 +71,7 @@ class ItemRepositoryImpl(
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
-                val itemList = itemDao.getAllItems(SettingsModel.getCompanyID() ?: "")
-                val currency = SettingsModel.currentCurrency
-                itemList.forEach {
-                    it.itemRealUnitPrice = if (currency != null) {
-                        if (it.itemCurrencyId == currency.currencyCode2) {//second currency
-                            it.itemUnitPrice.div(currency.currencyRate)
-                        } else {
-                            it.itemUnitPrice
-                        }
-                    } else {
-                        it.itemUnitPrice
-                    }
-                }
-                return itemList
+                return itemDao.getAllItems(SettingsModel.getCompanyID() ?: "")
             }
 
             else -> {
@@ -153,15 +131,7 @@ class ItemRepositoryImpl(
                                 itemCurrencyId = it.getStringValue("it_cur_code")
                                 itemUnitPrice = it.getDoubleValue("it_unitprice")
                                 itemOpenCost = it.getDoubleValue("it_cost")
-                                itemRealUnitPrice = if (currency != null) {
-                                    if (itemCurrencyId == currency.currencyDocumentId) {//second currency
-                                        itemUnitPrice.div(currency.currencyRate)
-                                    } else {
-                                        itemUnitPrice
-                                    }
-                                } else {
-                                    itemUnitPrice
-                                }
+                                itemRealUnitPrice = 0.0
                             })
                         }
                         SQLServerWrapper.closeResultSet(it)

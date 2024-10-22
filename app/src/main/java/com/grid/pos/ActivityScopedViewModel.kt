@@ -177,6 +177,35 @@ class ActivityScopedViewModel @Inject constructor(
         printers = posPrinterRepository.getAllPosPrinters()
     }
 
+     suspend fun updateRealItemPrice(item: Item): Double {
+        if (item.itemRealUnitPrice > 0.0 || item.itemCurrencyId.isNullOrEmpty()) {
+            return item.itemRealUnitPrice
+        }
+        val currency = SettingsModel.currentCurrency ?: return item.itemUnitPrice
+        when (item.itemCurrencyId) {
+            currency.currencyDocumentId -> {//second currency
+                item.itemRealUnitPrice = item.itemUnitPrice.div(currency.currencyRate)
+            }
+            currency.currencyId -> {//first currency
+                item.itemRealUnitPrice = item.itemUnitPrice
+            }
+            else -> {
+                withContext(Dispatchers.Main) {
+                    showLoading(true)
+                }
+                val rate = currencyRepository.getRate(
+                    currency.currencyId,
+                    item.itemCurrencyId!!
+                )
+                item.itemRealUnitPrice = item.itemUnitPrice.div(rate)
+                withContext(Dispatchers.Main) {
+                    showLoading(false)
+                }
+            }
+        }
+        return item.itemRealUnitPrice
+    }
+
     fun clearPosValues() {
         invoiceItemModels = mutableListOf()
         initialInvoiceItemModels = mutableListOf()

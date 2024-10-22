@@ -509,29 +509,34 @@ fun POSView(
                                         object : OnBarcodeResult {
                                             override fun OnBarcodeResult(barcodesList: List<String>) {
                                                 if (barcodesList.isNotEmpty()) {
-                                                    val map: Map<String, Int> = barcodesList.groupingBy { barcode -> barcode }
-                                                        .eachCount()
-                                                    val barcodes = barcodesList.joinToString(",")
-                                                    val items = state.items.filter { item ->
-                                                        item.itemBarcode?.let { barcode ->
-                                                            barcodes.contains(
-                                                                barcode,
-                                                                ignoreCase = true
-                                                            )
-                                                        } ?: false
-                                                    }
-                                                    items.forEach { itm ->
-                                                        val count = itm.itemBarcode?.let { barcode -> map[barcode] } ?: 1
-                                                        for (i in 0 until count) {
-                                                            val invoiceItemModel = InvoiceItemModel()
-                                                            invoiceItemModel.setItem(itm)
-                                                            invoiceItemModel.shouldPrint = true
-                                                            invoicesState.add(invoiceItemModel)
-                                                            activityViewModel.invoiceItemModels = invoicesState
-                                                            invoiceHeaderState.value = POSUtils.refreshValues(
-                                                                activityViewModel.invoiceItemModels,
-                                                                invoiceHeaderState.value
-                                                            )
+                                                    CoroutineScope(Dispatchers.Main).launch {
+                                                        val map: Map<String, Int> = barcodesList.groupingBy { barcode -> barcode }
+                                                            .eachCount()
+                                                        val barcodes = barcodesList.joinToString(",")
+                                                        val items = state.items.filter { item ->
+                                                            item.itemBarcode?.let { barcode ->
+                                                                barcodes.contains(
+                                                                    barcode,
+                                                                    ignoreCase = true
+                                                                )
+                                                            } ?: false
+                                                        }
+                                                        items.forEach { itm ->
+                                                            val count = itm.itemBarcode?.let { barcode -> map[barcode] } ?: 1
+                                                            for (i in 0 until count) {
+                                                                withContext(Dispatchers.IO) {
+                                                                    itm.itemRealUnitPrice = activityViewModel.updateRealItemPrice(itm)
+                                                                }
+                                                                val invoiceItemModel = InvoiceItemModel()
+                                                                invoiceItemModel.setItem(itm)
+                                                                invoiceItemModel.shouldPrint = true
+                                                                invoicesState.add(invoiceItemModel)
+                                                                activityViewModel.invoiceItemModels = invoicesState
+                                                                invoiceHeaderState.value = POSUtils.refreshValues(
+                                                                    activityViewModel.invoiceItemModels,
+                                                                    invoiceHeaderState.value
+                                                                )
+                                                            }
                                                         }
                                                     }
                                                 }
@@ -614,32 +619,37 @@ fun POSView(
                                 )
                             },
                             onItemSelected = { item ->
-                                isInvoiceEdited = true
-                                var proceed = true
-                                if (item.itemRemQty <= 0) {
-                                    proceed = SettingsModel.allowOutOfStockSale
-                                    if (SettingsModel.showItemQtyAlert) {
-                                        activityViewModel.showPopup(
-                                            true,
-                                            PopupModel(
-                                                dialogText = "Not enough stock available for ${item.itemName}. Please adjust the quantity.",
-                                                positiveBtnText = "Close",
-                                                negativeBtnText = null
+                                CoroutineScope(Dispatchers.Main).launch {
+                                    isInvoiceEdited = true
+                                    var proceed = true
+                                    if (item.itemRemQty <= 0) {
+                                        proceed = SettingsModel.allowOutOfStockSale
+                                        if (SettingsModel.showItemQtyAlert) {
+                                            activityViewModel.showPopup(
+                                                true,
+                                                PopupModel(
+                                                    dialogText = "Not enough stock available for ${item.itemName}. Please adjust the quantity.",
+                                                    positiveBtnText = "Close",
+                                                    negativeBtnText = null
+                                                )
                                             )
-                                        )
+                                        }
                                     }
-                                }
-                                if (proceed) {
-                                    val invoiceItemModel = InvoiceItemModel()
-                                    invoiceItemModel.setItem(item)
-                                    invoiceItemModel.shouldPrint = true
-                                    invoicesState.add(invoiceItemModel)
-                                    activityViewModel.invoiceItemModels = invoicesState
-                                    invoiceHeaderState.value = POSUtils.refreshValues(
-                                        activityViewModel.invoiceItemModels,
-                                        invoiceHeaderState.value
-                                    )
-                                    isAddItemBottomSheetVisible = false
+                                    if (proceed) {
+                                        withContext(Dispatchers.IO) {
+                                            item.itemRealUnitPrice = activityViewModel.updateRealItemPrice(item)
+                                        }
+                                        val invoiceItemModel = InvoiceItemModel()
+                                        invoiceItemModel.setItem(item)
+                                        invoiceItemModel.shouldPrint = true
+                                        invoicesState.add(invoiceItemModel)
+                                        activityViewModel.invoiceItemModels = invoicesState
+                                        invoiceHeaderState.value = POSUtils.refreshValues(
+                                            activityViewModel.invoiceItemModels,
+                                            invoiceHeaderState.value
+                                        )
+                                        isAddItemBottomSheetVisible = false
+                                    }
                                 }
                             },
                             onThirdPartySelected = { thirdParty ->

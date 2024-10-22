@@ -28,7 +28,6 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.grid.pos.ActivityScopedViewModel
@@ -38,13 +37,14 @@ import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.family.CategoryListCell
 import com.grid.pos.ui.item.ItemListCell
-import com.grid.pos.ui.theme.GridPOSTheme
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @Composable
 fun AddInvoiceItemView(
-        activityViewModel: ActivityScopedViewModel? = null,
+        activityViewModel: ActivityScopedViewModel,
         categories: MutableList<Family> = mutableListOf(),
         items: MutableList<Item> = mutableListOf(),
         modifier: Modifier = Modifier,
@@ -103,32 +103,37 @@ fun AddInvoiceItemView(
             ItemListCell(items = familyItems.toMutableList(),
                 notifyDirectly = notifyDirectly,
                 onClick = { item ->
-                    var proceed = true
-                    if (item.itemRemQty <= 0) {
-                        proceed = SettingsModel.allowOutOfStockSale
-                        if (SettingsModel.showItemQtyAlert) {
-                            activityViewModel?.showPopup(
-                                true,
-                                PopupModel(
-                                    dialogText = "Not enough stock available for ${item.itemName}. Please adjust the quantity.",
-                                    positiveBtnText = "Close",
-                                    negativeBtnText = null
+                    CoroutineScope(Dispatchers.Main).launch {
+                        var proceed = true
+                        if (item.itemRemQty <= 0) {
+                            proceed = SettingsModel.allowOutOfStockSale
+                            if (SettingsModel.showItemQtyAlert) {
+                                activityViewModel.showPopup(
+                                    true,
+                                    PopupModel(
+                                        dialogText = "Not enough stock available for ${item.itemName}. Please adjust the quantity.",
+                                        positiveBtnText = "Close",
+                                        negativeBtnText = null
+                                    )
                                 )
-                            )
-                        }
-                    }
-                    if (proceed) {
-                        if (notifyDirectly) {
-                            onSelect.invoke(listOf(item))
-                        } else {
-                            if (item.selected) {
-                                itemsState.add(item)
-                            } else {
-                                itemsState.remove(item)
                             }
                         }
-                    }else{
-                        item.selected = false
+                        if (proceed) {
+                            withContext(Dispatchers.IO) {
+                                item.itemRealUnitPrice = activityViewModel.updateRealItemPrice(item)
+                            }
+                            if (notifyDirectly) {
+                                onSelect.invoke(listOf(item))
+                            } else {
+                                if (item.selected) {
+                                    itemsState.add(item)
+                                } else {
+                                    itemsState.remove(item)
+                                }
+                            }
+                        } else {
+                            item.selected = false
+                        }
                     }
                 })
         }
@@ -161,13 +166,5 @@ fun AddInvoiceItemView(
                 )*/
             }
         }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun AddInvoiceItemViewPreview() {
-    GridPOSTheme {
-        AddInvoiceItemView()
     }
 }

@@ -26,8 +26,6 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
@@ -81,11 +79,11 @@ class BarcodeScannerActivity : ComponentActivity() {
             intent.getSerializableExtra(
                 "items",
                 ArrayList::class.java
-            ) as? ArrayList<Item>
+            )
         } else {
-            intent.getSerializableExtra("items") as? ArrayList<Item>
+            intent.getSerializableExtra("items") as? ArrayList<*>
         }
-        itemsMap = items?.map { (it.itemBarcode ?: "-") to it }?.toMap()
+        itemsMap = items?.associate { ((it as Item).itemBarcode ?: "-") to it }
         mMediaPlayer = MediaPlayer.create(
             this,
             com.google.zxing.client.android.R.raw.zxing_beep
@@ -152,19 +150,34 @@ class BarcodeScannerActivity : ComponentActivity() {
                                             }
 
                                         } else {
-                                            barcodeScannedList.add(result)
                                             scope.launch {
-                                                isPopupShown = true
-                                                popupModelState.value = PopupModel().apply {
-                                                    dialogText = "Scan next?"
-                                                    positiveBtnText = "Scan"
-                                                    negativeBtnText = "Exit"
-                                                    height = 100.dp
+                                                val item = itemsMap?.get(result)
+                                                var proceed = true
+                                                if (item != null && item.itemRemQty <= 0) {
+                                                    proceed = SettingsModel.allowOutOfStockSale
+                                                    if (SettingsModel.showItemQtyAlert) {
+                                                        isPopupShown = true
+                                                        popupModelState.value = PopupModel(
+                                                            dialogText = "Not enough stock available for ${item.itemName}. Please adjust the quantity.",
+                                                            positiveBtnText = "Close",
+                                                            negativeBtnText = null
+                                                        )
+                                                    }
                                                 }
-                                                snackbarHostState.showSnackbar(
-                                                    message = result,
-                                                    duration = SnackbarDuration.Short,
-                                                )
+                                                if (proceed) {
+                                                    barcodeScannedList.add(result)
+                                                    isPopupShown = true
+                                                    popupModelState.value = PopupModel().apply {
+                                                        dialogText = "Scan next?"
+                                                        positiveBtnText = "Scan"
+                                                        negativeBtnText = "Exit"
+                                                        height = 100.dp
+                                                    }
+                                                    snackbarHostState.showSnackbar(
+                                                        message = result,
+                                                        duration = SnackbarDuration.Short,
+                                                    )
+                                                }
                                             }
                                         }
                                     }
