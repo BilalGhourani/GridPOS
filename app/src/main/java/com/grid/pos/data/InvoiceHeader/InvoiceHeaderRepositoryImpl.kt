@@ -66,7 +66,7 @@ class InvoiceHeaderRepositoryImpl(
                             ),
                             listOf(
                                 if (isFinished) null else invoiceHeader.invoiceHeadId,
-                                if (isFinished) "Completed" else "Busy",
+                                if (isFinished) "Completed" else null,
                             ),
                             " ta_name = '${invoiceHeader.invoiceHeadTableId}'"
                         )
@@ -115,7 +115,7 @@ class InvoiceHeaderRepositoryImpl(
                             listOf(
                                 invoiceHeader.invoiceHeadTaName,
                                 if (isFinished) null else invoiceHeader.invoiceHeadId,
-                                if (isFinished) "Completed" else "Busy",
+                                if (isFinished) "Completed" else null,
                                 "table",
                                 DateHelper.getDateInFormat(
                                     Date(invoiceHeader.invoiceHeadDateTime),
@@ -204,29 +204,50 @@ class InvoiceHeaderRepositoryImpl(
                             " ta_name = '${invoiceHeader.invoiceHeadTableId}'"
                         )
                     } else {
-                        SQLServerWrapper.update(
-                            "pos_table",
-                            listOf(
-                                "ta_status",
-                                "ta_hiid",
-                                "ta_timestamp",
-                                "ta_userstamp"
-                            ),
-                            listOf(
-                                if (isFinished) "Completed" else "Busy",
-                                if (isFinished) null else invoiceHeader.invoiceHeadId,
-                                DateHelper.getDateInFormat(
-                                    Date(invoiceHeader.invoiceHeadDateTime),
-                                    "yyyy-MM-dd hh:mm:ss.SSS"
+                        if (SettingsModel.isSqlServerWebDb) {
+                            SQLServerWrapper.update(
+                                "pos_table",
+                                listOf(
+                                    "ta_status",
+                                    "ta_hiid",
+                                    "ta_timestamp",
+                                    "ta_userstamp"
                                 ),
-                                SettingsModel.currentUser?.userName
-                            ),
-                            if (SettingsModel.isSqlServerWebDb) {
+                                listOf(
+                                    if (isFinished) "Completed" else "Busy",
+                                    if (isFinished) null else invoiceHeader.invoiceHeadId,
+                                    DateHelper.getDateInFormat(
+                                        Date(invoiceHeader.invoiceHeadDateTime),
+                                        "yyyy-MM-dd hh:mm:ss.SSS"
+                                    ),
+                                    SettingsModel.currentUser?.userName
+                                ),
+
                                 "ta_name = '${invoiceHeader.invoiceHeadTableId}'"
-                            } else {
+                            )
+                        } else {
+                            SQLServerWrapper.update(
+                                "pos_table",
+                                listOf(
+                                    "ta_status",
+                                    "ta_hiid",
+                                    "ta_timestamp",
+                                    "ta_userstamp"
+                                ),
+                                listOf(
+                                    if (isFinished) "Completed" else null,
+                                    if (isFinished) null else invoiceHeader.invoiceHeadId,
+                                    DateHelper.getDateInFormat(
+                                        Date(invoiceHeader.invoiceHeadDateTime),
+                                        "yyyy-MM-dd hh:mm:ss.SSS"
+                                    ),
+                                    SettingsModel.currentUser?.userName
+                                ),
+
                                 "ta_name = '${invoiceHeader.invoiceHeadTaName}'"
-                            }
-                        )
+                            )
+                        }
+
                     }
                 }
                 updateByProcedure(invoiceHeader)
