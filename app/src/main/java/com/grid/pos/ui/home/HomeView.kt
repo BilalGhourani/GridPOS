@@ -153,6 +153,51 @@ fun HomeView(
                         }
                     }
                 }
+               /* item {
+                    Button(modifier = modifier.width(120.dp).wrapContentHeight().padding(
+                        horizontal = 3.dp,
+                        vertical = 5.dp
+                    ),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color.Transparent,
+                        ),
+                        contentPadding = PaddingValues(0.dp),
+                        shape = RoundedCornerShape(15.dp),
+                        onClick = {
+                            navController?.navigate("SettingsView")
+                        }) {
+                        Column(
+                            modifier = Modifier
+                                .border(1.dp, Color.Black, RoundedCornerShape(15.dp)),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Spacer(modifier = Modifier.height(10.dp))
+                            Icon(
+                                modifier = Modifier
+                                    .size(60.dp),
+                                painter = painterResource(R.drawable.ic_settings),
+                                contentDescription = "icon",
+                                tint = SettingsModel.buttonColor
+                            )
+                            Spacer(modifier = Modifier.height(10.dp))
+                            Text(
+                                text = "Bilal",
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(40.dp),
+                                style = TextStyle(
+                                    textDecoration = TextDecoration.None,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 16.sp
+                                ),
+                                color = SettingsModel.textColor,
+                                textAlign = TextAlign.Center
+                            )
+
+                        }
+                    }
+                }*/
             }
         }
     }
