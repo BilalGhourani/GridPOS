@@ -37,7 +37,6 @@ import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.family.CategoryListCell
 import com.grid.pos.ui.item.ItemListCell
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -103,7 +102,7 @@ fun AddInvoiceItemView(
             ItemListCell(items = familyItems.toMutableList(),
                 notifyDirectly = notifyDirectly,
                 onClick = { item ->
-                    CoroutineScope(Dispatchers.Main).launch {
+                    scope.launch {
                         var proceed = true
                         if (item.itemRemQty <= 0) {
                             proceed = SettingsModel.allowOutOfStockSale

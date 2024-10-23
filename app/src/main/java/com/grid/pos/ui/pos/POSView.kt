@@ -86,7 +86,6 @@ import com.grid.pos.ui.pos.components.InvoiceHeaderDetails
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.utils.PrinterUtils
 import com.grid.pos.utils.Utils
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -241,15 +240,17 @@ fun POSView(
                         .toMutableList()
                     invoices.addAll(state.itemsToDelete)
                     if (invoices.isNotEmpty()) {
-                        CoroutineScope(Dispatchers.Default).launch {
-                            activityViewModel.invoiceHeader = invoiceHeaderState.value
-                            cashLoadedData()
-                            PrinterUtils.printTickets(
-                                context = context,
-                                invoiceHeader = invoiceHeaderState.value,
-                                invoiceItemModels = invoices,
-                                printers = activityViewModel.printers
-                            )
+                        scope.launch {
+                            withContext(Dispatchers.Default) {
+                                activityViewModel.invoiceHeader = invoiceHeaderState.value
+                                cashLoadedData()
+                                PrinterUtils.printTickets(
+                                    context = context,
+                                    invoiceHeader = invoiceHeaderState.value,
+                                    invoiceItemModels = invoices,
+                                    printers = activityViewModel.printers
+                                )
+                            }
                             withContext(Dispatchers.Main) {
                                 state.isLoading = false
                                 clear()
@@ -509,7 +510,7 @@ fun POSView(
                                         object : OnBarcodeResult {
                                             override fun OnBarcodeResult(barcodesList: List<String>) {
                                                 if (barcodesList.isNotEmpty()) {
-                                                    CoroutineScope(Dispatchers.Main).launch {
+                                                    scope.launch {
                                                         val map: Map<String, Int> = barcodesList.groupingBy { barcode -> barcode }
                                                             .eachCount()
                                                         val barcodes = barcodesList.joinToString(",")
@@ -619,7 +620,7 @@ fun POSView(
                                 )
                             },
                             onItemSelected = { item ->
-                                CoroutineScope(Dispatchers.Main).launch {
+                                scope.launch {
                                     isInvoiceEdited = true
                                     var proceed = true
                                     if (item.itemRemQty <= 0) {
