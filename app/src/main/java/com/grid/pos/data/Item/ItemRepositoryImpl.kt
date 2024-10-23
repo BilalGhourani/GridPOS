@@ -81,12 +81,16 @@ class ItemRepositoryImpl(
                         SQLServerWrapper.getListOf(
                             "st_item",
                             "",
-                            mutableListOf("*"),
-                            "it_cmp_id='${SettingsModel.getCompanyID()}'"
+                            mutableListOf(
+                                "st_item.*",
+                                "currency.cur_newcode"
+                            ),
+                            "it_cmp_id='${SettingsModel.getCompanyID()}'",
+                            "INNER JOIN currency on it_cur_code = cur_code"
                         )
                     } else {
                         SQLServerWrapper.getQueryResult(
-                            "select st_item.*,1 it_pos from st_item,pos_itembutton,pos_groupbutton,pos_station_groupbutton " + "where it_id=ib_it_id and ib_gb_id=gb_id and gb_id=psg_gb_id and psg_sta_name='.' " + "union " + "select *,0 it_pos from st_item where it_id not in (select ib_it_id from pos_itembutton,pos_groupbutton,pos_station_groupbutton " + "where ib_gb_id=gb_id and gb_id=psg_gb_id and psg_sta_name='.')"
+                            "select st_item.*,1 it_pos from st_item,pos_itembutton,pos_groupbutton,pos_station_groupbutton  where it_id=ib_it_id and ib_gb_id=gb_id and gb_id=psg_gb_id and psg_sta_name='.'  union select *,0 it_pos from st_item where it_id not in (select ib_it_id from pos_itembutton,pos_groupbutton,pos_station_groupbutton where ib_gb_id=gb_id and gb_id=psg_gb_id and psg_sta_name='.')"
                         )
                     }
                     val currency = SettingsModel.currentCurrency
@@ -129,6 +133,8 @@ class ItemRepositoryImpl(
                                 itemDateTime = itemTimeStamp!!.time
                                 itemUserStamp = it.getStringValue("it_userstamp")
                                 itemCurrencyId = it.getStringValue("it_cur_code")
+                                itemCurrencyCode = if (SettingsModel.isSqlServerWebDb) it.getStringValue("cur_newcode")
+                                else it.getStringValue("it_cur_code")
                                 itemUnitPrice = it.getDoubleValue("it_unitprice")
                                 itemOpenCost = it.getDoubleValue("it_cost")
                                 itemRealUnitPrice = 0.0

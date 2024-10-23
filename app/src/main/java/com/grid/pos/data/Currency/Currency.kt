@@ -7,6 +7,7 @@ import androidx.room.PrimaryKey
 import com.google.firebase.firestore.Exclude
 import com.google.firebase.firestore.PropertyName
 import com.grid.pos.data.DataModel
+import com.grid.pos.data.Item.Item
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.Utils
 
@@ -138,13 +139,16 @@ data class Currency(
     }
 
     @Exclude
-    fun getCurrencyCode(currId: String?): String? {
-        if (currId.isNullOrEmpty()) {
+    fun getCurrencyCode(item: Item): String? {
+        if (!item.itemCurrencyCode.isNullOrEmpty()) {
+            return item.itemCurrencyCode
+        }
+        if (item.itemCurrencyId.isNullOrEmpty()) {
             return currencyCode1
         }
-        if (currId == currencyCode1 || currId == currencyId) {
+        if (item.itemCurrencyId == currencyCode1 || item.itemCurrencyId == currencyId) {
             return currencyCode1
-        } else if (currId == currencyCode2 || currId == currencyDocumentId) {
+        } else if (item.itemCurrencyId == currencyCode2 || item.itemCurrencyId == currencyDocumentId) {
             return currencyCode2
         }
         return null

@@ -88,6 +88,10 @@ data class Item(
         @get:PropertyName("it_cur_code")
         var itemCurrencyId: String? = null,
 
+        @Ignore
+        @get:Exclude
+        var itemCurrencyCode: String? = null,
+
         /**
          * Item tax
          * */
