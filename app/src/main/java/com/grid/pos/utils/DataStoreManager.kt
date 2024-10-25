@@ -209,7 +209,7 @@ object DataStoreManager {
         )
         SettingsModel.defaultReportLanguage = getString(
             DataStoreKeys.REPORT_LANGUAGE.key,
-            Language.ENGLISH.code
+            Language.ENGLISH.value
         )
         SettingsModel.showTax = getBoolean(
             DataStoreKeys.SHOW_TAX.key,

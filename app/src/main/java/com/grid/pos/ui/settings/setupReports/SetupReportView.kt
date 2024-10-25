@@ -5,7 +5,6 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -14,7 +13,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.RemoveCircleOutline
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -41,7 +39,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.grid.pos.ActivityScopedViewModel
 import com.grid.pos.interfaces.OnGalleryResult
@@ -53,7 +50,6 @@ import com.grid.pos.model.ReportLanguage
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.SearchableDropdownMenuEx
 import com.grid.pos.ui.common.UIButton
-import com.grid.pos.ui.common.UITextField
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.utils.FileUtils
 import com.grid.pos.utils.Utils

@@ -104,14 +104,6 @@ object Utils {
         )
     }
 
-    fun getReportCountry(): MutableList<ReportCountry> {
-        val result = mutableListOf<ReportCountry>()
-        Country.entries.forEach {
-            result.add(ReportCountry(it.code,it.value))
-        }
-        return result
-    }
-
     fun getReportLanguages(withDefault: Boolean): MutableList<ReportLanguage> {
         val result = mutableListOf<ReportLanguage>()
         Language.entries.forEach {
@@ -123,14 +115,18 @@ object Utils {
         return result
     }
 
-    fun getLanguageByCode(code: String): Language {
-        Language.entries.forEach {
-            if (it.code == code) {
-                return it
-            }
+
+    fun getReportCountries(withDefault: Boolean): MutableList<ReportCountry> {
+        val result = mutableListOf<ReportCountry>()
+        Country.entries.forEach {
+            result.add(ReportCountry(it.code,it.value))
         }
-        return Language.DEFAULT
+        if (!withDefault) {
+            result.removeAt(0)
+        }
+        return result
     }
+
 
     fun generateRandomUuidString(): String {
         if (!SettingsModel.isSqlServerWebDb && SettingsModel.connectionType == CONNECTION_TYPE.SQL_SERVER.key) {

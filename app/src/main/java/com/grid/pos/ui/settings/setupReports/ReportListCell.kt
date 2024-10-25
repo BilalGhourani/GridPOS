@@ -56,7 +56,7 @@ fun ReportListCell(
                 modifier = Modifier
                     .weight(1f)
                     .wrapContentHeight(),
-                maxLines = 1,
+                maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
                 textAlign = TextAlign.Start,
                 style = TextStyle(

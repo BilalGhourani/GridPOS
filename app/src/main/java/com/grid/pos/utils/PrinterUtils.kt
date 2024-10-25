@@ -40,7 +40,6 @@ import java.io.ByteArrayOutputStream
 import java.io.OutputStream
 import java.net.Socket
 import java.util.Date
-import java.util.Locale
 
 object PrinterUtils {
 

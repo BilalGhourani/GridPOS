@@ -6,6 +6,7 @@ import com.grid.pos.model.Country
 import com.grid.pos.model.ReportCountry
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.Extension.getStringValue
+import com.grid.pos.utils.Utils
 
 class SettingsRepositoryImpl : SettingsRepository {
     override suspend fun getTransactionTypeId(type: String): String? {
@@ -179,30 +180,17 @@ class SettingsRepositoryImpl : SettingsRepository {
     override suspend fun getCountries(): MutableList<ReportCountry> {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
-                return mutableListOf(
-                    ReportCountry(
-                        Country.DEFAULT.code,
-                        Country.DEFAULT.value
-                    )
-                )
+                return Utils.getReportCountries(true)
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
-                return mutableListOf(
-                    ReportCountry(
-                        Country.DEFAULT.code,
-                        Country.DEFAULT.value
-                    )
-                )
+                return Utils.getReportCountries(true)
             }
 
             else -> {
                 if (SettingsModel.isSqlServerWebDb) {
                     val result: MutableList<ReportCountry> = mutableListOf(
-                        ReportCountry(
-                            Country.DEFAULT.code,
-                            Country.DEFAULT.value
-                        )
+                        ReportCountry("Default","Default")
                     )
                     try {
                         val dbResult = SQLServerWrapper.getListOf(
