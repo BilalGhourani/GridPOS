@@ -215,12 +215,7 @@ class SettingsRepositoryImpl : SettingsRepository {
                     }
                     return result
                 } else {
-                    return mutableListOf(
-                        ReportCountry(
-                            Country.DEFAULT.code,
-                            Country.DEFAULT.value
-                        )
-                    )
+                    return Utils.getReportCountries(true)
                 }
             }
         }
