@@ -7,6 +7,7 @@ import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.model.TableModel
+import com.grid.pos.ui.pos.POSUtils
 import com.grid.pos.utils.DateHelper
 import com.grid.pos.utils.Extension.getDoubleValue
 import com.grid.pos.utils.Extension.getIntValue
@@ -72,8 +73,8 @@ class InvoiceHeaderRepositoryImpl(
                         insertTable(
                             invoiceHeader.invoiceHeadId,
                             invoiceHeader.invoiceHeadTaName!!,
-                            if(isFinished) null else if (willPrint) "RTL" else null,
-                            1
+                            if (isFinished) null else if (willPrint) "RTL" else null,
+                            if(isFinished) 0 else 1
                         )
                     }
                 }
@@ -157,7 +158,7 @@ class InvoiceHeaderRepositoryImpl(
                             updateTable(
                                 if (isFinished) null else invoiceHeader.invoiceHeadId,
                                 invoiceHeader.invoiceHeadTableId!!,
-                                if (isFinished)  "Free" else if (willPrint) "RTL" else "Busy",
+                                if (isFinished) "Free" else if (willPrint) "RTL" else "Busy",
                                 if (isFinished) 0 else 1
                             )
                         } else {
@@ -769,6 +770,7 @@ class InvoiceHeaderRepositoryImpl(
     }
 
     private fun insertByProcedure(invoiceHeader: InvoiceHeader): String {
+        val decimal = SettingsModel.currentCurrency?.currencyName1Dec ?: 3
         val parameters = if (SettingsModel.isSqlServerWebDb) {
             listOf(
                 invoiceHeader.invoiceHeadCompId,
@@ -797,7 +799,7 @@ class InvoiceHeaderRepositoryImpl(
                 null,//round
                 invoiceHeader.invoiceHeadTotal1,
                 1,//rate first
-                1 / invoiceHeader.invoiceHeadRate,//rate seconds
+                invoiceHeader.invoiceHeadRate,//rate seconds
                 getRateTax(),//rate tax
                 0,//tips
                 invoiceHeader.invoiceHeadTableId ?: invoiceHeader.invoiceHeadTaName,
@@ -816,10 +818,19 @@ class InvoiceHeaderRepositoryImpl(
                 "null_string_output",//hi_id
                 invoiceHeader.invoiceHeadTotal,//@hi_total
                 1,//hi_ratetaxf
-                1 / invoiceHeader.invoiceHeadRate,//hi_ratetaxs
-                invoiceHeader.invoiceHeadTaxAmt,
-                invoiceHeader.invoiceHeadTax1Amt,
-                invoiceHeader.invoiceHeadTax2Amt,
+                invoiceHeader.invoiceHeadRate,//hi_ratetaxs
+                POSUtils.formatDouble(
+                    invoiceHeader.invoiceHeadTaxAmt,
+                    decimal
+                ),
+                POSUtils.formatDouble(
+                    invoiceHeader.invoiceHeadTax1Amt,
+                    decimal
+                ),
+                POSUtils.formatDouble(
+                    invoiceHeader.invoiceHeadTax2Amt,
+                    decimal
+                )
             )
         } else {
             listOf(
@@ -849,7 +860,7 @@ class InvoiceHeaderRepositoryImpl(
                 null,//round
                 invoiceHeader.invoiceHeadTotal1,
                 1,//rate first
-                1 / invoiceHeader.invoiceHeadRate,//rate seconds
+                invoiceHeader.invoiceHeadRate,//rate seconds
                 getRateTax(),//rate tax
                 0,//tips
                 invoiceHeader.invoiceHeadTableId ?: invoiceHeader.invoiceHeadTaName,
@@ -868,10 +879,19 @@ class InvoiceHeaderRepositoryImpl(
                 null,//hi_cashback
                 "null_int_output",//hi_id
                 1,//hi_ratetaxf
-                1 / invoiceHeader.invoiceHeadRate,//hi_ratetaxs
-                invoiceHeader.invoiceHeadTaxAmt,
-                invoiceHeader.invoiceHeadTax1Amt,
-                invoiceHeader.invoiceHeadTax2Amt,
+                invoiceHeader.invoiceHeadRate,//hi_ratetaxs
+                POSUtils.formatDouble(
+                    invoiceHeader.invoiceHeadTaxAmt,
+                    decimal
+                ),
+                POSUtils.formatDouble(
+                    invoiceHeader.invoiceHeadTax1Amt,
+                    decimal
+                ),
+                POSUtils.formatDouble(
+                    invoiceHeader.invoiceHeadTax2Amt,
+                    decimal
+                )
             )
         }
         return SQLServerWrapper.executeProcedure(
@@ -881,6 +901,7 @@ class InvoiceHeaderRepositoryImpl(
     }
 
     private fun updateByProcedure(invoiceHeader: InvoiceHeader) {
+        val decimal = SettingsModel.currentCurrency?.currencyName1Dec ?: 3
         val parameters = if (SettingsModel.isSqlServerWebDb) {
             listOf(
                 invoiceHeader.invoiceHeadId,
@@ -911,7 +932,7 @@ class InvoiceHeaderRepositoryImpl(
                 null,//round
                 invoiceHeader.invoiceHeadTotal1,
                 1,//rate first
-                1 / invoiceHeader.invoiceHeadRate,//rate seconds
+                invoiceHeader.invoiceHeadRate,//rate seconds
                 getRateTax(),//rate tax
                 0,//tips
                 invoiceHeader.invoiceHeadTableId ?: invoiceHeader.invoiceHeadTaName,
@@ -929,10 +950,19 @@ class InvoiceHeaderRepositoryImpl(
                 null,//hi_cashback
                 invoiceHeader.invoiceHeadTotal,//@hi_total
                 1,//hi_ratetaxf
-                1 / invoiceHeader.invoiceHeadRate,//hi_ratetaxs
-                invoiceHeader.invoiceHeadTaxAmt,
-                invoiceHeader.invoiceHeadTax1Amt,
-                invoiceHeader.invoiceHeadTax2Amt,
+                invoiceHeader.invoiceHeadRate,//hi_ratetaxs
+                POSUtils.formatDouble(
+                    invoiceHeader.invoiceHeadTaxAmt,
+                    decimal
+                ),
+                POSUtils.formatDouble(
+                    invoiceHeader.invoiceHeadTax1Amt,
+                    decimal
+                ),
+                POSUtils.formatDouble(
+                    invoiceHeader.invoiceHeadTax2Amt,
+                    decimal
+                )
             )
         } else {
             listOf(
@@ -964,7 +994,7 @@ class InvoiceHeaderRepositoryImpl(
                 null,//round
                 invoiceHeader.invoiceHeadTotal1,
                 1,//rate first
-                1 / invoiceHeader.invoiceHeadRate,//rate seconds
+                invoiceHeader.invoiceHeadRate,//rate seconds
                 getRateTax(),//rate tax
                 0,//tips
                 invoiceHeader.invoiceHeadTableId ?: invoiceHeader.invoiceHeadTaName,
@@ -979,10 +1009,19 @@ class InvoiceHeaderRepositoryImpl(
                 null,//hi_pathtodoc
                 null,//hi_cashback
                 1,//hi_ratetaxf
-                1 / invoiceHeader.invoiceHeadRate,//hi_ratetaxs
-                invoiceHeader.invoiceHeadTaxAmt,
-                invoiceHeader.invoiceHeadTax1Amt,
-                invoiceHeader.invoiceHeadTax2Amt,
+                invoiceHeader.invoiceHeadRate,//hi_ratetaxs
+                POSUtils.formatDouble(
+                    invoiceHeader.invoiceHeadTaxAmt,
+                    decimal
+                ),
+                POSUtils.formatDouble(
+                    invoiceHeader.invoiceHeadTax1Amt,
+                    decimal
+                ),
+                POSUtils.formatDouble(
+                    invoiceHeader.invoiceHeadTax2Amt,
+                    decimal
+                )
             )
         }
         SQLServerWrapper.executeProcedure(
