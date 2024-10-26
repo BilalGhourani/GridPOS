@@ -7,14 +7,14 @@ interface InvoiceHeaderRepository {
 
     // suspend is a coroutine keyword,
     // instead of having a callback we can just wait till insert is done
-    suspend fun insert(invoiceHeader: InvoiceHeader,isFinished: Boolean = false): InvoiceHeader
+    suspend fun insert(invoiceHeader: InvoiceHeader,willPrint: Boolean = false,isFinished: Boolean = false): InvoiceHeader
 
     // Delete an Invoice Header
     suspend fun delete(invoiceHeader: InvoiceHeader)
 
     // Update an Invoice Header
     suspend fun updateInvoiceHeader(invoiceHeader: InvoiceHeader)
-    suspend fun update(invoiceHeader: InvoiceHeader,isFinished: Boolean = false)
+    suspend fun update(invoiceHeader: InvoiceHeader, willPrint: Boolean,isFinished: Boolean = false)
 
     // Get all Invoice Headers logs as stream.
     suspend fun getAllInvoiceHeaders(): MutableList<InvoiceHeader>

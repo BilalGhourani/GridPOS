@@ -169,6 +169,7 @@ class POSViewModel @Inject constructor(
             invoiceHeader: InvoiceHeader,
             posReceipt: PosReceipt,
             invoiceItems: MutableList<InvoiceItemModel>,
+            print: Boolean = false,
             finish: Boolean = false,
     ) {
         if (invoiceItems.isEmpty()) {
@@ -193,6 +194,7 @@ class POSViewModel @Inject constructor(
                         lastTransactionIvn?.invoiceHeadTransNo ?: ""
                     )
                     invoiceHeader.invoiceHeadTtCode = SettingsModel.getTransactionType(invoiceHeader.invoiceHeadGrossAmount)
+                    invoiceHeader.invoiceHeadStatus = null
                 } else {
                     val lastOrderInv = invoiceHeaderRepository.getLastOrderByType()
                     invoiceHeader.invoiceHeadOrderNo = POSUtils.getInvoiceNo(
@@ -240,6 +242,7 @@ class POSViewModel @Inject constructor(
                 }
                 invoiceHeaderRepository.update(
                     invoiceHeader,
+                    print,
                     finish
                 )
                 val index = posState.value.invoiceHeaders.indexOfFirst { it.invoiceHeadId == invoiceHeader.invoiceHeadId }

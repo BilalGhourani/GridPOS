@@ -163,6 +163,7 @@ class UserRepositoryImpl(
                                     userUsername = it.getStringValue("usr_username")
                                     userPassword = it.getStringValue("usr_password")
                                     userCompanyId = it.getStringValue("usr_cmp_id")
+                                    userGrpDesc = it.getStringValue("usr_grp_desc")
                                     userPosMode = Constants.SQL_USER_POS_MODE
                                     userTableMode = true
                                 })
@@ -198,6 +199,7 @@ class UserRepositoryImpl(
                                     userName = it.getStringValue("emp_name")
                                     userUsername = it.getStringValue("emp_username")
                                     userPassword = it.getStringValue("emp_password")
+                                    userGrpDesc = it.getStringValue("emp_grp_desc")
                                     userCompanyId = SettingsModel.getCompanyID()//obj.optString("usr_cmp_id")
                                     userPosMode = Constants.SQL_USER_POS_MODE
                                     userTableMode = true

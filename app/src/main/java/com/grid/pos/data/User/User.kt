@@ -25,6 +25,10 @@ data class User(
         @get:Exclude
         var userDocumentId: String? = null,
 
+        @Ignore
+        @get:Exclude
+        var userGrpDesc: String? = null,
+
         /**
          * User name
          * */

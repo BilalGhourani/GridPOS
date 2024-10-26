@@ -820,6 +820,7 @@ fun POSView(
                             invoiceHeader = invoiceHeaderState.value,
                             posReceipt = activityViewModel.posReceipt,
                             invoiceItems = activityViewModel.invoiceItemModels,
+                            print = false,
                             finish = !activityViewModel.isFromTable
                         )
                     },
@@ -832,6 +833,7 @@ fun POSView(
                             invoiceHeader = invoiceHeaderState.value,
                             posReceipt = activityViewModel.posReceipt,
                             invoiceItems = activityViewModel.invoiceItemModels,
+                            print = true,
                             finish = false
                         )
                     },
@@ -844,6 +846,7 @@ fun POSView(
                             invoiceHeader = invoiceHeaderState.value,
                             posReceipt = activityViewModel.posReceipt,
                             invoiceItems = activityViewModel.invoiceItemModels,
+                            print = true,
                             finish = true
                         )
                     },

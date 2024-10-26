@@ -2,6 +2,7 @@ package com.grid.pos.data.InvoiceHeader
 
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
+import com.grid.pos.App
 import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.SettingsModel
@@ -22,6 +23,7 @@ class InvoiceHeaderRepositoryImpl(
 ) : InvoiceHeaderRepository {
     override suspend fun insert(
             invoiceHeader: InvoiceHeader,
+            willPrint: Boolean,
             isFinished: Boolean
     ): InvoiceHeader {
         when (SettingsModel.connectionType) {
@@ -39,90 +41,39 @@ class InvoiceHeaderRepositoryImpl(
                 if (!invoiceHeader.invoiceHeadTableId.isNullOrEmpty()) {
                     if (SettingsModel.isSqlServerWebDb) {
                         if (isFinished && invoiceHeader.invoiceHeadTableType?.equals("temp") == true) {
-                            SQLServerWrapper.delete(
-                                "pos_table",
-                                " ta_name = '${invoiceHeader.invoiceHeadTableId}'"
-                            )
+                            deleteTable(invoiceHeader.invoiceHeadTableId!!)
                         } else {
-                            SQLServerWrapper.update(
-                                "pos_table",
-                                listOf(
-                                    "ta_hiid",
-                                    "ta_status",
-                                ),
-                                listOf(
-                                    if (isFinished) null else invoiceHeader.invoiceHeadId,
-                                    if (isFinished) "Completed" else "Busy",
-                                ),
-                                " ta_name = '${invoiceHeader.invoiceHeadTableId}'"
+                            updateTable(
+                                if (isFinished) null else invoiceHeader.invoiceHeadId,
+                                invoiceHeader.invoiceHeadTableId!!,
+                                if (isFinished) "Free" else if (willPrint) "RTL" else "Busy",
+                                if (isFinished) 0 else 1
                             )
                         }
                     } else {
-                        SQLServerWrapper.update(
-                            "pos_table",
-                            listOf(
-                                "ta_hiid",
-                                "ta_status"
-                            ),
-                            listOf(
-                                if (isFinished) null else invoiceHeader.invoiceHeadId,
-                                if (isFinished) "Completed" else null,
-                            ),
-                            " ta_name = '${invoiceHeader.invoiceHeadTableId}'"
+                        updateTable(
+                            if (isFinished) null else invoiceHeader.invoiceHeadId,
+                            invoiceHeader.invoiceHeadTableId!!,
+                            if (isFinished) null else if (willPrint) "RTL" else null,
+                            if (isFinished) 0 else 1
                         )
                     }
                 } else if (!invoiceHeader.invoiceHeadTaName.isNullOrEmpty()) {
                     if (SettingsModel.isSqlServerWebDb) {
-                        val tableId = Utils.generateRandomUuidString()
-                        SQLServerWrapper.insert(
-                            "pos_table",
-                            listOf(
-                                "ta_name",
-                                "ta_hiid",
-                                "ta_status",
-                                "ta_newname",
-                                "ta_cmp_id",
-                                "ta_type",
-                                "ta_timestamp",
-                                "ta_userstamp"
-                            ),
-                            listOf(
-                                tableId,
-                                if (isFinished) null else invoiceHeader.invoiceHeadId,
-                                if (isFinished) "Completed" else "Busy",
-                                invoiceHeader.invoiceHeadTaName,
-                                SettingsModel.getCompanyID(),
-                                "temp",
-                                DateHelper.getDateInFormat(
-                                    Date(invoiceHeader.invoiceHeadDateTime),
-                                    "yyyy-MM-dd hh:mm:ss.SSS"
-                                ),
-                                SettingsModel.currentUser?.userName
+                        if (!isFinished) {
+                            insertTable(
+                                invoiceHeader.invoiceHeadId,
+                                invoiceHeader.invoiceHeadTaName!!,
+                                if (willPrint) "RTL" else "Busy",
+                                1
                             )
-                        )
-                        invoiceHeader.invoiceHeadTableId = tableId
+                        }
                     } else {
-                        SQLServerWrapper.insert(
-                            "pos_table",
-                            listOf(
-                                "ta_name",
-                                "ta_hiid",
-                                "ta_status",
-                                "ta_type",
-                                "ta_timestamp",
-                                "ta_userstamp"
-                            ),
-                            listOf(
-                                invoiceHeader.invoiceHeadTaName,
-                                if (isFinished) null else invoiceHeader.invoiceHeadId,
-                                if (isFinished) "Completed" else null,
-                                "table",
-                                DateHelper.getDateInFormat(
-                                    Date(invoiceHeader.invoiceHeadDateTime),
-                                    "yyyy-MM-dd hh:mm:ss.SSS"
-                                ),
-                                SettingsModel.currentUser?.userName
-                            )
+                        insertTable(
+                            invoiceHeader.invoiceHeadId,
+                            invoiceHeader.invoiceHeadTaName!!,
+                            if(isFinished) null else if (willPrint) "RTL" else null,
+                            1
                         )
                     }
                 }
@@ -182,6 +133,7 @@ class InvoiceHeaderRepositoryImpl(
 
     override suspend fun update(
             invoiceHeader: InvoiceHeader,
+            willPrint: Boolean,
             isFinished: Boolean
     ) {
         when (SettingsModel.connectionType) {
@@ -199,52 +151,21 @@ class InvoiceHeaderRepositoryImpl(
             else -> {
                 if (!invoiceHeader.invoiceHeadTableId.isNullOrEmpty()) {
                     if (isFinished && invoiceHeader.invoiceHeadTableType?.equals("temp") == true) {
-                        SQLServerWrapper.delete(
-                            "pos_table",
-                            " ta_name = '${invoiceHeader.invoiceHeadTableId}'"
-                        )
+                        deleteTable(invoiceHeader.invoiceHeadTableId!!)
                     } else {
                         if (SettingsModel.isSqlServerWebDb) {
-                            SQLServerWrapper.update(
-                                "pos_table",
-                                listOf(
-                                    "ta_status",
-                                    "ta_hiid",
-                                    "ta_timestamp",
-                                    "ta_userstamp"
-                                ),
-                                listOf(
-                                    if (isFinished) "Completed" else "Busy",
-                                    if (isFinished) null else invoiceHeader.invoiceHeadId,
-                                    DateHelper.getDateInFormat(
-                                        Date(invoiceHeader.invoiceHeadDateTime),
-                                        "yyyy-MM-dd hh:mm:ss.SSS"
-                                    ),
-                                    SettingsModel.currentUser?.userName
-                                ),
-
-                                "ta_name = '${invoiceHeader.invoiceHeadTableId}'"
+                            updateTable(
+                                if (isFinished) null else invoiceHeader.invoiceHeadId,
+                                invoiceHeader.invoiceHeadTableId!!,
+                                if (isFinished)  "Free" else if (willPrint) "RTL" else "Busy",
+                                if (isFinished) 0 else 1
                             )
                         } else {
-                            SQLServerWrapper.update(
-                                "pos_table",
-                                listOf(
-                                    "ta_status",
-                                    "ta_hiid",
-                                    "ta_timestamp",
-                                    "ta_userstamp"
-                                ),
-                                listOf(
-                                    if (isFinished) "Completed" else null,
-                                    if (isFinished) null else invoiceHeader.invoiceHeadId,
-                                    DateHelper.getDateInFormat(
-                                        Date(invoiceHeader.invoiceHeadDateTime),
-                                        "yyyy-MM-dd hh:mm:ss.SSS"
-                                    ),
-                                    SettingsModel.currentUser?.userName
-                                ),
-
-                                "ta_name = '${invoiceHeader.invoiceHeadTaName}'"
+                            updateTable(
+                                if (isFinished) null else invoiceHeader.invoiceHeadId,
+                                invoiceHeader.invoiceHeadTableId!!,
+                                if (isFinished) null else if (willPrint) "RTL" else null,
+                                if (isFinished) 0 else 1
                             )
                         }
 
@@ -546,7 +467,7 @@ class InvoiceHeaderRepositoryImpl(
                 val tables: MutableList<TableModel> = mutableListOf()
                 if (SettingsModel.isSqlServerWebDb) {
                     try {
-                        val where = "ta_cmp_id='${SettingsModel.getCompanyID()}' AND ta_hiid IS NOT NULL AND ta_hiid <> ''"
+                        val where = "ta_cmp_id='${SettingsModel.getCompanyID()}' AND ta_hiid IS NOT NULL AND ta_hiid <> '' AND ta_locked = 1 "
                         val dbResult = SQLServerWrapper.getListOf(
                             "pos_table",
                             "",
@@ -570,7 +491,7 @@ class InvoiceHeaderRepositoryImpl(
                     }
                 } else {
                     try {
-                        val where = " ta_hiid IS NOT NULL AND ta_hiid <> ''"
+                        val where = " ta_hiid IS NOT NULL AND ta_hiid <> '' AND ta_locked = 1"
                         val dbResult = SQLServerWrapper.getListOf(
                             "pos_table",
                             "",
@@ -1078,5 +999,127 @@ class InvoiceHeaderRepositoryImpl(
             return 1.0 / (SettingsModel.currentCurrency?.currencyRate ?: 1.0)
         }
         return fallback
+    }
+
+    private fun insertTable(
+            invoiceHeaderId: String,
+            tableName: String,
+            tableStatus: String?,
+            locked: Int,
+    ): String {
+        val parameters = if (SettingsModel.isSqlServerWebDb) {
+            listOf(
+                null,//ta_ps_section
+                "temp",//type
+                0,//ta_x1
+                0,//ta_y1
+                1,//ta_x2
+                1,//ta_y2
+                invoiceHeaderId,//ta_hiid
+                tableStatus,//ta_status
+                tableName,//ta_newname
+                SettingsModel.getCompanyID(),//ta_cmp_id
+                "DE0455F9-DD64-4D14-85B5-0502EBD57176",//ta_grp_desc
+                locked,//ta_locked
+                Timestamp(System.currentTimeMillis()),//ta_timestamp
+                SettingsModel.currentUser?.userUsername,//ta_userstamp
+                null,//ta_rotationangle
+            )
+        } else {
+            listOf(
+                tableName,//ta_name
+                null,//ta_ps_section
+                "table",//type
+                0,//ta_x1
+                0,//ta_y1
+                0,//ta_x2
+                0,//ta_y2
+                invoiceHeaderId,//ta_hiid
+                tableStatus,//ta_status
+                Timestamp(System.currentTimeMillis()),//ta_timestamp
+                SettingsModel.currentUser?.userUsername,//ta_userstamp
+                Utils.getDeviceID(App.getInstance()),//ta_station
+                locked,//ta_locked
+            )
+        }
+        return SQLServerWrapper.executeProcedure(
+            "addpos_table",
+            parameters
+        ) ?: ""
+    }
+
+    private fun updateTable(
+            invoiceHeaderId: String?,
+            tableId: String,
+            tableStatus: String?,
+            locked: Int,
+    ) {
+        SQLServerWrapper.update(
+            "pos_table",
+            listOf(
+                "ta_status",
+                "ta_hiid",
+                "ta_locked",
+                "ta_station",
+                "ta_timestamp",
+                "ta_userstamp"
+            ),
+            listOf(
+                tableStatus,
+                invoiceHeaderId,
+                locked,
+                Utils.getDeviceID(App.getInstance()),
+                Timestamp(System.currentTimeMillis()),
+                SettingsModel.currentUser?.userUsername
+            ),
+            "ta_name = '$tableId'"
+        )/*val parameters = if (SettingsModel.isSqlServerWebDb) {
+            listOf(
+                tableId,
+                null,//ta_ps_section
+                "temp",//type
+                0,//ta_x1
+                0,//ta_y1
+                1,//ta_x2
+                1,//ta_y2
+                invoiceHeaderId,//ta_hiid
+                tableStatus,//ta_status
+                tableName,//ta_newname
+                SettingsModel.currentUser?.userGrpDesc,//ta_grp_desc
+                locked,//ta_locked
+                Timestamp(System.currentTimeMillis()),//ta_timestamp
+                SettingsModel.currentUser?.userUsername,//ta_userstamp
+                null,//ta_rotationangle
+            )
+        } else {
+            listOf(
+                tableName,//ta_name
+                tableName,//ta_name
+                null,//ta_ps_section
+                "table",//type
+                0,//ta_x1
+                0,//ta_y1
+                0,//ta_x2
+                0,//ta_y2
+                invoiceHeaderId,//ta_hiid
+                tableStatus,//ta_status
+                locked,//ta_locked
+            )
+        }
+         SQLServerWrapper.executeProcedure(
+            "updpos_table",
+            parameters
+        ) */
+    }
+
+    private fun deleteTable(
+            tableName: String
+    ): String {
+        return SQLServerWrapper.executeProcedure(
+            "delpos_table",
+            listOf(
+                tableName,//ta_name
+            )
+        ) ?: ""
     }
 }
