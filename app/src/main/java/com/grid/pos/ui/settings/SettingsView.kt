@@ -17,14 +17,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.RemoveCircleOutline
+import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Card
@@ -43,6 +42,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -70,7 +70,6 @@ import com.grid.pos.R
 import com.grid.pos.data.Company.Company
 import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.model.CONNECTION_TYPE
-import com.grid.pos.model.Language
 import com.grid.pos.model.PopupModel
 import com.grid.pos.model.ReportCountry
 import com.grid.pos.model.ReportLanguage
@@ -80,13 +79,11 @@ import com.grid.pos.ui.common.SearchableDropdownMenuEx
 import com.grid.pos.ui.common.UIButton
 import com.grid.pos.ui.common.UISwitch
 import com.grid.pos.ui.common.UITextField
-import com.grid.pos.ui.reports.SalesReportsViewModel
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.ui.theme.LightGrey
 import com.grid.pos.utils.DataStoreManager
 import com.grid.pos.utils.Extension.toHexCode
 import com.grid.pos.utils.Utils
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -162,6 +159,7 @@ fun SettingsView(
 
     var isLoading by remember { mutableStateOf(false) }
     val isLoggedId = activityScopedViewModel.isLoggedIn()
+    val scope = rememberCoroutineScope()
 
     fun handleBack() {
         navController?.navigateUp()
@@ -288,7 +286,7 @@ fun SettingsView(
                                 },
                                 onLeadingIconClick = {
                                     isLoading = true
-                                    CoroutineScope(Dispatchers.IO).launch {
+                                    scope.launch(Dispatchers.IO) {
                                         val message = SQLServerWrapper.isConnectionSucceeded(
                                             sqlServerPath,
                                             sqlServerDbName,
@@ -453,16 +451,6 @@ fun SettingsView(
                                 }
                             }
 
-                            UITextField(modifier = Modifier.padding(10.dp),
-                                defaultValue = cashPrinterState,
-                                label = "Cash Printer",
-                                placeHolder = "ex. 127.0.0.1:9100",
-                                focusRequester = sqlServerCmpIdRequester,
-                                imeAction = ImeAction.Done,
-                                onAction = { keyboardController?.hide() }) { cashPrinter ->
-                                cashPrinterState = cashPrinter
-                            }
-
                             UIButton(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -477,8 +465,8 @@ fun SettingsView(
                             ) {
                                 isLoading = true
                                 keyboardController?.hide()
-                                CoroutineScope(Dispatchers.IO).launch {
-                                    if(SettingsModel.connectionType == CONNECTION_TYPE.SQL_SERVER.key){
+                                scope.launch(Dispatchers.IO) {
+                                    if (SettingsModel.connectionType == CONNECTION_TYPE.SQL_SERVER.key) {
                                         SQLServerWrapper.closeConnection()
                                         countries.clear()
                                         activityScopedViewModel.reportCountries.clear()
@@ -487,11 +475,6 @@ fun SettingsView(
                                     DataStoreManager.putString(
                                         DataStoreManager.DataStoreKeys.CONNECTION_TYPE.key,
                                         connectionTypeState
-                                    )
-                                    SettingsModel.cashPrinter = cashPrinterState
-                                    DataStoreManager.putString(
-                                        DataStoreManager.DataStoreKeys.CASH_PRINTER.key,
-                                        cashPrinterState
                                     )
                                     when (connectionTypeState) {
                                         CONNECTION_TYPE.FIRESTORE.key -> {
@@ -565,7 +548,7 @@ fun SettingsView(
                                                 DataStoreManager.DataStoreKeys.IS_SQL_SERVER_WEB_DB.key,
                                                 isSqlServerWebDb
                                             )
-                                            if(SettingsModel.connectionType == CONNECTION_TYPE.SQL_SERVER.key){
+                                            if (SettingsModel.connectionType == CONNECTION_TYPE.SQL_SERVER.key) {
                                                 SQLServerWrapper.openConnection()
                                             }
                                         }
@@ -647,7 +630,7 @@ fun SettingsView(
                         ) { type ->
                             orientationType = type.getName()
                             SettingsModel.orientationType = orientationType
-                            CoroutineScope(Dispatchers.IO).launch {
+                            scope.launch(Dispatchers.IO) {
                                 DataStoreManager.putString(
                                     DataStoreManager.DataStoreKeys.ORIENTATION_TYPE.key,
                                     orientationType
@@ -656,8 +639,43 @@ fun SettingsView(
                             }
                         }
 
-                        SearchableDropdownMenuEx(
-                            items = countries.toMutableList(),
+                        UITextField(modifier = Modifier.padding(10.dp),
+                            defaultValue = cashPrinterState,
+                            label = "Cash Printer",
+                            placeHolder = "ex. 127.0.0.1:9100",
+                            focusRequester = sqlServerCmpIdRequester,
+                            imeAction = ImeAction.Done,
+                            trailingIcon = {
+                                IconButton(onClick = {
+                                    scope.launch(Dispatchers.IO) {
+                                        SettingsModel.cashPrinter = cashPrinterState
+                                        DataStoreManager.putString(
+                                            DataStoreManager.DataStoreKeys.CASH_PRINTER.key,
+                                            cashPrinterState
+                                        )
+                                    }
+                                }) {
+                                    Icon(
+                                        imageVector = Icons.Filled.Save,
+                                        contentDescription = "save printer",
+                                        tint = SettingsModel.buttonColor
+                                    )
+                                }
+                            },
+                            onAction = {
+                                scope.launch(Dispatchers.IO) {
+                                    SettingsModel.cashPrinter = cashPrinterState
+                                    DataStoreManager.putString(
+                                        DataStoreManager.DataStoreKeys.CASH_PRINTER.key,
+                                        cashPrinterState
+                                    )
+                                }
+                                keyboardController?.hide()
+                            }) { cashPrinter ->
+                            cashPrinterState = cashPrinter
+                        }
+
+                        SearchableDropdownMenuEx(items = countries.toMutableList(),
                             modifier = Modifier.padding(10.dp),
                             color = LightGrey,
                             placeholder = "Report Country",
@@ -666,12 +684,11 @@ fun SettingsView(
                                 activityScopedViewModel.fetchCountries { list ->
                                     countries.addAll(list)
                                 }
-                            }
-                        ) { country ->
+                            }) { country ->
                             country as ReportCountry
                             defaultReportCountry = country.getName()
                             SettingsModel.defaultReportCountry = defaultReportCountry
-                            CoroutineScope(Dispatchers.IO).launch {
+                            scope.launch(Dispatchers.IO) {
                                 DataStoreManager.putString(
                                     DataStoreManager.DataStoreKeys.REPORT_COUNTRY.key,
                                     defaultReportCountry
@@ -689,7 +706,7 @@ fun SettingsView(
                             lang as ReportLanguage
                             defaultReportLanguage = lang.getName()
                             SettingsModel.defaultReportLanguage = defaultReportLanguage
-                            CoroutineScope(Dispatchers.IO).launch {
+                            scope.launch(Dispatchers.IO) {
                                 DataStoreManager.putString(
                                     DataStoreManager.DataStoreKeys.REPORT_LANGUAGE.key,
                                     defaultReportLanguage
@@ -708,7 +725,7 @@ fun SettingsView(
                         ) { showitems ->
                             showItemsInPOS = showitems
                             SettingsModel.showItemsInPOS = showItemsInPOS
-                            CoroutineScope(Dispatchers.IO).launch {
+                            scope.launch(Dispatchers.IO) {
                                 DataStoreManager.putBoolean(
                                     DataStoreManager.DataStoreKeys.SHOW_ITEMS_IN_POS.key,
                                     showItemsInPOS
@@ -727,7 +744,7 @@ fun SettingsView(
                         ) { showTx ->
                             showTax = showTx
                             SettingsModel.showTax = showTx
-                            CoroutineScope(Dispatchers.IO).launch {
+                            scope.launch(Dispatchers.IO) {
                                 DataStoreManager.putBoolean(
                                     DataStoreManager.DataStoreKeys.SHOW_TAX.key,
                                     showTx
@@ -746,7 +763,7 @@ fun SettingsView(
                         ) { showTx1 ->
                             showTax1 = showTx1
                             SettingsModel.showTax1 = showTx1
-                            CoroutineScope(Dispatchers.IO).launch {
+                            scope.launch(Dispatchers.IO) {
                                 DataStoreManager.putBoolean(
                                     DataStoreManager.DataStoreKeys.SHOW_TAX1.key,
                                     showTx1
@@ -765,7 +782,7 @@ fun SettingsView(
                         ) { showTx2 ->
                             showTax2 = showTx2
                             SettingsModel.showTax2 = showTx2
-                            CoroutineScope(Dispatchers.IO).launch {
+                            scope.launch(Dispatchers.IO) {
                                 DataStoreManager.putBoolean(
                                     DataStoreManager.DataStoreKeys.SHOW_TAX2.key,
                                     showTx2
@@ -784,7 +801,7 @@ fun SettingsView(
                         ) { showPrice ->
                             showPriceInItemBtn = showPrice
                             SettingsModel.showPriceInItemBtn = showPrice
-                            CoroutineScope(Dispatchers.IO).launch {
+                            scope.launch(Dispatchers.IO) {
                                 DataStoreManager.putBoolean(
                                     DataStoreManager.DataStoreKeys.SHOW_PRICE_IN_ITEM_BTN.key,
                                     showPrice
@@ -803,7 +820,7 @@ fun SettingsView(
                         ) { autoPrint ->
                             autoPrintTickets = autoPrint
                             SettingsModel.autoPrintTickets = autoPrint
-                            CoroutineScope(Dispatchers.IO).launch {
+                            scope.launch(Dispatchers.IO) {
                                 DataStoreManager.putBoolean(
                                     DataStoreManager.DataStoreKeys.AUTO_PRINT_TICKETS.key,
                                     autoPrintTickets
@@ -822,7 +839,7 @@ fun SettingsView(
                         ) { showAlert ->
                             showItemQtyAlert = showAlert
                             SettingsModel.showItemQtyAlert = showAlert
-                            CoroutineScope(Dispatchers.IO).launch {
+                            scope.launch(Dispatchers.IO) {
                                 DataStoreManager.putBoolean(
                                     DataStoreManager.DataStoreKeys.SHOW_ITEM_QTY_ALERT.key,
                                     showItemQtyAlert
@@ -841,7 +858,7 @@ fun SettingsView(
                         ) { allow ->
                             allowOutOfStockSale = allow
                             SettingsModel.allowOutOfStockSale = allowOutOfStockSale
-                            CoroutineScope(Dispatchers.IO).launch {
+                            scope.launch(Dispatchers.IO) {
                                 DataStoreManager.putBoolean(
                                     DataStoreManager.DataStoreKeys.ALLOW_OUT_OF_STOCK_SALE.key,
                                     allowOutOfStockSale
@@ -1021,7 +1038,7 @@ fun SettingsView(
                             buttonColor = buttonColorState,
                             textColor = buttonTextColorState
                         ) {
-                            CoroutineScope(Dispatchers.IO).launch {
+                            scope.launch(Dispatchers.IO) {
                                 DataStoreManager.removeKey(
                                     DataStoreManager.DataStoreKeys.CURRENT_USER_ID.key
                                 )
@@ -1032,7 +1049,6 @@ fun SettingsView(
                         }
                     }
                 }
-
 
             }
         }
@@ -1061,7 +1077,7 @@ fun SettingsView(
                             ColorPickerType.BUTTON_COLOR -> {
                                 buttonColorState = it
                                 SettingsModel.buttonColor = it
-                                CoroutineScope(Dispatchers.IO).launch {
+                                scope.launch(Dispatchers.IO) {
                                     DataStoreManager.putString(
                                         DataStoreManager.DataStoreKeys.BUTTON_COLOR.key,
                                         it.toHexCode()
@@ -1072,7 +1088,7 @@ fun SettingsView(
                             ColorPickerType.BUTTON_TEXT_COLOR -> {
                                 buttonTextColorState = it
                                 SettingsModel.buttonTextColor = it
-                                CoroutineScope(Dispatchers.IO).launch {
+                                scope.launch(Dispatchers.IO) {
                                     DataStoreManager.putString(
                                         DataStoreManager.DataStoreKeys.BUTTON_TEXT_COLOR.key,
                                         it.toHexCode()
@@ -1083,7 +1099,7 @@ fun SettingsView(
                             ColorPickerType.BACKGROUND_COLOR -> {
                                 backgroundColorState = it
                                 SettingsModel.backgroundColor = it
-                                CoroutineScope(Dispatchers.IO).launch {
+                                scope.launch(Dispatchers.IO) {
                                     DataStoreManager.putString(
                                         DataStoreManager.DataStoreKeys.BACKGROUND_COLOR.key,
                                         it.toHexCode()
@@ -1094,7 +1110,7 @@ fun SettingsView(
                             ColorPickerType.TOP_BAR_COLOR -> {
                                 topBarColorState = it
                                 SettingsModel.topBarColor = it
-                                CoroutineScope(Dispatchers.IO).launch {
+                                scope.launch(Dispatchers.IO) {
                                     DataStoreManager.putString(
                                         DataStoreManager.DataStoreKeys.TOP_BAR_COLOR.key,
                                         it.toHexCode()
@@ -1105,7 +1121,7 @@ fun SettingsView(
                             ColorPickerType.TEXT_COLOR -> {
                                 textColorState = it
                                 SettingsModel.textColor = it
-                                CoroutineScope(Dispatchers.IO).launch {
+                                scope.launch(Dispatchers.IO) {
                                     DataStoreManager.putString(
                                         DataStoreManager.DataStoreKeys.TEXT_COLOR.key,
                                         it.toHexCode()
