@@ -119,7 +119,7 @@ fun EditInvoiceItemView(
         )
         qty = invoiceItemModel.invoice.invoiceQuantity.toInt()
         rDiscount1 = invoiceItemModel.invoice.invoiceDiscount.toString().takeIf { it != "0.0" } ?: ""
-        rDiscount1 = invoiceItemModel.invoice.invoiceDiscamt.toString().takeIf { it != "0.0" } ?: ""
+        rDiscount2 = invoiceItemModel.invoice.invoiceDiscamt.toString().takeIf { it != "0.0" } ?: ""
         discount1 = invoiceHeader.invoiceHeadDiscount.toString().takeIf { it != "0.0" } ?: ""
         discount2 = invoiceHeader.invoiceHeadDiscountAmount.toString().takeIf { it != "0.0" } ?: ""
         itemExtraName = invoiceItemModel.invoice.invoiceExtraName ?: ""
