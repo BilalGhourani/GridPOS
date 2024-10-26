@@ -7,7 +7,6 @@ import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.pos.POSUtils
 import com.grid.pos.utils.DateHelper
 import com.grid.pos.utils.Extension.getDoubleValue
-import com.grid.pos.utils.Extension.getIntValue
 import com.grid.pos.utils.Extension.getObjectValue
 import com.grid.pos.utils.Extension.getStringValue
 import kotlinx.coroutines.tasks.await
@@ -36,6 +35,7 @@ class PosReceiptRepositoryImpl(
                 if (posReceipt.posReceiptCash > 0.0 && !SettingsModel.posReceiptAccCashId.isNullOrEmpty()) {
                     posReceipt.posReceiptCashID = insertPOSReceiptByProcedure(
                         posReceipt.posReceiptInvoiceId!!,
+                        true,
                         POSUtils.formatDouble(posReceipt.posReceiptCash),
                         POSUtils.formatDouble(posReceipt.posReceiptCash.times(rate)),
                         SettingsModel.posReceiptAccCashId!!
@@ -45,8 +45,9 @@ class PosReceiptRepositoryImpl(
                 if (posReceipt.posReceiptCashs > 0.0 && !SettingsModel.posReceiptAccCash1Id.isNullOrEmpty()) {
                     posReceipt.posReceiptCashsID = insertPOSReceiptByProcedure(
                         posReceipt.posReceiptInvoiceId!!,
-                        POSUtils.formatDouble(posReceipt.posReceiptCashs),
+                        false,
                         POSUtils.formatDouble(posReceipt.posReceiptCashs.div(rate)),
+                        POSUtils.formatDouble(posReceipt.posReceiptCashs),
                         SettingsModel.posReceiptAccCash1Id!!
                     )
                 }
@@ -54,6 +55,7 @@ class PosReceiptRepositoryImpl(
                 if (posReceipt.posReceiptCredit > 0.0 && !SettingsModel.posReceiptAccCreditId.isNullOrEmpty()) {
                     posReceipt.posReceiptCreditID = insertPOSReceiptByProcedure(
                         posReceipt.posReceiptInvoiceId!!,
+                        true,
                         POSUtils.formatDouble(posReceipt.posReceiptCredit),
                         POSUtils.formatDouble(posReceipt.posReceiptCredit.times(rate)),
                         SettingsModel.posReceiptAccCreditId!!
@@ -63,8 +65,9 @@ class PosReceiptRepositoryImpl(
                 if (posReceipt.posReceiptCredits > 0.0 && !SettingsModel.posReceiptAccCredit1Id.isNullOrEmpty()) {
                     posReceipt.posReceiptCreditsID = insertPOSReceiptByProcedure(
                         posReceipt.posReceiptInvoiceId!!,
-                        POSUtils.formatDouble(posReceipt.posReceiptCredits),
+                        false,
                         POSUtils.formatDouble(posReceipt.posReceiptCredits.div(rate)),
+                        POSUtils.formatDouble(posReceipt.posReceiptCredits),
                         SettingsModel.posReceiptAccCredit1Id!!
                     )
                 }
@@ -72,6 +75,7 @@ class PosReceiptRepositoryImpl(
                 if (posReceipt.posReceiptDebit > 0.0 && !SettingsModel.posReceiptAccDebitId.isNullOrEmpty()) {
                     posReceipt.posReceiptDebitID = insertPOSReceiptByProcedure(
                         posReceipt.posReceiptInvoiceId!!,
+                        true,
                         POSUtils.formatDouble(posReceipt.posReceiptDebit),
                         POSUtils.formatDouble(posReceipt.posReceiptDebit.times(rate)),
                         SettingsModel.posReceiptAccDebitId!!
@@ -81,8 +85,9 @@ class PosReceiptRepositoryImpl(
                 if (posReceipt.posReceiptDebits > 0.0 && !SettingsModel.posReceiptAccDebit1Id.isNullOrEmpty()) {
                     posReceipt.posReceiptDebitsID = insertPOSReceiptByProcedure(
                         posReceipt.posReceiptInvoiceId!!,
-                        POSUtils.formatDouble(posReceipt.posReceiptDebits),
+                        false,
                         POSUtils.formatDouble(posReceipt.posReceiptDebits.div(rate)),
+                        POSUtils.formatDouble(posReceipt.posReceiptDebits),
                         SettingsModel.posReceiptAccDebit1Id!!
                     )
                 }
@@ -173,6 +178,7 @@ class PosReceiptRepositoryImpl(
                     updatePOSReceiptByProcedure(
                         posReceipt.posReceiptCashID!!,
                         posReceipt.posReceiptInvoiceId!!,
+                        true,
                         POSUtils.formatDouble(posReceipt.posReceiptCash),
                         POSUtils.formatDouble(posReceipt.posReceiptCash.times(rate)),
                         posReceipt.posReceiptCash_hsid,
@@ -181,6 +187,7 @@ class PosReceiptRepositoryImpl(
                 } else if (posReceipt.posReceiptCash > 0.0 && !SettingsModel.posReceiptAccCashId.isNullOrEmpty()) {
                     posReceipt.posReceiptCashID = insertPOSReceiptByProcedure(
                         posReceipt.posReceiptInvoiceId!!,
+                        true,
                         POSUtils.formatDouble(posReceipt.posReceiptCash),
                         POSUtils.formatDouble(posReceipt.posReceiptCash.times(rate)),
                         SettingsModel.posReceiptAccCashId!!
@@ -190,16 +197,18 @@ class PosReceiptRepositoryImpl(
                     updatePOSReceiptByProcedure(
                         posReceipt.posReceiptCashsID!!,
                         posReceipt.posReceiptInvoiceId!!,
-                        POSUtils.formatDouble(posReceipt.posReceiptCashs),
+                        false,
                         POSUtils.formatDouble(posReceipt.posReceiptCashs.div(rate)),
+                        POSUtils.formatDouble(posReceipt.posReceiptCashs),
                         posReceipt.posReceiptCashs_hsid,
                         SettingsModel.posReceiptAccCash1Id!!
                     )
                 } else if (posReceipt.posReceiptCashs > 0.0 && !SettingsModel.posReceiptAccCash1Id.isNullOrEmpty()) {
                     posReceipt.posReceiptCashsID = insertPOSReceiptByProcedure(
                         posReceipt.posReceiptInvoiceId!!,
-                        POSUtils.formatDouble(posReceipt.posReceiptCashs),
+                        false,
                         POSUtils.formatDouble(posReceipt.posReceiptCashs.div(rate)),
+                        POSUtils.formatDouble(posReceipt.posReceiptCashs),
                         SettingsModel.posReceiptAccCash1Id!!
                     )
                 }
@@ -207,6 +216,7 @@ class PosReceiptRepositoryImpl(
                     updatePOSReceiptByProcedure(
                         posReceipt.posReceiptCreditID!!,
                         posReceipt.posReceiptInvoiceId!!,
+                        true,
                         POSUtils.formatDouble(posReceipt.posReceiptCredit),
                         POSUtils.formatDouble(posReceipt.posReceiptCredit.times(rate)),
                         posReceipt.posReceiptCredit_hsid,
@@ -215,6 +225,7 @@ class PosReceiptRepositoryImpl(
                 } else if (posReceipt.posReceiptCredit > 0.0 && !SettingsModel.posReceiptAccCreditId.isNullOrEmpty()) {
                     posReceipt.posReceiptCreditID = insertPOSReceiptByProcedure(
                         posReceipt.posReceiptInvoiceId!!,
+                        true,
                         POSUtils.formatDouble(posReceipt.posReceiptCredit),
                         POSUtils.formatDouble(posReceipt.posReceiptCredit.times(rate)),
                         SettingsModel.posReceiptAccCreditId!!
@@ -224,16 +235,18 @@ class PosReceiptRepositoryImpl(
                     updatePOSReceiptByProcedure(
                         posReceipt.posReceiptCreditsID!!,
                         posReceipt.posReceiptInvoiceId!!,
-                        POSUtils.formatDouble(posReceipt.posReceiptCredits),
+                        false,
                         POSUtils.formatDouble(posReceipt.posReceiptCredits.div(rate)),
+                        POSUtils.formatDouble(posReceipt.posReceiptCredits),
                         posReceipt.posReceiptCredits_hsid,
                         SettingsModel.posReceiptAccCredit1Id!!
                     )
                 } else if (posReceipt.posReceiptCredits > 0.0 && !SettingsModel.posReceiptAccCredit1Id.isNullOrEmpty()) {
                     posReceipt.posReceiptCreditsID = insertPOSReceiptByProcedure(
                         posReceipt.posReceiptInvoiceId!!,
-                        POSUtils.formatDouble(posReceipt.posReceiptCredits),
+                        false,
                         POSUtils.formatDouble(posReceipt.posReceiptCredits.div(rate)),
+                        POSUtils.formatDouble(posReceipt.posReceiptCredits),
                         SettingsModel.posReceiptAccCredit1Id!!
                     )
                 }
@@ -241,6 +254,7 @@ class PosReceiptRepositoryImpl(
                     updatePOSReceiptByProcedure(
                         posReceipt.posReceiptDebitID!!,
                         posReceipt.posReceiptInvoiceId!!,
+                        true,
                         POSUtils.formatDouble(posReceipt.posReceiptDebit),
                         POSUtils.formatDouble(posReceipt.posReceiptDebit.times(rate)),
                         posReceipt.posReceiptDebit_hsid,
@@ -249,6 +263,7 @@ class PosReceiptRepositoryImpl(
                 } else if (posReceipt.posReceiptDebit > 0.0 && !SettingsModel.posReceiptAccDebitId.isNullOrEmpty()) {
                     posReceipt.posReceiptDebitID = insertPOSReceiptByProcedure(
                         posReceipt.posReceiptInvoiceId!!,
+                        true,
                         POSUtils.formatDouble(posReceipt.posReceiptDebit),
                         POSUtils.formatDouble(posReceipt.posReceiptDebit.times(rate)),
                         SettingsModel.posReceiptAccDebitId!!
@@ -258,16 +273,18 @@ class PosReceiptRepositoryImpl(
                     updatePOSReceiptByProcedure(
                         posReceipt.posReceiptDebitsID!!,
                         posReceipt.posReceiptInvoiceId!!,
-                        POSUtils.formatDouble(posReceipt.posReceiptDebits),
+                        false,
                         POSUtils.formatDouble(posReceipt.posReceiptDebits.div(rate)),
+                        POSUtils.formatDouble(posReceipt.posReceiptDebits),
                         posReceipt.posReceiptDebits_hsid,
                         SettingsModel.posReceiptAccDebit1Id!!
                     )
                 } else if (posReceipt.posReceiptDebits > 0.0 && !SettingsModel.posReceiptAccDebit1Id.isNullOrEmpty()) {
                     posReceipt.posReceiptDebitsID = insertPOSReceiptByProcedure(
                         posReceipt.posReceiptInvoiceId!!,
-                        POSUtils.formatDouble(posReceipt.posReceiptDebits),
+                        false,
                         POSUtils.formatDouble(posReceipt.posReceiptDebits.div(rate)),
+                        POSUtils.formatDouble(posReceipt.posReceiptDebits),
                         SettingsModel.posReceiptAccDebit1Id!!
                     )
                 }
@@ -388,6 +405,7 @@ class PosReceiptRepositoryImpl(
 
     private fun insertPOSReceiptByProcedure(
             posReceiptInvoiceId: String,
+            isFirst: Boolean,
             firstValue: String,
             secondValue: String,
             receiptAccId: String
@@ -396,7 +414,7 @@ class PosReceiptRepositoryImpl(
             null,//pr_id
             posReceiptInvoiceId,//pr_hi_id
             receiptAccId,//pr_ra_id
-            firstValue,
+            if(isFirst) firstValue else secondValue,
             firstValue,
             secondValue,
             SettingsModel.currentCompany?.cmp_multibranchcode,
@@ -420,6 +438,7 @@ class PosReceiptRepositoryImpl(
     private fun updatePOSReceiptByProcedure(
             posReceiptId: String,
             posReceiptInvoiceId: String,
+            isFirst: Boolean,
             firstValue: String,
             secondValue: String,
             pr_hsid: String?,
@@ -429,7 +448,7 @@ class PosReceiptRepositoryImpl(
             posReceiptId,//pr_id
             posReceiptInvoiceId,//pr_hi_id
             receiptAccId,//pr_ra_id
-            firstValue,
+            if(isFirst) firstValue else secondValue,
             firstValue,
             secondValue,
             firstValue,//pr_amtinvcurr
