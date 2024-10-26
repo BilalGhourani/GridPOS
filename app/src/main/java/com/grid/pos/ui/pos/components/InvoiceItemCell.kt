@@ -97,7 +97,7 @@ fun InvoiceItemCell(
             fontSize = 16.sp
         )
         Text(
-            text = if (isHeader) "Item" else invoiceItemModel.getName(),
+            text = if (isHeader) "Item" else invoiceItemModel.getFullName(),
             modifier = if (isLandscape) {
                 Modifier
                     .weight(1.8f)
