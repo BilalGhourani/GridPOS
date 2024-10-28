@@ -1048,6 +1048,7 @@ class InvoiceHeaderRepositoryImpl(
     ): String {
         val parameters = if (SettingsModel.isSqlServerWebDb) {
             listOf(
+                "null_string_output",//ta_name
                 null,//ta_ps_section
                 "temp",//type
                 0,//ta_x1
