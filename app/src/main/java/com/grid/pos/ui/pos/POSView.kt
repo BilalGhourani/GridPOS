@@ -806,6 +806,9 @@ fun POSView(
                             )
                         } else {
                             proceedToPrint = true
+                            invoicesState.forEach {
+                                it.shouldPrint = true
+                            }
                             invoiceHeaderState.value.invoiceHeadPrinted += 1
                             viewModel.savePrintedNumber(
                                 invoiceHeaderState.value
