@@ -87,8 +87,8 @@ fun EditInvoiceItemView(
     val invoiceItemModel = InvoiceItemModel(
         invoice = invoiceItemAtIndex.invoice.copy(),
         invoiceItem = invoiceItemAtIndex.invoiceItem,
-        shouldPrint =  invoiceItemAtIndex.shouldPrint,
-        isDeleted =  invoiceItemAtIndex.isDeleted
+        shouldPrint = invoiceItemAtIndex.shouldPrint,
+        isDeleted = invoiceItemAtIndex.isDeleted
     )
 
     val curr1Decimal = SettingsModel.currentCurrency?.currencyName1Dec ?: 2
@@ -118,7 +118,8 @@ fun EditInvoiceItemView(
             curr1Decimal
         )
         qty = invoiceItemModel.invoice.invoiceQuantity.toInt()
-        rDiscount1 = invoiceItemModel.invoice.invoiceDiscount.toString().takeIf { it != "0.0" } ?: ""
+        rDiscount1 = invoiceItemModel.invoice.invoiceDiscount.toString()
+            .takeIf { it != "0.0" } ?: ""
         rDiscount2 = invoiceItemModel.invoice.invoiceDiscamt.toString().takeIf { it != "0.0" } ?: ""
         discount1 = invoiceHeader.invoiceHeadDiscount.toString().takeIf { it != "0.0" } ?: ""
         discount2 = invoiceHeader.invoiceHeadDiscountAmount.toString().takeIf { it != "0.0" } ?: ""
@@ -194,8 +195,8 @@ fun EditInvoiceItemView(
     }
 
     fun backAndSave() {
-        invoiceHeader.invoiceHeadNote = invoiceNote
-        invoiceHeader.invoiceHeadCashName = clientExtraName
+        invoiceHeader.invoiceHeadNote = invoiceNote.ifEmpty { null }
+        invoiceHeader.invoiceHeadCashName = clientExtraName.ifEmpty { null }
         invoiceHeader.invoiceHeadDiscount = discount1.toDoubleOrNull() ?: 0.0
         invoiceHeader.invoiceHeadDiscountAmount = discount2.toDoubleOrNull() ?: 0.0
 
@@ -206,8 +207,8 @@ fun EditInvoiceItemView(
         invoiceItemModel.invoice.invoiceDiscount = rDiscount1.toDoubleOrNull() ?: 0.0
         invoiceItemModel.invoice.invoiceDiscamt = rDiscount2.toDoubleOrNull() ?: 0.0
         invoiceItemModel.invoice.invoiceQuantity = qty.toDouble()
-        invoiceItemModel.invoice.invoiceExtraName = itemExtraName
-        invoiceItemModel.invoice.invoiceNote = itemNote
+        invoiceItemModel.invoice.invoiceExtraName = itemExtraName.ifEmpty { null }
+        invoiceItemModel.invoice.invoiceNote = itemNote.ifEmpty { null }
         invoices[invoiceIndex] = invoiceItemModel
         invoiceHeader = POSUtils.refreshValues(
             invoices,

@@ -115,7 +115,10 @@ class POSViewModel @Inject constructor(
             if (defaultTp.thirdPartyId.isNotEmpty()) {
                 val defTp = listOfThirdParties.firstOrNull { it.thirdPartyId == defaultTp.thirdPartyId }
                 if (defTp == null) {
-                    listOfThirdParties.add(0,defaultTp)
+                    listOfThirdParties.add(
+                        0,
+                        defaultTp
+                    )
                 }
             }
             clientsMap = listOfThirdParties.associateBy { it.thirdPartyId }
@@ -193,15 +196,22 @@ class POSViewModel @Inject constructor(
                     invoiceHeader.invoiceHeadTransNo = POSUtils.getInvoiceTransactionNo(
                         lastTransactionIvn?.invoiceHeadTransNo ?: ""
                     )
-                    invoiceHeader.invoiceHeadTtCode = SettingsModel.getTransactionType(invoiceHeader.invoiceHeadGrossAmount)
+                    if (invoiceHeader.invoiceHeadOrderNo.isNullOrEmpty()) {
+                        val lastOrderInv = invoiceHeaderRepository.getLastOrderByType()
+                        invoiceHeader.invoiceHeadOrderNo = POSUtils.getInvoiceNo(
+                            lastOrderInv?.invoiceHeadOrderNo ?: ""
+                        )
+                    }
                     invoiceHeader.invoiceHeadStatus = null
                 } else {
                     val lastOrderInv = invoiceHeaderRepository.getLastOrderByType()
                     invoiceHeader.invoiceHeadOrderNo = POSUtils.getInvoiceNo(
                         lastOrderInv?.invoiceHeadOrderNo ?: ""
                     )
-                    invoiceHeader.invoiceHeadTtCode = SettingsModel.getTransactionType(invoiceHeader.invoiceHeadGrossAmount)
                     invoiceHeader.invoiceHeadTransNo = null
+                }
+                if (invoiceHeader.invoiceHeadTtCode.isNullOrEmpty()) {
+                    invoiceHeader.invoiceHeadTtCode = SettingsModel.getTransactionType(invoiceHeader.invoiceHeadGrossAmount)
                 }
                 invoiceHeader.prepareForInsert()
                 val addedInv = invoiceHeaderRepository.insert(
@@ -227,6 +237,15 @@ class POSViewModel @Inject constructor(
                     )
                 }
             } else {
+                if (invoiceHeader.invoiceHeadOrderNo.isNullOrEmpty()) {
+                    val lastOrderInv = invoiceHeaderRepository.getLastOrderByType()
+                    invoiceHeader.invoiceHeadOrderNo = POSUtils.getInvoiceNo(
+                        lastOrderInv?.invoiceHeadOrderNo ?: ""
+                    )
+                }
+                if (invoiceHeader.invoiceHeadTtCode.isNullOrEmpty()) {
+                    invoiceHeader.invoiceHeadTtCode = SettingsModel.getTransactionType(invoiceHeader.invoiceHeadGrossAmount)
+                }
                 if (finish) {
                     if (invoiceHeader.invoiceHeadTransNo.isNullOrEmpty() || invoiceHeader.invoiceHeadTransNo.equals("0")) {
                         val lastTransactionIvn = invoiceHeaderRepository.getLastTransactionByType(
@@ -235,9 +254,6 @@ class POSViewModel @Inject constructor(
                         invoiceHeader.invoiceHeadTransNo = POSUtils.getInvoiceTransactionNo(
                             lastTransactionIvn?.invoiceHeadTransNo ?: ""
                         )
-                        if (invoiceHeader.invoiceHeadTtCode.isNullOrEmpty()) {
-                            invoiceHeader.invoiceHeadTtCode = SettingsModel.getTransactionType(invoiceHeader.invoiceHeadGrossAmount)
-                        }
                     }
                 }
                 invoiceHeaderRepository.update(
