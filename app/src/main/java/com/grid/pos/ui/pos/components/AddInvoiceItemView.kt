@@ -106,7 +106,7 @@ fun AddInvoiceItemView(
                         var proceed = true
                         if (item.itemRemQty <= 0) {
                             proceed = SettingsModel.allowOutOfStockSale
-                            if (SettingsModel.showItemQtyAlert) {
+                            if (item.selected && SettingsModel.showItemQtyAlert) {
                                 activityViewModel.showPopup(
                                     true,
                                     PopupModel(

@@ -183,11 +183,11 @@ class ActivityScopedViewModel @Inject constructor(
         }
         val currency = SettingsModel.currentCurrency ?: return item.itemUnitPrice
         when (item.itemCurrencyId) {
-            currency.currencyDocumentId -> {//second currency
+            currency.currencyDocumentId,currency.currencyCode2 -> {//second currency
                 item.itemRealUnitPrice = item.itemUnitPrice.div(currency.currencyRate)
             }
 
-            currency.currencyId -> {//first currency
+            currency.currencyId,currency.currencyCode1 -> {//first currency
                 item.itemRealUnitPrice = item.itemUnitPrice
             }
 
