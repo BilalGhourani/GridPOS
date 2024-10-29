@@ -10,6 +10,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.grid.pos.BuildConfig
+import com.grid.pos.R
 import com.grid.pos.data.DataModel
 import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.ConnectionModel
@@ -47,14 +48,33 @@ object Utils {
     var isTablet: Boolean? = null;
     var isDeviceLargerThan7Inches: Boolean? = null;
 
+    fun getColumnCount(context: Context): Int {
+       return if (context.resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT) {
+            3
+        } else {
+            5
+        }
+    }
+
+    fun randomColor(): Color {
+        val red = kotlin.random.Random.nextFloat()
+        val green = kotlin.random.Random.nextFloat()
+        val blue = kotlin.random.Random.nextFloat()
+        return Color(red, green, blue)
+    }
+
     fun getHomeList(): MutableList<HomeSectionModel> {
         if (!BuildConfig.DEBUG && SettingsModel.isConnectedToSqlServer()) {
             return mutableListOf(
                 HomeSectionModel(
+                    R.drawable.pos,
+                    randomColor(),
                     "POS",
                     "POSView"
                 ),
                 HomeSectionModel(
+                    R.drawable.tables,
+                    randomColor(),
                     "Table",
                     "TablesView"
                 )
@@ -62,44 +82,76 @@ object Utils {
         }
         return mutableListOf(
             HomeSectionModel(
-                "Currency",
-                "ManageCurrenciesView"
-            ),
-            HomeSectionModel(
+                R.drawable.companies,
+                randomColor(),
                 "Company",
                 "ManageCompaniesView"
             ),
             HomeSectionModel(
+                R.drawable.currencies,
+                randomColor(),
+                "Currency",
+                "ManageCurrenciesView"
+            ),
+            HomeSectionModel(
+                R.drawable.users,
+                randomColor(),
                 "User",
                 "ManageUsersView"
             ),
             HomeSectionModel(
+                R.drawable.third_parties,
+                randomColor(),
                 "Third Party",
                 "ManageThirdPartiesView"
             ),
             HomeSectionModel(
+                R.drawable.families,
+                randomColor(),
                 "Family",
                 "ManageFamiliesView"
             ),
             HomeSectionModel(
+                R.drawable.items,
+                randomColor(),
                 "Item",
                 "ManageItemsView"
             ),
             HomeSectionModel(
+                R.drawable.printer,
+                randomColor(),
                 "Printer",
                 "POSPrinterView"
             ),
             HomeSectionModel(
-                "Reports",
-                "ReportsView"
-            ),
-            HomeSectionModel(
+                R.drawable.pos,
+                randomColor(),
                 "POS",
                 "POSView"
             ),
             HomeSectionModel(
+                R.drawable.tables,
+                randomColor(),
                 "Table",
                 "TablesView"
+            ),
+            HomeSectionModel(
+                R.drawable.sales_reports,
+                randomColor(),
+                "Sales Reports",
+                "ReportsView"
+            ),
+            HomeSectionModel(
+                R.drawable.setup_reports,
+                randomColor(),
+                "Setup Reports",
+                "ReportsListView"
+            ),
+            HomeSectionModel(
+                R.drawable.backup_restore,
+                randomColor(),
+                "Backup & Restore",
+                "BackupView"
             )
         )
     }
@@ -115,18 +167,21 @@ object Utils {
         return result
     }
 
-
     fun getReportCountries(withDefault: Boolean): MutableList<ReportCountry> {
         val result = mutableListOf<ReportCountry>()
         Country.entries.forEach {
-            result.add(ReportCountry(it.code,it.value))
+            result.add(
+                ReportCountry(
+                    it.code,
+                    it.value
+                )
+            )
         }
         if (!withDefault) {
             result.removeAt(0)
         }
         return result
     }
-
 
     fun generateRandomUuidString(): String {
         if (!SettingsModel.isSqlServerWebDb && SettingsModel.connectionType == CONNECTION_TYPE.SQL_SERVER.key) {
