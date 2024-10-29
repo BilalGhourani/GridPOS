@@ -1059,7 +1059,7 @@ class InvoiceHeaderRepositoryImpl(
                 tableStatus,//ta_status
                 tableName,//ta_newname
                 SettingsModel.getCompanyID(),//ta_cmp_id
-                "DE0455F9-DD64-4D14-85B5-0502EBD57176",//ta_grp_desc
+                SettingsModel.currentUser?.userGrpDesc,//ta_grp_desc
                 locked,//ta_locked
                 Timestamp(System.currentTimeMillis()),//ta_timestamp
                 SettingsModel.currentUser?.userUsername,//ta_userstamp
