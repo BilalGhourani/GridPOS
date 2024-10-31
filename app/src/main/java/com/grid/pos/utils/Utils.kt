@@ -75,6 +75,16 @@ object Utils {
                     R.drawable.tables,
                     "Table",
                     "TablesView"
+                ),
+                HomeSectionModel(
+                    R.drawable.setup_reports,
+                    "Setup Reports",
+                    "ReportsListView"
+                ),
+                HomeSectionModel(
+                    R.drawable.logout,
+                    "Logout",
+                    "logout"
                 )
             )
         }
@@ -138,6 +148,11 @@ object Utils {
                 R.drawable.backup_restore,
                 "Backup & Restore",
                 "BackupView"
+            ),
+            HomeSectionModel(
+                R.drawable.logout,
+                "Logout",
+                "logout"
             )
         )
     }

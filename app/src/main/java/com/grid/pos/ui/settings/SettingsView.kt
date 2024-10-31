@@ -981,41 +981,12 @@ fun SettingsView(
                     }
                 }
                 Spacer(modifier = Modifier.weight(1f))
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .wrapContentHeight(),
-                ) {
-                    UIButton(
-                        modifier = Modifier
-                            .height(70.dp)
-                            .weight(1f)
-                            .padding(3.dp),
-                        text = "Setup Reports",
-                        buttonColor = buttonColorState,
-                        textColor = buttonTextColorState
-                    ) {
-                        navController?.navigate("ReportsListView")
-                    }
-                    UIButton(
-                        modifier = Modifier
-                            .height(70.dp)
-                            .weight(1f)
-                            .padding(3.dp),
-                        text = "Backup",
-                        buttonColor = buttonColorState,
-                        textColor = buttonTextColorState
-                    ) {
-                        navController?.navigate("BackupView")
-                    }
-                }
 
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .wrapContentHeight(),
                 ) {
-
                     UIButton(
                         modifier = Modifier
                             .height(70.dp)
@@ -1026,27 +997,6 @@ fun SettingsView(
                         textColor = buttonTextColorState
                     ) {
                         navController?.navigate("LicenseView")
-                    }
-
-                    if (isLoggedId) {
-                        UIButton(
-                            modifier = Modifier
-                                .height(70.dp)
-                                .weight(1f)
-                                .padding(3.dp),
-                            text = "Logout",
-                            buttonColor = buttonColorState,
-                            textColor = buttonTextColorState
-                        ) {
-                            scope.launch(Dispatchers.IO) {
-                                DataStoreManager.removeKey(
-                                    DataStoreManager.DataStoreKeys.CURRENT_USER_ID.key
-                                )
-                            }
-                            activityScopedViewModel.logout()
-                            navController?.clearBackStack("LoginView")
-                            navController?.navigate("LoginView")
-                        }
                     }
                 }
 

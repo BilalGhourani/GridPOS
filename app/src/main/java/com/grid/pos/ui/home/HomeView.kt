@@ -121,12 +121,15 @@ fun HomeView(
                 height = 100.dp
             })
     }
-    BackHandler {
+    fun askToLogout() {
         if (!isLogoutPopupShown) {
             activityState.warning = Event("Are you sure you want to logout?")
             activityState.forceLogout = false
             isLogoutPopupShown = true
         }
+    }
+    BackHandler {
+        askToLogout()
     }
     GridPOSTheme {
         Scaffold(containerColor = SettingsModel.backgroundColor,
@@ -178,7 +181,12 @@ fun HomeView(
                             contentPadding = PaddingValues(0.dp),
                             shape = RoundedCornerShape(15.dp),
                             onClick = {
-                                navController?.navigate(item.composable)
+                                if (item.composable == "logout") {
+                                    askToLogout()
+                                } else {
+                                    navController?.navigate(item.composable)
+                                }
+
                             }) {
                             Column(
                                 modifier = Modifier.border(
