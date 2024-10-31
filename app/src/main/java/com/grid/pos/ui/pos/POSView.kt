@@ -233,41 +233,36 @@ fun POSView(
                 activityViewModel.invoiceHeader = invoiceHeaderState.value
                 cashLoadedData()
                 navController?.navigate("UIWebView")
-            } else if (activityViewModel.isFromTable) {
-                if (SettingsModel.autoPrintTickets) {
-                    state.isLoading = true
-                    val invoices = invoicesState.filter { it.invoice.isNew() || it.shouldPrint }
-                        .toMutableList()
-                    invoices.addAll(state.itemsToDelete)
-                    if (invoices.isNotEmpty()) {
-                        scope.launch {
-                            withContext(Dispatchers.Default) {
-                                activityViewModel.invoiceHeader = invoiceHeaderState.value
-                                cashLoadedData()
-                                PrinterUtils.printTickets(
-                                    context = context,
-                                    invoiceHeader = invoiceHeaderState.value,
-                                    invoiceItemModels = invoices,
-                                    printers = activityViewModel.printers
-                                )
-                            }
-                            withContext(Dispatchers.Main) {
-                                state.isLoading = false
-                                clear()
-                                navController?.navigateUp()
-                            }
+            } else if (SettingsModel.autoPrintTickets) {
+                state.isLoading = true
+                val invoices = invoicesState.filter { it.invoice.isNew() || it.shouldPrint }
+                    .toMutableList()
+                invoices.addAll(state.itemsToDelete)
+                if (invoices.isNotEmpty()) {
+                    scope.launch {
+                        withContext(Dispatchers.Default) {
+                            activityViewModel.invoiceHeader = invoiceHeaderState.value
+                            cashLoadedData()
+                            PrinterUtils.printTickets(
+                                context = context,
+                                invoiceHeader = invoiceHeaderState.value,
+                                invoiceItemModels = invoices,
+                                printers = activityViewModel.printers
+                            )
                         }
-                    } else {
-                        clear()
-                        navController?.navigateUp()
+                        withContext(Dispatchers.Main) {
+                            state.isLoading = false
+                            clear()
+                            navController?.navigateUp()
+                        }
                     }
                 } else {
                     clear()
                     navController?.navigateUp()
                 }
-
             } else {
                 clear()
+                navController?.navigateUp()
             }
             state.isSaved = false
         }
