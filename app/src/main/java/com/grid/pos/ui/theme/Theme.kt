@@ -14,6 +14,8 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
+import com.grid.pos.model.SettingsModel
+import com.grid.pos.utils.Utils
 
 private val DarkColorScheme = darkColorScheme(
     primary = Purple80,
@@ -57,8 +59,9 @@ fun GridPOSTheme(
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-            window.statusBarColor = colorScheme.primary.toArgb()
-            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = darkTheme
+            val color = SettingsModel.topBarColor.toArgb()
+            window.statusBarColor = color
+            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = Utils.isColorLight(color)
         }
     }
 

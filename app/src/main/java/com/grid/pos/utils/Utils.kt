@@ -9,6 +9,9 @@ import android.util.Log
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.core.graphics.blue
+import androidx.core.graphics.green
+import androidx.core.graphics.red
 import com.grid.pos.BuildConfig
 import com.grid.pos.R
 import com.grid.pos.data.DataModel
@@ -350,6 +353,19 @@ object Utils {
             )
             0
         }
+    }
+
+    fun isColorLight(color: Int): Boolean {
+        // Extract RGB values from the color
+        val r = color.red
+        val g = color.green
+        val b = color.blue
+
+        // Calculate luminance
+        val luminance = (0.299 * r + 0.587 * g + 0.114 * b)
+
+        // Return true if luminance is greater than 186
+        return luminance > 186
     }
 
 }

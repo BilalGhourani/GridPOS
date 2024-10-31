@@ -161,7 +161,7 @@ fun HomeView(
             LazyVerticalGrid(
                 modifier = modifier
                     .padding(it)
-                    .padding(vertical = 30.dp)
+                    .padding(vertical = 10.dp)
                     .fillMaxWidth()
                     .wrapContentHeight(),
                 columns = GridCells.Fixed(columnCount)
