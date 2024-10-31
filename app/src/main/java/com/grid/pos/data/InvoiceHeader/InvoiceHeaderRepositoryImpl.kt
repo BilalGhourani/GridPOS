@@ -805,7 +805,7 @@ class InvoiceHeaderRepositoryImpl(
                 invoiceHeader.invoiceHeadTableId ?: invoiceHeader.invoiceHeadTaName,
                 invoiceHeader.invoiceHeadClientsCount,
                 0,//mincharge
-                SettingsModel.currentUser?.userUsername,//hi_employee
+                SettingsModel.currentUser?.userId,//hi_employee
                 if (invoiceHeader.invoiceHeadTransNo.isNullOrEmpty()) null else 1,//delivered
                 invoiceHeader.invoiceHeadUserStamp,//hi_userstamp
                 SettingsModel.currentCompany?.cmp_multibranchcode,//branchcode
@@ -866,9 +866,9 @@ class InvoiceHeaderRepositoryImpl(
                 invoiceHeader.invoiceHeadTableId ?: invoiceHeader.invoiceHeadTaName,
                 invoiceHeader.invoiceHeadClientsCount,
                 0,//mincharge
-                SettingsModel.currentUser?.userUsername,//hi_employee
+                SettingsModel.currentUser?.userId,//hi_employee
                 if (invoiceHeader.invoiceHeadTransNo.isNullOrEmpty()) null else 1,//delivered
-                invoiceHeader.invoiceHeadUserStamp,//hi_userstamp
+                SettingsModel.currentUser?.userUsername,//hi_userstamp
                 null,//hi_sessionpointer
                 SettingsModel.currentCompany?.cmp_multibranchcode,//branchcode
                 invoiceHeader.invoiceHeadChange,
@@ -938,9 +938,9 @@ class InvoiceHeaderRepositoryImpl(
                 invoiceHeader.invoiceHeadTableId ?: invoiceHeader.invoiceHeadTaName,
                 invoiceHeader.invoiceHeadClientsCount,
                 0,//mincharge
-                SettingsModel.currentUser?.userUsername,//hi_employee
+                SettingsModel.currentUser?.userId,//hi_employee
                 if (invoiceHeader.invoiceHeadTransNo.isNullOrEmpty()) null else 1,//delivered
-                invoiceHeader.invoiceHeadUserStamp,//hi_userstamp
+                SettingsModel.currentUser?.userUsername,//hi_userstamp
                 SettingsModel.currentCompany?.cmp_multibranchcode,//branchcode
                 invoiceHeader.invoiceHeadChange,
                 Timestamp(System.currentTimeMillis()),//hi_valuedate
@@ -1000,9 +1000,9 @@ class InvoiceHeaderRepositoryImpl(
                 invoiceHeader.invoiceHeadTableId ?: invoiceHeader.invoiceHeadTaName,
                 invoiceHeader.invoiceHeadClientsCount,
                 0,//mincharge
-                SettingsModel.currentUser?.userUsername,//hi_employee
+                SettingsModel.currentUser?.userId,//hi_employee
                 if (invoiceHeader.invoiceHeadTransNo.isNullOrEmpty()) null else 1,//delivered
-                invoiceHeader.invoiceHeadUserStamp,//hi_userstamp
+                SettingsModel.currentUser?.userUsername,//hi_userstamp
                 invoiceHeader.invoiceHeadChange,
                 Timestamp(System.currentTimeMillis()),//hi_valuedate
                 0,//hi_smssent
