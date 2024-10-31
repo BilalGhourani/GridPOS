@@ -68,13 +68,11 @@ object Utils {
             return mutableListOf(
                 HomeSectionModel(
                     R.drawable.pos,
-                    randomColor(),
                     "POS",
                     "POSView"
                 ),
                 HomeSectionModel(
                     R.drawable.tables,
-                    randomColor(),
                     "Table",
                     "TablesView"
                 )
@@ -83,73 +81,61 @@ object Utils {
         return mutableListOf(
             HomeSectionModel(
                 R.drawable.companies,
-                randomColor(),
                 "Company",
                 "ManageCompaniesView"
             ),
             HomeSectionModel(
                 R.drawable.currencies,
-                randomColor(),
                 "Currency",
                 "ManageCurrenciesView"
             ),
             HomeSectionModel(
                 R.drawable.users,
-                randomColor(),
                 "User",
                 "ManageUsersView"
             ),
             HomeSectionModel(
                 R.drawable.third_parties,
-                randomColor(),
                 "Third Party",
                 "ManageThirdPartiesView"
             ),
             HomeSectionModel(
                 R.drawable.families,
-                randomColor(),
                 "Family",
                 "ManageFamiliesView"
             ),
             HomeSectionModel(
                 R.drawable.items,
-                randomColor(),
                 "Item",
                 "ManageItemsView"
             ),
             HomeSectionModel(
                 R.drawable.printer,
-                randomColor(),
                 "Printer",
                 "POSPrinterView"
             ),
             HomeSectionModel(
                 R.drawable.pos,
-                randomColor(),
                 "POS",
                 "POSView"
             ),
             HomeSectionModel(
                 R.drawable.tables,
-                randomColor(),
                 "Table",
                 "TablesView"
             ),
             HomeSectionModel(
                 R.drawable.sales_reports,
-                randomColor(),
                 "Sales Reports",
                 "ReportsView"
             ),
             HomeSectionModel(
                 R.drawable.setup_reports,
-                randomColor(),
                 "Setup Reports",
                 "ReportsListView"
             ),
             HomeSectionModel(
                 R.drawable.backup_restore,
-                randomColor(),
                 "Backup & Restore",
                 "BackupView"
             )

@@ -1,6 +1,7 @@
 package com.grid.pos.ui.home
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -36,6 +37,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -55,8 +57,10 @@ import com.grid.pos.model.Event
 import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.theme.GridPOSTheme
+import com.grid.pos.ui.theme.homeLightBlue
+import com.grid.pos.ui.theme.homeLightGreen
+import com.grid.pos.ui.theme.homeLightPurple
 import com.grid.pos.utils.Utils
-import kotlin.random.Random
 
 @OptIn(
     ExperimentalMaterial3Api::class
@@ -178,8 +182,16 @@ fun HomeView(
                             }) {
                             Column(
                                 modifier = Modifier.border(
-                                    1.dp,
-                                    item.border,
+                                    BorderStroke(
+                                        1.dp,
+                                        Brush.linearGradient(
+                                            colors = listOf(
+                                                homeLightGreen,
+                                                homeLightPurple,
+                                                homeLightBlue
+                                            )
+                                        )
+                                    ),
                                     RoundedCornerShape(15.dp)
                                 ),
                                 horizontalAlignment = Alignment.CenterHorizontally,
