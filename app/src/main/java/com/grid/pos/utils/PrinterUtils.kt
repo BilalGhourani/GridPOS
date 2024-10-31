@@ -1040,6 +1040,10 @@ object PrinterUtils {
         if (!result.found) {
             return result
         }
+        val invDate = DateHelper.getDateFromString(
+            invoiceHeader.invoiceHeadDate,
+            if (invoiceHeader.invoiceHeadDate.contains("at")) "MMMM dd, yyyy 'at' hh:mm:ss a 'Z'" else "yyyy-MM-dd HH:mm:ss.S"
+        )
         var htmlContent = result.htmlContent
         htmlContent = if (!invoiceHeader.invoiceHeadTaName.isNullOrEmpty()) {
             htmlContent.replace(
@@ -1087,11 +1091,7 @@ object PrinterUtils {
         htmlContent = htmlContent.replace(
             "{invoice_time}",
             DateHelper.getDateInFormat(
-                invoiceHeader.invoiceHeadTimeStamp ?: Date(
-                    invoiceHeader.invoiceHeadDateTime.div(
-                        1000
-                    )
-                ),
+                invDate,
                 "dd/MM/yyyy hh:mm:ss"
             )
         )
