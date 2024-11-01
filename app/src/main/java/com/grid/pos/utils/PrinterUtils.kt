@@ -39,7 +39,6 @@ import org.jsoup.nodes.Element
 import java.io.ByteArrayOutputStream
 import java.io.OutputStream
 import java.net.Socket
-import java.util.Date
 
 object PrinterUtils {
 
@@ -619,11 +618,10 @@ object PrinterUtils {
             currency?.currencyCode2 ?: ""
         )
 
-        var displayReceiptDashed = false
-
+        var isItPayed = false
         val prCash = Utils.getDoubleOrZero(posReceipt.posReceiptCash)
         htmlContent = if (prCash > 0.0) {
-            displayReceiptDashed = true
+            isItPayed = true
             htmlContent.replace(
                 "{receipt_cash}",
                 POSUtils.formatDouble(
@@ -643,7 +641,7 @@ object PrinterUtils {
 
         val prCashs = Utils.getDoubleOrZero(posReceipt.posReceiptCashs)
         htmlContent = if (prCashs > 0.0) {
-            displayReceiptDashed = true
+            isItPayed = true
             htmlContent.replace(
                 "{receipt_cashs}",
                 POSUtils.formatDouble(
@@ -663,7 +661,7 @@ object PrinterUtils {
 
         val prCredit = Utils.getDoubleOrZero(posReceipt.posReceiptCredit)
         htmlContent = if (prCredit > 0.0) {
-            displayReceiptDashed = true
+            isItPayed = true
             htmlContent.replace(
                 "{receipt_credit}",
                 POSUtils.formatDouble(
@@ -682,7 +680,7 @@ object PrinterUtils {
         }
         val prCredits = Utils.getDoubleOrZero(posReceipt.posReceiptCredits)
         htmlContent = if (prCredits > 0.0) {
-            displayReceiptDashed = true
+            isItPayed = true
             htmlContent.replace(
                 "{receipt_credits}",
                 POSUtils.formatDouble(
@@ -702,7 +700,7 @@ object PrinterUtils {
 
         val prDebit = Utils.getDoubleOrZero(posReceipt.posReceiptDebit)
         htmlContent = if (prDebit > 0.0) {
-            displayReceiptDashed = true
+            isItPayed = true
             htmlContent.replace(
                 "{receipt_debit}",
                 POSUtils.formatDouble(
@@ -721,7 +719,7 @@ object PrinterUtils {
         }
         val prDebits = Utils.getDoubleOrZero(posReceipt.posReceiptDebits)
         htmlContent = if (prDebits > 0.0) {
-            displayReceiptDashed = true
+            isItPayed = true
             htmlContent.replace(
                 "{receipt_debits}",
                 POSUtils.formatDouble(
@@ -739,8 +737,7 @@ object PrinterUtils {
             )
         }
         val change = Utils.getDoubleOrZero(invoiceHeader.invoiceHeadChange)
-        htmlContent = if (change != 0.0) {
-            displayReceiptDashed = true
+        htmlContent = if (change != 0.0 && isItPayed) {
             htmlContent.replace(
                 "{inv_change}",
                 POSUtils.formatDouble(
@@ -760,7 +757,7 @@ object PrinterUtils {
 
         htmlContent = htmlContent.replace(
             "{prsReceipt_dashed_display}",
-            if (displayReceiptDashed) "block" else "none"
+            if (isItPayed) "block" else "none"
         )
 
 
