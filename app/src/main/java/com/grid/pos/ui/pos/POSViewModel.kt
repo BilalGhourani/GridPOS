@@ -247,7 +247,7 @@ class POSViewModel @Inject constructor(
                     invoiceHeader.invoiceHeadTtCode = SettingsModel.getTransactionType(invoiceHeader.invoiceHeadGrossAmount)
                 }
                 if (finish) {
-                    if (invoiceHeader.invoiceHeadTransNo.isNullOrEmpty() || invoiceHeader.invoiceHeadTransNo.equals("0")) {
+                    if (!invoiceHeader.isFinished()) {
                         val lastTransactionIvn = invoiceHeaderRepository.getLastTransactionByType(
                             POSUtils.getInvoiceType(invoiceHeader)
                         )

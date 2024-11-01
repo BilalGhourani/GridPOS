@@ -359,7 +359,13 @@ data class InvoiceHeader(
         return !invoiceHeader.invoiceHeadNote.equals(invoiceHeadNote) || !invoiceHeader.invoiceHeadCashName.equals(invoiceHeadCashName) || invoiceHeader.invoiceHeadDiscount != invoiceHeadDiscount || invoiceHeader.invoiceHeadDiscountAmount != invoiceHeadDiscountAmount
     }
 
+    @Exclude
     fun getVatAmount(): Double {
         return invoiceHeadTaxAmt + invoiceHeadTax1Amt + invoiceHeadTax2Amt
+    }
+
+    @Exclude
+    fun isFinished(): Boolean {
+        return !invoiceHeadTransNo.isNullOrEmpty() && !invoiceHeadTransNo.equals("0")
     }
 }

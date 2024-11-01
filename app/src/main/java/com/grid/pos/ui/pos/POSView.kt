@@ -832,7 +832,7 @@ fun POSView(
                             posReceipt = activityViewModel.posReceipt,
                             invoiceItems = activityViewModel.invoiceItemModels,
                             print = true,
-                            finish = false
+                            finish = invoiceHeaderState.value.isFinished()
                         )
                     },
                     onFinishAndPrint = { change, receipt ->

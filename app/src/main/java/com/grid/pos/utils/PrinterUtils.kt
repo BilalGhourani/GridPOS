@@ -1070,7 +1070,7 @@ object PrinterUtils {
                 "none"
             )
         }
-        htmlContent = if (!invoiceHeader.invoiceHeadTransNo.isNullOrEmpty() && !invoiceHeader.invoiceHeadTransNo.equals("0")) {
+        htmlContent = if (invoiceHeader.isFinished()) {
             htmlContent.replace(
                 "{trans_no}",
                 invoiceHeader.invoiceHeadTransNo ?: ""
