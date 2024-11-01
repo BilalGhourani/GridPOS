@@ -106,7 +106,7 @@ object POSUtils {
     }
 
     fun getInvoiceType(invoiceHeader: InvoiceHeader): String {
-        return invoiceHeader.invoiceHeadTtCode.takeIf { !it.isNullOrEmpty() } ?:run { SettingsModel.getTransactionType(invoiceHeader.invoiceHeadTotal) }
+        return invoiceHeader.invoiceHeadTtCode.takeIf { !it.isNullOrEmpty() } ?: run { SettingsModel.getTransactionType(invoiceHeader.invoiceHeadTotal) }
     }
 
     fun formatDouble(
@@ -114,8 +114,9 @@ object POSUtils {
             defaultScale: Int = 6
     ): String {
         val numberString = BigDecimal(if (number.isNaN()) 0.0 else number)
+        val numberScale = numberString.scale()
         val newScale = min(
-            numberString.scale(),
+            if (numberScale > 0) numberScale else defaultScale,
             defaultScale
         )
         return numberString.setScale(
