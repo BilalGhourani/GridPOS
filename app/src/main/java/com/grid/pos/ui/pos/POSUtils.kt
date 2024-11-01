@@ -120,7 +120,7 @@ object POSUtils {
         )
         return numberString.setScale(
             newScale,
-            RoundingMode.CEILING
+            RoundingMode.HALF_UP
         ).toPlainString()
     }
 }
