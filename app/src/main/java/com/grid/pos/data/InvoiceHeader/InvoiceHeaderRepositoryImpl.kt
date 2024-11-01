@@ -805,7 +805,7 @@ class InvoiceHeaderRepositoryImpl(
                 invoiceHeader.invoiceHeadTableId ?: invoiceHeader.invoiceHeadTaName,
                 invoiceHeader.invoiceHeadClientsCount,
                 0,//mincharge
-                SettingsModel.currentUser?.userId,//hi_employee
+                null,//hi_employee
                 if (invoiceHeader.invoiceHeadTransNo.isNullOrEmpty()) null else 1,//delivered
                 invoiceHeader.invoiceHeadUserStamp,//hi_userstamp
                 SettingsModel.currentCompany?.cmp_multibranchcode,//branchcode
@@ -866,7 +866,7 @@ class InvoiceHeaderRepositoryImpl(
                 invoiceHeader.invoiceHeadTableId ?: invoiceHeader.invoiceHeadTaName,
                 invoiceHeader.invoiceHeadClientsCount,
                 0,//mincharge
-                SettingsModel.currentUser?.userId,//hi_employee
+                null,//hi_employee
                 if (invoiceHeader.invoiceHeadTransNo.isNullOrEmpty()) null else 1,//delivered
                 SettingsModel.currentUser?.userUsername,//hi_userstamp
                 null,//hi_sessionpointer
@@ -938,7 +938,7 @@ class InvoiceHeaderRepositoryImpl(
                 invoiceHeader.invoiceHeadTableId ?: invoiceHeader.invoiceHeadTaName,
                 invoiceHeader.invoiceHeadClientsCount,
                 0,//mincharge
-                SettingsModel.currentUser?.userId,//hi_employee
+                null,//hi_employee
                 if (invoiceHeader.invoiceHeadTransNo.isNullOrEmpty()) null else 1,//delivered
                 SettingsModel.currentUser?.userUsername,//hi_userstamp
                 SettingsModel.currentCompany?.cmp_multibranchcode,//branchcode
@@ -1000,7 +1000,7 @@ class InvoiceHeaderRepositoryImpl(
                 invoiceHeader.invoiceHeadTableId ?: invoiceHeader.invoiceHeadTaName,
                 invoiceHeader.invoiceHeadClientsCount,
                 0,//mincharge
-                SettingsModel.currentUser?.userId,//hi_employee
+                null,//hi_employee
                 if (invoiceHeader.invoiceHeadTransNo.isNullOrEmpty()) null else 1,//delivered
                 SettingsModel.currentUser?.userUsername,//hi_userstamp
                 invoiceHeader.invoiceHeadChange,
