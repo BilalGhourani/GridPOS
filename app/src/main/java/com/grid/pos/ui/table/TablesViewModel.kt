@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.grid.pos.data.InvoiceHeader.InvoiceHeader
 import com.grid.pos.data.InvoiceHeader.InvoiceHeaderRepository
 import com.grid.pos.model.Event
+import com.grid.pos.model.SettingsModel
 import com.grid.pos.model.TableModel
 import com.grid.pos.ui.common.BaseViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -77,8 +78,14 @@ class TablesViewModel @Inject constructor(
             warning = null,
             isLoading = true
         )
+        val tableModel = tablesState.value.tables.firstOrNull {
+            it.table_name.equals(
+                tableNo,
+                ignoreCase = true
+            )
+        } ?: TableModel(table_name = tableNo)
         viewModelScope.launch(Dispatchers.IO) {
-            val invoiceHeader = invoiceHeaderRepository.getInvoiceByTable(tableNo)
+            val invoiceHeader = invoiceHeaderRepository.getInvoiceByTable(tableModel)
             viewModelScope.launch(Dispatchers.Main) {
                 if (!invoiceHeader.isNew()) {
                     tablesState.value = tablesState.value.copy(
@@ -96,6 +103,30 @@ class TablesViewModel @Inject constructor(
                 }
 
             }
+        }
+    }
+
+    suspend fun lockTable(
+            tableName: String
+    ) {
+        val tableModel = tablesState.value.tables.firstOrNull {
+            it.table_name.equals(
+                tableName,
+                ignoreCase = true
+            )
+        } ?: TableModel(table_name = tableName)
+        val finalTableId = invoiceHeaderRepository.lockTable(
+            tableModel.table_id,
+            tableName
+        ) ?: tableModel.table_id
+        if (finalTableId.isNotEmpty()) {
+            val type = if (SettingsModel.isSqlServerWebDb) {
+                tableModel.table_type ?: "temp"
+            } else {
+                "table"
+            }
+            tablesState.value.invoiceHeader.invoiceHeadTableId = finalTableId
+            tablesState.value.invoiceHeader.invoiceHeadTableType = type
         }
     }
 }

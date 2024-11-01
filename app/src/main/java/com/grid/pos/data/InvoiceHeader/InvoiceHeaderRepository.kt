@@ -7,14 +7,22 @@ interface InvoiceHeaderRepository {
 
     // suspend is a coroutine keyword,
     // instead of having a callback we can just wait till insert is done
-    suspend fun insert(invoiceHeader: InvoiceHeader,willPrint: Boolean = false,isFinished: Boolean = false): InvoiceHeader
+    suspend fun insert(
+            invoiceHeader: InvoiceHeader,
+            willPrint: Boolean = false,
+            isFinished: Boolean = false
+    ): InvoiceHeader
 
     // Delete an Invoice Header
     suspend fun delete(invoiceHeader: InvoiceHeader)
 
     // Update an Invoice Header
     suspend fun updateInvoiceHeader(invoiceHeader: InvoiceHeader)
-    suspend fun update(invoiceHeader: InvoiceHeader, willPrint: Boolean,isFinished: Boolean = false)
+    suspend fun update(
+            invoiceHeader: InvoiceHeader,
+            willPrint: Boolean,
+            isFinished: Boolean = false
+    )
 
     // Get all Invoice Headers logs as stream.
     suspend fun getAllInvoiceHeaders(): MutableList<InvoiceHeader>
@@ -23,7 +31,17 @@ interface InvoiceHeaderRepository {
     suspend fun getLastInvoice(): InvoiceHeader?
 
     suspend fun getAllOpenedTables(): MutableList<TableModel>
-    suspend fun getInvoiceByTable(tableNo: String): InvoiceHeader
+    suspend fun lockTable(
+            tableId: String?,
+            tableName: String
+    ): String?
+
+    suspend fun unLockTable(
+            tableId: String,
+            tableType: String?
+    )
+
+    suspend fun getInvoiceByTable(tableModel: TableModel): InvoiceHeader
     suspend fun getInvoicesBetween(
             from: Date,
             to: Date

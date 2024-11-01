@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -40,14 +39,11 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -67,10 +63,11 @@ import com.grid.pos.model.SettingsModel
 import com.grid.pos.model.UserType
 import com.grid.pos.ui.common.UIButton
 import com.grid.pos.ui.common.UITextField
-import com.grid.pos.ui.settings.setupReports.ReportListCell
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.utils.Utils
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @OptIn(
     ExperimentalMaterial3Api::class,
@@ -116,6 +113,21 @@ fun TablesView(
         navController?.navigate("POSView")
     }
 
+    fun lockTableAndMoveToPos() {
+        if (SettingsModel.isConnectedToSqlServer()) {
+            state.isLoading = true
+            scope.launch(Dispatchers.IO) {
+                viewModel.lockTable(tableNameState)
+                withContext(Dispatchers.Main) {
+                    state.isLoading = false
+                    moveToPos()
+                }
+            }
+        } else {
+            moveToPos()
+        }
+    }
+
     LaunchedEffect(
         stepState,
         state.moveToPos
@@ -126,7 +138,7 @@ fun TablesView(
             clientsCountFocusRequester.requestFocus()
         }
         if (state.moveToPos) {
-            moveToPos()
+            lockTableAndMoveToPos()
             state.moveToPos = false
         }
     }
@@ -170,7 +182,7 @@ fun TablesView(
     }
 
     fun handleBack() {
-        if(state.isLoading){
+        if (state.isLoading) {
             return
         }
         if (stepState > 1) {
@@ -291,7 +303,7 @@ fun TablesView(
                             viewModel.showError("Please enter client counts")
                             return@UIButton
                         }
-                        moveToPos()
+                        lockTableAndMoveToPos()
                     }
                 }
 

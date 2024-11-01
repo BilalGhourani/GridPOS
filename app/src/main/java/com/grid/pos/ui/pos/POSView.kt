@@ -293,6 +293,12 @@ fun POSView(
             popupState = PopupState.DISCARD_INVOICE
             isSavePopupVisible = true
         } else {
+            if (invoiceHeaderState.value.isNew() && !invoiceHeaderState.value.invoiceHeadTableId.isNullOrEmpty()) {
+                viewModel.unLockTable(
+                    invoiceHeaderState.value.invoiceHeadTableId!!,
+                    invoiceHeaderState.value.invoiceHeadTableType
+                )
+            }
             activityViewModel.clearPosValues()
             cashLoadedData()
             if (SettingsModel.getUserType() == UserType.POS) {

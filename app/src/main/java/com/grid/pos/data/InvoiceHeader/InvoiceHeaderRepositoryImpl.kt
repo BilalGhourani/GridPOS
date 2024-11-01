@@ -74,7 +74,7 @@ class InvoiceHeaderRepositoryImpl(
                             if (isFinished) null else invoiceHeader.invoiceHeadId,
                             invoiceHeader.invoiceHeadTaName!!,
                             if (isFinished) null else if (willPrint) "RTL" else null,
-                            if(isFinished) 0 else 1
+                            if (isFinished) 0 else 1
                         )
                     }
                 }
@@ -481,7 +481,10 @@ class InvoiceHeaderRepositoryImpl(
                                     TableModel(
                                         it.getStringValue("ta_name"),
                                         it.getStringValue("ta_newname"),
-                                        it.getStringValue("ta_type")
+                                        it.getStringValue("ta_type"),
+                                        it.getStringValue("ta_hiid"),
+                                        it.getStringValue("ta_userstamp"),
+                                        it.getIntValue("ta_locked")
                                     )
                                 )
                             }
@@ -505,7 +508,10 @@ class InvoiceHeaderRepositoryImpl(
                                     TableModel(
                                         it.getStringValue("ta_name"),
                                         it.getStringValue("ta_name"),
-                                        it.getStringValue("ta_type")
+                                        it.getStringValue("ta_type"),
+                                        it.getStringValue("ta_hiid"),
+                                        it.getStringValue("ta_userstamp"),
+                                        it.getIntValue("ta_locked")
                                     )
                                 )
                             }
@@ -521,8 +527,80 @@ class InvoiceHeaderRepositoryImpl(
         }
     }
 
+    override suspend fun lockTable(
+            tableId: String?,
+            tableName: String
+    ): String? {
+        if (SettingsModel.isConnectedToSqlServer()) {
+            if (!tableId.isNullOrEmpty()) {
+                if (SettingsModel.isSqlServerWebDb) {
+                    updateTable(
+                        null,
+                        tableId,
+                        "Busy",
+                        1
+                    )
+                } else {
+                    updateTable(
+                        null,
+                        tableId,
+                        null,
+                        1
+                    )
+                }
+                return tableId
+            } else if (tableName.isNotEmpty()) {
+                return if (SettingsModel.isSqlServerWebDb) {
+                    insertTable(
+                        null,
+                        tableName,
+                        "Busy",
+                        1
+                    )
+                } else {
+                    insertTable(
+                        null,
+                        tableName,
+                        null,
+                        1
+                    )
+                }
+            }
+        }
+        return null
+    }
+
+    override suspend fun unLockTable(
+            tableId: String,
+            tableType: String?
+    ) {
+        if (SettingsModel.isConnectedToSqlServer()) {
+            if (tableId.isNotEmpty()) {
+                if (SettingsModel.isSqlServerWebDb) {
+                    if (tableType?.equals("temp") == true) {
+                        deleteTable(tableId)
+                    } else {
+                        updateTable(
+                            null,
+                            tableId,
+                            "Free",
+                            0
+                        )
+                    }
+                } else {
+                    updateTable(
+                        null,
+                        tableId,
+                        null,
+                        0
+                    )
+                }
+            }
+        }
+    }
+
     override suspend fun getInvoiceByTable(
-            tableNo: String
+            tableModel: TableModel,
     ): InvoiceHeader {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
@@ -532,7 +610,7 @@ class InvoiceHeaderRepositoryImpl(
                         SettingsModel.getCompanyID()
                     ).whereEqualTo(
                         "hi_ta_name",
-                        tableNo
+                        tableModel.table_name
                     ).whereEqualTo(
                         "hi_transno",
                         null
@@ -548,22 +626,24 @@ class InvoiceHeaderRepositoryImpl(
 
             CONNECTION_TYPE.LOCAL.key -> {
                 return invoiceHeaderDao.getInvoiceByTable(
-                    tableNo,
+                    tableModel.table_name,
                     SettingsModel.getCompanyID() ?: ""
                 ) ?: InvoiceHeader()
             }
 
             else -> {
                 val invoiceHeaders: MutableList<InvoiceHeader> = mutableListOf()
-                var tableModel: TableModel? = null
+                var finalTableModel = tableModel
                 try {
-                    tableModel = getTableIdByNumber(tableNo)
-                    val subQuery = if (!tableModel?.table_inv_id.isNullOrEmpty()) {
-                        "hi_id = '${tableModel?.table_inv_id}'"
-                    } else if (!tableModel?.table_id.isNullOrEmpty()) {
-                        "(hi_ta_name = '${tableModel?.table_id}' OR hi_ta_name = '$tableNo')"
+                    if (tableModel.table_id.isEmpty()) {
+                        finalTableModel = getTableIdByNumber(tableModel.table_name) ?: tableModel
+                    }
+                    val subQuery = if (!finalTableModel.table_inv_id.isNullOrEmpty()) {
+                        "hi_id = '${finalTableModel.table_inv_id}'"
+                    } else if (finalTableModel.table_id.isNotEmpty()) {
+                        "(hi_ta_name = '${finalTableModel.table_id}' OR hi_ta_name = '${finalTableModel.table_name}')"
                     } else {
-                        "hi_ta_name = '$tableNo'"
+                        "hi_ta_name = '${finalTableModel.table_name}'"
                     }
                     val where = "hi_cmp_id='${SettingsModel.getCompanyID()}' AND $subQuery AND (hi_transno IS NULL OR hi_transno = '')"
                     val dbResult = SQLServerWrapper.getListOf(
@@ -575,9 +655,9 @@ class InvoiceHeaderRepositoryImpl(
                     dbResult?.let {
                         while (it.next()) {
                             val invoiceHeader = fillParams(it)
-                            invoiceHeader.invoiceHeadTableId = tableModel?.table_id
-                            invoiceHeader.invoiceHeadTaName = tableNo
-                            invoiceHeader.invoiceHeadTableType = tableModel?.table_type
+                            invoiceHeader.invoiceHeadTableId = finalTableModel.table_id
+                            invoiceHeader.invoiceHeadTaName = finalTableModel.table_name
+                            invoiceHeader.invoiceHeadTableType = finalTableModel.table_type
                             invoiceHeaders.add(invoiceHeader)
                         }
                         SQLServerWrapper.closeResultSet(it)
@@ -589,9 +669,9 @@ class InvoiceHeaderRepositoryImpl(
                     invoiceHeaders[0]
                 } else {
                     InvoiceHeader(
-                        invoiceHeadTableId = tableModel?.table_id,
-                        invoiceHeadTaName = tableNo,
-                        invoiceHeadTableType = tableModel?.table_type
+                        invoiceHeadTableId = finalTableModel.table_id,
+                        invoiceHeadTaName = finalTableModel.table_name,
+                        invoiceHeadTableType = finalTableModel.table_type
                     )
                 }
             }
@@ -750,14 +830,18 @@ class InvoiceHeaderRepositoryImpl(
                             it.getStringValue("ta_name"),
                             it.getStringValue("ta_newname"),
                             it.getStringValue("ta_type"),
-                            it.getStringValue("ta_hiid")
+                            it.getStringValue("ta_hiid"),
+                            it.getStringValue("ta_userstamp"),
+                            it.getIntValue("ta_locked")
                         )
                     } else {
                         TableModel(
                             it.getStringValue("ta_name"),
                             it.getStringValue("ta_name"),
                             it.getStringValue("ta_type"),
-                            it.getStringValue("ta_hiid")
+                            it.getStringValue("ta_hiid"),
+                            it.getStringValue("ta_userstamp"),
+                            it.getIntValue("ta_locked")
                         )
                     }
                 }
@@ -1046,6 +1130,7 @@ class InvoiceHeaderRepositoryImpl(
             tableStatus: String?,
             locked: Int,
     ): String {
+        var fallback = ""
         val parameters = if (SettingsModel.isSqlServerWebDb) {
             listOf(
                 "null_string_output",//ta_name
@@ -1066,6 +1151,7 @@ class InvoiceHeaderRepositoryImpl(
                 null,//ta_rotationangle
             )
         } else {
+            fallback = tableName
             listOf(
                 tableName,//ta_name
                 null,//ta_ps_section
@@ -1085,7 +1171,7 @@ class InvoiceHeaderRepositoryImpl(
         return SQLServerWrapper.executeProcedure(
             "addpos_table",
             parameters
-        ) ?: ""
+        ) ?: fallback
     }
 
     private fun updateTable(

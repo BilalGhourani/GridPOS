@@ -475,4 +475,16 @@ class POSViewModel @Inject constructor(
         }
     }
 
+    fun unLockTable(
+            tableId: String,
+            tableType: String?
+    ) {
+        viewModelScope.launch(Dispatchers.IO) {
+            invoiceHeaderRepository.unLockTable(
+                tableId,
+                tableType
+            )
+        }
+    }
+
 }
