@@ -216,6 +216,7 @@ class POSViewModel @Inject constructor(
                 invoiceHeader.prepareForInsert()
                 val addedInv = invoiceHeaderRepository.insert(
                     invoiceHeader,
+                    print,
                     finish
                 )
                 if (addedInv.invoiceHeadId.isNotEmpty()) {

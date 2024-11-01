@@ -71,7 +71,7 @@ class InvoiceHeaderRepositoryImpl(
                         }
                     } else {
                         insertTable(
-                            invoiceHeader.invoiceHeadId,
+                            if (isFinished) null else invoiceHeader.invoiceHeadId,
                             invoiceHeader.invoiceHeadTaName!!,
                             if (isFinished) null else if (willPrint) "RTL" else null,
                             if(isFinished) 0 else 1
@@ -1041,7 +1041,7 @@ class InvoiceHeaderRepositoryImpl(
     }
 
     private fun insertTable(
-            invoiceHeaderId: String,
+            invoiceHeaderId: String?,
             tableName: String,
             tableStatus: String?,
             locked: Int,
