@@ -34,6 +34,10 @@ interface InvoiceDao {
     @Update
     suspend fun update(invoice: Invoice)
 
+    // Update list of Invoice
+    @Update
+    suspend fun update(invoices: List<Invoice>)
+
     // Get all Invoices as stream.
     @Query("SELECT * FROM `in_invoice`")
     fun getAllInvoices(): List<Invoice>
@@ -41,6 +45,13 @@ interface InvoiceDao {
     // Get all Invoices as stream.
     @Query("SELECT * FROM `in_invoice` WHERE in_hi_id = :id")
     fun getAllInvoiceItems(id: String): MutableList<Invoice>
+
+    // Get all Invoices as stream.
+    @Query("SELECT * FROM `in_invoice` WHERE in_it_id = :itemId AND in_hi_id IN (:ids)")
+    fun getInvoicesByIds(
+            itemId: String,
+            ids: List<String>
+    ): MutableList<Invoice>
 
     // Get all Invoices as stream.
     @Query("SELECT * FROM `in_invoice` WHERE in_hi_id IN (:ids)")

@@ -1,5 +1,7 @@
 package com.grid.pos.data.Invoice
 
+import java.util.Date
+
 interface InvoiceRepository {
 
     // suspend is a coroutine keyword,
@@ -12,11 +14,17 @@ interface InvoiceRepository {
     // Update an Invoice
     suspend fun update(invoice: Invoice)
 
+    // Update list of Invoices
+    suspend fun update(invoices: List<Invoice>)
+
     // Get all Invoices logs as stream.
     suspend fun getAllInvoices(invoiceHeaderId: String): MutableList<Invoice>
 
     // Get all Invoices between Dates.
-    suspend fun getInvoicesByIds(ids: List<String>): MutableList<Invoice>
+    suspend fun getInvoicesByIds(
+            ids: List<String>,
+            itemId: String? = null
+    ): MutableList<Invoice>
 
     suspend fun getOneInvoiceByItemID(itemId: String): Invoice?
 

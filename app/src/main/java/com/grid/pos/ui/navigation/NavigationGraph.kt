@@ -7,6 +7,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.grid.pos.ActivityScopedViewModel
+import com.grid.pos.ui.adjustment.AdjustmentView
 import com.grid.pos.ui.common.UIWebView
 import com.grid.pos.ui.company.ManageCompaniesView
 import com.grid.pos.ui.currency.ManageCurrenciesView
@@ -140,6 +141,13 @@ fun AuthNavGraph(
 
         composable(route = "SetupReportView") {
             SetupReportView(
+                navController = navController,
+                activityViewModel = activityViewModel
+            )
+        }
+
+        composable(route = "AdjustmentView") {
+            AdjustmentView(
                 navController = navController,
                 activityViewModel = activityViewModel
             )

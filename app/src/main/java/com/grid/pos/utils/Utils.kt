@@ -154,6 +154,11 @@ object Utils {
                 "ReportsListView"
             ),
             HomeSectionModel(
+                R.drawable.adjustment,
+                "Adjustment",
+                "AdjustmentView"
+            ),
+            HomeSectionModel(
                 R.drawable.backup_restore,
                 "Backup & Restore",
                 "BackupView"

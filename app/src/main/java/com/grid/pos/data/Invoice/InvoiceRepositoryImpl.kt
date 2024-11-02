@@ -84,6 +84,34 @@ class InvoiceRepositoryImpl(
         }
     }
 
+    override suspend fun update(invoices: List<Invoice>) {
+        when (SettingsModel.connectionType) {
+            CONNECTION_TYPE.FIRESTORE.key -> {
+                val db = FirebaseFirestore.getInstance()
+                val batch = db.batch()
+                for (inv in invoices) {
+                    val modelRef = db.collection("in_invoice")
+                        .document(inv.invoiceDocumentId!!) // Assuming `id` is the document ID
+                    batch.update(
+                        modelRef,
+                        inv.getMap()
+                    )
+                }
+                batch.commit().await()
+            }
+
+            CONNECTION_TYPE.LOCAL.key -> {
+                invoiceDao.update(invoices)
+            }
+
+            else -> {
+                invoices.forEach {
+                    updateByProcedure(it)
+                }
+            }
+        }
+    }
+
     override suspend fun getAllInvoices(
             invoiceHeaderId: String
     ): MutableList<Invoice> {
@@ -136,15 +164,22 @@ class InvoiceRepositoryImpl(
     }
 
     override suspend fun getInvoicesByIds(
-            ids: List<String>
+            ids: List<String>,
+            itemId: String?
     ): MutableList<Invoice> {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
-                val querySnapshot = FirebaseFirestore.getInstance().collection("in_invoice")
-                    .whereIn(
-                        "in_hi_id",
-                        ids
-                    ).get().await()
+                var query = FirebaseFirestore.getInstance().collection("in_invoice").whereIn(
+                    "in_hi_id",
+                    ids
+                )
+                if (!itemId.isNullOrEmpty()) {
+                    query = query.whereEqualTo(
+                        "in_it_id",
+                        itemId
+                    )
+                }
+                val querySnapshot = query.get().await()
                 val invoiceItems = mutableListOf<Invoice>()
                 if (querySnapshot.size() > 0) {
                     for (document in querySnapshot) {
@@ -159,13 +194,21 @@ class InvoiceRepositoryImpl(
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
-                return invoiceDao.getInvoicesByIds(ids)
+                return if (itemId.isNullOrEmpty()) {
+                    invoiceDao.getInvoicesByIds(ids)
+                } else {
+                    invoiceDao.getInvoicesByIds(
+                        itemId,
+                        ids
+                    )
+                }
             }
 
             else -> {
                 val invoices: MutableList<Invoice> = mutableListOf()
                 try {
-                    val where = "in_hi_id IN (${ids.joinToString(", ")})"
+                    val where = if (itemId.isNullOrEmpty()) "in_hi_id IN (${ids.joinToString(", ")})"
+                    else "in_it_id = '$itemId' AND in_hi_id IN (${ids.joinToString(", ")})"
                     val dbResult = SQLServerWrapper.getListOf(
                         "in_invoice",
                         "",
@@ -239,6 +282,7 @@ class InvoiceRepositoryImpl(
                     timeStamp,
                     "yyyy-MM-dd hh:mm:ss.SSS"
                 )
+
                 else -> null
             }
             invoiceDateTime = invoiceTimeStamp!!.time

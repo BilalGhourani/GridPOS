@@ -1,22 +1,23 @@
-package com.grid.pos.ui.reports
+package com.grid.pos.ui.adjustment
 
-import android.content.Intent
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.RemoveCircleOutline
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DatePicker
@@ -25,7 +26,6 @@ import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
@@ -52,33 +52,30 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
-import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import com.grid.pos.ActivityScopedViewModel
-import com.grid.pos.BuildConfig
 import com.grid.pos.R
+import com.grid.pos.data.Item.Item
 import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
+import com.grid.pos.ui.common.SearchableDropdownMenuEx
 import com.grid.pos.ui.common.UIButton
 import com.grid.pos.ui.common.UITextField
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.ui.theme.LightBlue
-import com.grid.pos.ui.theme.LightGreen
 import com.grid.pos.utils.DateHelper
+import com.grid.pos.utils.Utils
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import java.util.Calendar
@@ -87,13 +84,13 @@ import java.util.TimeZone
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SalesReportsView(
+fun AdjustmentView(
     modifier: Modifier = Modifier,
     navController: NavController? = null,
     activityViewModel: ActivityScopedViewModel,
-    viewModel: SalesReportsViewModel = hiltViewModel()
+    viewModel: AdjustmentViewModel = hiltViewModel()
 ) {
-    val state by viewModel.reportsState.collectAsStateWithLifecycle()
+    val state by viewModel.state.collectAsStateWithLifecycle()
 
     val context = LocalContext.current
     val currentTime = Calendar.getInstance()
@@ -114,30 +111,6 @@ fun SalesReportsView(
             timePickerState.minute,
             0
         )
-    }
-
-    fun shareExcelSheet(action: String) {
-        viewModel.reportFile?.let { file ->
-            val shareIntent = Intent()
-            shareIntent.setAction(action)
-            val attachment = FileProvider.getUriForFile(
-                context,
-                BuildConfig.APPLICATION_ID,
-                file
-            )
-            shareIntent.putExtra(
-                Intent.EXTRA_STREAM,
-                attachment
-            )
-            shareIntent.setType("application/vnd.ms-excel")
-
-            activityViewModel.startChooserActivity(
-                Intent.createChooser(
-                    shareIntent,
-                    "send"
-                )
-            )
-        }
     }
 
     var datePickerPopupState by remember { mutableStateOf(DatePickerPopupState.FROM) }
@@ -176,10 +149,10 @@ fun SalesReportsView(
         )
     }
 
+    var itemCostState by remember { mutableStateOf("") }
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
     var isPopupVisible by remember { mutableStateOf(false) }
-    var isBottomSheetVisible by remember { mutableStateOf(false) }
     val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     val snackbarHostState = remember { SnackbarHostState() }
@@ -187,8 +160,7 @@ fun SalesReportsView(
 
 
     LaunchedEffect(
-        state.warning,
-        state.isDone
+        state.warning
     ) {
         state.warning?.value?.let { message ->
             scope.launch {
@@ -197,11 +169,6 @@ fun SalesReportsView(
                     duration = SnackbarDuration.Short,
                 )
             }
-        }
-
-        if (state.isDone) {
-            isBottomSheetVisible = true
-            state.isDone = false
         }
     }
 
@@ -229,7 +196,7 @@ fun SalesReportsView(
                 isPopupVisible = false
                 handleBack()
             }
-            dialogText = "Are you sure you want to cancel the reports?"
+            dialogText = "Are you sure you want to close?"
             positiveBtnText = "Cancel"
             negativeBtnText = "Close"
             height = 130.dp
@@ -279,76 +246,144 @@ fun SalesReportsView(
                         })
                 }
             }) {
-            Column(
-                modifier = modifier.padding(it)
+            Box(
+                modifier = modifier
+                    .fillMaxSize()
+                    .padding(it)
+                    .background(color = Color.Transparent)
             ) {
-
-                UITextField(modifier = Modifier.padding(10.dp),
-                    defaultValue = fromDateState,
-                    label = "From",
-                    maxLines = 1,
-                    readOnly = true,
-                    keyboardType = KeyboardType.Text,
-                    placeHolder = DateHelper.getDateInFormat(
-                        initialDate,
-                        dateFormat
-                    ),
-                    trailingIcon = {
-                        IconButton(onClick = {
-                            datePickerPopupState = DatePickerPopupState.FROM
-                            showDatePicker = true
-                        }) {
-                            Icon(
-                                imageVector = Icons.Filled.DateRange,
-                                contentDescription = "From Date",
-                                tint = SettingsModel.buttonColor
-                            )
-                        }
-                    }) { from ->
-                    fromDateState = from
-                }
-
-                UITextField(modifier = Modifier.padding(10.dp),
-                    defaultValue = toDateState,
-                    label = "To",
-                    maxLines = 1,
-                    readOnly = true,
-                    keyboardType = KeyboardType.Text,
-                    placeHolder = dateFormat,
-                    trailingIcon = {
-                        IconButton(onClick = {
-                            datePickerPopupState = DatePickerPopupState.TO
-                            showDatePicker = true
-                        }) {
-                            Icon(
-                                imageVector = Icons.Filled.DateRange,
-                                contentDescription = "From Date",
-                                tint = SettingsModel.buttonColor
-                            )
-                        }
-                    }) { to ->
-                    toDateState = to
-                }
-
-                UIButton(
+                Column(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .height(70.dp)
-                        .padding(10.dp),
-                    text = "Generate"
+                        .fillMaxSize()
+                        .padding(top = 90.dp)
+                        .verticalScroll(rememberScrollState()),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    val from = getDateFromState(
-                        fromDatePickerState.selectedDateMillis!!,
-                        fromTimePickerState
-                    )
-                    val to = getDateFromState(
-                        toDatePickerState.selectedDateMillis!!,
-                        toTimePickerState
-                    )
-                    viewModel.fetchInvoices(
-                        from,
-                        to
-                    )
+
+                    UITextField(modifier = Modifier.padding(
+                        horizontal = 10.dp,
+                        vertical = 5.dp
+                    ),
+                        defaultValue = itemCostState,
+                        label = "Item Cost",
+                        placeHolder = "Enter Name",
+                        keyboardType = KeyboardType.Decimal) { cost ->
+                        itemCostState = Utils.getDoubleValue(
+                            cost,
+                            itemCostState
+                        )
+                    }
+
+                    UITextField(modifier = Modifier.padding(10.dp),
+                        defaultValue = fromDateState,
+                        label = "From",
+                        maxLines = 1,
+                        readOnly = true,
+                        keyboardType = KeyboardType.Text,
+                        placeHolder = DateHelper.getDateInFormat(
+                            initialDate,
+                            dateFormat
+                        ),
+                        trailingIcon = {
+                            IconButton(onClick = {
+                                datePickerPopupState = DatePickerPopupState.FROM
+                                showDatePicker = true
+                            }) {
+                                Icon(
+                                    imageVector = Icons.Filled.DateRange,
+                                    contentDescription = "From Date",
+                                    tint = SettingsModel.buttonColor
+                                )
+                            }
+                        }) { from ->
+                        fromDateState = from
+                    }
+
+                    UITextField(modifier = Modifier.padding(10.dp),
+                        defaultValue = toDateState,
+                        label = "To",
+                        maxLines = 1,
+                        readOnly = true,
+                        keyboardType = KeyboardType.Text,
+                        placeHolder = dateFormat,
+                        trailingIcon = {
+                            IconButton(onClick = {
+                                datePickerPopupState = DatePickerPopupState.TO
+                                showDatePicker = true
+                            }) {
+                                Icon(
+                                    imageVector = Icons.Filled.DateRange,
+                                    contentDescription = "From Date",
+                                    tint = SettingsModel.buttonColor
+                                )
+                            }
+                        }) { to ->
+                        toDateState = to
+                    }
+
+                    UIButton(
+                        modifier = Modifier.fillMaxWidth().height(70.dp).padding(10.dp),
+                        text = "Adjust Remaining Quantity"
+                    ) {
+                        val from = getDateFromState(
+                            fromDatePickerState.selectedDateMillis!!,
+                            fromTimePickerState
+                        )
+                        val to = getDateFromState(
+                            toDatePickerState.selectedDateMillis!!,
+                            toTimePickerState
+                        )
+                        viewModel.adjustRemainingQuantities(
+                            state.selectedItem,
+                            from,
+                            to
+                        )
+                    }
+                    UIButton(
+                        modifier = Modifier.fillMaxWidth().height(70.dp).padding(10.dp),
+                        text = "Update Item Cost"
+                    ) {
+                        val from = getDateFromState(
+                            fromDatePickerState.selectedDateMillis!!,
+                            fromTimePickerState
+                        )
+                        val to = getDateFromState(
+                            toDatePickerState.selectedDateMillis!!,
+                            toTimePickerState
+                        )
+                        viewModel.updateItemCost(
+                            state.selectedItem,
+                            itemCostState,
+                            from,
+                            to
+                        )
+                    }
+                }
+
+                SearchableDropdownMenuEx(items = state.items.toMutableList(),
+                    modifier = Modifier.padding(
+                        top = 15.dp,
+                        start = 10.dp,
+                        end = 10.dp
+                    ),
+                    label = "Select Item",
+                    selectedId = state.selectedItem.itemId,
+                    onLoadItems = { viewModel.fetchItems() },
+                    leadingIcon = {
+                        if (state.selectedItem.itemId.isNotEmpty()) {
+                            Icon(
+                                Icons.Default.RemoveCircleOutline,
+                                contentDescription = "remove item",
+                                tint = Color.Black,
+                                modifier = it
+                            )
+                        }
+                    },
+                    onLeadingIconClick = {
+                        state.selectedItem = Item()
+                    }) { item ->
+                    item as Item
+                    state.selectedItem = item
                 }
             }
         }
@@ -522,105 +557,6 @@ fun SalesReportsView(
                     }
                 }
             }
-        }
-
-        if (isBottomSheetVisible) {
-            ModalBottomSheet(
-                onDismissRequest = {
-                    isBottomSheetVisible = false
-                },
-                sheetState = bottomSheetState,
-                containerColor = SettingsModel.backgroundColor,
-                contentColor = SettingsModel.backgroundColor,
-                shape = RoundedCornerShape(15.dp),
-                dragHandle = null,
-                scrimColor = Color.Black.copy(alpha = .5f)
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .fillMaxHeight(.3f)
-                        .padding(15.dp)
-                ) {
-
-                    Spacer(modifier = Modifier.height(10.dp))
-
-                    Text(
-                        text = buildAnnotatedString {
-                            withStyle(style = SpanStyle(color = SettingsModel.textColor)) {
-                                append("Your ")
-                            }
-
-                            withStyle(
-                                style = SpanStyle(
-                                    fontWeight = FontWeight.Bold,
-                                    color = LightGreen
-                                )
-                            ) {
-                                append(viewModel.reportFile?.name ?: "Sales_Report.xlsx")
-                            }
-
-                            withStyle(style = SpanStyle(color = SettingsModel.textColor)) {
-                                append(" hase been successfully generated, what would you like to do next?")
-                            }
-                        },
-
-                        style = TextStyle(
-                            textDecoration = TextDecoration.None,
-                            fontWeight = FontWeight.Normal,
-                            fontSize = 20.sp
-                        ),
-                        textAlign = TextAlign.Start
-                    )
-
-                    Spacer(modifier = Modifier.height(15.dp))
-
-                    TextButton(
-                        onClick = {
-                            shareExcelSheet(Intent.ACTION_VIEW)
-                        },
-                        modifier = Modifier.wrapContentWidth(),
-                        contentPadding = PaddingValues(0.dp),
-                    ) {
-                        Text(
-                            "Open: view the report directly",
-                            color = LightBlue,
-                            style = TextStyle(
-                                textDecoration = TextDecoration.None,
-                                fontWeight = FontWeight.Normal,
-                                fontSize = 16.sp
-                            ),
-                            textAlign = TextAlign.Start
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(5.dp))
-
-                    TextButton(
-                        onClick = {
-                            shareExcelSheet(Intent.ACTION_SEND)
-                        },
-                        modifier = Modifier.wrapContentWidth(),
-                        contentPadding = PaddingValues(0.dp),
-                    ) {
-                        Text(
-                            "Share: send the report to others",
-                            color = LightBlue,
-                            style = TextStyle(
-                                textDecoration = TextDecoration.None,
-                                fontWeight = FontWeight.Normal,
-                                fontSize = 16.sp
-                            ),
-                            textAlign = TextAlign.Start
-                        )
-                    }
-                }
-            }
-
-        }
-
-        if (state.clear) {
-            state.clear = false
         }
     }
 }
