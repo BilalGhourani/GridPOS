@@ -52,7 +52,9 @@ object Utils {
     var isDeviceLargerThan7Inches: Boolean? = null;
 
     fun getColumnCount(context: Context): Int {
-       return if (context.resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT) {
+        return if (SettingsModel.isConnectedToSqlServer()) {
+            2
+        } else if (context.resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT) {
             3
         } else {
             5
@@ -63,7 +65,11 @@ object Utils {
         val red = kotlin.random.Random.nextFloat()
         val green = kotlin.random.Random.nextFloat()
         val blue = kotlin.random.Random.nextFloat()
-        return Color(red, green, blue)
+        return Color(
+            red,
+            green,
+            blue
+        )
     }
 
     fun getHomeList(): MutableList<HomeSectionModel> {
