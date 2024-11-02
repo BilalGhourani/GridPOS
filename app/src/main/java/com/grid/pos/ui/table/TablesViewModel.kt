@@ -4,6 +4,7 @@ import androidx.compose.ui.text.toLowerCase
 import androidx.lifecycle.viewModelScope
 import com.grid.pos.data.InvoiceHeader.InvoiceHeader
 import com.grid.pos.data.InvoiceHeader.InvoiceHeaderRepository
+import com.grid.pos.data.User.UserRepository
 import com.grid.pos.model.Event
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.model.TableModel
@@ -16,7 +17,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class TablesViewModel @Inject constructor(
-        private val invoiceHeaderRepository: InvoiceHeaderRepository
+        private val invoiceHeaderRepository: InvoiceHeaderRepository,
+        private val userRepository: UserRepository
 ) : BaseViewModel() {
 
     private val _tablesState = MutableStateFlow(TablesState())
@@ -85,23 +87,38 @@ class TablesViewModel @Inject constructor(
             )
         } ?: TableModel(table_name = tableNo)
         viewModelScope.launch(Dispatchers.IO) {
-            val invoiceHeader = invoiceHeaderRepository.getInvoiceByTable(tableModel)
-            viewModelScope.launch(Dispatchers.Main) {
-                if (!invoiceHeader.isNew()) {
+            val tableInvoiceModel = invoiceHeaderRepository.getInvoiceByTable(tableModel)
+            if (!tableInvoiceModel.lockedByUser.isNullOrEmpty()) {
+                val user = userRepository.getUserById(tableInvoiceModel.lockedByUser!!)
+                var name = "someone"
+                if (user != null) {
+                    name = user.userName ?: "someone"
+                }
+                viewModelScope.launch(Dispatchers.Main) {
                     tablesState.value = tablesState.value.copy(
-                        invoiceHeader = invoiceHeader,
-                        moveToPos = true,
-                        isLoading = false
-                    )
-                } else {
-                    tablesState.value = tablesState.value.copy(
-                        invoiceHeader = invoiceHeader,
-                        step = 2,
+                        warning = Event("This table is locked by $name"),
                         moveToPos = false,
                         isLoading = false
                     )
                 }
-
+            } else {
+                val invoiceHeader = tableInvoiceModel.invoiceHeader!!
+                viewModelScope.launch(Dispatchers.Main) {
+                    if (!invoiceHeader.isNew()) {
+                        tablesState.value = tablesState.value.copy(
+                            invoiceHeader = invoiceHeader,
+                            moveToPos = true,
+                            isLoading = false
+                        )
+                    } else {
+                        tablesState.value = tablesState.value.copy(
+                            invoiceHeader = invoiceHeader,
+                            step = 2,
+                            moveToPos = false,
+                            isLoading = false
+                        )
+                    }
+                }
             }
         }
     }
@@ -114,7 +131,11 @@ class TablesViewModel @Inject constructor(
                 tableName,
                 ignoreCase = true
             )
-        } ?: TableModel(table_name = tableName)
+        } ?: TableModel(
+            table_id = tablesState.value.invoiceHeader.invoiceHeadTableId ?: "",
+            table_name = tablesState.value.invoiceHeader.invoiceHeadTaName ?: "",
+            table_type = tablesState.value.invoiceHeader.invoiceHeadTableType,
+        )
         val finalTableId = invoiceHeaderRepository.lockTable(
             tableModel.table_id,
             tableName

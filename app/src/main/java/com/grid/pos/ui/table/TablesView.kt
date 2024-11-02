@@ -115,11 +115,11 @@ fun TablesView(
 
     fun lockTableAndMoveToPos() {
         if (SettingsModel.isConnectedToSqlServer()) {
-            state.isLoading = true
+            activityScopedViewModel.showLoading(true)
             scope.launch(Dispatchers.IO) {
                 viewModel.lockTable(tableNameState)
                 withContext(Dispatchers.Main) {
-                    state.isLoading = false
+                    activityScopedViewModel.showLoading(false)
                     moveToPos()
                 }
             }

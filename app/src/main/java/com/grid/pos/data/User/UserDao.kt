@@ -46,4 +46,8 @@ interface UserDao {
     // Get all users as stream.
     @Query("SELECT * FROM `set_users` WHERE usr_cmp_id=:companyId LIMIT 1")
     fun getOneUser(companyId: String): User?
+
+    // Get all users as stream.
+    @Query("SELECT * FROM `set_users` WHERE usr_id=:userId")
+    fun getUserById(userId: String): User?
 }

@@ -6,6 +6,7 @@ import com.grid.pos.App
 import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.SettingsModel
+import com.grid.pos.model.TableInvoiceModel
 import com.grid.pos.model.TableModel
 import com.grid.pos.ui.pos.POSUtils
 import com.grid.pos.utils.DateHelper
@@ -601,7 +602,7 @@ class InvoiceHeaderRepositoryImpl(
 
     override suspend fun getInvoiceByTable(
             tableModel: TableModel,
-    ): InvoiceHeader {
+    ): TableInvoiceModel {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
                 val querySnapshot = FirebaseFirestore.getInstance().collection("in_hinvoice")
@@ -619,16 +620,17 @@ class InvoiceHeaderRepositoryImpl(
                 if (document != null) {
                     val obj = document.toObject(InvoiceHeader::class.java)
                     obj.invoiceHeadDocumentId = document.id
-                    return obj
+                    return TableInvoiceModel(obj)
                 }
-                return InvoiceHeader()
+                return TableInvoiceModel(InvoiceHeader())
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
-                return invoiceHeaderDao.getInvoiceByTable(
+                var invoice = invoiceHeaderDao.getInvoiceByTable(
                     tableModel.table_name,
                     SettingsModel.getCompanyID() ?: ""
                 ) ?: InvoiceHeader()
+                return TableInvoiceModel(invoice)
             }
 
             else -> {
@@ -637,6 +639,23 @@ class InvoiceHeaderRepositoryImpl(
                 try {
                     if (tableModel.table_id.isEmpty()) {
                         finalTableModel = getTableIdByNumber(tableModel.table_name) ?: tableModel
+                    }
+
+                    if (finalTableModel.table_locked == 1 && finalTableModel.table_id.isNotEmpty() && finalTableModel.table_inv_id.isNullOrEmpty()) {
+                        // if table is locked but not related to any invoice
+                        return if (finalTableModel.table_user == SettingsModel.currentUser?.userUsername) {
+                            //same user
+                            TableInvoiceModel(
+                                InvoiceHeader(
+                                    invoiceHeadTableId = finalTableModel.table_id,
+                                    invoiceHeadTaName = finalTableModel.table_name,
+                                    invoiceHeadTableType = finalTableModel.table_type
+                                )
+                            )
+                        } else {
+                            //another user
+                            TableInvoiceModel(lockedByUser = finalTableModel.table_user)
+                        }
                     }
                     val subQuery = if (!finalTableModel.table_inv_id.isNullOrEmpty()) {
                         "hi_id = '${finalTableModel.table_inv_id}'"
@@ -666,12 +685,14 @@ class InvoiceHeaderRepositoryImpl(
                     e.printStackTrace()
                 }
                 return if (invoiceHeaders.size > 0) {
-                    invoiceHeaders[0]
+                    TableInvoiceModel(invoiceHeaders[0])
                 } else {
-                    InvoiceHeader(
-                        invoiceHeadTableId = finalTableModel.table_id,
-                        invoiceHeadTaName = finalTableModel.table_name,
-                        invoiceHeadTableType = finalTableModel.table_type
+                    TableInvoiceModel(
+                        InvoiceHeader(
+                            invoiceHeadTableId = finalTableModel.table_id,
+                            invoiceHeadTaName = finalTableModel.table_name,
+                            invoiceHeadTableType = finalTableModel.table_type
+                        )
                     )
                 }
             }

@@ -24,4 +24,5 @@ interface UserRepository {
     suspend fun getAllUsers(): MutableList<User>
 
     suspend fun getOneUser(companyId: String): User?
+    suspend fun getUserById(userId: String): User?
 }

@@ -394,4 +394,90 @@ class UserRepositoryImpl(
             }
         }
     }
+
+
+    override suspend fun getUserById(userId: String): User? {
+        when (SettingsModel.connectionType) {
+            CONNECTION_TYPE.FIRESTORE.key -> {
+                val querySnapshot = FirebaseFirestore.getInstance().collection("set_users")
+                    .whereEqualTo(
+                        "usr_id",
+                        userId
+                    ).limit(1).get().await()
+                if (querySnapshot.size() > 0) {
+                    for (document in querySnapshot) {
+                        val obj = document.toObject(User::class.java)
+                        if (obj.userId.isNotEmpty()) {
+                            obj.userDocumentId = document.id
+                            return obj
+                        }
+                    }
+                }
+                return null
+            }
+
+            CONNECTION_TYPE.LOCAL.key -> {
+                return userDao.getUserById(userId)
+            }
+
+            else -> {//CONNECTION_TYPE.SQL_SERVER.key
+                if (SettingsModel.isSqlServerWebDb) {
+                    try {
+                        val where = "usr_username='$userId'"
+                        val dbResult = SQLServerWrapper.getListOf(
+                            "set_users",
+                            "TOP 1",
+                            mutableListOf("*"),
+                            where
+                        )
+
+                        dbResult?.let {
+                            if (it.next()) {
+                                return User().apply {
+                                    this.userId = it.getStringValue("usr_id")
+                                    userName = it.getStringValue("usr_name")
+                                    userUsername = it.getStringValue("usr_username")
+                                    userPassword = it.getStringValue("usr_password")
+                                    userCompanyId = it.getStringValue("usr_cmp_id")
+                                    userPosMode = Constants.SQL_USER_POS_MODE
+                                    userTableMode = true
+                                }
+                            }
+                            SQLServerWrapper.closeResultSet(it)
+                        }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                    return null
+                } else {
+                    try {
+                        val where = "emp_username='$userId'"
+                        val dbResult = SQLServerWrapper.getListOf(
+                            "pay_employees",
+                            "TOP 1",
+                            mutableListOf("*"),
+                            where
+                        )
+                        dbResult?.let {
+                            while (it.next()) {
+                                return User().apply {
+                                    this.userId = it.getStringValue("emp_id")
+                                    userName = it.getStringValue("emp_name")
+                                    userUsername = it.getStringValue("emp_username")
+                                    userPassword = it.getStringValue("emp_password")
+                                    userCompanyId = SettingsModel.getCompanyID()//obj.optString("usr_cmp_id")
+                                    userPosMode = Constants.SQL_USER_POS_MODE
+                                    userTableMode = true
+                                }
+                            }
+                            SQLServerWrapper.closeResultSet(it)
+                        }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                    return null
+                }
+            }
+        }
+    }
 }
