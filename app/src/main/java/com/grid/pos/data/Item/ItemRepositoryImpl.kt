@@ -47,6 +47,24 @@ class ItemRepositoryImpl(
         }
     }
 
+    override suspend fun update(items: List<Item>) {
+        if (SettingsModel.isConnectedToFireStore()) {
+            val db = FirebaseFirestore.getInstance()
+            val batch = db.batch()
+            for (item in items) {
+                val modelRef = db.collection("st_item")
+                    .document(item.itemDocumentId!!) // Assuming `id` is the document ID
+                batch.update(
+                    modelRef,
+                    item.getMap()
+                )
+            }
+            batch.commit().await()
+        } else {
+            itemDao.update(items)
+        }
+    }
+
     override suspend fun getAllItems(): MutableList<Item> {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {

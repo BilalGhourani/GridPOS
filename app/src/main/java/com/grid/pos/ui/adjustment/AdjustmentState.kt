@@ -5,7 +5,7 @@ import com.grid.pos.model.Event
 
 data class AdjustmentState(
         val items: MutableList<Item> = mutableListOf(),
-        var selectedItem: Item = Item(),
+        var selectedItem: Item? = null,
         var isLoading: Boolean = false,
         var clear: Boolean = false,
         var warning: Event<String>? = null,

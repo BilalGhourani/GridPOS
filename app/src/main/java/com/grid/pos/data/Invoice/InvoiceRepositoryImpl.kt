@@ -229,6 +229,48 @@ class InvoiceRepositoryImpl(
         }
     }
 
+    override suspend fun getAllInvoicesForAdjustment(
+            itemId: String?
+    ): MutableList<Invoice> {
+        when (SettingsModel.connectionType) {
+            CONNECTION_TYPE.FIRESTORE.key -> {
+                val querySnapshot = if (!itemId.isNullOrEmpty()) {
+                    FirebaseFirestore.getInstance().collection("in_invoice").whereEqualTo(
+                        "in_it_id",
+                        itemId
+                    ).get().await()
+                } else {
+                    FirebaseFirestore.getInstance().collection("in_invoice").get().await()
+                }
+                val invoiceItems = mutableListOf<Invoice>()
+                if (querySnapshot.size() > 0) {
+                    for (document in querySnapshot) {
+                        val obj = document.toObject(Invoice::class.java)
+                        if (obj.invoiceId.isNotEmpty()) {
+                            obj.invoiceDocumentId = document.id
+                            invoiceItems.add(obj)
+                        }
+                    }
+                }
+                return invoiceItems
+            }
+
+            CONNECTION_TYPE.LOCAL.key -> {
+                return if (itemId.isNullOrEmpty()) {
+                    invoiceDao.getAllInvoices()
+                } else {
+                    invoiceDao.getInvoicesForItem(
+                        itemId
+                    )
+                }
+            }
+
+            else -> {
+                return mutableListOf()
+            }
+        }
+    }
+
     override suspend fun getOneInvoiceByItemID(itemId: String): Invoice? {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {

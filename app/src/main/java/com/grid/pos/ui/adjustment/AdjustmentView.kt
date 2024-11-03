@@ -85,10 +85,10 @@ import java.util.TimeZone
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdjustmentView(
-    modifier: Modifier = Modifier,
-    navController: NavController? = null,
-    activityViewModel: ActivityScopedViewModel,
-    viewModel: AdjustmentViewModel = hiltViewModel()
+        modifier: Modifier = Modifier,
+        navController: NavController? = null,
+        activityViewModel: ActivityScopedViewModel,
+        viewModel: AdjustmentViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
@@ -99,8 +99,8 @@ fun AdjustmentView(
     val dateFormat = "yyyy-MM-dd HH:mm"
 
     fun getDateFromState(
-        time: Long,
-        timePickerState: TimePickerState
+            time: Long,
+            timePickerState: TimePickerState
     ): Date {
         val date = currentTime.apply {
             timeInMillis = time
@@ -173,7 +173,7 @@ fun AdjustmentView(
     }
 
     LaunchedEffect(state.isLoading) {
-        activityViewModel.showLoading(state.isLoading)
+        activityViewModel.showLoading(state.isLoading,-1)
     }
 
     fun handleBack() {
@@ -187,20 +187,22 @@ fun AdjustmentView(
     }
 
     LaunchedEffect(isPopupVisible) {
-        activityViewModel.showPopup(isPopupVisible, if (!isPopupVisible) null else PopupModel().apply {
-            onDismissRequest = {
-                isPopupVisible = false
-            }
-            onConfirmation = {
-                state.isLoading = false
-                isPopupVisible = false
-                handleBack()
-            }
-            dialogText = "Are you sure you want to close?"
-            positiveBtnText = "Cancel"
-            negativeBtnText = "Close"
-            height = 130.dp
-        })
+        activityViewModel.showPopup(
+            isPopupVisible,
+            if (!isPopupVisible) null else PopupModel().apply {
+                onDismissRequest = {
+                    isPopupVisible = false
+                }
+                onConfirmation = {
+                    state.isLoading = false
+                    isPopupVisible = false
+                    handleBack()
+                }
+                dialogText = "Are you sure you want to close?"
+                positiveBtnText = "Cancel"
+                negativeBtnText = "Close"
+                height = 130.dp
+            })
     }
 
     BackHandler {
@@ -260,14 +262,40 @@ fun AdjustmentView(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
 
-                    UITextField(modifier = Modifier.padding(
-                        horizontal = 10.dp,
-                        vertical = 5.dp
-                    ),
+                    UIButton(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(90.dp)
+                            .padding(10.dp),
+                        text = "Adjust Remaining Quantity"
+                    ) {
+                        /*if (state.selectedItem == null) {
+                            viewModel.showError("select an Item at first!")
+                            return@UIButton
+                        }*/
+                       /* val from = getDateFromState(
+                            fromDatePickerState.selectedDateMillis!!,
+                            fromTimePickerState
+                        )
+                        val to = getDateFromState(
+                            toDatePickerState.selectedDateMillis!!,
+                            toTimePickerState
+                        )*/
+                        viewModel.adjustRemainingQuantities(
+                            state.selectedItem
+                        )
+                    }
+
+                    UITextField(
+                        modifier = Modifier.padding(
+                            horizontal = 10.dp,
+                            vertical = 5.dp
+                        ),
                         defaultValue = itemCostState,
                         label = "Item Cost",
                         placeHolder = "Enter Name",
-                        keyboardType = KeyboardType.Decimal) { cost ->
+                        keyboardType = KeyboardType.Decimal
+                    ) { cost ->
                         itemCostState = Utils.getDoubleValue(
                             cost,
                             itemCostState
@@ -322,27 +350,16 @@ fun AdjustmentView(
                     }
 
                     UIButton(
-                        modifier = Modifier.fillMaxWidth().height(70.dp).padding(10.dp),
-                        text = "Adjust Remaining Quantity"
-                    ) {
-                        val from = getDateFromState(
-                            fromDatePickerState.selectedDateMillis!!,
-                            fromTimePickerState
-                        )
-                        val to = getDateFromState(
-                            toDatePickerState.selectedDateMillis!!,
-                            toTimePickerState
-                        )
-                        viewModel.adjustRemainingQuantities(
-                            state.selectedItem,
-                            from,
-                            to
-                        )
-                    }
-                    UIButton(
-                        modifier = Modifier.fillMaxWidth().height(70.dp).padding(10.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(90.dp)
+                            .padding(10.dp),
                         text = "Update Item Cost"
                     ) {
+                        if (state.selectedItem == null) {
+                            viewModel.showError("select an Item at first!")
+                            return@UIButton
+                        }
                         val from = getDateFromState(
                             fromDatePickerState.selectedDateMillis!!,
                             fromTimePickerState
@@ -352,7 +369,7 @@ fun AdjustmentView(
                             toTimePickerState
                         )
                         viewModel.updateItemCost(
-                            state.selectedItem,
+                            state.selectedItem!!,
                             itemCostState,
                             from,
                             to
@@ -367,10 +384,10 @@ fun AdjustmentView(
                         end = 10.dp
                     ),
                     label = "Select Item",
-                    selectedId = state.selectedItem.itemId,
+                    selectedId = state.selectedItem?.itemId,
                     onLoadItems = { viewModel.fetchItems() },
                     leadingIcon = {
-                        if (state.selectedItem.itemId.isNotEmpty()) {
+                        if (state.selectedItem?.itemId?.isNotEmpty() == true) {
                             Icon(
                                 Icons.Default.RemoveCircleOutline,
                                 contentDescription = "remove item",

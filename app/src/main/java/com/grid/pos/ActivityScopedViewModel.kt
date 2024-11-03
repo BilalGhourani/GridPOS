@@ -183,11 +183,11 @@ class ActivityScopedViewModel @Inject constructor(
         }
         val currency = SettingsModel.currentCurrency ?: return item.itemUnitPrice
         when (item.itemCurrencyId) {
-            currency.currencyDocumentId,currency.currencyCode2 -> {//second currency
+            currency.currencyDocumentId, currency.currencyCode2 -> {//second currency
                 item.itemRealUnitPrice = item.itemUnitPrice.div(currency.currencyRate)
             }
 
-            currency.currencyId,currency.currencyCode1 -> {//first currency
+            currency.currencyId, currency.currencyCode1 -> {//first currency
                 item.itemRealUnitPrice = item.itemUnitPrice
             }
 
@@ -284,9 +284,17 @@ class ActivityScopedViewModel @Inject constructor(
         }
     }
 
-    fun showLoading(show: Boolean) {
+    fun showLoading(
+            show: Boolean,
+            timeout: Long = 30000
+    ) {
         viewModelScope.launch {
-            _mainActivityEvent.send(ActivityScopedUIEvent.ShowLoading(show))
+            _mainActivityEvent.send(
+                ActivityScopedUIEvent.ShowLoading(
+                    show,
+                    timeout
+                )
+            )
         }
     }
 

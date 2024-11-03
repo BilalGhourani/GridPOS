@@ -265,6 +265,40 @@ class InvoiceHeaderRepositoryImpl(
         }
     }
 
+    override suspend fun getAllInvoices(): MutableList<InvoiceHeader> {
+        return when (SettingsModel.connectionType) {
+            CONNECTION_TYPE.FIRESTORE.key -> {
+                val querySnapshot = FirebaseFirestore.getInstance().collection("in_hinvoice")
+                    .whereEqualTo(
+                        "hi_cmp_id",
+                        SettingsModel.getCompanyID()
+                    ).get().await()
+                val invoices = mutableListOf<InvoiceHeader>()
+                if (querySnapshot.size() > 0) {
+                    for (document in querySnapshot) {
+                        val obj = document.toObject(InvoiceHeader::class.java)
+                        if (obj.invoiceHeadId.isNotEmpty()) {
+                            obj.invoiceHeadDocumentId = document.id
+                            invoices.add(obj)
+                        }
+                    }
+                }
+
+                invoices
+            }
+
+            CONNECTION_TYPE.LOCAL.key -> {
+                invoiceHeaderDao.getAllInvoiceHeaders(
+                    SettingsModel.getCompanyID() ?: ""
+                )
+            }
+
+            else -> {
+                mutableListOf()
+            }
+        }
+    }
+
     override suspend fun getLastOrderByType(): InvoiceHeader? {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {

@@ -280,6 +280,7 @@ data class Item(
             "it_tax2" to itemTax2,
             "it_printer" to itemPrinter,
             "it_openqty" to itemOpenQty,
+            "it_remqty" to itemRemQty,
             "it_opencost" to itemOpenCost,
             "it_pos" to itemPos,
             "it_image" to itemImage,

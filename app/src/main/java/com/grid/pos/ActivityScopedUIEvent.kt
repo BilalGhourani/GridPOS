@@ -10,7 +10,11 @@ import java.util.ArrayList
 
 sealed class ActivityScopedUIEvent {
     data object Finish : ActivityScopedUIEvent()
-    class ShowLoading(var show: Boolean) : ActivityScopedUIEvent()
+    class ShowLoading(
+            var show: Boolean,
+            val timeout: Long
+    ) : ActivityScopedUIEvent()
+
     class ShowPopup(
             var show: Boolean,
             var popupModel: PopupModel?

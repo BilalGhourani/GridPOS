@@ -34,6 +34,10 @@ interface ItemDao {
     @Update
     suspend fun update(item: Item)
 
+    // Update list of Item
+    @Update
+    suspend fun update(items: List<Item>)
+
     // Get all Items as stream.
     @Query("SELECT * FROM `st_item` WHERE it_cmp_id =:companyID")
     fun getAllItems(companyID: String): MutableList<Item>

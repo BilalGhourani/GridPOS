@@ -267,11 +267,11 @@ class MainActivity : ComponentActivity() {
                 is ActivityScopedUIEvent.ShowLoading -> {
                     mLoaderHandler?.removeCallbacks(mLoaderRunnable)
                     mLoaderHandler = null
-                    if (sharedEvent.show) {
+                    if (sharedEvent.show && sharedEvent.timeout > 0) {
                         mLoaderHandler = Handler(Looper.getMainLooper())
                         mLoaderHandler!!.postDelayed(
                             mLoaderRunnable,
-                            30000
+                            sharedEvent.timeout
                         )
                     }
                     loadingState.value = sharedEvent.show

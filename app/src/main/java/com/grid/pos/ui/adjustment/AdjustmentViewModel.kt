@@ -62,61 +62,44 @@ class AdjustmentViewModel @Inject constructor(
     }
 
     fun adjustRemainingQuantities(
-            item: Item,
-            from: Date,
-            to: Date,
+            item: Item?
     ) {
         state.value = state.value.copy(
             isLoading = true
         )
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                fetchInvoices(
-                    from,
-                    to
-                ) { invoices ->
-                    viewModelScope.launch(Dispatchers.IO) {
-                        val invoicesMap = invoices.associateBy { it.invoiceHeadId }
-                        val listOfInvoices = mutableListOf<Invoice>()
-                        val batchSize = 30
-                        var start = 0
-                        val ids = invoices.map { it.invoiceHeadId }
-                        val size = ids.size
-                        while (start < size) {
-                            val end = min(
-                                start + batchSize,
-                                size
-                            )
-                            val idsBatch = ids.subList(
-                                start,
-                                end
-                            )
-                            listOfInvoices.addAll(
-                                invoiceRepository.getInvoicesByIds(
-                                    idsBatch,
-                                    item.itemId
-                                )
-                            )
-                            start = end + 1
-                        }
-                        var soldQty = 0.0
-                        listOfInvoices.forEach {
-                            val invoice = invoicesMap[it.invoiceHeaderId]
-                            if (invoice != null) {
-                                if (invoice.invoiceHeadGrossAmount >= 0) {
-                                    soldQty += it.invoiceQuantity
-                                } else {
-                                    soldQty -= it.invoiceQuantity
-                                }
+                viewModelScope.launch(Dispatchers.IO) {
+                    val invoicesMap = invoiceHeaderRepository.getAllInvoices()
+                        .associateBy { it.invoiceHeadId }
+                    val itemsMap = state.value.items.associateBy { it.itemId }
+                    val listOfInvoices = invoiceRepository.getAllInvoicesForAdjustment(item?.itemId)
+                    val itemQtyMap: MutableMap<String, Double> = mutableMapOf()
+                    listOfInvoices.forEach {
+                        val invoice = invoicesMap[it.invoiceHeaderId]
+                        var soldQty = itemQtyMap[it.invoiceItemId!!] ?: 0.0
+                        if (invoice != null) {
+                            if (invoice.invoiceHeadGrossAmount >= 0) {
+                                soldQty += it.invoiceQuantity
+                            } else {
+                                soldQty -= it.invoiceQuantity
                             }
                         }
-                        item.itemRemQty = item.itemOpenQty - soldQty
-                        itemRepository.update(item)
-                        state.value = state.value.copy(
-                            warning = Event("Quantity is updated successfully."),
-                            isLoading = false
-                        )
+                        itemQtyMap[it.invoiceItemId!!] = soldQty
                     }
+                    val itemsToUpdate: MutableList<Item> = mutableListOf()
+                    itemQtyMap.forEach { (itemId, soldQty) ->
+                        val itm = itemsMap[itemId]
+                        if (itm != null) {
+                            itm.itemRemQty = itm.itemOpenQty - soldQty
+                            itemsToUpdate.add(itm)
+                        }
+                    }
+                    itemRepository.update(itemsToUpdate)
+                    state.value = state.value.copy(
+                        warning = Event("Quantity is updated successfully."),
+                        isLoading = false
+                    )
                 }
             } catch (e: Exception) {
                 e.printStackTrace()

@@ -1,5 +1,7 @@
 package com.grid.pos.data.Item
 
+import com.grid.pos.data.Invoice.Invoice
+
 interface ItemRepository {
 
     // suspend is a coroutine keyword,
@@ -11,6 +13,9 @@ interface ItemRepository {
 
     // Update an Item
     suspend fun update(item: Item)
+
+    // Update list of Items
+    suspend fun update(items: List<Item>)
 
     // Get all Items logs as stream.
     suspend fun getAllItems(): MutableList<Item>
