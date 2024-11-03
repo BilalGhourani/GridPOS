@@ -1,6 +1,8 @@
 package com.grid.pos.data.Invoice
 
+import com.google.firebase.firestore.Filter
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.core.FieldFilter
 import com.grid.pos.data.InvoiceHeader.InvoiceHeader
 import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.model.CONNECTION_TYPE
@@ -230,18 +232,56 @@ class InvoiceRepositoryImpl(
     }
 
     override suspend fun getAllInvoicesForAdjustment(
-            itemId: String?
+            itemId: String?,
+            from: Date?,
+            to: Date?
     ): MutableList<Invoice> {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
-                val querySnapshot = if (!itemId.isNullOrEmpty()) {
-                    FirebaseFirestore.getInstance().collection("in_invoice").whereEqualTo(
-                        "in_it_id",
-                        itemId
-                    ).get().await()
-                } else {
-                    FirebaseFirestore.getInstance().collection("in_invoice").get().await()
+                val collection = FirebaseFirestore.getInstance().collection("in_invoice")
+
+                // Create a list to hold the filters
+                val filters = mutableListOf<Filter>()
+
+                // Add filters based on non-null parameters
+                itemId?.let {
+                    filters.add(
+                        Filter.equalTo(
+                            "in_it_id",
+                            it
+                        )
+                    )
                 }
+                from?.let {
+                    filters.add(
+                        Filter.greaterThanOrEqualTo(
+                            "in_timestamp",
+                            it
+                        )
+                    )
+                }
+                to?.let {
+                    filters.add(
+                        Filter.lessThan(
+                            "in_timestamp",
+                            it
+                        )
+                    )
+                }
+                val size = filters.size
+                val querySnapshot = if (size > 0) {
+                    if (size == 3) {
+                        collection.where(filters[0]).where(filters[1]).where(filters[2]).get()
+                            .await()
+                    } else if (size == 2) {
+                        collection.where(filters[0]).where(filters[1]).get().await()
+                    } else {
+                        collection.where(filters[0]).get().await()
+                    }
+                } else {
+                    collection.get().await()
+                }
+
                 val invoiceItems = mutableListOf<Invoice>()
                 if (querySnapshot.size() > 0) {
                     for (document in querySnapshot) {
@@ -256,12 +296,23 @@ class InvoiceRepositoryImpl(
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
-                return if (itemId.isNullOrEmpty()) {
-                    invoiceDao.getAllInvoices()
-                } else {
+                return if (itemId != null && from != null && to != null) {
+                    invoiceDao.getInvoicesForItemAndDates(
+                        itemId,
+                        from.time,
+                        to.time
+                    )
+                } else if (itemId != null) {
                     invoiceDao.getInvoicesForItem(
                         itemId
                     )
+                } else if (from != null && to != null) {
+                    invoiceDao.getInvoicesForDates(
+                        from.time,
+                        to.time
+                    )
+                } else {
+                    invoiceDao.getAllInvoices()
                 }
             }
 

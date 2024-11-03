@@ -265,11 +265,14 @@ class InvoiceHeaderRepositoryImpl(
         }
     }
 
-    override suspend fun getAllInvoices(): MutableList<InvoiceHeader> {
+    override suspend fun getAllInvoicesByIds(ids: List<String>): MutableList<InvoiceHeader> {
         return when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
                 val querySnapshot = FirebaseFirestore.getInstance().collection("in_hinvoice")
-                    .whereEqualTo(
+                    .whereIn(
+                        "hi_id",
+                        ids
+                    ).whereEqualTo(
                         "hi_cmp_id",
                         SettingsModel.getCompanyID()
                     ).get().await()
@@ -288,7 +291,8 @@ class InvoiceHeaderRepositoryImpl(
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
-                invoiceHeaderDao.getAllInvoiceHeaders(
+                invoiceHeaderDao.getInvoicesWithIds(
+                    ids,
                     SettingsModel.getCompanyID() ?: ""
                 )
             }

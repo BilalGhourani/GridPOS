@@ -80,6 +80,13 @@ interface InvoiceHeaderDao {
             companyId: String
     ): MutableList<InvoiceHeader>
 
+    // Get all Invoices with ids as stream.
+    @Query("SELECT * FROM `in_hinvoice` WHERE hi_id IN (:ids) AND hi_cmp_id=:companyId")
+    fun getInvoicesWithIds(
+           ids:List<String>,
+           companyId: String
+    ): MutableList<InvoiceHeader>
+
     @Query("SELECT * FROM `in_hinvoice` WHERE hi_userstamp = :userID LIMIT 1")
     fun getOneInvoiceByUserId(userID: String): InvoiceHeader?
 

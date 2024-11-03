@@ -28,7 +28,9 @@ interface InvoiceRepository {
 
     // Get all Invoices between Dates.
     suspend fun getAllInvoicesForAdjustment(
-            itemId: String? = null
+            itemId: String? = null,
+            from: Date?=null,
+            to: Date?=null
     ): MutableList<Invoice>
 
     suspend fun getOneInvoiceByItemID(itemId: String): Invoice?

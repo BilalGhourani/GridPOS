@@ -60,6 +60,21 @@ interface InvoiceDao {
     ): MutableList<Invoice>
 
     // Get all Invoices as stream.
+    @Query("SELECT * FROM `in_invoice` WHERE in_it_id = :itemId AND in_datetime >= :from AND in_datetime<= :to")
+    fun getInvoicesForItemAndDates(
+            itemId: String,
+            from: Long,
+            to: Long
+    ): MutableList<Invoice>
+
+    // Get all Invoices as stream.
+    @Query("SELECT * FROM `in_invoice` WHERE in_datetime >= :from AND in_datetime<= :to")
+    fun getInvoicesForDates(
+            from: Long,
+            to: Long
+    ): MutableList<Invoice>
+
+    // Get all Invoices as stream.
     @Query("SELECT * FROM `in_invoice` WHERE in_hi_id IN (:ids)")
     fun getInvoicesByIds(ids: List<String>): MutableList<Invoice>
 

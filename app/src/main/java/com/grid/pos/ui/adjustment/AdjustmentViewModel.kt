@@ -70,10 +70,30 @@ class AdjustmentViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 viewModelScope.launch(Dispatchers.IO) {
-                    val invoicesMap = invoiceHeaderRepository.getAllInvoices()
-                        .associateBy { it.invoiceHeadId }
+                    val listOfInvoices = invoiceRepository.getAllInvoicesForAdjustment(
+                        item?.itemId
+                    )
+                    val invoiceIds = listOfInvoices.map { it.invoiceHeaderId!! }
+
+                    val listOfInvoiceHeaders = mutableListOf<InvoiceHeader>()
+                    val batchSize = 30
+                    var start = 0
+                    val size = invoiceIds.size
+                    while (start < size) {
+                        val to = min(
+                            start + batchSize,
+                            size
+                        )
+                        val idsBatch = invoiceIds.subList(
+                            start,
+                            to
+                        );
+                        listOfInvoiceHeaders.addAll(invoiceHeaderRepository.getAllInvoicesByIds(idsBatch))
+                        start = to + 1;
+                    }
+
+                    val invoicesMap = listOfInvoiceHeaders.associateBy { it.invoiceHeadId }
                     val itemsMap = state.value.items.associateBy { it.itemId }
-                    val listOfInvoices = invoiceRepository.getAllInvoicesForAdjustment(item?.itemId)
                     val itemQtyMap: MutableMap<String, Double> = mutableMapOf()
                     listOfInvoices.forEach {
                         val invoice = invoicesMap[it.invoiceHeaderId]
@@ -129,43 +149,19 @@ class AdjustmentViewModel @Inject constructor(
         )
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                fetchInvoices(
+                val listOfInvoices = invoiceRepository.getAllInvoicesForAdjustment(
+                    item.itemId,
                     from,
                     to
-                ) { invoices ->
-                    viewModelScope.launch(Dispatchers.IO) {
-                        val listOfInvoices = mutableListOf<Invoice>()
-                        val batchSize = 30
-                        var start = 0
-                        val ids = invoices.map { it.invoiceHeadId }
-                        val size = ids.size
-                        while (start < size) {
-                            val end = min(
-                                start + batchSize,
-                                size
-                            )
-                            val idsBatch = ids.subList(
-                                start,
-                                end
-                            )
-                            listOfInvoices.addAll(
-                                invoiceRepository.getInvoicesByIds(
-                                    idsBatch,
-                                    item.itemId
-                                )
-                            )
-                            start = end + 1
-                        }
-                        listOfInvoices.forEach {
-                            it.invoiceCost = realCost
-                        }
-                        invoiceRepository.update(listOfInvoices)
-                        state.value = state.value.copy(
-                            warning = Event("Item cost is updated successfully."),
-                            isLoading = false
-                        )
-                    }
+                )
+                listOfInvoices.forEach {
+                    it.invoiceCost = realCost
                 }
+                invoiceRepository.update(listOfInvoices)
+                state.value = state.value.copy(
+                    warning = Event("Item cost is updated successfully."),
+                    isLoading = false
+                )
             } catch (e: Exception) {
                 e.printStackTrace()
                 withContext(Dispatchers.Main) {
