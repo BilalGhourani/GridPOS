@@ -1,13 +1,16 @@
 package com.grid.pos.data.ThirdParty
 
 import com.google.firebase.firestore.FirebaseFirestore
+import com.grid.pos.data.InvoiceHeader.InvoiceHeader
 import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.SettingsModel
+import com.grid.pos.ui.pos.POSUtils
 import com.grid.pos.utils.DateHelper
 import com.grid.pos.utils.Extension.getObjectValue
 import com.grid.pos.utils.Extension.getStringValue
 import kotlinx.coroutines.tasks.await
+import java.sql.Timestamp
 import java.util.Date
 
 class ThirdPartyRepositoryImpl(
@@ -101,9 +104,10 @@ class ThirdPartyRepositoryImpl(
                                         timeStamp,
                                         "yyyy-MM-dd hh:mm:ss.SSS"
                                     )
+
                                     else -> null
                                 }
-                                thirdPartyDateTime = (thirdPartyTimeStamp?:Date()).time
+                                thirdPartyDateTime = (thirdPartyTimeStamp ?: Date()).time
                                 thirdPartyUserStamp = it.getStringValue("tp_userstamp")
                                 thirdPartyDefault = !isDefaultOneFound && thirdPartyName.equals(
                                     "cash",
@@ -237,9 +241,10 @@ class ThirdPartyRepositoryImpl(
                                         timeStamp,
                                         "yyyy-MM-dd hh:mm:ss.SSS"
                                     )
+
                                     else -> null
                                 }
-                                thirdPartyDateTime = (thirdPartyTimeStamp?:Date()).time
+                                thirdPartyDateTime = (thirdPartyTimeStamp ?: Date()).time
                                 thirdPartyUserStamp = it.getStringValue("tp_userstamp")
                                 thirdPartyDefault = true
                             }
@@ -254,5 +259,154 @@ class ThirdPartyRepositoryImpl(
         }
         return null
     }
+
+    /*
+    *
+    *    @tp_name
+  ,@tp_cse
+  ,@tp_reference
+  ,@tp_tpc_name
+  ,@tp_fn
+  ,@tp_disc
+  ,@tp_contact
+  ,@tp_phone1
+  ,@tp_phone2
+  ,@tp_phone3
+  ,@tp_fax
+  ,@tp_address
+  ,@tp_activity
+  ,@tp_web
+  ,@tp_email
+  ,@tp_gender
+  ,@tp_date
+  ,@tp_photo
+  ,@tp_pathtodoc
+  ,@tp_note
+  ,@tp_cur_code
+  ,@tp_cha_ch_code
+  ,@tp_cha_code
+  ,@tp_cha_ch_codetax
+  ,@tp_cha_codetax
+  ,@tp_tpl_name
+  ,@tp_pln_name
+  ,@tp_city
+  ,@tp_street
+  ,@tp_building
+  ,@tp_floor
+  ,@TPReferenceStartNumber
+  ,@tp_tpd_id
+  ,@tp_daystopay
+  ,@tp_daystoorder
+  ,@tp_maxdueamt
+  ,@tp_tp_name
+  ,@tp_userstamp
+  ,@tp_displayname
+  ,@tp_wa_name
+  ,@tp_prj_name
+  ,@tp_div_name
+  ,@tp_bra_name
+    * */
+    private fun insertByProcedure(thirdParty: ThirdParty): String {
+        val parameters = if (SettingsModel.isSqlServerWebDb) {
+            listOf(
+                thirdParty.thirdPartyName,//tp_name
+                "Payable",//tp_cse
+                null,//tp_reference
+                null,//tp_tpc_name
+                thirdParty.thirdPartyFn,//tp_fn
+                null,//tp_disc
+                null,//tp_contact
+                thirdParty.thirdPartyPhone1,//tp_phone1
+                thirdParty.thirdPartyPhone2,//tp_phone2
+                null,//tp_phone3
+                null,//tp_fax
+                thirdParty.thirdPartyAddress,//tp_address
+                null,//tp_activity
+                null,//tp_web
+                null,//tp_email
+                null,//tp_gender
+                null,//tp_email
+                Timestamp(System.currentTimeMillis()),//tp_date
+                null,//tp_photo
+                null,//tp_pathtodoc
+                null,//tp_note
+                null,//tp_cur_code
+                null,//tp_cha_ch_code
+                null,//@tp_cha_code
+                null,//@tp_cha_ch_codetax
+                null,//@tp_cha_codetax
+                null,//@tp_tpl_name
+                null,//@tp_pln_name
+                null,//@tp_city
+                null,//@tp_street
+                null,//@tp_building
+                null,//@tp_floor
+                null,//@TPReferenceStartNumber
+                null,//@tp_tpd_id
+                null,//@tp_daystopay
+                null,//@tp_daystoorder
+                null,//@tp_maxdueamt
+                null,//@tp_tp_name
+                SettingsModel.currentUser?.userUsername,//@tp_userstamp
+                null,//@tp_displayname
+                SettingsModel.defaultWarehouse,//@tp_wa_name
+                null,//@tp_prj_name
+                null,//@tp_div_name
+                SettingsModel.defaultBranch,//@tp_bra_name
+            )
+        } else {
+            listOf(
+                thirdParty.thirdPartyName,//tp_name
+                "Payable",//tp_cse
+                null,//tp_reference
+                null,//tp_tpc_name
+                thirdParty.thirdPartyFn,//tp_fn
+                null,//tp_disc
+                null,//tp_contact
+                thirdParty.thirdPartyPhone1,//tp_phone1
+                thirdParty.thirdPartyPhone2,//tp_phone2
+                null,//tp_phone3
+                null,//tp_fax
+                thirdParty.thirdPartyAddress,//tp_address
+                null,//tp_activity
+                null,//tp_web
+                null,//tp_email
+                null,//tp_gender
+                null,//tp_email
+                Timestamp(System.currentTimeMillis()),//tp_date
+                null,//tp_photo
+                null,//tp_pathtodoc
+                null,//tp_note
+                null,//tp_cur_code
+                null,//tp_cha_ch_code
+                null,//@tp_cha_code
+                null,//@tp_cha_ch_codetax
+                null,//@tp_cha_codetax
+                null,//@tp_tpl_name
+                null,//@tp_pln_name
+                null,//@tp_city
+                null,//@tp_street
+                null,//@tp_building
+                null,//@tp_floor
+                null,//@TPReferenceStartNumber
+                null,//@tp_tpd_id
+                null,//@tp_daystopay
+                null,//@tp_daystoorder
+                null,//@tp_maxdueamt
+                null,//@tp_tp_name
+                SettingsModel.currentUser?.userUsername,//@tp_userstamp
+                null,//@tp_displayname
+                SettingsModel.defaultWarehouse,//@tp_wa_name
+                null,//@tp_prj_name
+                null,//@tp_div_name
+                SettingsModel.defaultBranch,//@tp_bra_name
+            )
+        }
+        return SQLServerWrapper.executeProcedure(
+            "addthirdparty",
+            parameters
+        ) ?: ""
+    }
+
 
 }
