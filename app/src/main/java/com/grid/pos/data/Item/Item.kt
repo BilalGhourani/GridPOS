@@ -258,6 +258,7 @@ data class Item(
         }
         itemCompId = SettingsModel.getCompanyID()
         itemUserStamp = SettingsModel.currentUserId
+        itemRemQty = itemOpenQty
     }
 
     @Exclude
