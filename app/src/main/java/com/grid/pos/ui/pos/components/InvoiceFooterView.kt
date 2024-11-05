@@ -208,7 +208,7 @@ fun InvoiceFooterView(
                     label = "Customers",
                     onLoadItems = { onLoadClients.invoke() },
                     leadingIcon = {
-                        if (SettingsModel.connectionType != CONNECTION_TYPE.SQL_SERVER.key) {
+                        if (!isFromTable) {
                             Icon(
                                 Icons.Default.PersonAdd,
                                 contentDescription = "Add Customer",
