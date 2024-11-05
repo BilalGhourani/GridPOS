@@ -78,6 +78,10 @@ object Utils {
         if (!BuildConfig.DEBUG && SettingsModel.isConnectedToSqlServer()) {
             return mutableListOf(
                 HomeSectionModel(
+                    R.drawable.third_parties,
+                    "Third Party",
+                    "ManageThirdPartiesView"
+                ),HomeSectionModel(
                     R.drawable.pos,
                     "POS",
                     "POSView"

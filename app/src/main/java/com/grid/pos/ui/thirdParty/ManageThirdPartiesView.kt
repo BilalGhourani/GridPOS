@@ -156,7 +156,6 @@ fun ManageThirdPartiesView(
         if (state.thirdParties.isNotEmpty()) {
             activityScopedViewModel.thirdParties = state.thirdParties
         }
-        viewModel.closeConnectionIfNeeded()
         navController?.navigateUp()
     }
 
