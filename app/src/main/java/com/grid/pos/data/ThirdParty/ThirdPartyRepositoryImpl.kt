@@ -215,7 +215,7 @@ class ThirdPartyRepositoryImpl(
 
             else -> {
                 try {
-                    val where = if (SettingsModel.isSqlServerWebDb) "tp_cse in ('Receivable','Payable and Receivable') AND tp_cmp_id='${SettingsModel.getCompanyID()}' AND UPPER(tp_newname) = 'CASH'" else "tp_cse in ('Receivable','Payable and Receivable') AND UPPER(tp_name) = 'CASH'"
+                    val where = if (SettingsModel.isSqlServerWebDb) "tp_cse in ('Receivable','Payable and Receivable') AND tp_cmp_id='${SettingsModel.getCompanyID()}'" else "tp_cse in ('Receivable','Payable and Receivable')"
                     val dbResult = SQLServerWrapper.getListOf(
                         "thirdparty",
                         "TOP 1",
