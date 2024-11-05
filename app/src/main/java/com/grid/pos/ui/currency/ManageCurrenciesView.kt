@@ -54,6 +54,7 @@ import com.grid.pos.data.Currency.Currency
 import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.UIButton
+import com.grid.pos.ui.common.UIImageButton
 import com.grid.pos.ui.common.UITextField
 import com.grid.pos.ui.pos.POSUtils
 import com.grid.pos.ui.theme.GridPOSTheme
@@ -345,20 +346,22 @@ fun ManageCurrenciesView(
                                 .padding(10.dp),
                             verticalAlignment = Alignment.Bottom
                         ) {
-                            UIButton(
+                            UIImageButton(
                                 modifier = Modifier
                                     .weight(1f)
                                     .padding(3.dp),
+                                icon = R.drawable.save,
                                 text = "Save"
                             ) {
                                 viewModel.currentCurrency = state.selectedCurrency
                                 viewModel.saveCurrency()
                             }
 
-                            UIButton(
+                            UIImageButton(
                                 modifier = Modifier
                                     .weight(1f)
                                     .padding(3.dp),
+                                icon = R.drawable.go_back,
                                 text = "Close"
                             ) {
                                 handleBack()

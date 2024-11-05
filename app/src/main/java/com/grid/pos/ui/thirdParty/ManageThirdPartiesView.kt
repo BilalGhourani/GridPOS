@@ -56,6 +56,7 @@ import com.grid.pos.model.ThirdPartyType
 import com.grid.pos.model.ThirdPartyTypeModel
 import com.grid.pos.ui.common.SearchableDropdownMenuEx
 import com.grid.pos.ui.common.UIButton
+import com.grid.pos.ui.common.UIImageButton
 import com.grid.pos.ui.common.UISwitch
 import com.grid.pos.ui.common.UITextField
 import com.grid.pos.ui.theme.GridPOSTheme
@@ -325,10 +326,11 @@ fun ManageThirdPartiesView(
                             ),
                         verticalAlignment = Alignment.Bottom
                     ) {
-                        UIButton(
+                        UIImageButton(
                             modifier = Modifier
                                 .weight(.33f)
                                 .padding(3.dp),
+                            icon = R.drawable.save,
                             text = "Save"
                         ) {
                             if (state.selectedThirdParty.thirdPartyType.isNullOrEmpty()) {
@@ -337,19 +339,21 @@ fun ManageThirdPartiesView(
                             viewModel.saveThirdParty(state.selectedThirdParty)
                         }
 
-                        UIButton(
+                        UIImageButton(
                             modifier = Modifier
                                 .weight(.33f)
                                 .padding(3.dp),
+                            icon = R.drawable.delete,
                             text = "Delete"
                         ) {
                             viewModel.deleteSelectedThirdParty()
                         }
 
-                        UIButton(
+                        UIImageButton(
                             modifier = Modifier
                                 .weight(.33f)
                                 .padding(3.dp),
+                            icon = R.drawable.go_back,
                             text = "Close"
                         ) {
                             handleBack()

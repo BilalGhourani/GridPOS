@@ -58,6 +58,7 @@ import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.SearchableDropdownMenuEx
 import com.grid.pos.ui.common.UIButton
+import com.grid.pos.ui.common.UIImageButton
 import com.grid.pos.ui.common.UITextField
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.utils.FileUtils
@@ -311,19 +312,21 @@ fun ManageFamiliesView(
                             ),
                         verticalAlignment = Alignment.Bottom
                     ) {
-                        UIButton(
+                        UIImageButton(
                             modifier = Modifier
                                 .weight(.33f)
                                 .padding(3.dp),
+                            icon = R.drawable.save,
                             text = "Save"
                         ) {
                             saveFamily()
                         }
 
-                        UIButton(
+                        UIImageButton(
                             modifier = Modifier
                                 .weight(.33f)
                                 .padding(3.dp),
+                            icon = R.drawable.delete,
                             text = "Delete"
                         ) {
                             oldImage?.let { old ->
@@ -341,10 +344,11 @@ fun ManageFamiliesView(
                             viewModel.deleteSelectedFamily(state.selectedFamily)
                         }
 
-                        UIButton(
+                        UIImageButton(
                             modifier = Modifier
                                 .weight(.33f)
                                 .padding(3.dp),
+                            icon = R.drawable.go_back,
                             text = "Close"
                         ) {
                             handleBack()

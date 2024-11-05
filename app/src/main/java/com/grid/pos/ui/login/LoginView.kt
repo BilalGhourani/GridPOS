@@ -6,9 +6,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -53,7 +54,7 @@ import androidx.navigation.NavController
 import com.grid.pos.ActivityScopedViewModel
 import com.grid.pos.R
 import com.grid.pos.model.SettingsModel
-import com.grid.pos.ui.common.UIButton
+import com.grid.pos.ui.common.UIImageButton
 import com.grid.pos.ui.common.UITextField
 import com.grid.pos.ui.theme.GridPOSTheme
 import kotlinx.coroutines.CoroutineScope
@@ -227,12 +228,13 @@ fun LoginView(
                             }) { password ->
                             passwordState = password
                         }
-                        UIButton(
+                        UIImageButton(
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .height(80.dp)
+                                .width(200.dp)
+                                .wrapContentHeight()
                                 .padding(10.dp),
-                            text = "Log In"
+                            icon = R.drawable.login,
+                            text = "Login"
                         ) {
                             keyboardController?.hide()
                             viewModel.login(
