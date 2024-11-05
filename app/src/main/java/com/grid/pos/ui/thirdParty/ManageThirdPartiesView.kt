@@ -28,6 +28,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -48,13 +49,17 @@ import androidx.navigation.NavController
 import com.grid.pos.ActivityScopedViewModel
 import com.grid.pos.R
 import com.grid.pos.data.ThirdParty.ThirdParty
+import com.grid.pos.model.InvoiceItemModel
 import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
+import com.grid.pos.model.ThirdPartyType
+import com.grid.pos.model.ThirdPartyTypeModel
 import com.grid.pos.ui.common.SearchableDropdownMenuEx
 import com.grid.pos.ui.common.UIButton
 import com.grid.pos.ui.common.UISwitch
 import com.grid.pos.ui.common.UITextField
 import com.grid.pos.ui.theme.GridPOSTheme
+import com.grid.pos.utils.Utils
 import kotlinx.coroutines.launch
 
 @OptIn(
@@ -74,6 +79,8 @@ fun ManageThirdPartiesView(
     val phone2FocusRequester = remember { FocusRequester() }
     val addressFocusRequester = remember { FocusRequester() }
 
+    val typeListState = remember { mutableStateListOf<ThirdPartyTypeModel>() }
+    var typeState by remember { mutableStateOf("") }
     var nameState by remember { mutableStateOf("") }
     var fnState by remember { mutableStateOf("") }
     var phone1State by remember { mutableStateOf("") }
@@ -81,9 +88,14 @@ fun ManageThirdPartiesView(
     var addressState by remember { mutableStateOf("") }
     var isDefaultState by remember { mutableStateOf(false) }
 
-  /*  LaunchedEffect(activityScopedViewModel.thirdParties) {
-        viewModel.fillCachedThirdParties(activityScopedViewModel.thirdParties)
-    }*/
+    /*  LaunchedEffect(activityScopedViewModel.thirdParties) {
+          viewModel.fillCachedThirdParties(activityScopedViewModel.thirdParties)
+      }*/
+
+    LaunchedEffect(Unit) {
+        typeListState.addAll(Utils.getThirdPartyTypeModels())
+        typeState = ThirdPartyType.RECEIVALBE.type
+    }
 
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -105,6 +117,7 @@ fun ManageThirdPartiesView(
     fun clear() {
         viewModel.currentThirdParty = ThirdParty()
         state.selectedThirdParty = ThirdParty()
+        typeState = ThirdPartyType.RECEIVALBE.type
         nameState = ""
         fnState = ""
         phone1State = ""
@@ -116,7 +129,7 @@ fun ManageThirdPartiesView(
 
     var saveAndBack by remember { mutableStateOf(false) }
     fun handleBack() {
-        if(state.isLoading){
+        if (state.isLoading) {
             return
         }
         if (state.selectedThirdParty.didChanged(
@@ -211,7 +224,7 @@ fun ManageThirdPartiesView(
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(top = 90.dp)
+                        .padding(top = 175.dp)
                         .verticalScroll(rememberScrollState()),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
@@ -319,6 +332,9 @@ fun ManageThirdPartiesView(
                                 .padding(3.dp),
                             text = "Save"
                         ) {
+                            if (state.selectedThirdParty.thirdPartyType.isNullOrEmpty()) {
+                                state.selectedThirdParty.thirdPartyType = typeState
+                            }
                             viewModel.saveThirdParty(state.selectedThirdParty)
                         }
 
@@ -340,6 +356,20 @@ fun ManageThirdPartiesView(
                             handleBack()
                         }
                     }
+                }
+
+                SearchableDropdownMenuEx(
+                    items = typeListState.toMutableList(),
+                    modifier = Modifier.padding(
+                        top = 100.dp,
+                        start = 10.dp,
+                        end = 10.dp
+                    ),
+                    selectedId = typeState
+                ) { thirdPartyTypeModel ->
+                    thirdPartyTypeModel as ThirdPartyTypeModel
+                    typeState = thirdPartyTypeModel.thirdPartyType.type
+                    state.selectedThirdParty.thirdPartyType = typeState
                 }
 
                 SearchableDropdownMenuEx(items = state.thirdParties.toMutableList(),
@@ -367,6 +397,7 @@ fun ManageThirdPartiesView(
                     thirdParty as ThirdParty
                     viewModel.currentThirdParty = thirdParty.copy()
                     state.selectedThirdParty = thirdParty
+                    typeState = thirdParty.thirdPartyType ?: ""
                     nameState = thirdParty.thirdPartyName ?: ""
                     fnState = thirdParty.thirdPartyFn ?: ""
                     phone1State = thirdParty.thirdPartyPhone1 ?: ""

@@ -54,6 +54,14 @@ data class ThirdParty(
         var thirdPartyCompId: String? = null,
 
         /**
+         * Third Party Type
+         * */
+        @ColumnInfo(name = "tp_cse")
+        @set:PropertyName("tp_cse")
+        @get:PropertyName("tp_cse")
+        var thirdPartyType: String? = null,
+
+        /**
          * Third Party phone 1
          * */
         @ColumnInfo(name = "tp_phone1")
@@ -165,6 +173,7 @@ data class ThirdParty(
             "tp_name" to thirdPartyName,
             "tp_fn" to thirdPartyFn,
             "tp_cmp_id" to thirdPartyCompId,
+            "tp_cse" to thirdPartyType,
             "tp_phone1" to thirdPartyPhone1,
             "tp_phone2" to thirdPartyPhone2,
             "tp_address" to thirdPartyAddress,

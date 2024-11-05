@@ -21,6 +21,7 @@ import com.grid.pos.data.MIGRATION_1_2
 import com.grid.pos.data.MIGRATION_2_3
 import com.grid.pos.data.MIGRATION_3_4
 import com.grid.pos.data.MIGRATION_4_5
+import com.grid.pos.data.MIGRATION_5_6
 import com.grid.pos.data.PosPrinter.PosPrinterRepository
 import com.grid.pos.data.PosPrinter.PosPrinterRepositoryImpl
 import com.grid.pos.data.PosReceipt.PosReceiptRepository
@@ -61,6 +62,7 @@ object AppModule {
             .addMigrations(MIGRATION_2_3)
             .addMigrations(MIGRATION_3_4)
             .addMigrations(MIGRATION_4_5)
+            .addMigrations(MIGRATION_5_6)
             .addCallback(callback).build()
     }
 

@@ -231,6 +231,7 @@ class ThirdPartyRepositoryImpl(
                                 )
                                 thirdPartyFn = it.getStringValue("tp_fn")
                                 thirdPartyCompId = if (SettingsModel.isSqlServerWebDb) it.getStringValue("tp_cmp_id") else SettingsModel.getCompanyID()
+                                thirdPartyType = it.getStringValue("tp_cse")
                                 thirdPartyPhone1 = it.getStringValue("tp_phone1")
                                 thirdPartyPhone2 = it.getStringValue("tp_phone2")
                                 thirdPartyAddress = it.getStringValue("tp_address")
@@ -260,57 +261,11 @@ class ThirdPartyRepositoryImpl(
         return null
     }
 
-    /*
-    *
-    *    @tp_name
-  ,@tp_cse
-  ,@tp_reference
-  ,@tp_tpc_name
-  ,@tp_fn
-  ,@tp_disc
-  ,@tp_contact
-  ,@tp_phone1
-  ,@tp_phone2
-  ,@tp_phone3
-  ,@tp_fax
-  ,@tp_address
-  ,@tp_activity
-  ,@tp_web
-  ,@tp_email
-  ,@tp_gender
-  ,@tp_date
-  ,@tp_photo
-  ,@tp_pathtodoc
-  ,@tp_note
-  ,@tp_cur_code
-  ,@tp_cha_ch_code
-  ,@tp_cha_code
-  ,@tp_cha_ch_codetax
-  ,@tp_cha_codetax
-  ,@tp_tpl_name
-  ,@tp_pln_name
-  ,@tp_city
-  ,@tp_street
-  ,@tp_building
-  ,@tp_floor
-  ,@TPReferenceStartNumber
-  ,@tp_tpd_id
-  ,@tp_daystopay
-  ,@tp_daystoorder
-  ,@tp_maxdueamt
-  ,@tp_tp_name
-  ,@tp_userstamp
-  ,@tp_displayname
-  ,@tp_wa_name
-  ,@tp_prj_name
-  ,@tp_div_name
-  ,@tp_bra_name
-    * */
     private fun insertByProcedure(thirdParty: ThirdParty): String {
         val parameters = if (SettingsModel.isSqlServerWebDb) {
             listOf(
                 thirdParty.thirdPartyName,//tp_name
-                "Payable",//tp_cse
+                thirdParty.thirdPartyType,//tp_cse
                 null,//tp_reference
                 null,//tp_tpc_name
                 thirdParty.thirdPartyFn,//tp_fn
@@ -357,7 +312,7 @@ class ThirdPartyRepositoryImpl(
         } else {
             listOf(
                 thirdParty.thirdPartyName,//tp_name
-                "Payable",//tp_cse
+                thirdParty.thirdPartyType,//tp_cse
                 null,//tp_reference
                 null,//tp_tpc_name
                 thirdParty.thirdPartyFn,//tp_fn

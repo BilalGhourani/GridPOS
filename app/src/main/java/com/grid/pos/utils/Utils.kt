@@ -26,6 +26,8 @@ import com.grid.pos.model.OrientationModel
 import com.grid.pos.model.ReportCountry
 import com.grid.pos.model.ReportLanguage
 import com.grid.pos.model.SettingsModel
+import com.grid.pos.model.ThirdPartyType
+import com.grid.pos.model.ThirdPartyTypeModel
 import java.math.BigInteger
 import java.time.Year
 import java.util.Calendar
@@ -170,6 +172,14 @@ object Utils {
             )
         )
     }
+
+   fun getThirdPartyTypeModels():MutableList<ThirdPartyTypeModel>{
+       val result = mutableListOf<ThirdPartyTypeModel>()
+       ThirdPartyType.entries.forEach{
+           result.add(ThirdPartyTypeModel(it))
+       }
+       return result
+   }
 
     fun getReportLanguages(withDefault: Boolean): MutableList<ReportLanguage> {
         val result = mutableListOf<ReportLanguage>()
