@@ -858,11 +858,18 @@ fun SettingsView(
                         ) { allow ->
                             allowOutOfStockSale = allow
                             SettingsModel.allowOutOfStockSale = allowOutOfStockSale
+                            SettingsModel.showItemQtyAlert = allow
                             scope.launch(Dispatchers.IO) {
                                 DataStoreManager.putBoolean(
                                     DataStoreManager.DataStoreKeys.ALLOW_OUT_OF_STOCK_SALE.key,
                                     allowOutOfStockSale
                                 )
+                                scope.launch(Dispatchers.IO) {
+                                    DataStoreManager.putBoolean(
+                                        DataStoreManager.DataStoreKeys.SHOW_ITEM_QTY_ALERT.key,
+                                        showItemQtyAlert
+                                    )
+                                }
                             }
                         }
                     }

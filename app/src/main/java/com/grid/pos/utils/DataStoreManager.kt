@@ -234,11 +234,11 @@ object DataStoreManager {
         ) == true
         SettingsModel.showItemQtyAlert = getBoolean(
             DataStoreKeys.SHOW_ITEM_QTY_ALERT.key,
-            false
+            true
         ) == true
         SettingsModel.allowOutOfStockSale = getBoolean(
             DataStoreKeys.ALLOW_OUT_OF_STOCK_SALE.key,
-            false
+            true
         ) == true
 
         SettingsModel.firebaseApplicationId = getString(DataStoreKeys.FIREBASE_APP_ID.key)
