@@ -289,7 +289,7 @@ class ThirdPartyRepositoryImpl(
     private fun insertByProcedure(thirdParty: ThirdParty): String {
         val parameters = if (SettingsModel.isSqlServerWebDb) {
             listOf(
-                "null_string_output",//tp_name
+                null,//tp_name null_string_output
                 thirdParty.thirdPartyType,//tp_cse
                 null,//tp_reference
                 null,//tp_tpc_name
@@ -328,11 +328,12 @@ class ThirdPartyRepositoryImpl(
                 null,//@tp_tp_name
                 SettingsModel.currentUser?.userUsername,//@tp_userstamp
                 thirdParty.thirdPartyName,//@tp_newname
-                null,//@tp_displayname
                 SettingsModel.defaultWarehouse,//@tp_wa_name
                 null,//@tp_prj_name
                 null,//@tp_div_name
                 SettingsModel.defaultBranch,//@tp_bra_name
+                SettingsModel.getCompanyID(),
+                null
             )
         } else {
             listOf(
@@ -421,7 +422,6 @@ class ThirdPartyRepositoryImpl(
                 null,//@tp_street
                 null,//@tp_building
                 null,//@tp_floor
-                null,//@TPReferenceStartNumber
                 null,//@tp_tpd_id
                 null,//@tp_daystopay
                 null,//@tp_daystoorder
@@ -429,11 +429,12 @@ class ThirdPartyRepositoryImpl(
                 null,//@tp_tp_name
                 SettingsModel.currentUser?.userUsername,//@tp_userstamp
                 thirdParty.thirdPartyName,//@tp_newname
-                null,//@tp_displayname
                 SettingsModel.defaultWarehouse,//@tp_wa_name
                 null,//@tp_prj_name
                 null,//@tp_div_name
                 SettingsModel.defaultBranch,//@tp_bra_name
+                SettingsModel.getCompanyID(),
+                null
             )
         } else {
             listOf(
