@@ -8,15 +8,19 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -158,93 +162,24 @@ fun HomeView(
                         })
                 }
             }) {
-            LazyVerticalGrid(
+            LazyColumn(
                 modifier = modifier
                     .padding(it)
-                    .padding(vertical = 10.dp)
-                    .fillMaxWidth()
-                    .wrapContentHeight(),
-                columns = GridCells.Fixed(columnCount)
+                    .fillMaxSize()
             ) {
-                Utils.getHomeList().forEach { item ->
+                Utils.getHomeList().forEach { category ->
                     item {
-                        Button(modifier = modifier
-                            .width(120.dp)
-                            .wrapContentHeight()
-                            .padding(
-                                horizontal = 3.dp,
-                                vertical = 5.dp
-                            ),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = Color.Transparent,
-                            ),
-                            contentPadding = PaddingValues(0.dp),
-                            shape = RoundedCornerShape(15.dp),
-                            onClick = {
-                                if (item.composable == "logout") {
+                        HomeCategoryCell(homeCategoryModel = category,
+                            columnCount = Utils.getColumnCount(context),
+                            onClick = { destination ->
+                                if (destination == "logout") {
                                     askToLogout()
                                 } else {
-                                    navController?.navigate(item.composable)
+                                    navController?.navigate(destination)
                                 }
-
-                            }) {
-                            Column(
-                                modifier = Modifier.border(
-                                    BorderStroke(
-                                        1.dp,
-                                        Brush.linearGradient(
-                                            colors = listOf(
-                                                homeLightGreen,
-                                                homeLightPurple,
-                                                homeLightBlue
-                                            )
-                                        )
-                                    ),
-                                    RoundedCornerShape(15.dp)
-                                ),
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.Center
-                            ) {
-                                Spacer(modifier = Modifier.height(10.dp))
-                                Image(
-                                    modifier = Modifier.size(60.dp),
-                                    painter = painterResource(item.icon),
-                                    contentDescription = "icon"
-                                )
-                                Spacer(modifier = Modifier.height(10.dp))
-                                Text(
-                                    text = item.title,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(40.dp),
-                                    style = TextStyle(
-                                        textDecoration = TextDecoration.None,
-                                        fontWeight = FontWeight.Bold,
-                                        fontSize = 16.sp
-                                    ),
-                                    color = SettingsModel.textColor,
-                                    textAlign = TextAlign.Center
-                                )
-                                Spacer(modifier = Modifier.height(5.dp))
-                            }
-                        }
-
+                            })
                     }
-                }/* item {
-                   UIButton(
-                            modifier = Modifier
-                                .width(120.dp)
-                                .height(80.dp)
-                                .padding(
-                                    horizontal = 3.dp,
-                                    vertical = 5.dp
-                                ),
-                            text = item.title,
-                            shape = RoundedCornerShape(15.dp)
-                        ) {
-                            navController?.navigate(item.composable)
-                        }
-                }*/
+                }
             }
         }
     }

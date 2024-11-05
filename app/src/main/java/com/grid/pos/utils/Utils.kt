@@ -18,7 +18,8 @@ import com.grid.pos.data.DataModel
 import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.ConnectionModel
 import com.grid.pos.model.Country
-import com.grid.pos.model.HomeSectionModel
+import com.grid.pos.model.HomeCategoryModel
+import com.grid.pos.model.HomeItemModel
 import com.grid.pos.model.InvoiceItemModel
 import com.grid.pos.model.Language
 import com.grid.pos.model.ORIENTATION_TYPE
@@ -74,116 +75,157 @@ object Utils {
         )
     }
 
-    fun getHomeList(): MutableList<HomeSectionModel> {
+    fun getHomeList(): List<HomeCategoryModel> {
         if (!BuildConfig.DEBUG && SettingsModel.isConnectedToSqlServer()) {
-            return mutableListOf(
-                HomeSectionModel(
-                    R.drawable.third_parties,
-                    "Third Party",
-                    "ManageThirdPartiesView"
-                ),HomeSectionModel(
-                    R.drawable.pos,
-                    "POS",
-                    "POSView"
+            return listOf(
+                HomeCategoryModel(
+                    title = "Administration",
+                    items = listOf(
+                        HomeItemModel(
+                            R.drawable.third_parties,
+                            "Third Party",
+                            "ManageThirdPartiesView"
+                        ),
+                        HomeItemModel(
+                            R.drawable.setup_reports,
+                            "Setup Reports",
+                            "ReportsListView"
+                        )
+                    )
                 ),
-                HomeSectionModel(
-                    R.drawable.tables,
-                    "Table",
-                    "TablesView"
+                HomeCategoryModel(
+                    title = "Sales",
+                    items = listOf(
+                        HomeItemModel(
+                            R.drawable.pos,
+                            "POS",
+                            "POSView"
+                        ),
+                        HomeItemModel(
+                            R.drawable.tables,
+                            "Table",
+                            "TablesView"
+                        )
+                    )
                 ),
-                HomeSectionModel(
-                    R.drawable.setup_reports,
-                    "Setup Reports",
-                    "ReportsListView"
-                ),
-                HomeSectionModel(
-                    R.drawable.logout,
-                    "Logout",
-                    "logout"
+                HomeCategoryModel(
+                    title = "Logout",
+                    items = listOf(
+                        HomeItemModel(
+                            R.drawable.logout,
+                            "Logout",
+                            "logout"
+                        )
+                    )
                 )
             )
         }
-        return mutableListOf(
-            HomeSectionModel(
-                R.drawable.companies,
-                "Company",
-                "ManageCompaniesView"
+        return listOf(
+            HomeCategoryModel(
+                title = "Administration",
+                items = listOf(
+                    HomeItemModel(
+                        R.drawable.companies,
+                        "Company",
+                        "ManageCompaniesView"
+                    ),
+                    HomeItemModel(
+                        R.drawable.currencies,
+                        "Currency",
+                        "ManageCurrenciesView"
+                    ),
+                    HomeItemModel(
+                        R.drawable.users,
+                        "User",
+                        "ManageUsersView"
+                    ),
+                    HomeItemModel(
+                        R.drawable.third_parties,
+                        "Third Party",
+                        "ManageThirdPartiesView"
+                    ),
+                    HomeItemModel(
+                        R.drawable.printer,
+                        "Printer",
+                        "POSPrinterView"
+                    ),
+                    HomeItemModel(
+                        R.drawable.setup_reports,
+                        "Setup Reports",
+                        "ReportsListView"
+                    )
+                )
             ),
-            HomeSectionModel(
-                R.drawable.currencies,
-                "Currency",
-                "ManageCurrenciesView"
+            HomeCategoryModel(
+                title = "Items",
+                items = listOf(
+                    HomeItemModel(
+                        R.drawable.items,
+                        "Item",
+                        "ManageItemsView"
+                    ),
+                    HomeItemModel(
+                        R.drawable.families,
+                        "Family",
+                        "ManageFamiliesView"
+                    ),
+                    HomeItemModel(
+                        R.drawable.adjustment,
+                        "Adjustment",
+                        "AdjustmentView"
+                    )
+                )
             ),
-            HomeSectionModel(
-                R.drawable.users,
-                "User",
-                "ManageUsersView"
+            HomeCategoryModel(
+                title = "Sales",
+                items = listOf(
+                    HomeItemModel(
+                        R.drawable.pos,
+                        "POS",
+                        "POSView"
+                    ),
+                    HomeItemModel(
+                        R.drawable.tables,
+                        "Table",
+                        "TablesView"
+                    ),
+                    HomeItemModel(
+                        R.drawable.sales_reports,
+                        "Sales Reports",
+                        "ReportsView"
+                    )
+                )
             ),
-            HomeSectionModel(
-                R.drawable.third_parties,
-                "Third Party",
-                "ManageThirdPartiesView"
+            HomeCategoryModel(
+                title = "Backup & Restore",
+                items = listOf(
+                    HomeItemModel(
+                        R.drawable.backup_restore,
+                        "Backup & Restore",
+                        "BackupView"
+                    )
+                )
             ),
-            HomeSectionModel(
-                R.drawable.families,
-                "Family",
-                "ManageFamiliesView"
-            ),
-            HomeSectionModel(
-                R.drawable.items,
-                "Item",
-                "ManageItemsView"
-            ),
-            HomeSectionModel(
-                R.drawable.printer,
-                "Printer",
-                "POSPrinterView"
-            ),
-            HomeSectionModel(
-                R.drawable.pos,
-                "POS",
-                "POSView"
-            ),
-            HomeSectionModel(
-                R.drawable.tables,
-                "Table",
-                "TablesView"
-            ),
-            HomeSectionModel(
-                R.drawable.sales_reports,
-                "Sales Reports",
-                "ReportsView"
-            ),
-            HomeSectionModel(
-                R.drawable.setup_reports,
-                "Setup Reports",
-                "ReportsListView"
-            ),
-            HomeSectionModel(
-                R.drawable.adjustment,
-                "Adjustment",
-                "AdjustmentView"
-            ),
-            HomeSectionModel(
-                R.drawable.backup_restore,
-                "Backup & Restore",
-                "BackupView"
-            ),
-            HomeSectionModel(
-                R.drawable.logout,
-                "Logout",
-                "logout"
+            HomeCategoryModel(
+                title = "Logout",
+                items = listOf(
+                    HomeItemModel(
+                        R.drawable.logout,
+                        "Logout",
+                        "logout"
+                    )
+                )
             )
         )
     }
 
-   fun getThirdPartyTypeModels():MutableList<ThirdPartyTypeModel>{
-       val result = mutableListOf<ThirdPartyTypeModel>()
-       ThirdPartyType.entries.forEach{
-           result.add(ThirdPartyTypeModel(it))
-       }
-       return result
-   }
+    fun getThirdPartyTypeModels(): MutableList<ThirdPartyTypeModel> {
+        val result = mutableListOf<ThirdPartyTypeModel>()
+        ThirdPartyType.entries.forEach {
+            result.add(ThirdPartyTypeModel(it))
+        }
+        return result
+    }
 
     fun getReportLanguages(withDefault: Boolean): MutableList<ReportLanguage> {
         val result = mutableListOf<ReportLanguage>()
