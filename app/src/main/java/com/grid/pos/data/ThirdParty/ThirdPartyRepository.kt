@@ -10,7 +10,7 @@ interface ThirdPartyRepository {
     suspend fun delete(thirdParty: ThirdParty)
 
     // Update a ThirdParty
-    suspend fun update(thirdParty: ThirdParty)
+    suspend fun update(thirdpartyId:String,thirdParty: ThirdParty)
 
     // Get all ThirdParties as stream.
     suspend fun getAllThirdParties(): MutableList<ThirdParty>

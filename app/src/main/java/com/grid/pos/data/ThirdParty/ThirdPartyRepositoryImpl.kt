@@ -17,35 +17,59 @@ class ThirdPartyRepositoryImpl(
         private val thirdPartyDao: ThirdPartyDao
 ) : ThirdPartyRepository {
     override suspend fun insert(thirdParty: ThirdParty): ThirdParty {
-        if (SettingsModel.isConnectedToFireStore()) {
-            val docRef = FirebaseFirestore.getInstance().collection("thirdParty")
-                .add(thirdParty.getMap()).await()
-            thirdParty.thirdPartyDocumentId = docRef.id
-        } else {
-            thirdPartyDao.insert(thirdParty)
+        when (SettingsModel.connectionType) {
+            CONNECTION_TYPE.FIRESTORE.key -> {
+                val docRef = FirebaseFirestore.getInstance().collection("thirdParty")
+                    .add(thirdParty.getMap()).await()
+                thirdParty.thirdPartyDocumentId = docRef.id
+            }
+
+            CONNECTION_TYPE.LOCAL.key -> {
+                thirdPartyDao.insert(thirdParty)
+            }
+
+            else -> {
+                thirdParty.thirdPartyId = insertByProcedure(thirdParty)
+            }
         }
         return thirdParty
     }
 
     override suspend fun delete(thirdParty: ThirdParty) {
-        if (SettingsModel.isConnectedToFireStore()) {
-            thirdParty.thirdPartyDocumentId?.let {
-                FirebaseFirestore.getInstance().collection("thirdParty").document(it).delete()
-                    .await()
+        when (SettingsModel.connectionType) {
+            CONNECTION_TYPE.FIRESTORE.key -> {
+                thirdParty.thirdPartyDocumentId?.let {
+                    FirebaseFirestore.getInstance().collection("thirdParty").document(it).delete()
+                        .await()
+                }
             }
-        } else {
-            thirdPartyDao.delete(thirdParty)
+
+            CONNECTION_TYPE.LOCAL.key -> {
+                thirdPartyDao.delete(thirdParty)
+            }
+
+            else -> {
+                deleteByProcedure(thirdParty)
+            }
         }
     }
 
-    override suspend fun update(thirdParty: ThirdParty) {
-        if (SettingsModel.isConnectedToFireStore()) {
-            thirdParty.thirdPartyDocumentId?.let {
-                FirebaseFirestore.getInstance().collection("thirdParty").document(it)
-                    .update(thirdParty.getMap()).await()
+    override suspend fun update(thirdpartyId:String,thirdParty: ThirdParty) {
+        when (SettingsModel.connectionType) {
+            CONNECTION_TYPE.FIRESTORE.key -> {
+                thirdParty.thirdPartyDocumentId?.let {
+                    FirebaseFirestore.getInstance().collection("thirdParty").document(it)
+                        .update(thirdParty.getMap()).await()
+                }
             }
-        } else {
-            thirdPartyDao.update(thirdParty)
+
+            CONNECTION_TYPE.LOCAL.key -> {
+                thirdPartyDao.update(thirdParty)
+            }
+
+            else -> {
+                updateByProcedure(thirdpartyId,thirdParty)
+            }
         }
     }
 
@@ -94,6 +118,7 @@ class ThirdPartyRepositoryImpl(
                                 )
                                 thirdPartyFn = it.getStringValue("tp_fn")
                                 thirdPartyCompId = if (SettingsModel.isSqlServerWebDb) it.getStringValue("tp_cmp_id") else SettingsModel.getCompanyID()
+                                thirdPartyType = it.getStringValue("tp_cse")
                                 thirdPartyPhone1 = it.getStringValue("tp_phone1")
                                 thirdPartyPhone2 = it.getStringValue("tp_phone2")
                                 thirdPartyAddress = it.getStringValue("tp_address")
@@ -264,7 +289,7 @@ class ThirdPartyRepositoryImpl(
     private fun insertByProcedure(thirdParty: ThirdParty): String {
         val parameters = if (SettingsModel.isSqlServerWebDb) {
             listOf(
-                thirdParty.thirdPartyName,//tp_name
+                "null_string_output",//tp_name
                 thirdParty.thirdPartyType,//tp_cse
                 null,//tp_reference
                 null,//tp_tpc_name
@@ -280,7 +305,6 @@ class ThirdPartyRepositoryImpl(
                 null,//tp_web
                 null,//tp_email
                 null,//tp_gender
-                null,//tp_email
                 Timestamp(System.currentTimeMillis()),//tp_date
                 null,//tp_photo
                 null,//tp_pathtodoc
@@ -303,6 +327,7 @@ class ThirdPartyRepositoryImpl(
                 null,//@tp_maxdueamt
                 null,//@tp_tp_name
                 SettingsModel.currentUser?.userUsername,//@tp_userstamp
+                thirdParty.thirdPartyName,//@tp_newname
                 null,//@tp_displayname
                 SettingsModel.defaultWarehouse,//@tp_wa_name
                 null,//@tp_prj_name
@@ -327,7 +352,6 @@ class ThirdPartyRepositoryImpl(
                 null,//tp_web
                 null,//tp_email
                 null,//tp_gender
-                null,//tp_email
                 Timestamp(System.currentTimeMillis()),//tp_date
                 null,//tp_photo
                 null,//tp_pathtodoc
@@ -360,6 +384,114 @@ class ThirdPartyRepositoryImpl(
         return SQLServerWrapper.executeProcedure(
             "addthirdparty",
             parameters
+        ) ?: ""
+    }
+
+    private fun updateByProcedure(thirdpartyId:String,thirdParty: ThirdParty): String {
+        val parameters = if (SettingsModel.isSqlServerWebDb) {
+            listOf(
+                thirdParty.thirdPartyId,//tp_name
+                thirdParty.thirdPartyType,//tp_cse
+                null,//tp_reference
+                null,//tp_tpc_name
+                thirdParty.thirdPartyFn,//tp_fn
+                null,//tp_disc
+                null,//tp_contact
+                thirdParty.thirdPartyPhone1,//tp_phone1
+                thirdParty.thirdPartyPhone2,//tp_phone2
+                null,//tp_phone3
+                null,//tp_fax
+                thirdParty.thirdPartyAddress,//tp_address
+                null,//tp_activity
+                null,//tp_web
+                null,//tp_email
+                null,//tp_gender
+                Timestamp(System.currentTimeMillis()),//tp_date
+                null,//tp_photo
+                null,//tp_pathtodoc
+                null,//tp_note
+                null,//tp_cur_code
+                null,//tp_cha_ch_code
+                null,//@tp_cha_code
+                null,//@tp_cha_ch_codetax
+                null,//@tp_cha_codetax
+                null,//@tp_tpl_name
+                null,//@tp_pln_name
+                null,//@tp_city
+                null,//@tp_street
+                null,//@tp_building
+                null,//@tp_floor
+                null,//@TPReferenceStartNumber
+                null,//@tp_tpd_id
+                null,//@tp_daystopay
+                null,//@tp_daystoorder
+                null,//@tp_maxdueamt
+                null,//@tp_tp_name
+                SettingsModel.currentUser?.userUsername,//@tp_userstamp
+                thirdParty.thirdPartyName,//@tp_newname
+                null,//@tp_displayname
+                SettingsModel.defaultWarehouse,//@tp_wa_name
+                null,//@tp_prj_name
+                null,//@tp_div_name
+                SettingsModel.defaultBranch,//@tp_bra_name
+            )
+        } else {
+            listOf(
+                thirdpartyId,//oldtp_name
+                thirdParty.thirdPartyType,//tp_cse
+                thirdParty.thirdPartyName,//tp_name
+                null,//tp_reference
+                null,//tp_tpc_name
+                thirdParty.thirdPartyFn,//tp_fn
+                null,//tp_disc
+                null,//tp_contact
+                thirdParty.thirdPartyPhone1,//tp_phone1
+                thirdParty.thirdPartyPhone2,//tp_phone2
+                null,//tp_phone3
+                null,//tp_fax
+                thirdParty.thirdPartyAddress,//tp_address
+                null,//tp_activity
+                null,//tp_web
+                null,//tp_email
+                null,//tp_gender
+                Timestamp(System.currentTimeMillis()),//tp_date
+                null,//tp_photo
+                null,//tp_pathtodoc
+                null,//tp_note
+                null,//tp_cur_code
+                null,//tp_cha_ch_code
+                null,//@tp_cha_code
+                null,//@tp_cha_ch_codetax
+                null,//@tp_cha_codetax
+                null,//@tp_tpl_name
+                null,//@tp_pln_name
+                null,//@tp_city
+                null,//@tp_street
+                null,//@tp_building
+                null,//@tp_floor
+                null,//@tp_tpd_id
+                null,//@tp_daystopay
+                null,//@tp_daystoorder
+                null,//@tp_maxdueamt
+                null,//@tp_tp_name
+                SettingsModel.currentUser?.userUsername,//@tp_userstamp
+                null,//@tp_displayname
+                SettingsModel.defaultWarehouse,//@tp_wa_name
+                null,//@tp_prj_name
+                null,//@tp_div_name
+                SettingsModel.defaultBranch,//@tp_bra_name
+            )
+        }
+        return SQLServerWrapper.executeProcedure(
+            "updthirdparty",
+            parameters
+        ) ?: ""
+    }
+
+    private fun deleteByProcedure(thirdParty: ThirdParty): String {
+        return SQLServerWrapper.executeProcedure(
+            "delthirdparty",
+            listOf(thirdParty.thirdPartyId)
         ) ?: ""
     }
 

@@ -96,7 +96,7 @@ class ManageThirdPartiesViewModel @Inject constructor(
                     )
                 }
             } else {
-                thirdPartyRepository.update(thirdParty)
+                thirdPartyRepository.update(currentThirdParty.thirdPartyId,thirdParty)
                 val isDefaultEnabled = manageThirdPartiesState.value.thirdParties.none { it.thirdPartyDefault }
                 withContext(Dispatchers.Main) {
                     manageThirdPartiesState.value = manageThirdPartiesState.value.copy(
