@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -230,11 +231,13 @@ fun LoginView(
                         }
                         UIImageButton(
                             modifier = Modifier
-                                .width(200.dp)
-                                .wrapContentHeight()
+                                .wrapContentWidth()
+                                .height(100.dp)
                                 .padding(10.dp),
                             icon = R.drawable.login,
-                            text = "Login"
+                            text = "Login",
+                            iconSize = 60.dp,
+                            isVertical = false
                         ) {
                             keyboardController?.hide()
                             viewModel.login(
