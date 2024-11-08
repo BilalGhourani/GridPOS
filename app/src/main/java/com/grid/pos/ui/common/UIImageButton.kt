@@ -42,10 +42,11 @@ import com.grid.pos.ui.theme.homeLightPurple
 fun UIImageButton(
         modifier: Modifier = Modifier,
         text: String? = null,
+        textColor: Color = SettingsModel.buttonTextColor,
         icon: Int = R.drawable.login,
         iconSize: Dp = 50.dp,
         shape: Shape = RoundedCornerShape(15.dp),
-        isVertical :Boolean = true,
+        isVertical: Boolean = true,
         enabled: Boolean = true,
         onClick: () -> Unit = {},
 ) {
@@ -59,21 +60,23 @@ fun UIImageButton(
         onClick = {
             onClick.invoke()
         }) {
-        if(isVertical){
+        if (isVertical) {
             Column(
-                modifier = Modifier.fillMaxSize().border(
-                    BorderStroke(
-                        0.5.dp,
-                        Brush.linearGradient(
-                            colors = listOf(
-                                homeLightGreen,
-                                homeLightPurple,
-                                homeLightBlue
+                modifier = Modifier
+                    .fillMaxSize()
+                    .border(
+                        BorderStroke(
+                            0.5.dp,
+                            Brush.linearGradient(
+                                colors = listOf(
+                                    homeLightGreen,
+                                    homeLightPurple,
+                                    homeLightBlue
+                                )
                             )
-                        )
+                        ),
+                        shape
                     ),
-                    shape
-                ),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
@@ -92,13 +95,13 @@ fun UIImageButton(
                             fontWeight = FontWeight.Bold,
                             fontSize = 16.sp
                         ),
-                        color = SettingsModel.textColor,
+                        color = textColor,
                         textAlign = TextAlign.Center
                     )
                     Spacer(modifier = Modifier.height(10.dp))
                 }
             }
-        }else{
+        } else {
             Row(
                 modifier = Modifier.border(
                     BorderStroke(
@@ -118,7 +121,9 @@ fun UIImageButton(
             ) {
                 Spacer(modifier = Modifier.width(10.dp))
                 Image(
-                    modifier = Modifier.size(iconSize).padding(vertical = 10.dp),
+                    modifier = Modifier
+                        .size(iconSize)
+                        .padding(vertical = 10.dp),
                     painter = painterResource(icon),
                     contentDescription = "icon"
                 )
@@ -131,7 +136,7 @@ fun UIImageButton(
                             fontWeight = FontWeight.Bold,
                             fontSize = 16.sp
                         ),
-                        color = SettingsModel.textColor,
+                        color = textColor,
                         textAlign = TextAlign.Center
                     )
                     Spacer(modifier = Modifier.width(20.dp))
