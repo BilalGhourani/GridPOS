@@ -155,6 +155,7 @@ fun SettingsView(
 
     var isFirebaseSectionExpanded by remember { mutableStateOf(false) }
     var isAppSettingsSectionExpanded by remember { mutableStateOf(false) }
+    var isPOSSettingsSectionExpanded by remember { mutableStateOf(false) }
     var isColorsSectionExpanded by remember { mutableStateOf(false) }
 
     var isLoading by remember { mutableStateOf(false) }
@@ -639,41 +640,6 @@ fun SettingsView(
                             }
                         }
 
-                        UITextField(modifier = Modifier.padding(10.dp),
-                            defaultValue = cashPrinterState,
-                            label = "Cash Printer",
-                            placeHolder = "ex. 127.0.0.1:9100",
-                            focusRequester = sqlServerCmpIdRequester,
-                            imeAction = ImeAction.Done,
-                            trailingIcon = {
-                                IconButton(onClick = {
-                                    scope.launch(Dispatchers.IO) {
-                                        SettingsModel.cashPrinter = cashPrinterState
-                                        DataStoreManager.putString(
-                                            DataStoreManager.DataStoreKeys.CASH_PRINTER.key,
-                                            cashPrinterState
-                                        )
-                                    }
-                                }) {
-                                    Icon(
-                                        imageVector = Icons.Filled.Save,
-                                        contentDescription = "save printer",
-                                        tint = SettingsModel.buttonColor
-                                    )
-                                }
-                            },
-                            onAction = {
-                                scope.launch(Dispatchers.IO) {
-                                    SettingsModel.cashPrinter = cashPrinterState
-                                    DataStoreManager.putString(
-                                        DataStoreManager.DataStoreKeys.CASH_PRINTER.key,
-                                        cashPrinterState
-                                    )
-                                }
-                                keyboardController?.hide()
-                            }) { cashPrinter ->
-                            cashPrinterState = cashPrinter
-                        }
 
                         SearchableDropdownMenuEx(items = countries.toMutableList(),
                             modifier = Modifier.padding(10.dp),
@@ -712,6 +678,95 @@ fun SettingsView(
                                     defaultReportLanguage
                                 )
                             }
+                        }
+                    }
+                }
+
+
+                Card(
+                    modifier = Modifier
+                        .padding(10.dp)
+                        .animateContentSize(),
+                    shape = RoundedCornerShape(15.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = LightGrey,
+                    )
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(60.dp)
+                            .clickable {
+                                isPOSSettingsSectionExpanded = !isPOSSettingsSectionExpanded
+                            },
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "POS Settings",
+                            modifier = Modifier.padding(16.dp),
+                            textAlign = TextAlign.Center,
+                            style = TextStyle(
+                                textDecoration = TextDecoration.None,
+                                fontWeight = FontWeight.SemiBold,
+                                fontSize = 16.sp
+                            ),
+                            color = SettingsModel.textColor
+                        )
+
+                        Spacer(modifier = Modifier.weight(1f))
+
+                        Icon(
+                            Icons.Default.KeyboardArrowDown,
+                            null,
+                            Modifier
+                                .padding(horizontal = 16.dp)
+                                .size(20.dp)
+                                .align(
+                                    Alignment.CenterVertically
+                                )
+                                .rotate(
+                                    if (isPOSSettingsSectionExpanded) 180f else 0f
+                                ),
+                            tint = Color.Black
+                        )
+                    }
+
+                    if (isPOSSettingsSectionExpanded) {
+                        UITextField(modifier = Modifier.padding(10.dp),
+                            defaultValue = cashPrinterState,
+                            label = "Cash Printer",
+                            placeHolder = "ex. 127.0.0.1:9100",
+                            focusRequester = sqlServerCmpIdRequester,
+                            imeAction = ImeAction.Done,
+                            trailingIcon = {
+                                IconButton(onClick = {
+                                    scope.launch(Dispatchers.IO) {
+                                        SettingsModel.cashPrinter = cashPrinterState
+                                        DataStoreManager.putString(
+                                            DataStoreManager.DataStoreKeys.CASH_PRINTER.key,
+                                            cashPrinterState
+                                        )
+                                    }
+                                }) {
+                                    Icon(
+                                        imageVector = Icons.Filled.Save,
+                                        contentDescription = "save printer",
+                                        tint = SettingsModel.buttonColor
+                                    )
+                                }
+                            },
+                            onAction = {
+                                scope.launch(Dispatchers.IO) {
+                                    SettingsModel.cashPrinter = cashPrinterState
+                                    DataStoreManager.putString(
+                                        DataStoreManager.DataStoreKeys.CASH_PRINTER.key,
+                                        cashPrinterState
+                                    )
+                                }
+                                keyboardController?.hide()
+                            }) { cashPrinter ->
+                            cashPrinterState = cashPrinter
                         }
 
                         UISwitch(
@@ -874,6 +929,7 @@ fun SettingsView(
                         }
                     }
                 }
+
                 Card(
                     modifier = Modifier
                         .padding(10.dp)
@@ -982,25 +1038,6 @@ fun SettingsView(
                         }
                     }
                 }
-                Spacer(modifier = Modifier.weight(1f))
-
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .wrapContentHeight(),
-                ) {
-                    UIButton(
-                        modifier = Modifier
-                            .height(70.dp)
-                            .weight(1f)
-                            .padding(3.dp),
-                        text = "License",
-                        textColor = buttonTextColorState
-                    ) {
-                        navController?.navigate("LicenseView")
-                    }
-                }
-
             }
         }
         AnimatedVisibility(

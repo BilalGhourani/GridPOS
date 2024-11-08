@@ -109,6 +109,16 @@ object Utils {
                     )
                 ),
                 HomeCategoryModel(
+                    title = "License",
+                    items = listOf(
+                        HomeItemModel(
+                            R.drawable.license,
+                            "License",
+                            "LicenseView"
+                        )
+                    )
+                ),
+                HomeCategoryModel(
                     title = "Logout",
                     items = listOf(
                         HomeItemModel(
@@ -203,6 +213,16 @@ object Utils {
                         R.drawable.backup_restore,
                         "Backup & Restore",
                         "BackupView"
+                    )
+                )
+            ),
+            HomeCategoryModel(
+                title = "License",
+                items = listOf(
+                    HomeItemModel(
+                        R.drawable.license,
+                        "License",
+                        "LicenseView"
                     )
                 )
             ),
