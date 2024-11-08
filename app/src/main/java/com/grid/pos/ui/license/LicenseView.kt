@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ContentCopy
@@ -36,6 +37,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -55,6 +57,7 @@ import com.grid.pos.R
 import com.grid.pos.interfaces.OnGalleryResult
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.UIButton
+import com.grid.pos.ui.common.UIImageButton
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.ui.theme.licenseErrorColor
 import com.grid.pos.utils.Utils
@@ -68,7 +71,7 @@ fun LicenseView(
         activityScopedViewModel: ActivityScopedViewModel,
         viewModel: LicenseViewModel = hiltViewModel()
 ) {
-    val state  by viewModel.state.collectAsStateWithLifecycle()
+    val state by viewModel.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
     val deviceIDState by remember { mutableStateOf(Utils.getDeviceID(context)) }
@@ -78,7 +81,7 @@ fun LicenseView(
     val scope = rememberCoroutineScope()
 
     fun handleBack() {
-        if(state.isLoading){
+        if (state.isLoading) {
             return
         }
         navController?.navigateUp()
@@ -153,9 +156,9 @@ fun LicenseView(
             }) {
             Column(
                 modifier = modifier.padding(it),
+                horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-
 
                 // Add Image
                 Image(
@@ -217,23 +220,27 @@ fun LicenseView(
 
                 Spacer(modifier = Modifier.height(30.dp))
 
-                UIButton(
+                UIImageButton(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .height(80.dp)
+                        .wrapContentWidth()
+                        .height(100.dp)
                         .padding(10.dp),
-                    text = "Select License File"
+                    icon = R.drawable.pick_file,
+                    text = "Select License File",
+                    iconSize = 60.dp,
+                    isVertical = false
                 ) {
-                    activityScopedViewModel.launchFilePicker("*/*",object : OnGalleryResult {
-                        override fun onGalleryResult(uris: List<Uri>) {
-                            if (uris.isNotEmpty()) {
-                                viewModel.copyLicenseFile(
-                                    context,
-                                    uris[0]
-                                )
+                    activityScopedViewModel.launchFilePicker("*/*",
+                        object : OnGalleryResult {
+                            override fun onGalleryResult(uris: List<Uri>) {
+                                if (uris.isNotEmpty()) {
+                                    viewModel.copyLicenseFile(
+                                        context,
+                                        uris[0]
+                                    )
+                                }
                             }
-                        }
-                    },
+                        },
                         onPermissionDenied = {
                             viewModel.showWarning(
                                 "Permission Denied",
