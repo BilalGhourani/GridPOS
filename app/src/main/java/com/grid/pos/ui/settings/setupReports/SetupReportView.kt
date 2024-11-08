@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.grid.pos.ActivityScopedViewModel
+import com.grid.pos.R
 import com.grid.pos.interfaces.OnGalleryResult
 import com.grid.pos.model.Country
 import com.grid.pos.model.Event
@@ -50,6 +51,7 @@ import com.grid.pos.model.ReportLanguage
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.SearchableDropdownMenuEx
 import com.grid.pos.ui.common.UIButton
+import com.grid.pos.ui.common.UIImageButton
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.utils.FileUtils
 import com.grid.pos.utils.Utils
@@ -179,16 +181,15 @@ fun SetupReportView(
                         .padding(top = 240.dp)
                         .verticalScroll(rememberScrollState()),
                 ) {
-                    UIButton(
+                    UIImageButton(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .height(70.dp)
-                            .padding(
-                                10.dp
-                            ),
+                            .fillMaxWidth(0.5f)
+                            .height(100.dp)
+                            .padding(10.dp),
+                        icon = R.drawable.add,
                         text = "Add ${activityViewModel.selectedReportType!!}",
-                        buttonColor = SettingsModel.buttonColor,
-                        textColor = SettingsModel.buttonTextColor
+                        iconSize = 60.dp,
+                        isVertical = false
                     ) {
                         addReport(activityViewModel.selectedReportType!!)
                     }
