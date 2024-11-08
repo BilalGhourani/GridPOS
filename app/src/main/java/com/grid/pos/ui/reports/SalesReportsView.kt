@@ -74,6 +74,7 @@ import com.grid.pos.R
 import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.UIButton
+import com.grid.pos.ui.common.UIImageButton
 import com.grid.pos.ui.common.UITextField
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.ui.theme.LightBlue
@@ -330,12 +331,15 @@ fun SalesReportsView(
                     toDateState = to
                 }
 
-                UIButton(
+                UIImageButton(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .height(70.dp)
+                        .wrapContentWidth()
+                        .height(100.dp)
                         .padding(10.dp),
-                    text = "Generate"
+                    icon = R.drawable.add,
+                    text = "Generate",
+                    iconSize = 60.dp,
+                    isVertical = false
                 ) {
                     val from = getDateFromState(
                         fromDatePickerState.selectedDateMillis!!,

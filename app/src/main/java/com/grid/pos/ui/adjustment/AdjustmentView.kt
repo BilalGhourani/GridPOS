@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -71,6 +72,7 @@ import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.SearchableDropdownMenuEx
 import com.grid.pos.ui.common.UIButton
+import com.grid.pos.ui.common.UIImageButton
 import com.grid.pos.ui.common.UITextField
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.ui.theme.LightBlue
@@ -92,7 +94,6 @@ fun AdjustmentView(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
-    val context = LocalContext.current
     val currentTime = Calendar.getInstance()
     currentTime.timeZone = TimeZone.getDefault()
     val initialDate = currentTime.time
@@ -262,12 +263,15 @@ fun AdjustmentView(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
 
-                    UIButton(
+                    UIImageButton(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .height(90.dp)
+                            .wrapContentWidth()
+                            .height(100.dp)
                             .padding(10.dp),
-                        text = "Adjust Remaining Quantity"
+                        icon = R.drawable.adjust_qty_cost,
+                        text = "Adjust Remaining Quantity",
+                        iconSize = 60.dp,
+                        isVertical = false
                     ) {
                         /*if (state.selectedItem == null) {
                             viewModel.showError("select an Item at first!")
@@ -349,16 +353,19 @@ fun AdjustmentView(
                         toDateState = to
                     }
 
-                    UIButton(
+                    UIImageButton(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .height(90.dp)
+                            .wrapContentWidth()
+                            .height(100.dp)
                             .padding(10.dp),
-                        text = "Update Item Cost"
+                        icon = R.drawable.adjust_qty_cost,
+                        text = "Update Item Cost",
+                        iconSize = 60.dp,
+                        isVertical = false
                     ) {
                         if (state.selectedItem == null) {
                             viewModel.showError("select an Item at first!")
-                            return@UIButton
+                            return@UIImageButton
                         }
                         val from = getDateFromState(
                             fromDatePickerState.selectedDateMillis!!,

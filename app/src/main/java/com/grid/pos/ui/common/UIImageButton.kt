@@ -42,7 +42,7 @@ import com.grid.pos.ui.theme.homeLightPurple
 fun UIImageButton(
         modifier: Modifier = Modifier,
         text: String? = null,
-        textColor: Color = SettingsModel.buttonTextColor,
+        textColor: Color = SettingsModel.textColor,
         icon: Int = R.drawable.login,
         iconSize: Dp = 50.dp,
         shape: Shape = RoundedCornerShape(15.dp),
