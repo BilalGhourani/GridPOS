@@ -109,7 +109,7 @@ object Utils {
                     )
                 ),
                 HomeCategoryModel(
-                    title = "License",
+                    title = "Settings",
                     items = listOf(
                         HomeItemModel(
                             R.drawable.license,
@@ -207,22 +207,17 @@ object Utils {
                 )
             ),
             HomeCategoryModel(
-                title = "Backup & Restore",
-                items = listOf(
-                    HomeItemModel(
-                        R.drawable.backup_restore,
-                        "Backup & Restore",
-                        "BackupView"
-                    )
-                )
-            ),
-            HomeCategoryModel(
-                title = "License",
+                title = "Settings",
                 items = listOf(
                     HomeItemModel(
                         R.drawable.license,
                         "License",
                         "LicenseView"
+                    ),
+                    HomeItemModel(
+                        R.drawable.backup_restore,
+                        "Backup & Restore",
+                        "BackupView"
                     )
                 )
             ),
