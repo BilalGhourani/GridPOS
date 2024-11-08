@@ -2,11 +2,13 @@ package com.grid.pos.ui.settings
 
 import android.net.Uri
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -26,6 +28,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
@@ -34,11 +37,13 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.grid.pos.ActivityScopedViewModel
 import com.grid.pos.App
+import com.grid.pos.R
 import com.grid.pos.interfaces.OnGalleryResult
 import com.grid.pos.model.Event
 import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.UIButton
+import com.grid.pos.ui.common.UIImageButton
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.utils.FileUtils
 import kotlinx.coroutines.CoroutineScope
@@ -174,15 +179,18 @@ fun BackupView(
                     .fillMaxSize()
                     .padding(it)
                     .verticalScroll(rememberScrollState()),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
             ) {
-                UIButton(
+                UIImageButton(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .height(70.dp)
+                        .fillMaxWidth(0.5f)
+                        .height(100.dp)
                         .padding(10.dp),
+                    icon = R.drawable.data_backup,
                     text = "Backup",
-                    buttonColor = SettingsModel.buttonColor,
-                    textColor = SettingsModel.buttonTextColor
+                    iconSize = 60.dp,
+                    isVertical = false
                 ) {
                     isLoading = true
                     CoroutineScope(Dispatchers.IO).launch {
@@ -197,14 +205,15 @@ fun BackupView(
                         }
                     }
                 }
-                UIButton(
+                UIImageButton(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .height(70.dp)
+                        .fillMaxWidth(0.5f)
+                        .height(100.dp)
                         .padding(10.dp),
+                    icon = R.drawable.data_recovery,
                     text = "Restore",
-                    buttonColor = SettingsModel.buttonColor,
-                    textColor = SettingsModel.buttonTextColor
+                    iconSize = 60.dp,
+                    isVertical = false
                 ) {
                     popupMessage = Event("Are you sure you want to restore, this will overwrite completely your current db and cannot be restored, continue?")
                     shouldKill = false
