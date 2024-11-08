@@ -927,7 +927,6 @@ fun SettingsView(
                                 .height(70.dp)
                                 .padding(10.dp),
                             text = "Button Color",
-                            buttonColor = buttonColorState,
                             textColor = buttonTextColorState
                         ) {
                             colorPickerType = ColorPickerType.BUTTON_COLOR
@@ -940,7 +939,6 @@ fun SettingsView(
                                 .height(70.dp)
                                 .padding(10.dp),
                             text = "Button Text Color",
-                            buttonColor = buttonColorState,
                             textColor = buttonTextColorState
                         ) {
                             colorPickerType = ColorPickerType.BUTTON_TEXT_COLOR
@@ -953,7 +951,6 @@ fun SettingsView(
                                 .height(70.dp)
                                 .padding(10.dp),
                             text = "Top Bar Color",
-                            buttonColor = buttonColorState,
                             textColor = buttonTextColorState
                         ) {
                             colorPickerType = ColorPickerType.TOP_BAR_COLOR
@@ -966,7 +963,6 @@ fun SettingsView(
                                 .height(70.dp)
                                 .padding(10.dp),
                             text = "Background Color",
-                            buttonColor = buttonColorState,
                             textColor = buttonTextColorState
                         ) {
                             colorPickerType = ColorPickerType.BACKGROUND_COLOR
@@ -979,7 +975,6 @@ fun SettingsView(
                                 .height(70.dp)
                                 .padding(10.dp),
                             text = "Text Color",
-                            buttonColor = buttonColorState,
                             textColor = buttonTextColorState
                         ) {
                             colorPickerType = ColorPickerType.TEXT_COLOR
@@ -1000,7 +995,6 @@ fun SettingsView(
                             .weight(1f)
                             .padding(3.dp),
                         text = "License",
-                        buttonColor = buttonColorState,
                         textColor = buttonTextColorState
                     ) {
                         navController?.navigate("LicenseView")

@@ -59,7 +59,7 @@ fun ItemCell(
     if (itemColor.alpha == 1f) {// for click ripple effect
         itemColor = itemColor.copy(alpha = .8f)
     }
-    val itemTextColor = if (item.itemBtnTextColor.isNullOrEmpty()) SettingsModel.buttonTextColor else {
+    val itemTextColor = if (item.itemBtnTextColor.isNullOrEmpty()) Color.White else {
         Color(item.itemBtnTextColor!!.toColorInt())
     }
     Box(

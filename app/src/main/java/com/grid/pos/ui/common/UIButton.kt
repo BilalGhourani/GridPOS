@@ -1,12 +1,16 @@
 package com.grid.pos.ui.common
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.text.TextStyle
@@ -17,14 +21,15 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.grid.pos.model.SettingsModel
+import com.grid.pos.ui.theme.homeLightBlue
+import com.grid.pos.ui.theme.homeLightGreen
+import com.grid.pos.ui.theme.homeLightPurple
 
 @Composable
 fun UIButton(
         modifier: Modifier = Modifier,
         text: String = "Submit",
         shape: Shape = RoundedCornerShape(15.dp),
-        buttonColor: Color = SettingsModel.buttonColor,
-        disabledButtonColor: Color = Color.Gray,
         textColor: Color = SettingsModel.buttonTextColor,
         textAlign: TextAlign = TextAlign.Center,
         textDecoration: TextDecoration = TextDecoration.None,
@@ -33,13 +38,22 @@ fun UIButton(
         enabled: Boolean = true,
         onClick: () -> Unit = {},
 ) {
-    Button(modifier = modifier,
+    OutlinedButton(modifier = modifier.alpha(if (enabled) 1f else .5f),
         colors = ButtonDefaults.buttonColors(
-            containerColor = buttonColor,
-            disabledContainerColor = disabledButtonColor
+            containerColor = Color.Transparent
         ),
         shape = shape,
         enabled = enabled,
+        border = BorderStroke(
+            0.5.dp,
+            Brush.linearGradient(
+                colors = listOf(
+                    homeLightGreen,
+                    homeLightPurple,
+                    homeLightBlue
+                )
+            )
+        ),
         contentPadding = PaddingValues(0.dp),
         onClick = {
             onClick.invoke()

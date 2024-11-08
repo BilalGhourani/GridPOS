@@ -1,20 +1,29 @@
 package com.grid.pos.ui.family
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
@@ -53,14 +62,31 @@ fun CategoryCell(
                 modifier = Modifier.fillMaxSize()
             )
         }
-        UIButton(
-            modifier = modifier.fillMaxSize(), buttonColor = if (selected) {
-                selectedColor
-            } else {
-                unSelectedColor
-            }, text = family.familyName ?: "N/A"
+        Button(
+            modifier = modifier.fillMaxSize(),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = if (selected) {
+                    selectedColor
+                } else {
+                    unSelectedColor
+                },
+            ),
+            contentPadding = PaddingValues(0.dp),
+            shape = RoundedCornerShape(15.dp),
+            onClick = {
+                onClick.invoke()
+            }
         ) {
-            onClick.invoke()
+            Text(
+                text = family.familyName ?: "N/A",
+                textAlign = TextAlign.Center,
+                style = TextStyle(
+                    textDecoration = TextDecoration.None,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp
+                ),
+                color = Color.White
+            )
         }
 
     }
