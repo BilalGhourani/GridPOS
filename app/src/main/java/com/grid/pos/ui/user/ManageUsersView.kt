@@ -87,9 +87,12 @@ fun ManageUsersView(
     var tableModeState by remember { mutableStateOf(false) }
     var passwordVisibility by remember { mutableStateOf(false) }
 
-  /*  LaunchedEffect(activityScopedViewModel.users) {
-        viewModel.fillCachedUsers(activityScopedViewModel.users)
-    }*/
+    LaunchedEffect(activityScopedViewModel.users) {
+        if (!activityScopedViewModel.isLoggedIn()) {
+            tableModeState = true
+        }
+        // viewModel.fillCachedUsers(activityScopedViewModel.users)
+    }
 
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -126,7 +129,7 @@ fun ManageUsersView(
 
     var saveAndBack by remember { mutableStateOf(false) }
     fun handleBack() {
-        if(state.isLoading){
+        if (state.isLoading) {
             return
         }
         if (state.selectedUser.didChanged(
