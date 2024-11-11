@@ -63,7 +63,7 @@ class InvoiceHeaderRepositoryImpl(
                 } else if (!invoiceHeader.invoiceHeadTaName.isNullOrEmpty()) {
                     if (SettingsModel.isSqlServerWebDb) {
                         if (!isFinished) {
-                            insertTable(
+                            invoiceHeader.invoiceHeadTableId = insertTable(
                                 invoiceHeader.invoiceHeadId,
                                 invoiceHeader.invoiceHeadTaName!!,
                                 if (willPrint) "RTL" else "Busy",
