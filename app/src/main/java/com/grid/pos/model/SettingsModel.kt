@@ -28,7 +28,12 @@ object SettingsModel {
     var isSqlServerWebDb: Boolean = true
 
     var cashPrinter: String? = null
-
+    var defaultSaleInvoice: String = "SI"
+    var defaultReturnSale: String = "RS"
+    var defaultPayment: String? = null
+    var defaultReceipt: String? = null
+    var defaultLocalBranch: String? = null
+    var defaultLocalWarehouse: String? = null
 
     var orientationType: String = ORIENTATION_TYPE.DEVICE_SENSOR.key
     var defaultReportCountry: String = Country.DEFAULT.value
@@ -54,10 +59,10 @@ object SettingsModel {
 
     var companyAccessWarning: String = "You don't have access to this company!"
 
-    var siTransactionType: String = "SI"
-    var rsTransactionType: String = "RS"
-    var defaultBranch: String? = null
-    var defaultWarehouse: String? = null
+    var siTransactionType: String = "null"
+    var rsTransactionType: String = "null"
+    var defaultSqlServerBranch: String? = null
+    var defaultSqlServerWarehouse: String? = null
     var defaultThirdParty: ThirdParty? = null
 
     var posReceiptAccCashId: String? = null
@@ -100,8 +105,23 @@ object SettingsModel {
         }
     }
 
+    fun getSaleInvoiceType(): String {
+        return if (connectionType == CONNECTION_TYPE.SQL_SERVER.key) {
+            siTransactionType
+        } else {
+            defaultSaleInvoice
+        }
+    }
+    fun getReturnSaleType(): String {
+        return if (connectionType == CONNECTION_TYPE.SQL_SERVER.key) {
+            rsTransactionType
+        } else {
+            defaultReturnSale
+        }
+    }
+
     fun getTransactionType(amount: Double): String {
-        return if (amount >= 0) siTransactionType else rsTransactionType
+        return if (amount >= 0) getSaleInvoiceType() else getReturnSaleType()
     }
 
     fun getItemCellWidth(): Dp {

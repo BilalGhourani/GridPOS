@@ -1,11 +1,9 @@
 package com.grid.pos.data.ThirdParty
 
 import com.google.firebase.firestore.FirebaseFirestore
-import com.grid.pos.data.InvoiceHeader.InvoiceHeader
 import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.SettingsModel
-import com.grid.pos.ui.pos.POSUtils
 import com.grid.pos.utils.DateHelper
 import com.grid.pos.utils.Extension.getObjectValue
 import com.grid.pos.utils.Extension.getStringValue
@@ -328,10 +326,10 @@ class ThirdPartyRepositoryImpl(
                 null,//@tp_tp_name
                 SettingsModel.currentUser?.userUsername,//@tp_userstamp
                 thirdParty.thirdPartyName,//@tp_newname
-                SettingsModel.defaultWarehouse,//@tp_wa_name
+                SettingsModel.defaultSqlServerWarehouse,//@tp_wa_name
                 null,//@tp_prj_name
                 null,//@tp_div_name
-                SettingsModel.defaultBranch,//@tp_bra_name
+                SettingsModel.defaultSqlServerBranch,//@tp_bra_name
                 SettingsModel.getCompanyID(),
                 null
             )
@@ -376,10 +374,10 @@ class ThirdPartyRepositoryImpl(
                 null,//@tp_tp_name
                 SettingsModel.currentUser?.userUsername,//@tp_userstamp
                 null,//@tp_displayname
-                SettingsModel.defaultWarehouse,//@tp_wa_name
+                SettingsModel.defaultSqlServerWarehouse,//@tp_wa_name
                 null,//@tp_prj_name
                 null,//@tp_div_name
-                SettingsModel.defaultBranch,//@tp_bra_name
+                SettingsModel.defaultSqlServerBranch,//@tp_bra_name
             )
         }
         return SQLServerWrapper.executeProcedure(
@@ -429,10 +427,10 @@ class ThirdPartyRepositoryImpl(
                 null,//@tp_tp_name
                 SettingsModel.currentUser?.userUsername,//@tp_userstamp
                 thirdParty.thirdPartyName,//@tp_newname
-                SettingsModel.defaultWarehouse,//@tp_wa_name
+                SettingsModel.defaultSqlServerWarehouse,//@tp_wa_name
                 null,//@tp_prj_name
                 null,//@tp_div_name
-                SettingsModel.defaultBranch,//@tp_bra_name
+                SettingsModel.defaultSqlServerBranch,//@tp_bra_name
                 SettingsModel.getCompanyID(),
                 null
             )
@@ -477,10 +475,10 @@ class ThirdPartyRepositoryImpl(
                 null,//@tp_tp_name
                 SettingsModel.currentUser?.userUsername,//@tp_userstamp
                 null,//@tp_displayname
-                SettingsModel.defaultWarehouse,//@tp_wa_name
+                SettingsModel.defaultSqlServerWarehouse,//@tp_wa_name
                 null,//@tp_prj_name
                 null,//@tp_div_name
-                SettingsModel.defaultBranch,//@tp_bra_name
+                SettingsModel.defaultSqlServerBranch,//@tp_bra_name
             )
         }
         return SQLServerWrapper.executeProcedure(

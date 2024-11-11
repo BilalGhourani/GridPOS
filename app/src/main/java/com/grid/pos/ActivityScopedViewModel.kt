@@ -85,8 +85,8 @@ class ActivityScopedViewModel @Inject constructor(
     private suspend fun fetchSettings() {
         SettingsModel.siTransactionType = settingsRepository.getTransactionTypeId("Sale Invoice") ?: "SI"
         SettingsModel.rsTransactionType = settingsRepository.getTransactionTypeId("Return Sale") ?: "RS"
-        SettingsModel.defaultBranch = settingsRepository.getDefaultBranch()
-        SettingsModel.defaultWarehouse = settingsRepository.getDefaultWarehouse()
+        SettingsModel.defaultSqlServerBranch = settingsRepository.getDefaultBranch()
+        SettingsModel.defaultSqlServerWarehouse = settingsRepository.getDefaultWarehouse()
         SettingsModel.defaultThirdParty = thirdPartyRepository.getDefaultThirdParty()
         val currency = SettingsModel.currentCurrency ?: return
 
@@ -411,8 +411,8 @@ class ActivityScopedViewModel @Inject constructor(
         SettingsModel.currentUserId = null
         SettingsModel.currentCompany = null
         SettingsModel.currentCurrency = null
-        SettingsModel.defaultBranch = null
-        SettingsModel.defaultWarehouse = null
+        SettingsModel.defaultSqlServerBranch = null
+        SettingsModel.defaultSqlServerWarehouse = null
         posReceipt = PosReceipt()
         invoiceHeader = InvoiceHeader()
         pendingInvHeadState = null

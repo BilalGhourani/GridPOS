@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -136,6 +135,12 @@ fun SettingsView(
     var defaultReportCountry by remember { mutableStateOf(SettingsModel.defaultReportCountry) }
     var defaultReportLanguage by remember { mutableStateOf(SettingsModel.defaultReportLanguage) }
     var cashPrinterState by remember { mutableStateOf(SettingsModel.cashPrinter ?: "") }
+    var defaultSaleInvoiceState by remember { mutableStateOf(SettingsModel.defaultSaleInvoice) }
+    var defaultReturnSaleState by remember { mutableStateOf(SettingsModel.defaultReturnSale) }
+    var defaultPaymentState by remember { mutableStateOf(SettingsModel.defaultPayment ?: "") }
+    var defaultReceiptState by remember { mutableStateOf(SettingsModel.defaultReceipt ?: "") }
+    var defaultBranchState by remember { mutableStateOf(SettingsModel.defaultLocalBranch ?: "") }
+    var defaultWarehouseState by remember { mutableStateOf(SettingsModel.defaultLocalWarehouse ?: "") }
     var showItemsInPOS by remember { mutableStateOf(SettingsModel.showItemsInPOS) }
     var showTax by remember { mutableStateOf(SettingsModel.showTax) }
     var showTax1 by remember { mutableStateOf(SettingsModel.showTax1) }
@@ -630,14 +635,6 @@ fun SettingsView(
                             label = orientationType.ifEmpty { "Select Type" },
                         ) { type ->
                             orientationType = type.getName()
-                            SettingsModel.orientationType = orientationType
-                            scope.launch(Dispatchers.IO) {
-                                DataStoreManager.putString(
-                                    DataStoreManager.DataStoreKeys.ORIENTATION_TYPE.key,
-                                    orientationType
-                                )
-                                activityScopedViewModel.changeAppOrientation(orientationType)
-                            }
                         }
 
 
@@ -653,13 +650,6 @@ fun SettingsView(
                             }) { country ->
                             country as ReportCountry
                             defaultReportCountry = country.getName()
-                            SettingsModel.defaultReportCountry = defaultReportCountry
-                            scope.launch(Dispatchers.IO) {
-                                DataStoreManager.putString(
-                                    DataStoreManager.DataStoreKeys.REPORT_COUNTRY.key,
-                                    defaultReportCountry
-                                )
-                            }
                         }
 
                         SearchableDropdownMenuEx(
@@ -671,12 +661,117 @@ fun SettingsView(
                         ) { lang ->
                             lang as ReportLanguage
                             defaultReportLanguage = lang.getName()
-                            SettingsModel.defaultReportLanguage = defaultReportLanguage
+                        }
+
+                        UITextField(modifier = Modifier.padding(10.dp),
+                            defaultValue = defaultPaymentState,
+                            label = "Default Payment",
+                            placeHolder = "Enter Default Payment",
+                            focusRequester = sqlServerCmpIdRequester,
+                            imeAction = ImeAction.Next,
+                            onAction = {
+
+                            }) { defPayment ->
+                            defaultPaymentState = defPayment
+                        }
+
+                        UITextField(modifier = Modifier.padding(10.dp),
+                            defaultValue = defaultReceiptState,
+                            label = "Default Receipt",
+                            placeHolder = "Enter Default Receipt",
+                            focusRequester = sqlServerCmpIdRequester,
+                            imeAction = ImeAction.Next,
+                            onAction = {
+
+                            }) { defReceipt ->
+                            defaultReceiptState = defReceipt
+                        }
+
+                        UITextField(modifier = Modifier.padding(10.dp),
+                            defaultValue = defaultBranchState,
+                            label = "Default Branch",
+                            placeHolder = "Enter Default Branch",
+                            focusRequester = sqlServerCmpIdRequester,
+                            imeAction = ImeAction.Next,
+                            onAction = {
+
+                            }) { defBranch ->
+                            defaultBranchState = defBranch
+                        }
+
+                        UITextField(modifier = Modifier.padding(10.dp),
+                            defaultValue = defaultWarehouseState,
+                            label = "Default Warehouse",
+                            placeHolder = "Enter Default Warehouse",
+                            focusRequester = sqlServerCmpIdRequester,
+                            imeAction = ImeAction.Next,
+                            onAction = {
+
+                            }) { defWarehouse ->
+                            defaultWarehouseState = defWarehouse
+                        }
+
+                        UIButton(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(60.dp)
+                                .padding(
+                                    10.dp
+                                )
+                                .align(
+                                    Alignment.CenterHorizontally
+                                ),
+                            text = "Save"
+                        ) {
+                            isLoading = true
+                            keyboardController?.hide()
                             scope.launch(Dispatchers.IO) {
+                                SettingsModel.orientationType = orientationType
+                                DataStoreManager.putString(
+                                    DataStoreManager.DataStoreKeys.ORIENTATION_TYPE.key,
+                                    orientationType
+                                )
+                                activityScopedViewModel.changeAppOrientation(orientationType)
+
+                                SettingsModel.defaultReportCountry = defaultReportCountry
+                                DataStoreManager.putString(
+                                    DataStoreManager.DataStoreKeys.REPORT_COUNTRY.key,
+                                    defaultReportCountry
+                                )
+
+                                SettingsModel.defaultReportLanguage = defaultReportLanguage
                                 DataStoreManager.putString(
                                     DataStoreManager.DataStoreKeys.REPORT_LANGUAGE.key,
                                     defaultReportLanguage
                                 )
+
+                                SettingsModel.defaultPayment = defaultPaymentState
+                                DataStoreManager.putString(
+                                    DataStoreManager.DataStoreKeys.DEFAULT_PAYMENT.key,
+                                    defaultPaymentState
+                                )
+
+                                SettingsModel.defaultReceipt = defaultReceiptState
+                                DataStoreManager.putString(
+                                    DataStoreManager.DataStoreKeys.DEFAULT_RECEIPT.key,
+                                    defaultReceiptState
+                                )
+
+                                SettingsModel.defaultLocalBranch = defaultBranchState
+                                DataStoreManager.putString(
+                                    DataStoreManager.DataStoreKeys.DEFAULT_BRANCH.key,
+                                    defaultBranchState
+                                )
+
+                                SettingsModel.defaultLocalWarehouse = defaultWarehouseState
+                                DataStoreManager.putString(
+                                    DataStoreManager.DataStoreKeys.DEFAULT_WAREHOUSE.key,
+                                    defaultWarehouseState
+                                )
+                                delay(1000L)
+                                withContext(Dispatchers.Main) {
+                                    isLoading = false
+                                }
                             }
                         }
                     }
@@ -738,35 +833,35 @@ fun SettingsView(
                             label = "Cash Printer",
                             placeHolder = "ex. 127.0.0.1:9100",
                             focusRequester = sqlServerCmpIdRequester,
-                            imeAction = ImeAction.Done,
-                            trailingIcon = {
-                                IconButton(onClick = {
-                                    scope.launch(Dispatchers.IO) {
-                                        SettingsModel.cashPrinter = cashPrinterState
-                                        DataStoreManager.putString(
-                                            DataStoreManager.DataStoreKeys.CASH_PRINTER.key,
-                                            cashPrinterState
-                                        )
-                                    }
-                                }) {
-                                    Icon(
-                                        imageVector = Icons.Filled.Save,
-                                        contentDescription = "save printer",
-                                        tint = SettingsModel.buttonColor
-                                    )
-                                }
-                            },
+                            imeAction = ImeAction.Next,
                             onAction = {
-                                scope.launch(Dispatchers.IO) {
-                                    SettingsModel.cashPrinter = cashPrinterState
-                                    DataStoreManager.putString(
-                                        DataStoreManager.DataStoreKeys.CASH_PRINTER.key,
-                                        cashPrinterState
-                                    )
-                                }
-                                keyboardController?.hide()
+
                             }) { cashPrinter ->
                             cashPrinterState = cashPrinter
+                        }
+
+                        UITextField(modifier = Modifier.padding(10.dp),
+                            defaultValue = defaultSaleInvoiceState,
+                            label = "Sale Invoice Type",
+                            placeHolder = "Enter Sale Invoice Type",
+                            focusRequester = sqlServerCmpIdRequester,
+                            imeAction = ImeAction.Next,
+                            onAction = {
+
+                            }) { siType ->
+                            defaultSaleInvoiceState = siType
+                        }
+
+                        UITextField(modifier = Modifier.padding(10.dp),
+                            defaultValue = defaultReturnSaleState,
+                            label = "Return Sale Type",
+                            placeHolder = "Enter Return Sale Type",
+                            focusRequester = sqlServerCmpIdRequester,
+                            imeAction = ImeAction.Next,
+                            onAction = {
+
+                            }) { rsType ->
+                            defaultReturnSaleState = rsType
                         }
 
                         UISwitch(
@@ -779,13 +874,6 @@ fun SettingsView(
                             textColor = textColorState
                         ) { showitems ->
                             showItemsInPOS = showitems
-                            SettingsModel.showItemsInPOS = showItemsInPOS
-                            scope.launch(Dispatchers.IO) {
-                                DataStoreManager.putBoolean(
-                                    DataStoreManager.DataStoreKeys.SHOW_ITEMS_IN_POS.key,
-                                    showItemsInPOS
-                                )
-                            }
                         }
 
                         UISwitch(
@@ -798,13 +886,6 @@ fun SettingsView(
                             textColor = textColorState
                         ) { showTx ->
                             showTax = showTx
-                            SettingsModel.showTax = showTx
-                            scope.launch(Dispatchers.IO) {
-                                DataStoreManager.putBoolean(
-                                    DataStoreManager.DataStoreKeys.SHOW_TAX.key,
-                                    showTx
-                                )
-                            }
                         }
 
                         UISwitch(
@@ -817,13 +898,6 @@ fun SettingsView(
                             textColor = textColorState
                         ) { showTx1 ->
                             showTax1 = showTx1
-                            SettingsModel.showTax1 = showTx1
-                            scope.launch(Dispatchers.IO) {
-                                DataStoreManager.putBoolean(
-                                    DataStoreManager.DataStoreKeys.SHOW_TAX1.key,
-                                    showTx1
-                                )
-                            }
                         }
 
                         UISwitch(
@@ -836,13 +910,6 @@ fun SettingsView(
                             textColor = textColorState
                         ) { showTx2 ->
                             showTax2 = showTx2
-                            SettingsModel.showTax2 = showTx2
-                            scope.launch(Dispatchers.IO) {
-                                DataStoreManager.putBoolean(
-                                    DataStoreManager.DataStoreKeys.SHOW_TAX2.key,
-                                    showTx2
-                                )
-                            }
                         }
 
                         UISwitch(
@@ -855,13 +922,6 @@ fun SettingsView(
                             textColor = textColorState
                         ) { showPrice ->
                             showPriceInItemBtn = showPrice
-                            SettingsModel.showPriceInItemBtn = showPrice
-                            scope.launch(Dispatchers.IO) {
-                                DataStoreManager.putBoolean(
-                                    DataStoreManager.DataStoreKeys.SHOW_PRICE_IN_ITEM_BTN.key,
-                                    showPrice
-                                )
-                            }
                         }
 
                         UISwitch(
@@ -874,13 +934,6 @@ fun SettingsView(
                             textColor = textColorState
                         ) { autoPrint ->
                             autoPrintTickets = autoPrint
-                            SettingsModel.autoPrintTickets = autoPrint
-                            scope.launch(Dispatchers.IO) {
-                                DataStoreManager.putBoolean(
-                                    DataStoreManager.DataStoreKeys.AUTO_PRINT_TICKETS.key,
-                                    autoPrintTickets
-                                )
-                            }
                         }
 
                         UISwitch(
@@ -893,13 +946,6 @@ fun SettingsView(
                             textColor = textColorState
                         ) { showAlert ->
                             showItemQtyAlert = showAlert
-                            SettingsModel.showItemQtyAlert = showAlert
-                            scope.launch(Dispatchers.IO) {
-                                DataStoreManager.putBoolean(
-                                    DataStoreManager.DataStoreKeys.SHOW_ITEM_QTY_ALERT.key,
-                                    showItemQtyAlert
-                                )
-                            }
                         }
 
                         UISwitch(
@@ -912,18 +958,92 @@ fun SettingsView(
                             textColor = textColorState
                         ) { allow ->
                             allowOutOfStockSale = allow
-                            SettingsModel.allowOutOfStockSale = allowOutOfStockSale
-                            SettingsModel.showItemQtyAlert = allow
+                        }
+
+                        UIButton(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(60.dp)
+                                .padding(
+                                    10.dp
+                                )
+                                .align(
+                                    Alignment.CenterHorizontally
+                                ),
+                            text = "Save"
+                        ) {
+                            isLoading = true
+                            keyboardController?.hide()
                             scope.launch(Dispatchers.IO) {
+                                SettingsModel.cashPrinter = cashPrinterState
+                                DataStoreManager.putString(
+                                    DataStoreManager.DataStoreKeys.CASH_PRINTER.key,
+                                    cashPrinterState
+                                )
+
+                                SettingsModel.defaultSaleInvoice = defaultSaleInvoiceState
+                                DataStoreManager.putString(
+                                    DataStoreManager.DataStoreKeys.DEFAULT_SALE_INVOICE.key,
+                                    defaultSaleInvoiceState
+                                )
+
+                                SettingsModel.defaultReturnSale = defaultReturnSaleState
+                                DataStoreManager.putString(
+                                    DataStoreManager.DataStoreKeys.DEFAULT_RETURN_SALE.key,
+                                    defaultReturnSaleState
+                                )
+
+                                SettingsModel.showItemsInPOS = showItemsInPOS
+                                DataStoreManager.putBoolean(
+                                    DataStoreManager.DataStoreKeys.SHOW_ITEMS_IN_POS.key,
+                                    showItemsInPOS
+                                )
+
+                                SettingsModel.showTax = showTax
+                                DataStoreManager.putBoolean(
+                                    DataStoreManager.DataStoreKeys.SHOW_TAX.key,
+                                    showTax
+                                )
+
+                                SettingsModel.showTax1 = showTax1
+                                DataStoreManager.putBoolean(
+                                    DataStoreManager.DataStoreKeys.SHOW_TAX1.key,
+                                    showTax1
+                                )
+
+                                SettingsModel.showTax2 = showTax2
+                                DataStoreManager.putBoolean(
+                                    DataStoreManager.DataStoreKeys.SHOW_TAX2.key,
+                                    showTax2
+                                )
+
+                                SettingsModel.showPriceInItemBtn = showPriceInItemBtn
+                                DataStoreManager.putBoolean(
+                                    DataStoreManager.DataStoreKeys.SHOW_PRICE_IN_ITEM_BTN.key,
+                                    showPriceInItemBtn
+                                )
+
+                                SettingsModel.autoPrintTickets = autoPrintTickets
+                                DataStoreManager.putBoolean(
+                                    DataStoreManager.DataStoreKeys.AUTO_PRINT_TICKETS.key,
+                                    autoPrintTickets
+                                )
+
+                                SettingsModel.showItemQtyAlert = showItemQtyAlert || allowOutOfStockSale
+                                DataStoreManager.putBoolean(
+                                    DataStoreManager.DataStoreKeys.SHOW_ITEM_QTY_ALERT.key,
+                                    showItemQtyAlert || allowOutOfStockSale
+                                )
+
+                                SettingsModel.allowOutOfStockSale = allowOutOfStockSale
                                 DataStoreManager.putBoolean(
                                     DataStoreManager.DataStoreKeys.ALLOW_OUT_OF_STOCK_SALE.key,
                                     allowOutOfStockSale
                                 )
-                                scope.launch(Dispatchers.IO) {
-                                    DataStoreManager.putBoolean(
-                                        DataStoreManager.DataStoreKeys.SHOW_ITEM_QTY_ALERT.key,
-                                        showItemQtyAlert
-                                    )
+
+                                delay(1000L)
+                                withContext(Dispatchers.Main) {
+                                    isLoading = false
                                 }
                             }
                         }

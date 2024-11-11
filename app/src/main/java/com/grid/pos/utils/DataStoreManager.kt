@@ -296,6 +296,30 @@ object DataStoreManager {
             DataStoreKeys.CASH_PRINTER.key,
             ""
         )
+        SettingsModel.defaultSaleInvoice = getString(
+            DataStoreKeys.DEFAULT_SALE_INVOICE.key,
+            "SI"
+        )
+        SettingsModel.defaultReturnSale = getString(
+            DataStoreKeys.DEFAULT_RETURN_SALE.key,
+            "RS"
+        )
+        SettingsModel.defaultPayment = getString(
+            DataStoreKeys.DEFAULT_PAYMENT.key,
+            ""
+        )
+        SettingsModel.defaultReceipt = getString(
+            DataStoreKeys.DEFAULT_RECEIPT.key,
+            ""
+        )
+        SettingsModel.defaultLocalBranch = getString(
+            DataStoreKeys.DEFAULT_BRANCH.key,
+            ""
+        )
+        SettingsModel.defaultLocalWarehouse = getString(
+            DataStoreKeys.DEFAULT_WAREHOUSE.key,
+            ""
+        )
     }
 
     enum class DataStoreKeys(val key: String) {
@@ -311,7 +335,10 @@ object DataStoreManager {
 
         SQL_SERVER_PATH("SQL_SERVER_PATH"), SQL_SERVER_NAME("SQL_SERVER_NAME"),SQL_SERVER_DB_NAME("SQL_SERVER_DB_NAME"),
         SQL_SERVER_DB_USER("SQL_SERVER_DB_USER"), SQL_SERVER_DB_PASSWORD("SQL_SERVER_DB_PASSWORD"), SQL_SERVER_COMPANY_ID("SQL_SERVER_COMPANY_ID"), IS_SQL_SERVER_WEB_DB("IS_SQL_SERVER_WEB_DB"),
-        CASH_PRINTER("CASH_PRINTER"),
+
+
+        CASH_PRINTER("CASH_PRINTER"),DEFAULT_SALE_INVOICE("DEFAULT_SSALE_INVOICE"),DEFAULT_RETURN_SALE("DEFAULT_RETURN_SALE"),
+        DEFAULT_BRANCH("DEFAULT_BRANCH"),DEFAULT_WAREHOUSE("DEFAULT_WAREHOUSE"),DEFAULT_PAYMENT("DEFAULT_PAYMENT"),DEFAULT_RECEIPT("DEFAULT_RECEIPT"),
 
         CONNECTION_TYPE("CONNECTION_TYPE"), SHOW_ITEMS_IN_POS("SHOW_ITEMS_IN_POS"), ORIENTATION_TYPE("ORIENTATION_TYPE"),REPORT_LANGUAGE("REPORT_LANGUAGE"),REPORT_COUNTRY("REPORT_COUNTRY"), SHOW_TAX("SHOW_TAX"), SHOW_TAX1(
             "SHOW_TAX1"

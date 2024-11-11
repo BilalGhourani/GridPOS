@@ -2,15 +2,12 @@ package com.grid.pos.data.Invoice
 
 import com.google.firebase.firestore.Filter
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.core.FieldFilter
-import com.grid.pos.data.InvoiceHeader.InvoiceHeader
 import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.DateHelper
 import kotlinx.coroutines.tasks.await
 import java.sql.ResultSet
-import java.sql.Timestamp
 import java.util.Date
 
 class InvoiceRepositoryImpl(
@@ -394,7 +391,7 @@ class InvoiceRepositoryImpl(
             invoice.getDiscount(),
             invoice.getDiscountAmount(),
             invoice.getVat(),
-            SettingsModel.defaultWarehouse,
+            SettingsModel.defaultSqlServerWarehouse,
             invoice.invoiceNote,
             null,//fromin_id
             SettingsModel.currentUser?.userUsername,//in_userstamp
@@ -431,7 +428,7 @@ class InvoiceRepositoryImpl(
                 invoice.getDiscount(),
                 invoice.getDiscountAmount(),
                 invoice.getVat(),
-                SettingsModel.defaultWarehouse,
+                SettingsModel.defaultSqlServerWarehouse,
                 invoice.invoiceNote,
                 null,//fromin_id
                 SettingsModel.currentUser?.userUsername,//in_userstamp
@@ -461,7 +458,7 @@ class InvoiceRepositoryImpl(
                 invoice.getDiscount(),
                 invoice.getDiscountAmount(),
                 invoice.getVat(),
-                SettingsModel.defaultWarehouse,
+                SettingsModel.defaultSqlServerWarehouse,
                 invoice.invoiceNote,
                 null,//fromin_id
                 SettingsModel.currentUser?.userUsername,//in_userstamp
