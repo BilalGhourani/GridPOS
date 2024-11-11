@@ -18,4 +18,6 @@ object Constants {
     const val LICENSE_ACCESS_DENIED = -4
 
     const val SQL_USER_POS_MODE = true
+
+    const val SHOW_ALL_SCREENS_FOR_SQL_SERVER = false
 }

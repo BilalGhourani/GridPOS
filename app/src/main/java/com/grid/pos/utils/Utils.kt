@@ -55,7 +55,7 @@ object Utils {
     var isDeviceLargerThan7Inches: Boolean? = null;
 
     fun getColumnCount(context: Context): Int {
-        return if (SettingsModel.isConnectedToSqlServer()) {
+        return if (!Constants.SHOW_ALL_SCREENS_FOR_SQL_SERVER && SettingsModel.isConnectedToSqlServer()) {
             2
         } else if (context.resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT) {
             3
@@ -76,7 +76,7 @@ object Utils {
     }
 
     fun getHomeList(): List<HomeCategoryModel> {
-        if (!BuildConfig.DEBUG && SettingsModel.isConnectedToSqlServer()) {
+        if (!Constants.SHOW_ALL_SCREENS_FOR_SQL_SERVER && SettingsModel.isConnectedToSqlServer()) {
             return listOf(
                 HomeCategoryModel(
                     title = "Administration",
