@@ -507,7 +507,7 @@ class InvoiceHeaderRepositoryImpl(
                 val tables: MutableList<TableModel> = mutableListOf()
                 if (SettingsModel.isSqlServerWebDb) {
                     try {
-                        val where = "ta_cmp_id='${SettingsModel.getCompanyID()}' AND ta_hiid IS NOT NULL AND ta_hiid <> ''"
+                        val where = "ta_cmp_id='${SettingsModel.getCompanyID()}' AND ta_hiid IS NOT NULL"
                         val dbResult = SQLServerWrapper.getListOf(
                             "pos_table",
                             "",
@@ -534,7 +534,7 @@ class InvoiceHeaderRepositoryImpl(
                     }
                 } else {
                     try {
-                        val where = " ta_hiid IS NOT NULL AND ta_hiid <> ''"
+                        val where = " ta_hiid IS NOT NULL"
                         val dbResult = SQLServerWrapper.getListOf(
                             "pos_table",
                             "",
@@ -1235,26 +1235,49 @@ class InvoiceHeaderRepositoryImpl(
             tableStatus: String?,
             locked: Int,
     ) {
-        SQLServerWrapper.update(
-            "pos_table",
-            listOf(
-                "ta_status",
-                "ta_hiid",
-                "ta_locked",
-                "ta_station",
-                "ta_timestamp",
-                "ta_userstamp"
-            ),
-            listOf(
-                tableStatus,
-                invoiceHeaderId,
-                locked,
-                Utils.getDeviceID(App.getInstance()),
-                Timestamp(System.currentTimeMillis()),
-                SettingsModel.currentUser?.userUsername
-            ),
-            "ta_name = '$tableId'"
-        )/*val parameters = if (SettingsModel.isSqlServerWebDb) {
+        if(SettingsModel.isSqlServerWebDb) {
+            SQLServerWrapper.update(
+                "pos_table",
+                listOf(
+                    "ta_status",
+                    "ta_hiid",
+                    "ta_locked",
+                    "ta_timestamp",
+                    "ta_userstamp"
+                ),
+                listOf(
+                    tableStatus,
+                    invoiceHeaderId,
+                    locked,
+                    Timestamp(System.currentTimeMillis()),
+                    SettingsModel.currentUser?.userUsername
+                ),
+                "ta_name = '$tableId'"
+            )
+        }else{
+            SQLServerWrapper.update(
+                "pos_table",
+                listOf(
+                    "ta_status",
+                    "ta_hiid",
+                    "ta_locked",
+                    "ta_station",
+                    "ta_timestamp",
+                    "ta_userstamp"
+                ),
+                listOf(
+                    tableStatus,
+                    invoiceHeaderId,
+                    locked,
+                    Utils.getDeviceID(App.getInstance()),
+                    Timestamp(System.currentTimeMillis()),
+                    SettingsModel.currentUser?.userUsername
+                ),
+                "ta_name = '$tableId'"
+            )
+        }
+
+            /*val parameters = if (SettingsModel.isSqlServerWebDb) {
             listOf(
                 tableId,
                 null,//ta_ps_section
@@ -1298,60 +1321,41 @@ class InvoiceHeaderRepositoryImpl(
             tableStatus: String?,
             locked: Int,
     ) {
-        SQLServerWrapper.update(
-            "pos_table",
-            listOf(
-                "ta_status",
-                "ta_locked",
-                "ta_station",
-                "ta_timestamp",
-                "ta_userstamp"
-            ),
-            listOf(
-                tableStatus,
-                locked,
-                Utils.getDeviceID(App.getInstance()),
-                Timestamp(System.currentTimeMillis()),
-                SettingsModel.currentUser?.userUsername
-            ),
-            "ta_name = '$tableId'"
-        )/*val parameters = if (SettingsModel.isSqlServerWebDb) {
-            listOf(
-                tableId,
-                null,//ta_ps_section
-                "temp",//type
-                0,//ta_x1
-                0,//ta_y1
-                1,//ta_x2
-                1,//ta_y2
-                invoiceHeaderId,//ta_hiid
-                tableStatus,//ta_status
-                tableName,//ta_newname
-                SettingsModel.currentUser?.userGrpDesc,//ta_grp_desc
-                locked,//ta_locked
-                Timestamp(System.currentTimeMillis()),//ta_timestamp
-                SettingsModel.currentUser?.userUsername,//ta_userstamp
-                null,//ta_rotationangle
-            )
-        } else {
-            listOf(
-                tableName,//ta_name
-                tableName,//ta_name
-                null,//ta_ps_section
-                "table",//type
-                0,//ta_x1
-                0,//ta_y1
-                0,//ta_x2
-                0,//ta_y2
-                invoiceHeaderId,//ta_hiid
-                tableStatus,//ta_status
-                locked,//ta_locked
-            )
+        if(SettingsModel.isSqlServerWebDb){
+            SQLServerWrapper.update(
+                "pos_table",
+                listOf(
+                    "ta_status",
+                    "ta_locked",
+                    "ta_timestamp",
+                    "ta_userstamp"
+                ),
+                listOf(
+                    tableStatus,
+                    locked,
+                    Timestamp(System.currentTimeMillis()),
+                    SettingsModel.currentUser?.userUsername
+                ),
+                "ta_name = '$tableId'")
+        }else{
+            SQLServerWrapper.update(
+                "pos_table",
+                listOf(
+                    "ta_status",
+                    "ta_locked",
+                    "ta_station",
+                    "ta_timestamp",
+                    "ta_userstamp"
+                ),
+                listOf(
+                    tableStatus,
+                    locked,
+                    Utils.getDeviceID(App.getInstance()),
+                    Timestamp(System.currentTimeMillis()),
+                    SettingsModel.currentUser?.userUsername
+                ),
+                "ta_name = '$tableId'")
         }
-         SQLServerWrapper.executeProcedure(
-            "updpos_table",
-            parameters
-        ) */
     }
 
     private fun deleteTable(
