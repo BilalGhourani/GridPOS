@@ -49,6 +49,8 @@ class ActivityScopedViewModel @Inject constructor(
     private val _mainActivityEvent = Channel<ActivityScopedUIEvent>()
     val mainActivityEvent = _mainActivityEvent.receiveAsFlow()
 
+    var isRegistering: Boolean = false
+
     var posReceipt: PosReceipt = PosReceipt()
     var invoiceHeader: InvoiceHeader = InvoiceHeader()
     var pendingInvHeadState: InvoiceHeader? = null
