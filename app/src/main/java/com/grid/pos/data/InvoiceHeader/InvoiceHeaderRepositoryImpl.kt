@@ -40,6 +40,7 @@ class InvoiceHeaderRepositoryImpl(
             }
 
             else -> {
+                invoiceHeader.invoiceHeadId = insertByProcedure(invoiceHeader)
                 if (!invoiceHeader.invoiceHeadTableId.isNullOrEmpty()) {
                     if (SettingsModel.isSqlServerWebDb) {
                         if (isFinished && invoiceHeader.invoiceHeadTableType?.equals("temp") == true) {
@@ -49,7 +50,7 @@ class InvoiceHeaderRepositoryImpl(
                                 if (isFinished) null else invoiceHeader.invoiceHeadId,
                                 invoiceHeader.invoiceHeadTableId!!,
                                 if (isFinished) "Free" else if (willPrint) "RTL" else "Busy",
-                                if (isFinished) 0 else 1
+                                0
                             )
                         }
                     } else {
@@ -57,10 +58,10 @@ class InvoiceHeaderRepositoryImpl(
                             if (isFinished) null else invoiceHeader.invoiceHeadId,
                             invoiceHeader.invoiceHeadTableId!!,
                             if (isFinished) null else if (willPrint) "RTL" else null,
-                            if (isFinished) 0 else 1
+                            0
                         )
                     }
-                } else if (!invoiceHeader.invoiceHeadTaName.isNullOrEmpty()) {
+                } /*else if (!invoiceHeader.invoiceHeadTaName.isNullOrEmpty()) {
                     if (SettingsModel.isSqlServerWebDb) {
                         if (!isFinished) {
                             invoiceHeader.invoiceHeadTableId = insertTable(
@@ -78,8 +79,7 @@ class InvoiceHeaderRepositoryImpl(
                             if (isFinished) 0 else 1
                         )
                     }
-                }
-                invoiceHeader.invoiceHeadId = insertByProcedure(invoiceHeader)
+                }*/
             }
         }
         return invoiceHeader
@@ -151,6 +151,7 @@ class InvoiceHeaderRepositoryImpl(
             }
 
             else -> {
+                updateByProcedure(invoiceHeader)
                 if (!invoiceHeader.invoiceHeadTableId.isNullOrEmpty()) {
                     if (isFinished && invoiceHeader.invoiceHeadTableType?.equals("temp") == true) {
                         deleteTable(invoiceHeader.invoiceHeadTableId!!)
@@ -160,20 +161,19 @@ class InvoiceHeaderRepositoryImpl(
                                 if (isFinished) null else invoiceHeader.invoiceHeadId,
                                 invoiceHeader.invoiceHeadTableId!!,
                                 if (isFinished) "Free" else if (willPrint) "RTL" else "Busy",
-                                if (isFinished) 0 else 1
+                                0
                             )
                         } else {
                             updateTable(
                                 if (isFinished) null else invoiceHeader.invoiceHeadId,
                                 invoiceHeader.invoiceHeadTableId!!,
                                 if (isFinished) null else if (willPrint) "RTL" else null,
-                                if (isFinished) 0 else 1
+                                0
                             )
                         }
 
                     }
                 }
-                updateByProcedure(invoiceHeader)
             }
         }
     }
