@@ -608,13 +608,14 @@ class InvoiceHeaderRepositoryImpl(
     }
 
     override suspend fun unLockTable(
+            invoiceId: String,
             tableId: String,
             tableType: String?
     ) {
         if (SettingsModel.isConnectedToSqlServer()) {
             if (tableId.isNotEmpty()) {
                 if (SettingsModel.isSqlServerWebDb) {
-                    if (tableType?.equals("temp") == true) {
+                    if (invoiceId.isEmpty() && tableType?.equals("temp") == true) {
                         deleteTable(tableId)
                     } else {
                         updateTableLock(

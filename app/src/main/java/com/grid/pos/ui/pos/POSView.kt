@@ -295,6 +295,7 @@ fun POSView(
         } else {
             if (!invoiceHeaderState.value.invoiceHeadTableId.isNullOrEmpty()) {
                 viewModel.unLockTable(
+                    invoiceHeaderState.value.invoiceHeadId,
                     invoiceHeaderState.value.invoiceHeadTableId!!,
                     invoiceHeaderState.value.invoiceHeadTableType
                 )
@@ -320,6 +321,7 @@ fun POSView(
                     if(popupState == PopupState.DISCARD_INVOICE){
                         if (!invoiceHeaderState.value.invoiceHeadTableId.isNullOrEmpty()) {
                             viewModel.unLockTable(
+                                invoiceHeaderState.value.invoiceHeadId,
                                 invoiceHeaderState.value.invoiceHeadTableId!!,
                                 invoiceHeaderState.value.invoiceHeadTableType
                             )

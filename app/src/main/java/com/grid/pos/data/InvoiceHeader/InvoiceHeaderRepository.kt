@@ -41,6 +41,7 @@ interface InvoiceHeaderRepository {
     ): String?
 
     suspend fun unLockTable(
+            invoiceId: String,
             tableId: String,
             tableType: String?
     )
