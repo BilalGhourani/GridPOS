@@ -314,7 +314,7 @@ class InvoiceHeaderRepositoryImpl(
                         "hi_orderno",
                         null
                     ).orderBy(
-                        "hi_orderno",
+                        "hi_timestamp",
                         Query.Direction.DESCENDING
                     ).limit(1).get().await()
                 val document = querySnapshot.firstOrNull()

@@ -45,9 +45,9 @@ object POSUtils {
             serialNo = "0"
         }
         val serialInt = (serialNo.toIntOrNull() ?: 1) + 1
-        if (serialInt < 10) {
+       /* if (serialInt < 10) {
             return "$invYearStr-0${serialInt}"
-        }
+        }*/
         return "$invYearStr-${serialInt}"
     }
 
