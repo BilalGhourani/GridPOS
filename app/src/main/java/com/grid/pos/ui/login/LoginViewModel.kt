@@ -43,6 +43,7 @@ class LoginViewModel @Inject constructor(
     ) {
         usersState.value = usersState.value.copy(
             isLoading = true,
+            needRegistration = false,
             warning = null,
             warningAction = null
         )
@@ -82,7 +83,8 @@ class LoginViewModel @Inject constructor(
             usersState.value = usersState.value.copy(
                 warning = Event("Please fill all inputs"),
                 isLoading = false,
-                warningAction = ""
+                needRegistration = false,
+                warningAction = null
             )
             return
         }
@@ -99,14 +101,17 @@ class LoginViewModel @Inject constructor(
                 usersState.value = usersState.value.copy(
                     warning = Event(SettingsModel.companyAccessWarning),
                     isLoading = false,
-                    warningAction = ""
+                    needRegistration = false,
+                    warningAction = null
                 )
             }
             return
         }
         usersState.value = usersState.value.copy(
             isLoading = true,
-            warningAction = ""
+            needRegistration = false,
+            warning = null,
+            warningAction = null
         )
         viewModelScope.launch(Dispatchers.IO) {
             val loginResponse: LoginResponse = repository.getUserByCredentials(
@@ -123,6 +128,7 @@ class LoginViewModel @Inject constructor(
                 viewModelScope.launch(Dispatchers.Main) {
                     usersState.value = usersState.value.copy(
                         selectedUser = it,
+                        needRegistration = false,
                         isLoggedIn = true
                     )
                 }
@@ -132,30 +138,34 @@ class LoginViewModel @Inject constructor(
                         usersState.value = usersState.value.copy(
                             warning = Event(loginResponse.error),
                             isLoading = false,
+                            needRegistration = false,
                             warningAction = "Settings"
                         )
                     }
                 } else if (loginResponse.allUsersSize == 0) {
-                    if (SettingsModel.isConnectedToSqlite()) {
+                    if (SettingsModel.isConnectedToSqlite() || SettingsModel.isConnectedToFireStore()) {
                         val companies = companyRepository.getAllCompanies()
                         withContext(Dispatchers.Main) {
                             if (companies.isEmpty()) {
                                 usersState.value = usersState.value.copy(
-                                    warning = Event("no company found!"),
+                                    warning = Event("No companies found!, do you want to register?"),
                                     isLoading = false,
-                                    warningAction = "Create a Company"
+                                    needRegistration = true,
+                                    warningAction = "Register"
                                 )
                             } else if (SettingsModel.localCompanyID.isNullOrEmpty()) {
                                 usersState.value = usersState.value.copy(
-                                    warning = Event("select a company to proceed!"),
+                                    warning = Event("select your current company to proceed!"),
                                     isLoading = false,
+                                    needRegistration = true,
                                     warningAction = "Settings"
                                 )
                             } else {
                                 usersState.value = usersState.value.copy(
                                     isLoading = false,
-                                    warning = Event("no user found!"),
-                                    warningAction = "Register"
+                                    needRegistration = true,
+                                    warning = Event("No users found!, do you want to create a user?"),
+                                    warningAction = "Create"
                                 )
                             }
                         }
@@ -163,8 +173,8 @@ class LoginViewModel @Inject constructor(
                         viewModelScope.launch(Dispatchers.Main) {
                             usersState.value = usersState.value.copy(
                                 isLoading = false,
-                                warning = Event("no user found!"),
-                                warningAction = ""
+                                warning = Event("No users found!"),
+                                warningAction = null
                             )
                         }
                     }
@@ -173,7 +183,7 @@ class LoginViewModel @Inject constructor(
                         usersState.value = usersState.value.copy(
                             isLoading = false,
                             warning = Event("Username or Password are incorrect!"),
-                            warningAction = ""
+                            warningAction = null
                         )
                     }
                 }

@@ -121,7 +121,6 @@ fun ReportsListView(
                 dialogText = "Are you sure you want to delete this file?"
                 positiveBtnText = "Delete"
                 negativeBtnText = "Close"
-                height = 130.dp
             })
     }
 

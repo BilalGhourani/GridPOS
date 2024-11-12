@@ -9,4 +9,5 @@ data class ManageUsersState(
         val isLoading: Boolean = false,
         var clear: Boolean = false,
         val warning: Event<String>? = null,
+        val action: String? = null,
 )

@@ -114,12 +114,11 @@ fun ManageCompaniesView(
 
     var oldImage: String? = null
 
-    LaunchedEffect(
-        /*activityScopedViewModel.companies,*/
+    LaunchedEffect(/*activityScopedViewModel.companies,*/
         activityScopedViewModel.currencies
     ) {
         viewModel.fillCachedCompanies(
-           state.companies /*activityScopedViewModel.companies*/,
+            state.companies /*activityScopedViewModel.companies*/,
             activityScopedViewModel.currencies
         )
     }
@@ -129,14 +128,35 @@ fun ManageCompaniesView(
     LaunchedEffect(state.warning) {
         state.warning?.value?.let { message ->
             scope.launch {
-                val snackBarResult = snackbarHostState.showSnackbar(
-                    message = message,
-                    duration = SnackbarDuration.Short,
-                )
-                when (snackBarResult) {
-                    SnackbarResult.Dismissed -> {}
-                    SnackbarResult.ActionPerformed -> when (state.actionLabel) {
-                        "Settings" -> activityScopedViewModel.openAppStorageSettings()
+                if (state.actionLabel == "next" && activityScopedViewModel.isRegistering) {
+                    activityScopedViewModel.showPopup(
+                        true,
+                        PopupModel(
+                            onDismissRequest = {
+                                activityScopedViewModel.isRegistering = false
+                                navController?.navigateUp()
+                            },
+                            onConfirmation = {
+                                navController?.navigateUp()
+                                navController?.navigate("ManageUsersView")
+                            },
+                            dialogText = message,
+                            positiveBtnText = "Continue",
+                            negativeBtnText = "Close",
+                            cancelable = false
+                        )
+                    )
+                } else {
+                    val snackBarResult = snackbarHostState.showSnackbar(
+                        message = message,
+                        duration = SnackbarDuration.Short,
+                        actionLabel = state.actionLabel
+                    )
+                    when (snackBarResult) {
+                        SnackbarResult.Dismissed -> {}
+                        SnackbarResult.ActionPerformed -> when (state.actionLabel) {
+                            "Settings" -> activityScopedViewModel.openAppStorageSettings()
+                        }
                     }
                 }
             }
@@ -156,7 +176,10 @@ fun ManageCompaniesView(
         }
         val firstCurr = state.currencies.firstOrNull()
         state.selectedCompany.companyCurCodeTax = firstCurr?.currencyId
-        viewModel.saveCompany(state.selectedCompany)
+        viewModel.saveCompany(
+            state.selectedCompany,
+            activityScopedViewModel.isRegistering
+        )
     }
 
     fun clear() {
@@ -181,7 +204,7 @@ fun ManageCompaniesView(
 
     var saveAndBack by remember { mutableStateOf(false) }
     fun handleBack() {
-        if(state.isLoading){
+        if (state.isLoading) {
             return
         }
         if (state.selectedCompany.didChanged(
@@ -203,7 +226,6 @@ fun ManageCompaniesView(
                     positiveBtnText = "Save"
                     negativeBtnText = "Close"
                     icon = null
-                    height = 100.dp
                 })
             return
         }

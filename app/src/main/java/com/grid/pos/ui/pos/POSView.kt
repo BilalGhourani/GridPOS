@@ -374,7 +374,6 @@ fun POSView(
                     else -> "Discard"
                 }
                 negativeBtnText = "Cancel"
-                height = 150.dp
             })
     }
     BackHandler {

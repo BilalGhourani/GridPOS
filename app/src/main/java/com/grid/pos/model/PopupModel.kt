@@ -12,5 +12,5 @@ data class PopupModel(
         var positiveBtnText: String = "OK",
         var negativeBtnText: String? = "CANCEL",
         var icon: ImageVector? = null,
-        var height: Dp = 200.dp
+        var cancelable: Boolean = true
 )

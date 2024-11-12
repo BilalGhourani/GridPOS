@@ -202,7 +202,6 @@ fun AdjustmentView(
                 dialogText = "Are you sure you want to close?"
                 positiveBtnText = "Cancel"
                 negativeBtnText = "Close"
-                height = 130.dp
             })
     }
 

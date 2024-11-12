@@ -122,7 +122,6 @@ fun HomeView(
                     logout()
                 }
                 dialogText = activityState.warning?.value ?: SettingsModel.companyAccessWarning
-                height = 100.dp
             })
     }
     fun askToLogout() {

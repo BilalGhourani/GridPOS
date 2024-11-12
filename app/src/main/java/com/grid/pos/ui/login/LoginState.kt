@@ -8,6 +8,7 @@ data class LoginState(
         var needLicense: Boolean = false,
         val isLoggedIn: Boolean = false,
         var isLoading: Boolean = false,
+        var needRegistration: Boolean = false,
         var warning: Event<String>? = null,
-        val warningAction: String? = null,
+        var warningAction: String? = null,
 )

@@ -175,7 +175,6 @@ fun TablesView(
                 dialogText = "Are you sure you want to logout?"
                 positiveBtnText = "Logout"
                 negativeBtnText = "Cancel"
-                height = 100.dp
             })
     }
 

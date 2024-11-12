@@ -54,6 +54,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.grid.pos.ActivityScopedViewModel
 import com.grid.pos.R
+import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.UIImageButton
 import com.grid.pos.ui.common.UITextField
@@ -91,18 +92,55 @@ fun LoginView(
     LaunchedEffect(state.warning) {
         state.warning?.value?.let { message ->
             scope.launch {
-                val snackbarResult = snackbarHostState.showSnackbar(
-                    message = message,
-                    duration = SnackbarDuration.Short,
-                    actionLabel = state.warningAction
-                )
-                state.warning = null
-                when (snackbarResult) {
-                    SnackbarResult.Dismissed -> {}
-                    SnackbarResult.ActionPerformed -> when (state.warningAction) {
-                        "Register" -> navController?.navigate("ManageUsersView")
-                        "Create a Company" -> navController?.navigate("ManageCompaniesView")
-                        "Settings" -> navController?.navigate("SettingsView")
+                if (state.needRegistration) {
+                    activityScopedViewModel.isRegistering = true
+                    activityScopedViewModel.showPopup(
+                        true,
+                        PopupModel(
+                            onConfirmation = {
+                                when (state.warningAction) {
+                                    "Create" -> navController?.navigate("ManageUsersView")
+                                    "Register" -> navController?.navigate("ManageCompaniesView")
+                                    "Settings" -> navController?.navigate("SettingsView")
+                                }
+                                state.warning = null
+                                state.warningAction = null
+                            },
+                            dialogText = message,
+                            positiveBtnText = state.warningAction ?: "Register",
+                            negativeBtnText = "Cancel",
+                            cancelable = false
+                        )
+                    )
+                } else {
+                    activityScopedViewModel.isRegistering = false
+                    val snackbarResult = snackbarHostState.showSnackbar(
+                        message = message,
+                        duration = SnackbarDuration.Short,
+                        actionLabel = state.warningAction
+                    )
+                    state.warning = null
+                    when (snackbarResult) {
+                        SnackbarResult.Dismissed -> {}
+                        SnackbarResult.ActionPerformed -> when (state.warningAction) {
+                            "Create" -> {
+                                state.warning = null
+                                state.warningAction = null
+                                navController?.navigate("ManageUsersView")
+                            }
+
+                            "Register" -> {
+                                state.warning = null
+                                state.warningAction = null
+                                navController?.navigate("ManageCompaniesView")
+                            }
+
+                            "Settings" -> {
+                                state.warning = null
+                                state.warningAction = null
+                                navController?.navigate("SettingsView")
+                            }
+                        }
                     }
                 }
             }

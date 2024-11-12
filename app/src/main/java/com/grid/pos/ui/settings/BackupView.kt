@@ -150,7 +150,6 @@ fun BackupView(
                 dialogText = popupMessage.value
                 positiveBtnText = if (isRestoreWarningPopup) "Restore" else if (shouldKill) "Close" else "Ok"
                 negativeBtnText = if (isRestoreWarningPopup) "Cancel" else null
-                height = if (shouldKill || isRestoreWarningPopup) 150.dp else 100.dp
             })
     }
     BackHandler {

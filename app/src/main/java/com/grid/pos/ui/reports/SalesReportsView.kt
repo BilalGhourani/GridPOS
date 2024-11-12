@@ -233,7 +233,6 @@ fun SalesReportsView(
             dialogText = "Are you sure you want to cancel the reports?"
             positiveBtnText = "Cancel"
             negativeBtnText = "Close"
-            height = 130.dp
         })
     }
 

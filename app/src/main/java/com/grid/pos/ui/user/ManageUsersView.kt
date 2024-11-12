@@ -87,22 +87,38 @@ fun ManageUsersView(
     var tableModeState by remember { mutableStateOf(false) }
     var passwordVisibility by remember { mutableStateOf(false) }
 
-    LaunchedEffect(activityScopedViewModel.users) {
-        if (!activityScopedViewModel.isLoggedIn()) {
-            tableModeState = true
-        }
-        // viewModel.fillCachedUsers(activityScopedViewModel.users)
-    }
+    /*LaunchedEffect(activityScopedViewModel.users) {
+         viewModel.fillCachedUsers(activityScopedViewModel.users)
+    }*/
 
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     LaunchedEffect(state.warning) {
         state.warning?.value?.let { message ->
             scope.launch {
-                snackbarHostState.showSnackbar(
-                    message = message,
-                    duration = SnackbarDuration.Short,
-                )
+                if (state.action == "done" && activityScopedViewModel.isRegistering) {
+                    activityScopedViewModel.isRegistering = false
+                    activityScopedViewModel.showPopup(
+                        true,
+                        PopupModel(
+                            onDismissRequest = {
+                                navController?.navigateUp()
+                            },
+                            onConfirmation = {
+                                navController?.navigateUp()
+                            },
+                            dialogText = message,
+                            positiveBtnText = "Login",
+                            negativeBtnText = null,
+                            cancelable = false
+                        )
+                    )
+                } else {
+                    snackbarHostState.showSnackbar(
+                        message = message,
+                        duration = SnackbarDuration.Short,
+                    )
+                }
             }
         }
     }
@@ -113,7 +129,10 @@ fun ManageUsersView(
 
     fun saveUser() {
         state.selectedUser.userPassword = passwordState
-        viewModel.saveUser(state.selectedUser)
+        viewModel.saveUser(
+            state.selectedUser,
+            activityScopedViewModel.isRegistering
+        )
     }
 
     fun clear() {
@@ -123,7 +142,7 @@ fun ManageUsersView(
         usernameState = ""
         passwordState = ""
         posModeState = true
-        tableModeState = true
+        tableModeState = false
         state.clear = false
     }
 
@@ -149,7 +168,6 @@ fun ManageUsersView(
                     dialogText = "Do you want to save your changes"
                     positiveBtnText = "Save"
                     negativeBtnText = "Close"
-                    height = 100.dp
                 })
             return
         }

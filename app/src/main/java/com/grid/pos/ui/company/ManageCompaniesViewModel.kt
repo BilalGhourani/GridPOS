@@ -12,6 +12,7 @@ import com.grid.pos.data.User.UserRepository
 import com.grid.pos.model.Event
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.BaseViewModel
+import com.grid.pos.utils.DataStoreManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -101,7 +102,10 @@ class ManageCompaniesViewModel @Inject constructor(
         }
     }
 
-    fun saveCompany(company: Company) {
+    fun saveCompany(
+            company: Company,
+            isRegistering: Boolean
+    ) {
         if (company.companyName.isNullOrEmpty()) {
             viewModelScope.launch(Dispatchers.Main) {
                 manageCompaniesState.value = manageCompaniesState.value.copy(
@@ -120,17 +124,36 @@ class ManageCompaniesViewModel @Inject constructor(
                 company.prepareForInsert()
                 val addedCompany = companyRepository.insert(company)
                 val companies = manageCompaniesState.value.companies
-                if(companies.isNotEmpty()) {
+                if (companies.isNotEmpty()) {
                     companies.add(addedCompany)
                 }
-                withContext(Dispatchers.Main) {
-                    manageCompaniesState.value = manageCompaniesState.value.copy(
-                        companies = companies,
-                        selectedCompany = Company(),
-                        isLoading = false,
-                        warning = Event("Company saved successfully."),
-                        clear = true
+                if (isRegistering) {
+                    SettingsModel.currentCompany = addedCompany
+                    SettingsModel.localCompanyID = addedCompany.companyId
+                    DataStoreManager.putString(
+                        DataStoreManager.DataStoreKeys.LOCAL_COMPANY_ID.key,
+                        addedCompany.companyId
                     )
+                    withContext(Dispatchers.Main) {
+                        manageCompaniesState.value = manageCompaniesState.value.copy(
+                            companies = companies,
+                            selectedCompany = Company(),
+                            isLoading = false,
+                            warning = Event("Company saved successfully, do you want to continue?"),
+                            actionLabel = "next",
+                            clear = true
+                        )
+                    }
+                } else {
+                    withContext(Dispatchers.Main) {
+                        manageCompaniesState.value = manageCompaniesState.value.copy(
+                            companies = companies,
+                            selectedCompany = Company(),
+                            isLoading = false,
+                            warning = Event("Company saved successfully."),
+                            clear = true
+                        )
+                    }
                 }
             } else {
                 companyRepository.update(company)

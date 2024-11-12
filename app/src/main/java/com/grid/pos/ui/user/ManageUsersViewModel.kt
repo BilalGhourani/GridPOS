@@ -60,7 +60,10 @@ class ManageUsersViewModel @Inject constructor(
         }
     }
 
-    fun saveUser(user: User) {
+    fun saveUser(
+            user: User,
+            isRegistering: Boolean
+    ) {
         if (user.userName.isNullOrEmpty() || user.userUsername.isNullOrEmpty() || user.userPassword.isNullOrEmpty()) {
             manageUsersState.value = manageUsersState.value.copy(
                 warning = Event("Please fill all inputs"),
@@ -76,17 +79,27 @@ class ManageUsersViewModel @Inject constructor(
             user.userPassword = user.userPassword!!.encryptCBC()
             if (isInserting) {
                 user.prepareForInsert()
+                if (isRegistering) {
+                    user.userPosMode = true
+                    user.userTableMode = true
+                }
                 val addedModel = userRepository.insert(user)
                 val users = manageUsersState.value.users
-                if(users.isNotEmpty()) {
+                if (users.isNotEmpty()) {
                     users.add(addedModel)
+                }
+                val msg = if (isRegistering) {
+                    "User saved successfully and Registration is done."
+                } else {
+                    "User saved successfully."
                 }
                 withContext(Dispatchers.Main) {
                     manageUsersState.value = manageUsersState.value.copy(
                         users = users,
                         selectedUser = addedModel,
                         isLoading = false,
-                        warning = Event("User saved successfully."),
+                        warning = Event(msg),
+                        action = "done",
                         clear = true
                     )
                 }

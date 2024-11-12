@@ -125,7 +125,6 @@ class BarcodeScannerActivity : ComponentActivity() {
                                                     dialogText = "Barcode already exist!"
                                                     positiveBtnText = "Close"
                                                     negativeBtnText = null
-                                                    height = 100.dp
                                                 }
                                             }
                                         }
@@ -145,7 +144,6 @@ class BarcodeScannerActivity : ComponentActivity() {
                                                     dialogText = "Barcode not exist!"
                                                     positiveBtnText = "Close"
                                                     negativeBtnText = null
-                                                    height = 100.dp
                                                 }
                                             }
 
@@ -171,7 +169,6 @@ class BarcodeScannerActivity : ComponentActivity() {
                                                         dialogText = "Scan next?"
                                                         positiveBtnText = "Scan"
                                                         negativeBtnText = "Exit"
-                                                        height = 100.dp
                                                     }
                                                     snackbarHostState.showSnackbar(
                                                         message = result,

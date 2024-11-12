@@ -135,7 +135,6 @@ fun POSPrinterView(
                     dialogText = "Do you want to save your changes"
                     positiveBtnText = "Save"
                     negativeBtnText = "Close"
-                    height = 100.dp
                 })
             return
         }
