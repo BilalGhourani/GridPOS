@@ -104,6 +104,7 @@ class ItemRepositoryImpl(
                                 "currency.cur_newcode"
                             ),
                             "it_cmp_id='${SettingsModel.getCompanyID()}'",
+                            "",
                             "INNER JOIN currency on it_cur_code = cur_code"
                         )
                     } else {
