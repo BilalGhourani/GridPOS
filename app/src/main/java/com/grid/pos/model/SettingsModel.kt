@@ -48,7 +48,7 @@ object SettingsModel {
     var allowOutOfStockSale: Boolean = true
 
     var buttonColor: Color = Color.Blue
-    var buttonTextColor: Color = Color.White
+    var buttonTextColor: Color = Color.Black
     var topBarColor: Color = Color.White
     var backgroundColor: Color = Color.White
     var textColor: Color = Color.Black

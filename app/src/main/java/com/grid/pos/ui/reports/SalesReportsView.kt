@@ -89,10 +89,10 @@ import java.util.TimeZone
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SalesReportsView(
-    modifier: Modifier = Modifier,
-    navController: NavController? = null,
-    activityViewModel: ActivityScopedViewModel,
-    viewModel: SalesReportsViewModel = hiltViewModel()
+        modifier: Modifier = Modifier,
+        navController: NavController? = null,
+        activityViewModel: ActivityScopedViewModel,
+        viewModel: SalesReportsViewModel = hiltViewModel()
 ) {
     val state by viewModel.reportsState.collectAsStateWithLifecycle()
 
@@ -103,8 +103,8 @@ fun SalesReportsView(
     val dateFormat = "yyyy-MM-dd HH:mm"
 
     fun getDateFromState(
-        time: Long,
-        timePickerState: TimePickerState
+            time: Long,
+            timePickerState: TimePickerState
     ): Date {
         val date = currentTime.apply {
             timeInMillis = time
@@ -221,19 +221,21 @@ fun SalesReportsView(
     }
 
     LaunchedEffect(isPopupVisible) {
-        activityViewModel.showPopup(isPopupVisible, if (!isPopupVisible) null else PopupModel().apply {
-            onDismissRequest = {
-                isPopupVisible = false
-            }
-            onConfirmation = {
-                state.isLoading = false
-                isPopupVisible = false
-                handleBack()
-            }
-            dialogText = "Are you sure you want to cancel the reports?"
-            positiveBtnText = "Cancel"
-            negativeBtnText = "Close"
-        })
+        activityViewModel.showPopup(
+            isPopupVisible,
+            if (!isPopupVisible) null else PopupModel().apply {
+                onDismissRequest = {
+                    isPopupVisible = false
+                }
+                onConfirmation = {
+                    state.isLoading = false
+                    isPopupVisible = false
+                    handleBack()
+                }
+                dialogText = "Are you sure you want to cancel the reports?"
+                positiveBtnText = "Cancel"
+                negativeBtnText = "Close"
+            })
     }
 
     BackHandler {
@@ -280,7 +282,9 @@ fun SalesReportsView(
                 }
             }) {
             Column(
-                modifier = modifier.padding(it)
+                modifier = modifier.padding(it),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
 
                 UITextField(modifier = Modifier.padding(10.dp),
