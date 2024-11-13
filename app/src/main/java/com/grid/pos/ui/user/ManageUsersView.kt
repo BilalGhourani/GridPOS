@@ -58,6 +58,7 @@ import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.SearchableDropdownMenuEx
 import com.grid.pos.ui.common.UIButton
 import com.grid.pos.ui.common.UIImageButton
+import com.grid.pos.ui.common.UISwitch
 import com.grid.pos.ui.common.UITextField
 import com.grid.pos.ui.common.UiVerticalCheckBox
 import com.grid.pos.ui.theme.GridPOSTheme
@@ -296,33 +297,26 @@ fun ManageUsersView(
                         state.selectedUser.userPassword = it.trim()
                     }
 
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .wrapContentHeight()
-                            .padding(
-                                horizontal = 10.dp,
-                                vertical = 5.dp
-                            ),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        UiVerticalCheckBox(
-                            modifier = Modifier.weight(.5f),
-                            label = "POS Mode",
-                            checked = posModeState
-                        ) {
-                            posModeState = it
-                            state.selectedUser.userPosMode = posModeState
-                        }
+                    UISwitch(
+                        modifier = Modifier.padding(
+                            horizontal = 15.dp
+                        ),
+                        checked = posModeState,
+                        text = "Enable POS Mode",
+                    ) { isPOSMode ->
+                        posModeState = isPOSMode
+                        state.selectedUser.userPosMode = posModeState
+                    }
 
-                        UiVerticalCheckBox(
-                            modifier = Modifier.weight(.5f),
-                            label = "Table Mode",
-                            checked = tableModeState
-                        ) {
-                            tableModeState = it
-                            state.selectedUser.userTableMode = tableModeState
-                        }
+                    UISwitch(
+                        modifier = Modifier.padding(
+                            horizontal = 15.dp
+                        ),
+                        checked = tableModeState,
+                        text = "Enable Table Mode",
+                    ) { isTableMode ->
+                        tableModeState = isTableMode
+                        state.selectedUser.userTableMode = tableModeState
                     }
 
                     Row(
