@@ -462,7 +462,7 @@ object PrinterUtils {
                 "{tax_display}",
                 "none"
             ).replace(
-                "{tax_display}",
+                "{inv_tax_disp}",
                 "none"
             )
         }
@@ -616,6 +616,9 @@ object PrinterUtils {
         ).replace(
             "{curr2_code}",
             currency?.currencyCode2 ?: ""
+        ).replace(
+            "{inv_total1_disp}",
+            if (SettingsModel.hideSecondCurrency) "none" else "table-row"
         )
 
         var isItPayed = false

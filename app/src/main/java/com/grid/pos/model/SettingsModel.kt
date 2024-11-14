@@ -46,6 +46,7 @@ object SettingsModel {
     var autoPrintTickets: Boolean = false
     var showItemQtyAlert: Boolean = false
     var allowOutOfStockSale: Boolean = true
+    var hideSecondCurrency: Boolean = false
 
     var buttonColor: Color = Color.Black
     var buttonTextColor: Color = Color.Black

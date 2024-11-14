@@ -240,6 +240,10 @@ object DataStoreManager {
             DataStoreKeys.ALLOW_OUT_OF_STOCK_SALE.key,
             true
         ) == true
+        SettingsModel.hideSecondCurrency = getBoolean(
+            DataStoreKeys.HIDE_SECOND_CURRENCY.key,
+            false
+        ) == true
 
         SettingsModel.firebaseApplicationId = getString(DataStoreKeys.FIREBASE_APP_ID.key)
         SettingsModel.firebaseApiKey = getString(DataStoreKeys.FIREBASE_API_KEY.key)
@@ -344,7 +348,7 @@ object DataStoreManager {
             "SHOW_TAX1"
         ),
         SHOW_TAX2("SHOW_TAX2"), SHOW_PRICE_IN_ITEM_BTN("SHOW_PRICE_IN_ITEM_BTN"),AUTO_PRINT_TICKETS("AUTO_PRINT_TICKETS"),
-        SHOW_ITEM_QTY_ALERT("SHOW_ITEM_QTY_ALERT"),ALLOW_OUT_OF_STOCK_SALE("ALLOW_OUT_OF_STOCK_SALE"),
+        SHOW_ITEM_QTY_ALERT("SHOW_ITEM_QTY_ALERT"),ALLOW_OUT_OF_STOCK_SALE("ALLOW_OUT_OF_STOCK_SALE"),HIDE_SECOND_CURRENCY("HIDE_SECOND_CURRENCY"),
 
         BUTTON_COLOR("BUTTON_COLOR"), BUTTON_TEXT_COLOR("BUTTON_TEXT_COLOR"), BACKGROUND_COLOR(
             "BACKGROUND_COLOR"

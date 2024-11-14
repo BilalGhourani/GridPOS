@@ -149,6 +149,7 @@ fun SettingsView(
     var autoPrintTickets by remember { mutableStateOf(SettingsModel.autoPrintTickets) }
     var showItemQtyAlert by remember { mutableStateOf(SettingsModel.showItemQtyAlert) }
     var allowOutOfStockSale by remember { mutableStateOf(SettingsModel.allowOutOfStockSale) }
+    var hideSecondCurrency by remember { mutableStateOf(SettingsModel.hideSecondCurrency) }
 
     var buttonColorState by remember { mutableStateOf(SettingsModel.buttonColor) }
     var buttonTextColorState by remember { mutableStateOf(SettingsModel.buttonTextColor) }
@@ -960,6 +961,18 @@ fun SettingsView(
                             allowOutOfStockSale = allow
                         }
 
+                        UISwitch(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(60.dp)
+                                .padding(10.dp),
+                            checked = hideSecondCurrency,
+                            text = "Hide Seocnd Currency",
+                            textColor = textColorState
+                        ) { hide ->
+                            hideSecondCurrency = hide
+                        }
+
                         UIButton(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -1039,6 +1052,12 @@ fun SettingsView(
                                 DataStoreManager.putBoolean(
                                     DataStoreManager.DataStoreKeys.ALLOW_OUT_OF_STOCK_SALE.key,
                                     allowOutOfStockSale
+                                )
+
+                                SettingsModel.hideSecondCurrency = hideSecondCurrency
+                                DataStoreManager.putBoolean(
+                                    DataStoreManager.DataStoreKeys.HIDE_SECOND_CURRENCY.key,
+                                    hideSecondCurrency
                                 )
 
                                 delay(1000L)
