@@ -44,7 +44,7 @@ object SettingsModel {
     var showTax2: Boolean = false
     var showPriceInItemBtn: Boolean = false
     var autoPrintTickets: Boolean = false
-    var showItemQtyAlert: Boolean = true
+    var showItemQtyAlert: Boolean = false
     var allowOutOfStockSale: Boolean = true
 
     var buttonColor: Color = Color.Blue

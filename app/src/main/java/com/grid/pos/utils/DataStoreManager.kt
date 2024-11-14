@@ -234,7 +234,7 @@ object DataStoreManager {
         ) == true
         SettingsModel.showItemQtyAlert = getBoolean(
             DataStoreKeys.SHOW_ITEM_QTY_ALERT.key,
-            true
+            false
         ) == true
         SettingsModel.allowOutOfStockSale = getBoolean(
             DataStoreKeys.ALLOW_OUT_OF_STOCK_SALE.key,
