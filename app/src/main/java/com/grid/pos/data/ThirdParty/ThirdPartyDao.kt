@@ -19,7 +19,7 @@ interface ThirdPartyDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(order: List<ThirdParty>)
 
-    // Delete a Third Party
+    // Delete a ThirdParty
     @Delete
     suspend fun delete(thirdParty: ThirdParty)
 
@@ -27,7 +27,7 @@ interface ThirdPartyDao {
     @Query("DELETE FROM thirdparty")
     suspend fun deleteAll()
 
-    // Update a Third Party
+    // Update a ThirdParty
     @Update
     suspend fun update(thirdParty: ThirdParty)
 
@@ -35,15 +35,15 @@ interface ThirdPartyDao {
     @Query("SELECT * FROM `thirdparty` WHERE tp_cmp_id=:companyId")
     fun getAllThirdParties(companyId: String): MutableList<ThirdParty>
 
-    // Get one Third Party as stream.
+    // Get one ThirdParty as stream.
     @Query("SELECT * FROM `thirdparty` WHERE tp_cmp_id=:companyId LIMIT 1")
     fun getOneThirdPartyByCompanyID(companyId: String): ThirdParty?
 
-    // Get one Third Party as stream.
+    // Get one ThirdParty as stream.
     @Query("SELECT * FROM `thirdparty` WHERE tp_userstamp=:userID LIMIT 1")
     fun getOneThirdPartyByUserID(userID: String): ThirdParty?
 
-    // Get one Third Party as stream.
+    // Get one ThirdParty as stream.
     @Query("SELECT * FROM `thirdparty` WHERE tp_cmp_id=:companyId AND tp_default=1 LIMIT 1")
     fun getDefaultThirdParties(companyId: String): ThirdParty?
 }

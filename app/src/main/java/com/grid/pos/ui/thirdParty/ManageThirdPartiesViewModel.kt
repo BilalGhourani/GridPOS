@@ -67,7 +67,7 @@ class ManageThirdPartiesViewModel @Inject constructor(
     fun saveThirdParty(thirdParty: ThirdParty) {
         if (thirdParty.thirdPartyName.isNullOrEmpty()) {
             manageThirdPartiesState.value = manageThirdPartiesState.value.copy(
-                warning = Event("Please fill Third Party name."),
+                warning = Event("Please fill ThirdParty name."),
                 isLoading = false
             )
             return
@@ -91,7 +91,7 @@ class ManageThirdPartiesViewModel @Inject constructor(
                         enableIsDefault = isDefaultEnabled,
                         selectedThirdParty = addedModel,
                         isLoading = false,
-                        warning = Event("Third Party saved successfully."),
+                        warning = Event("ThirdParty saved successfully."),
                         clear = true
                     )
                 }
@@ -103,7 +103,7 @@ class ManageThirdPartiesViewModel @Inject constructor(
                         selectedThirdParty = thirdParty,
                         enableIsDefault = isDefaultEnabled,
                         isLoading = false,
-                        warning = Event("Third Party saved successfully."),
+                        warning = Event("ThirdParty saved successfully."),
                         clear = true
                     )
                 }
@@ -115,7 +115,7 @@ class ManageThirdPartiesViewModel @Inject constructor(
         val thirdParty = manageThirdPartiesState.value.selectedThirdParty
         if (thirdParty.thirdPartyId.isEmpty()) {
             manageThirdPartiesState.value = manageThirdPartiesState.value.copy(
-                warning = Event("Please select an third party to delete"),
+                warning = Event("Please select an ThirdParty to delete"),
                 isLoading = false
             )
             return
@@ -129,7 +129,7 @@ class ManageThirdPartiesViewModel @Inject constructor(
             if (hasRelations(thirdParty.thirdPartyId)) {
                 withContext(Dispatchers.Main) {
                     manageThirdPartiesState.value = manageThirdPartiesState.value.copy(
-                        warning = Event("You can't delete this Third Party,because it has related data!"),
+                        warning = Event("You can't delete this ThirdParty,because it has related data!"),
                         isLoading = false
                     )
                 }

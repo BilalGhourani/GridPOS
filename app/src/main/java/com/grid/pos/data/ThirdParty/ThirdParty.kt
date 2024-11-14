@@ -17,7 +17,7 @@ import java.util.Date
 @Entity(tableName = "thirdparty")
 data class ThirdParty(
         /**
-         * Third Party Id
+         * ThirdParty Id
          * */
         @PrimaryKey
         @ColumnInfo(name = "tp_id")
@@ -30,7 +30,7 @@ data class ThirdParty(
         var thirdPartyDocumentId: String? = null,
 
         /**
-         * Third Party name
+         * ThirdParty name
          * */
         @ColumnInfo(name = "tp_name")
         @set:PropertyName("tp_name")
@@ -38,7 +38,7 @@ data class ThirdParty(
         var thirdPartyName: String? = null,
 
         /**
-         * Third Party fn
+         * ThirdParty fn
          * */
         @ColumnInfo(name = "tp_fn")
         @set:PropertyName("tp_fn")
@@ -46,7 +46,7 @@ data class ThirdParty(
         var thirdPartyFn: String? = null,
 
         /**
-         * Third Party company id
+         * ThirdParty company id
          * */
         @ColumnInfo(name = "tp_cmp_id")
         @set:PropertyName("tp_cmp_id")
@@ -54,7 +54,7 @@ data class ThirdParty(
         var thirdPartyCompId: String? = null,
 
         /**
-         * Third Party Type
+         * ThirdParty Type
          * */
         @ColumnInfo(name = "tp_cse")
         @set:PropertyName("tp_cse")
@@ -62,7 +62,7 @@ data class ThirdParty(
         var thirdPartyType: String? = null,
 
         /**
-         * Third Party phone 1
+         * ThirdParty phone 1
          * */
         @ColumnInfo(name = "tp_phone1")
         @set:PropertyName("tp_phone1")
@@ -70,7 +70,7 @@ data class ThirdParty(
         var thirdPartyPhone1: String? = null,
 
         /**
-         * Third Party phone 2
+         * ThirdParty phone 2
          * */
         @ColumnInfo(name = "tp_phone2")
         @set:PropertyName("tp_phone2")
@@ -78,7 +78,7 @@ data class ThirdParty(
         var thirdPartyPhone2: String? = null,
 
         /**
-         * Third Party address
+         * ThirdParty address
          * */
         @ColumnInfo(name = "tp_address")
         @set:PropertyName("tp_address")
@@ -86,7 +86,7 @@ data class ThirdParty(
         var thirdPartyAddress: String? = null,
 
         /**
-         * Third Party default for POS
+         * ThirdParty default for POS
          * */
         @ColumnInfo(name = "tp_default")
         @set:PropertyName("tp_default")
@@ -94,7 +94,7 @@ data class ThirdParty(
         var thirdPartyDefault: Boolean = false,
 
         /**
-         * Third Party time stamp
+         * ThirdParty time stamp
          * */
         @Ignore
         @set:PropertyName("tp_timestamp")
@@ -103,7 +103,7 @@ data class ThirdParty(
         var thirdPartyTimeStamp: Date? = null,
 
         /**
-         * Third Party time stamp
+         * ThirdParty time stamp
          * */
         @ColumnInfo(name = "tp_datetime")
         @set:PropertyName("tp_datetime")
@@ -111,7 +111,7 @@ data class ThirdParty(
         var thirdPartyDateTime: Long = System.currentTimeMillis(),
 
         /**
-         * Third Party user stamp
+         * ThirdParty user stamp
          * */
         @ColumnInfo(name = "tp_userstamp")
         @set:PropertyName("tp_userstamp")

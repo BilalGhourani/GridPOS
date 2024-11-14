@@ -91,7 +91,7 @@ data class InvoiceHeader(
         var invoiceHeadNote: String? = null,
 
         /**
-         * invoice Header Third Party id
+         * invoice Header ThirdParty id
          * */
         @ColumnInfo(name = "hi_tp_name")
         @set:PropertyName("hi_tp_name")
@@ -99,7 +99,7 @@ data class InvoiceHeader(
         var invoiceHeadThirdPartyName: String? = null,
 
         /**
-         * invoice Header Third Party id
+         * invoice Header ThirdParty id
          * */
         @Ignore
         @get:Exclude

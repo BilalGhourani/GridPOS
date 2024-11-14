@@ -83,7 +83,7 @@ object Utils {
                     items = listOf(
                         HomeItemModel(
                             R.drawable.third_parties,
-                            "Third Party",
+                            "ThirdParty",
                             "ManageThirdPartiesView"
                         ),
                         HomeItemModel(
@@ -151,7 +151,7 @@ object Utils {
                     ),
                     HomeItemModel(
                         R.drawable.third_parties,
-                        "Third Party",
+                        "ThirdParty",
                         "ManageThirdPartiesView"
                     ),
                     HomeItemModel(

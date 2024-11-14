@@ -380,7 +380,7 @@ fun ManageThirdPartiesView(
                         start = 10.dp,
                         end = 10.dp
                     ),
-                    label = "Select Third Party",
+                    label = "Select ThirdParty",
                     selectedId = state.selectedThirdParty.thirdPartyId,
                     onLoadItems = { viewModel.fetchThirdParties() },
                     leadingIcon = {
