@@ -1,5 +1,6 @@
 package com.grid.pos.ui.item
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -16,6 +17,7 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -25,6 +27,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -41,6 +44,10 @@ import coil.request.ImageRequest
 import com.grid.pos.data.Item.Item
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.theme.GridPOSTheme
+import com.grid.pos.ui.theme.homeLightBlue
+import com.grid.pos.ui.theme.homeLightGreen
+import com.grid.pos.ui.theme.homeLightPurple
+import com.grid.pos.ui.theme.itemCheckIconColor
 
 @Composable
 fun ItemCell(
@@ -53,13 +60,11 @@ fun ItemCell(
     var itemSelected by remember { mutableStateOf(false) }
     itemSelected = item.selected
     val image = item.getFullItemImage()
-    var itemColor = if (item.itemBtnColor.isNullOrEmpty()) SettingsModel.buttonColor else {
-        Color(item.itemBtnColor!!.toColorInt())
-    }
-    if (itemColor.alpha == 1f) {// for click ripple effect
-        itemColor = itemColor.copy(alpha = .8f)
-    }
-    val itemTextColor = if (item.itemBtnTextColor.isNullOrEmpty()) Color.White else {
+    var itemColor = if (image.isNotEmpty()) Color.White.copy(alpha = .8f)
+    else if (item.itemBtnColor.isNullOrEmpty()) Color.Transparent
+    else Color(item.itemBtnColor!!.toColorInt()).copy(alpha = .8f)
+
+    val itemTextColor = if (item.itemBtnTextColor.isNullOrEmpty()) Color.Black else {
         Color(item.itemBtnTextColor!!.toColorInt())
     }
     Box(
@@ -79,11 +84,21 @@ fun ItemCell(
                 modifier = Modifier.fillMaxSize()
             )
         }
-        Button(modifier = modifier.fillMaxSize(),
+        OutlinedButton(modifier = modifier.fillMaxSize(),
             colors = ButtonDefaults.buttonColors(
                 containerColor = itemColor,
             ),
             contentPadding = PaddingValues(0.dp),
+            border = BorderStroke(
+                0.5.dp,
+                Brush.linearGradient(
+                    colors = listOf(
+                        homeLightGreen,
+                        homeLightPurple,
+                        homeLightBlue
+                    )
+                )
+            ),
             shape = RoundedCornerShape(15.dp),
             onClick = {
                 if (!notifyDirectly) {
@@ -117,7 +132,7 @@ fun ItemCell(
                 if (SettingsModel.showPriceInItemBtn) {
                     Text(
                         text = String.format(
-                            "%,.${SettingsModel.currentCurrency?.currencyName1Dec?:2}f %s",
+                            "%,.${SettingsModel.currentCurrency?.currencyName1Dec ?: 2}f %s",
                             item.itemUnitPrice,
                             SettingsModel.currentCurrency?.getCurrencyCode(item) ?: ""
                         ),
@@ -140,7 +155,7 @@ fun ItemCell(
                     .padding(10.dp),
                 imageVector = Icons.Filled.CheckCircle,
                 contentDescription = "Checked",
-                tint = Color.White,
+                tint = itemCheckIconColor,
             )
         }
     }

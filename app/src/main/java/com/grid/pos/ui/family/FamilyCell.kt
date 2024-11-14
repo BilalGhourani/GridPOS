@@ -51,11 +51,11 @@ fun CategoryCell(
         shadowElevation = 10.dp
     ) {
         val image = family.getFullFamilyImage()
-        var selectedColor = SettingsModel.buttonColor
+        var selectedColor = Color.Blue
         var unSelectedColor = Grey
         if (!image.isEmpty()) {
-            selectedColor = selectedColor.copy(alpha = .5f)
-            unSelectedColor = unSelectedColor.copy(alpha = .5f)
+            selectedColor = Color.White.copy(alpha = .5f)
+            unSelectedColor = Color.DarkGray.copy(alpha = .6f)
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current).data(image).build(),
                 contentScale = ContentScale.FillBounds, contentDescription = "Item image",

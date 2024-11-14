@@ -47,7 +47,7 @@ object SettingsModel {
     var showItemQtyAlert: Boolean = false
     var allowOutOfStockSale: Boolean = true
 
-    var buttonColor: Color = Color.Blue
+    var buttonColor: Color = Color.Black
     var buttonTextColor: Color = Color.Black
     var topBarColor: Color = Color.White
     var backgroundColor: Color = Color.White

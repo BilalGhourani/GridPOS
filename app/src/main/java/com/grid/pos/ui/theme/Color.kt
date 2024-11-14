@@ -18,6 +18,7 @@ val Grey = Color(0xffb2b6b9)
 val White = Color(0xFFFFFFFF)
 val licenseErrorColor = Color(0xAD3E8DB1)
 val deviceIDColor = Color(0xDC39803C)
+val itemCheckIconColor = Color(0xBF044207)
 
 val homeLightGreen = Color(0xDC71BB74)
 val homeLightPurple = Color(0xFFBF9DDF)
