@@ -22,10 +22,15 @@ import com.grid.pos.data.MIGRATION_2_3
 import com.grid.pos.data.MIGRATION_3_4
 import com.grid.pos.data.MIGRATION_4_5
 import com.grid.pos.data.MIGRATION_5_6
+import com.grid.pos.data.MIGRATION_6_7
+import com.grid.pos.data.Payment.PaymentRepository
+import com.grid.pos.data.Payment.PaymentRepositoryImpl
 import com.grid.pos.data.PosPrinter.PosPrinterRepository
 import com.grid.pos.data.PosPrinter.PosPrinterRepositoryImpl
 import com.grid.pos.data.PosReceipt.PosReceiptRepository
 import com.grid.pos.data.PosReceipt.PosReceiptRepositoryImpl
+import com.grid.pos.data.Receipt.ReceiptRepository
+import com.grid.pos.data.Receipt.ReceiptRepositoryImpl
 import com.grid.pos.data.Settings.SettingsRepository
 import com.grid.pos.data.Settings.SettingsRepositoryImpl
 import com.grid.pos.data.ThirdParty.ThirdPartyRepository
@@ -63,6 +68,7 @@ object AppModule {
             .addMigrations(MIGRATION_3_4)
             .addMigrations(MIGRATION_4_5)
             .addMigrations(MIGRATION_5_6)
+            .addMigrations(MIGRATION_6_7)
             .addCallback(callback).build()
     }
 
@@ -130,6 +136,18 @@ object AppModule {
     @Singleton
     fun providePosReceiptRepository(db: AppDatabase): PosReceiptRepository {
         return PosReceiptRepositoryImpl(db.posReceiptDao)
+    }
+
+    @Provides
+    @Singleton
+    fun providePaymentRepository(db: AppDatabase): PaymentRepository {
+        return PaymentRepositoryImpl(db.paymentDao)
+    }
+
+    @Provides
+    @Singleton
+    fun provideReceiptRepository(db: AppDatabase): ReceiptRepository {
+        return ReceiptRepositoryImpl(db.receiptDao)
     }
 
     @Provides

@@ -6,9 +6,11 @@ import androidx.room.Ignore
 import androidx.room.PrimaryKey
 import com.google.firebase.firestore.Exclude
 import com.google.firebase.firestore.PropertyName
+import com.google.firebase.firestore.ServerTimestamp
 import com.grid.pos.data.DataModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.Utils
+import java.util.Date
 
 @Entity(tableName = "payment")
 data class Payment(
@@ -120,6 +122,31 @@ data class Payment(
         @set:PropertyName("pay_note")
         @get:PropertyName("pay_note")
         var paymentNote: String? = null,
+
+        /**
+         * Payment timestamp
+         * */
+        @Ignore
+        @set:PropertyName("pay_timestamp")
+        @get:PropertyName("pay_timestamp")
+        @ServerTimestamp
+        var paymentTimeStamp: Date? = null,
+
+        /**
+         * Payment timestamp
+         * */
+        @ColumnInfo(name = "pay_datetime")
+        @set:PropertyName("pay_datetime")
+        @get:PropertyName("pay_datetime")
+        var paymentDateTime: Long = System.currentTimeMillis(),
+
+        /**
+         * Payment user stamp
+         * */
+        @ColumnInfo(name = "pay_userstamp")
+        @set:PropertyName("pay_userstamp")
+        @get:PropertyName("pay_userstamp")
+        var paymentUserStamp: String? = null
 ) : DataModel() {
     constructor() : this("")
 
@@ -184,6 +211,8 @@ data class Payment(
             "pay_amts" to paymentAmountSecond,
             "pay_desc" to paymentDesc,
             "pay_note" to paymentNote,
+            "pay_timestamp" to paymentTimeStamp,
+            "pay_userstamp" to paymentUserStamp,
         )
     }
 }

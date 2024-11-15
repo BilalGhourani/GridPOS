@@ -6,9 +6,11 @@ import androidx.room.Ignore
 import androidx.room.PrimaryKey
 import com.google.firebase.firestore.Exclude
 import com.google.firebase.firestore.PropertyName
+import com.google.firebase.firestore.ServerTimestamp
 import com.grid.pos.data.DataModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.Utils
+import java.util.Date
 
 @Entity(tableName = "receipt")
 data class Receipt(
@@ -120,6 +122,31 @@ data class Receipt(
         @set:PropertyName("rec_note")
         @get:PropertyName("rec_note")
         var receiptNote: String? = null,
+
+        /**
+         * Receipt timestamp
+         * */
+        @Ignore
+        @set:PropertyName("rec_timestamp")
+        @get:PropertyName("rec_timestamp")
+        @ServerTimestamp
+        var receiptTimeStamp: Date? = null,
+
+        /**
+         * Receipt timestamp
+         * */
+        @ColumnInfo(name = "rec_datetime")
+        @set:PropertyName("rec_datetime")
+        @get:PropertyName("rec_datetime")
+        var receiptDateTime: Long = System.currentTimeMillis(),
+
+        /**
+         * Receipt user stamp
+         * */
+        @ColumnInfo(name = "rec_userstamp")
+        @set:PropertyName("rec_userstamp")
+        @get:PropertyName("rec_userstamp")
+        var receiptUserStamp: String? = null
 ) : DataModel() {
     constructor() : this("")
 
@@ -184,6 +211,8 @@ data class Receipt(
             "rec_amts" to receiptAmountSecond,
             "rec_desc" to receiptDesc,
             "rec_note" to receiptNote,
+            "rec_timestamp" to receiptTimeStamp,
+            "rec_userstamp" to receiptUserStamp,
         )
     }
 }
