@@ -34,21 +34,12 @@ class ManageItemsViewModel @Inject constructor(
     private val _manageItemsState = MutableStateFlow(ManageItemsState())
     val manageItemsState: MutableStateFlow<ManageItemsState> = _manageItemsState
     var currentITem: Item = Item()
-    val currencies: MutableList<DataModel> = mutableListOf()
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
             openConnectionIfNeeded()
             fetchFamilies()
             fetchPrinters()
-            SettingsModel.currentCurrency?.let {
-                if (it.currencyCode1 != null) {
-                    currencies.add(CurrencyModel(it.currencyCode1!!,it.currencyName1!!))
-                }
-                if (it.currencyCode2 != null) {
-                    currencies.add(CurrencyModel(it.currencyCode2!!,it.currencyName2!!))
-                }
-            }
         }
     }
 
@@ -95,6 +86,22 @@ class ManageItemsViewModel @Inject constructor(
             manageItemsState.value = manageItemsState.value.copy(
                 families = listOfFamilies
             )
+        }
+    }
+
+    fun fetchCurrencies() {
+        manageItemsState.value = manageItemsState.value.copy(
+            warning = null,
+            isLoading = true
+        )
+        viewModelScope.launch(Dispatchers.IO) {
+            val currencies = currencyRepository.getAllCurrencyModels()
+            withContext(Dispatchers.Main) {
+                manageItemsState.value = manageItemsState.value.copy(
+                    currencies = currencies,
+                    isLoading = false
+                )
+            }
         }
     }
 

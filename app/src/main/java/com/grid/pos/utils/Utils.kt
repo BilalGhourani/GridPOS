@@ -207,6 +207,21 @@ object Utils {
                 )
             ),
             HomeCategoryModel(
+                title = "Payments",
+                items = listOf(
+                    HomeItemModel(
+                        R.drawable.receipt,
+                        "Paid IN",
+                        "PaymentsView"
+                    ),
+                    HomeItemModel(
+                        R.drawable.payment,
+                        "Paid OUT",
+                        "PaymentsView"
+                    )
+                )
+            ),
+            HomeCategoryModel(
                 title = "Settings",
                 items = listOf(
                     HomeItemModel(

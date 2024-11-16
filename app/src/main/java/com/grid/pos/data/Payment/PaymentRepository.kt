@@ -17,5 +17,6 @@ interface PaymentRepository {
 
     // Get all Companies logs as stream.
     suspend fun getAllPayments(): MutableList<Payment>
+    suspend fun getLastTransactionNo(): Payment?
 
 }

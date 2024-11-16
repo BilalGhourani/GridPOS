@@ -192,9 +192,18 @@ data class Payment(
 
     @Exclude
     fun didChanged(payment: Payment): Boolean {
-        return !payment.paymentDesc.equals(paymentDesc) || !payment.paymentNote.equals(paymentNote) ||
-         !payment.paymentThirdParty.equals(paymentThirdParty) || !payment.paymentCurrency.equals(paymentCurrency) ||
-         !payment.paymentType.equals(paymentType) || !payment.paymentAmount.equals(paymentAmount)
+        return !payment.paymentDesc.equals(paymentDesc) || !payment.paymentNote.equals(paymentNote) || !payment.paymentThirdParty.equals(paymentThirdParty) || !payment.paymentCurrency.equals(paymentCurrency) || !payment.paymentType.equals(paymentType) || !payment.paymentAmount.equals(paymentAmount)
+    }
+
+    @Exclude
+    fun calculateAmountFirstAndSecond() {
+        if (paymentCurrency == SettingsModel.currentCurrency?.currencyCode1) {
+            paymentAmountFirst = paymentAmount
+            paymentAmountSecond = paymentAmount.times(SettingsModel.currentCurrency?.currencyRate ?: 1.0)
+        } else {
+            paymentAmountFirst = paymentAmount.times(SettingsModel.currentCurrency?.currencyRate ?: 1.0)
+            paymentAmountSecond = paymentAmount
+        }
     }
 
     @Exclude

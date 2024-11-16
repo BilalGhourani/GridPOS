@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActionScope
 import androidx.compose.foundation.text.KeyboardActions
@@ -24,6 +25,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.max
 import com.grid.pos.model.SettingsModel
 
 @Composable
@@ -48,10 +50,16 @@ fun UITextField(
         onValueChange: (String) -> Unit
 ) {
     Box(
-        modifier = modifier.height(80.dp)
+        modifier = modifier.height(
+            max(
+                80.dp,
+                (maxLines * 40).dp
+            )
+        )
     ) {
 
-        OutlinedTextField(value = defaultValue,
+        OutlinedTextField(
+            value = defaultValue,
             onValueChange = {
                 onValueChange(it)
             },

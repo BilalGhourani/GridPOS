@@ -1,6 +1,9 @@
 package com.grid.pos.data.Payment
 
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
+import com.grid.pos.data.InvoiceHeader.InvoiceHeader
+import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.SettingsModel
 import kotlinx.coroutines.tasks.await
@@ -53,6 +56,9 @@ class PaymentRepositoryImpl(
             CONNECTION_TYPE.FIRESTORE.key -> {
                 val querySnapshot = FirebaseFirestore.getInstance().collection("payment")
                     .whereEqualTo(
+                        "pay_cmp_id",
+                        SettingsModel.getCompanyID()
+                    ).whereEqualTo(
                         "pay_id",
                         id
                     ).get().await()
@@ -65,8 +71,7 @@ class PaymentRepositoryImpl(
             }
 
             else -> {//CONNECTION_TYPE.SQL_SERVER.key
-                val payments: MutableList<Payment> = mutableListOf()
-                /*try {
+                val payments: MutableList<Payment> = mutableListOf()/*try {
                     val where = "cmp_id='$id'"
                     val dbResult = SQLServerWrapper.getListOf(
                         "company",
@@ -109,8 +114,11 @@ class PaymentRepositoryImpl(
     override suspend fun getAllPayments(): MutableList<Payment> {
         return when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
-                val querySnapshot = FirebaseFirestore.getInstance().collection("payment").get()
-                    .await()
+                val querySnapshot = FirebaseFirestore.getInstance().collection("payment")
+                    .whereEqualTo(
+                        "pay_cmp_id",
+                        SettingsModel.getCompanyID()
+                    ).get().await()
                 val companies = mutableListOf<Payment>()
                 if (querySnapshot.size() > 0) {
                     for (document in querySnapshot) {
@@ -129,8 +137,7 @@ class PaymentRepositoryImpl(
             }
 
             else -> {//CONNECTION_TYPE.SQL_SERVER.key
-                val companies: MutableList<Payment> = mutableListOf()
-                /*try {
+                val companies: MutableList<Payment> = mutableListOf()/*try {
                     val where = "cmp_id='${SettingsModel.getCompanyID()}'"
                     val dbResult = SQLServerWrapper.getListOf(
                         "company",
@@ -167,6 +174,55 @@ class PaymentRepositoryImpl(
                     e.printStackTrace()
                 }*/
                 companies
+            }
+        }
+    }
+
+    override suspend fun getLastTransactionNo(): Payment? {
+        when (SettingsModel.connectionType) {
+            CONNECTION_TYPE.FIRESTORE.key -> {
+                val querySnapshot = FirebaseFirestore.getInstance().collection("payment")
+                    .whereEqualTo(
+                        "pay_cmp_id",
+                        SettingsModel.getCompanyID()
+                    ).whereNotEqualTo(
+                        "pay_transno",
+                        null
+                    ).orderBy(
+                        "pay_transno",
+                        Query.Direction.DESCENDING
+                    ).limit(1).get().await()
+                val document = querySnapshot.firstOrNull()
+                return document?.toObject(Payment::class.java)
+            }
+
+            CONNECTION_TYPE.LOCAL.key -> {
+                return paymentDao.getLastTransactionByType(
+                    SettingsModel.getCompanyID() ?: ""
+                )
+            }
+
+            else -> {
+                return null/*val invoiceHeaders: MutableList<InvoiceHeader> = mutableListOf()
+                try {
+                    val where = "hi_cmp_id='${SettingsModel.getCompanyID()}' AND hi_tt_code = '$type' AND hi_transno IS NOT NULL AND hi_transno <> '' AND hi_transno <> '0'"
+                    val dbResult = SQLServerWrapper.getListOf(
+                        "in_hinvoice",
+                        "TOP 1",
+                        mutableListOf("*"),
+                        where,
+                        "ORDER BY hi_transno DESC"
+                    )
+                    dbResult?.let {
+                        while (it.next()) {
+                            invoiceHeaders.add(fillParams(it))
+                        }
+                        SQLServerWrapper.closeResultSet(it)
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+                return if (invoiceHeaders.size > 0) invoiceHeaders[0] else null*/
             }
         }
     }

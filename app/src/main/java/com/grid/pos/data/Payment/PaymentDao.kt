@@ -39,8 +39,14 @@ interface PaymentDao {
     @Query("SELECT * FROM payment WHERE pay_id = :id")
     suspend fun getPaymentById(id: String): Payment
 
-    // Get all Companies as stream.
+    // Get all Payments as stream.
     @Query("SELECT * FROM `payment`")
     fun getAllPayments(): MutableList<Payment>
+
+    // Get last Payments with Transaction no as stream.
+    @Query("SELECT * FROM `payment` WHERE pay_cmp_id=:companyId AND (pay_transno IS NOT NULL AND pay_transno != '') ORDER BY pay_transno DESC LIMIT 1")
+    fun getLastTransactionByType(
+            companyId: String
+    ): Payment?
 
 }

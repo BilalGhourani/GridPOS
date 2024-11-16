@@ -71,7 +71,6 @@ import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.ColorPickerPopup
 import com.grid.pos.ui.common.SearchableDropdownMenuEx
-import com.grid.pos.ui.common.UIButton
 import com.grid.pos.ui.common.UIImageButton
 import com.grid.pos.ui.common.UISwitch
 import com.grid.pos.ui.common.UITextField
@@ -537,18 +536,21 @@ fun ManageItemsView(
                         state.selectedItem.itemRemQty = remQtyState.toDoubleOrNull() ?: 0.0
                     }
 
-                    if (viewModel.currencies.isNotEmpty()) {
+                    if (state.currencies.isNotEmpty()) {
                         SearchableDropdownMenuEx(
-                            items = viewModel.currencies,
+                            items = state.currencies.toMutableList(),
                             modifier = Modifier.padding(
                                 horizontal = 10.dp,
                                 vertical = 5.dp
                             ),
+                            onLoadItems = {
+                                viewModel.fetchCurrencies()
+                            },
                             label = "Select Currency",
                             selectedId = itemCurrState
                         ) { currModel ->
                             currModel as CurrencyModel
-                            itemCurrState = currModel.currencyCode
+                            itemCurrState = currModel.getId()
                             state.selectedItem.itemCurrencyId = itemCurrState
                         }
                     }

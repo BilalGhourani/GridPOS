@@ -2,17 +2,16 @@ package com.grid.pos.model
 
 import com.grid.pos.data.DataModel
 
-data class CurrencyModel(
-        var currencyId: String,
-        var currencyName: String
+data class PaymentTypeModel(
+        var type: String
 ) : DataModel() {
 
     override fun getId(): String {
-        return currencyId
+        return type
     }
 
     override fun getName(): String {
-        return currencyName
+        return type
     }
 
 }

@@ -16,6 +16,7 @@ import com.grid.pos.ui.home.HomeView
 import com.grid.pos.ui.item.ManageItemsView
 import com.grid.pos.ui.license.LicenseView
 import com.grid.pos.ui.login.LoginView
+import com.grid.pos.ui.payments.PaymentsView
 import com.grid.pos.ui.pos.POSView
 import com.grid.pos.ui.posPrinter.POSPrinterView
 import com.grid.pos.ui.reports.SalesReportsView
@@ -155,6 +156,13 @@ fun AuthNavGraph(
 
         composable(route = "LicenseView") {
             LicenseView(
+                navController = navController,
+                activityScopedViewModel = activityViewModel
+            )
+        }
+
+        composable(route = "PaymentsView") {
+            PaymentsView(
                 navController = navController,
                 activityScopedViewModel = activityViewModel
             )

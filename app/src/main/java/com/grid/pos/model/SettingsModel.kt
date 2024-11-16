@@ -30,8 +30,8 @@ object SettingsModel {
     var cashPrinter: String? = null
     var defaultSaleInvoice: String = "SI"
     var defaultReturnSale: String = "RS"
-    var defaultPayment: String? = null
-    var defaultReceipt: String? = null
+    var defaultPayment: String = "PV"
+    var defaultReceipt: String = "RV"
     var defaultLocalBranch: String? = null
     var defaultLocalWarehouse: String? = null
 

@@ -3,6 +3,7 @@ package com.grid.pos.data.Currency
 import com.google.firebase.firestore.FirebaseFirestore
 import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.model.CONNECTION_TYPE
+import com.grid.pos.model.CurrencyModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.DateHelper
 import com.grid.pos.utils.Extension.getDoubleValue
@@ -166,6 +167,56 @@ class CurrencyRepositoryImpl(
                     e.printStackTrace()
                 }
                 result
+            }
+        }
+    }
+
+    override suspend fun getAllCurrencyModels(): MutableList<CurrencyModel> {
+        return when (SettingsModel.connectionType) {
+            CONNECTION_TYPE.LOCAL.key, CONNECTION_TYPE.FIRESTORE.key -> {
+                val currencies = mutableListOf<CurrencyModel>()
+                SettingsModel.currentCurrency?.let {
+                    if (!it.currencyCode1.isNullOrEmpty()) {
+                        currencies.add(
+                            CurrencyModel(
+                                it.currencyCode1!!,
+                                it.currencyName1!!
+                            )
+                        )
+                    }
+                    if (!it.currencyCode2.isNullOrEmpty()) {
+                        currencies.add(
+                            CurrencyModel(
+                                it.currencyCode2!!,
+                                it.currencyName2!!
+                            )
+                        )
+                    }
+                }
+                currencies
+            }
+
+            else -> {
+                val currencies = mutableListOf<CurrencyModel>()
+                SettingsModel.currentCurrency?.let {
+                    if (it.currencyId.isNotEmpty()) {
+                        currencies.add(
+                            CurrencyModel(
+                                it.currencyId,
+                                it.currencyName1!!
+                            )
+                        )
+                    }
+                    if (!it.currencyDocumentId.isNullOrEmpty()) {
+                        currencies.add(
+                            CurrencyModel(
+                                it.currencyDocumentId!!,
+                                it.currencyName2!!
+                            )
+                        )
+                    }
+                }
+                currencies
             }
         }
     }

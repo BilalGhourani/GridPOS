@@ -52,7 +52,10 @@ class ThirdPartyRepositoryImpl(
         }
     }
 
-    override suspend fun update(thirdpartyId:String,thirdParty: ThirdParty) {
+    override suspend fun update(
+            thirdpartyId: String,
+            thirdParty: ThirdParty
+    ) {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
                 thirdParty.thirdPartyDocumentId?.let {
@@ -66,7 +69,10 @@ class ThirdPartyRepositoryImpl(
             }
 
             else -> {
-                updateByProcedure(thirdpartyId,thirdParty)
+                updateByProcedure(
+                    thirdpartyId,
+                    thirdParty
+                )
             }
         }
     }
@@ -100,6 +106,90 @@ class ThirdPartyRepositoryImpl(
                 val thirdParties: MutableList<ThirdParty> = mutableListOf()
                 try {
                     val where = if (SettingsModel.isSqlServerWebDb) "tp_cse = 'Receivable' AND tp_cmp_id='${SettingsModel.getCompanyID()}'" else "tp_cse = 'Receivable'"
+                    val dbResult = SQLServerWrapper.getListOf(
+                        "thirdparty",
+                        "",
+                        mutableListOf("*"),
+                        where
+                    )
+                    dbResult?.let {
+                        val isDefaultOneFound = false
+                        while (it.next()) {
+                            thirdParties.add(ThirdParty().apply {
+                                thirdPartyId = it.getStringValue("tp_name")
+                                thirdPartyName = if (SettingsModel.isSqlServerWebDb) it.getStringValue("tp_newname") else it.getStringValue(
+                                    "tp_name"
+                                )
+                                thirdPartyFn = it.getStringValue("tp_fn")
+                                thirdPartyCompId = if (SettingsModel.isSqlServerWebDb) it.getStringValue("tp_cmp_id") else SettingsModel.getCompanyID()
+                                thirdPartyType = it.getStringValue("tp_cse")
+                                thirdPartyPhone1 = it.getStringValue("tp_phone1")
+                                thirdPartyPhone2 = it.getStringValue("tp_phone2")
+                                thirdPartyAddress = it.getStringValue("tp_address")
+                                val timeStamp = it.getObjectValue("tp_timestamp")
+                                thirdPartyTimeStamp = when (timeStamp) {
+                                    is Date -> timeStamp
+                                    is String -> DateHelper.getDateFromString(
+                                        timeStamp,
+                                        "yyyy-MM-dd hh:mm:ss.SSS"
+                                    )
+
+                                    else -> null
+                                }
+                                thirdPartyDateTime = (thirdPartyTimeStamp ?: Date()).time
+                                thirdPartyUserStamp = it.getStringValue("tp_userstamp")
+                                thirdPartyDefault = !isDefaultOneFound && thirdPartyName.equals(
+                                    "cash",
+                                    ignoreCase = true
+                                )
+                            })
+                        }
+                        SQLServerWrapper.closeResultSet(it)
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+                thirdParties
+            }
+        }
+
+    }
+
+    override suspend fun getAllThirdParties(types: List<String>): MutableList<ThirdParty> {
+        return when (SettingsModel.connectionType) {
+            CONNECTION_TYPE.FIRESTORE.key -> {
+                val querySnapshot = FirebaseFirestore.getInstance().collection("thirdParty")
+                    .whereEqualTo(
+                        "tp_cmp_id",
+                        SettingsModel.getCompanyID()
+                    ).whereIn(
+                        "tp_cse",
+                        types
+                    ).get().await()
+                val thirdParties = mutableListOf<ThirdParty>()
+                if (querySnapshot.size() > 0) {
+                    for (document in querySnapshot) {
+                        val obj = document.toObject(ThirdParty::class.java)
+                        if (obj.thirdPartyId.isNotEmpty()) {
+                            obj.thirdPartyDocumentId = document.id
+                            thirdParties.add(obj)
+                        }
+                    }
+                }
+                thirdParties
+            }
+
+            CONNECTION_TYPE.LOCAL.key -> {
+                thirdPartyDao.getAllThirdParties(
+                    types,
+                    SettingsModel.getCompanyID() ?: ""
+                )
+            }
+
+            else -> {
+                val thirdParties: MutableList<ThirdParty> = mutableListOf()
+                try {
+                    val where = if (SettingsModel.isSqlServerWebDb) "tp_cse IN (${types.joinToString(",")}) AND tp_cmp_id='${SettingsModel.getCompanyID()}'" else "tp_cse IN (${types.joinToString(",")})"
                     val dbResult = SQLServerWrapper.getListOf(
                         "thirdparty",
                         "",
@@ -386,7 +476,10 @@ class ThirdPartyRepositoryImpl(
         ) ?: ""
     }
 
-    private fun updateByProcedure(thirdpartyId:String,thirdParty: ThirdParty): String {
+    private fun updateByProcedure(
+            thirdpartyId: String,
+            thirdParty: ThirdParty
+    ): String {
         val parameters = if (SettingsModel.isSqlServerWebDb) {
             listOf(
                 thirdParty.thirdPartyId,//tp_name
