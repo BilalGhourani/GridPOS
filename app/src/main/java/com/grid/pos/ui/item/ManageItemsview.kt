@@ -460,6 +460,7 @@ fun ManageItemsView(
                                             if (barcodesList.isNotEmpty()) {
                                                 barcodeState = barcodesList[0]
                                                 state.selectedItem.itemBarcode = barcodeState
+                                                openCostFocusRequester.requestFocus()
                                             }
                                         }
                                     },
@@ -518,17 +519,17 @@ fun ManageItemsView(
                     }
 
                     //Rem quantity
-                    UITextField(modifier = Modifier.padding(
-                        horizontal = 10.dp,
-                        vertical = 5.dp
-                    ),
+                    UITextField(
+                        modifier = Modifier.padding(
+                            horizontal = 10.dp,
+                            vertical = 5.dp
+                        ),
                         defaultValue = remQtyState,
                         readOnly = true,
                         label = "Remaining Qty",
                         keyboardType = KeyboardType.Decimal,
-                        placeHolder = "Remaining Qty",
-                        focusRequester = openQtyFocusRequester,
-                        onAction = { btnColorFocusRequester.requestFocus() }) { openQty ->
+                        placeHolder = "Remaining Qty"
+                    ) { openQty ->
                         remQtyState = Utils.getDoubleValue(
                             openQty,
                             remQtyState
