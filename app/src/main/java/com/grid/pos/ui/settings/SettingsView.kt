@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -65,6 +66,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.grid.pos.ActivityScopedViewModel
 import com.grid.pos.App
+import com.grid.pos.BuildConfig
 import com.grid.pos.R
 import com.grid.pos.data.Company.Company
 import com.grid.pos.data.SQLServerWrapper
@@ -1177,6 +1179,19 @@ fun SettingsView(
                         }
                     }
                 }
+
+                Spacer(modifier = Modifier.weight(1f))
+
+                Text(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .wrapContentHeight(),
+                    text = "Version ${BuildConfig.VERSION_NAME}(${BuildConfig.VERSION_CODE})",
+                    color = textColorState,
+                    fontSize = 12.sp,
+                    textAlign = TextAlign.Center
+                )
+
             }
         }
         AnimatedVisibility(
