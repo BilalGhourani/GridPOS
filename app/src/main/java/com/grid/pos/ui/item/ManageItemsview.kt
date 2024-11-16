@@ -127,7 +127,7 @@ fun ManageItemsView(
     var openCostState by remember { mutableStateOf("") }
     var openQtyState by remember { mutableStateOf("") }
     var remQtyState by remember { mutableStateOf("") }
-    var itemCurrState by remember { mutableStateOf("") }
+    var itemCurrState by remember { mutableStateOf(SettingsModel.currentCurrency?.currencyCode1 ?: "") }
     var familyIdState by remember { mutableStateOf("") }
     var btnColorState by remember { mutableStateOf("") }
     var btnTextColorState by remember { mutableStateOf("") }
