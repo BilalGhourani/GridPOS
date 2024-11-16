@@ -212,7 +212,7 @@ object Utils {
                     HomeItemModel(
                         R.drawable.receipt,
                         "Paid IN",
-                        "PaymentsView"
+                        "ReceiptsView"
                     ),
                     HomeItemModel(
                         R.drawable.payment,

@@ -219,12 +219,12 @@ fun ManageThirdPartiesView(
                     .fillMaxSize()
                     .padding(it)
                     .background(color = Color.Transparent)
+                    .verticalScroll(rememberScrollState())
             ) {
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(top = 175.dp)
-                        .verticalScroll(rememberScrollState()),
+                        .padding(top = 175.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     //name

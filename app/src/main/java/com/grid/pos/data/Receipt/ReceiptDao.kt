@@ -6,6 +6,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
+import com.grid.pos.data.Payment.Payment
 
 @Dao
 interface ReceiptDao {
@@ -42,5 +43,11 @@ interface ReceiptDao {
     // Get all Companies as stream.
     @Query("SELECT * FROM `receipt`")
     fun getAllReceipts(): MutableList<Receipt>
+
+    // Get last Payments with Transaction no as stream.
+    @Query("SELECT * FROM `receipt` WHERE rec_cmp_id=:companyId AND (rec_transno IS NOT NULL AND rec_transno != '') ORDER BY rec_transno DESC LIMIT 1")
+    fun getLastTransactionByType(
+            companyId: String
+    ): Receipt?
 
 }

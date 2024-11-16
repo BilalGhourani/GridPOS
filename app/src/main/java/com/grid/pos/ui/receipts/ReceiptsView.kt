@@ -1,4 +1,4 @@
-package com.grid.pos.ui.payments
+package com.grid.pos.ui.receipts
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
@@ -49,7 +49,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.grid.pos.ActivityScopedViewModel
 import com.grid.pos.R
-import com.grid.pos.data.Payment.Payment
+import com.grid.pos.data.Receipt.Receipt
 import com.grid.pos.data.ThirdParty.ThirdParty
 import com.grid.pos.model.CurrencyModel
 import com.grid.pos.model.PaymentTypeModel
@@ -67,13 +67,13 @@ import kotlinx.coroutines.launch
     ExperimentalMaterial3Api::class
 )
 @Composable
-fun PaymentsView(
+fun ReceiptsView(
         modifier: Modifier = Modifier,
         navController: NavController? = null,
         activityScopedViewModel: ActivityScopedViewModel,
-        viewModel: PaymentsViewModel = hiltViewModel()
+        viewModel: ReceiptsViewModel = hiltViewModel()
 ) {
-    val state by viewModel.paymentsState.collectAsStateWithLifecycle()
+    val state by viewModel.receiptsState.collectAsStateWithLifecycle()
     val keyboardController = LocalSoftwareKeyboardController.current
     val amountFocusRequester = remember { FocusRequester() }
     val descFocusRequester = remember { FocusRequester() }
@@ -81,7 +81,7 @@ fun PaymentsView(
 
     var typeState by remember { mutableStateOf("") }
     var thirdPartyState by remember { mutableStateOf("") }
-    var currencyState by remember { mutableStateOf("") }
+    var currencyState by remember { mutableStateOf( "") }
     var currencyIndexState by remember { mutableIntStateOf(0) }
     var amountState by remember { mutableStateOf("") }
     var amountFirstState by remember { mutableStateOf("") }
@@ -107,8 +107,8 @@ fun PaymentsView(
     }
 
     fun clear() {
-        viewModel.currentPayment = Payment()
-        state.selectedPayment = Payment()
+        viewModel.currentReceipt = Receipt()
+        state.selectedReceipt = Receipt()
         thirdPartyState = ""
         typeState = viewModel.getDefaultType()
         currencyState = ""
@@ -124,8 +124,8 @@ fun PaymentsView(
         if (state.isLoading) {
             return
         }
-        if (state.selectedPayment.didChanged(
-                viewModel.currentPayment
+        if (state.selectedReceipt.didChanged(
+                viewModel.currentReceipt
             )
         ) {
             activityScopedViewModel.showPopup(true,
@@ -136,7 +136,7 @@ fun PaymentsView(
                     }
                     onConfirmation = {
                         saveAndBack = true
-                        viewModel.savePayment(state.selectedPayment)
+                        viewModel.saveReceipt(state.selectedReceipt)
                     }
                     dialogText = "Do you want to save your changes"
                     positiveBtnText = "Save"
@@ -188,7 +188,7 @@ fun PaymentsView(
                         },
                         title = {
                             Text(
-                                text = "Payments",
+                                text = "Receipts",
                                 color = SettingsModel.textColor,
                                 fontSize = 16.sp,
                                 textAlign = TextAlign.Center
@@ -218,7 +218,8 @@ fun PaymentsView(
                         .padding(top = 175.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    SearchableDropdownMenuEx(items = viewModel.paymentTypes,
+                    SearchableDropdownMenuEx(
+                        items = viewModel.receiptTypes,
                         modifier = Modifier.padding(
                             horizontal = 10.dp,
                             vertical = 5.dp
@@ -238,14 +239,16 @@ fun PaymentsView(
                         },
                         onLeadingIconClick = {
                             typeState = ""
-                            state.selectedPayment.paymentType = null
-                        }) { typeModel ->
+                            state.selectedReceipt.receiptType = null
+                        }
+                    ) { typeModel ->
                         typeModel as PaymentTypeModel
                         typeState = typeModel.type
-                        state.selectedPayment.paymentType = typeModel.type
+                        state.selectedReceipt.receiptType = typeModel.type
                     }
 
-                    SearchableDropdownMenuEx(items = state.currencies.toMutableList(),
+                    SearchableDropdownMenuEx(
+                        items = state.currencies.toMutableList(),
                         modifier = Modifier.padding(
                             horizontal = 10.dp,
                             vertical = 5.dp
@@ -265,13 +268,14 @@ fun PaymentsView(
                         },
                         onLeadingIconClick = {
                             currencyState = ""
-                            state.selectedPayment.paymentCurrency = null
+                            state.selectedReceipt.receiptCurrency = null
                             currencyIndexState = 0
-                        }) { currModel ->
+                        }
+                    ) { currModel ->
                         currModel as CurrencyModel
                         currencyState = currModel.getId()
-                        state.selectedPayment.paymentCurrency = currencyState
-                        currencyIndexState = state.selectedPayment.getSelectedCurrencyIndex()
+                        state.selectedReceipt.receiptCurrency = currencyState
+                        currencyIndexState = state.selectedReceipt.getSelectedCurrencyIndex()
                     }
 
                     UITextField(modifier = Modifier.padding(
@@ -282,7 +286,6 @@ fun PaymentsView(
                         label = "Amount",
                         placeHolder = "Enter Amount",
                         focusRequester = amountFocusRequester,
-                        keyboardType = KeyboardType.Decimal,
                         onAction = {
                             descFocusRequester.requestFocus()
                         }) { amount ->
@@ -290,18 +293,17 @@ fun PaymentsView(
                             amount,
                             amountState
                         )
-                        state.selectedPayment.paymentAmount = amountState.toDoubleOrNull() ?: 0.0
+                        state.selectedReceipt.receiptAmount = amountState.toDoubleOrNull() ?: 0.0
 
                         if (currencyIndexState == 1) {
-                            val second = state.selectedPayment.paymentAmount.times(SettingsModel.currentCurrency?.currencyRate ?: 1.0)
+                            val second = state.selectedReceipt.receiptAmount.times(SettingsModel.currentCurrency?.currencyRate ?: 1.0)
                             amountSecondsState = second.toString()
-                            state.selectedPayment.paymentAmountSecond = second
+                            state.selectedReceipt.receiptAmountSecond = second
                         } else if (currencyIndexState == 2) {
-                            val first = state.selectedPayment.paymentAmount.div(SettingsModel.currentCurrency?.currencyRate ?: 1.0)
+                            val first = state.selectedReceipt.receiptAmount.div(SettingsModel.currentCurrency?.currencyRate ?: 1.0)
                             amountFirstState = first.toString()
-                            state.selectedPayment.paymentAmountFirst = first
+                            state.selectedReceipt.receiptAmountFirst = first
                         }
-
                     }
 
                     if (currencyIndexState != 1) {
@@ -321,7 +323,7 @@ fun PaymentsView(
                                 amount,
                                 amountFirstState
                             )
-                            state.selectedPayment.paymentAmountFirst = amountFirstState.toDoubleOrNull() ?: 0.0
+                            state.selectedReceipt.receiptAmountFirst = amountFirstState.toDoubleOrNull() ?: 0.0
                         }
                     }
 
@@ -342,7 +344,7 @@ fun PaymentsView(
                                 amount,
                                 amountSecondsState
                             )
-                            state.selectedPayment.paymentAmountSecond = amountSecondsState.toDoubleOrNull() ?: 0.0
+                            state.selectedReceipt.receiptAmountSecond = amountSecondsState.toDoubleOrNull() ?: 0.0
                         }
                     }
 
@@ -358,7 +360,7 @@ fun PaymentsView(
                         imeAction = ImeAction.None,
                         onAction = { noteFocusRequester.requestFocus() }) { desc ->
                         descriptionState = desc
-                        state.selectedPayment.paymentDesc = desc
+                        state.selectedReceipt.receiptDesc = desc
                     }
 
                     UITextField(modifier = Modifier.padding(
@@ -373,7 +375,7 @@ fun PaymentsView(
                         imeAction = ImeAction.None,
                         onAction = { keyboardController?.hide() }) { note ->
                         noteState = note
-                        state.selectedPayment.paymentNote = note
+                        state.selectedReceipt.receiptNote = note
                     }
 
                     Row(
@@ -393,7 +395,7 @@ fun PaymentsView(
                             icon = R.drawable.save,
                             text = "Save"
                         ) {
-                            viewModel.savePayment(state.selectedPayment)
+                            viewModel.saveReceipt(state.selectedReceipt)
                         }
 
                         UIImageButton(
@@ -403,7 +405,7 @@ fun PaymentsView(
                             icon = R.drawable.delete,
                             text = "Delete"
                         ) {
-                            viewModel.deleteSelectedPayment()
+                            viewModel.deleteSelectedReceipt()
                         }
 
                         UIImageButton(
@@ -443,29 +445,31 @@ fun PaymentsView(
                     },
                     onLeadingIconClick = {
                         thirdPartyState = ""
-                        state.selectedPayment.paymentThirdParty = null
-                        state.selectedPayment.paymentThirdPartyName = null
+                        state.selectedReceipt.receiptThirdParty = null
+                        state.selectedReceipt.receiptThirdPartyName = null
                     }) { thirdParty ->
                     thirdParty as ThirdParty
                     thirdPartyState = thirdParty.thirdPartyId
-                    state.selectedPayment.paymentThirdParty = thirdPartyState
-                    state.selectedPayment.paymentThirdPartyName = thirdParty.thirdPartyName
+                    state.selectedReceipt.receiptThirdParty = thirdPartyState
+                    state.selectedReceipt.receiptThirdPartyName = thirdParty.thirdPartyName
                 }
 
-                SearchableDropdownMenuEx(items = state.payments.toMutableList(),
+                SearchableDropdownMenuEx(items = state.receipts.toMutableList(),
                     modifier = Modifier.padding(
                         top = 15.dp,
                         start = 10.dp,
                         end = 10.dp
                     ),
-                    label = "Select Payment",
-                    selectedId = state.selectedPayment.paymentId,
-                    onLoadItems = { viewModel.fetchPayments() },
+                    label = "Select Receipt",
+                    selectedId = state.selectedReceipt.receiptId,
+                    onLoadItems = {
+                        viewModel.fetchReceipts()
+                    },
                     leadingIcon = { modifier ->
-                        if (state.selectedPayment.paymentId.isNotEmpty()) {
+                        if (state.selectedReceipt.receiptId.isNotEmpty()) {
                             Icon(
                                 Icons.Default.RemoveCircleOutline,
-                                contentDescription = "remove payment",
+                                contentDescription = "remove Receipt",
                                 tint = Color.Black,
                                 modifier = modifier
                             )
@@ -473,17 +477,17 @@ fun PaymentsView(
                     },
                     onLeadingIconClick = {
                         clear()
-                    }) { payment ->
-                    payment as Payment
-                    viewModel.currentPayment = payment.copy()
-                    state.selectedPayment = payment
-                    thirdPartyState = payment.paymentThirdParty ?: ""
-                    typeState = payment.paymentType ?: ""
-                    currencyState = payment.paymentCurrency ?: ""
-                    currencyIndexState = payment.getSelectedCurrencyIndex()
-                    amountState = payment.paymentAmount.toString()
-                    descriptionState = payment.paymentDesc ?: ""
-                    noteState = payment.paymentNote ?: ""
+                    }) { receipt ->
+                    receipt as Receipt
+                    viewModel.currentReceipt = receipt.copy()
+                    state.selectedReceipt = receipt
+                    thirdPartyState = receipt.receiptThirdParty ?: ""
+                    typeState = receipt.receiptType ?: ""
+                    currencyState = receipt.receiptCurrency ?: ""
+                    currencyIndexState = receipt.getSelectedCurrencyIndex()
+                    amountState = receipt.receiptAmount.toString()
+                    descriptionState = receipt.receiptDesc ?: ""
+                    noteState = receipt.receiptNote ?: ""
                 }
             }
         }

@@ -253,12 +253,12 @@ fun AdjustmentView(
                     .fillMaxSize()
                     .padding(it)
                     .background(color = Color.Transparent)
+                    .verticalScroll(rememberScrollState())
             ) {
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(top = 90.dp)
-                        .verticalScroll(rememberScrollState()),
+                        .padding(top = 90.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
 

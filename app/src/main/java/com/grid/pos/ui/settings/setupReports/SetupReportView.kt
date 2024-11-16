@@ -176,12 +176,12 @@ fun SetupReportView(
                     .fillMaxSize()
                     .padding(it)
                     .background(color = Color.Transparent)
+                    .verticalScroll(rememberScrollState())
             ) {
                 Column(
                     modifier = modifier
                         .fillMaxSize()
-                        .padding(top = 240.dp)
-                        .verticalScroll(rememberScrollState()),
+                        .padding(top = 240.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     UIImageButton(

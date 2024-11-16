@@ -1,10 +1,10 @@
-package com.grid.pos.ui.payments
+package com.grid.pos.ui.receipts
 
 import androidx.lifecycle.viewModelScope
 import com.grid.pos.data.Currency.CurrencyRepository
 import com.grid.pos.data.DataModel
-import com.grid.pos.data.Payment.Payment
-import com.grid.pos.data.Payment.PaymentRepository
+import com.grid.pos.data.Receipt.Receipt
+import com.grid.pos.data.Receipt.ReceiptRepository
 import com.grid.pos.data.ThirdParty.ThirdParty
 import com.grid.pos.data.ThirdParty.ThirdPartyRepository
 import com.grid.pos.model.Event
@@ -22,17 +22,17 @@ import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
-class PaymentsViewModel @Inject constructor(
-        private val paymentRepository: PaymentRepository,
+class ReceiptsViewModel @Inject constructor(
+        private val receiptRepository: ReceiptRepository,
         private val thirdPartyRepository: ThirdPartyRepository,
         private val currencyRepository: CurrencyRepository,
 ) : BaseViewModel() {
 
-    private val _paymentsState = MutableStateFlow(PaymentsState())
-    val paymentsState: MutableStateFlow<PaymentsState> = _paymentsState
-    var currentPayment: Payment = Payment()
+    private val _receiptsState = MutableStateFlow(ReceiptsState())
+    val receiptsState: MutableStateFlow<ReceiptsState> = _receiptsState
+    var currentReceipt: Receipt = Receipt()
     private var clientsMap: Map<String, ThirdParty> = mutableMapOf()
-    val paymentTypes: MutableList<DataModel> = mutableListOf(
+    val receiptTypes: MutableList<DataModel> = mutableListOf(
         PaymentTypeModel("Cash"),
         PaymentTypeModel("Credit"),
         PaymentTypeModel("Debit")
@@ -46,25 +46,28 @@ class PaymentsViewModel @Inject constructor(
     }
 
     fun getDefaultType(): String {
-        if (paymentTypes.isNotEmpty()) {
-            return paymentTypes[0].getId()
+        if (receiptTypes.isNotEmpty()) {
+            return receiptTypes[0].getId()
         }
         return "Cash"
     }
 
-    fun fetchPayments() {
-        paymentsState.value = paymentsState.value.copy(
+    fun fetchReceipts() {
+        receiptsState.value = receiptsState.value.copy(
             warning = null,
             isLoading = true
         )
         viewModelScope.launch(Dispatchers.IO) {
-            val listOfPayments = paymentRepository.getAllPayments()
-            listOfPayments.map {
-                it.paymentThirdPartyName = clientsMap[it.paymentThirdParty]?.thirdPartyName
+            if (receiptsState.value.thirdParties.isEmpty()) {
+                fetchThirdParties(false)
+            }
+            val listOfReceipts = receiptRepository.getAllReceipts()
+            listOfReceipts.map {
+                it.receiptThirdPartyName = clientsMap[it.receiptThirdParty]?.thirdPartyName
             }
             withContext(Dispatchers.Main) {
-                paymentsState.value = paymentsState.value.copy(
-                    payments = listOfPayments,
+                receiptsState.value = receiptsState.value.copy(
+                    receipts = listOfReceipts,
                     isLoading = false
                 )
             }
@@ -75,7 +78,7 @@ class PaymentsViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             val currencies = currencyRepository.getAllCurrencyModels()
             withContext(Dispatchers.Main) {
-                paymentsState.value = paymentsState.value.copy(
+                receiptsState.value = receiptsState.value.copy(
                     currencies = currencies
                 )
             }
@@ -84,92 +87,93 @@ class PaymentsViewModel @Inject constructor(
 
     suspend fun fetchThirdParties(loading: Boolean = true) {
         if (loading) {
-            paymentsState.value = paymentsState.value.copy(
+            receiptsState.value = receiptsState.value.copy(
                 warning = null,
                 isLoading = true
             )
         }
         val listOfThirdParties = thirdPartyRepository.getAllThirdParties(
             listOf(
-                ThirdPartyType.PAYABLE.type,
+                ThirdPartyType.RECEIVALBE.type,
                 ThirdPartyType.PAYABLE_RECEIVALBE.type
             )
         )
+        clientsMap = listOfThirdParties.associateBy { it.thirdPartyId }
         withContext(Dispatchers.Main) {
             if (loading) {
-                paymentsState.value = paymentsState.value.copy(
+                receiptsState.value = receiptsState.value.copy(
                     thirdParties = listOfThirdParties,
                     isLoading = false
                 )
             } else {
-                paymentsState.value = paymentsState.value.copy(
+                receiptsState.value = receiptsState.value.copy(
                     thirdParties = listOfThirdParties
                 )
             }
         }
     }
 
-    fun savePayment(payment: Payment) {
-        if (payment.paymentThirdParty.isNullOrEmpty()) {
-            paymentsState.value = paymentsState.value.copy(
+    fun saveReceipt(receipt: Receipt) {
+        if (receipt.receiptThirdParty.isNullOrEmpty()) {
+            receiptsState.value = receiptsState.value.copy(
                 warning = Event("Please select a Client."),
                 isLoading = false
             )
             return
         }
-        if (payment.paymentType.isNullOrEmpty()) {
-            paymentsState.value = paymentsState.value.copy(
+        if (receipt.receiptType.isNullOrEmpty()) {
+            receiptsState.value = receiptsState.value.copy(
                 warning = Event("Please select a Type."),
                 isLoading = false
             )
             return
         }
-        if (payment.paymentCurrency.isNullOrEmpty()) {
-            paymentsState.value = paymentsState.value.copy(
+        if (receipt.receiptCurrency.isNullOrEmpty()) {
+            receiptsState.value = receiptsState.value.copy(
                 warning = Event("Please select a Currency."),
                 isLoading = false
             )
             return
         }
-        if (payment.paymentAmount == 0.0 || payment.paymentAmount.isNaN()) {
-            paymentsState.value = paymentsState.value.copy(
+        if (receipt.receiptAmount == 0.0 || receipt.receiptAmount.isNaN()) {
+            receiptsState.value = receiptsState.value.copy(
                 warning = Event("Please enter an Amount."),
                 isLoading = false
             )
             return
         }
-        paymentsState.value = paymentsState.value.copy(
+        receiptsState.value = receiptsState.value.copy(
             isLoading = true
         )
-        val isInserting = payment.isNew()
+        val isInserting = receipt.isNew()
         CoroutineScope(Dispatchers.IO).launch {
-            payment.calculateAmountsIfNeeded()
+            receipt.calculateAmountsIfNeeded()
             if (isInserting) {
-                payment.prepareForInsert()
-                val lastTransactionNo = paymentRepository.getLastTransactionNo()
-                payment.paymentTransNo = POSUtils.getInvoiceTransactionNo(
-                    lastTransactionNo?.paymentTransNo ?: ""
+                receipt.prepareForInsert()
+                val lastTransactionNo = receiptRepository.getLastTransactionNo()
+                receipt.receiptTransNo = POSUtils.getInvoiceTransactionNo(
+                    lastTransactionNo?.receiptTransNo ?: ""
                 )
-                payment.paymentTransCode = SettingsModel.defaultPayment
-                val addedModel = paymentRepository.insert(payment)
-                val payments = paymentsState.value.payments
-                if (payments.isNotEmpty()) {
-                    payments.add(addedModel)
+                receipt.receiptTransCode = SettingsModel.defaultReceipt
+                val addedModel = receiptRepository.insert(receipt)
+                val receipts = receiptsState.value.receipts
+                if (receipts.isNotEmpty()) {
+                    receipts.add(addedModel)
                 }
                 withContext(Dispatchers.Main) {
-                    paymentsState.value = paymentsState.value.copy(
-                        payments = payments,
-                        selectedPayment = addedModel,
+                    receiptsState.value = receiptsState.value.copy(
+                        receipts = receipts,
+                        selectedReceipt = addedModel,
                         isLoading = false,
                         warning = Event("successfully saved."),
                         clear = true
                     )
                 }
             } else {
-                paymentRepository.update(payment)
+                receiptRepository.update(receipt)
                 withContext(Dispatchers.Main) {
-                    paymentsState.value = paymentsState.value.copy(
-                        selectedPayment = payment,
+                    receiptsState.value = receiptsState.value.copy(
+                        selectedReceipt = receipt,
                         isLoading = false,
                         warning = Event("successfully saved."),
                         clear = true
@@ -179,28 +183,28 @@ class PaymentsViewModel @Inject constructor(
         }
     }
 
-    fun deleteSelectedPayment() {
-        val payment = paymentsState.value.selectedPayment
-        if (payment.paymentId.isEmpty()) {
-            paymentsState.value = paymentsState.value.copy(
-                warning = Event("Please select a Payment to delete"),
+    fun deleteSelectedReceipt() {
+        val receipt = receiptsState.value.selectedReceipt
+        if (receipt.receiptId.isEmpty()) {
+            receiptsState.value = receiptsState.value.copy(
+                warning = Event("Please select a Receipt to delete"),
                 isLoading = false
             )
             return
         }
-        paymentsState.value = paymentsState.value.copy(
+        receiptsState.value = receiptsState.value.copy(
             warning = null,
             isLoading = true
         )
 
         CoroutineScope(Dispatchers.IO).launch {
-            paymentRepository.delete(payment)
-            val payments = paymentsState.value.payments
-            payments.remove(payment)
+            receiptRepository.delete(receipt)
+            val receipts = receiptsState.value.receipts
+            receipts.remove(receipt)
             withContext(Dispatchers.Main) {
-                paymentsState.value = paymentsState.value.copy(
-                    payments = payments,
-                    selectedPayment = Payment(),
+                receiptsState.value = receiptsState.value.copy(
+                    receipts = receipts,
+                    selectedReceipt = Receipt(),
                     isLoading = false,
                     warning = Event("successfully deleted."),
                     clear = true

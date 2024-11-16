@@ -188,6 +188,9 @@ data class Payment(
         if (paymentId.isEmpty()) {
             paymentId = Utils.generateRandomUuidString()
         }
+
+        paymentCompanyId = SettingsModel.getCompanyID()
+        paymentUserStamp = SettingsModel.currentUserId
     }
 
     @Exclude
@@ -196,13 +199,35 @@ data class Payment(
     }
 
     @Exclude
-    fun calculateAmountFirstAndSecond() {
-        if (paymentCurrency == SettingsModel.currentCurrency?.currencyCode1) {
-            paymentAmountFirst = paymentAmount
-            paymentAmountSecond = paymentAmount.times(SettingsModel.currentCurrency?.currencyRate ?: 1.0)
-        } else {
-            paymentAmountFirst = paymentAmount.times(SettingsModel.currentCurrency?.currencyRate ?: 1.0)
-            paymentAmountSecond = paymentAmount
+    fun getSelectedCurrencyIndex(): Int {
+        return when (paymentCurrency) {
+            SettingsModel.currentCurrency?.currencyCode1 -> {
+                1
+            }
+
+            SettingsModel.currentCurrency?.currencyCode2 -> {
+                2
+            }
+
+            else -> {
+                0
+            }
+        }
+    }
+
+    @Exclude
+    fun calculateAmountsIfNeeded() {
+        when (paymentCurrency) {
+            SettingsModel.currentCurrency?.currencyCode1 -> {
+                paymentAmountFirst = paymentAmount
+            }
+
+            SettingsModel.currentCurrency?.currencyCode2 -> {
+                paymentAmountSecond = paymentAmount
+            }
+
+            else -> {
+            }
         }
     }
 

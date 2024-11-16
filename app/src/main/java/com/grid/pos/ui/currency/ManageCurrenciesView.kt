@@ -199,6 +199,7 @@ fun ManageCurrenciesView(
                     .fillMaxSize()
                     .padding(it)
                     .background(color = Color.Transparent)
+                    .verticalScroll(rememberScrollState())
             ) {
                 Box(
                     modifier = Modifier.fillMaxSize(),
@@ -206,8 +207,7 @@ fun ManageCurrenciesView(
                 ) {
                     Column(
                         modifier = Modifier
-                            .fillMaxSize()
-                            .verticalScroll(rememberScrollState()),
+                            .fillMaxSize(),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
 

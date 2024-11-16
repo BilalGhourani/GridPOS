@@ -18,4 +18,6 @@ interface ReceiptRepository {
     // Get all Receipts logs as stream.
     suspend fun getAllReceipts(): MutableList<Receipt>
 
+    suspend fun getLastTransactionNo(): Receipt?
+
 }

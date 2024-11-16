@@ -1,6 +1,7 @@
 package com.grid.pos.data.Receipt
 
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.SettingsModel
 import kotlinx.coroutines.tasks.await
@@ -53,6 +54,9 @@ class ReceiptRepositoryImpl(
             CONNECTION_TYPE.FIRESTORE.key -> {
                 val querySnapshot = FirebaseFirestore.getInstance().collection("receipt")
                     .whereEqualTo(
+                        "rec_cmp_id",
+                        SettingsModel.getCompanyID()
+                    ).whereEqualTo(
                         "pay_id",
                         id
                     ).get().await()
@@ -65,8 +69,7 @@ class ReceiptRepositoryImpl(
             }
 
             else -> {//CONNECTION_TYPE.SQL_SERVER.key
-                val receipts: MutableList<Receipt> = mutableListOf()
-                /*try {
+                val receipts: MutableList<Receipt> = mutableListOf()/*try {
                     val where = "cmp_id='$id'"
                     val dbResult = SQLServerWrapper.getListOf(
                         "company",
@@ -109,8 +112,11 @@ class ReceiptRepositoryImpl(
     override suspend fun getAllReceipts(): MutableList<Receipt> {
         return when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
-                val querySnapshot = FirebaseFirestore.getInstance().collection("receipt").get()
-                    .await()
+                val querySnapshot = FirebaseFirestore.getInstance().collection("receipt")
+                    .whereEqualTo(
+                        "rec_cmp_id",
+                        SettingsModel.getCompanyID()
+                    ).get().await()
                 val receipts = mutableListOf<Receipt>()
                 if (querySnapshot.size() > 0) {
                     for (document in querySnapshot) {
@@ -129,8 +135,7 @@ class ReceiptRepositoryImpl(
             }
 
             else -> {//CONNECTION_TYPE.SQL_SERVER.key
-                val receipts: MutableList<Receipt> = mutableListOf()
-                /*try {
+                val receipts: MutableList<Receipt> = mutableListOf()/*try {
                     val where = "cmp_id='${SettingsModel.getCompanyID()}'"
                     val dbResult = SQLServerWrapper.getListOf(
                         "company",
@@ -167,6 +172,55 @@ class ReceiptRepositoryImpl(
                     e.printStackTrace()
                 }*/
                 receipts
+            }
+        }
+    }
+
+    override suspend fun getLastTransactionNo(): Receipt? {
+        when (SettingsModel.connectionType) {
+            CONNECTION_TYPE.FIRESTORE.key -> {
+                val querySnapshot = FirebaseFirestore.getInstance().collection("receipt")
+                    .whereEqualTo(
+                        "rec_cmp_id",
+                        SettingsModel.getCompanyID()
+                    ).whereNotEqualTo(
+                        "rec_transno",
+                        null
+                    ).orderBy(
+                        "pay_transno",
+                        Query.Direction.DESCENDING
+                    ).limit(1).get().await()
+                val document = querySnapshot.firstOrNull()
+                return document?.toObject(Receipt::class.java)
+            }
+
+            CONNECTION_TYPE.LOCAL.key -> {
+                return receiptDao.getLastTransactionByType(
+                    SettingsModel.getCompanyID() ?: ""
+                )
+            }
+
+            else -> {
+                return null/*val invoiceHeaders: MutableList<InvoiceHeader> = mutableListOf()
+                try {
+                    val where = "hi_cmp_id='${SettingsModel.getCompanyID()}' AND hi_tt_code = '$type' AND hi_transno IS NOT NULL AND hi_transno <> '' AND hi_transno <> '0'"
+                    val dbResult = SQLServerWrapper.getListOf(
+                        "in_hinvoice",
+                        "TOP 1",
+                        mutableListOf("*"),
+                        where,
+                        "ORDER BY hi_transno DESC"
+                    )
+                    dbResult?.let {
+                        while (it.next()) {
+                            invoiceHeaders.add(fillParams(it))
+                        }
+                        SQLServerWrapper.closeResultSet(it)
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+                return if (invoiceHeaders.size > 0) invoiceHeaders[0] else null*/
             }
         }
     }

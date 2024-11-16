@@ -19,6 +19,7 @@ import com.grid.pos.ui.login.LoginView
 import com.grid.pos.ui.payments.PaymentsView
 import com.grid.pos.ui.pos.POSView
 import com.grid.pos.ui.posPrinter.POSPrinterView
+import com.grid.pos.ui.receipts.ReceiptsView
 import com.grid.pos.ui.reports.SalesReportsView
 import com.grid.pos.ui.settings.BackupView
 import com.grid.pos.ui.settings.SettingsView
@@ -163,6 +164,13 @@ fun AuthNavGraph(
 
         composable(route = "PaymentsView") {
             PaymentsView(
+                navController = navController,
+                activityScopedViewModel = activityViewModel
+            )
+        }
+
+        composable(route = "ReceiptsView") {
+            ReceiptsView(
                 navController = navController,
                 activityScopedViewModel = activityViewModel
             )

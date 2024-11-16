@@ -8,8 +8,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -221,69 +219,63 @@ fun LoginView(
                     .fillMaxSize()
                     .padding(it)
                     .background(color = Color.Transparent)
+                    .verticalScroll(rememberScrollState())
             ) {
-                Box(
+                Column(
                     modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.TopCenter
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .verticalScroll(rememberScrollState()),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        UITextField(modifier = Modifier.padding(10.dp),
-                            defaultValue = usernameState,
-                            label = "Username",
-                            placeHolder = "Username",
-                            onAction = { passwordFocusRequester.requestFocus() }) { username ->
-                            usernameState = username
-                        }
+                    UITextField(modifier = Modifier.padding(10.dp),
+                        defaultValue = usernameState,
+                        label = "Username",
+                        placeHolder = "Username",
+                        onAction = { passwordFocusRequester.requestFocus() }) { username ->
+                        usernameState = username
+                    }
 
-                        UITextField(modifier = Modifier.padding(10.dp),
-                            defaultValue = passwordState,
-                            label = "Password",
-                            placeHolder = "Password",
-                            focusRequester = passwordFocusRequester,
-                            keyboardType = KeyboardType.Password,
-                            imeAction = ImeAction.Done,
-                            visualTransformation = if (passwordVisibility) VisualTransformation.None else PasswordVisualTransformation(),
-                            onAction = {
-                                keyboardController?.hide()
-                                viewModel.login(
-                                    context,
-                                    usernameState.trim(),
-                                    passwordState.trim()
-                                )
-                            },
-                            trailingIcon = {
-                                IconButton(onClick = { passwordVisibility = !passwordVisibility }) {
-                                    Icon(
-                                        imageVector = if (passwordVisibility) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
-                                        contentDescription = if (passwordVisibility) "Hide password" else "Show password",
-                                        tint = SettingsModel.buttonColor
-                                    )
-                                }
-                            }) { password ->
-                            passwordState = password
-                        }
-                        UIImageButton(
-                            modifier = Modifier
-                                .wrapContentWidth()
-                                .height(100.dp)
-                                .padding(10.dp),
-                            icon = R.drawable.login,
-                            text = "Login",
-                            iconSize = 60.dp,
-                            isVertical = false
-                        ) {
+                    UITextField(modifier = Modifier.padding(10.dp),
+                        defaultValue = passwordState,
+                        label = "Password",
+                        placeHolder = "Password",
+                        focusRequester = passwordFocusRequester,
+                        keyboardType = KeyboardType.Password,
+                        imeAction = ImeAction.Done,
+                        visualTransformation = if (passwordVisibility) VisualTransformation.None else PasswordVisualTransformation(),
+                        onAction = {
                             keyboardController?.hide()
                             viewModel.login(
                                 context,
                                 usernameState.trim(),
                                 passwordState.trim()
                             )
-                        }
+                        },
+                        trailingIcon = {
+                            IconButton(onClick = { passwordVisibility = !passwordVisibility }) {
+                                Icon(
+                                    imageVector = if (passwordVisibility) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
+                                    contentDescription = if (passwordVisibility) "Hide password" else "Show password",
+                                    tint = SettingsModel.buttonColor
+                                )
+                            }
+                        }) { password ->
+                        passwordState = password
+                    }
+                    UIImageButton(
+                        modifier = Modifier
+                            .wrapContentWidth()
+                            .height(100.dp)
+                            .padding(10.dp),
+                        icon = R.drawable.login,
+                        text = "Login",
+                        iconSize = 60.dp,
+                        isVertical = false
+                    ) {
+                        keyboardController?.hide()
+                        viewModel.login(
+                            context,
+                            usernameState.trim(),
+                            passwordState.trim()
+                        )
                     }
                 }
             }

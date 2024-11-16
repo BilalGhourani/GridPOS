@@ -188,6 +188,9 @@ data class Receipt(
         if (receiptId.isEmpty()) {
             receiptId = Utils.generateRandomUuidString()
         }
+
+        receiptCompanyId = SettingsModel.getCompanyID()
+        receiptUserStamp = SettingsModel.currentUserId
     }
 
     @Exclude
@@ -195,6 +198,39 @@ data class Receipt(
         return !receipt.receiptDesc.equals(receiptDesc) || !receipt.receiptNote.equals(receiptNote) ||
          !receipt.receiptThirdParty.equals(receiptThirdParty) || !receipt.receiptCurrency.equals(receiptCurrency) ||
          !receipt.receiptType.equals(receiptType) || !receipt.receiptAmount.equals(receiptAmount)
+    }
+
+    @Exclude
+    fun getSelectedCurrencyIndex(): Int {
+        return when (receiptCurrency) {
+            SettingsModel.currentCurrency?.currencyCode1 -> {
+                1
+            }
+
+            SettingsModel.currentCurrency?.currencyCode2 -> {
+                2
+            }
+
+            else -> {
+                0
+            }
+        }
+    }
+
+    @Exclude
+    fun calculateAmountsIfNeeded() {
+        when (receiptCurrency) {
+            SettingsModel.currentCurrency?.currencyCode1 -> {
+                receiptAmountFirst = receiptAmount
+            }
+
+            SettingsModel.currentCurrency?.currencyCode2 -> {
+                receiptAmountSecond = receiptAmount
+            }
+
+            else -> {
+            }
+        }
     }
 
     @Exclude
