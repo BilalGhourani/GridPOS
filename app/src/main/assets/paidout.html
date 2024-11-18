@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+
+<style type="text/css">
+    .text {
+        font-weight: bold;
+        font-size: 15px;
+        margin-bottom: 20px;
+    }
+
+    .text1 {
+        font-weight: bold;
+        margin-top: 10px;
+    }
+
+    .text2 {
+        font-weight: bold;
+        font-size: 20px;
+    }
+
+    hr.dashed {
+        border-top: 5px dotted #000;
+        width: 200px;
+    }
+</style>
+
+<body>
+    <div style="margin: 10px; display: flex; align-items: start; justify-content: start; flex-direction: column;">
+        <div
+            style="align-items: start; justify-content: start;">
+            <div class="text">Payment Voucher</div>
+        </div>
+        <div style="display: flex; align-items: start; justify-content: start; flex-direction: column;">
+            <div>User: {paidOutUserValue}</div>
+            <div>PAY OUT # {paidOutNumberValue}</div>
+            <div>Date: {PaidOutDateValue}</div>
+        </div>
+        <hr class="dashed">
+        <div style="display: flex; align-items: start; justify-content: start; flex-direction: column;">
+            <div>Paid Amount</div>
+            <div class="text1">{paidOutAmountValue}</div>
+        </div>
+        <hr class="dashed">
+        <div style="display: flex; align-items: start; justify-content: start; flex-direction: column;">
+            <div class="text1">For: {paidOutSupplierValue}</div>
+            <div>Description: {paidOutDescriptionValue}</div>
+            <div class="text1">Bal: {paidOutBalanceValue}</div>
+        </div>
+        <hr class="dashed">
+</body>
+
+</html>

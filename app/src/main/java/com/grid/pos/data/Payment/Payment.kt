@@ -249,4 +249,12 @@ data class Payment(
             "pay_userstamp" to paymentUserStamp,
         )
     }
+
+    @Exclude
+    fun getPaymentDate(): Date {
+        if (paymentTimeStamp != null) {
+            return paymentTimeStamp!!
+        }
+        return Date(paymentDateTime)
+    }
 }

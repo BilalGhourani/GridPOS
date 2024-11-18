@@ -83,6 +83,7 @@ import com.grid.pos.ui.pos.components.InvoiceBodyDetails
 import com.grid.pos.ui.pos.components.InvoiceCashView
 import com.grid.pos.ui.pos.components.InvoiceFooterView
 import com.grid.pos.ui.pos.components.InvoiceHeaderDetails
+import com.grid.pos.ui.settings.setupReports.ReportTypeEnum
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.utils.PrinterUtils
 import com.grid.pos.utils.Utils
@@ -231,6 +232,7 @@ fun POSView(
                 activityViewModel.invoiceItemModels = invoicesState
                 activityViewModel.deletedInvoiceItems = state.itemsToDelete
                 activityViewModel.invoiceHeader = invoiceHeaderState.value
+                activityViewModel.printedReportType = ReportTypeEnum.PAY_SLIP
                 cashLoadedData()
                 navController?.navigate("UIWebView")
             } else if (SettingsModel.autoPrintTickets) {

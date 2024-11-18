@@ -12,6 +12,7 @@ data class PaymentsState(
         val currencies: MutableList<CurrencyModel> = mutableListOf(),
         var selectedPayment: Payment = Payment(),
         val isLoading: Boolean = false,
+        var isSaved: Boolean = false,
         var clear: Boolean = false,
         val warning: Event<String>? = null,
 )

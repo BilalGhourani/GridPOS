@@ -58,6 +58,7 @@ import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.SearchableDropdownMenuEx
 import com.grid.pos.ui.common.UIImageButton
 import com.grid.pos.ui.common.UITextField
+import com.grid.pos.ui.settings.setupReports.ReportTypeEnum
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.utils.Utils
 import kotlinx.coroutines.Dispatchers
@@ -81,7 +82,7 @@ fun ReceiptsView(
 
     var typeState by remember { mutableStateOf("") }
     var thirdPartyState by remember { mutableStateOf("") }
-    var currencyState by remember { mutableStateOf( "") }
+    var currencyState by remember { mutableStateOf("") }
     var currencyIndexState by remember { mutableIntStateOf(0) }
     var amountState by remember { mutableStateOf("") }
     var amountFirstState by remember { mutableStateOf("") }
@@ -156,7 +157,16 @@ fun ReceiptsView(
             handleBack()
         }
     }
-    LaunchedEffect(state.clear) {
+    LaunchedEffect(
+        state.clear,
+        state.isSaved
+    ) {
+        if (state.isSaved) {
+            activityScopedViewModel.receipt = state.selectedReceipt.copy()
+            activityScopedViewModel.printedReportType = ReportTypeEnum.RECEIPT_VOUCHER
+            clear()
+            navController?.navigate("UIWebView")
+        }
         if (state.clear) {
             clearAndBack()
         }
@@ -218,8 +228,7 @@ fun ReceiptsView(
                         .padding(top = 175.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    SearchableDropdownMenuEx(
-                        items = viewModel.receiptTypes,
+                    SearchableDropdownMenuEx(items = viewModel.receiptTypes,
                         modifier = Modifier.padding(
                             horizontal = 10.dp,
                             vertical = 5.dp
@@ -240,15 +249,13 @@ fun ReceiptsView(
                         onLeadingIconClick = {
                             typeState = ""
                             state.selectedReceipt.receiptType = null
-                        }
-                    ) { typeModel ->
+                        }) { typeModel ->
                         typeModel as PaymentTypeModel
                         typeState = typeModel.type
                         state.selectedReceipt.receiptType = typeModel.type
                     }
 
-                    SearchableDropdownMenuEx(
-                        items = state.currencies.toMutableList(),
+                    SearchableDropdownMenuEx(items = state.currencies.toMutableList(),
                         modifier = Modifier.padding(
                             horizontal = 10.dp,
                             vertical = 5.dp
@@ -270,8 +277,7 @@ fun ReceiptsView(
                             currencyState = ""
                             state.selectedReceipt.receiptCurrency = null
                             currencyIndexState = 0
-                        }
-                    ) { currModel ->
+                        }) { currModel ->
                         currModel as CurrencyModel
                         currencyState = currModel.getId()
                         state.selectedReceipt.receiptCurrency = currencyState

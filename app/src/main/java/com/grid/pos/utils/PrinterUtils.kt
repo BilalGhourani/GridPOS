@@ -18,8 +18,10 @@ import com.google.zxing.WriterException
 import com.grid.pos.data.Company.Company
 import com.grid.pos.data.Currency.Currency
 import com.grid.pos.data.InvoiceHeader.InvoiceHeader
+import com.grid.pos.data.Payment.Payment
 import com.grid.pos.data.PosPrinter.PosPrinter
 import com.grid.pos.data.PosReceipt.PosReceipt
+import com.grid.pos.data.Receipt.Receipt
 import com.grid.pos.data.ThirdParty.ThirdParty
 import com.grid.pos.data.User.User
 import com.grid.pos.model.Country
@@ -1144,56 +1146,161 @@ object PrinterUtils {
         )
     }
 
+    private fun getPaymentReportResult(
+            context: Context,
+            isPayment: Boolean
+    ): ReportResult {
+        val fileName = if (isPayment) ReportTypeEnum.PAYMENT_VOUCHER.key else ReportTypeEnum.RECEIPT_VOUCHER.key
+        var paymentVoucher = FileUtils.getHtmlFile(
+            context,
+            "${SettingsModel.defaultReportCountry}/${SettingsModel.defaultReportLanguage}/$fileName.html"
+        )
+        if (paymentVoucher.isEmpty()) {
+            paymentVoucher = FileUtils.getHtmlFile(
+                context,
+                "${Country.DEFAULT.value}/${SettingsModel.defaultReportLanguage}/$fileName.html"
+            )
+        }
+        if (paymentVoucher.isEmpty()) {
+            paymentVoucher = FileUtils.getHtmlFile(
+                context,
+                "${SettingsModel.defaultReportCountry}/${Language.DEFAULT.value}/$fileName.html"
+            )
+        }
+        if (paymentVoucher.isEmpty()) {
+            paymentVoucher = FileUtils.getHtmlFile(
+                context,
+                "${Country.DEFAULT.value}/${Language.DEFAULT.value}/$fileName.html"
+            )
+        }
+        if (paymentVoucher.isNotEmpty()) {
+            return ReportResult(
+                true,
+                paymentVoucher
+            )
+        }
+        paymentVoucher = FileUtils.readFileFromAssets(
+            "fallback.html",
+            context
+        )
+
+        return ReportResult(
+            false,
+            paymentVoucher
+        )
+    }
+
+    fun getPaymentHtmlContent(
+            context: Context,
+            payment: Payment,
+            user: User?,
+            thirdParty: ThirdParty?
+    ): ReportResult {
+        val result = getPaymentReportResult(
+            context,
+            true
+        )
+        if (!result.found) {
+            return result
+        }
+        val paymentDate = payment.getPaymentDate()
+        var htmlContent = result.htmlContent
+        htmlContent = htmlContent.replace(
+            "{table_name}",
+            user?.userName ?: ""
+        ).replace(
+            "{paidOutNumberValue}",
+            payment.paymentTransNo ?: ""
+        ).replace(
+            "{PaidOutDateValue}",
+            DateHelper.getDateInFormat(
+                paymentDate,
+                "dd/MM/yyyy hh:mm:ss"
+            )
+        ).replace(
+            "{paidOutAmountValue}",
+            POSUtils.formatDouble(
+                payment.paymentAmount,
+                2
+            )
+        ).replace(
+            "{paidOutSupplierValue}",
+            thirdParty?.thirdPartyName ?: ""
+        ).replace(
+            "{paidOutDescriptionValue}",
+            payment.paymentDesc ?: ""
+        ).replace(
+            "{paidOutBalanceValue}",
+            ""
+        )
+        return ReportResult(
+            true,
+            htmlContent
+        )
+    }
+
+    fun getReceiptHtmlContent(
+            context: Context,
+            receipt: Receipt,
+            user: User?,
+            thirdParty: ThirdParty?
+    ): ReportResult {
+        val result = getPaymentReportResult(
+            context,
+            false
+        )
+        if (!result.found) {
+            return result
+        }
+        val paymentDate = receipt.getPaymentDate()
+        var htmlContent = result.htmlContent
+        htmlContent = htmlContent.replace(
+            "{table_name}",
+            user?.userName ?: ""
+        ).replace(
+            "{paidOutNumberValue}",
+            receipt.receiptTransNo ?: ""
+        ).replace(
+            "{PaidOutDateValue}",
+            DateHelper.getDateInFormat(
+                paymentDate,
+                "dd/MM/yyyy hh:mm:ss"
+            )
+        ).replace(
+            "{paidOutAmountValue}",
+            POSUtils.formatDouble(
+                receipt.receiptAmount,
+                2
+            )
+        ).replace(
+            "{paidOutSupplierValue}",
+            thirdParty?.thirdPartyName ?: ""
+        ).replace(
+            "{paidOutDescriptionValue}",
+            receipt.receiptDesc ?: ""
+        ).replace(
+            "{paidOutBalanceValue}",
+            ""
+        )
+        return ReportResult(
+            true,
+            htmlContent
+        )
+    }
+
     suspend fun print(
             context: Context,
             invoiceHeader: InvoiceHeader,
             invoiceItemModels: MutableList<InvoiceItemModel>,
-            posReceipt: PosReceipt,
-            thirdParty: ThirdParty?,
-            user: User?,
-            company: Company?,
+            cashPrinter: String,
             printers: MutableList<PosPrinter>,
-            reportResult: ReportResult?,
-            printInvoice: Boolean = true
+            reportResult: ReportResult
     ) {
-        if (printInvoice && !SettingsModel.cashPrinter.isNullOrEmpty()) {
-            val reportRes = reportResult ?: getInvoiceReceiptHtmlContent(
-                context = context,
-                invoiceHeader = invoiceHeader,
-                invoiceItemModels = invoiceItemModels,
-                posReceipt = posReceipt,
-                thirdParty = thirdParty,
-                user = user,
-                company = company
-            )
-            if (reportRes.found) {
-                val output = parseHtmlContent(reportRes.htmlContent)
-                var ipAddress = ""
-                var port = ""
-                if (SettingsModel.cashPrinter!!.contains(":")) {
-                    val printerDetails = SettingsModel.cashPrinter!!.split(":")
-                    if (printerDetails.size == 2) {
-                        if (isIpValid(printerDetails[0])) {
-                            ipAddress = printerDetails[0]
-                            port = printerDetails[1]
-                        } else {
-                            ipAddress = SettingsModel.cashPrinter!!
-                            port = "9100"
-                        }
-                    }
-                } else {
-                    ipAddress = SettingsModel.cashPrinter!!
-                    port = "9100"
-                }
-                printOutput(
-                    context = context,
-                    output = output,
-                    printerName = SettingsModel.cashPrinter,
-                    printerIP = ipAddress,
-                    printerPort = port.toIntOrNull() ?: 9100
-                )
-            }
-        }
+        printReport(
+            context,
+            cashPrinter,
+            reportResult
+        )
 
         if (SettingsModel.autoPrintTickets) {
             printTickets(
@@ -1201,6 +1308,40 @@ object PrinterUtils {
                 invoiceHeader = invoiceHeader,
                 invoiceItemModels = invoiceItemModels,
                 printers = printers
+            )
+        }
+    }
+
+    suspend fun printReport(
+            context: Context,
+            cashPrinter: String,
+            reportResult: ReportResult
+    ) {
+        if (reportResult.found) {
+            val output = parseHtmlContent(reportResult.htmlContent)
+            var ipAddress = ""
+            var port = ""
+            if (cashPrinter.contains(":")) {
+                val printerDetails = cashPrinter.split(":")
+                if (printerDetails.size == 2) {
+                    if (isIpValid(printerDetails[0])) {
+                        ipAddress = printerDetails[0]
+                        port = printerDetails[1]
+                    } else {
+                        ipAddress = cashPrinter
+                        port = "9100"
+                    }
+                }
+            } else {
+                ipAddress = cashPrinter
+                port = "9100"
+            }
+            printOutput(
+                context = context,
+                output = output,
+                printerName = cashPrinter,
+                printerIP = ipAddress,
+                printerPort = port.toIntOrNull() ?: 9100
             )
         }
     }

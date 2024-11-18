@@ -18,19 +18,23 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import com.grid.pos.ActivityScopedViewModel
+import com.grid.pos.model.ReportResult
 import com.grid.pos.model.SettingsModel
+import com.grid.pos.ui.settings.setupReports.ReportTypeEnum
 import com.grid.pos.ui.theme.GridPOSTheme
+import com.grid.pos.utils.FileUtils
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -45,7 +49,50 @@ fun UIWebView(
 ) {
     val context = LocalContext.current
     val reportResultState = remember {
-        mutableStateOf(activityViewModel.getInvoiceReceiptHtmlContent(context))
+        mutableStateOf(
+            ReportResult(
+                false,
+                ""
+            )
+        )
+    }
+    val scope = rememberCoroutineScope()
+    LaunchedEffect(Unit) {
+        activityViewModel.showLoading(true)
+        scope.launch(Dispatchers.IO) {
+            reportResultState.value = when (activityViewModel.printedReportType) {
+                ReportTypeEnum.PAY_SLIP -> {
+                    activityViewModel.getInvoiceReceiptHtmlContent(context)
+                }
+
+                ReportTypeEnum.RECEIPT_VOUCHER -> {
+                    activityViewModel.getPaymentHtmlContent(
+                        context,
+                        false
+                    )
+                }
+
+                ReportTypeEnum.PAYMENT_VOUCHER -> {
+                    activityViewModel.getPaymentHtmlContent(
+                        context,
+                        true
+                    )
+                }
+
+                else -> {
+                    ReportResult(
+                        false,
+                        FileUtils.readFileFromAssets(
+                            "fallback.html",
+                            context
+                        )
+                    )
+                }
+            }
+            withContext(Dispatchers.Main){
+                activityViewModel.showLoading(false)
+            }
+        }
     }
     val webView = remember {
         WebView(context).apply {
@@ -122,10 +169,9 @@ fun UIWebView(
                         CoroutineScope(Dispatchers.Default).launch {
                             activityViewModel.print(
                                 context = context,
-                                printInvoice = true,
                                 reportResult = reportResultState.value
                             )
-                            withContext(Dispatchers.Main){
+                            withContext(Dispatchers.Main) {
                                 activityViewModel.showLoading(false)
                                 handleBack()
                             }

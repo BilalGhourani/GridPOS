@@ -197,6 +197,37 @@ class CurrencyRepositoryImpl(
             }
 
             else -> {
+                val currencyModels = mutableListOf<CurrencyModel>()
+                try {
+                    val companyID = SettingsModel.getCompanyID()
+                    val where = if (SettingsModel.isSqlServerWebDb) {
+                        "cur_cmp_id='$companyID'"
+                    } else ""
+
+                    val dbResult = SQLServerWrapper.getListOf(
+                        "currency",
+                        "",
+                        mutableListOf("*"),
+                        where,
+                        "ORDER BY cur_order ASC"
+                    )
+                    dbResult?.let {
+                        while (it.next()) {
+                            currencyModels.add(
+                                CurrencyModel(
+                                    currencyId = it.getStringValue("cur_code"),
+                                    currencyName = it.getStringValue("cur_name")
+                                )
+                            )
+                        }
+                        SQLServerWrapper.closeResultSet(it)
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+                return currencyModels
+            }
+            /*else -> {
                 val currencies = mutableListOf<CurrencyModel>()
                 SettingsModel.currentCurrency?.let {
                     if (it.currencyId.isNotEmpty()) {
@@ -217,7 +248,7 @@ class CurrencyRepositoryImpl(
                     }
                 }
                 currencies
-            }
+            }*/
         }
     }
 }

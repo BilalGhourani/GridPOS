@@ -13,6 +13,7 @@ data class ReceiptsState(
         val currencies: MutableList<CurrencyModel> = mutableListOf(),
         var selectedReceipt: Receipt = Receipt(),
         val isLoading: Boolean = false,
+        var isSaved: Boolean = false,
         var clear: Boolean = false,
         val warning: Event<String>? = null,
 )

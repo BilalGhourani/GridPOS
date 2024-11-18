@@ -162,7 +162,8 @@ class PaymentsViewModel @Inject constructor(
                         selectedPayment = addedModel,
                         isLoading = false,
                         warning = Event("successfully saved."),
-                        clear = true
+                        isSaved = true,
+                        clear = false
                     )
                 }
             } else {
@@ -172,7 +173,8 @@ class PaymentsViewModel @Inject constructor(
                         selectedPayment = payment,
                         isLoading = false,
                         warning = Event("successfully saved."),
-                        clear = true
+                        isSaved = true,
+                        clear = false
                     )
                 }
             }
@@ -203,7 +205,8 @@ class PaymentsViewModel @Inject constructor(
                     selectedPayment = Payment(),
                     isLoading = false,
                     warning = Event("successfully deleted."),
-                    clear = true
+                    clear = true,
+                    isSaved = false
                 )
             }
         }

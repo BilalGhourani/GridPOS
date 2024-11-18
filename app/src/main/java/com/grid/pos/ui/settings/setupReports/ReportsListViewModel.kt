@@ -108,5 +108,5 @@ class ReportsListViewModel @Inject constructor() : ViewModel() {
 enum class ReportTypeEnum(
         val key: String
 ) {
-    PAY_SLIP("Pay-Slip"), PAY_TICKET("Pay-Ticket")
+    PAY_SLIP("Pay-Slip"), PAY_TICKET("Pay-Ticket"), PAYMENT_VOUCHER("Payment-Voucher"), RECEIPT_VOUCHER("Receipt-Voucher")
 }

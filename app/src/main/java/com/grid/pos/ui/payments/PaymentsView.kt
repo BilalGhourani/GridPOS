@@ -58,6 +58,7 @@ import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.SearchableDropdownMenuEx
 import com.grid.pos.ui.common.UIImageButton
 import com.grid.pos.ui.common.UITextField
+import com.grid.pos.ui.settings.setupReports.ReportTypeEnum
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.utils.Utils
 import kotlinx.coroutines.Dispatchers
@@ -156,7 +157,16 @@ fun PaymentsView(
             handleBack()
         }
     }
-    LaunchedEffect(state.clear) {
+    LaunchedEffect(
+        state.clear,
+        state.isSaved
+    ) {
+        if (state.isSaved) {
+            activityScopedViewModel.payment = state.selectedPayment.copy()
+            activityScopedViewModel.printedReportType = ReportTypeEnum.PAYMENT_VOUCHER
+            clear()
+            navController?.navigate("UIWebView")
+        }
         if (state.clear) {
             clearAndBack()
         }

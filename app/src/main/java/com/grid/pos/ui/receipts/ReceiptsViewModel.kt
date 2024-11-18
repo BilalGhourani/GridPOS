@@ -166,7 +166,8 @@ class ReceiptsViewModel @Inject constructor(
                         selectedReceipt = addedModel,
                         isLoading = false,
                         warning = Event("successfully saved."),
-                        clear = true
+                        isSaved = true,
+                        clear = false
                     )
                 }
             } else {
@@ -176,7 +177,8 @@ class ReceiptsViewModel @Inject constructor(
                         selectedReceipt = receipt,
                         isLoading = false,
                         warning = Event("successfully saved."),
-                        clear = true
+                        isSaved = true,
+                        clear = false
                     )
                 }
             }
@@ -207,7 +209,8 @@ class ReceiptsViewModel @Inject constructor(
                     selectedReceipt = Receipt(),
                     isLoading = false,
                     warning = Event("successfully deleted."),
-                    clear = true
+                    clear = true,
+                    isSaved = false
                 )
             }
         }

@@ -251,4 +251,12 @@ data class Receipt(
             "rec_userstamp" to receiptUserStamp,
         )
     }
+
+    @Exclude
+    fun getPaymentDate(): Date {
+        if (receiptTimeStamp != null) {
+            return receiptTimeStamp!!
+        }
+        return Date(receiptDateTime)
+    }
 }
