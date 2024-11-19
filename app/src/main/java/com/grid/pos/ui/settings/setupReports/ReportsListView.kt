@@ -19,7 +19,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -48,6 +47,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -70,7 +70,6 @@ import com.grid.pos.model.ReportTypeModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.SearchableDropdownMenuEx
 import com.grid.pos.ui.theme.GridPOSTheme
-import com.grid.pos.ui.theme.LightGrey
 import com.grid.pos.utils.FileUtils
 import kotlinx.coroutines.launch
 import java.io.File
@@ -88,11 +87,9 @@ fun ReportsListView(
     val state: ReportsListState by viewModel.state.collectAsState(
         ReportsListState()
     )
-
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
-    var selectedType by remember { mutableStateOf(ReportTypeEnum.PAY_SLIP.key) }
     var deletePopupState by remember { mutableStateOf(false) }
     val fileModelState = remember { mutableStateOf(FileModel()) }
 
@@ -185,7 +182,7 @@ fun ReportsListView(
                         },
                         actions = {
                             IconButton(onClick = {
-                                activityViewModel.selectedReportType = selectedType
+                                activityViewModel.selectedReportType = state.selectedType
                                 navController?.navigate("SetupReportView")
                             }) {
                                 Icon(
@@ -208,8 +205,7 @@ fun ReportsListView(
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
-                    val dataArray = state.getFileModels(selectedType)
-                    if (dataArray.isEmpty()) {
+                    if (viewModel.filteredReports.isEmpty()) {
                         Spacer(
                             modifier = Modifier.height(20.dp)
                         )
@@ -231,7 +227,7 @@ fun ReportsListView(
                                 .weight(1f),
                             contentPadding = PaddingValues(0.dp)
                         ) {
-                            dataArray.forEach { fileModel ->
+                            viewModel.filteredReports.forEach { fileModel ->
                                 item {
                                     ReportListCell(modifier = Modifier
                                         .fillMaxWidth()
@@ -256,9 +252,10 @@ fun ReportsListView(
                         end = 10.dp
                     ),
                     enableSearch = false,
-                    label = selectedType.ifEmpty { "Select Type" }) { reportType ->
+                    label = state.selectedType.ifEmpty { "Select Type" },
+                    selectedId = state.selectedType) { reportType ->
                     reportType as ReportTypeModel
-                    selectedType = reportType.getName()
+                   viewModel.setReportType(reportType.getName())
                 }
             }
         }

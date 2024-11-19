@@ -4,10 +4,8 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.grid.pos.App
-import com.grid.pos.data.Settings.SettingsRepository
 import com.grid.pos.model.Event
 import com.grid.pos.model.FileModel
-import com.grid.pos.model.ReportCountry
 import com.grid.pos.model.ReportTypeModel
 import com.grid.pos.utils.FileUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -24,9 +22,12 @@ class ReportsListViewModel @Inject constructor() : ViewModel() {
 
     private val _state = MutableStateFlow(ReportsListState())
     val state: MutableStateFlow<ReportsListState> = _state
+    var filteredReports: MutableList<FileModel> = mutableListOf()
     val tabs = listOf(
         ReportTypeModel(ReportTypeEnum.PAY_SLIP.key),
-        ReportTypeModel(ReportTypeEnum.PAY_TICKET.key)
+        ReportTypeModel(ReportTypeEnum.PAY_TICKET.key),
+        ReportTypeModel(ReportTypeEnum.PAYMENT_VOUCHER.key),
+        ReportTypeModel(ReportTypeEnum.RECEIPT_VOUCHER.key)
     )
 
     fun loadData() {
@@ -40,6 +41,14 @@ class ReportsListViewModel @Inject constructor() : ViewModel() {
             warning = Event(message),
             isLoading = false
         )
+    }
+
+    fun setReportType(reportType: String) {
+        state.value = state.value.copy(
+            selectedType = reportType
+        )
+        filteredReports = state.value.allReports.filter { it.reportType == reportType }
+            .toMutableList()
     }
 
     private suspend fun fetchReportList(context: Context) {
@@ -63,6 +72,7 @@ class ReportsListViewModel @Inject constructor() : ViewModel() {
             state.value = state.value.copy(
                 allReports = allReports
             )
+            setReportType(state.value.selectedType)
         }
     }
 
