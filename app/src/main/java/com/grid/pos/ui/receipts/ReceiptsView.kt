@@ -37,6 +37,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
@@ -54,11 +55,11 @@ import com.grid.pos.data.ThirdParty.ThirdParty
 import com.grid.pos.model.CurrencyModel
 import com.grid.pos.model.PaymentTypeModel
 import com.grid.pos.model.PopupModel
+import com.grid.pos.model.ReportResult
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.SearchableDropdownMenuEx
 import com.grid.pos.ui.common.UIImageButton
 import com.grid.pos.ui.common.UITextField
-import com.grid.pos.ui.settings.setupReports.ReportTypeEnum
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.utils.Utils
 import kotlinx.coroutines.Dispatchers
@@ -75,6 +76,7 @@ fun ReceiptsView(
         viewModel: ReceiptsViewModel = hiltViewModel()
 ) {
     val state by viewModel.receiptsState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
     val keyboardController = LocalSoftwareKeyboardController.current
     val amountFocusRequester = remember { FocusRequester() }
     val descFocusRequester = remember { FocusRequester() }
@@ -137,7 +139,7 @@ fun ReceiptsView(
                     }
                     onConfirmation = {
                         saveAndBack = true
-                        viewModel.saveReceipt(state.selectedReceipt)
+                        viewModel.saveReceipt(context,state.selectedReceipt)
                     }
                     dialogText = "Do you want to save your changes"
                     positiveBtnText = "Save"
@@ -157,13 +159,19 @@ fun ReceiptsView(
             handleBack()
         }
     }
+
+    LaunchedEffect(Unit) {
+        viewModel.reportResult = ReportResult()
+    }
+
     LaunchedEffect(
         state.clear,
         state.isSaved
     ) {
         if (state.isSaved) {
-            activityScopedViewModel.receipt = state.selectedReceipt.copy()
-            activityScopedViewModel.printedReportType = ReportTypeEnum.RECEIPT_VOUCHER
+            state.isSaved = false
+            activityScopedViewModel.reportsToPrint.clear()
+            activityScopedViewModel.reportsToPrint.add(viewModel.reportResult)
             clear()
             navController?.navigate("UIWebView")
         }
@@ -237,7 +245,7 @@ fun ReceiptsView(
                         label = "Select Type",
                         selectedId = typeState,
                         leadingIcon = { modifier ->
-                            if (thirdPartyState.isNotEmpty()) {
+                            if (typeState.isNotEmpty()) {
                                 Icon(
                                     Icons.Default.RemoveCircleOutline,
                                     contentDescription = "remove Type",
@@ -264,7 +272,7 @@ fun ReceiptsView(
                         label = "Select Currency",
                         selectedId = currencyState,
                         leadingIcon = { modifier ->
-                            if (thirdPartyState.isNotEmpty()) {
+                            if (currencyState.isNotEmpty()) {
                                 Icon(
                                     Icons.Default.RemoveCircleOutline,
                                     contentDescription = "remove Currency",
@@ -401,7 +409,7 @@ fun ReceiptsView(
                             icon = R.drawable.save,
                             text = "Save"
                         ) {
-                            viewModel.saveReceipt(state.selectedReceipt)
+                            viewModel.saveReceipt(context,state.selectedReceipt)
                         }
 
                         UIImageButton(
@@ -492,6 +500,8 @@ fun ReceiptsView(
                     currencyState = receipt.receiptCurrency ?: ""
                     currencyIndexState = receipt.getSelectedCurrencyIndex()
                     amountState = receipt.receiptAmount.toString()
+                    amountFirstState = receipt.receiptAmountFirst.toString()
+                    amountSecondsState = receipt.receiptAmountSecond.toString()
                     descriptionState = receipt.receiptDesc ?: ""
                     noteState = receipt.receiptNote ?: ""
                 }

@@ -37,6 +37,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
@@ -54,11 +55,11 @@ import com.grid.pos.data.ThirdParty.ThirdParty
 import com.grid.pos.model.CurrencyModel
 import com.grid.pos.model.PaymentTypeModel
 import com.grid.pos.model.PopupModel
+import com.grid.pos.model.ReportResult
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.SearchableDropdownMenuEx
 import com.grid.pos.ui.common.UIImageButton
 import com.grid.pos.ui.common.UITextField
-import com.grid.pos.ui.settings.setupReports.ReportTypeEnum
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.utils.Utils
 import kotlinx.coroutines.Dispatchers
@@ -75,6 +76,7 @@ fun PaymentsView(
         viewModel: PaymentsViewModel = hiltViewModel()
 ) {
     val state by viewModel.paymentsState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
     val keyboardController = LocalSoftwareKeyboardController.current
     val amountFocusRequester = remember { FocusRequester() }
     val descFocusRequester = remember { FocusRequester() }
@@ -137,7 +139,7 @@ fun PaymentsView(
                     }
                     onConfirmation = {
                         saveAndBack = true
-                        viewModel.savePayment(state.selectedPayment)
+                        viewModel.savePayment(context,state.selectedPayment)
                     }
                     dialogText = "Do you want to save your changes"
                     positiveBtnText = "Save"
@@ -157,13 +159,19 @@ fun PaymentsView(
             handleBack()
         }
     }
+
+    LaunchedEffect(Unit) {
+        viewModel.reportResult = ReportResult()
+    }
+
     LaunchedEffect(
         state.clear,
         state.isSaved
     ) {
         if (state.isSaved) {
-            activityScopedViewModel.payment = state.selectedPayment.copy()
-            activityScopedViewModel.printedReportType = ReportTypeEnum.PAYMENT_VOUCHER
+            state.isSaved = false
+            activityScopedViewModel.reportsToPrint.clear()
+            activityScopedViewModel.reportsToPrint.add(viewModel.reportResult)
             clear()
             navController?.navigate("UIWebView")
         }
@@ -237,7 +245,7 @@ fun PaymentsView(
                         label = "Select Type",
                         selectedId = typeState,
                         leadingIcon = { modifier ->
-                            if (thirdPartyState.isNotEmpty()) {
+                            if (typeState.isNotEmpty()) {
                                 Icon(
                                     Icons.Default.RemoveCircleOutline,
                                     contentDescription = "remove Type",
@@ -264,7 +272,7 @@ fun PaymentsView(
                         label = "Select Currency",
                         selectedId = currencyState,
                         leadingIcon = { modifier ->
-                            if (thirdPartyState.isNotEmpty()) {
+                            if (currencyState.isNotEmpty()) {
                                 Icon(
                                     Icons.Default.RemoveCircleOutline,
                                     contentDescription = "remove Currency",
@@ -403,7 +411,7 @@ fun PaymentsView(
                             icon = R.drawable.save,
                             text = "Save"
                         ) {
-                            viewModel.savePayment(state.selectedPayment)
+                            viewModel.savePayment(context,state.selectedPayment)
                         }
 
                         UIImageButton(
@@ -492,6 +500,8 @@ fun PaymentsView(
                     currencyState = payment.paymentCurrency ?: ""
                     currencyIndexState = payment.getSelectedCurrencyIndex()
                     amountState = payment.paymentAmount.toString()
+                    amountFirstState = payment.paymentAmountFirst.toString()
+                    amountSecondsState = payment.paymentAmountSecond.toString()
                     descriptionState = payment.paymentDesc ?: ""
                     noteState = payment.paymentNote ?: ""
                 }

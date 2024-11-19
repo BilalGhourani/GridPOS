@@ -1,5 +1,6 @@
 package com.grid.pos.ui.receipts
 
+import android.content.Context
 import androidx.lifecycle.viewModelScope
 import com.grid.pos.data.Currency.CurrencyRepository
 import com.grid.pos.data.DataModel
@@ -7,12 +8,15 @@ import com.grid.pos.data.Receipt.Receipt
 import com.grid.pos.data.Receipt.ReceiptRepository
 import com.grid.pos.data.ThirdParty.ThirdParty
 import com.grid.pos.data.ThirdParty.ThirdPartyRepository
+import com.grid.pos.data.User.UserRepository
 import com.grid.pos.model.Event
 import com.grid.pos.model.PaymentTypeModel
+import com.grid.pos.model.ReportResult
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.model.ThirdPartyType
 import com.grid.pos.ui.common.BaseViewModel
 import com.grid.pos.ui.pos.POSUtils
+import com.grid.pos.utils.PrinterUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -26,11 +30,13 @@ class ReceiptsViewModel @Inject constructor(
         private val receiptRepository: ReceiptRepository,
         private val thirdPartyRepository: ThirdPartyRepository,
         private val currencyRepository: CurrencyRepository,
+        private val userRepository: UserRepository
 ) : BaseViewModel() {
 
     private val _receiptsState = MutableStateFlow(ReceiptsState())
     val receiptsState: MutableStateFlow<ReceiptsState> = _receiptsState
     var currentReceipt: Receipt = Receipt()
+    var reportResult = ReportResult()
     private var clientsMap: Map<String, ThirdParty> = mutableMapOf()
     val receiptTypes: MutableList<DataModel> = mutableListOf(
         PaymentTypeModel("Cash"),
@@ -113,7 +119,7 @@ class ReceiptsViewModel @Inject constructor(
         }
     }
 
-    fun saveReceipt(receipt: Receipt) {
+    fun saveReceipt(context: Context,receipt: Receipt) {
         if (receipt.receiptThirdParty.isNullOrEmpty()) {
             receiptsState.value = receiptsState.value.copy(
                 warning = Event("Please select a Client."),
@@ -160,6 +166,7 @@ class ReceiptsViewModel @Inject constructor(
                 if (receipts.isNotEmpty()) {
                     receipts.add(addedModel)
                 }
+                preparePaymentReport(context)
                 withContext(Dispatchers.Main) {
                     receiptsState.value = receiptsState.value.copy(
                         receipts = receipts,
@@ -172,6 +179,7 @@ class ReceiptsViewModel @Inject constructor(
                 }
             } else {
                 receiptRepository.update(receipt)
+                preparePaymentReport(context)
                 withContext(Dispatchers.Main) {
                     receiptsState.value = receiptsState.value.copy(
                         selectedReceipt = receipt,
@@ -214,6 +222,38 @@ class ReceiptsViewModel @Inject constructor(
                 )
             }
         }
+    }
+
+    private suspend fun preparePaymentReport(
+            context: Context
+    ) {
+        val receipt = receiptsState.value.selectedReceipt
+        val thirdPartyId = receipt.receiptThirdParty
+        val userId = receipt.receiptUserStamp
+        val defaultThirdParty = if (thirdPartyId.isNullOrEmpty()) {
+            receiptsState.value.thirdParties.firstOrNull { it.thirdPartyDefault }
+        } else {
+            receiptsState.value.thirdParties.firstOrNull {
+                it.thirdPartyId == thirdPartyId
+            }
+        }
+        val user = if (userId.isNullOrEmpty() || SettingsModel.currentUser?.userId == userId || SettingsModel.currentUser?.userUsername == userId) {
+            SettingsModel.currentUser
+        } else {
+            if (receiptsState.value.users.isEmpty()) {
+                receiptsState.value.users = userRepository.getAllUsers()
+            }
+            receiptsState.value.users.firstOrNull {
+                it.userId == userId || it.userUsername == userId
+            } ?: SettingsModel.currentUser
+        }
+        reportResult = PrinterUtils.getReceiptHtmlContent(
+            context,
+            receipt,
+            user,
+            defaultThirdParty,
+        )
+        reportResult.printer = SettingsModel.cashPrinter ?: ""
     }
 
 }

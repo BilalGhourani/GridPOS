@@ -232,7 +232,7 @@ fun POSView(
                 activityViewModel.invoiceItemModels = invoicesState
                 activityViewModel.deletedInvoiceItems = state.itemsToDelete
                 activityViewModel.invoiceHeader = invoiceHeaderState.value
-                activityViewModel.printedReportType = ReportTypeEnum.PAY_SLIP
+                activityViewModel.reportsToPrint = viewModel.reportResults
                 cashLoadedData()
                 navController?.navigate("UIWebView")
             } else if (SettingsModel.autoPrintTickets) {
@@ -320,7 +320,7 @@ fun POSView(
                 }
                 onConfirmation = {
                     isSavePopupVisible = false
-                    if(popupState == PopupState.DISCARD_INVOICE){
+                    if (popupState == PopupState.DISCARD_INVOICE) {
                         if (!invoiceHeaderState.value.invoiceHeadTableId.isNullOrEmpty()) {
                             viewModel.unLockTable(
                                 invoiceHeaderState.value.invoiceHeadId,
@@ -823,7 +823,10 @@ fun POSView(
                             }
                             invoiceHeaderState.value.invoiceHeadPrinted += 1
                             viewModel.savePrintedNumber(
-                                invoiceHeaderState.value
+                                context,
+                                invoiceHeaderState.value,
+                                activityViewModel.invoiceItemModels,
+                                activityViewModel.posReceipt,
                             )
                         }
                     },
@@ -832,6 +835,7 @@ fun POSView(
                         invoiceHeaderState.value.invoiceHeadChange = change
                         proceedToPrint = false
                         viewModel.saveInvoiceHeader(
+                            context = context,
                             invoiceHeader = invoiceHeaderState.value,
                             posReceipt = activityViewModel.posReceipt,
                             invoiceItems = activityViewModel.invoiceItemModels,
@@ -845,6 +849,7 @@ fun POSView(
                         invoiceHeaderState.value.invoiceHeadPrinted += 1
                         proceedToPrint = true
                         viewModel.saveInvoiceHeader(
+                            context = context,
                             invoiceHeader = invoiceHeaderState.value,
                             posReceipt = activityViewModel.posReceipt,
                             invoiceItems = activityViewModel.invoiceItemModels,
@@ -858,6 +863,7 @@ fun POSView(
                         invoiceHeaderState.value.invoiceHeadPrinted += 1
                         proceedToPrint = true
                         viewModel.saveInvoiceHeader(
+                            context = context,
                             invoiceHeader = invoiceHeaderState.value,
                             posReceipt = activityViewModel.posReceipt,
                             invoiceItems = activityViewModel.invoiceItemModels,

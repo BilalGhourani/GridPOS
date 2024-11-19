@@ -1,23 +1,27 @@
 package com.grid.pos.ui.pos
 
+import android.content.Context
 import androidx.lifecycle.viewModelScope
 import com.grid.pos.data.Currency.Currency
 import com.grid.pos.data.Currency.CurrencyRepository
 import com.grid.pos.data.Family.FamilyRepository
-import com.grid.pos.data.Invoice.Invoice
 import com.grid.pos.data.Invoice.InvoiceRepository
 import com.grid.pos.data.InvoiceHeader.InvoiceHeader
 import com.grid.pos.data.InvoiceHeader.InvoiceHeaderRepository
 import com.grid.pos.data.Item.Item
 import com.grid.pos.data.Item.ItemRepository
+import com.grid.pos.data.PosPrinter.PosPrinterRepository
 import com.grid.pos.data.PosReceipt.PosReceipt
 import com.grid.pos.data.PosReceipt.PosReceiptRepository
 import com.grid.pos.data.ThirdParty.ThirdParty
 import com.grid.pos.data.ThirdParty.ThirdPartyRepository
+import com.grid.pos.data.User.UserRepository
 import com.grid.pos.model.Event
 import com.grid.pos.model.InvoiceItemModel
+import com.grid.pos.model.ReportResult
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.BaseViewModel
+import com.grid.pos.utils.PrinterUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -33,12 +37,15 @@ class POSViewModel @Inject constructor(
         private val itemRepository: ItemRepository,
         private val thirdPartyRepository: ThirdPartyRepository,
         private val currencyRepository: CurrencyRepository,
-        private val familyRepository: FamilyRepository
+        private val familyRepository: FamilyRepository,
+        private val posPrinterRepository: PosPrinterRepository,
+        private val userRepository: UserRepository
 ) : BaseViewModel() {
 
     private val _posState = MutableStateFlow(POSState())
     val posState: MutableStateFlow<POSState> = _posState
     private var clientsMap: Map<String, ThirdParty> = mutableMapOf()
+    val reportResults = mutableListOf<ReportResult>()
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
@@ -169,6 +176,7 @@ class POSViewModel @Inject constructor(
     }
 
     fun saveInvoiceHeader(
+            context: Context,
             invoiceHeader: InvoiceHeader,
             posReceipt: PosReceipt,
             invoiceItems: MutableList<InvoiceItemModel>,
@@ -227,6 +235,7 @@ class POSViewModel @Inject constructor(
                         )
                     }
                     savePOSReceipt(
+                        context,
                         addedInv,
                         posReceipt,
                         invoiceItems
@@ -276,6 +285,7 @@ class POSViewModel @Inject constructor(
                     )
                 }
                 savePOSReceipt(
+                    context,
                     invoiceHeader,
                     posReceipt,
                     invoiceItems
@@ -285,6 +295,7 @@ class POSViewModel @Inject constructor(
     }
 
     private suspend fun savePOSReceipt(
+            context: Context,
             invoiceHeader: InvoiceHeader,
             posReceipt: PosReceipt,
             invoiceItems: MutableList<InvoiceItemModel>
@@ -298,14 +309,18 @@ class POSViewModel @Inject constructor(
             posReceiptRepository.update(posReceipt)
         }
         saveInvoiceItems(
+            context,
             invoiceHeader,
-            invoiceItems
+            invoiceItems,
+            posReceipt
         )
     }
 
     private suspend fun saveInvoiceItems(
+            context: Context,
             invoiceHeader: InvoiceHeader,
-            invoiceItems: MutableList<InvoiceItemModel>
+            invoiceItems: MutableList<InvoiceItemModel>,
+            posReceipt: PosReceipt
     ) {
         val itemsToInsert = invoiceItems.filter { it.invoice.isNew() }
         val itemsToUpdate = invoiceItems.filter { !it.invoice.isNew() }
@@ -332,7 +347,12 @@ class POSViewModel @Inject constructor(
             invoiceItem.invoiceItem.itemRemQty += invoiceItem.invoice.invoiceQuantity
             itemRepository.update(invoiceItem.invoiceItem)
         }
-
+        getInvoiceReceiptHtmlContent(
+            context,
+            invoiceHeader,
+            invoiceItems,
+            posReceipt
+        )
         withContext(Dispatchers.Main) {
             posState.value = posState.value.copy(
                 isLoading = false,
@@ -369,7 +389,10 @@ class POSViewModel @Inject constructor(
     }
 
     fun savePrintedNumber(
+            context: Context,
             invoiceHeader: InvoiceHeader,
+            invoiceItems: MutableList<InvoiceItemModel>,
+            posReceipt: PosReceipt
     ) {
         posState.value = posState.value.copy(
             isLoading = true
@@ -377,6 +400,12 @@ class POSViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             invoiceHeaderRepository.updateInvoiceHeader(
                 invoiceHeader
+            )
+            getInvoiceReceiptHtmlContent(
+                context,
+                invoiceHeader,
+                invoiceItems,
+                posReceipt
             )
             withContext(Dispatchers.Main) {
                 posState.value = posState.value.copy(
@@ -486,6 +515,80 @@ class POSViewModel @Inject constructor(
                 tableId,
                 tableType
             )
+        }
+    }
+
+    suspend fun getInvoiceReceiptHtmlContent(
+            context: Context,
+            invoiceHeader: InvoiceHeader,
+            invoiceItems: MutableList<InvoiceItemModel>,
+            posReceipt: PosReceipt
+    ) {
+        val defaultThirdParty = if (invoiceHeader.invoiceHeadThirdPartyName.isNullOrEmpty() || invoiceHeader.invoiceHeadThirdPartyName == posState.value.selectedThirdParty.thirdPartyId) {
+            posState.value.selectedThirdParty
+        } else {
+            if (posState.value.thirdParties.isEmpty()) {
+                posState.value.thirdParties = thirdPartyRepository.getAllThirdParties()
+            }
+            posState.value.thirdParties.firstOrNull {
+                it.thirdPartyId == invoiceHeader.invoiceHeadThirdPartyName
+            } ?: SettingsModel.defaultThirdParty
+        }
+        val user = if (invoiceHeader.invoiceHeadUserStamp.isNullOrEmpty() || SettingsModel.currentUser?.userId == invoiceHeader.invoiceHeadUserStamp || SettingsModel.currentUser?.userUsername == invoiceHeader.invoiceHeadUserStamp) {
+            SettingsModel.currentUser
+        } else {
+            if (posState.value.users.isEmpty()) {
+                posState.value.users = userRepository.getAllUsers()
+            }
+            posState.value.users.firstOrNull {
+                it.userId == invoiceHeader.invoiceHeadUserStamp || it.userUsername == invoiceHeader.invoiceHeadUserStamp
+            } ?: SettingsModel.currentUser
+        }
+
+        val invoiceReport = PrinterUtils.getInvoiceReceiptHtmlContent(
+            context,
+            invoiceHeader,
+            invoiceItems,
+            posReceipt,
+            defaultThirdParty,
+            user,
+            SettingsModel.currentCompany
+        )
+        SettingsModel.cashPrinter?.let {
+            if (it.contains(":")) {
+                val printerDetails = it.split(":")
+                val size = printerDetails.size
+                invoiceReport.printerIP = if (size > 0) printerDetails[0] else ""
+                val port = if (size > 1) printerDetails[1] else "-1"
+                invoiceReport.printerPort = port.toIntOrNull() ?: -1
+            } else {
+                invoiceReport.printerName = it
+            }
+        }
+        reportResults.add(invoiceReport)
+
+        if (SettingsModel.autoPrintTickets) {
+            if (posState.value.printers.isEmpty()) {
+                posState.value.printers = posPrinterRepository.getAllPosPrinters()
+            }
+            val itemsPrintersMap = invoiceItems.filter { it.shouldPrint || it.isDeleted }
+                .groupBy { it.invoiceItem.itemPrinter ?: "" }
+            itemsPrintersMap.entries.forEach { entry ->
+                if (entry.key.isNotEmpty()) {
+                    val itemsPrinter = posState.value.printers.firstOrNull { it.posPrinterId == entry.key }
+                    if (itemsPrinter != null) {
+                        val reportResult = PrinterUtils.getItemReceiptHtmlContent(
+                            context = context,
+                            invoiceHeader = invoiceHeader,
+                            invItemModels = entry.value
+                        )
+                        reportResult.printerName = itemsPrinter.posPrinterName ?: ""
+                        reportResult.printerIP = itemsPrinter.posPrinterHost
+                        reportResult.printerPort = itemsPrinter.posPrinterPort
+                        reportResults.add(reportResult)
+                    }
+                }
+            }
         }
     }
 

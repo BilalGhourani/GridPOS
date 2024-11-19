@@ -21,7 +21,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
@@ -32,9 +31,8 @@ import androidx.navigation.NavController
 import com.grid.pos.ActivityScopedViewModel
 import com.grid.pos.model.ReportResult
 import com.grid.pos.model.SettingsModel
-import com.grid.pos.ui.settings.setupReports.ReportTypeEnum
 import com.grid.pos.ui.theme.GridPOSTheme
-import com.grid.pos.utils.FileUtils
+import com.grid.pos.utils.PrinterUtils
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -56,54 +54,9 @@ fun UIWebView(
             )
         )
     }
-    val scope = rememberCoroutineScope()
     LaunchedEffect(Unit) {
-        activityViewModel.showLoading(true)
-        scope.launch(Dispatchers.IO) {
-            reportResultState.value = when (activityViewModel.printedReportType) {
-                ReportTypeEnum.PAY_SLIP -> {
-                    activityViewModel.getInvoiceReceiptHtmlContent(context)
-                }
-
-                ReportTypeEnum.RECEIPT_VOUCHER -> {
-                    activityViewModel.getPaymentHtmlContent(
-                        context,
-                        false
-                    )
-                }
-
-                ReportTypeEnum.PAYMENT_VOUCHER -> {
-                    activityViewModel.getPaymentHtmlContent(
-                        context,
-                        true
-                    )
-                }
-
-                else -> {
-                    ReportResult(
-                        false,
-                        FileUtils.readFileFromAssets(
-                            "fallback.html",
-                            context
-                        )
-                    )
-                }
-            }
-            withContext(Dispatchers.Main){
-                activityViewModel.showLoading(false)
-            }
-        }
-    }
-    val webView = remember {
-        WebView(context).apply {
-            webViewClient = WebViewClient()
-            loadDataWithBaseURL(
-                null,
-                reportResultState.value.htmlContent,
-                "text/html",
-                "UTF-8",
-                null
-            )
+        if (activityViewModel.reportsToPrint.isNotEmpty()) {
+            reportResultState.value = activityViewModel.reportsToPrint[0]
         }
     }
 
@@ -156,7 +109,18 @@ fun UIWebView(
                     .padding(it)
             ) {
                 AndroidView(modifier = Modifier.weight(1f),
-                    factory = { webView }) {}
+                    factory = {
+                        WebView(context).apply {
+                            webViewClient = WebViewClient()
+                            loadDataWithBaseURL(
+                                null,
+                                reportResultState.value.htmlContent,
+                                "text/html",
+                                "UTF-8",
+                                null
+                            )
+                        }
+                    }) {}
 
                 if (reportResultState.value.found) {
                     UIButton(
@@ -167,10 +131,13 @@ fun UIWebView(
                     ) {
                         activityViewModel.showLoading(true)
                         CoroutineScope(Dispatchers.Default).launch {
-                            activityViewModel.print(
-                                context = context,
-                                reportResult = reportResultState.value
-                            )
+
+                            activityViewModel.reportsToPrint.forEach {
+                                PrinterUtils.printReport(
+                                    context,
+                                    it
+                                )
+                            }
                             withContext(Dispatchers.Main) {
                                 activityViewModel.showLoading(false)
                                 handleBack()

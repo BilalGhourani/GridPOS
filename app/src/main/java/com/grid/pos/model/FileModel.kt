@@ -33,7 +33,3 @@ data class FileModel(
     }
 }
 
-data class ReportResult(
-        var found: Boolean,
-        var htmlContent: String
-)

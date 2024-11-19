@@ -1033,7 +1033,7 @@ object PrinterUtils {
         )
     }
 
-    private fun getItemReceiptHtmlContent(
+    fun getItemReceiptHtmlContent(
             context: Context,
             invoiceHeader: InvoiceHeader,
             invItemModels: List<InvoiceItemModel>
@@ -1206,7 +1206,7 @@ object PrinterUtils {
         val paymentDate = payment.getPaymentDate()
         var htmlContent = result.htmlContent
         htmlContent = htmlContent.replace(
-            "{table_name}",
+            "{paidOutUserValue}",
             user?.userName ?: ""
         ).replace(
             "{paidOutNumberValue}",
@@ -1255,31 +1255,31 @@ object PrinterUtils {
         val paymentDate = receipt.getPaymentDate()
         var htmlContent = result.htmlContent
         htmlContent = htmlContent.replace(
-            "{table_name}",
+            "{paidInUserValue}",
             user?.userName ?: ""
         ).replace(
-            "{paidOutNumberValue}",
+            "{paidInNumberValue}",
             receipt.receiptTransNo ?: ""
         ).replace(
-            "{PaidOutDateValue}",
+            "{paidInDateValue}",
             DateHelper.getDateInFormat(
                 paymentDate,
                 "dd/MM/yyyy hh:mm:ss"
             )
         ).replace(
-            "{paidOutAmountValue}",
+            "{paidInAmountValue}",
             POSUtils.formatDouble(
                 receipt.receiptAmount,
                 2
             )
         ).replace(
-            "{paidOutSupplierValue}",
+            "{paidInClientValue}",
             thirdParty?.thirdPartyName ?: ""
         ).replace(
-            "{paidOutDescriptionValue}",
+            "{paidInDescriptionValue}",
             receipt.receiptDesc ?: ""
         ).replace(
-            "{paidOutBalanceValue}",
+            "{paidInBalanceValue}",
             ""
         )
         return ReportResult(
@@ -1288,96 +1288,21 @@ object PrinterUtils {
         )
     }
 
-    suspend fun print(
-            context: Context,
-            invoiceHeader: InvoiceHeader,
-            invoiceItemModels: MutableList<InvoiceItemModel>,
-            cashPrinter: String,
-            printers: MutableList<PosPrinter>,
-            reportResult: ReportResult
-    ) {
-        printReport(
-            context,
-            cashPrinter,
-            reportResult
-        )
-
-        if (SettingsModel.autoPrintTickets) {
-            printTickets(
-                context = context,
-                invoiceHeader = invoiceHeader,
-                invoiceItemModels = invoiceItemModels,
-                printers = printers
-            )
-        }
-    }
-
     suspend fun printReport(
             context: Context,
-            cashPrinter: String,
             reportResult: ReportResult
     ) {
         if (reportResult.found) {
             val output = parseHtmlContent(reportResult.htmlContent)
-            var ipAddress = ""
-            var port = ""
-            if (cashPrinter.contains(":")) {
-                val printerDetails = cashPrinter.split(":")
-                if (printerDetails.size == 2) {
-                    if (isIpValid(printerDetails[0])) {
-                        ipAddress = printerDetails[0]
-                        port = printerDetails[1]
-                    } else {
-                        ipAddress = cashPrinter
-                        port = "9100"
-                    }
-                }
-            } else {
-                ipAddress = cashPrinter
-                port = "9100"
-            }
             printOutput(
                 context = context,
                 output = output,
-                printerName = cashPrinter,
-                printerIP = ipAddress,
-                printerPort = port.toIntOrNull() ?: 9100
+                printerName = reportResult.printerName,
+                printerIP = reportResult.printerIP ?: "",
+                printerPort = reportResult.printerPort
             )
         }
     }
-
-    suspend fun printTickets(
-            context: Context,
-            invoiceHeader: InvoiceHeader,
-            invoiceItemModels: MutableList<InvoiceItemModel>,
-            printers: MutableList<PosPrinter>,
-    ) {
-        val itemsPrintersMap = invoiceItemModels.filter { it.shouldPrint || it.isDeleted }
-            .groupBy { it.invoiceItem.itemPrinter ?: "" }
-        itemsPrintersMap.entries.forEach { entry ->
-            if (entry.key.isNotEmpty()) {
-                val itemsPrinter = printers.firstOrNull { it.posPrinterId == entry.key }
-                if (itemsPrinter != null) {
-                    val reportResult = getItemReceiptHtmlContent(
-                        context = context,
-                        invoiceHeader = invoiceHeader,
-                        invItemModels = entry.value
-                    )
-                    if (reportResult.found) {
-                        val output = parseHtmlContent(reportResult.htmlContent)
-                        printOutput(
-                            context = context,
-                            output = output,
-                            printerName = itemsPrinter.posPrinterName,
-                            printerIP = itemsPrinter.posPrinterHost,
-                            printerPort = itemsPrinter.posPrinterPort
-                        )
-                    }
-                }
-            }
-        }
-    }
-
     private suspend fun printOutput(
             context: Context,
             output: ByteArray,

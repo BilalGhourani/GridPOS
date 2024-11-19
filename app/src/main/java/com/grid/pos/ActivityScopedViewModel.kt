@@ -59,9 +59,7 @@ class ActivityScopedViewModel @Inject constructor(
     var posReceipt: PosReceipt = PosReceipt()
     var invoiceHeader: InvoiceHeader = InvoiceHeader()
     var pendingInvHeadState: InvoiceHeader? = null
-    var payment: Payment = Payment()
-    var receipt: Receipt = Receipt()
-    var printedReportType: ReportTypeEnum = ReportTypeEnum.PAY_SLIP
+    var reportsToPrint: MutableList<ReportResult> = mutableListOf()
     var invoiceItemModels: MutableList<InvoiceItemModel> = mutableListOf()
     var initialInvoiceItemModels: MutableList<InvoiceItemModel> = mutableListOf()
     var deletedInvoiceItems: MutableList<InvoiceItemModel> = mutableListOf()
@@ -228,101 +226,6 @@ class ActivityScopedViewModel @Inject constructor(
         shouldLoadInvoice = false
         isFromTable = false
     }
-
-    suspend fun print(
-            context: Context,
-            reportResult: ReportResult
-    ) {
-        val cashPrinter = SettingsModel.cashPrinter ?: return
-        if (printedReportType == ReportTypeEnum.PAY_SLIP) {
-            val invoiceItems = invoiceItemModels.toMutableList()
-            invoiceItems.addAll(deletedInvoiceItems)
-            PrinterUtils.print(
-                context,
-                invoiceHeader,
-                invoiceItems,
-                cashPrinter,
-                printers,
-                reportResult
-            )
-        } else {
-            PrinterUtils.printReport(
-                context,
-                cashPrinter,
-                reportResult
-            )
-        }
-    }
-
-    suspend fun getInvoiceReceiptHtmlContent(context: Context): ReportResult {
-        val defaultThirdParty = if (invoiceHeader.invoiceHeadThirdPartyName.isNullOrEmpty()) {
-            thirdParties.firstOrNull { it.thirdPartyDefault }
-        } else {
-            thirdParties.firstOrNull {
-                it.thirdPartyId == invoiceHeader.invoiceHeadThirdPartyName
-            } ?: SettingsModel.defaultThirdParty
-        }
-        val user = if (invoiceHeader.invoiceHeadUserStamp.isNullOrEmpty() || SettingsModel.currentUser?.userId == invoiceHeader.invoiceHeadUserStamp || SettingsModel.currentUser?.userUsername == invoiceHeader.invoiceHeadUserStamp) {
-            SettingsModel.currentUser
-        } else {
-            if (users.isEmpty()) {
-                users = userRepository.getAllUsers()
-            }
-            users.firstOrNull {
-                it.userId == invoiceHeader.invoiceHeadUserStamp || it.userUsername == invoiceHeader.invoiceHeadUserStamp
-            } ?: SettingsModel.currentUser
-        }
-        return PrinterUtils.getInvoiceReceiptHtmlContent(
-            context,
-            invoiceHeader,
-            invoiceItemModels,
-            posReceipt,
-            defaultThirdParty,
-            user,
-            SettingsModel.currentCompany
-        )
-    }
-
-   suspend fun getPaymentHtmlContent(
-            context: Context,
-            isPayment: Boolean
-    ): ReportResult {
-        val thirdPartyId = if (isPayment) payment.paymentThirdParty else receipt.receiptThirdParty
-        val userId = if (isPayment) payment.paymentUserStamp else receipt.receiptUserStamp
-        val defaultThirdParty = if (thirdPartyId.isNullOrEmpty()) {
-            thirdParties.firstOrNull { it.thirdPartyDefault }
-        } else {
-            thirdParties.firstOrNull {
-                it.thirdPartyId == thirdPartyId
-            } ?: SettingsModel.defaultThirdParty
-        }
-        val user = if (userId.isNullOrEmpty() || SettingsModel.currentUser?.userId == userId || SettingsModel.currentUser?.userUsername == userId) {
-            SettingsModel.currentUser
-        } else {
-            if (users.isEmpty()) {
-                users = userRepository.getAllUsers()
-            }
-            users.firstOrNull {
-                it.userId == userId || it.userUsername == userId
-            } ?: SettingsModel.currentUser
-        }
-        return if (isPayment) {
-            PrinterUtils.getPaymentHtmlContent(
-                context,
-                payment,
-                user,
-                defaultThirdParty,
-            )
-        } else {
-            PrinterUtils.getReceiptHtmlContent(
-                context,
-                receipt,
-                user,
-                defaultThirdParty,
-            )
-        }
-    }
-
     fun finish() {
         viewModelScope.launch {
             _mainActivityEvent.send(ActivityScopedUIEvent.Finish)

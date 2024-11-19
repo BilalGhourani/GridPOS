@@ -1,5 +1,6 @@
 package com.grid.pos.ui.payments
 
+import android.content.Context
 import androidx.lifecycle.viewModelScope
 import com.grid.pos.data.Currency.CurrencyRepository
 import com.grid.pos.data.DataModel
@@ -7,12 +8,15 @@ import com.grid.pos.data.Payment.Payment
 import com.grid.pos.data.Payment.PaymentRepository
 import com.grid.pos.data.ThirdParty.ThirdParty
 import com.grid.pos.data.ThirdParty.ThirdPartyRepository
+import com.grid.pos.data.User.UserRepository
 import com.grid.pos.model.Event
 import com.grid.pos.model.PaymentTypeModel
+import com.grid.pos.model.ReportResult
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.model.ThirdPartyType
 import com.grid.pos.ui.common.BaseViewModel
 import com.grid.pos.ui.pos.POSUtils
+import com.grid.pos.utils.PrinterUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -26,11 +30,13 @@ class PaymentsViewModel @Inject constructor(
         private val paymentRepository: PaymentRepository,
         private val thirdPartyRepository: ThirdPartyRepository,
         private val currencyRepository: CurrencyRepository,
+        private val userRepository: UserRepository
 ) : BaseViewModel() {
 
     private val _paymentsState = MutableStateFlow(PaymentsState())
     val paymentsState: MutableStateFlow<PaymentsState> = _paymentsState
     var currentPayment: Payment = Payment()
+    var reportResult = ReportResult()
     private var clientsMap: Map<String, ThirdParty> = mutableMapOf()
     val paymentTypes: MutableList<DataModel> = mutableListOf(
         PaymentTypeModel("Cash"),
@@ -109,7 +115,10 @@ class PaymentsViewModel @Inject constructor(
         }
     }
 
-    fun savePayment(payment: Payment) {
+    fun savePayment(
+            context: Context,
+            payment: Payment
+    ) {
         if (payment.paymentThirdParty.isNullOrEmpty()) {
             paymentsState.value = paymentsState.value.copy(
                 warning = Event("Please select a Client."),
@@ -156,6 +165,7 @@ class PaymentsViewModel @Inject constructor(
                 if (payments.isNotEmpty()) {
                     payments.add(addedModel)
                 }
+                preparePaymentReport(context)
                 withContext(Dispatchers.Main) {
                     paymentsState.value = paymentsState.value.copy(
                         payments = payments,
@@ -168,6 +178,7 @@ class PaymentsViewModel @Inject constructor(
                 }
             } else {
                 paymentRepository.update(payment)
+                preparePaymentReport(context)
                 withContext(Dispatchers.Main) {
                     paymentsState.value = paymentsState.value.copy(
                         selectedPayment = payment,
@@ -210,6 +221,38 @@ class PaymentsViewModel @Inject constructor(
                 )
             }
         }
+    }
+
+    private suspend fun preparePaymentReport(
+            context: Context
+    ) {
+        val payment = paymentsState.value.selectedPayment
+        val thirdPartyId = payment.paymentThirdParty
+        val userId = payment.paymentUserStamp
+        val defaultThirdParty = if (thirdPartyId.isNullOrEmpty()) {
+            paymentsState.value.thirdParties.firstOrNull { it.thirdPartyDefault }
+        } else {
+            paymentsState.value.thirdParties.firstOrNull {
+                it.thirdPartyId == thirdPartyId
+            }
+        }
+        val user = if (userId.isNullOrEmpty() || SettingsModel.currentUser?.userId == userId || SettingsModel.currentUser?.userUsername == userId) {
+            SettingsModel.currentUser
+        } else {
+            if (paymentsState.value.users.isEmpty()) {
+                paymentsState.value.users = userRepository.getAllUsers()
+            }
+            paymentsState.value.users.firstOrNull {
+                it.userId == userId || it.userUsername == userId
+            } ?: SettingsModel.currentUser
+        }
+        reportResult = PrinterUtils.getPaymentHtmlContent(
+            context,
+            payment,
+            user,
+            defaultThirdParty,
+        )
+        reportResult.printer = SettingsModel.cashPrinter ?: ""
     }
 
 }
