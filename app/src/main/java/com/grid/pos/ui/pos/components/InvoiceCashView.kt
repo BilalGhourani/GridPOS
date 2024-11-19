@@ -357,40 +357,42 @@ fun InvoiceCashView(
                 )
             )
 
-            OutlinedTextField(
-                value = cashCurr2Total,
-                onValueChange = {
-                    cashCurr2Total = Utils.getDoubleValue(
-                        it,
-                        cashCurr2Total
-                    )
-                },
-                readOnly = true,
-                label = {
-                    Text(text = "Total $curr2State")
-                },
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .weight(.25f)
-                    .focusRequester(
-                        cashTotal2FocusRequester
+            if (!SettingsModel.hideSecondCurrency) {
+                OutlinedTextField(
+                    value = cashCurr2Total,
+                    onValueChange = {
+                        cashCurr2Total = Utils.getDoubleValue(
+                            it,
+                            cashCurr2Total
+                        )
+                    },
+                    readOnly = true,
+                    label = {
+                        Text(text = "Total $curr2State")
+                    },
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .weight(.25f)
+                        .focusRequester(
+                            cashTotal2FocusRequester
+                        ),
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Number,
+                        imeAction = ImeAction.Next
                     ),
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Number,
-                    imeAction = ImeAction.Next
-                ),
-                keyboardActions = KeyboardActions(onNext = { creditCurr1PaidFocusRequester.requestFocus() }),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = Color.LightGray,
-                    unfocusedContainerColor = Color.LightGray,
-                    focusedLabelColor = Color.Black,
-                    unfocusedLabelColor = Color.Black,
-                    unfocusedBorderColor = Color.Black,
-                    focusedBorderColor = Color.Black,
-                    focusedTextColor = Color.Black,
-                    unfocusedTextColor = Color.Black
+                    keyboardActions = KeyboardActions(onNext = { creditCurr1PaidFocusRequester.requestFocus() }),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedContainerColor = Color.LightGray,
+                        unfocusedContainerColor = Color.LightGray,
+                        focusedLabelColor = Color.Black,
+                        unfocusedLabelColor = Color.Black,
+                        unfocusedBorderColor = Color.Black,
+                        focusedBorderColor = Color.Black,
+                        focusedTextColor = Color.Black,
+                        unfocusedTextColor = Color.Black
+                    )
                 )
-            )
+            }
         }
 
         Row(
@@ -450,7 +452,10 @@ fun InvoiceCashView(
                     placeholder = {
                         Text(text = "0.0")
                     },
-                    modifier = Modifier.weight(.25f).fillMaxHeight().focusRequester(
+                    modifier = Modifier
+                        .weight(.25f)
+                        .fillMaxHeight()
+                        .focusRequester(
                             creditCurr2PaidFocusRequester
                         ),
                     keyboardOptions = KeyboardOptions(
@@ -501,40 +506,42 @@ fun InvoiceCashView(
                 )
             )
 
-            OutlinedTextField(
-                value = totalCurr2Paid,
-                onValueChange = {
-                    totalCurr2Paid = Utils.getDoubleValue(
-                        it,
-                        totalCurr2Paid
-                    )
-                },
-                readOnly = true,
-                label = {
-                    Text(text = "Paid $curr2State")
-                },
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .weight(.25f)
-                    .focusRequester(
-                        creditCurr2TotalFocusRequester
+            if (!SettingsModel.hideSecondCurrency) {
+                OutlinedTextField(
+                    value = totalCurr2Paid,
+                    onValueChange = {
+                        totalCurr2Paid = Utils.getDoubleValue(
+                            it,
+                            totalCurr2Paid
+                        )
+                    },
+                    readOnly = true,
+                    label = {
+                        Text(text = "Paid $curr2State")
+                    },
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .weight(.25f)
+                        .focusRequester(
+                            creditCurr2TotalFocusRequester
+                        ),
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Number,
+                        imeAction = ImeAction.Next
                     ),
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Number,
-                    imeAction = ImeAction.Next
-                ),
-                keyboardActions = KeyboardActions(onNext = { debitCurr1PaidFocusRequester.requestFocus() }),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = Color.LightGray,
-                    unfocusedContainerColor = Color.LightGray,
-                    focusedLabelColor = Color.Black,
-                    unfocusedLabelColor = Color.Black,
-                    unfocusedBorderColor = Color.Black,
-                    focusedBorderColor = Color.Black,
-                    focusedTextColor = Color.Black,
-                    unfocusedTextColor = Color.Black
+                    keyboardActions = KeyboardActions(onNext = { debitCurr1PaidFocusRequester.requestFocus() }),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedContainerColor = Color.LightGray,
+                        unfocusedContainerColor = Color.LightGray,
+                        focusedLabelColor = Color.Black,
+                        unfocusedLabelColor = Color.Black,
+                        unfocusedBorderColor = Color.Black,
+                        focusedBorderColor = Color.Black,
+                        focusedTextColor = Color.Black,
+                        unfocusedTextColor = Color.Black
+                    )
                 )
-            )
+            }
         }
 
         Row(
@@ -594,7 +601,10 @@ fun InvoiceCashView(
                     placeholder = {
                         Text(text = "0.0")
                     },
-                    modifier = Modifier.fillMaxHeight().weight(.25f).focusRequester(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .weight(.25f)
+                        .focusRequester(
                             debitCurr2PaidFocusRequester
                         ),
                     keyboardOptions = KeyboardOptions(
@@ -645,40 +655,42 @@ fun InvoiceCashView(
                 )
             )
 
-            OutlinedTextField(
-                value = changeCurr2,
-                onValueChange = {
-                    changeCurr2 = Utils.getDoubleValue(
-                        it,
-                        changeCurr2
-                    )
-                },
-                readOnly = true,
-                label = {
-                    Text(text = "Change $curr2State")
-                },
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .weight(.25f)
-                    .focusRequester(
-                        debitCurr2TotalFocusRequester
+            if (!SettingsModel.hideSecondCurrency) {
+                OutlinedTextField(
+                    value = changeCurr2,
+                    onValueChange = {
+                        changeCurr2 = Utils.getDoubleValue(
+                            it,
+                            changeCurr2
+                        )
+                    },
+                    readOnly = true,
+                    label = {
+                        Text(text = "Change $curr2State")
+                    },
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .weight(.25f)
+                        .focusRequester(
+                            debitCurr2TotalFocusRequester
+                        ),
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Number,
+                        imeAction = ImeAction.Done
                     ),
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Number,
-                    imeAction = ImeAction.Done
-                ),
-                keyboardActions = KeyboardActions(onDone = { keyboardController?.hide() }),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = Color.LightGray,
-                    unfocusedContainerColor = Color.LightGray,
-                    focusedLabelColor = Color.Black,
-                    unfocusedLabelColor = Color.Black,
-                    unfocusedBorderColor = Color.Black,
-                    focusedBorderColor = Color.Black,
-                    focusedTextColor = Color.Black,
-                    unfocusedTextColor = Color.Black
+                    keyboardActions = KeyboardActions(onDone = { keyboardController?.hide() }),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedContainerColor = Color.LightGray,
+                        unfocusedContainerColor = Color.LightGray,
+                        focusedLabelColor = Color.Black,
+                        unfocusedLabelColor = Color.Black,
+                        unfocusedBorderColor = Color.Black,
+                        focusedBorderColor = Color.Black,
+                        focusedTextColor = Color.Black,
+                        unfocusedTextColor = Color.Black
+                    )
                 )
-            )
+            }
         }
 
     }
