@@ -88,6 +88,11 @@ class PaymentsViewModel @Inject constructor(
         }
     }
 
+    fun getCurrencyCode(currID: String?): String? {
+        if (currID.isNullOrEmpty()) return null
+        return paymentsState.value.currencies.firstOrNull { it.currencyId == currID || it.currencyCode == currID }?.currencyCode
+    }
+
     suspend fun fetchThirdParties(loading: Boolean = true) {
         if (loading) {
             paymentsState.value = paymentsState.value.copy(
@@ -252,7 +257,17 @@ class PaymentsViewModel @Inject constructor(
             user,
             defaultThirdParty,
         )
-        reportResult.printer = SettingsModel.cashPrinter ?: ""
+        SettingsModel.cashPrinter?.let {
+            if (it.contains(":")) {
+                val printerDetails = it.split(":")
+                val size = printerDetails.size
+                reportResult.printerIP = if (size > 0) printerDetails[0] else ""
+                val port = if (size > 1) printerDetails[1] else "-1"
+                reportResult.printerPort = port.toIntOrNull() ?: -1
+            } else {
+                reportResult.printerName = it
+            }
+        }
     }
 
 }

@@ -39,6 +39,10 @@ interface ThirdPartyDao {
     @Query("SELECT * FROM `thirdparty` WHERE tp_cse in (:types) AND tp_cmp_id=:companyId")
     fun getAllThirdParties(types:List<String>,companyId: String): MutableList<ThirdParty>
 
+    // Get ThirdParty by id as stream.
+    @Query("SELECT * FROM `thirdparty` WHERE tp_id=:thirdPartyID LIMIT 1")
+    fun getThirdPartyByID(thirdPartyID: String): ThirdParty?
+
     // Get one ThirdParty as stream.
     @Query("SELECT * FROM `thirdparty` WHERE tp_cmp_id=:companyId LIMIT 1")
     fun getOneThirdPartyByCompanyID(companyId: String): ThirdParty?

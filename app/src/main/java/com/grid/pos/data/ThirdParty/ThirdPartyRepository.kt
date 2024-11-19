@@ -19,6 +19,7 @@ interface ThirdPartyRepository {
     suspend fun getAllThirdParties(): MutableList<ThirdParty>
     suspend fun getAllThirdParties(types: List<String>): MutableList<ThirdParty>
 
+    suspend fun getThirdPartyByID(thirdpartyId: String): ThirdParty?
     suspend fun getOneThirdPartyByCompanyID(companyId: String): ThirdParty?
 
     suspend fun getOneThirdPartyByUserID(userId: String): ThirdParty?

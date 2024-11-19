@@ -4,6 +4,7 @@ import com.grid.pos.data.DataModel
 
 data class CurrencyModel(
         var currencyId: String,
+        var currencyCode: String,
         var currencyName: String
 ) : DataModel() {
 

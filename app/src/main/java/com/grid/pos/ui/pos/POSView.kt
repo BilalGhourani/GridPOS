@@ -236,24 +236,27 @@ fun POSView(
                 cashLoadedData()
                 navController?.navigate("UIWebView")
             } else if (SettingsModel.autoPrintTickets) {
-                state.isLoading = true
+                activityViewModel.showLoading(true)
                 val invoices = invoicesState.filter { it.invoice.isNew() || it.shouldPrint }
                     .toMutableList()
                 invoices.addAll(state.itemsToDelete)
                 if (invoices.isNotEmpty()) {
-                    scope.launch {
-                        withContext(Dispatchers.Default) {
-                            activityViewModel.invoiceHeader = invoiceHeaderState.value
-                            cashLoadedData()
-                            PrinterUtils.printTickets(
-                                context = context,
-                                invoiceHeader = invoiceHeaderState.value,
-                                invoiceItemModels = invoices,
-                                printers = activityViewModel.printers
+                    scope.launch(Dispatchers.Default) {
+                        activityViewModel.invoiceHeader = invoiceHeaderState.value
+                        cashLoadedData()
+                        viewModel.prepareItemsReports(
+                            context,
+                            invoiceHeaderState.value,
+                            invoices
+                        )
+                        viewModel.reportResults.forEach {
+                            PrinterUtils.printReport(
+                                context,
+                                it
                             )
                         }
                         withContext(Dispatchers.Main) {
-                            state.isLoading = false
+                            activityViewModel.showLoading(false)
                             clear()
                             navController?.navigateUp()
                         }
@@ -266,7 +269,7 @@ fun POSView(
                 clear()
                 navController?.navigateUp()
             }
-            state.isSaved = false
+            activityViewModel.showLoading(false)
         }
         if (state.isDeleted) {
             state.invoiceHeaders.remove(invoiceHeaderState.value)

@@ -84,6 +84,14 @@ data class Payment(
         var paymentCurrency: String? = null,
 
         /**
+         * Payment Currency Code
+         * */
+        @Ignore
+        @get:Exclude
+        @set:Exclude
+        var paymentCurrencyCode: String? = null,
+
+        /**
          * Payment Amount
          * */
         @ColumnInfo(name = "pay_amt")

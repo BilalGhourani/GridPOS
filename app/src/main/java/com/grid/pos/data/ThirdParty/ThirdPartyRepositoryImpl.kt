@@ -239,6 +239,77 @@ class ThirdPartyRepositoryImpl(
 
     }
 
+    override suspend fun getThirdPartyByID(thirdpartyId: String): ThirdParty? {
+        when (SettingsModel.connectionType) {
+            CONNECTION_TYPE.FIRESTORE.key -> {
+                val querySnapshot = FirebaseFirestore.getInstance().collection("thirdParty")
+                    .whereEqualTo(
+                        "tp_id",
+                        thirdpartyId
+                    ).limit(1).get().await()
+                if (querySnapshot.size() > 0) {
+                    for (document in querySnapshot) {
+                        val obj = document.toObject(ThirdParty::class.java)
+                        if (obj.thirdPartyId.isNotEmpty()) {
+                            obj.thirdPartyDocumentId = document.id
+                            return obj
+                        }
+                    }
+                }
+                return null
+            }
+
+            CONNECTION_TYPE.LOCAL.key -> {
+                return thirdPartyDao.getThirdPartyByID(thirdpartyId)
+            }
+
+            else -> {
+                try {
+                    val where = " tp_id='$thirdpartyId'"
+                    val dbResult = SQLServerWrapper.getListOf(
+                        "thirdparty",
+                        "TOP 1",
+                        mutableListOf("*"),
+                        where
+                    )
+                    dbResult?.let {
+                        while (it.next()) {
+                            return ThirdParty().apply {
+                                thirdPartyId = it.getStringValue("tp_name")
+                                thirdPartyName = if (SettingsModel.isSqlServerWebDb) it.getStringValue("tp_newname") else it.getStringValue(
+                                    "tp_name"
+                                )
+                                thirdPartyFn = it.getStringValue("tp_fn")
+                                thirdPartyCompId = if (SettingsModel.isSqlServerWebDb) it.getStringValue("tp_cmp_id") else SettingsModel.getCompanyID()
+                                thirdPartyType = it.getStringValue("tp_cse")
+                                thirdPartyPhone1 = it.getStringValue("tp_phone1")
+                                thirdPartyPhone2 = it.getStringValue("tp_phone2")
+                                thirdPartyAddress = it.getStringValue("tp_address")
+                                val timeStamp = it.getObjectValue("tp_timestamp")
+                                thirdPartyTimeStamp = when (timeStamp) {
+                                    is Date -> timeStamp
+                                    is String -> DateHelper.getDateFromString(
+                                        timeStamp,
+                                        "yyyy-MM-dd hh:mm:ss.SSS"
+                                    )
+
+                                    else -> null
+                                }
+                                thirdPartyDateTime = (thirdPartyTimeStamp ?: Date()).time
+                                thirdPartyUserStamp = it.getStringValue("tp_userstamp")
+                                thirdPartyDefault = true
+                            }
+                        }
+                        SQLServerWrapper.closeResultSet(it)
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+                return null
+            }
+        }
+    }
+
     override suspend fun getOneThirdPartyByCompanyID(companyId: String): ThirdParty? {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {

@@ -225,7 +225,9 @@ class ActivityScopedViewModel @Inject constructor(
         pendingInvHeadState = null
         shouldLoadInvoice = false
         isFromTable = false
+        reportsToPrint = mutableListOf()
     }
+
     fun finish() {
         viewModelScope.launch {
             _mainActivityEvent.send(ActivityScopedUIEvent.Finish)

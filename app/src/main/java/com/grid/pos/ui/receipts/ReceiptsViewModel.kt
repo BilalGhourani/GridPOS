@@ -91,6 +91,11 @@ class ReceiptsViewModel @Inject constructor(
         }
     }
 
+    fun getCurrencyCode(currID: String?): String? {
+        if (currID.isNullOrEmpty()) return null
+        return receiptsState.value.currencies.firstOrNull { it.currencyId == currID || it.currencyCode == currID }?.currencyCode
+    }
+
     suspend fun fetchThirdParties(loading: Boolean = true) {
         if (loading) {
             receiptsState.value = receiptsState.value.copy(
@@ -119,7 +124,10 @@ class ReceiptsViewModel @Inject constructor(
         }
     }
 
-    fun saveReceipt(context: Context,receipt: Receipt) {
+    fun saveReceipt(
+            context: Context,
+            receipt: Receipt
+    ) {
         if (receipt.receiptThirdParty.isNullOrEmpty()) {
             receiptsState.value = receiptsState.value.copy(
                 warning = Event("Please select a Client."),
@@ -166,7 +174,7 @@ class ReceiptsViewModel @Inject constructor(
                 if (receipts.isNotEmpty()) {
                     receipts.add(addedModel)
                 }
-                preparePaymentReport(context)
+                prepareReceiptReport(context)
                 withContext(Dispatchers.Main) {
                     receiptsState.value = receiptsState.value.copy(
                         receipts = receipts,
@@ -179,7 +187,7 @@ class ReceiptsViewModel @Inject constructor(
                 }
             } else {
                 receiptRepository.update(receipt)
-                preparePaymentReport(context)
+                prepareReceiptReport(context)
                 withContext(Dispatchers.Main) {
                     receiptsState.value = receiptsState.value.copy(
                         selectedReceipt = receipt,
@@ -224,7 +232,7 @@ class ReceiptsViewModel @Inject constructor(
         }
     }
 
-    private suspend fun preparePaymentReport(
+    private suspend fun prepareReceiptReport(
             context: Context
     ) {
         val receipt = receiptsState.value.selectedReceipt
@@ -253,7 +261,17 @@ class ReceiptsViewModel @Inject constructor(
             user,
             defaultThirdParty,
         )
-        reportResult.printer = SettingsModel.cashPrinter ?: ""
+        SettingsModel.cashPrinter?.let {
+            if (it.contains(":")) {
+                val printerDetails = it.split(":")
+                val size = printerDetails.size
+                reportResult.printerIP = if (size > 0) printerDetails[0] else ""
+                val port = if (size > 1) printerDetails[1] else "-1"
+                reportResult.printerPort = port.toIntOrNull() ?: -1
+            } else {
+                reportResult.printerName = it
+            }
+        }
     }
 
 }

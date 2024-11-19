@@ -133,8 +133,8 @@ object PrinterUtils {
         }
         if (payslip.isNotEmpty()) {
             return ReportResult(
-                true,
-                payslip
+                found = true,
+                htmlContent = payslip
             )
         }
 
@@ -143,8 +143,8 @@ object PrinterUtils {
             context
         )
         return ReportResult(
-            false,
-            payslip
+            found = false,
+            htmlContent = payslip
         )
     }
 
@@ -804,8 +804,8 @@ object PrinterUtils {
         }
 
         return ReportResult(
-            true,
-            htmlContent
+            found = true,
+            htmlContent = htmlContent
         )
     }
 
@@ -1022,14 +1022,14 @@ object PrinterUtils {
         }
         if (payTicket.isNotEmpty()) {
             return ReportResult(
-                true,
-                payTicket
+                found = true,
+                htmlContent = payTicket
             )
         }
 
         return ReportResult(
-            false,
-            payTicket
+            found = false,
+            htmlContent = payTicket
         )
     }
 
@@ -1141,8 +1141,8 @@ object PrinterUtils {
             )
         }
         return ReportResult(
-            true,
-            htmlContent
+            found = true,
+            htmlContent = htmlContent
         )
     }
 
@@ -1175,8 +1175,8 @@ object PrinterUtils {
         }
         if (paymentVoucher.isNotEmpty()) {
             return ReportResult(
-                true,
-                paymentVoucher
+                found = true,
+                htmlContent = paymentVoucher
             )
         }
         paymentVoucher = FileUtils.readFileFromAssets(
@@ -1185,8 +1185,8 @@ object PrinterUtils {
         )
 
         return ReportResult(
-            false,
-            paymentVoucher
+            found = false,
+            htmlContent = paymentVoucher
         )
     }
 
@@ -1210,7 +1210,7 @@ object PrinterUtils {
             user?.userName ?: ""
         ).replace(
             "{paidOutNumberValue}",
-            payment.paymentTransNo ?: ""
+            "${payment.paymentTransCode ?: ""}${payment.paymentTransNo ?: ""}"
         ).replace(
             "{PaidOutDateValue}",
             DateHelper.getDateInFormat(
@@ -1219,13 +1219,17 @@ object PrinterUtils {
             )
         ).replace(
             "{paidOutAmountValue}",
-            POSUtils.formatDouble(
+            String.format(
+                "%,.2f %s",
                 payment.paymentAmount,
-                2
+                payment.paymentCurrencyCode ?: ""
             )
         ).replace(
             "{paidOutSupplierValue}",
             thirdParty?.thirdPartyName ?: ""
+        ).replace(
+            "{paidOutAmountStringValue}",
+            Utils.convertDoubleToWords(payment.paymentAmount,"Only",payment.paymentCurrencyCode ?: "")
         ).replace(
             "{paidOutDescriptionValue}",
             payment.paymentDesc ?: ""
@@ -1234,8 +1238,8 @@ object PrinterUtils {
             ""
         )
         return ReportResult(
-            true,
-            htmlContent
+            found = true,
+            htmlContent = htmlContent
         )
     }
 
@@ -1259,7 +1263,7 @@ object PrinterUtils {
             user?.userName ?: ""
         ).replace(
             "{paidInNumberValue}",
-            receipt.receiptTransNo ?: ""
+            "${receipt.receiptTransCode ?: ""}${receipt.receiptTransNo ?: ""}"
         ).replace(
             "{paidInDateValue}",
             DateHelper.getDateInFormat(
@@ -1268,13 +1272,17 @@ object PrinterUtils {
             )
         ).replace(
             "{paidInAmountValue}",
-            POSUtils.formatDouble(
+            String.format(
+                "%,.2f %s",
                 receipt.receiptAmount,
-                2
+                receipt.receiptCurrencyCode ?: ""
             )
         ).replace(
             "{paidInClientValue}",
             thirdParty?.thirdPartyName ?: ""
+        ).replace(
+            "{paidInAmountStringValue}",
+            Utils.convertDoubleToWords(receipt.receiptAmount,"Only",receipt.receiptCurrencyCode ?: "")
         ).replace(
             "{paidInDescriptionValue}",
             receipt.receiptDesc ?: ""
@@ -1283,8 +1291,8 @@ object PrinterUtils {
             ""
         )
         return ReportResult(
-            true,
-            htmlContent
+            found = true,
+            htmlContent = htmlContent
         )
     }
 
@@ -1303,6 +1311,7 @@ object PrinterUtils {
             )
         }
     }
+
     private suspend fun printOutput(
             context: Context,
             output: ByteArray,

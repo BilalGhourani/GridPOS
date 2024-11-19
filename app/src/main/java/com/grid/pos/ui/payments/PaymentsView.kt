@@ -139,7 +139,10 @@ fun PaymentsView(
                     }
                     onConfirmation = {
                         saveAndBack = true
-                        viewModel.savePayment(context,state.selectedPayment)
+                        viewModel.savePayment(
+                            context,
+                            state.selectedPayment
+                        )
                     }
                     dialogText = "Do you want to save your changes"
                     positiveBtnText = "Save"
@@ -284,11 +287,13 @@ fun PaymentsView(
                         onLeadingIconClick = {
                             currencyState = ""
                             state.selectedPayment.paymentCurrency = null
+                            state.selectedPayment.paymentCurrencyCode = null
                             currencyIndexState = 0
                         }) { currModel ->
                         currModel as CurrencyModel
                         currencyState = currModel.getId()
                         state.selectedPayment.paymentCurrency = currencyState
+                        state.selectedPayment.paymentCurrencyCode = currModel.currencyCode
                         currencyIndexState = state.selectedPayment.getSelectedCurrencyIndex()
                     }
 
@@ -411,7 +416,10 @@ fun PaymentsView(
                             icon = R.drawable.save,
                             text = "Save"
                         ) {
-                            viewModel.savePayment(context,state.selectedPayment)
+                            viewModel.savePayment(
+                                context,
+                                state.selectedPayment
+                            )
                         }
 
                         UIImageButton(
@@ -493,6 +501,7 @@ fun PaymentsView(
                         clear()
                     }) { payment ->
                     payment as Payment
+                    payment.paymentCurrencyCode = viewModel.getCurrencyCode(payment.paymentCurrency)
                     viewModel.currentPayment = payment.copy()
                     state.selectedPayment = payment
                     thirdPartyState = payment.paymentThirdParty ?: ""

@@ -180,6 +180,7 @@ class CurrencyRepositoryImpl(
                         currencies.add(
                             CurrencyModel(
                                 it.currencyCode1!!,
+                                it.currencyCode1!!,
                                 it.currencyName1!!
                             )
                         )
@@ -187,6 +188,7 @@ class CurrencyRepositoryImpl(
                     if (!it.currencyCode2.isNullOrEmpty()) {
                         currencies.add(
                             CurrencyModel(
+                                it.currencyCode2!!,
                                 it.currencyCode2!!,
                                 it.currencyName2!!
                             )
@@ -216,6 +218,7 @@ class CurrencyRepositoryImpl(
                             currencyModels.add(
                                 CurrencyModel(
                                     currencyId = it.getStringValue("cur_code"),
+                                    currencyCode = if (SettingsModel.isSqlServerWebDb) it.getStringValue("cur_newcode") else it.getStringValue("cur_code"),
                                     currencyName = it.getStringValue("cur_name")
                                 )
                             )
@@ -227,28 +230,6 @@ class CurrencyRepositoryImpl(
                 }
                 return currencyModels
             }
-            /*else -> {
-                val currencies = mutableListOf<CurrencyModel>()
-                SettingsModel.currentCurrency?.let {
-                    if (it.currencyId.isNotEmpty()) {
-                        currencies.add(
-                            CurrencyModel(
-                                it.currencyId,
-                                it.currencyName1!!
-                            )
-                        )
-                    }
-                    if (!it.currencyDocumentId.isNullOrEmpty()) {
-                        currencies.add(
-                            CurrencyModel(
-                                it.currencyDocumentId!!,
-                                it.currencyName2!!
-                            )
-                        )
-                    }
-                }
-                currencies
-            }*/
         }
     }
 }

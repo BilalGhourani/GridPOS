@@ -238,7 +238,8 @@ class POSViewModel @Inject constructor(
                         context,
                         addedInv,
                         posReceipt,
-                        invoiceItems
+                        invoiceItems,
+                        print
                     )
                 } else {
                     showWarning(
@@ -288,7 +289,8 @@ class POSViewModel @Inject constructor(
                     context,
                     invoiceHeader,
                     posReceipt,
-                    invoiceItems
+                    invoiceItems,
+                    print
                 )
             }
         }
@@ -298,7 +300,8 @@ class POSViewModel @Inject constructor(
             context: Context,
             invoiceHeader: InvoiceHeader,
             posReceipt: PosReceipt,
-            invoiceItems: MutableList<InvoiceItemModel>
+            invoiceItems: MutableList<InvoiceItemModel>,
+            print: Boolean
     ) {
         val isInserting = posReceipt.isNew()
         if (isInserting) {
@@ -312,7 +315,8 @@ class POSViewModel @Inject constructor(
             context,
             invoiceHeader,
             invoiceItems,
-            posReceipt
+            posReceipt,
+            print
         )
     }
 
@@ -320,7 +324,8 @@ class POSViewModel @Inject constructor(
             context: Context,
             invoiceHeader: InvoiceHeader,
             invoiceItems: MutableList<InvoiceItemModel>,
-            posReceipt: PosReceipt
+            posReceipt: PosReceipt,
+            print: Boolean
     ) {
         val itemsToInsert = invoiceItems.filter { it.invoice.isNew() }
         val itemsToUpdate = invoiceItems.filter { !it.invoice.isNew() }
@@ -347,12 +352,16 @@ class POSViewModel @Inject constructor(
             invoiceItem.invoiceItem.itemRemQty += invoiceItem.invoice.invoiceQuantity
             itemRepository.update(invoiceItem.invoiceItem)
         }
-        getInvoiceReceiptHtmlContent(
-            context,
-            invoiceHeader,
-            invoiceItems,
-            posReceipt
-        )
+        if (print) {
+            prepareInvoiceReports(
+                context,
+                invoiceHeader,
+                invoiceItems,
+                posReceipt
+            )
+        } else {
+            reportResults.clear()
+        }
         withContext(Dispatchers.Main) {
             posState.value = posState.value.copy(
                 isLoading = false,
@@ -401,7 +410,7 @@ class POSViewModel @Inject constructor(
             invoiceHeaderRepository.updateInvoiceHeader(
                 invoiceHeader
             )
-            getInvoiceReceiptHtmlContent(
+            prepareInvoiceReports(
                 context,
                 invoiceHeader,
                 invoiceItems,
@@ -518,7 +527,7 @@ class POSViewModel @Inject constructor(
         }
     }
 
-    suspend fun getInvoiceReceiptHtmlContent(
+    private suspend fun prepareInvoiceReports(
             context: Context,
             invoiceHeader: InvoiceHeader,
             invoiceItems: MutableList<InvoiceItemModel>,
@@ -526,23 +535,27 @@ class POSViewModel @Inject constructor(
     ) {
         val defaultThirdParty = if (invoiceHeader.invoiceHeadThirdPartyName.isNullOrEmpty() || invoiceHeader.invoiceHeadThirdPartyName == posState.value.selectedThirdParty.thirdPartyId) {
             posState.value.selectedThirdParty
+        } else if (invoiceHeader.invoiceHeadThirdPartyName == SettingsModel.defaultThirdParty?.thirdPartyId) {
+            SettingsModel.defaultThirdParty
         } else {
             if (posState.value.thirdParties.isEmpty()) {
-                posState.value.thirdParties = thirdPartyRepository.getAllThirdParties()
+                thirdPartyRepository.getThirdPartyByID(invoiceHeader.invoiceHeadThirdPartyName!!)
+            } else {
+                posState.value.thirdParties.firstOrNull {
+                    it.thirdPartyId == invoiceHeader.invoiceHeadThirdPartyName
+                }
             }
-            posState.value.thirdParties.firstOrNull {
-                it.thirdPartyId == invoiceHeader.invoiceHeadThirdPartyName
-            } ?: SettingsModel.defaultThirdParty
         }
         val user = if (invoiceHeader.invoiceHeadUserStamp.isNullOrEmpty() || SettingsModel.currentUser?.userId == invoiceHeader.invoiceHeadUserStamp || SettingsModel.currentUser?.userUsername == invoiceHeader.invoiceHeadUserStamp) {
             SettingsModel.currentUser
         } else {
             if (posState.value.users.isEmpty()) {
-                posState.value.users = userRepository.getAllUsers()
+                userRepository.getUserById(invoiceHeader.invoiceHeadUserStamp!!)
+            } else {
+                posState.value.users.firstOrNull {
+                    it.userId == invoiceHeader.invoiceHeadUserStamp || it.userUsername == invoiceHeader.invoiceHeadUserStamp
+                } ?: SettingsModel.currentUser
             }
-            posState.value.users.firstOrNull {
-                it.userId == invoiceHeader.invoiceHeadUserStamp || it.userUsername == invoiceHeader.invoiceHeadUserStamp
-            } ?: SettingsModel.currentUser
         }
 
         val invoiceReport = PrinterUtils.getInvoiceReceiptHtmlContent(
@@ -567,6 +580,18 @@ class POSViewModel @Inject constructor(
         }
         reportResults.add(invoiceReport)
 
+        prepareItemsReports(
+            context,
+            invoiceHeader,
+            invoiceItems
+        )
+    }
+
+    suspend fun prepareItemsReports(
+            context: Context,
+            invoiceHeader: InvoiceHeader,
+            invoiceItems: MutableList<InvoiceItemModel>
+    ) {
         if (SettingsModel.autoPrintTickets) {
             if (posState.value.printers.isEmpty()) {
                 posState.value.printers = posPrinterRepository.getAllPosPrinters()

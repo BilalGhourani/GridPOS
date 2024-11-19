@@ -284,11 +284,13 @@ fun ReceiptsView(
                         onLeadingIconClick = {
                             currencyState = ""
                             state.selectedReceipt.receiptCurrency = null
+                            state.selectedReceipt.receiptCurrencyCode = null
                             currencyIndexState = 0
                         }) { currModel ->
                         currModel as CurrencyModel
                         currencyState = currModel.getId()
                         state.selectedReceipt.receiptCurrency = currencyState
+                        state.selectedReceipt.receiptCurrencyCode = currModel.currencyCode
                         currencyIndexState = state.selectedReceipt.getSelectedCurrencyIndex()
                     }
 
@@ -493,6 +495,7 @@ fun ReceiptsView(
                         clear()
                     }) { receipt ->
                     receipt as Receipt
+                    receipt.receiptCurrencyCode = viewModel.getCurrencyCode(receipt.receiptCurrency)
                     viewModel.currentReceipt = receipt.copy()
                     state.selectedReceipt = receipt
                     thirdPartyState = receipt.receiptThirdParty ?: ""

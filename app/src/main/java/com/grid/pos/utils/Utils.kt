@@ -465,4 +465,64 @@ object Utils {
         return luminance > 186
     }
 
+    fun convertDoubleToWords(
+            amount: Double,
+            prefix:String,
+            currency: String
+    ): String {
+        val unitsMap = arrayOf(
+            "",
+            "One",
+            "Two",
+            "Three",
+            "Four",
+            "Five",
+            "Six",
+            "Seven",
+            "Eight",
+            "Nine",
+            "Ten",
+            "Eleven",
+            "Twelve",
+            "Thirteen",
+            "Fourteen",
+            "Fifteen",
+            "Sixteen",
+            "Seventeen",
+            "Eighteen",
+            "Nineteen"
+        )
+        val tensMap = arrayOf(
+            "",
+            "",
+            "Twenty",
+            "Thirty",
+            "Forty",
+            "Fifty",
+            "Sixty",
+            "Seventy",
+            "Eighty",
+            "Ninety"
+        )
+
+        fun numberToWords(n: Int): String {
+            return when {
+                n < 20 -> unitsMap[n]
+                n < 100 -> tensMap[n / 10] + (if (n % 10 != 0) " " + unitsMap[n % 10] else "")
+                n < 1000 -> unitsMap[n / 100] + " Hundred" + (if (n % 100 != 0) " " + numberToWords(n % 100) else "")
+                n < 1_000_000 -> numberToWords(n / 1000) + " Thousand" + (if (n % 1000 != 0) " " + numberToWords(n % 1000) else "")
+                else -> "Out of Range"
+            }
+        }
+
+        val integerPart = amount.toInt()
+        val decimalPart = ((amount - integerPart) * 100).toInt()
+
+        val integerWords = numberToWords(integerPart)
+        return if (decimalPart > 0) {
+            "$prefix $integerWords $currency and ${numberToWords(decimalPart)}"
+        } else {
+            "$prefix $integerWords $currency"
+        }
+    }
 }

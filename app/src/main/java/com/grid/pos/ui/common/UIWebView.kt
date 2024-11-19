@@ -48,15 +48,27 @@ fun UIWebView(
     val context = LocalContext.current
     val reportResultState = remember {
         mutableStateOf(
-            ReportResult(
-                false,
-                ""
-            )
+            if (activityViewModel.reportsToPrint.isNotEmpty()) {
+                activityViewModel.reportsToPrint[0]
+            } else {
+                ReportResult(
+                    false,
+                    ""
+                )
+            }
         )
     }
-    LaunchedEffect(Unit) {
-        if (activityViewModel.reportsToPrint.isNotEmpty()) {
-            reportResultState.value = activityViewModel.reportsToPrint[0]
+
+    val webView = remember {
+        WebView(context).apply {
+            webViewClient = WebViewClient()
+            loadDataWithBaseURL(
+                null,
+                reportResultState.value.htmlContent,
+                "text/html",
+                "UTF-8",
+                null
+            )
         }
     }
 
@@ -109,18 +121,7 @@ fun UIWebView(
                     .padding(it)
             ) {
                 AndroidView(modifier = Modifier.weight(1f),
-                    factory = {
-                        WebView(context).apply {
-                            webViewClient = WebViewClient()
-                            loadDataWithBaseURL(
-                                null,
-                                reportResultState.value.htmlContent,
-                                "text/html",
-                                "UTF-8",
-                                null
-                            )
-                        }
-                    }) {}
+                    factory = { webView }) {}
 
                 if (reportResultState.value.found) {
                     UIButton(
@@ -131,7 +132,6 @@ fun UIWebView(
                     ) {
                         activityViewModel.showLoading(true)
                         CoroutineScope(Dispatchers.Default).launch {
-
                             activityViewModel.reportsToPrint.forEach {
                                 PrinterUtils.printReport(
                                     context,

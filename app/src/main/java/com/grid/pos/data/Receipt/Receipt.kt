@@ -84,6 +84,14 @@ data class Receipt(
         var receiptCurrency: String? = null,
 
         /**
+         * Receipt Currency Code
+         * */
+        @Ignore
+        @get:Exclude
+        @set:Exclude
+        var receiptCurrencyCode: String? = null,
+
+        /**
          * Receipt Amount
          * */
         @ColumnInfo(name = "rec_amt")
@@ -157,7 +165,7 @@ data class Receipt(
 
     @Exclude
     override fun getName(): String {
-        val transNo = receiptTransNo ?: ""
+        val transNo = "${receiptTransCode ?: ""} ${receiptTransNo ?: ""}"
         val total = String.format(
             "%,.${SettingsModel.currentCurrency?.currencyName1Dec ?: 2}f",
             receiptAmount
@@ -195,9 +203,7 @@ data class Receipt(
 
     @Exclude
     fun didChanged(receipt: Receipt): Boolean {
-        return !receipt.receiptDesc.equals(receiptDesc) || !receipt.receiptNote.equals(receiptNote) ||
-         !receipt.receiptThirdParty.equals(receiptThirdParty) || !receipt.receiptCurrency.equals(receiptCurrency) ||
-         !receipt.receiptType.equals(receiptType) || !receipt.receiptAmount.equals(receiptAmount)
+        return !receipt.receiptDesc.equals(receiptDesc) || !receipt.receiptNote.equals(receiptNote) || !receipt.receiptThirdParty.equals(receiptThirdParty) || !receipt.receiptCurrency.equals(receiptCurrency) || !receipt.receiptType.equals(receiptType) || !receipt.receiptAmount.equals(receiptAmount)
     }
 
     @Exclude
