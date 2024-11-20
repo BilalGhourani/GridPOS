@@ -189,7 +189,8 @@ class ThirdPartyRepositoryImpl(
             else -> {
                 val thirdParties: MutableList<ThirdParty> = mutableListOf()
                 try {
-                    val where = if (SettingsModel.isSqlServerWebDb) "tp_cse IN (${types.joinToString(",")}) AND tp_cmp_id='${SettingsModel.getCompanyID()}'" else "tp_cse IN (${types.joinToString(",")})"
+                    val typeStr = types.joinToString(",") { "'$it'" }
+                    val where = if (SettingsModel.isSqlServerWebDb) "tp_cse IN ($typeStr) AND tp_cmp_id='${SettingsModel.getCompanyID()}'" else "tp_cse IN ($typeStr)"
                     val dbResult = SQLServerWrapper.getListOf(
                         "thirdparty",
                         "",
