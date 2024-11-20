@@ -2,11 +2,13 @@ package com.grid.pos.data.Payment
 
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
-import com.grid.pos.data.InvoiceHeader.InvoiceHeader
 import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.SettingsModel
+import com.grid.pos.ui.pos.POSUtils
+import com.grid.pos.utils.Extension.getStringValue
 import kotlinx.coroutines.tasks.await
+import java.sql.Timestamp
 
 class PaymentRepositoryImpl(
         private val paymentDao: PaymentDao
@@ -14,11 +16,20 @@ class PaymentRepositoryImpl(
     override suspend fun insert(
             payment: Payment
     ): Payment {
-        if (SettingsModel.isConnectedToFireStore()) {
-            val docRef = FirebaseFirestore.getInstance().collection("payment").add(payment).await()
-            payment.paymentDocumentId = docRef.id
-        } else {
-            paymentDao.insert(payment)
+        when (SettingsModel.connectionType) {
+            CONNECTION_TYPE.FIRESTORE.key -> {
+                val docRef = FirebaseFirestore.getInstance().collection("payment").add(payment)
+                    .await()
+                payment.paymentDocumentId = docRef.id
+            }
+
+            CONNECTION_TYPE.LOCAL.key -> {
+                paymentDao.insert(payment)
+            }
+
+            else -> {
+                insertHPayment(payment)
+            }
         }
         return payment
     }
@@ -26,26 +37,42 @@ class PaymentRepositoryImpl(
     override suspend fun delete(
             payment: Payment
     ) {
-        if (SettingsModel.isConnectedToFireStore()) {
-            payment.paymentDocumentId?.let {
-                FirebaseFirestore.getInstance().collection("payment").document(it).delete().await()
+        when (SettingsModel.connectionType) {
+            CONNECTION_TYPE.FIRESTORE.key -> {
+                payment.paymentDocumentId?.let {
+                    FirebaseFirestore.getInstance().collection("payment").document(it).delete()
+                        .await()
+                }
             }
-        } else {
-            paymentDao.delete(payment)
+
+            CONNECTION_TYPE.LOCAL.key -> {
+                paymentDao.delete(payment)
+            }
+
+            else -> {
+
+            }
         }
     }
 
     override suspend fun update(
             payment: Payment
     ) {
-        if (SettingsModel.isConnectedToFireStore()) {
-            payment.paymentDocumentId?.let {
-                FirebaseFirestore.getInstance().collection("payment").document(it)
-                    .update(payment.getMap()).await()
+        when (SettingsModel.connectionType) {
+            CONNECTION_TYPE.FIRESTORE.key -> {
+                payment.paymentDocumentId?.let {
+                    FirebaseFirestore.getInstance().collection("payment").document(it)
+                        .update(payment.getMap()).await()
+                }
             }
 
-        } else {
-            paymentDao.update(payment)
+            CONNECTION_TYPE.LOCAL.key -> {
+                paymentDao.update(payment)
+            }
+
+            else -> {
+
+            }
         }
     }
 
@@ -71,42 +98,7 @@ class PaymentRepositoryImpl(
             }
 
             else -> {//CONNECTION_TYPE.SQL_SERVER.key
-                val payments: MutableList<Payment> = mutableListOf()/*try {
-                    val where = "cmp_id='$id'"
-                    val dbResult = SQLServerWrapper.getListOf(
-                        "company",
-                        "",
-                        mutableListOf("*"),
-                        where
-                    )
-                    dbResult?.let {
-                        while (it.next()) {
-                            payments.add(Company().apply {
-                                companyId = it.getStringValue("cmp_id")
-                                companyName = it.getStringValue("cmp_name")
-                                companyPhone = it.getStringValue("cmp_phone")
-                                companyAddress = it.getStringValue("cmp_address")
-                                companyTaxRegno = it.getStringValue("cmp_vatregno")
-                                companyTax = it.getDoubleValue("cmp_vat")
-                                companyCurCodeTax = it.getStringValue("cmp_cur_codetax")
-                                companyEmail = it.getStringValue("cmp_email")
-                                companyWeb = it.getStringValue("cmp_web")
-                                companyLogo = it.getStringValue("cmp_logo")
-                                companySS = it.getBooleanValue("cmp_ss")
-                                companyCountry = it.getStringValue("cmp_country")
-                                companyTax1 = it.getDoubleValue("cmp_tax1")
-                                companyTax1Regno = it.getStringValue("cmp_tax1regno")
-                                companyTax2 = it.getDoubleValue("cmp_tax2")
-                                companyTax2Regno = it.getStringValue("cmp_tax2regno")
-                                cmp_multibranchcode = it.getStringValue("cmp_multibranchcode")
-                            })
-                        }
-                        SQLServerWrapper.closeResultSet(it)
-                    }
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }*/
-                if (payments.size > 0) payments[0] else null
+                null
             }
         }
     }
@@ -137,42 +129,7 @@ class PaymentRepositoryImpl(
             }
 
             else -> {//CONNECTION_TYPE.SQL_SERVER.key
-                val companies: MutableList<Payment> = mutableListOf()/*try {
-                    val where = "cmp_id='${SettingsModel.getCompanyID()}'"
-                    val dbResult = SQLServerWrapper.getListOf(
-                        "company",
-                        "",
-                        mutableListOf("*"),
-                        where
-                    )
-                    dbResult?.let {
-                        while (it.next()) {
-                            companies.add(Payment().apply {
-                                companyId = it.getStringValue("cmp_id")
-                                companyName = it.getStringValue("cmp_name")
-                                companyPhone = it.getStringValue("cmp_phone")
-                                companyAddress = it.getStringValue("cmp_address")
-                                companyTaxRegno = it.getStringValue("cmp_vatregno")
-                                companyTax = it.getDoubleValue("cmp_vat")
-                                companyCurCodeTax = it.getStringValue("cmp_cur_codetax")
-                                companyUpWithTax = it.getBooleanValue("cmp_upwithtax")
-                                companyEmail = it.getStringValue("cmp_email")
-                                companyWeb = it.getStringValue("cmp_web")
-                                companyLogo = it.getStringValue("cmp_logo")
-                                companySS = it.getBooleanValue("cmp_ss")
-                                companyCountry = it.getStringValue("cmp_country")
-                                companyTax1 = it.getDoubleValue("cmp_tax1")
-                                companyTax1Regno = it.getStringValue("cmp_tax1regno")
-                                companyTax2 = it.getDoubleValue("cmp_tax2")
-                                companyTax2Regno = it.getStringValue("cmp_tax2regno")
-                                cmp_multibranchcode = it.getStringValue("cmp_multibranchcode")
-                            })
-                        }
-                        SQLServerWrapper.closeResultSet(it)
-                    }
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }*/
+                val companies: MutableList<Payment> = mutableListOf()
                 companies
             }
         }
@@ -203,27 +160,206 @@ class PaymentRepositoryImpl(
             }
 
             else -> {
-                return null/*val invoiceHeaders: MutableList<InvoiceHeader> = mutableListOf()
-                try {
-                    val where = "hi_cmp_id='${SettingsModel.getCompanyID()}' AND hi_tt_code = '$type' AND hi_transno IS NOT NULL AND hi_transno <> '' AND hi_transno <> '0'"
-                    val dbResult = SQLServerWrapper.getListOf(
-                        "in_hinvoice",
-                        "TOP 1",
-                        mutableListOf("*"),
-                        where,
-                        "ORDER BY hi_transno DESC"
-                    )
-                    dbResult?.let {
-                        while (it.next()) {
-                            invoiceHeaders.add(fillParams(it))
-                        }
-                        SQLServerWrapper.closeResultSet(it)
-                    }
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }
-                return if (invoiceHeaders.size > 0) invoiceHeaders[0] else null*/
+                return null
             }
         }
+    }
+
+    private fun insertHPayment(payment: Payment) {
+        val parameters = if (SettingsModel.isSqlServerWebDb) {
+            listOf(
+                payment.paymentCompanyId,//@hpa_cmp_id
+                Timestamp(System.currentTimeMillis()),//@hpa_date
+                SettingsModel.pvTransactionType,//@hpa_tt_code
+                null,//@hpa_transno
+                null,//@hpa_status
+                payment.paymentDesc,//@hpa_desc
+                null,//@hpa_refno
+                payment.paymentNote,//@hpa_note
+                payment.paymentThirdParty,//@hpa_tp_name
+                null,//@hpa_cashname
+                SettingsModel.currentUser?.userUsername,//@hpa_userstamp
+                null,//@hpa_sessionpointer
+                SettingsModel.currentCompany?.cmp_multibranchcode,//@BranchCode
+                Timestamp(System.currentTimeMillis()),//@hpa_valuedate
+                null,//@hpa_employee
+                null,//@hpa_pathtodoc
+            )
+        } else {
+            listOf(
+                payment.paymentCompanyId,//@hpa_cmp_id
+                Timestamp(System.currentTimeMillis()),//@hpa_date
+                SettingsModel.pvTransactionType,//@hpa_tt_code
+                null,//@hpa_transno
+                null,//@hpa_status
+                payment.paymentDesc,//@hpa_desc
+                null,//@hpa_refno
+                payment.paymentNote,//@hpa_note
+                payment.paymentThirdParty,//@hpa_tp_name
+                null,//@hpa_cashname
+                SettingsModel.currentUser?.userUsername,//@hpa_userstamp
+                null,//@hpa_sessionpointer
+                SettingsModel.currentCompany?.cmp_multibranchcode,//@BranchCode
+                Timestamp(System.currentTimeMillis()),//@hpa_valuedate
+                null,//@hpa_employee
+                null,//@hpa_pathtodoc
+            )
+        }
+        SQLServerWrapper.executeProcedure(
+            "addin_hpayment",
+            parameters
+        )
+        try {
+            val dbResult = SQLServerWrapper.getQueryResult("select max(hpa_id) as id from in_hpayment")
+            dbResult?.let {
+                while (it.next()) {
+                    payment.paymentId = it.getStringValue(
+                        "id",
+                        payment.paymentId
+                    )
+                }
+                SQLServerWrapper.closeResultSet(it)
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        insertPayment(payment)
+    }
+
+    private fun insertPayment(payment: Payment) {
+        val decimal = SettingsModel.currentCurrency?.currencyName1Dec ?: 3
+        val parameters = if (SettingsModel.isSqlServerWebDb) {
+            listOf(
+                "null_String_output",//@pay_id
+                payment.paymentId,//@pay_hpa_id
+                null,//@pay_cha_ch_code
+                null,//@pay_cha_code
+                null,//@pay_cur_code
+                POSUtils.formatDouble(
+                    payment.paymentAmount,
+                    decimal
+                ),//@pay_amt
+                POSUtils.formatDouble(
+                    payment.paymentAmount,
+                    decimal
+                ),//@pay_amtf
+                POSUtils.formatDouble(
+                    payment.paymentAmount,
+                    decimal
+                ),//@pay_amts
+                null,//@pay_bank
+                null,//@pay_chequeno
+                Timestamp(System.currentTimeMillis()),//@pay_date
+                SettingsModel.defaultSqlServerBranch,//@pay_bra_name
+                null,//@pay_prj_name
+                null,//@pay_note
+                SettingsModel.currentUser?.userUsername,//@pay_userstamp
+                null,//@pay_ra_id//TODO
+                SettingsModel.currentCompany?.cmp_multibranchcode,//@BranchCode
+                null,//@pay_div_name
+                false,//@pay_tax
+            )
+        } else {
+            listOf(
+                "null_int_output",//@pay_id
+                payment.paymentId,//@pay_hpa_id
+                null,//@pay_cha_ch_code//DSReceiptAcc.Tables("pos_receiptacc").Select("ra_name='" & LBPaymentMode.SelectedItem.ToString & "'").ElementAt(0).Item("ra_chcode"))
+                null,//@pay_cha_code
+                null,//@pay_cur_code//DSReceiptAcc.Tables("pos_receiptacc").Select("ra_name='" & LBPaymentMode.SelectedItem.ToString & "'").ElementAt(0).Item("ra_cur_code"))
+                POSUtils.formatDouble(
+                    payment.paymentAmount,
+                    decimal
+                ),//@pay_amt
+                POSUtils.formatDouble(
+                    payment.paymentAmount,
+                    decimal
+                ),//@pay_amtf
+                POSUtils.formatDouble(
+                    payment.paymentAmount,
+                    decimal
+                ),//@pay_amts
+                null,//@pay_bank
+                null,//@pay_chequeno
+                Timestamp(System.currentTimeMillis()),//@pay_date
+                SettingsModel.defaultSqlServerBranch,//@pay_bra_name
+                null,//@pay_prj_name
+                null,//@pay_note
+                SettingsModel.currentUser?.userUsername,//@pay_userstamp
+                null,//@pay_ra_id//DSReceiptAcc.Tables("pos_receiptacc").Select("ra_name='" & LBPaymentMode.SelectedItem.ToString & "'").ElementAt(0).Item("ra_id"))
+                SettingsModel.currentCompany?.cmp_multibranchcode,//@BranchCode
+                null,//@pay_div_name
+                false,//@pay_tax
+            )
+        }
+        SQLServerWrapper.executeProcedure(
+            "addin_payment",
+            parameters
+        )
+        insertUnAllocatePayment(payment)
+    }
+
+    private fun insertUnAllocatePayment(payment: Payment) {
+        val decimal = SettingsModel.currentCurrency?.currencyName1Dec ?: 3
+        val parameters = if (SettingsModel.isSqlServerWebDb) {
+            listOf(
+                "null_string_output",//@up_id
+                payment.paymentId,//@up_hpa_id
+                payment.paymentDesc,//@up_desc
+                payment.paymentCurrency,//@up_cur_code
+                POSUtils.formatDouble(
+                    payment.paymentAmount,
+                    decimal
+                ),//@up_amt
+                POSUtils.formatDouble(
+                    payment.paymentAmount,
+                    decimal
+                ),//@up_amtf
+                POSUtils.formatDouble(
+                    payment.paymentAmount,
+                    decimal
+                ),//@up_amts
+                false,//@up_allocated
+                null,//@up_note
+                SettingsModel.currentUser?.userUsername,//@up_userstamp
+                SettingsModel.currentCompany?.cmp_multibranchcode,//@BranchCode
+                null,//@up_cha_ch_code
+                null,//@up_cha_code
+                SettingsModel.defaultSqlServerBranch,//@up_bra_name
+                null,//@up_prj_name
+                null,//@up_div_name
+            )
+        } else {
+            listOf(
+                "null_int_output",//@up_id
+                payment.paymentId,//@up_hpa_id
+                payment.paymentDesc,//@up_desc
+                payment.paymentCurrency,//@up_cur_code
+                POSUtils.formatDouble(
+                    payment.paymentAmount,
+                    decimal
+                ),//@up_amt
+                POSUtils.formatDouble(
+                    payment.paymentAmount,
+                    decimal
+                ),//@up_amtf
+                POSUtils.formatDouble(
+                    payment.paymentAmount,
+                    decimal
+                ),//@up_amts
+                false,//@up_allocated
+                null,//@up_note
+                SettingsModel.currentUser?.userUsername,//@up_userstamp
+                SettingsModel.currentCompany?.cmp_multibranchcode,//@BranchCode
+                null,//@up_cha_ch_code
+                null,//@up_cha_code
+                SettingsModel.defaultSqlServerBranch,//@up_bra_name
+                null,//@up_prj_name
+                null,//@up_div_name
+            )
+        }
+        SQLServerWrapper.executeProcedure(
+            "addin_unallocatedpayment",
+            parameters
+        )
     }
 }

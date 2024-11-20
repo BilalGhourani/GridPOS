@@ -91,8 +91,10 @@ class ActivityScopedViewModel @Inject constructor(
     }
 
     private suspend fun fetchSettings() {
-        SettingsModel.siTransactionType = settingsRepository.getTransactionTypeId("Sale Invoice") ?: "SI"
-        SettingsModel.rsTransactionType = settingsRepository.getTransactionTypeId("Return Sale") ?: "RS"
+        SettingsModel.siTransactionType = settingsRepository.getTransactionTypeId("Sale Invoice") ?: SettingsModel.defaultSaleInvoice
+        SettingsModel.rsTransactionType = settingsRepository.getTransactionTypeId("Return Sale") ?: SettingsModel.defaultReturnSale
+        SettingsModel.pvTransactionType = settingsRepository.getTransactionTypeId("Payment") ?: SettingsModel.defaultPayment
+        SettingsModel.rvTransactionType = settingsRepository.getTransactionTypeId("Receipt") ?: SettingsModel.defaultReceipt
         SettingsModel.defaultSqlServerBranch = settingsRepository.getDefaultBranch()
         SettingsModel.defaultSqlServerWarehouse = settingsRepository.getDefaultWarehouse()
         SettingsModel.defaultThirdParty = thirdPartyRepository.getDefaultThirdParty()

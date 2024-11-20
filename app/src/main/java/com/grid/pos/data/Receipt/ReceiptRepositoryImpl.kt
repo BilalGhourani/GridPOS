@@ -2,9 +2,13 @@ package com.grid.pos.data.Receipt
 
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
+import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.SettingsModel
+import com.grid.pos.ui.pos.POSUtils
+import com.grid.pos.utils.Extension.getStringValue
 import kotlinx.coroutines.tasks.await
+import java.sql.Timestamp
 
 class ReceiptRepositoryImpl(
         private val receiptDao: ReceiptDao
@@ -12,11 +16,20 @@ class ReceiptRepositoryImpl(
     override suspend fun insert(
             receipt: Receipt
     ): Receipt {
-        if (SettingsModel.isConnectedToFireStore()) {
-            val docRef = FirebaseFirestore.getInstance().collection("receipt").add(receipt).await()
-            receipt.receiptDocumentId = docRef.id
-        } else {
-            receiptDao.insert(receipt)
+        when (SettingsModel.connectionType) {
+            CONNECTION_TYPE.FIRESTORE.key -> {
+                val docRef = FirebaseFirestore.getInstance().collection("receipt").add(receipt)
+                    .await()
+                receipt.receiptDocumentId = docRef.id
+            }
+
+            CONNECTION_TYPE.LOCAL.key -> {
+                receiptDao.insert(receipt)
+            }
+
+            else -> {
+                insertHReceipt(receipt)
+            }
         }
         return receipt
     }
@@ -24,26 +37,40 @@ class ReceiptRepositoryImpl(
     override suspend fun delete(
             receipt: Receipt
     ) {
-        if (SettingsModel.isConnectedToFireStore()) {
-            receipt.receiptDocumentId?.let {
-                FirebaseFirestore.getInstance().collection("receipt").document(it).delete().await()
+        when (SettingsModel.connectionType) {
+            CONNECTION_TYPE.FIRESTORE.key -> {
+                receipt.receiptDocumentId?.let {
+                    FirebaseFirestore.getInstance().collection("receipt").document(it).delete()
+                        .await()
+                }
             }
-        } else {
-            receiptDao.delete(receipt)
+
+            CONNECTION_TYPE.LOCAL.key -> {
+                receiptDao.delete(receipt)
+            }
+
+            else -> {
+            }
         }
     }
 
     override suspend fun update(
             receipt: Receipt
     ) {
-        if (SettingsModel.isConnectedToFireStore()) {
-            receipt.receiptDocumentId?.let {
-                FirebaseFirestore.getInstance().collection("receipt").document(it)
-                    .update(receipt.getMap()).await()
+        when (SettingsModel.connectionType) {
+            CONNECTION_TYPE.FIRESTORE.key -> {
+                receipt.receiptDocumentId?.let {
+                    FirebaseFirestore.getInstance().collection("receipt").document(it)
+                        .update(receipt.getMap()).await()
+                }
             }
 
-        } else {
-            receiptDao.update(receipt)
+            CONNECTION_TYPE.LOCAL.key -> {
+                receiptDao.update(receipt)
+            }
+
+            else -> {
+            }
         }
     }
 
@@ -69,42 +96,7 @@ class ReceiptRepositoryImpl(
             }
 
             else -> {//CONNECTION_TYPE.SQL_SERVER.key
-                val receipts: MutableList<Receipt> = mutableListOf()/*try {
-                    val where = "cmp_id='$id'"
-                    val dbResult = SQLServerWrapper.getListOf(
-                        "company",
-                        "",
-                        mutableListOf("*"),
-                        where
-                    )
-                    dbResult?.let {
-                        while (it.next()) {
-                            receipts.add(Company().apply {
-                                companyId = it.getStringValue("cmp_id")
-                                companyName = it.getStringValue("cmp_name")
-                                companyPhone = it.getStringValue("cmp_phone")
-                                companyAddress = it.getStringValue("cmp_address")
-                                companyTaxRegno = it.getStringValue("cmp_vatregno")
-                                companyTax = it.getDoubleValue("cmp_vat")
-                                companyCurCodeTax = it.getStringValue("cmp_cur_codetax")
-                                companyEmail = it.getStringValue("cmp_email")
-                                companyWeb = it.getStringValue("cmp_web")
-                                companyLogo = it.getStringValue("cmp_logo")
-                                companySS = it.getBooleanValue("cmp_ss")
-                                companyCountry = it.getStringValue("cmp_country")
-                                companyTax1 = it.getDoubleValue("cmp_tax1")
-                                companyTax1Regno = it.getStringValue("cmp_tax1regno")
-                                companyTax2 = it.getDoubleValue("cmp_tax2")
-                                companyTax2Regno = it.getStringValue("cmp_tax2regno")
-                                cmp_multibranchcode = it.getStringValue("cmp_multibranchcode")
-                            })
-                        }
-                        SQLServerWrapper.closeResultSet(it)
-                    }
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }*/
-                if (receipts.size > 0) receipts[0] else null
+                null
             }
         }
     }
@@ -135,43 +127,7 @@ class ReceiptRepositoryImpl(
             }
 
             else -> {//CONNECTION_TYPE.SQL_SERVER.key
-                val receipts: MutableList<Receipt> = mutableListOf()/*try {
-                    val where = "cmp_id='${SettingsModel.getCompanyID()}'"
-                    val dbResult = SQLServerWrapper.getListOf(
-                        "company",
-                        "",
-                        mutableListOf("*"),
-                        where
-                    )
-                    dbResult?.let {
-                        while (it.next()) {
-                            receipts.add(Receipt().apply {
-                                companyId = it.getStringValue("cmp_id")
-                                companyName = it.getStringValue("cmp_name")
-                                companyPhone = it.getStringValue("cmp_phone")
-                                companyAddress = it.getStringValue("cmp_address")
-                                companyTaxRegno = it.getStringValue("cmp_vatregno")
-                                companyTax = it.getDoubleValue("cmp_vat")
-                                companyCurCodeTax = it.getStringValue("cmp_cur_codetax")
-                                companyUpWithTax = it.getBooleanValue("cmp_upwithtax")
-                                companyEmail = it.getStringValue("cmp_email")
-                                companyWeb = it.getStringValue("cmp_web")
-                                companyLogo = it.getStringValue("cmp_logo")
-                                companySS = it.getBooleanValue("cmp_ss")
-                                companyCountry = it.getStringValue("cmp_country")
-                                companyTax1 = it.getDoubleValue("cmp_tax1")
-                                companyTax1Regno = it.getStringValue("cmp_tax1regno")
-                                companyTax2 = it.getDoubleValue("cmp_tax2")
-                                companyTax2Regno = it.getStringValue("cmp_tax2regno")
-                                cmp_multibranchcode = it.getStringValue("cmp_multibranchcode")
-                            })
-                        }
-                        SQLServerWrapper.closeResultSet(it)
-                    }
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }*/
-                receipts
+                mutableListOf()
             }
         }
     }
@@ -201,27 +157,206 @@ class ReceiptRepositoryImpl(
             }
 
             else -> {
-                return null/*val invoiceHeaders: MutableList<InvoiceHeader> = mutableListOf()
-                try {
-                    val where = "hi_cmp_id='${SettingsModel.getCompanyID()}' AND hi_tt_code = '$type' AND hi_transno IS NOT NULL AND hi_transno <> '' AND hi_transno <> '0'"
-                    val dbResult = SQLServerWrapper.getListOf(
-                        "in_hinvoice",
-                        "TOP 1",
-                        mutableListOf("*"),
-                        where,
-                        "ORDER BY hi_transno DESC"
-                    )
-                    dbResult?.let {
-                        while (it.next()) {
-                            invoiceHeaders.add(fillParams(it))
-                        }
-                        SQLServerWrapper.closeResultSet(it)
-                    }
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }
-                return if (invoiceHeaders.size > 0) invoiceHeaders[0] else null*/
+                return null
             }
         }
+    }
+
+    private fun insertHReceipt(receipt: Receipt) {
+        val parameters = if (SettingsModel.isSqlServerWebDb) {
+            listOf(
+                receipt.receiptCompanyId,//@hr_cmp_id
+                Timestamp(System.currentTimeMillis()),//@hr_date
+                SettingsModel.pvTransactionType,//@hr_tt_code
+                null,//@hr_transno
+                null,//@hr_status
+                receipt.receiptDesc,//@hr_desc
+                null,//@hr_refno
+                receipt.receiptNote,//@hr_note
+                receipt.receiptThirdParty,//@hr_tp_name
+                null,//@hr_cashname
+                SettingsModel.currentUser?.userUsername,//@hr_userstamp
+                null,//@hr_sessionpointer
+                SettingsModel.currentCompany?.cmp_multibranchcode,//@BranchCode
+                Timestamp(System.currentTimeMillis()),//@hr_valuedate
+                null,//@hr_employee
+                null,//@hr_pathtodoc
+            )
+        } else {
+            listOf(
+                receipt.receiptCompanyId,//@hr_cmp_id
+                Timestamp(System.currentTimeMillis()),//@hr_date
+                SettingsModel.pvTransactionType,//@hr_tt_code
+                null,//@hr_transno
+                null,//@hr_status
+                receipt.receiptDesc,//@hr_desc
+                null,//@hr_refno
+                receipt.receiptNote,//@hr_note
+                receipt.receiptThirdParty,//@hr_tp_name
+                null,//@hr_cashname
+                SettingsModel.currentUser?.userUsername,//@hr_userstamp
+                null,//@hr_sessionpointer
+                SettingsModel.currentCompany?.cmp_multibranchcode,//@BranchCode
+                Timestamp(System.currentTimeMillis()),//@hr_valuedate
+                null,//@hr_employee
+                null,//@hr_pathtodoc
+            )
+        }
+        SQLServerWrapper.executeProcedure(
+            "addin_hreceipt",
+            parameters
+        )
+        try {
+            val dbResult = SQLServerWrapper.getQueryResult("select max(hr_id) as id from in_hreceipt")
+            dbResult?.let {
+                while (it.next()) {
+                    receipt.receiptId = it.getStringValue(
+                        "id",
+                        receipt.receiptId
+                    )
+                }
+                SQLServerWrapper.closeResultSet(it)
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        insertReceipt(receipt)
+    }
+
+    private fun insertReceipt(receipt: Receipt) {
+        val decimal = SettingsModel.currentCurrency?.currencyName1Dec ?: 3
+        val parameters = if (SettingsModel.isSqlServerWebDb) {
+            listOf(
+                "null_String_output",//@rec_id
+                receipt.receiptId,//@rec_hr_id
+                null,//@rec_cha_ch_code
+                null,//@rec_cha_code
+                null,//@rec_cur_code
+                POSUtils.formatDouble(
+                    receipt.receiptAmount,
+                    decimal
+                ),//@rec_amt
+                POSUtils.formatDouble(
+                    receipt.receiptAmount,
+                    decimal
+                ),//@rec_amtf
+                POSUtils.formatDouble(
+                    receipt.receiptAmount,
+                    decimal
+                ),//@rec_amts
+                null,//@rec_bank
+                null,//@rec_chequeno
+                Timestamp(System.currentTimeMillis()),//@rec_date
+                SettingsModel.defaultSqlServerBranch,//@rec_bra_name
+                null,//@rec_prj_name
+                null,//@rec_note
+                SettingsModel.currentUser?.userUsername,//@rec_userstamp
+                null,//@rec_ra_id//TODO
+                SettingsModel.currentCompany?.cmp_multibranchcode,//@BranchCode
+                null,//@rec_div_name
+                false,//@rec_tax
+            )
+        } else {
+            listOf(
+                "null_int_output",//@rec_id
+                receipt.receiptId,//@rec_hr_id
+                null,//@rec_cha_ch_code//DSReceiptAcc.Tables("pos_receiptacc").Select("ra_name='" & LBPaymentMode.SelectedItem.ToString & "'").ElementAt(0).Item("ra_chcode"))
+                null,//@rec_cha_code
+                null,//@rec_cur_code//DSReceiptAcc.Tables("pos_receiptacc").Select("ra_name='" & LBPaymentMode.SelectedItem.ToString & "'").ElementAt(0).Item("ra_cur_code"))
+                POSUtils.formatDouble(
+                    receipt.receiptAmount,
+                    decimal
+                ),//@rec_amt
+                POSUtils.formatDouble(
+                    receipt.receiptAmount,
+                    decimal
+                ),//@rec_amtf
+                POSUtils.formatDouble(
+                    receipt.receiptAmount,
+                    decimal
+                ),//@rec_amts
+                null,//@rec_bank
+                null,//@rec_chequeno
+                Timestamp(System.currentTimeMillis()),//@rec_date
+                SettingsModel.defaultSqlServerBranch,//@rec_bra_name
+                null,//@rec_prj_name
+                null,//@rec_note
+                SettingsModel.currentUser?.userUsername,//@rec_userstamp
+                null,//@rec_ra_id//DSReceiptAcc.Tables("pos_receiptacc").Select("ra_name='" & LBPaymentMode.SelectedItem.ToString & "'").ElementAt(0).Item("ra_id"))
+                SettingsModel.currentCompany?.cmp_multibranchcode,//@BranchCode
+                null,//@rec_div_name
+                false,//@rec_tax
+            )
+        }
+        SQLServerWrapper.executeProcedure(
+            "addin_receipt",
+            parameters
+        )
+        insertUnAllocateReceipt(receipt)
+    }
+
+    private fun insertUnAllocateReceipt(receipt: Receipt) {
+        val decimal = SettingsModel.currentCurrency?.currencyName1Dec ?: 3
+        val parameters = if (SettingsModel.isSqlServerWebDb) {
+            listOf(
+                "null_string_output",//@ur_id
+                receipt.receiptId,//@ur_hr_id
+                receipt.receiptDesc,//@ur_desc
+                receipt.receiptCurrency,//@ur_cur_code
+                POSUtils.formatDouble(
+                    receipt.receiptAmount,
+                    decimal
+                ),//@ur_amt
+                POSUtils.formatDouble(
+                    receipt.receiptAmount,
+                    decimal
+                ),//@ur_amtf
+                POSUtils.formatDouble(
+                    receipt.receiptAmount,
+                    decimal
+                ),//@ur_amts
+                false,//@ur_allocated
+                null,//@ur_note
+                SettingsModel.currentUser?.userUsername,//@ur_userstamp
+                SettingsModel.currentCompany?.cmp_multibranchcode,//@BranchCode
+                null,//@ur_cha_ch_code
+                null,//@ur_cha_code
+                SettingsModel.defaultSqlServerBranch,//@ur_bra_name
+                null,//@ur_prj_name
+                null,//@ur_div_name
+            )
+        } else {
+            listOf(
+                "null_int_output",//@ur_id
+                receipt.receiptId,//@ur_hr_id
+                receipt.receiptDesc,//@ur_desc
+                receipt.receiptCurrency,//@ur_cur_code
+                POSUtils.formatDouble(
+                    receipt.receiptAmount,
+                    decimal
+                ),//@ur_amt
+                POSUtils.formatDouble(
+                    receipt.receiptAmount,
+                    decimal
+                ),//@ur_amtf
+                POSUtils.formatDouble(
+                    receipt.receiptAmount,
+                    decimal
+                ),//@ur_amts
+                false,//@ur_allocated
+                null,//@ur_note
+                SettingsModel.currentUser?.userUsername,//@ur_userstamp
+                SettingsModel.currentCompany?.cmp_multibranchcode,//@BranchCode
+                null,//@ur_cha_ch_code
+                null,//@ur_cha_code
+                SettingsModel.defaultSqlServerBranch,//@ur_bra_name
+                null,//@ur_prj_name
+                null,//@ur_div_name
+            )
+        }
+        SQLServerWrapper.executeProcedure(
+            "addin_unallocatedreceipt",
+            parameters
+        )
     }
 }
