@@ -27,7 +27,7 @@ class SettingsRepositoryImpl : SettingsRepository {
                     val where = if (SettingsModel.isSqlServerWebDb) {
                         "tt_type='$type' and tt_cmp_id='${SettingsModel.getCompanyID()}'"
                     } else {
-                        "tt_type='Sale Invoice'"
+                        "tt_type='$type'"
                     }
 
                     val dbResult = SQLServerWrapper.getListOf(
