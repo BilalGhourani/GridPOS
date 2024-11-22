@@ -167,7 +167,7 @@ class ReceiptRepositoryImpl(
             listOf(
                 receipt.receiptCompanyId,//@hr_cmp_id
                 Timestamp(System.currentTimeMillis()),//@hr_date
-                SettingsModel.pvTransactionType,//@hr_tt_code
+                SettingsModel.rvTransactionType,//@hr_tt_code
                 null,//@hr_transno
                 null,//@hr_status
                 receipt.receiptDesc,//@hr_desc
@@ -186,7 +186,7 @@ class ReceiptRepositoryImpl(
             listOf(
                 receipt.receiptCompanyId,//@hr_cmp_id
                 Timestamp(System.currentTimeMillis()),//@hr_date
-                SettingsModel.pvTransactionType,//@hr_tt_code
+                SettingsModel.rvTransactionType,//@hr_tt_code
                 null,//@hr_transno
                 null,//@hr_status
                 receipt.receiptDesc,//@hr_desc
