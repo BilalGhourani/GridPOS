@@ -84,7 +84,7 @@ class ReceiptRepositoryImpl(
                         "rec_cmp_id",
                         SettingsModel.getCompanyID()
                     ).whereEqualTo(
-                        "pay_id",
+                        "rec_id",
                         id
                     ).get().await()
                 val document = querySnapshot.documents.firstOrNull()
@@ -143,7 +143,7 @@ class ReceiptRepositoryImpl(
                         "rec_transno",
                         null
                     ).orderBy(
-                        "pay_transno",
+                        "rec_transno",
                         Query.Direction.DESCENDING
                     ).limit(1).get().await()
                 val document = querySnapshot.firstOrNull()

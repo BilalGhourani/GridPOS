@@ -60,6 +60,7 @@ import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.SearchableDropdownMenuEx
 import com.grid.pos.ui.common.UIImageButton
 import com.grid.pos.ui.common.UITextField
+import com.grid.pos.ui.pos.POSUtils
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.utils.Utils
 import kotlinx.coroutines.Dispatchers
@@ -139,7 +140,10 @@ fun ReceiptsView(
                     }
                     onConfirmation = {
                         saveAndBack = true
-                        viewModel.saveReceipt(context,state.selectedReceipt)
+                        viewModel.saveReceipt(
+                            context,
+                            state.selectedReceipt
+                        )
                     }
                     dialogText = "Do you want to save your changes"
                     positiveBtnText = "Save"
@@ -313,11 +317,17 @@ fun ReceiptsView(
 
                         if (currencyIndexState == 1) {
                             val second = state.selectedReceipt.receiptAmount.times(SettingsModel.currentCurrency?.currencyRate ?: 1.0)
-                            amountSecondsState = second.toString()
+                            amountSecondsState = POSUtils.formatDouble(
+                                second,
+                                SettingsModel.currentCurrency?.currencyName2Dec ?: 2
+                            )
                             state.selectedReceipt.receiptAmountSecond = second
                         } else if (currencyIndexState == 2) {
                             val first = state.selectedReceipt.receiptAmount.div(SettingsModel.currentCurrency?.currencyRate ?: 1.0)
-                            amountFirstState = first.toString()
+                            amountFirstState = POSUtils.formatDouble(
+                                first,
+                                SettingsModel.currentCurrency?.currencyName1Dec ?: 2
+                            )
                             state.selectedReceipt.receiptAmountFirst = first
                         }
                     }
@@ -411,7 +421,10 @@ fun ReceiptsView(
                             icon = R.drawable.save,
                             text = "Save"
                         ) {
-                            viewModel.saveReceipt(context,state.selectedReceipt)
+                            viewModel.saveReceipt(
+                                context,
+                                state.selectedReceipt
+                            )
                         }
 
                         UIImageButton(

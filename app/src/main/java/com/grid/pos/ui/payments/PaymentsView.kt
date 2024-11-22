@@ -60,6 +60,7 @@ import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.SearchableDropdownMenuEx
 import com.grid.pos.ui.common.UIImageButton
 import com.grid.pos.ui.common.UITextField
+import com.grid.pos.ui.pos.POSUtils
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.utils.Utils
 import kotlinx.coroutines.Dispatchers
@@ -317,11 +318,17 @@ fun PaymentsView(
 
                         if (currencyIndexState == 1) {
                             val second = state.selectedPayment.paymentAmount.times(SettingsModel.currentCurrency?.currencyRate ?: 1.0)
-                            amountSecondsState = second.toString()
+                            amountSecondsState = POSUtils.formatDouble(
+                                second,
+                                SettingsModel.currentCurrency?.currencyName2Dec ?: 2
+                            )
                             state.selectedPayment.paymentAmountSecond = second
                         } else if (currencyIndexState == 2) {
                             val first = state.selectedPayment.paymentAmount.div(SettingsModel.currentCurrency?.currencyRate ?: 1.0)
-                            amountFirstState = first.toString()
+                            amountFirstState = POSUtils.formatDouble(
+                                first,
+                                SettingsModel.currentCurrency?.currencyName1Dec ?: 2
+                            )
                             state.selectedPayment.paymentAmountFirst = first
                         }
 
