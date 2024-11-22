@@ -168,6 +168,7 @@ class PaymentRepositoryImpl(
     private fun insertHPayment(payment: Payment) {
         val parameters = if (SettingsModel.isSqlServerWebDb) {
             listOf(
+                "null_String_output",//@hpa_id
                 payment.paymentCompanyId,//@hpa_cmp_id
                 Timestamp(System.currentTimeMillis()),//@hpa_date
                 SettingsModel.pvTransactionType,//@hpa_tt_code
@@ -205,23 +206,27 @@ class PaymentRepositoryImpl(
                 null,//@hpa_pathtodoc
             )
         }
-        SQLServerWrapper.executeProcedure(
+        val id = SQLServerWrapper.executeProcedure(
             "addin_hpayment",
             parameters
         )
-        try {
-            val dbResult = SQLServerWrapper.getQueryResult("select max(hpa_id) as id from in_hpayment")
-            dbResult?.let {
-                while (it.next()) {
-                    payment.paymentId = it.getStringValue(
-                        "id",
-                        payment.paymentId
-                    )
+        if (id.isNullOrEmpty()) {
+            try {
+                val dbResult = SQLServerWrapper.getQueryResult("select max(hpa_id) as id from in_hpayment")
+                dbResult?.let {
+                    while (it.next()) {
+                        payment.paymentId = it.getStringValue(
+                            "id",
+                            payment.paymentId
+                        )
+                    }
+                    SQLServerWrapper.closeResultSet(it)
                 }
-                SQLServerWrapper.closeResultSet(it)
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
-        } catch (e: Exception) {
-            e.printStackTrace()
+        }else{
+            payment.paymentId = id
         }
         insertPayment(payment)
     }
@@ -230,7 +235,7 @@ class PaymentRepositoryImpl(
         val decimal = SettingsModel.currentCurrency?.currencyName1Dec ?: 3
         val parameters = if (SettingsModel.isSqlServerWebDb) {
             listOf(
-                "null_String_output",//@pay_id
+                null,//@pay_id
                 payment.paymentId,//@pay_hpa_id
                 null,//@pay_cha_ch_code
                 null,//@pay_cha_code
@@ -258,10 +263,12 @@ class PaymentRepositoryImpl(
                 SettingsModel.currentCompany?.cmp_multibranchcode,//@BranchCode
                 null,//@pay_div_name
                 false,//@pay_tax
+                0.0,//@pay_denomination
+                0.0//@pay_count
             )
         } else {
             listOf(
-                "null_int_output",//@pay_id
+                null,//@pay_id
                 payment.paymentId,//@pay_hpa_id
                 null,//@pay_cha_ch_code//DSReceiptAcc.Tables("pos_receiptacc").Select("ra_name='" & LBPaymentMode.SelectedItem.ToString & "'").ElementAt(0).Item("ra_chcode"))
                 null,//@pay_cha_code
@@ -302,7 +309,7 @@ class PaymentRepositoryImpl(
         val decimal = SettingsModel.currentCurrency?.currencyName1Dec ?: 3
         val parameters = if (SettingsModel.isSqlServerWebDb) {
             listOf(
-                "null_string_output",//@up_id
+                null,//@up_id
                 payment.paymentId,//@up_hpa_id
                 payment.paymentDesc,//@up_desc
                 payment.paymentCurrency,//@up_cur_code
@@ -311,11 +318,11 @@ class PaymentRepositoryImpl(
                     decimal
                 ),//@up_amt
                 POSUtils.formatDouble(
-                    payment.paymentAmount,
+                    payment.paymentAmountFirst,
                     decimal
                 ),//@up_amtf
                 POSUtils.formatDouble(
-                    payment.paymentAmount,
+                    payment.paymentAmountSecond,
                     decimal
                 ),//@up_amts
                 false,//@up_allocated
@@ -330,7 +337,7 @@ class PaymentRepositoryImpl(
             )
         } else {
             listOf(
-                "null_int_output",//@up_id
+                null,//@up_id
                 payment.paymentId,//@up_hpa_id
                 payment.paymentDesc,//@up_desc
                 payment.paymentCurrency,//@up_cur_code
@@ -339,11 +346,11 @@ class PaymentRepositoryImpl(
                     decimal
                 ),//@up_amt
                 POSUtils.formatDouble(
-                    payment.paymentAmount,
+                    payment.paymentAmountFirst,
                     decimal
                 ),//@up_amtf
                 POSUtils.formatDouble(
-                    payment.paymentAmount,
+                    payment.paymentAmountSecond,
                     decimal
                 ),//@up_amts
                 false,//@up_allocated

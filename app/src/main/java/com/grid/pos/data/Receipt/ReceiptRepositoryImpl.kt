@@ -165,6 +165,7 @@ class ReceiptRepositoryImpl(
     private fun insertHReceipt(receipt: Receipt) {
         val parameters = if (SettingsModel.isSqlServerWebDb) {
             listOf(
+                "null_String_output",//@hr_id
                 receipt.receiptCompanyId,//@hr_cmp_id
                 Timestamp(System.currentTimeMillis()),//@hr_date
                 SettingsModel.rvTransactionType,//@hr_tt_code
@@ -202,23 +203,27 @@ class ReceiptRepositoryImpl(
                 null,//@hr_pathtodoc
             )
         }
-        SQLServerWrapper.executeProcedure(
+        val id = SQLServerWrapper.executeProcedure(
             "addin_hreceipt",
             parameters
         )
-        try {
-            val dbResult = SQLServerWrapper.getQueryResult("select max(hr_id) as id from in_hreceipt")
-            dbResult?.let {
-                while (it.next()) {
-                    receipt.receiptId = it.getStringValue(
-                        "id",
-                        receipt.receiptId
-                    )
+        if (id.isNullOrEmpty()) {
+            try {
+                val dbResult = SQLServerWrapper.getQueryResult("select max(hr_id) as id from in_hreceipt")
+                dbResult?.let {
+                    while (it.next()) {
+                        receipt.receiptId = it.getStringValue(
+                            "id",
+                            receipt.receiptId
+                        )
+                    }
+                    SQLServerWrapper.closeResultSet(it)
                 }
-                SQLServerWrapper.closeResultSet(it)
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
-        } catch (e: Exception) {
-            e.printStackTrace()
+        } else {
+            receipt.receiptId = id
         }
         insertReceipt(receipt)
     }
@@ -227,7 +232,7 @@ class ReceiptRepositoryImpl(
         val decimal = SettingsModel.currentCurrency?.currencyName1Dec ?: 3
         val parameters = if (SettingsModel.isSqlServerWebDb) {
             listOf(
-                "null_String_output",//@rec_id
+                null,//@rec_id
                 receipt.receiptId,//@rec_hr_id
                 null,//@rec_cha_ch_code
                 null,//@rec_cha_code
@@ -255,10 +260,12 @@ class ReceiptRepositoryImpl(
                 SettingsModel.currentCompany?.cmp_multibranchcode,//@BranchCode
                 null,//@rec_div_name
                 false,//@rec_tax
+                0.0,//@rec_denomination
+                0.0//@rec_count
             )
         } else {
             listOf(
-                "null_int_output",//@rec_id
+                null,//@rec_id
                 receipt.receiptId,//@rec_hr_id
                 null,//@rec_cha_ch_code//DSReceiptAcc.Tables("pos_receiptacc").Select("ra_name='" & LBPaymentMode.SelectedItem.ToString & "'").ElementAt(0).Item("ra_chcode"))
                 null,//@rec_cha_code
@@ -299,7 +306,6 @@ class ReceiptRepositoryImpl(
         val decimal = SettingsModel.currentCurrency?.currencyName1Dec ?: 3
         val parameters = if (SettingsModel.isSqlServerWebDb) {
             listOf(
-                "null_string_output",//@ur_id
                 receipt.receiptId,//@ur_hr_id
                 receipt.receiptDesc,//@ur_desc
                 receipt.receiptCurrency,//@ur_cur_code
@@ -308,26 +314,24 @@ class ReceiptRepositoryImpl(
                     decimal
                 ),//@ur_amt
                 POSUtils.formatDouble(
-                    receipt.receiptAmount,
+                    receipt.receiptAmountFirst,
                     decimal
                 ),//@ur_amtf
                 POSUtils.formatDouble(
-                    receipt.receiptAmount,
+                    receipt.receiptAmountSecond,
                     decimal
                 ),//@ur_amts
                 false,//@ur_allocated
                 null,//@ur_note
                 SettingsModel.currentUser?.userUsername,//@ur_userstamp
                 SettingsModel.currentCompany?.cmp_multibranchcode,//@BranchCode
-                null,//@ur_cha_ch_code
-                null,//@ur_cha_code
                 SettingsModel.defaultSqlServerBranch,//@ur_bra_name
                 null,//@ur_prj_name
                 null,//@ur_div_name
             )
         } else {
             listOf(
-                "null_int_output",//@ur_id
+                null,//@ur_id
                 receipt.receiptId,//@ur_hr_id
                 receipt.receiptDesc,//@ur_desc
                 receipt.receiptCurrency,//@ur_cur_code
@@ -336,19 +340,17 @@ class ReceiptRepositoryImpl(
                     decimal
                 ),//@ur_amt
                 POSUtils.formatDouble(
-                    receipt.receiptAmount,
+                    receipt.receiptAmountFirst,
                     decimal
                 ),//@ur_amtf
                 POSUtils.formatDouble(
-                    receipt.receiptAmount,
+                    receipt.receiptAmountSecond,
                     decimal
                 ),//@ur_amts
                 false,//@ur_allocated
                 null,//@ur_note
                 SettingsModel.currentUser?.userUsername,//@ur_userstamp
                 SettingsModel.currentCompany?.cmp_multibranchcode,//@BranchCode
-                null,//@ur_cha_ch_code
-                null,//@ur_cha_code
                 SettingsModel.defaultSqlServerBranch,//@ur_bra_name
                 null,//@ur_prj_name
                 null,//@ur_div_name
