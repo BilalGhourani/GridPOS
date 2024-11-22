@@ -516,8 +516,14 @@ fun PaymentsView(
                     currencyState = payment.paymentCurrency ?: ""
                     currencyIndexState = payment.getSelectedCurrencyIndex()
                     amountState = payment.paymentAmount.toString()
-                    amountFirstState = payment.paymentAmountFirst.toString()
-                    amountSecondsState = payment.paymentAmountSecond.toString()
+                    amountFirstState = POSUtils.formatDouble(
+                        payment.paymentAmountFirst,
+                        SettingsModel.currentCurrency?.currencyName1Dec ?: 2
+                    )
+                    amountSecondsState = POSUtils.formatDouble(
+                        payment.paymentAmountSecond,
+                        SettingsModel.currentCurrency?.currencyName2Dec ?: 2
+                    )
                     descriptionState = payment.paymentDesc ?: ""
                     noteState = payment.paymentNote ?: ""
                 }

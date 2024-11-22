@@ -516,8 +516,14 @@ fun ReceiptsView(
                     currencyState = receipt.receiptCurrency ?: ""
                     currencyIndexState = receipt.getSelectedCurrencyIndex()
                     amountState = receipt.receiptAmount.toString()
-                    amountFirstState = receipt.receiptAmountFirst.toString()
-                    amountSecondsState = receipt.receiptAmountSecond.toString()
+                    amountFirstState = POSUtils.formatDouble(
+                        receipt.receiptAmountFirst,
+                        SettingsModel.currentCurrency?.currencyName1Dec ?: 2
+                    )
+                    amountSecondsState = POSUtils.formatDouble(
+                        receipt.receiptAmountSecond,
+                        SettingsModel.currentCurrency?.currencyName2Dec ?: 2
+                    )
                     descriptionState = receipt.receiptDesc ?: ""
                     noteState = receipt.receiptNote ?: ""
                 }
