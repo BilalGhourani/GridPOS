@@ -221,11 +221,11 @@ data class Receipt(
     @Exclude
     fun getSelectedCurrencyIndex(): Int {
         return when (receiptCurrency) {
-            SettingsModel.currentCurrency?.currencyCode1 -> {
+            SettingsModel.currentCurrency?.currencyId, SettingsModel.currentCurrency?.currencyCode1 -> {
                 1
             }
 
-            SettingsModel.currentCurrency?.currencyCode2 -> {
+            SettingsModel.currentCurrency?.currencyDocumentId, SettingsModel.currentCurrency?.currencyCode2 -> {
                 2
             }
 
@@ -238,11 +238,11 @@ data class Receipt(
     @Exclude
     fun calculateAmountsIfNeeded() {
         when (receiptCurrency) {
-            SettingsModel.currentCurrency?.currencyCode1 -> {
+            SettingsModel.currentCurrency?.currencyId, SettingsModel.currentCurrency?.currencyCode1 -> {
                 receiptAmountFirst = receiptAmount
             }
 
-            SettingsModel.currentCurrency?.currencyCode2 -> {
+            SettingsModel.currentCurrency?.currencyDocumentId, SettingsModel.currentCurrency?.currencyCode2 -> {
                 receiptAmountSecond = receiptAmount
             }
 

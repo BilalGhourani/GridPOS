@@ -221,11 +221,11 @@ data class Payment(
     @Exclude
     fun getSelectedCurrencyIndex(): Int {
         return when (paymentCurrency) {
-            SettingsModel.currentCurrency?.currencyCode1 -> {
+            SettingsModel.currentCurrency?.currencyId, SettingsModel.currentCurrency?.currencyCode1 -> {
                 1
             }
 
-            SettingsModel.currentCurrency?.currencyCode2 -> {
+            SettingsModel.currentCurrency?.currencyDocumentId, SettingsModel.currentCurrency?.currencyCode2 -> {
                 2
             }
 
@@ -238,11 +238,11 @@ data class Payment(
     @Exclude
     fun calculateAmountsIfNeeded() {
         when (paymentCurrency) {
-            SettingsModel.currentCurrency?.currencyCode1 -> {
+            SettingsModel.currentCurrency?.currencyId, SettingsModel.currentCurrency?.currencyCode1 -> {
                 paymentAmountFirst = paymentAmount
             }
 
-            SettingsModel.currentCurrency?.currencyCode2 -> {
+            SettingsModel.currentCurrency?.currencyDocumentId, SettingsModel.currentCurrency?.currencyCode2 -> {
                 paymentAmountSecond = paymentAmount
             }
 

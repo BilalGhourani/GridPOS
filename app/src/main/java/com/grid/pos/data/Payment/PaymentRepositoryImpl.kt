@@ -240,17 +240,17 @@ class PaymentRepositoryImpl(
                 payment.paymentId,//@pay_hpa_id
                 null,//@pay_cha_ch_code
                 null,//@pay_cha_code
-                null,//@pay_cur_code
+                payment.paymentCurrency,//@pay_cur_code
                 POSUtils.formatDouble(
                     payment.paymentAmount,
                     decimal
                 ),//@pay_amt
                 POSUtils.formatDouble(
-                    payment.paymentAmount,
+                    payment.paymentAmountFirst,
                     decimal
                 ),//@pay_amtf
                 POSUtils.formatDouble(
-                    payment.paymentAmount,
+                    payment.paymentAmountSecond,
                     decimal
                 ),//@pay_amts
                 null,//@pay_bank
@@ -273,17 +273,17 @@ class PaymentRepositoryImpl(
                 payment.paymentId,//@pay_hpa_id
                 null,//@pay_cha_ch_code//DSReceiptAcc.Tables("pos_receiptacc").Select("ra_name='" & LBPaymentMode.SelectedItem.ToString & "'").ElementAt(0).Item("ra_chcode"))
                 null,//@pay_cha_code
-                null,//@pay_cur_code//DSReceiptAcc.Tables("pos_receiptacc").Select("ra_name='" & LBPaymentMode.SelectedItem.ToString & "'").ElementAt(0).Item("ra_cur_code"))
+                payment.paymentCurrency,//@pay_cur_code//DSReceiptAcc.Tables("pos_receiptacc").Select("ra_name='" & LBPaymentMode.SelectedItem.ToString & "'").ElementAt(0).Item("ra_cur_code"))
                 POSUtils.formatDouble(
                     payment.paymentAmount,
                     decimal
                 ),//@pay_amt
                 POSUtils.formatDouble(
-                    payment.paymentAmount,
+                    payment.paymentAmountFirst,
                     decimal
                 ),//@pay_amtf
                 POSUtils.formatDouble(
-                    payment.paymentAmount,
+                    payment.paymentAmountSecond,
                     decimal
                 ),//@pay_amts
                 null,//@pay_bank
@@ -426,17 +426,17 @@ class PaymentRepositoryImpl(
                 payment.paymentId,//@pay_hpa_id
                 null,//@pay_cha_ch_code
                 null,//@pay_cha_code
-                null,//@pay_cur_code
+                payment.paymentCurrency,//@pay_cur_code
                 POSUtils.formatDouble(
                     payment.paymentAmount,
                     decimal
                 ),//@pay_amt
                 POSUtils.formatDouble(
-                    payment.paymentAmount,
+                    payment.paymentAmountFirst,
                     decimal
                 ),//@pay_amtf
                 POSUtils.formatDouble(
-                    payment.paymentAmount,
+                    payment.paymentAmountSecond,
                     decimal
                 ),//@pay_amts
                 null,//@pay_bank
@@ -458,17 +458,17 @@ class PaymentRepositoryImpl(
                 payment.paymentId,//@pay_hpa_id
                 null,//@pay_cha_ch_code//DSReceiptAcc.Tables("pos_receiptacc").Select("ra_name='" & LBPaymentMode.SelectedItem.ToString & "'").ElementAt(0).Item("ra_chcode"))
                 null,//@pay_cha_code
-                null,//@pay_cur_code//DSReceiptAcc.Tables("pos_receiptacc").Select("ra_name='" & LBPaymentMode.SelectedItem.ToString & "'").ElementAt(0).Item("ra_cur_code"))
+                payment.paymentCurrency,//@pay_cur_code//DSReceiptAcc.Tables("pos_receiptacc").Select("ra_name='" & LBPaymentMode.SelectedItem.ToString & "'").ElementAt(0).Item("ra_cur_code"))
                 POSUtils.formatDouble(
                     payment.paymentAmount,
                     decimal
                 ),//@pay_amt
                 POSUtils.formatDouble(
-                    payment.paymentAmount,
+                    payment.paymentAmountFirst,
                     decimal
                 ),//@pay_amtf
                 POSUtils.formatDouble(
-                    payment.paymentAmount,
+                    payment.paymentAmountSecond,
                     decimal
                 ),//@pay_amts
                 null,//@pay_bank

@@ -238,17 +238,17 @@ class ReceiptRepositoryImpl(
                 receipt.receiptId,//@rec_hr_id
                 null,//@rec_cha_ch_code
                 null,//@rec_cha_code
-                null,//@rec_cur_code
+                receipt.receiptCurrency,//@rec_cur_code
                 POSUtils.formatDouble(
                     receipt.receiptAmount,
                     decimal
                 ),//@rec_amt
                 POSUtils.formatDouble(
-                    receipt.receiptAmount,
+                    receipt.receiptAmountFirst,
                     decimal
                 ),//@rec_amtf
                 POSUtils.formatDouble(
-                    receipt.receiptAmount,
+                    receipt.receiptAmountSecond,
                     decimal
                 ),//@rec_amts
                 null,//@rec_bank
@@ -271,17 +271,17 @@ class ReceiptRepositoryImpl(
                 receipt.receiptId,//@rec_hr_id
                 null,//@rec_cha_ch_code//DSReceiptAcc.Tables("pos_receiptacc").Select("ra_name='" & LBPaymentMode.SelectedItem.ToString & "'").ElementAt(0).Item("ra_chcode"))
                 null,//@rec_cha_code
-                null,//@rec_cur_code//DSReceiptAcc.Tables("pos_receiptacc").Select("ra_name='" & LBPaymentMode.SelectedItem.ToString & "'").ElementAt(0).Item("ra_cur_code"))
+                receipt.receiptCurrency,//@rec_cur_code//DSReceiptAcc.Tables("pos_receiptacc").Select("ra_name='" & LBPaymentMode.SelectedItem.ToString & "'").ElementAt(0).Item("ra_cur_code"))
                 POSUtils.formatDouble(
                     receipt.receiptAmount,
                     decimal
                 ),//@rec_amt
                 POSUtils.formatDouble(
-                    receipt.receiptAmount,
+                    receipt.receiptAmountFirst,
                     decimal
                 ),//@rec_amtf
                 POSUtils.formatDouble(
-                    receipt.receiptAmount,
+                    receipt.receiptAmountSecond,
                     decimal
                 ),//@rec_amts
                 null,//@rec_bank
@@ -421,17 +421,17 @@ class ReceiptRepositoryImpl(
                 receipt.receiptId,//@rec_hr_id
                 null,//@rec_cha_ch_code
                 null,//@rec_cha_code
-                null,//@rec_cur_code
+                receipt.receiptCurrency,//@rec_cur_code
                 POSUtils.formatDouble(
                     receipt.receiptAmount,
                     decimal
                 ),//@rec_amt
                 POSUtils.formatDouble(
-                    receipt.receiptAmount,
+                    receipt.receiptAmountFirst,
                     decimal
                 ),//@rec_amtf
                 POSUtils.formatDouble(
-                    receipt.receiptAmount,
+                    receipt.receiptAmountSecond,
                     decimal
                 ),//@rec_amts
                 null,//@rec_bank
@@ -453,17 +453,17 @@ class ReceiptRepositoryImpl(
                 receipt.receiptId,//@rec_hr_id
                 null,//@rec_cha_ch_code//DSReceiptAcc.Tables("pos_receiptacc").Select("ra_name='" & LBPaymentMode.SelectedItem.ToString & "'").ElementAt(0).Item("ra_chcode"))
                 null,//@rec_cha_code
-                null,//@rec_cur_code//DSReceiptAcc.Tables("pos_receiptacc").Select("ra_name='" & LBPaymentMode.SelectedItem.ToString & "'").ElementAt(0).Item("ra_cur_code"))
+                receipt.receiptCurrency,//@rec_cur_code//DSReceiptAcc.Tables("pos_receiptacc").Select("ra_name='" & LBPaymentMode.SelectedItem.ToString & "'").ElementAt(0).Item("ra_cur_code"))
                 POSUtils.formatDouble(
                     receipt.receiptAmount,
                     decimal
                 ),//@rec_amt
                 POSUtils.formatDouble(
-                    receipt.receiptAmount,
+                    receipt.receiptAmountFirst,
                     decimal
                 ),//@rec_amtf
                 POSUtils.formatDouble(
-                    receipt.receiptAmount,
+                    receipt.receiptAmountSecond,
                     decimal
                 ),//@rec_amts
                 null,//@rec_bank
