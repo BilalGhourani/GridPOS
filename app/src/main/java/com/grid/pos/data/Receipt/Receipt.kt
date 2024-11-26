@@ -27,6 +27,14 @@ data class Receipt(
         @get:Exclude
         var receiptDocumentId: String? = null,
 
+        @Ignore
+        @get:Exclude
+        var receiptInId: String? = null,
+
+        @Ignore
+        @get:Exclude
+        var unAllocatedReceiptId: String? = null,
+
         /**
          * Receipt name
          * */

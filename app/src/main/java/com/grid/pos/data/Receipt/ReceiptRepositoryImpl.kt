@@ -50,6 +50,7 @@ class ReceiptRepositoryImpl(
             }
 
             else -> {
+                deleteHReceipt(receipt)
             }
         }
     }
@@ -70,6 +71,7 @@ class ReceiptRepositoryImpl(
             }
 
             else -> {
+                updateHReceipt(receipt)
             }
         }
     }
@@ -169,7 +171,7 @@ class ReceiptRepositoryImpl(
                 receipt.receiptCompanyId,//@hr_cmp_id
                 Timestamp(System.currentTimeMillis()),//@hr_date
                 SettingsModel.rvTransactionType,//@hr_tt_code
-                null,//@hr_transno
+                receipt.receiptTransNo,//@hr_transno
                 null,//@hr_status
                 receipt.receiptDesc,//@hr_desc
                 null,//@hr_refno
@@ -188,7 +190,7 @@ class ReceiptRepositoryImpl(
                 receipt.receiptCompanyId,//@hr_cmp_id
                 Timestamp(System.currentTimeMillis()),//@hr_date
                 SettingsModel.rvTransactionType,//@hr_tt_code
-                null,//@hr_transno
+                receipt.receiptTransNo,//@hr_transno
                 null,//@hr_status
                 receipt.receiptDesc,//@hr_desc
                 null,//@hr_refno
@@ -299,10 +301,10 @@ class ReceiptRepositoryImpl(
             "addin_receipt",
             parameters
         )
-        insertUnAllocateReceipt(receipt)
+        insertUnAllocatedReceipt(receipt)
     }
 
-    private fun insertUnAllocateReceipt(receipt: Receipt) {
+    private fun insertUnAllocatedReceipt(receipt: Receipt) {
         val decimal = SettingsModel.currentCurrency?.currencyName1Dec ?: 3
         val parameters = if (SettingsModel.isSqlServerWebDb) {
             listOf(
@@ -359,6 +361,209 @@ class ReceiptRepositoryImpl(
         SQLServerWrapper.executeProcedure(
             "addin_unallocatedreceipt",
             parameters
+        )
+    }
+
+    private fun updateHReceipt(receipt: Receipt) {
+        val parameters = if (SettingsModel.isSqlServerWebDb) {
+            listOf(
+                receipt.receiptId,//@hr_id
+                null,//@hr_no
+                receipt.receiptCompanyId,//@hr_cmp_id
+                Timestamp(System.currentTimeMillis()),//@hr_date
+                SettingsModel.rvTransactionType,//@hr_tt_code
+                receipt.receiptTransNo,//@hr_transno
+                null,//@hr_status
+                receipt.receiptDesc,//@hr_desc
+                null,//@hr_refno
+                receipt.receiptNote,//@hr_note
+                receipt.receiptThirdParty,//@hr_tp_name
+                null,//@hr_cashname
+                SettingsModel.currentUser?.userUsername,//@hr_userstamp
+                Timestamp(System.currentTimeMillis()),//@hr_valuedate
+                null,//@hr_employee
+                null,//@hr_pathtodoc
+            )
+        } else {
+            listOf(
+                receipt.receiptId,//@hr_id
+                null,//@hr_no
+                receipt.receiptCompanyId,//@hr_cmp_id
+                Timestamp(System.currentTimeMillis()),//@hr_date
+                SettingsModel.rvTransactionType,//@hr_tt_code
+                receipt.receiptTransNo,//@hr_transno
+                null,//@hr_status
+                receipt.receiptDesc,//@hr_desc
+                null,//@hr_refno
+                receipt.receiptNote,//@hr_note
+                receipt.receiptThirdParty,//@hr_tp_name
+                null,//@hr_cashname
+                SettingsModel.currentUser?.userUsername,//@hr_userstamp
+                null,//@hr_sessionpointer
+                SettingsModel.currentCompany?.cmp_multibranchcode,//@BranchCode
+                Timestamp(System.currentTimeMillis()),//@hr_valuedate
+                null,//@hr_employee
+                null,//@hr_pathtodoc
+            )
+        }
+        SQLServerWrapper.executeProcedure(
+            "updin_hreceipt",
+            parameters
+        )
+        updateReceipt(receipt)
+    }
+
+    private fun updateReceipt(receipt: Receipt) {
+        val decimal = SettingsModel.currentCurrency?.currencyName1Dec ?: 3
+        val parameters = if (SettingsModel.isSqlServerWebDb) {
+            listOf(
+                receipt.receiptInId,//@rec_id
+                receipt.receiptId,//@rec_hr_id
+                null,//@rec_cha_ch_code
+                null,//@rec_cha_code
+                null,//@rec_cur_code
+                POSUtils.formatDouble(
+                    receipt.receiptAmount,
+                    decimal
+                ),//@rec_amt
+                POSUtils.formatDouble(
+                    receipt.receiptAmount,
+                    decimal
+                ),//@rec_amtf
+                POSUtils.formatDouble(
+                    receipt.receiptAmount,
+                    decimal
+                ),//@rec_amts
+                null,//@rec_bank
+                null,//@rec_chequeno
+                Timestamp(System.currentTimeMillis()),//@rec_date
+                SettingsModel.defaultSqlServerBranch,//@rec_bra_name
+                null,//@rec_prj_name
+                null,//@rec_note
+                SettingsModel.currentUser?.userUsername,//@rec_userstamp
+                null,//@rec_ra_id//TODO
+                null,//@rec_div_name
+                false,//@rec_tax
+                null,//@rec_denomination
+                null//@rec_count
+            )
+        } else {
+            listOf(
+                receipt.receiptInId,//@rec_id
+                receipt.receiptId,//@rec_hr_id
+                null,//@rec_cha_ch_code//DSReceiptAcc.Tables("pos_receiptacc").Select("ra_name='" & LBPaymentMode.SelectedItem.ToString & "'").ElementAt(0).Item("ra_chcode"))
+                null,//@rec_cha_code
+                null,//@rec_cur_code//DSReceiptAcc.Tables("pos_receiptacc").Select("ra_name='" & LBPaymentMode.SelectedItem.ToString & "'").ElementAt(0).Item("ra_cur_code"))
+                POSUtils.formatDouble(
+                    receipt.receiptAmount,
+                    decimal
+                ),//@rec_amt
+                POSUtils.formatDouble(
+                    receipt.receiptAmount,
+                    decimal
+                ),//@rec_amtf
+                POSUtils.formatDouble(
+                    receipt.receiptAmount,
+                    decimal
+                ),//@rec_amts
+                null,//@rec_bank
+                null,//@rec_chequeno
+                Timestamp(System.currentTimeMillis()),//@rec_date
+                SettingsModel.defaultSqlServerBranch,//@rec_bra_name
+                null,//@rec_prj_name
+                null,//@rec_note
+                SettingsModel.currentUser?.userUsername,//@rec_userstamp
+                null,//@rec_ra_id//DSReceiptAcc.Tables("pos_receiptacc").Select("ra_name='" & LBPaymentMode.SelectedItem.ToString & "'").ElementAt(0).Item("ra_id"))
+                null,//@rec_div_name
+                false,//@rec_tax
+            )
+        }
+        SQLServerWrapper.executeProcedure(
+            "updin_receipt",
+            parameters
+        )
+        updateUnAllocatedReceipt(receipt)
+    }
+
+    private fun updateUnAllocatedReceipt(receipt: Receipt) {
+        val decimal = SettingsModel.currentCurrency?.currencyName1Dec ?: 3
+        val parameters = if (SettingsModel.isSqlServerWebDb) {
+            listOf(
+                receipt.unAllocatedReceiptId,//@ur_id
+                receipt.receiptId,//@ur_hr_id
+                receipt.receiptDesc,//@ur_desc
+                receipt.receiptCurrency,//@ur_cur_code
+                POSUtils.formatDouble(
+                    receipt.receiptAmount,
+                    decimal
+                ),//@ur_amt
+                POSUtils.formatDouble(
+                    receipt.receiptAmountFirst,
+                    decimal
+                ),//@ur_amtf
+                POSUtils.formatDouble(
+                    receipt.receiptAmountSecond,
+                    decimal
+                ),//@ur_amts
+                false,//@ur_allocated
+                null,//@ur_note
+                SettingsModel.currentUser?.userUsername,//@ur_userstamp
+                SettingsModel.defaultSqlServerBranch,//@ur_bra_name
+                null,//@ur_prj_name
+                null,//@ur_div_name
+            )
+        } else {
+            listOf(
+                receipt.unAllocatedReceiptId,//@ur_id
+                receipt.receiptId,//@ur_hr_id
+                receipt.receiptDesc,//@ur_desc
+                receipt.receiptCurrency,//@ur_cur_code
+                POSUtils.formatDouble(
+                    receipt.receiptAmount,
+                    decimal
+                ),//@ur_amt
+                POSUtils.formatDouble(
+                    receipt.receiptAmountFirst,
+                    decimal
+                ),//@ur_amtf
+                POSUtils.formatDouble(
+                    receipt.receiptAmountSecond,
+                    decimal
+                ),//@ur_amts
+                false,//@ur_allocated
+                null,//@ur_note
+                SettingsModel.currentUser?.userUsername,//@ur_userstamp
+                SettingsModel.defaultSqlServerBranch,//@ur_bra_name
+                null,//@ur_prj_name
+                null,//@ur_div_name
+            )
+        }
+        SQLServerWrapper.executeProcedure(
+            "addin_unallocatedreceipt",
+            parameters
+        )
+    }
+
+    private fun deleteHReceipt(receipt: Receipt) {
+        SQLServerWrapper.executeProcedure(
+            "delin_hreceipt",
+            listOf(receipt.receiptId)
+        )
+        deleteReceipt(receipt)
+    }
+
+    private fun deleteReceipt(receipt: Receipt) {
+        SQLServerWrapper.executeProcedure(
+            "delin_receipt",
+            listOf(receipt.receiptInId)
+        )
+        deleteUnAllocatedReceipt(receipt)
+    }
+
+    private fun deleteUnAllocatedReceipt(receipt: Receipt) {
+        SQLServerWrapper.executeProcedure(
+            "delin_unallocatedreceipt",
+            listOf(receipt.unAllocatedReceiptId)
         )
     }
 }

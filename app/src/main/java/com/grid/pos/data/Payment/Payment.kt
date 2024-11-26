@@ -27,6 +27,14 @@ data class Payment(
         @get:Exclude
         var paymentDocumentId: String? = null,
 
+        @Ignore
+        @get:Exclude
+        var paymentInId: String? = null,
+
+        @Ignore
+        @get:Exclude
+        var unAllocatedPaymentId: String? = null,
+
         /**
          * Payment name
          * */
