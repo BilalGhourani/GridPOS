@@ -368,7 +368,7 @@ class ReceiptRepositoryImpl(
         val parameters = if (SettingsModel.isSqlServerWebDb) {
             listOf(
                 receipt.receiptId,//@hr_id
-                null,//@hr_no
+                receipt.receiptNo,//@hr_no
                 receipt.receiptCompanyId,//@hr_cmp_id
                 Timestamp(System.currentTimeMillis()),//@hr_date
                 SettingsModel.rvTransactionType,//@hr_tt_code
@@ -387,7 +387,7 @@ class ReceiptRepositoryImpl(
         } else {
             listOf(
                 receipt.receiptId,//@hr_id
-                null,//@hr_no
+                receipt.receiptNo,//@hr_no
                 receipt.receiptCompanyId,//@hr_cmp_id
                 Timestamp(System.currentTimeMillis()),//@hr_date
                 SettingsModel.rvTransactionType,//@hr_tt_code

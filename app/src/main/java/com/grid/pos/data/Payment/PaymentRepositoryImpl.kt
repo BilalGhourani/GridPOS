@@ -375,7 +375,7 @@ class PaymentRepositoryImpl(
         val parameters = if (SettingsModel.isSqlServerWebDb) {
             listOf(
                 payment.paymentId,//@hpa_id
-                null,//@hpa_no
+                payment.paymentNo,//@hpa_no
                 payment.paymentCompanyId,//@hpa_cmp_id
                 Timestamp(System.currentTimeMillis()),//@hpa_date
                 SettingsModel.pvTransactionType,//@hpa_tt_code
@@ -394,7 +394,7 @@ class PaymentRepositoryImpl(
         } else {
             listOf(
                 payment.paymentId,//@hpa_id
-                null,//@hpa_no
+                payment.paymentNo,//@hpa_no
                 payment.paymentCompanyId,//@hpa_cmp_id
                 Timestamp(System.currentTimeMillis()),//@hpa_date
                 SettingsModel.pvTransactionType,//@hpa_tt_code

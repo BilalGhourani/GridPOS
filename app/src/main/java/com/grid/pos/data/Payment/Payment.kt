@@ -35,6 +35,10 @@ data class Payment(
         @get:Exclude
         var unAllocatedPaymentId: String? = null,
 
+        @Ignore
+        @get:Exclude
+        var paymentNo: String? = null,
+
         /**
          * Payment name
          * */

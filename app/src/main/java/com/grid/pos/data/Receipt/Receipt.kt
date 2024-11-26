@@ -35,6 +35,10 @@ data class Receipt(
         @get:Exclude
         var unAllocatedReceiptId: String? = null,
 
+        @Ignore
+        @get:Exclude
+        var receiptNo: String? = null,
+
         /**
          * Receipt name
          * */
