@@ -7,9 +7,14 @@ import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.pos.POSUtils
+import com.grid.pos.utils.DateHelper
+import com.grid.pos.utils.Extension.getDoubleValue
+import com.grid.pos.utils.Extension.getObjectValue
 import com.grid.pos.utils.Extension.getStringValue
 import kotlinx.coroutines.tasks.await
+import java.sql.ResultSet
 import java.sql.Timestamp
+import java.util.Date
 
 class PaymentRepositoryImpl(
         private val paymentDao: PaymentDao
@@ -130,8 +135,31 @@ class PaymentRepositoryImpl(
             }
 
             else -> {//CONNECTION_TYPE.SQL_SERVER.key
-                val companies: MutableList<Payment> = mutableListOf()
-                companies
+                val payments: MutableList<Payment> = mutableListOf()
+                try {
+                    val where = if (SettingsModel.isSqlServerWebDb) "hr_cmp_id='${SettingsModel.getCompanyID()}'" else ""
+                    val dbResult = SQLServerWrapper.getListOf(
+                        "in_hpayment",
+                        "TOP 100",
+                        mutableListOf("*"),
+                        where,
+                        "ORDER BY hpa_date DESC",
+                        "INNER JOIN in_payment on hpa_id = pay_hpa_id INNER JOIN in_unallocatedpayment on hpa_id = up_hpa_id"
+                    )
+                    dbResult?.let {
+                        while (it.next()) {
+                            payments.add(
+                                fillParams(
+                                    it
+                                )
+                            )
+                        }
+                        SQLServerWrapper.closeResultSet(it)
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+                return payments
             }
         }
     }
@@ -163,6 +191,35 @@ class PaymentRepositoryImpl(
             else -> {
                 return null
             }
+        }
+    }
+
+    private fun fillParams(
+            obj: ResultSet
+    ): Payment {
+        return Payment().apply {
+            paymentId = obj.getStringValue("hpa_id")
+            paymentInId = obj.getStringValue("pay_id")
+            unAllocatedPaymentId = obj.getStringValue("up_id")
+            paymentNo = obj.getStringValue("hpa_no")
+            paymentCompanyId = obj.getStringValue("hpa_cmp_id")
+            paymentType = obj.getStringValue("")
+            paymentTransCode = obj.getStringValue("hpa_tt_code")
+            paymentTransNo = obj.getStringValue("hpa_transno")
+            paymentThirdParty = obj.getStringValue("hpa_tp_name")
+            paymentCurrency = obj.getStringValue("pay_cur_code")
+            paymentAmount = obj.getDoubleValue("pay_amt")
+            paymentAmountFirst = obj.getDoubleValue("pay_amtf")
+            paymentAmountSecond = obj.getDoubleValue("pay_amts")
+            paymentDesc = obj.getStringValue("hpa_desc")
+            paymentNote = obj.getStringValue("hpa_note")
+            val timeStamp = obj.getObjectValue("hpa_timestamp")
+            paymentTimeStamp = if (timeStamp is Date) timeStamp else DateHelper.getDateFromString(
+                timeStamp as String,
+                "yyyy-MM-dd hh:mm:ss.SSS"
+            )
+            paymentDateTime = paymentTimeStamp!!.time
+            paymentUserStamp = obj.getStringValue("hpa_userstamp")
         }
     }
 

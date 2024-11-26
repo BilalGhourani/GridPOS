@@ -2,13 +2,20 @@ package com.grid.pos.data.Receipt
 
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
+import com.grid.pos.data.InvoiceHeader.InvoiceHeader
 import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.pos.POSUtils
+import com.grid.pos.utils.DateHelper
+import com.grid.pos.utils.Extension.getDoubleValue
+import com.grid.pos.utils.Extension.getIntValue
+import com.grid.pos.utils.Extension.getObjectValue
 import com.grid.pos.utils.Extension.getStringValue
 import kotlinx.coroutines.tasks.await
+import java.sql.ResultSet
 import java.sql.Timestamp
+import java.util.Date
 
 class ReceiptRepositoryImpl(
         private val receiptDao: ReceiptDao
@@ -129,7 +136,31 @@ class ReceiptRepositoryImpl(
             }
 
             else -> {//CONNECTION_TYPE.SQL_SERVER.key
-                mutableListOf()
+                val receipts: MutableList<Receipt> = mutableListOf()
+                try {
+                    val where = if (SettingsModel.isSqlServerWebDb) "hr_cmp_id='${SettingsModel.getCompanyID()}'" else ""
+                    val dbResult = SQLServerWrapper.getListOf(
+                        "in_hreceipt",
+                        "TOP 100",
+                        mutableListOf("*"),
+                        where,
+                        "ORDER BY hr_date DESC",
+                        "INNER JOIN in_receipt on hr_id = rec_hr_id INNER JOIN in_unallocatedreceipt on hr_id = ur_hr_id"
+                    )
+                    dbResult?.let {
+                        while (it.next()) {
+                            receipts.add(
+                                fillParams(
+                                    it
+                                )
+                            )
+                        }
+                        SQLServerWrapper.closeResultSet(it)
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+                return receipts
             }
         }
     }
@@ -161,6 +192,35 @@ class ReceiptRepositoryImpl(
             else -> {
                 return null
             }
+        }
+    }
+
+    private fun fillParams(
+            obj: ResultSet
+    ): Receipt {
+        return Receipt().apply {
+            receiptId = obj.getStringValue("hr_id")
+            receiptInId = obj.getStringValue("rec_id")
+            unAllocatedReceiptId = obj.getStringValue("ur_id")
+            receiptNo = obj.getStringValue("hr_no")
+            receiptCompanyId = obj.getStringValue("hr_cmp_id")
+            receiptType = obj.getStringValue("")
+            receiptTransCode = obj.getStringValue("hr_tt_code")
+            receiptTransNo = obj.getStringValue("hr_transno")
+            receiptThirdParty = obj.getStringValue("hr_tp_name")
+            receiptCurrency = obj.getStringValue("rec_cur_code")
+            receiptAmount = obj.getDoubleValue("rec_amt")
+            receiptAmountFirst = obj.getDoubleValue("rec_amtf")
+            receiptAmountSecond = obj.getDoubleValue("rec_amts")
+            receiptDesc = obj.getStringValue("hr_desc")
+            receiptNote = obj.getStringValue("hr_note")
+            val timeStamp = obj.getObjectValue("hr_timestamp")
+            receiptTimeStamp = if (timeStamp is Date) timeStamp else DateHelper.getDateFromString(
+                timeStamp as String,
+                "yyyy-MM-dd hh:mm:ss.SSS"
+            )
+            receiptDateTime = receiptTimeStamp!!.time
+            receiptUserStamp = obj.getStringValue("hr_userstamp")
         }
     }
 
