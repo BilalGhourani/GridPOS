@@ -2,7 +2,6 @@ package com.grid.pos.data.Payment
 
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
-import com.grid.pos.data.Receipt.Receipt
 import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.SettingsModel
@@ -107,7 +106,7 @@ class PaymentRepositoryImpl(
             else -> {//CONNECTION_TYPE.SQL_SERVER.key
                 var payment: Payment? = null
                 try {
-                    val where = if (SettingsModel.isSqlServerWebDb) "hr_cmp_id='${SettingsModel.getCompanyID()}' AND hpa_id='$id'" else "hpa_id='$id'"
+                    val where = if (SettingsModel.isSqlServerWebDb) "hpa_cmp_id='${SettingsModel.getCompanyID()}' AND hpa_id='$id'" else "hpa_id='$id'"
                     val dbResult = SQLServerWrapper.getListOf(
                         "in_hpayment",
                         "TOP 1",
@@ -158,7 +157,7 @@ class PaymentRepositoryImpl(
             else -> {//CONNECTION_TYPE.SQL_SERVER.key
                 val payments: MutableList<Payment> = mutableListOf()
                 try {
-                    val where = if (SettingsModel.isSqlServerWebDb) "hr_cmp_id='${SettingsModel.getCompanyID()}'" else ""
+                    val where = if (SettingsModel.isSqlServerWebDb) "hpa_cmp_id='${SettingsModel.getCompanyID()}'" else ""
                     val dbResult = SQLServerWrapper.getListOf(
                         "in_hpayment",
                         "TOP 100",
@@ -212,7 +211,7 @@ class PaymentRepositoryImpl(
             else -> {
                 return null/*val payments: MutableList<Payment> = mutableListOf()
                 try {
-                    val where = if (SettingsModel.isSqlServerWebDb) "hr_cmp_id='${SettingsModel.getCompanyID()}'" else ""
+                    val where = if (SettingsModel.isSqlServerWebDb) "hpa_cmp_id='${SettingsModel.getCompanyID()}'" else ""
                     val dbResult = SQLServerWrapper.getListOf(
                         "in_hpayment",
                         "TOP 1",
@@ -657,7 +656,7 @@ class PaymentRepositoryImpl(
 
     private fun deleteHPayment(payment: Payment) {
         SQLServerWrapper.executeProcedure(
-            "delin_hreceipt",
+            "delin_hpayment",
             listOf(payment.paymentId)
         )
         deletePayment(payment)
@@ -665,7 +664,7 @@ class PaymentRepositoryImpl(
 
     private fun deletePayment(payment: Payment) {
         SQLServerWrapper.executeProcedure(
-            "delin_receipt",
+            "delin_payment",
             listOf(payment.paymentInId)
         )
         deleteUnAllocatedPayment(payment)
@@ -673,7 +672,7 @@ class PaymentRepositoryImpl(
 
     private fun deleteUnAllocatedPayment(payment: Payment) {
         SQLServerWrapper.executeProcedure(
-            "delin_unallocatedreceipt",
+            "addin_unallocatedpayment",
             listOf(payment.unAllocatedPaymentId)
         )
     }
