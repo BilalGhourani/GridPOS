@@ -13,12 +13,12 @@ class SettingsRepositoryImpl : SettingsRepository {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
                 // nothing to do
-                return "SI"
+                return null
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
                 //nothing to do
-                return "SI"
+                return null
             }
 
             else -> {
