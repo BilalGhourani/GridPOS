@@ -35,6 +35,7 @@ class PaymentRepositoryImpl(
 
             else -> {
                 insertHPayment(payment)
+                return getPaymentById(payment.paymentId) ?: payment
             }
         }
         return payment
@@ -104,7 +105,27 @@ class PaymentRepositoryImpl(
             }
 
             else -> {//CONNECTION_TYPE.SQL_SERVER.key
-                null
+                var payment: Payment? = null
+                try {
+                    val where = if (SettingsModel.isSqlServerWebDb) "hr_cmp_id='${SettingsModel.getCompanyID()}' AND hpa_id='$id'" else "hpa_id='$id'"
+                    val dbResult = SQLServerWrapper.getListOf(
+                        "in_hpayment",
+                        "TOP 1",
+                        mutableListOf("*"),
+                        where,
+                        "ORDER BY hpa_date DESC",
+                        "INNER JOIN in_payment on hpa_id = pay_hpa_id INNER JOIN in_unallocatedpayment on hpa_id = up_hpa_id"
+                    )
+                    dbResult?.let {
+                        while (it.next()) {
+                            payment = fillParams(it)
+                        }
+                        SQLServerWrapper.closeResultSet(it)
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+                return payment
             }
         }
     }
@@ -189,7 +210,31 @@ class PaymentRepositoryImpl(
             }
 
             else -> {
-                return null
+                return null/*val payments: MutableList<Payment> = mutableListOf()
+                try {
+                    val where = if (SettingsModel.isSqlServerWebDb) "hr_cmp_id='${SettingsModel.getCompanyID()}'" else ""
+                    val dbResult = SQLServerWrapper.getListOf(
+                        "in_hpayment",
+                        "TOP 1",
+                        mutableListOf("*"),
+                        where,
+                        "ORDER BY hpa_transno DESC",
+                        "INNER JOIN in_payment on hpa_id = pay_hpa_id INNER JOIN in_unallocatedpayment on hpa_id = up_hpa_id"
+                    )
+                    dbResult?.let {
+                        while (it.next()) {
+                            payments.add(
+                                fillParams(
+                                    it
+                                )
+                            )
+                        }
+                        SQLServerWrapper.closeResultSet(it)
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+                return if (payments.isNotEmpty()) payments[0] else null*/
             }
         }
     }
@@ -230,7 +275,7 @@ class PaymentRepositoryImpl(
                 payment.paymentCompanyId,//@hpa_cmp_id
                 Timestamp(System.currentTimeMillis()),//@hpa_date
                 SettingsModel.pvTransactionType,//@hpa_tt_code
-                null,//@hpa_transno
+                null,/*payment.paymentTransNo*///@hpa_transno
                 null,//@hpa_status
                 payment.paymentDesc,//@hpa_desc
                 null,//@hpa_refno
@@ -249,7 +294,7 @@ class PaymentRepositoryImpl(
                 payment.paymentCompanyId,//@hpa_cmp_id
                 Timestamp(System.currentTimeMillis()),//@hpa_date
                 SettingsModel.pvTransactionType,//@hpa_tt_code
-                null,//@hpa_transno
+                null,/*payment.paymentTransNo*///@hpa_transno
                 null,//@hpa_status
                 payment.paymentDesc,//@hpa_desc
                 null,//@hpa_refno
@@ -283,7 +328,7 @@ class PaymentRepositoryImpl(
             } catch (e: Exception) {
                 e.printStackTrace()
             }
-        }else{
+        } else {
             payment.paymentId = id
         }
         insertPayment(payment)

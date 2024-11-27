@@ -36,6 +36,7 @@ class ReceiptRepositoryImpl(
 
             else -> {
                 insertHReceipt(receipt)
+                return getReceiptById(receipt.receiptId) ?: receipt
             }
         }
         return receipt
@@ -105,7 +106,27 @@ class ReceiptRepositoryImpl(
             }
 
             else -> {//CONNECTION_TYPE.SQL_SERVER.key
-                null
+                var receipt: Receipt? = null
+                try {
+                    val where = if (SettingsModel.isSqlServerWebDb) "hr_cmp_id='${SettingsModel.getCompanyID()}' AND hr_id = '$id'" else "hr_id = '$id'"
+                    val dbResult = SQLServerWrapper.getListOf(
+                        "in_hreceipt",
+                        "TOP 1",
+                        mutableListOf("*"),
+                        where,
+                        "ORDER BY hr_date DESC",
+                        "INNER JOIN in_receipt on hr_id = rec_hr_id INNER JOIN in_unallocatedreceipt on hr_id = ur_hr_id"
+                    )
+                    dbResult?.let {
+                        while (it.next()) {
+                            receipt = fillParams(it)
+                        }
+                        SQLServerWrapper.closeResultSet(it)
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+                return receipt
             }
         }
     }
@@ -190,7 +211,31 @@ class ReceiptRepositoryImpl(
             }
 
             else -> {
-                return null
+                return null/*val receipts: MutableList<Receipt> = mutableListOf()
+                try {
+                    val where = if (SettingsModel.isSqlServerWebDb) "hr_cmp_id='${SettingsModel.getCompanyID()}'" else ""
+                    val dbResult = SQLServerWrapper.getListOf(
+                        "in_hreceipt",
+                        "TOP 1",
+                        mutableListOf("*"),
+                        where,
+                        "ORDER BY hr_transno DESC",
+                        "INNER JOIN in_receipt on hr_id = rec_hr_id INNER JOIN in_unallocatedreceipt on hr_id = ur_hr_id"
+                    )
+                    dbResult?.let {
+                        while (it.next()) {
+                            receipts.add(
+                                fillParams(
+                                    it
+                                )
+                            )
+                        }
+                        SQLServerWrapper.closeResultSet(it)
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+                return if (receipts.isNotEmpty()) receipts[0] else null*/
             }
         }
     }
@@ -231,7 +276,7 @@ class ReceiptRepositoryImpl(
                 receipt.receiptCompanyId,//@hr_cmp_id
                 Timestamp(System.currentTimeMillis()),//@hr_date
                 SettingsModel.rvTransactionType,//@hr_tt_code
-                receipt.receiptTransNo,//@hr_transno
+                null,/*receipt.receiptTransNo*///@hr_transno
                 null,//@hr_status
                 receipt.receiptDesc,//@hr_desc
                 null,//@hr_refno
@@ -250,7 +295,7 @@ class ReceiptRepositoryImpl(
                 receipt.receiptCompanyId,//@hr_cmp_id
                 Timestamp(System.currentTimeMillis()),//@hr_date
                 SettingsModel.rvTransactionType,//@hr_tt_code
-                receipt.receiptTransNo,//@hr_transno
+                null,/*receipt.receiptTransNo*///@hr_transno
                 null,//@hr_status
                 receipt.receiptDesc,//@hr_desc
                 null,//@hr_refno
