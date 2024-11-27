@@ -172,9 +172,12 @@ class ReceiptsViewModel @Inject constructor(
                 val addedModel = receiptRepository.insert(receipt)
                 val receipts = receiptsState.value.receipts
                 if (receipts.isNotEmpty()) {
-                    receipts.add(addedModel)
+                    receipts.add(0,addedModel)
                 }
-                prepareReceiptReport(context)
+                prepareReceiptReport(
+                    context,
+                    addedModel
+                )
                 withContext(Dispatchers.Main) {
                     receiptsState.value = receiptsState.value.copy(
                         receipts = receipts,
@@ -187,7 +190,10 @@ class ReceiptsViewModel @Inject constructor(
                 }
             } else {
                 receiptRepository.update(receipt)
-                prepareReceiptReport(context)
+                prepareReceiptReport(
+                    context,
+                    receipt
+                )
                 withContext(Dispatchers.Main) {
                     receiptsState.value = receiptsState.value.copy(
                         selectedReceipt = receipt,
@@ -233,9 +239,9 @@ class ReceiptsViewModel @Inject constructor(
     }
 
     private suspend fun prepareReceiptReport(
-            context: Context
+            context: Context,
+            receipt: Receipt
     ) {
-        val receipt = receiptsState.value.selectedReceipt
         val thirdPartyId = receipt.receiptThirdParty
         val userId = receipt.receiptUserStamp
         val defaultThirdParty = if (thirdPartyId.isNullOrEmpty()) {

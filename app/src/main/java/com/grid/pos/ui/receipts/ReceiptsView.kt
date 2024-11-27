@@ -114,10 +114,12 @@ fun ReceiptsView(
         viewModel.currentReceipt = Receipt()
         state.selectedReceipt = Receipt()
         thirdPartyState = ""
-        typeState = viewModel.getDefaultType()
+        typeState = ""
         currencyState = ""
         currencyIndexState = 0
         amountState = ""
+        amountFirstState = ""
+        amountSecondsState = ""
         descriptionState = ""
         noteState = ""
         state.clear = false

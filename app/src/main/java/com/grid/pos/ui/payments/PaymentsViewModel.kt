@@ -168,9 +168,12 @@ class PaymentsViewModel @Inject constructor(
                 val addedModel = paymentRepository.insert(payment)
                 val payments = paymentsState.value.payments
                 if (payments.isNotEmpty()) {
-                    payments.add(addedModel)
+                    payments.add(0,addedModel)
                 }
-                preparePaymentReport(context)
+                preparePaymentReport(
+                    context,
+                    addedModel
+                )
                 withContext(Dispatchers.Main) {
                     paymentsState.value = paymentsState.value.copy(
                         payments = payments,
@@ -183,7 +186,10 @@ class PaymentsViewModel @Inject constructor(
                 }
             } else {
                 paymentRepository.update(payment)
-                preparePaymentReport(context)
+                preparePaymentReport(
+                    context,
+                    payment
+                )
                 withContext(Dispatchers.Main) {
                     paymentsState.value = paymentsState.value.copy(
                         selectedPayment = payment,
@@ -229,9 +235,9 @@ class PaymentsViewModel @Inject constructor(
     }
 
     private suspend fun preparePaymentReport(
-            context: Context
+            context: Context,
+            payment: Payment
     ) {
-        val payment = paymentsState.value.selectedPayment
         val thirdPartyId = payment.paymentThirdParty
         val userId = payment.paymentUserStamp
         val defaultThirdParty = if (thirdPartyId.isNullOrEmpty()) {

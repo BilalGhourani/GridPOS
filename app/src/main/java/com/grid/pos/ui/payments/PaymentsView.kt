@@ -114,10 +114,12 @@ fun PaymentsView(
         viewModel.currentPayment = Payment()
         state.selectedPayment = Payment()
         thirdPartyState = ""
-        typeState = viewModel.getDefaultType()
+        typeState = ""
         currencyState = ""
         currencyIndexState = 0
         amountState = ""
+        amountFirstState = ""
+        amountSecondsState = ""
         descriptionState = ""
         noteState = ""
         state.clear = false
