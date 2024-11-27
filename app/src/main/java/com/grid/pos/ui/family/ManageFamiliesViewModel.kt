@@ -1,13 +1,10 @@
 package com.grid.pos.ui.family
 
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.grid.pos.data.Family.Family
 import com.grid.pos.data.Family.FamilyRepository
 import com.grid.pos.data.Item.ItemRepository
-import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.model.Event
-import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.BaseViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -31,6 +28,14 @@ class ManageFamiliesViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
            openConnectionIfNeeded()
         }
+    }
+
+    fun resetState() {
+        manageFamiliesState.value = manageFamiliesState.value.copy(
+            warning = null,
+            isLoading = false,
+            clear = false
+        )
     }
 
     fun fillCachedFamilies(families: MutableList<Family> = mutableListOf()) {

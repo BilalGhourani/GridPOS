@@ -62,7 +62,6 @@ import com.grid.pos.data.InvoiceHeader.InvoiceHeader
 import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.model.UserType
-import com.grid.pos.ui.common.UIButton
 import com.grid.pos.ui.common.UIImageButton
 import com.grid.pos.ui.common.UITextField
 import com.grid.pos.ui.theme.GridPOSTheme
@@ -109,9 +108,8 @@ fun TablesView(
         activityScopedViewModel.pendingInvHeadState = state.invoiceHeader
         activityScopedViewModel.shouldLoadInvoice = true
         activityScopedViewModel.isFromTable = true
-        state.clear = true
+        viewModel.resetState()
         stepState = 1
-        state.step = 1
         navController?.navigate("POSView")
     }
 
@@ -431,7 +429,7 @@ fun TablesView(
             stepState = 1
             tableNameState = ""
             clientsCountState = ""
-            state.clear = false
+            viewModel.resetState()
         }
     }
 }

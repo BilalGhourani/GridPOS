@@ -7,7 +7,7 @@ data class ManageUsersState(
         val users: MutableList<User> = mutableListOf(),
         var selectedUser: User = User(),
         val isLoading: Boolean = false,
-        var clear: Boolean = false,
+        val clear: Boolean = false,
         val warning: Event<String>? = null,
         val action: String? = null,
 )

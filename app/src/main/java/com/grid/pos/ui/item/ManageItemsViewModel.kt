@@ -3,14 +3,12 @@ package com.grid.pos.ui.item
 import androidx.lifecycle.viewModelScope
 import com.grid.pos.data.Currency.Currency
 import com.grid.pos.data.Currency.CurrencyRepository
-import com.grid.pos.data.DataModel
 import com.grid.pos.data.Family.Family
 import com.grid.pos.data.Family.FamilyRepository
 import com.grid.pos.data.Invoice.InvoiceRepository
 import com.grid.pos.data.Item.Item
 import com.grid.pos.data.Item.ItemRepository
 import com.grid.pos.data.PosPrinter.PosPrinterRepository
-import com.grid.pos.model.CurrencyModel
 import com.grid.pos.model.Event
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.BaseViewModel
@@ -41,6 +39,14 @@ class ManageItemsViewModel @Inject constructor(
             fetchFamilies()
             fetchPrinters()
         }
+    }
+
+    fun resetState() {
+        manageItemsState.value = manageItemsState.value.copy(
+            warning = null,
+            isLoading = false,
+            clear = false
+        )
     }
 
     fun fillCachedItems(

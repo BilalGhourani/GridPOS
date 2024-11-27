@@ -30,6 +30,14 @@ class POSPrinterViewModel @Inject constructor(
         }
     }
 
+    fun resetState() {
+        posPrinterState.value = posPrinterState.value.copy(
+            warning = null,
+            isLoading = false,
+            clear = false
+        )
+    }
+
     fun fillCachedPrinters(printers: MutableList<PosPrinter> = mutableListOf()) {
         if (posPrinterState.value.printers.isEmpty()) {
             viewModelScope.launch(Dispatchers.Main) {

@@ -13,8 +13,8 @@ data class ManageItemsState(
         val printers: MutableList<PosPrinter> = mutableListOf(),
         val currencies: MutableList<CurrencyModel> = mutableListOf(),
         var selectedItem: Item = Item(),
-        var isLoading: Boolean = false,
-        var clear: Boolean = false,
+        val isLoading: Boolean = false,
+        val clear: Boolean = false,
         val warning: Event<String>? = null,
         val actionLabel: String? = null,
 )

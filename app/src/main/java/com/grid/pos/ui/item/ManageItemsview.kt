@@ -221,7 +221,7 @@ fun ManageItemsView(
         printerState = ""
         imageState = ""
         itemPOSState = false
-        state.clear = false
+        viewModel.resetState()
     }
 
     var saveAndBack by remember { mutableStateOf(false) }
@@ -673,7 +673,7 @@ fun ManageItemsView(
                                     object : OnGalleryResult {
                                         override fun onGalleryResult(uris: List<Uri>) {
                                             if (uris.isNotEmpty()) {
-                                                state.isLoading = true
+                                                activityScopedViewModel.showLoading(true)
                                                 CoroutineScope(Dispatchers.IO).launch {
                                                     val internalPath = FileUtils.saveToExternalStorage(context = context,
                                                         parent = "item",
@@ -683,7 +683,7 @@ fun ManageItemsView(
                                                             "_"
                                                         ).ifEmpty { "item" })
                                                     withContext(Dispatchers.Main) {
-                                                        state.isLoading = false
+                                                        activityScopedViewModel.showLoading(false)
                                                         if (internalPath != null) {
                                                             oldImage = imageState
                                                             imageState = internalPath

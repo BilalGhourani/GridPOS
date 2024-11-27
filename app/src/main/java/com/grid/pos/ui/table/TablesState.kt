@@ -10,7 +10,7 @@ data class TablesState(
         var step: Int = 1,
         var moveToPos: Boolean = false,
         val isLoadingTables: Boolean = false,
-        var isLoading: Boolean = false,
-        var clear: Boolean = false,
+        val isLoading: Boolean = false,
+        val clear: Boolean = false,
         val warning: Event<String>? = null,
 )

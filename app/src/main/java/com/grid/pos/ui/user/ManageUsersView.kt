@@ -144,7 +144,7 @@ fun ManageUsersView(
         passwordState = ""
         posModeState = true
         tableModeState = false
-        state.clear = false
+        viewModel.resetState()
     }
 
     var saveAndBack by remember { mutableStateOf(false) }

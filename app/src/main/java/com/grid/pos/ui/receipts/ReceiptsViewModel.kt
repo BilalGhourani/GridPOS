@@ -51,11 +51,13 @@ class ReceiptsViewModel @Inject constructor(
         }
     }
 
-    fun getDefaultType(): String {
-        if (receiptTypes.isNotEmpty()) {
-            return receiptTypes[0].getId()
-        }
-        return "Cash"
+    fun resetState() {
+        receiptsState.value = receiptsState.value.copy(
+            warning = null,
+            isLoading = false,
+            clear = false,
+            isSaved = false,
+        )
     }
 
     fun fetchReceipts() {

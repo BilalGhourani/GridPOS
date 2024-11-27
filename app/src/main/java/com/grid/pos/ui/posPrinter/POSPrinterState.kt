@@ -7,7 +7,7 @@ data class POSPrinterState(
         val printers: MutableList<PosPrinter> = mutableListOf(),
         var selectedPrinter: PosPrinter = PosPrinter(),
         var isLoading: Boolean = false,
-        var clear: Boolean = false,
-        var warning: Event<String>? = null,
-        var actionLabel: String? = null,
+        val clear: Boolean = false,
+        val warning: Event<String>? = null,
+        val actionLabel: String? = null,
     )

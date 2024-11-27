@@ -122,7 +122,7 @@ fun ReceiptsView(
         amountSecondsState = ""
         descriptionState = ""
         noteState = ""
-        state.clear = false
+        viewModel.resetState()
     }
 
     var saveAndBack by remember { mutableStateOf(false) }

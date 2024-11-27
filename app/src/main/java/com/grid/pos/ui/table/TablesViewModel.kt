@@ -1,8 +1,6 @@
 package com.grid.pos.ui.table
 
-import androidx.compose.ui.text.toLowerCase
 import androidx.lifecycle.viewModelScope
-import com.grid.pos.data.InvoiceHeader.InvoiceHeader
 import com.grid.pos.data.InvoiceHeader.InvoiceHeaderRepository
 import com.grid.pos.data.User.UserRepository
 import com.grid.pos.model.Event
@@ -29,6 +27,15 @@ class TablesViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             openConnectionIfNeeded()
         }
+    }
+
+    fun resetState() {
+        tablesState.value = tablesState.value.copy(
+            warning = null,
+            isLoading = false,
+            clear = false,
+            step = 1
+        )
     }
 
     fun showError(message: String) {

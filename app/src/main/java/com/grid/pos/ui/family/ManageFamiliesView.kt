@@ -57,7 +57,6 @@ import com.grid.pos.interfaces.OnGalleryResult
 import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.SearchableDropdownMenuEx
-import com.grid.pos.ui.common.UIButton
 import com.grid.pos.ui.common.UIImageButton
 import com.grid.pos.ui.common.UITextField
 import com.grid.pos.ui.theme.GridPOSTheme
@@ -130,7 +129,7 @@ fun ManageFamiliesView(
         state.selectedFamily = Family()
         nameState = ""
         imageState = ""
-        state.clear = false
+        viewModel.resetState()
     }
 
     var saveAndBack by remember { mutableStateOf(false) }
@@ -261,7 +260,7 @@ fun ManageFamiliesView(
                                     object : OnGalleryResult {
                                         override fun onGalleryResult(uris: List<Uri>) {
                                             if (uris.isNotEmpty()) {
-                                                state.isLoading = true
+                                                activityScopedViewModel.showLoading(true)
                                                 CoroutineScope(Dispatchers.IO).launch {
                                                     val internalPath = FileUtils.saveToExternalStorage(context = context,
                                                         parent = "family",
@@ -271,7 +270,7 @@ fun ManageFamiliesView(
                                                             "_"
                                                         ).ifEmpty { "family" })
                                                     withContext(Dispatchers.Main) {
-                                                        state.isLoading = false
+                                                        activityScopedViewModel.showLoading(false)
                                                         if (internalPath != null) {
                                                             oldImage = imageState
                                                             imageState = internalPath

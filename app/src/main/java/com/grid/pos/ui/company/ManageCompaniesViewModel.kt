@@ -42,6 +42,14 @@ class ManageCompaniesViewModel @Inject constructor(
         }
     }
 
+    fun resetState() {
+        manageCompaniesState.value = manageCompaniesState.value.copy(
+            warning = null,
+            isLoading = false,
+            clear = false
+        )
+    }
+
     fun showWarning(
             warning: String,
             action: String

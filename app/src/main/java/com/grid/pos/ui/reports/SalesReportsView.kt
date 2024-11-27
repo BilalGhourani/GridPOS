@@ -73,7 +73,6 @@ import com.grid.pos.BuildConfig
 import com.grid.pos.R
 import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
-import com.grid.pos.ui.common.UIButton
 import com.grid.pos.ui.common.UIImageButton
 import com.grid.pos.ui.common.UITextField
 import com.grid.pos.ui.theme.GridPOSTheme
@@ -624,10 +623,6 @@ fun SalesReportsView(
                 }
             }
 
-        }
-
-        if (state.clear) {
-            state.clear = false
         }
     }
 }

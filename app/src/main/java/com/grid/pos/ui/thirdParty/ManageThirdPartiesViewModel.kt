@@ -36,6 +36,14 @@ class ManageThirdPartiesViewModel @Inject constructor(
         }
     }
 
+    fun resetState() {
+        manageThirdPartiesState.value = manageThirdPartiesState.value.copy(
+            warning = null,
+            isLoading = false,
+            clear = false
+        )
+    }
+
     fun fillCachedThirdParties(thirdParties: MutableList<ThirdParty> = mutableListOf()) {
         if (manageThirdPartiesState.value.thirdParties.isEmpty()) {
             viewModelScope.launch(Dispatchers.Main) {

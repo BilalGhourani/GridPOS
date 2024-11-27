@@ -51,11 +51,13 @@ class PaymentsViewModel @Inject constructor(
         }
     }
 
-    fun getDefaultType(): String {
-        if (paymentTypes.isNotEmpty()) {
-            return paymentTypes[0].getId()
-        }
-        return "Cash"
+    fun resetState() {
+        paymentsState.value = paymentsState.value.copy(
+            warning = null,
+            isLoading = false,
+            clear = false,
+            isSaved = false,
+        )
     }
 
     fun fetchPayments() {

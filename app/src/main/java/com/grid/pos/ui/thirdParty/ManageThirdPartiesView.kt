@@ -125,7 +125,7 @@ fun ManageThirdPartiesView(
         phone2State = ""
         addressState = ""
         isDefaultState = false
-        state.clear = false
+        viewModel.resetState()
     }
 
     var saveAndBack by remember { mutableStateOf(false) }

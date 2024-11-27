@@ -35,6 +35,14 @@ class ManageUsersViewModel @Inject constructor(
         }
     }
 
+    fun resetState() {
+        manageUsersState.value = manageUsersState.value.copy(
+            warning = null,
+            isLoading = false,
+            clear = false
+        )
+    }
+
     fun fillCachedUsers(users: MutableList<User> = mutableListOf()) {
         if (manageUsersState.value.users.isEmpty()) {
             viewModelScope.launch(Dispatchers.Main) {

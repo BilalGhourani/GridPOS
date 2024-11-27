@@ -10,6 +10,6 @@ data class ManageThirdPartiesState(
         var selectedThirdParty: ThirdParty = ThirdParty(),
         var enableIsDefault: Boolean = false,
         val isLoading: Boolean = false,
-        var clear: Boolean = false,
+        val clear: Boolean = false,
         val warning: Event<String>? = null,
 )

@@ -51,7 +51,6 @@ import com.grid.pos.data.PosPrinter.PosPrinter
 import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.SearchableDropdownMenuEx
-import com.grid.pos.ui.common.UIButton
 import com.grid.pos.ui.common.UIImageButton
 import com.grid.pos.ui.common.UITextField
 import com.grid.pos.ui.theme.GridPOSTheme
@@ -110,7 +109,7 @@ fun POSPrinterView(
         hostState = ""
         portState = ""
         typeState = ""
-        state.clear = false
+        viewModel.resetState()
     }
 
     var saveAndBack by remember { mutableStateOf(false) }
