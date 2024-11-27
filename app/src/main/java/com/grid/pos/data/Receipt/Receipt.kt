@@ -177,7 +177,7 @@ data class Receipt(
 
     @Exclude
     override fun getName(): String {
-        val transNo = "${receiptTransCode ?: ""} ${receiptTransNo ?: ""}"
+        val transNo = receiptTransNo ?: ""
         val total = String.format(
             "%,.${SettingsModel.currentCurrency?.currencyName1Dec ?: 2}f",
             receiptAmount
