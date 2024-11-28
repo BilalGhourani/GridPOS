@@ -2,6 +2,7 @@ package com.grid.pos.ui.common
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -42,7 +43,7 @@ import com.grid.pos.ui.theme.homeLightPurple
 fun UIImageButton(
         modifier: Modifier = Modifier,
         text: String? = null,
-        textColor: Color = SettingsModel.textColor,
+        textColor: Color = SettingsModel.buttonTextColor,
         icon: Int = R.drawable.login,
         iconSize: Dp = 50.dp,
         shape: Shape = RoundedCornerShape(15.dp),
@@ -64,6 +65,7 @@ fun UIImageButton(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
+                    .background(color = SettingsModel.buttonColor,shape = shape)
                     .border(
                         BorderStroke(
                             0.5.dp,
@@ -103,7 +105,9 @@ fun UIImageButton(
             }
         } else {
             Row(
-                modifier = Modifier.border(
+                modifier = Modifier
+                    .background(color = SettingsModel.buttonColor, shape = shape)
+                    .border(
                     BorderStroke(
                         0.5.dp,
                         Brush.linearGradient(
