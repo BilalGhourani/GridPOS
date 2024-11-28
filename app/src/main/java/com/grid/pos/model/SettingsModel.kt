@@ -48,7 +48,7 @@ object SettingsModel {
     var allowOutOfStockSale: Boolean = true
     var hideSecondCurrency: Boolean = false
 
-    var buttonColor: Color = Color.Transparent
+    var buttonColor: Color = Color.Black
     var buttonTextColor: Color = Color.Black
     var topBarColor: Color = Color.White
     var backgroundColor: Color = Color.White

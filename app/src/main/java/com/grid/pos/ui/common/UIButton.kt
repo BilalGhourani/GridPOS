@@ -40,7 +40,7 @@ fun UIButton(
 ) {
     OutlinedButton(modifier = modifier.alpha(if (enabled) 1f else .5f),
         colors = ButtonDefaults.buttonColors(
-            containerColor =  SettingsModel.buttonColor
+            containerColor = Color.Transparent /*SettingsModel.buttonColor*/
         ),
         shape = shape,
         enabled = enabled,

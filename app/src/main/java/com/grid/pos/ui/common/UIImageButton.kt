@@ -65,7 +65,7 @@ fun UIImageButton(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(color = SettingsModel.buttonColor,shape = shape)
+                    /*.background(color = SettingsModel.buttonColor,shape = shape)*/
                     .border(
                         BorderStroke(
                             0.5.dp,
@@ -106,7 +106,7 @@ fun UIImageButton(
         } else {
             Row(
                 modifier = Modifier
-                    .background(color = SettingsModel.buttonColor, shape = shape)
+                    /*.background(color = SettingsModel.buttonColor, shape = shape)*/
                     .border(
                     BorderStroke(
                         0.5.dp,
