@@ -47,7 +47,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -62,7 +61,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.grid.pos.ActivityScopedViewModel
+import com.grid.pos.SharedViewModel
 import com.grid.pos.App
 import com.grid.pos.model.FileModel
 import com.grid.pos.model.PopupModel
@@ -81,7 +80,7 @@ import java.io.File
 fun ReportsListView(
         modifier: Modifier = Modifier,
         navController: NavController? = null,
-        activityViewModel: ActivityScopedViewModel,
+        sharedViewModel: SharedViewModel,
         viewModel: ReportsListViewModel = hiltViewModel()
 ) {
     val state: ReportsListState by viewModel.state.collectAsState(
@@ -103,7 +102,7 @@ fun ReportsListView(
     }
 
     LaunchedEffect(deletePopupState) {
-        activityViewModel.showPopup(deletePopupState,
+        sharedViewModel.showPopup(deletePopupState,
             PopupModel().apply {
                 onDismissRequest = {
                     deletePopupState = false
@@ -182,7 +181,7 @@ fun ReportsListView(
                         },
                         actions = {
                             IconButton(onClick = {
-                                activityViewModel.selectedReportType = state.selectedType
+                                sharedViewModel.selectedReportType = state.selectedType
                                 navController?.navigate("SetupReportView")
                             }) {
                                 Icon(

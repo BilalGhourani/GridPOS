@@ -28,7 +28,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -48,12 +47,11 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import com.grid.pos.ActivityScopedViewModel
+import com.grid.pos.SharedViewModel
 import com.grid.pos.R
 import com.grid.pos.data.Currency.Currency
 import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
-import com.grid.pos.ui.common.UIButton
 import com.grid.pos.ui.common.UIImageButton
 import com.grid.pos.ui.common.UITextField
 import com.grid.pos.ui.pos.POSUtils
@@ -68,7 +66,7 @@ import kotlinx.coroutines.launch
 fun ManageCurrenciesView(
         modifier: Modifier = Modifier,
         navController: NavController? = null,
-        activityScopedViewModel: ActivityScopedViewModel,
+        sharedViewModel: SharedViewModel,
         viewModel: ManageCurrenciesViewModel = hiltViewModel()
 ) {
     val state by viewModel.manageCurrenciesState.collectAsStateWithLifecycle()
@@ -109,7 +107,7 @@ fun ManageCurrenciesView(
                 viewModel.currentCurrency
             )
         ) {
-            activityScopedViewModel.showPopup(true,
+            sharedViewModel.showPopup(true,
                 PopupModel().apply {
                     onDismissRequest = {
                         viewModel.currentCurrency = Currency()
@@ -145,7 +143,7 @@ fun ManageCurrenciesView(
         }
     }
     LaunchedEffect(state.isLoading) {
-        activityScopedViewModel.showLoading(state.isLoading)
+        sharedViewModel.showLoading(state.isLoading)
     }
     LaunchedEffect(state.isSaved) {
         if (state.isSaved && saveAndBack) {

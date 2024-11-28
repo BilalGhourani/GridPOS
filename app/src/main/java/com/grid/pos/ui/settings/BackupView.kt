@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -38,14 +37,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.grid.pos.ActivityScopedViewModel
+import com.grid.pos.SharedViewModel
 import com.grid.pos.App
 import com.grid.pos.R
 import com.grid.pos.interfaces.OnGalleryResult
 import com.grid.pos.model.Event
 import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
-import com.grid.pos.ui.common.UIButton
 import com.grid.pos.ui.common.UIImageButton
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.utils.FileUtils
@@ -60,7 +58,7 @@ import kotlinx.coroutines.withContext
 fun BackupView(
         modifier: Modifier = Modifier,
         navController: NavController? = null,
-        activityViewModel: ActivityScopedViewModel,
+        sharedViewModel: SharedViewModel,
 ) {
     val context = LocalContext.current
     var isLoading by remember { mutableStateOf(false) }
@@ -74,7 +72,7 @@ fun BackupView(
     val scope = rememberCoroutineScope()
 
     fun restoreDbNow() {
-        activityViewModel.launchFilePicker("*/*",
+        sharedViewModel.launchFilePicker("*/*",
             object : OnGalleryResult {
                 override fun onGalleryResult(uris: List<Uri>) {
                     if (uris.isNotEmpty()) {
@@ -122,18 +120,18 @@ fun BackupView(
                 when (snackBarResult) {
                     SnackbarResult.Dismissed -> {}
                     SnackbarResult.ActionPerformed -> when (action) {
-                        "Settings" -> activityViewModel.openAppStorageSettings()
+                        "Settings" -> sharedViewModel.openAppStorageSettings()
                     }
                 }
             }
         }
     }
     LaunchedEffect(isLoading) {
-        activityViewModel.showLoading(isLoading)
+        sharedViewModel.showLoading(isLoading)
     }
 
     LaunchedEffect(isPopupShown) {
-        activityViewModel.showPopup(
+        sharedViewModel.showPopup(
             isPopupShown,
             if (!isPopupShown) null else PopupModel().apply {
                 onDismissRequest = {

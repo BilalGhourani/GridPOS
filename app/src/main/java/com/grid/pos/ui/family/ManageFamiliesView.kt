@@ -50,7 +50,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import com.grid.pos.ActivityScopedViewModel
+import com.grid.pos.SharedViewModel
 import com.grid.pos.R
 import com.grid.pos.data.Family.Family
 import com.grid.pos.interfaces.OnGalleryResult
@@ -73,7 +73,7 @@ import kotlinx.coroutines.withContext
 fun ManageFamiliesView(
         modifier: Modifier = Modifier,
         navController: NavController? = null,
-        activityScopedViewModel: ActivityScopedViewModel,
+        sharedViewModel: SharedViewModel,
         viewModel: ManageFamiliesViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
@@ -88,10 +88,6 @@ fun ManageFamiliesView(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
-    /*LaunchedEffect(activityScopedViewModel.families) {
-        viewModel.fillCachedFamilies(activityScopedViewModel.families)
-    }*/
-
     LaunchedEffect(state.warning) {
         state.warning?.value?.let { message ->
             scope.launch {
@@ -103,7 +99,7 @@ fun ManageFamiliesView(
                 when (snackBarResult) {
                     SnackbarResult.Dismissed -> {}
                     SnackbarResult.ActionPerformed -> when (state.actionLabel) {
-                        "Settings" -> activityScopedViewModel.openAppStorageSettings()
+                        "Settings" -> sharedViewModel.openAppStorageSettings()
                     }
                 }
             }
@@ -111,7 +107,7 @@ fun ManageFamiliesView(
     }
 
     LaunchedEffect(state.isLoading) {
-        activityScopedViewModel.showLoading(state.isLoading)
+        sharedViewModel.showLoading(state.isLoading)
     }
 
     fun saveFamily() {
@@ -141,7 +137,7 @@ fun ManageFamiliesView(
                 viewModel.currentFamily
             )
         ) {
-            activityScopedViewModel.showPopup(true,
+            sharedViewModel.showPopup(true,
                 PopupModel().apply {
                     onDismissRequest = {
                         clear()
@@ -158,7 +154,7 @@ fun ManageFamiliesView(
             return
         }
         if (state.families.isNotEmpty()) {
-            activityScopedViewModel.families = state.families
+            sharedViewModel.families = state.families
         }
         viewModel.closeConnectionIfNeeded()
         navController?.navigateUp()
@@ -256,11 +252,11 @@ fun ManageFamiliesView(
                         onAction = { keyboardController?.hide() },
                         trailingIcon = {
                             IconButton(onClick = {
-                                activityScopedViewModel.launchGalleryPicker(mediaType = ActivityResultContracts.PickVisualMedia.ImageOnly,
+                                sharedViewModel.launchGalleryPicker(mediaType = ActivityResultContracts.PickVisualMedia.ImageOnly,
                                     object : OnGalleryResult {
                                         override fun onGalleryResult(uris: List<Uri>) {
                                             if (uris.isNotEmpty()) {
-                                                activityScopedViewModel.showLoading(true)
+                                                sharedViewModel.showLoading(true)
                                                 CoroutineScope(Dispatchers.IO).launch {
                                                     val internalPath = FileUtils.saveToExternalStorage(context = context,
                                                         parent = "family",
@@ -270,7 +266,7 @@ fun ManageFamiliesView(
                                                             "_"
                                                         ).ifEmpty { "family" })
                                                     withContext(Dispatchers.Main) {
-                                                        activityScopedViewModel.showLoading(false)
+                                                        sharedViewModel.showLoading(false)
                                                         if (internalPath != null) {
                                                             oldImage = imageState
                                                             imageState = internalPath

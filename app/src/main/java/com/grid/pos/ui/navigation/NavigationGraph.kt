@@ -6,7 +6,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.grid.pos.ActivityScopedViewModel
+import com.grid.pos.SharedViewModel
 import com.grid.pos.ui.adjustment.AdjustmentView
 import com.grid.pos.ui.common.UIWebView
 import com.grid.pos.ui.company.ManageCompaniesView
@@ -33,7 +33,7 @@ import com.grid.pos.ui.user.ManageUsersView
 @Composable
 fun AuthNavGraph(
         navController: NavHostController,
-        activityViewModel: ActivityScopedViewModel,
+        sharedViewModel: SharedViewModel,
         startDestination: String,
         modifier: Modifier = Modifier
 ) {
@@ -46,133 +46,133 @@ fun AuthNavGraph(
         composable(route = "HomeView") {
             HomeView(
                 navController = navController,
-                activityViewModel = activityViewModel
+                sharedViewModel = sharedViewModel
             )
         }
         composable(route = "LoginView") {
             LoginView(
                 navController = navController,
-                activityScopedViewModel = activityViewModel
+                sharedViewModel = sharedViewModel
             )
         }
         composable(route = "SettingsView") {
             SettingsView(
                 navController = navController,
-                activityScopedViewModel = activityViewModel
+                sharedViewModel = sharedViewModel
             )
         }
         composable(route = "ManageCurrenciesView") {
             ManageCurrenciesView(
                 navController = navController,
-                activityScopedViewModel = activityViewModel
+                sharedViewModel = sharedViewModel
             )
         }
         composable(route = "ManageCompaniesView") {
             ManageCompaniesView(
                 navController = navController,
-                activityScopedViewModel = activityViewModel
+                sharedViewModel = sharedViewModel
             )
         }
         composable(route = "ManageUsersView") {
             ManageUsersView(
                 navController = navController,
-                activityScopedViewModel = activityViewModel
+                sharedViewModel = sharedViewModel
             )
         }
         composable(route = "ManageFamiliesView") {
             ManageFamiliesView(
                 navController = navController,
-                activityScopedViewModel = activityViewModel,
+                sharedViewModel = sharedViewModel,
             )
         }
         composable(route = "ManageThirdPartiesView") {
             ManageThirdPartiesView(
                 navController = navController,
-                activityScopedViewModel = activityViewModel
+                sharedViewModel = sharedViewModel
             )
         }
         composable(route = "ManageItemsView") {
             ManageItemsView(
                 navController = navController,
-                activityScopedViewModel = activityViewModel
+                sharedViewModel = sharedViewModel
             )
         }
         composable(route = "POSView") {
             POSView(
                 navController = navController,
-                activityViewModel = activityViewModel
+                sharedViewModel = sharedViewModel
             )
         }
         composable(route = "TablesView") {
             TablesView(
                 navController = navController,
-                activityScopedViewModel = activityViewModel
+                sharedViewModel = sharedViewModel
             )
         }
         composable(route = "UIWebView") {
             UIWebView(
                 navController = navController,
-                activityViewModel = activityViewModel
+                sharedViewModel = sharedViewModel
             )
         }
         composable(route = "POSPrinterView") {
             POSPrinterView(
                 navController = navController,
-                activityScopedViewModel = activityViewModel
+                sharedViewModel = sharedViewModel
             )
         }
         composable(route = "ReportsView") {
             SalesReportsView(
                 navController = navController,
-                activityViewModel = activityViewModel
+                sharedViewModel = sharedViewModel
             )
         }
         composable(route = "BackupView") {
             BackupView(
                 navController = navController,
-                activityViewModel = activityViewModel
+                sharedViewModel = sharedViewModel
             )
         }
 
         composable(route = "ReportsListView") {
             ReportsListView(
                 navController = navController,
-                activityViewModel = activityViewModel
+                sharedViewModel = sharedViewModel
             )
         }
 
         composable(route = "SetupReportView") {
             SetupReportView(
                 navController = navController,
-                activityViewModel = activityViewModel
+                sharedViewModel = sharedViewModel
             )
         }
 
         composable(route = "AdjustmentView") {
             AdjustmentView(
                 navController = navController,
-                activityViewModel = activityViewModel
+                sharedViewModel = sharedViewModel
             )
         }
 
         composable(route = "LicenseView") {
             LicenseView(
                 navController = navController,
-                activityScopedViewModel = activityViewModel
+                sharedViewModel = sharedViewModel
             )
         }
 
         composable(route = "PaymentsView") {
             PaymentsView(
                 navController = navController,
-                activityScopedViewModel = activityViewModel
+                sharedViewModel = sharedViewModel
             )
         }
 
         composable(route = "ReceiptsView") {
             ReceiptsView(
                 navController = navController,
-                activityScopedViewModel = activityViewModel
+                sharedViewModel = sharedViewModel
             )
         }
     }

@@ -18,7 +18,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -28,7 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavController
-import com.grid.pos.ActivityScopedViewModel
+import com.grid.pos.SharedViewModel
 import com.grid.pos.model.ReportResult
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.theme.GridPOSTheme
@@ -43,13 +42,13 @@ import kotlinx.coroutines.withContext
 fun UIWebView(
         modifier: Modifier = Modifier,
         navController: NavController? = null,
-        activityViewModel: ActivityScopedViewModel
+        sharedViewModel: SharedViewModel
 ) {
     val context = LocalContext.current
     val reportResultState = remember {
         mutableStateOf(
-            if (activityViewModel.reportsToPrint.isNotEmpty()) {
-                activityViewModel.reportsToPrint[0]
+            if (sharedViewModel.reportsToPrint.isNotEmpty()) {
+                sharedViewModel.reportsToPrint[0]
             } else {
                 ReportResult(
                     false,
@@ -73,14 +72,14 @@ fun UIWebView(
     }
 
     fun handleBack() {
-        if (activityViewModel.isFromTable) {
-            activityViewModel.clearPosValues()
+        if (sharedViewModel.isFromTable) {
+            sharedViewModel.clearPosValues()
             navController?.popBackStack(
                 "TablesView",
                 false
             )
         } else {
-            activityViewModel.clearPosValues()
+            sharedViewModel.clearPosValues()
             navController?.navigateUp()
         }
     }
@@ -130,16 +129,16 @@ fun UIWebView(
                             .padding(10.dp),
                         text = "Print"
                     ) {
-                        activityViewModel.showLoading(true)
+                        sharedViewModel.showLoading(true)
                         CoroutineScope(Dispatchers.Default).launch {
-                            activityViewModel.reportsToPrint.forEach {
+                            sharedViewModel.reportsToPrint.forEach {
                                 PrinterUtils.printReport(
                                     context,
                                     it
                                 )
                             }
                             withContext(Dispatchers.Main) {
-                                activityViewModel.showLoading(false)
+                                sharedViewModel.showLoading(false)
                                 handleBack()
                             }
                         }

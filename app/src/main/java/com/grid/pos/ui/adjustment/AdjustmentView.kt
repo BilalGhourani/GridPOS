@@ -51,7 +51,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -65,13 +64,12 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
-import com.grid.pos.ActivityScopedViewModel
+import com.grid.pos.SharedViewModel
 import com.grid.pos.R
 import com.grid.pos.data.Item.Item
 import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.SearchableDropdownMenuEx
-import com.grid.pos.ui.common.UIButton
 import com.grid.pos.ui.common.UIImageButton
 import com.grid.pos.ui.common.UITextField
 import com.grid.pos.ui.theme.GridPOSTheme
@@ -89,7 +87,7 @@ import java.util.TimeZone
 fun AdjustmentView(
         modifier: Modifier = Modifier,
         navController: NavController? = null,
-        activityViewModel: ActivityScopedViewModel,
+        sharedViewModel: SharedViewModel,
         viewModel: AdjustmentViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -174,7 +172,7 @@ fun AdjustmentView(
     }
 
     LaunchedEffect(state.isLoading) {
-        activityViewModel.showLoading(state.isLoading,-1)
+        sharedViewModel.showLoading(state.isLoading,-1)
     }
 
     fun handleBack() {
@@ -188,7 +186,7 @@ fun AdjustmentView(
     }
 
     LaunchedEffect(isPopupVisible) {
-        activityViewModel.showPopup(
+        sharedViewModel.showPopup(
             isPopupVisible,
             if (!isPopupVisible) null else PopupModel().apply {
                 onDismissRequest = {

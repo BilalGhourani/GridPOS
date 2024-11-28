@@ -48,7 +48,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import com.grid.pos.ActivityScopedViewModel
+import com.grid.pos.SharedViewModel
 import com.grid.pos.R
 import com.grid.pos.data.Receipt.Receipt
 import com.grid.pos.data.ThirdParty.ThirdParty
@@ -73,7 +73,7 @@ import kotlinx.coroutines.launch
 fun ReceiptsView(
         modifier: Modifier = Modifier,
         navController: NavController? = null,
-        activityScopedViewModel: ActivityScopedViewModel,
+        sharedViewModel: SharedViewModel,
         viewModel: ReceiptsViewModel = hiltViewModel()
 ) {
     val state by viewModel.receiptsState.collectAsStateWithLifecycle()
@@ -107,7 +107,7 @@ fun ReceiptsView(
     }
 
     LaunchedEffect(state.isLoading) {
-        activityScopedViewModel.showLoading(state.isLoading)
+        sharedViewModel.showLoading(state.isLoading)
     }
 
     fun clear() {
@@ -134,7 +134,7 @@ fun ReceiptsView(
                 viewModel.currentReceipt
             )
         ) {
-            activityScopedViewModel.showPopup(true,
+            sharedViewModel.showPopup(true,
                 PopupModel().apply {
                     onDismissRequest = {
                         clear()
@@ -154,7 +154,7 @@ fun ReceiptsView(
             return
         }
         if (state.thirdParties.isNotEmpty()) {
-            activityScopedViewModel.thirdParties = state.thirdParties
+            sharedViewModel.thirdParties = state.thirdParties
         }
         navController?.navigateUp()
     }
@@ -176,8 +176,8 @@ fun ReceiptsView(
     ) {
         if (state.isSaved) {
             state.isSaved = false
-            activityScopedViewModel.reportsToPrint.clear()
-            activityScopedViewModel.reportsToPrint.add(viewModel.reportResult)
+            sharedViewModel.reportsToPrint.clear()
+            sharedViewModel.reportsToPrint.add(viewModel.reportResult)
             clear()
             navController?.navigate("UIWebView")
         }

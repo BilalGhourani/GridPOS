@@ -50,17 +50,15 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import com.grid.pos.ActivityScopedViewModel
+import com.grid.pos.SharedViewModel
 import com.grid.pos.R
 import com.grid.pos.data.User.User
 import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.SearchableDropdownMenuEx
-import com.grid.pos.ui.common.UIButton
 import com.grid.pos.ui.common.UIImageButton
 import com.grid.pos.ui.common.UISwitch
 import com.grid.pos.ui.common.UITextField
-import com.grid.pos.ui.common.UiVerticalCheckBox
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.utils.Extension.decryptCBC
 import kotlinx.coroutines.launch
@@ -72,7 +70,7 @@ import kotlinx.coroutines.launch
 fun ManageUsersView(
         navController: NavController? = null,
         modifier: Modifier = Modifier,
-        activityScopedViewModel: ActivityScopedViewModel,
+        sharedViewModel: SharedViewModel,
         viewModel: ManageUsersViewModel = hiltViewModel()
 ) {
     val state by viewModel.manageUsersState.collectAsStateWithLifecycle()
@@ -97,9 +95,9 @@ fun ManageUsersView(
     LaunchedEffect(state.warning) {
         state.warning?.value?.let { message ->
             scope.launch {
-                if (state.action == "done" && activityScopedViewModel.isRegistering) {
-                    activityScopedViewModel.isRegistering = false
-                    activityScopedViewModel.showPopup(
+                if (state.action == "done" && sharedViewModel.isRegistering) {
+                    sharedViewModel.isRegistering = false
+                    sharedViewModel.showPopup(
                         true,
                         PopupModel(
                             onDismissRequest = {
@@ -125,14 +123,14 @@ fun ManageUsersView(
     }
 
     LaunchedEffect(state.isLoading) {
-        activityScopedViewModel.showLoading(state.isLoading)
+        sharedViewModel.showLoading(state.isLoading)
     }
 
     fun saveUser() {
         state.selectedUser.userPassword = passwordState
         viewModel.saveUser(
             state.selectedUser,
-            activityScopedViewModel.isRegistering
+            sharedViewModel.isRegistering
         )
     }
 
@@ -156,7 +154,7 @@ fun ManageUsersView(
                 viewModel.currentUser
             )
         ) {
-            activityScopedViewModel.showPopup(true,
+            sharedViewModel.showPopup(true,
                 PopupModel().apply {
                     onDismissRequest = {
                         clear()
@@ -173,7 +171,7 @@ fun ManageUsersView(
             return
         }
         if (state.users.isNotEmpty()) {
-            activityScopedViewModel.users = state.users
+            sharedViewModel.users = state.users
         }
         viewModel.closeConnectionIfNeeded()
         navController?.navigateUp()

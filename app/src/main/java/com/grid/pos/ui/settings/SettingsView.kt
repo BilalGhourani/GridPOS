@@ -23,7 +23,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Card
@@ -64,7 +63,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.grid.pos.ActivityScopedViewModel
+import com.grid.pos.SharedViewModel
 import com.grid.pos.App
 import com.grid.pos.BuildConfig
 import com.grid.pos.R
@@ -95,7 +94,7 @@ import kotlinx.coroutines.withContext
 fun SettingsView(
         modifier: Modifier = Modifier,
         navController: NavController? = null,
-        activityScopedViewModel: ActivityScopedViewModel,
+        sharedViewModel: SharedViewModel,
         viewModel: SettingsViewModel = hiltViewModel()
 ) {
     var firebaseApplicationId by remember {
@@ -167,7 +166,7 @@ fun SettingsView(
     var isColorsSectionExpanded by remember { mutableStateOf(false) }
 
     var isLoading by remember { mutableStateOf(false) }
-    val isLoggedId = activityScopedViewModel.isLoggedIn()
+    val isLoggedId = sharedViewModel.isLoggedIn()
     val scope = rememberCoroutineScope()
 
     fun handleBack() {
@@ -187,7 +186,7 @@ fun SettingsView(
         }
     }
     LaunchedEffect(isLoading) {
-        activityScopedViewModel.showLoading(isLoading)
+        sharedViewModel.showLoading(isLoading)
     }
 
     GridPOSTheme {
@@ -305,7 +304,7 @@ fun SettingsView(
                                         )
                                         withContext(Dispatchers.Main) {
                                             isLoading = false
-                                            activityScopedViewModel.showPopup(true,
+                                            sharedViewModel.showPopup(true,
                                                 PopupModel().apply {
                                                     positiveBtnText = "Close"
                                                     negativeBtnText = null
@@ -478,7 +477,7 @@ fun SettingsView(
                                     if (SettingsModel.connectionType == CONNECTION_TYPE.SQL_SERVER.key) {
                                         SQLServerWrapper.closeConnection()
                                         countries.clear()
-                                        activityScopedViewModel.reportCountries.clear()
+                                        sharedViewModel.reportCountries.clear()
                                     }
                                     SettingsModel.connectionType = connectionTypeState
                                     DataStoreManager.putString(
@@ -647,7 +646,7 @@ fun SettingsView(
                             placeholder = "Report Country",
                             label = defaultReportCountry,
                             onLoadItems = {
-                                activityScopedViewModel.fetchCountries { list ->
+                                sharedViewModel.fetchCountries { list ->
                                     countries.addAll(list)
                                 }
                             }) { country ->
@@ -734,7 +733,7 @@ fun SettingsView(
                                     DataStoreManager.DataStoreKeys.ORIENTATION_TYPE.key,
                                     orientationType
                                 )
-                                activityScopedViewModel.changeAppOrientation(orientationType)
+                                sharedViewModel.changeAppOrientation(orientationType)
 
                                 SettingsModel.defaultReportCountry = defaultReportCountry
                                 DataStoreManager.putString(

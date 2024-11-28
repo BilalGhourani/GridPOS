@@ -56,7 +56,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import com.grid.pos.ActivityScopedViewModel
+import com.grid.pos.SharedViewModel
 import com.grid.pos.R
 import com.grid.pos.data.InvoiceHeader.InvoiceHeader
 import com.grid.pos.model.PopupModel
@@ -78,7 +78,7 @@ import kotlinx.coroutines.withContext
 fun TablesView(
         modifier: Modifier = Modifier,
         navController: NavController? = null,
-        activityScopedViewModel: ActivityScopedViewModel,
+        sharedViewModel: SharedViewModel,
         viewModel: TablesViewModel = hiltViewModel()
 ) {
     val state by viewModel.tablesState.collectAsStateWithLifecycle()
@@ -104,10 +104,10 @@ fun TablesView(
     fun moveToPos() {
         state.invoiceHeader.invoiceHeadTaName = tableNameState
         state.invoiceHeader.invoiceHeadClientsCount = clientsCountState.toIntOrNull() ?: 1
-        activityScopedViewModel.invoiceHeader = state.invoiceHeader
-        activityScopedViewModel.pendingInvHeadState = state.invoiceHeader
-        activityScopedViewModel.shouldLoadInvoice = true
-        activityScopedViewModel.isFromTable = true
+        sharedViewModel.invoiceHeader = state.invoiceHeader
+        sharedViewModel.pendingInvHeadState = state.invoiceHeader
+        sharedViewModel.shouldLoadInvoice = true
+        sharedViewModel.isFromTable = true
         viewModel.resetState()
         stepState = 1
         navController?.navigate("POSView")
@@ -115,11 +115,11 @@ fun TablesView(
 
     fun lockTableAndMoveToPos() {
         if (SettingsModel.isConnectedToSqlServer()) {
-            activityScopedViewModel.showLoading(true)
+            sharedViewModel.showLoading(true)
             scope.launch(Dispatchers.IO) {
                 viewModel.lockTable(tableNameState)
                 withContext(Dispatchers.Main) {
-                    activityScopedViewModel.showLoading(false)
+                    sharedViewModel.showLoading(false)
                     moveToPos()
                 }
             }
@@ -154,11 +154,11 @@ fun TablesView(
     }
 
     LaunchedEffect(state.isLoading) {
-        activityScopedViewModel.showLoading(state.isLoading)
+        sharedViewModel.showLoading(state.isLoading)
     }
 
     LaunchedEffect(isPopupVisible) {
-        activityScopedViewModel.showPopup(isPopupVisible,
+        sharedViewModel.showPopup(isPopupVisible,
             if (!isPopupVisible) null else PopupModel().apply {
                 onDismissRequest = {
                     isPopupVisible = false
@@ -166,7 +166,7 @@ fun TablesView(
                 onConfirmation = {
                     isPopupVisible = false
 
-                    activityScopedViewModel.logout()
+                    sharedViewModel.logout()
                     navController?.clearBackStack("LoginView")
                     navController?.navigate("LoginView")
                 }

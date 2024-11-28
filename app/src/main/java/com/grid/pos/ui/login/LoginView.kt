@@ -50,7 +50,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import com.grid.pos.ActivityScopedViewModel
+import com.grid.pos.SharedViewModel
 import com.grid.pos.R
 import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
@@ -68,7 +68,7 @@ import kotlinx.coroutines.withContext
 fun LoginView(
         modifier: Modifier = Modifier,
         navController: NavController? = null,
-        activityScopedViewModel: ActivityScopedViewModel,
+        sharedViewModel: SharedViewModel,
         viewModel: LoginViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
@@ -91,8 +91,8 @@ fun LoginView(
         state.warning?.value?.let { message ->
             scope.launch {
                 if (state.needRegistration) {
-                    activityScopedViewModel.isRegistering = true
-                    activityScopedViewModel.showPopup(
+                    sharedViewModel.isRegistering = true
+                    sharedViewModel.showPopup(
                         true,
                         PopupModel(
                             onConfirmation = {
@@ -111,7 +111,7 @@ fun LoginView(
                         )
                     )
                 } else {
-                    activityScopedViewModel.isRegistering = false
+                    sharedViewModel.isRegistering = false
                     val snackbarResult = snackbarHostState.showSnackbar(
                         message = message,
                         duration = SnackbarDuration.Short,
@@ -145,7 +145,7 @@ fun LoginView(
         }
     }
     LaunchedEffect(state.isLoading) {
-        activityScopedViewModel.showLoading(state.isLoading)
+        sharedViewModel.showLoading(state.isLoading)
     }
     LaunchedEffect(state.needLicense) {
         if (state.needLicense) {
@@ -156,12 +156,12 @@ fun LoginView(
     LaunchedEffect(state.isLoggedIn) {
         if (state.isLoggedIn) {
             CoroutineScope(Dispatchers.IO).launch {
-                activityScopedViewModel.activityState.value.isLoggedIn = true
-                activityScopedViewModel.activityState.value.warning = null
+                sharedViewModel.activityState.value.isLoggedIn = true
+                sharedViewModel.activityState.value.warning = null
                 withContext(Dispatchers.Main) {
                     state.isLoading = true
                 }
-                activityScopedViewModel.initiateValues()
+                sharedViewModel.initiateValues()
                 withContext(Dispatchers.Main) {
                     state.isLoading = false
                     SettingsModel.currentUser?.let {
@@ -180,7 +180,7 @@ fun LoginView(
         }
     }
     BackHandler {
-        activityScopedViewModel.finish()
+        sharedViewModel.finish()
     }
     GridPOSTheme {
         Scaffold(containerColor = SettingsModel.backgroundColor,

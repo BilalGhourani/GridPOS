@@ -52,14 +52,13 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import com.grid.pos.ActivityScopedViewModel
+import com.grid.pos.SharedViewModel
 import com.grid.pos.R
 import com.grid.pos.data.Company.Company
 import com.grid.pos.interfaces.OnGalleryResult
 import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.SearchableDropdownMenuEx
-import com.grid.pos.ui.common.UIButton
 import com.grid.pos.ui.common.UIImageButton
 import com.grid.pos.ui.common.UISwitch
 import com.grid.pos.ui.common.UITextField
@@ -77,7 +76,7 @@ import kotlinx.coroutines.withContext
 fun ManageCompaniesView(
         modifier: Modifier = Modifier,
         navController: NavController? = null,
-        activityScopedViewModel: ActivityScopedViewModel,
+        sharedViewModel: SharedViewModel,
         viewModel: ManageCompaniesViewModel = hiltViewModel()
 ) {
     val state by viewModel.manageCompaniesState.collectAsStateWithLifecycle()
@@ -115,11 +114,11 @@ fun ManageCompaniesView(
     var oldImage: String? = null
 
     LaunchedEffect(/*activityScopedViewModel.companies,*/
-        activityScopedViewModel.currencies
+        sharedViewModel.currencies
     ) {
         viewModel.fillCachedCompanies(
             state.companies /*activityScopedViewModel.companies*/,
-            activityScopedViewModel.currencies
+            sharedViewModel.currencies
         )
     }
 
@@ -128,12 +127,12 @@ fun ManageCompaniesView(
     LaunchedEffect(state.warning) {
         state.warning?.value?.let { message ->
             scope.launch {
-                if (state.actionLabel == "next" && activityScopedViewModel.isRegistering) {
-                    activityScopedViewModel.showPopup(
+                if (state.actionLabel == "next" && sharedViewModel.isRegistering) {
+                    sharedViewModel.showPopup(
                         true,
                         PopupModel(
                             onDismissRequest = {
-                                activityScopedViewModel.isRegistering = false
+                                sharedViewModel.isRegistering = false
                                 navController?.navigateUp()
                             },
                             onConfirmation = {
@@ -155,7 +154,7 @@ fun ManageCompaniesView(
                     when (snackBarResult) {
                         SnackbarResult.Dismissed -> {}
                         SnackbarResult.ActionPerformed -> when (state.actionLabel) {
-                            "Settings" -> activityScopedViewModel.openAppStorageSettings()
+                            "Settings" -> sharedViewModel.openAppStorageSettings()
                         }
                     }
                 }
@@ -164,7 +163,7 @@ fun ManageCompaniesView(
     }
 
     LaunchedEffect(state.isLoading) {
-        activityScopedViewModel.showLoading(state.isLoading)
+        sharedViewModel.showLoading(state.isLoading)
     }
 
     fun saveCompany() {
@@ -178,7 +177,7 @@ fun ManageCompaniesView(
         state.selectedCompany.companyCurCodeTax = firstCurr?.currencyId
         viewModel.saveCompany(
             state.selectedCompany,
-            activityScopedViewModel.isRegistering
+            sharedViewModel.isRegistering
         )
     }
 
@@ -211,7 +210,7 @@ fun ManageCompaniesView(
                 viewModel.currentCompany
             )
         ) {
-            activityScopedViewModel.showPopup(true,
+            sharedViewModel.showPopup(true,
                 PopupModel().apply {
                     onDismissRequest = {
                         clear()
@@ -230,7 +229,7 @@ fun ManageCompaniesView(
             return
         }
         if (state.companies.isNotEmpty()) {
-            activityScopedViewModel.companies = state.companies
+            sharedViewModel.companies = state.companies
         }
         viewModel.closeConnectionIfNeeded()
         navController?.navigateUp()
@@ -426,11 +425,11 @@ fun ManageCompaniesView(
                         onAction = { keyboardController?.hide() },
                         trailingIcon = {
                             IconButton(onClick = {
-                                activityScopedViewModel.launchGalleryPicker(mediaType = ActivityResultContracts.PickVisualMedia.ImageOnly,
+                                sharedViewModel.launchGalleryPicker(mediaType = ActivityResultContracts.PickVisualMedia.ImageOnly,
                                     object : OnGalleryResult {
                                         override fun onGalleryResult(uris: List<Uri>) {
                                             if (uris.isNotEmpty()) {
-                                                activityScopedViewModel.showLoading(true)
+                                                sharedViewModel.showLoading(true)
                                                 CoroutineScope(Dispatchers.IO).launch {
                                                     val internalPath = FileUtils.saveToExternalStorage(context = context,
                                                         parent = "company logo",
@@ -440,7 +439,7 @@ fun ManageCompaniesView(
                                                             "_"
                                                         ).ifEmpty { "item" })
                                                     withContext(Dispatchers.Main) {
-                                                        activityScopedViewModel.showLoading(false)
+                                                        sharedViewModel.showLoading(false)
                                                         if (internalPath != null) {
                                                             oldImage = logoState
                                                             logoState = internalPath

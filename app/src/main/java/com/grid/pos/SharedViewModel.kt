@@ -38,7 +38,7 @@ import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
-class ActivityScopedViewModel @Inject constructor(
+class SharedViewModel @Inject constructor(
         private val settingsRepository: SettingsRepository,
         private val currencyRepository: CurrencyRepository,
         private val companyRepository: CompanyRepository,
@@ -46,7 +46,7 @@ class ActivityScopedViewModel @Inject constructor(
         private val posPrinterRepository: PosPrinterRepository,
         private val userRepository: UserRepository
 ) : BaseViewModel() {
-    private val _mainActivityEvent = Channel<ActivityScopedUIEvent>()
+    private val _mainActivityEvent = Channel<ActivityUIEvent>()
     val mainActivityEvent = _mainActivityEvent.receiveAsFlow()
 
     var isRegistering: Boolean = false
@@ -231,7 +231,7 @@ class ActivityScopedViewModel @Inject constructor(
 
     fun finish() {
         viewModelScope.launch {
-            _mainActivityEvent.send(ActivityScopedUIEvent.Finish)
+            _mainActivityEvent.send(ActivityUIEvent.Finish)
         }
     }
 
@@ -241,7 +241,7 @@ class ActivityScopedViewModel @Inject constructor(
     ) {
         viewModelScope.launch {
             _mainActivityEvent.send(
-                ActivityScopedUIEvent.ShowLoading(
+                ActivityUIEvent.ShowLoading(
                     show,
                     timeout
                 )
@@ -255,7 +255,7 @@ class ActivityScopedViewModel @Inject constructor(
     ) {
         viewModelScope.launch {
             _mainActivityEvent.send(
-                ActivityScopedUIEvent.ShowPopup(
+                ActivityUIEvent.ShowPopup(
                     show,
                     popupModel
                 )
@@ -265,7 +265,7 @@ class ActivityScopedViewModel @Inject constructor(
 
     fun openAppStorageSettings() {
         viewModelScope.launch {
-            _mainActivityEvent.send(ActivityScopedUIEvent.OpenAppSettings)
+            _mainActivityEvent.send(ActivityUIEvent.OpenAppSettings)
         }
     }
 
@@ -276,7 +276,7 @@ class ActivityScopedViewModel @Inject constructor(
     ) {
         viewModelScope.launch {
             _mainActivityEvent.send(
-                ActivityScopedUIEvent.LaunchGalleryPicker(
+                ActivityUIEvent.LaunchGalleryPicker(
                     mediaType,
                     delegate,
                     onPermissionDenied
@@ -292,7 +292,7 @@ class ActivityScopedViewModel @Inject constructor(
     ) {
         viewModelScope.launch {
             _mainActivityEvent.send(
-                ActivityScopedUIEvent.LaunchFilePicker(
+                ActivityUIEvent.LaunchFilePicker(
                     intentType,
                     delegate,
                     onPermissionDenied
@@ -305,7 +305,7 @@ class ActivityScopedViewModel @Inject constructor(
             intent: Intent
     ) {
         viewModelScope.launch {
-            _mainActivityEvent.send(ActivityScopedUIEvent.StartChooserActivity(intent))
+            _mainActivityEvent.send(ActivityUIEvent.StartChooserActivity(intent))
         }
     }
 
@@ -317,7 +317,7 @@ class ActivityScopedViewModel @Inject constructor(
     ) {
         viewModelScope.launch {
             _mainActivityEvent.send(
-                ActivityScopedUIEvent.LaunchBarcodeScanner(
+                ActivityUIEvent.LaunchBarcodeScanner(
                     scanToAdd,
                     items,
                     delegate,
@@ -330,7 +330,7 @@ class ActivityScopedViewModel @Inject constructor(
     fun changeAppOrientation(orientationType: String) {
         viewModelScope.launch {
             _mainActivityEvent.send(
-                ActivityScopedUIEvent.ChangeAppOrientation(
+                ActivityUIEvent.ChangeAppOrientation(
                     orientationType
                 )
             )

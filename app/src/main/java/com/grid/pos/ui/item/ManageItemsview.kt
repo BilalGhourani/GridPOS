@@ -59,7 +59,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import com.grid.pos.ActivityScopedViewModel
+import com.grid.pos.SharedViewModel
 import com.grid.pos.R
 import com.grid.pos.data.Family.Family
 import com.grid.pos.data.Item.Item
@@ -91,7 +91,7 @@ import kotlinx.coroutines.withContext
 fun ManageItemsView(
         modifier: Modifier = Modifier,
         navController: NavController? = null,
-        activityScopedViewModel: ActivityScopedViewModel,
+        sharedViewModel: SharedViewModel,
         viewModel: ManageItemsViewModel = hiltViewModel()
 ) {
     val state by viewModel.manageItemsState.collectAsStateWithLifecycle()
@@ -142,16 +142,6 @@ fun ManageItemsView(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
-    /* LaunchedEffect(
-         activityScopedViewModel.items,
-         activityScopedViewModel.families
-     ) {
-         viewModel.fillCachedItems(
-             activityScopedViewModel.items,
-             activityScopedViewModel.families
-         )
-     }*/
-
     LaunchedEffect(state.warning) {
         state.warning?.value?.let { message ->
             scope.launch {
@@ -163,7 +153,7 @@ fun ManageItemsView(
                 when (snackBarResult) {
                     SnackbarResult.Dismissed -> {}
                     SnackbarResult.ActionPerformed -> when (state.actionLabel) {
-                        "Settings" -> activityScopedViewModel.openAppStorageSettings()
+                        "Settings" -> sharedViewModel.openAppStorageSettings()
                     }
                 }
             }
@@ -171,7 +161,7 @@ fun ManageItemsView(
     }
 
     LaunchedEffect(state.isLoading) {
-        activityScopedViewModel.showLoading(state.isLoading)
+        sharedViewModel.showLoading(state.isLoading)
     }
 
     fun saveItem() {
@@ -233,7 +223,7 @@ fun ManageItemsView(
                 viewModel.currentITem
             )
         ) {
-            activityScopedViewModel.showPopup(true,
+            sharedViewModel.showPopup(true,
                 PopupModel().apply {
                     onDismissRequest = {
                         clear()
@@ -250,7 +240,7 @@ fun ManageItemsView(
             return
         }
         if (state.items.isNotEmpty()) {
-            activityScopedViewModel.items = state.items
+            sharedViewModel.items = state.items
         }
         viewModel.closeConnectionIfNeeded()
         navController?.navigateUp()
@@ -450,7 +440,7 @@ fun ManageItemsView(
                         onAction = { openCostFocusRequester.requestFocus() },
                         trailingIcon = {
                             IconButton(onClick = {
-                                activityScopedViewModel.launchBarcodeScanner(true,
+                                sharedViewModel.launchBarcodeScanner(true,
                                     ArrayList(state.items),
                                     object : OnBarcodeResult {
                                         override fun OnBarcodeResult(barcodesList: List<Any>) {
@@ -672,11 +662,11 @@ fun ManageItemsView(
                         onAction = { keyboardController?.hide() },
                         trailingIcon = {
                             IconButton(onClick = {
-                                activityScopedViewModel.launchGalleryPicker(mediaType = ActivityResultContracts.PickVisualMedia.ImageOnly,
+                                sharedViewModel.launchGalleryPicker(mediaType = ActivityResultContracts.PickVisualMedia.ImageOnly,
                                     object : OnGalleryResult {
                                         override fun onGalleryResult(uris: List<Uri>) {
                                             if (uris.isNotEmpty()) {
-                                                activityScopedViewModel.showLoading(true)
+                                                sharedViewModel.showLoading(true)
                                                 CoroutineScope(Dispatchers.IO).launch {
                                                     val internalPath = FileUtils.saveToExternalStorage(context = context,
                                                         parent = "item",
@@ -686,7 +676,7 @@ fun ManageItemsView(
                                                             "_"
                                                         ).ifEmpty { "item" })
                                                     withContext(Dispatchers.Main) {
-                                                        activityScopedViewModel.showLoading(false)
+                                                        sharedViewModel.showLoading(false)
                                                         if (internalPath != null) {
                                                             oldImage = imageState
                                                             imageState = internalPath

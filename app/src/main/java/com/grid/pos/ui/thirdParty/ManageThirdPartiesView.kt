@@ -46,16 +46,14 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import com.grid.pos.ActivityScopedViewModel
+import com.grid.pos.SharedViewModel
 import com.grid.pos.R
 import com.grid.pos.data.ThirdParty.ThirdParty
-import com.grid.pos.model.InvoiceItemModel
 import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.model.ThirdPartyType
 import com.grid.pos.model.ThirdPartyTypeModel
 import com.grid.pos.ui.common.SearchableDropdownMenuEx
-import com.grid.pos.ui.common.UIButton
 import com.grid.pos.ui.common.UIImageButton
 import com.grid.pos.ui.common.UISwitch
 import com.grid.pos.ui.common.UITextField
@@ -70,7 +68,7 @@ import kotlinx.coroutines.launch
 fun ManageThirdPartiesView(
         modifier: Modifier = Modifier,
         navController: NavController? = null,
-        activityScopedViewModel: ActivityScopedViewModel,
+        sharedViewModel: SharedViewModel,
         viewModel: ManageThirdPartiesViewModel = hiltViewModel()
 ) {
     val state by viewModel.manageThirdPartiesState.collectAsStateWithLifecycle()
@@ -88,10 +86,6 @@ fun ManageThirdPartiesView(
     var phone2State by remember { mutableStateOf("") }
     var addressState by remember { mutableStateOf("") }
     var isDefaultState by remember { mutableStateOf(false) }
-
-    /*  LaunchedEffect(activityScopedViewModel.thirdParties) {
-          viewModel.fillCachedThirdParties(activityScopedViewModel.thirdParties)
-      }*/
 
     LaunchedEffect(Unit) {
         typeListState.addAll(Utils.getThirdPartyTypeModels())
@@ -112,7 +106,7 @@ fun ManageThirdPartiesView(
     }
 
     LaunchedEffect(state.isLoading) {
-        activityScopedViewModel.showLoading(state.isLoading)
+        sharedViewModel.showLoading(state.isLoading)
     }
 
     fun clear() {
@@ -137,7 +131,7 @@ fun ManageThirdPartiesView(
                 viewModel.currentThirdParty
             )
         ) {
-            activityScopedViewModel.showPopup(true,
+            sharedViewModel.showPopup(true,
                 PopupModel().apply {
                     onDismissRequest = {
                         clear()
@@ -154,7 +148,7 @@ fun ManageThirdPartiesView(
             return
         }
         if (state.thirdParties.isNotEmpty()) {
-            activityScopedViewModel.thirdParties = state.thirdParties
+            sharedViewModel.thirdParties = state.thirdParties
         }
         navController?.navigateUp()
     }

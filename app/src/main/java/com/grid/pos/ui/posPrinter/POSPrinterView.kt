@@ -45,7 +45,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import com.grid.pos.ActivityScopedViewModel
+import com.grid.pos.SharedViewModel
 import com.grid.pos.R
 import com.grid.pos.data.PosPrinter.PosPrinter
 import com.grid.pos.model.PopupModel
@@ -64,7 +64,7 @@ import kotlinx.coroutines.launch
 fun POSPrinterView(
         modifier: Modifier = Modifier,
         navController: NavController? = null,
-        activityScopedViewModel: ActivityScopedViewModel,
+        sharedViewModel: SharedViewModel,
         viewModel: POSPrinterViewModel = hiltViewModel()
 ) {
     val state by viewModel.posPrinterState.collectAsStateWithLifecycle()
@@ -82,10 +82,6 @@ fun POSPrinterView(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
-  /*  LaunchedEffect(activityScopedViewModel.printers) {
-        viewModel.fillCachedPrinters(activityScopedViewModel.printers)
-    }*/
-
     LaunchedEffect(state.warning) {
         state.warning?.value?.let { message ->
             scope.launch {
@@ -99,7 +95,7 @@ fun POSPrinterView(
     }
 
     LaunchedEffect(state.isLoading) {
-        activityScopedViewModel.showLoading(state.isLoading)
+        sharedViewModel.showLoading(state.isLoading)
     }
 
     fun clear() {
@@ -121,7 +117,7 @@ fun POSPrinterView(
                 viewModel.currentPrinter
             )
         ) {
-            activityScopedViewModel.showPopup(true,
+            sharedViewModel.showPopup(true,
                 PopupModel().apply {
                     onDismissRequest = {
                         clear()
@@ -138,7 +134,7 @@ fun POSPrinterView(
             return
         }
         if (state.printers.isNotEmpty()) {
-            activityScopedViewModel.printers = state.printers
+            sharedViewModel.printers = state.printers
         }
         viewModel.closeConnectionIfNeeded()
         navController?.navigateUp()

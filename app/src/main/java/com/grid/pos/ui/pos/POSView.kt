@@ -67,7 +67,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import com.grid.pos.ActivityScopedViewModel
+import com.grid.pos.SharedViewModel
 import com.grid.pos.R
 import com.grid.pos.data.InvoiceHeader.InvoiceHeader
 import com.grid.pos.data.Item.Item
@@ -97,12 +97,12 @@ import kotlinx.coroutines.withContext
 fun POSView(
         modifier: Modifier = Modifier,
         navController: NavController? = null,
-        activityViewModel: ActivityScopedViewModel,
+        sharedViewModel: SharedViewModel,
         viewModel: POSViewModel = hiltViewModel()
 ) {
     val state by viewModel.posState.collectAsStateWithLifecycle()
     val invoicesState = remember { mutableStateListOf<InvoiceItemModel>() }
-    val invoiceHeaderState = remember { mutableStateOf(activityViewModel.invoiceHeader) }
+    val invoiceHeaderState = remember { mutableStateOf(sharedViewModel.invoiceHeader) }
     var itemIndexToEdit by remember { mutableIntStateOf(-1) }
     var isInvoiceEdited by remember { mutableStateOf(false) }
     var proceedToPrint by remember { mutableStateOf(false) }
@@ -131,9 +131,9 @@ fun POSView(
                         invoiceItems,
                         invoiceHeader
                     )
-                    activityViewModel.initialInvoiceItemModels = invoiceItems
-                    activityViewModel.invoiceItemModels = invoiceItems
-                    activityViewModel.posReceipt = receipt
+                    sharedViewModel.initialInvoiceItemModels = invoiceItems
+                    sharedViewModel.invoiceItemModels = invoiceItems
+                    sharedViewModel.posReceipt = receipt
                     isInvoiceEdited = false
                 })
         } else {
@@ -142,37 +142,37 @@ fun POSView(
     }
 
     LaunchedEffect(
-        activityViewModel.items
+        sharedViewModel.items
     ) {
-        state.items = activityViewModel.items.toMutableList()
+        state.items = sharedViewModel.items.toMutableList()
     }
 
     LaunchedEffect(
-        activityViewModel.families
+        sharedViewModel.families
     ) {
-        state.families = activityViewModel.families.toMutableList()
+        state.families = sharedViewModel.families.toMutableList()
     }
     LaunchedEffect(
-        activityViewModel.thirdParties
+        sharedViewModel.thirdParties
     ) {
         if (SettingsModel.connectionType == CONNECTION_TYPE.LOCAL.key) {
-            state.thirdParties = activityViewModel.thirdParties.toMutableList()
+            state.thirdParties = sharedViewModel.thirdParties.toMutableList()
         }
     }
     LaunchedEffect(
-        activityViewModel.invoiceHeaders
+        sharedViewModel.invoiceHeaders
     ) {
         if (SettingsModel.connectionType == CONNECTION_TYPE.LOCAL.key) {
-            state.invoiceHeaders = activityViewModel.invoiceHeaders.toMutableList()
+            state.invoiceHeaders = sharedViewModel.invoiceHeaders.toMutableList()
         }
     }
 
     LaunchedEffect(key1 = Unit) {
-        if (activityViewModel.shouldLoadInvoice) {
-            activityViewModel.shouldLoadInvoice = false
+        if (sharedViewModel.shouldLoadInvoice) {
+            sharedViewModel.shouldLoadInvoice = false
             selectInvoice(invoiceHeaderState.value)
-        } else if (invoicesState.isEmpty() && activityViewModel.invoiceItemModels.isNotEmpty()) {
-            invoicesState.addAll(activityViewModel.invoiceItemModels)
+        } else if (invoicesState.isEmpty() && sharedViewModel.invoiceItemModels.isNotEmpty()) {
+            invoicesState.addAll(sharedViewModel.invoiceItemModels)
         }
     }
 
@@ -187,7 +187,7 @@ fun POSView(
     }
 
     LaunchedEffect(state.isLoading) {
-        activityViewModel.showLoading(state.isLoading)
+        sharedViewModel.showLoading(state.isLoading)
     }
 
     val scope = rememberCoroutineScope()
@@ -202,24 +202,24 @@ fun POSView(
                 when (snackBarResult) {
                     SnackbarResult.Dismissed -> {}
                     SnackbarResult.ActionPerformed -> when (state.actionLabel) {
-                        "Settings" -> activityViewModel.openAppStorageSettings()
+                        "Settings" -> sharedViewModel.openAppStorageSettings()
                     }
                 }
             }
         }
     }
     fun clear() {
-        activityViewModel.clearPosValues()
+        sharedViewModel.clearPosValues()
         proceedToPrint = true
         invoicesState.clear()
-        invoiceHeaderState.value = activityViewModel.invoiceHeader
+        invoiceHeaderState.value = sharedViewModel.invoiceHeader
     }
 
     fun cashLoadedData() {
-        activityViewModel.invoiceHeaders = state.invoiceHeaders.toMutableList()
-        activityViewModel.thirdParties = state.thirdParties.toMutableList()
-        activityViewModel.families = state.families.toMutableList()
-        activityViewModel.items = state.items.toMutableList()
+        sharedViewModel.invoiceHeaders = state.invoiceHeaders.toMutableList()
+        sharedViewModel.thirdParties = state.thirdParties.toMutableList()
+        sharedViewModel.families = state.families.toMutableList()
+        sharedViewModel.items = state.items.toMutableList()
     }
 
     LaunchedEffect(
@@ -229,20 +229,20 @@ fun POSView(
         if (state.isSaved) {
             isPayBottomSheetVisible = false
             if (proceedToPrint) {
-                activityViewModel.invoiceItemModels = invoicesState
-                activityViewModel.deletedInvoiceItems = state.itemsToDelete
-                activityViewModel.invoiceHeader = invoiceHeaderState.value
-                activityViewModel.reportsToPrint = viewModel.reportResults
+                sharedViewModel.invoiceItemModels = invoicesState
+                sharedViewModel.deletedInvoiceItems = state.itemsToDelete
+                sharedViewModel.invoiceHeader = invoiceHeaderState.value
+                sharedViewModel.reportsToPrint = viewModel.reportResults
                 cashLoadedData()
                 navController?.navigate("UIWebView")
             } else if (SettingsModel.autoPrintTickets) {
-                activityViewModel.showLoading(true)
+                sharedViewModel.showLoading(true)
                 val invoices = invoicesState.filter { it.invoice.isNew() || it.shouldPrint }
                     .toMutableList()
                 invoices.addAll(state.itemsToDelete)
                 if (invoices.isNotEmpty()) {
                     scope.launch(Dispatchers.Default) {
-                        activityViewModel.invoiceHeader = invoiceHeaderState.value
+                        sharedViewModel.invoiceHeader = invoiceHeaderState.value
                         cashLoadedData()
                         viewModel.prepareItemsReports(
                             context,
@@ -256,7 +256,7 @@ fun POSView(
                             )
                         }
                         withContext(Dispatchers.Main) {
-                            activityViewModel.showLoading(false)
+                            sharedViewModel.showLoading(false)
                             clear()
                             navController?.navigateUp()
                         }
@@ -269,14 +269,14 @@ fun POSView(
                 clear()
                 navController?.navigateUp()
             }
-            activityViewModel.showLoading(false)
+            sharedViewModel.showLoading(false)
         }
         if (state.isDeleted) {
             state.invoiceHeaders.remove(invoiceHeaderState.value)
-            activityViewModel.invoiceHeaders = state.invoiceHeaders
+            sharedViewModel.invoiceHeaders = state.invoiceHeaders
             clear()
             state.isDeleted = false
-            if (activityViewModel.isFromTable) {
+            if (sharedViewModel.isFromTable) {
                 navController?.navigateUp()
             }
         }
@@ -305,7 +305,7 @@ fun POSView(
                     invoiceHeaderState.value.invoiceHeadTableType
                 )
             }
-            activityViewModel.clearPosValues()
+            sharedViewModel.clearPosValues()
             cashLoadedData()
             if (SettingsModel.getUserType() == UserType.POS) {
                 popupState = PopupState.BACK_PRESSED
@@ -316,7 +316,7 @@ fun POSView(
         }
     }
     LaunchedEffect(isSavePopupVisible) {
-        activityViewModel.showPopup(isSavePopupVisible,
+        sharedViewModel.showPopup(isSavePopupVisible,
             if (!isSavePopupVisible) null else PopupModel().apply {
                 onDismissRequest = {
                     isSavePopupVisible = false
@@ -335,14 +335,14 @@ fun POSView(
                     if (popupState != PopupState.DELETE_INVOICE) {
                         invoicesState.clear()
                         invoiceHeaderState.value = InvoiceHeader()
-                        activityViewModel.posReceipt = PosReceipt()
-                        activityViewModel.invoiceHeader = invoiceHeaderState.value
-                        activityViewModel.invoiceItemModels.clear()
-                        activityViewModel.shouldLoadInvoice = false
+                        sharedViewModel.posReceipt = PosReceipt()
+                        sharedViewModel.invoiceHeader = invoiceHeaderState.value
+                        sharedViewModel.invoiceItemModels.clear()
+                        sharedViewModel.shouldLoadInvoice = false
                     }
                     when (popupState) {
                         PopupState.BACK_PRESSED -> {
-                            activityViewModel.logout()
+                            sharedViewModel.logout()
                             navController?.clearBackStack("LoginView")
                             navController?.navigate("LoginView")
                         }
@@ -354,7 +354,7 @@ fun POSView(
                         }
 
                         PopupState.CHANGE_INVOICE -> {
-                            activityViewModel.pendingInvHeadState?.let {
+                            sharedViewModel.pendingInvHeadState?.let {
                                 selectInvoice(it)
                             }
                         }
@@ -362,7 +362,7 @@ fun POSView(
                         PopupState.DELETE_INVOICE -> {
                             viewModel.deleteInvoiceHeader(
                                 invoiceHeaderState.value,
-                                activityViewModel.posReceipt,
+                                sharedViewModel.posReceipt,
                                 invoicesState.toMutableList()
                             )
                         }
@@ -421,9 +421,9 @@ fun POSView(
                         actions = {
                             if (!isEditBottomSheetVisible && !isAddItemBottomSheetVisible && !isPayBottomSheetVisible) {
                                 IconButton(onClick = {
-                                    activityViewModel.invoiceItemModels = invoicesState
-                                    activityViewModel.deletedInvoiceItems = state.itemsToDelete
-                                    activityViewModel.invoiceHeader = invoiceHeaderState.value
+                                    sharedViewModel.invoiceItemModels = invoicesState
+                                    sharedViewModel.deletedInvoiceItems = state.itemsToDelete
+                                    sharedViewModel.invoiceHeader = invoiceHeaderState.value
                                     cashLoadedData()
                                     navController?.navigate("SettingsView")
                                 }) {
@@ -506,9 +506,9 @@ fun POSView(
                                     deletedRow.isDeleted = true
                                     state.itemsToDelete.add(deletedRow)
                                 }
-                                activityViewModel.invoiceItemModels = invoicesState
+                                sharedViewModel.invoiceItemModels = invoicesState
                                 invoiceHeaderState.value = POSUtils.refreshValues(
-                                    activityViewModel.invoiceItemModels,
+                                    sharedViewModel.invoiceItemModels,
                                     invoiceHeaderState.value
                                 )
                             })
@@ -520,12 +520,12 @@ fun POSView(
                         ) {
                             IconButton(modifier = Modifier.size(25.dp),
                                 onClick = {
-                                    activityViewModel.launchBarcodeScanner(false,
+                                    sharedViewModel.launchBarcodeScanner(false,
                                         ArrayList(state.items),
                                         object : OnBarcodeResult {
                                             override fun OnBarcodeResult(barcodesList: List<Any>) {
                                                 if (barcodesList.isNotEmpty()) {
-                                                    activityViewModel.showLoading(true)
+                                                    sharedViewModel.showLoading(true)
                                                     scope.launch {
                                                         val map: Map<Item, Int> = barcodesList.groupingBy { item -> item as Item }
                                                             .eachCount()
@@ -533,22 +533,22 @@ fun POSView(
                                                         map.forEach { (item, count) ->
                                                             if (!item.itemBarcode.isNullOrEmpty()) {
                                                                 withContext(Dispatchers.IO) {
-                                                                    item.itemRealUnitPrice = activityViewModel.updateRealItemPrice(item)
+                                                                    item.itemRealUnitPrice = sharedViewModel.updateRealItemPrice(item)
                                                                 }
                                                                 val invoiceItemModel = InvoiceItemModel()
                                                                 invoiceItemModel.setItem(item)
                                                                 invoiceItemModel.shouldPrint = true
                                                                 invoiceItemModel.invoice.invoiceQuantity = count.toDouble()
                                                                 invoicesState.add(invoiceItemModel)
-                                                                activityViewModel.invoiceItemModels = invoicesState
+                                                                sharedViewModel.invoiceItemModels = invoicesState
                                                                 invoiceHeaderState.value = POSUtils.refreshValues(
-                                                                    activityViewModel.invoiceItemModels,
+                                                                    sharedViewModel.invoiceItemModels,
                                                                     invoiceHeaderState.value
                                                                 )
                                                             }
                                                         }
                                                         withContext(Dispatchers.Main) {
-                                                            activityViewModel.showLoading(false)
+                                                            sharedViewModel.showLoading(false)
                                                         }
                                                     }
                                                 }
@@ -599,7 +599,7 @@ fun POSView(
                             modifier = Modifier
                                 .wrapContentWidth()
                                 .wrapContentHeight(),
-                            isFromTable = activityViewModel.isFromTable,
+                            isFromTable = sharedViewModel.isFromTable,
                             onLoadClients = { viewModel.fetchThirdParties() },
                             onLoadInvoices = {
                                 if (state.thirdParties.isEmpty()) {
@@ -611,9 +611,9 @@ fun POSView(
                                 viewModel.loadFamiliesAndItems()
                             },
                             onAddItem = {
-                                activityViewModel.invoiceItemModels = invoicesState
-                                activityViewModel.deletedInvoiceItems = state.itemsToDelete
-                                activityViewModel.invoiceHeader = invoiceHeaderState.value
+                                sharedViewModel.invoiceItemModels = invoicesState
+                                sharedViewModel.deletedInvoiceItems = state.itemsToDelete
+                                sharedViewModel.invoiceHeader = invoiceHeaderState.value
                                 cashLoadedData()
                                 state.items.clear()
                                 navController?.navigate(
@@ -621,9 +621,9 @@ fun POSView(
                                 )
                             },
                             onAddThirdParty = {
-                                activityViewModel.invoiceItemModels = invoicesState
-                                activityViewModel.deletedInvoiceItems = state.itemsToDelete
-                                activityViewModel.invoiceHeader = invoiceHeaderState.value
+                                sharedViewModel.invoiceItemModels = invoicesState
+                                sharedViewModel.deletedInvoiceItems = state.itemsToDelete
+                                sharedViewModel.invoiceHeader = invoiceHeaderState.value
                                 cashLoadedData()
                                 state.thirdParties.clear()
                                 navController?.navigate(
@@ -637,7 +637,7 @@ fun POSView(
                                     if (item.itemRemQty <= 0) {
                                         proceed = SettingsModel.allowOutOfStockSale
                                         if (SettingsModel.showItemQtyAlert) {
-                                            activityViewModel.showPopup(
+                                            sharedViewModel.showPopup(
                                                 true,
                                                 PopupModel(
                                                     dialogText = "Not enough stock available for ${item.itemName}. Please adjust the quantity.",
@@ -649,15 +649,15 @@ fun POSView(
                                     }
                                     if (proceed) {
                                         withContext(Dispatchers.IO) {
-                                            item.itemRealUnitPrice = activityViewModel.updateRealItemPrice(item)
+                                            item.itemRealUnitPrice = sharedViewModel.updateRealItemPrice(item)
                                         }
                                         val invoiceItemModel = InvoiceItemModel()
                                         invoiceItemModel.setItem(item)
                                         invoiceItemModel.shouldPrint = true
                                         invoicesState.add(invoiceItemModel)
-                                        activityViewModel.invoiceItemModels = invoicesState
+                                        sharedViewModel.invoiceItemModels = invoicesState
                                         invoiceHeaderState.value = POSUtils.refreshValues(
-                                            activityViewModel.invoiceItemModels,
+                                            sharedViewModel.invoiceItemModels,
                                             invoiceHeaderState.value
                                         )
                                         isAddItemBottomSheetVisible = false
@@ -671,7 +671,7 @@ fun POSView(
                             },
                             onInvoiceSelected = { invoiceHeader ->
                                 if (invoicesState.isNotEmpty()) {
-                                    activityViewModel.pendingInvHeadState = invoiceHeader
+                                    sharedViewModel.pendingInvHeadState = invoiceHeader
                                     popupState = PopupState.CHANGE_INVOICE
                                     isSavePopupVisible = true
                                 } else {
@@ -684,7 +684,7 @@ fun POSView(
                             viewModel.loadFamiliesAndItems()
                         }
                         AddInvoiceItemView(
-                            activityViewModel = activityViewModel,
+                            sharedViewModel = sharedViewModel,
                             categories = state.families,
                             items = state.items,
                             notifyDirectly = true,
@@ -701,9 +701,9 @@ fun POSView(
                                 invoices.add(invoiceItemModel)
                             }
                             invoicesState.addAll(invoices)
-                            activityViewModel.invoiceItemModels = invoicesState
+                            sharedViewModel.invoiceItemModels = invoicesState
                             invoiceHeaderState.value = POSUtils.refreshValues(
-                                activityViewModel.invoiceItemModels,
+                                sharedViewModel.invoiceItemModels,
                                 invoiceHeaderState.value
                             )
                             isAddItemBottomSheetVisible = false
@@ -730,15 +730,15 @@ fun POSView(
                             color = SettingsModel.backgroundColor
                         ),
                     onSave = { invHeader, itemModel ->
-                        val isChanged = !itemModel.invoice.isNew() && activityViewModel.initialInvoiceItemModels[itemIndexToEdit].invoice.didChanged(itemModel.invoice) || (activityViewModel.pendingInvHeadState ?: activityViewModel.invoiceHeader).didChanged(invHeader)
-                        isInvoiceEdited = isInvoiceEdited || isChanged/* itemModel.shouldPrint = activityViewModel.isInvoiceItemQtyChanged(
+                        val isChanged = !itemModel.invoice.isNew() && sharedViewModel.initialInvoiceItemModels[itemIndexToEdit].invoice.didChanged(itemModel.invoice) || (sharedViewModel.pendingInvHeadState ?: sharedViewModel.invoiceHeader).didChanged(invHeader)
+                        isInvoiceEdited = isInvoiceEdited || isChanged/* itemModel.shouldPrint = sharedViewModel.isInvoiceItemQtyChanged(
                             itemModel.invoice.invoiceId,
                             itemModel.invoice.invoiceQuantity
                         )*/
                         invoicesState[itemIndexToEdit] = itemModel
-                        activityViewModel.invoiceItemModels = invoicesState
+                        sharedViewModel.invoiceItemModels = invoicesState
                         invoiceHeaderState.value = invHeader
-                        activityViewModel.invoiceHeader = invHeader
+                        sharedViewModel.invoiceHeader = invHeader
                         isEditBottomSheetVisible = false
                     },
                     onClose = {
@@ -755,7 +755,7 @@ fun POSView(
                     animationSpec = tween(durationMillis = 250)
                 )
             ) {
-                AddInvoiceItemView(activityViewModel = activityViewModel,
+                AddInvoiceItemView(sharedViewModel = sharedViewModel,
                     categories = state.families,
                     items = state.items,
                     modifier = Modifier
@@ -776,12 +776,12 @@ fun POSView(
                         invoices.add(invoiceItemModel)
                     }
                     invoicesState.addAll(invoices)
-                    activityViewModel.invoiceItemModels = invoicesState
+                    sharedViewModel.invoiceItemModels = invoicesState
                     invoiceHeaderState.value = POSUtils.refreshValues(
-                        activityViewModel.invoiceItemModels,
+                        sharedViewModel.invoiceItemModels,
                         invoiceHeaderState.value
                     )
-                    activityViewModel.invoiceHeader = invoiceHeaderState.value
+                    sharedViewModel.invoiceHeader = invoiceHeaderState.value
                     isAddItemBottomSheetVisible = false
                 }
             }
@@ -797,7 +797,7 @@ fun POSView(
             ) {
                 InvoiceCashView(
                     invoiceHeader = invoiceHeaderState.value,
-                    posReceipt = activityViewModel.posReceipt,
+                    posReceipt = sharedViewModel.posReceipt,
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(it)
@@ -824,48 +824,48 @@ fun POSView(
                             viewModel.savePrintedNumber(
                                 context,
                                 invoiceHeaderState.value,
-                                activityViewModel.invoiceItemModels,
-                                activityViewModel.posReceipt,
+                                sharedViewModel.invoiceItemModels,
+                                sharedViewModel.posReceipt,
                             )
                         }
                     },
                     onSave = { change, receipt ->
-                        activityViewModel.posReceipt = receipt
+                        sharedViewModel.posReceipt = receipt
                         invoiceHeaderState.value.invoiceHeadChange = change
                         proceedToPrint = false
                         viewModel.saveInvoiceHeader(
                             context = context,
                             invoiceHeader = invoiceHeaderState.value,
-                            posReceipt = activityViewModel.posReceipt,
-                            invoiceItems = activityViewModel.invoiceItemModels,
+                            posReceipt = sharedViewModel.posReceipt,
+                            invoiceItems = sharedViewModel.invoiceItemModels,
                             print = false,
-                            finish = !activityViewModel.isFromTable
+                            finish = !sharedViewModel.isFromTable
                         )
                     },
                     onSaveAndPrintOrder = { change, receipt ->
-                        activityViewModel.posReceipt = receipt
+                        sharedViewModel.posReceipt = receipt
                         invoiceHeaderState.value.invoiceHeadChange = change
                         invoiceHeaderState.value.invoiceHeadPrinted += 1
                         proceedToPrint = true
                         viewModel.saveInvoiceHeader(
                             context = context,
                             invoiceHeader = invoiceHeaderState.value,
-                            posReceipt = activityViewModel.posReceipt,
-                            invoiceItems = activityViewModel.invoiceItemModels,
+                            posReceipt = sharedViewModel.posReceipt,
+                            invoiceItems = sharedViewModel.invoiceItemModels,
                             print = true,
                             finish = invoiceHeaderState.value.isFinished()
                         )
                     },
                     onFinishAndPrint = { change, receipt ->
-                        activityViewModel.posReceipt = receipt
+                        sharedViewModel.posReceipt = receipt
                         invoiceHeaderState.value.invoiceHeadChange = change
                         invoiceHeaderState.value.invoiceHeadPrinted += 1
                         proceedToPrint = true
                         viewModel.saveInvoiceHeader(
                             context = context,
                             invoiceHeader = invoiceHeaderState.value,
-                            posReceipt = activityViewModel.posReceipt,
-                            invoiceItems = activityViewModel.invoiceItemModels,
+                            posReceipt = sharedViewModel.posReceipt,
+                            invoiceItems = sharedViewModel.invoiceItemModels,
                             print = true,
                             finish = true
                         )

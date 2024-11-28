@@ -6,7 +6,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentWidth
@@ -42,7 +41,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.grid.pos.ActivityScopedViewModel
+import com.grid.pos.SharedViewModel
 import com.grid.pos.R
 import com.grid.pos.interfaces.OnGalleryResult
 import com.grid.pos.model.Country
@@ -52,7 +51,6 @@ import com.grid.pos.model.ReportCountry
 import com.grid.pos.model.ReportLanguage
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.SearchableDropdownMenuEx
-import com.grid.pos.ui.common.UIButton
 import com.grid.pos.ui.common.UIImageButton
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.utils.FileUtils
@@ -67,7 +65,7 @@ import kotlinx.coroutines.withContext
 fun SetupReportView(
         modifier: Modifier = Modifier,
         navController: NavController? = null,
-        activityViewModel: ActivityScopedViewModel,
+        sharedViewModel: SharedViewModel,
 ) {
     val context = LocalContext.current
     var isLoading by remember { mutableStateOf(false) }
@@ -81,7 +79,7 @@ fun SetupReportView(
     val scope = rememberCoroutineScope()
 
     fun addReport(reportType: String) {
-        activityViewModel.launchFilePicker("text/html",
+        sharedViewModel.launchFilePicker("text/html",
             object : OnGalleryResult {
                 override fun onGalleryResult(uris: List<Uri>) {
                     if (uris.isNotEmpty()) {
@@ -126,14 +124,14 @@ fun SetupReportView(
                 when (snackBarResult) {
                     SnackbarResult.Dismissed -> {}
                     SnackbarResult.ActionPerformed -> when (action) {
-                        "Settings" -> activityViewModel.openAppStorageSettings()
+                        "Settings" -> sharedViewModel.openAppStorageSettings()
                     }
                 }
             }
         }
     }
     LaunchedEffect(isLoading) {
-        activityViewModel.showLoading(isLoading)
+        sharedViewModel.showLoading(isLoading)
     }
     fun handleBack() {
         navController?.navigateUp()
@@ -190,11 +188,11 @@ fun SetupReportView(
                             .height(100.dp)
                             .padding(10.dp),
                         icon = R.drawable.add,
-                        text = "Add ${activityViewModel.selectedReportType!!}",
+                        text = "Add ${sharedViewModel.selectedReportType!!}",
                         iconSize = 60.dp,
                         isVertical = false
                     ) {
-                        addReport(activityViewModel.selectedReportType!!)
+                        addReport(sharedViewModel.selectedReportType!!)
                     }
                 }
 
@@ -220,7 +218,7 @@ fun SetupReportView(
                         end = 10.dp
                     ),
                     onLoadItems = {
-                        activityViewModel.fetchCountries { list ->
+                        sharedViewModel.fetchCountries { list ->
                             countries.addAll(list)
                         }
                     },

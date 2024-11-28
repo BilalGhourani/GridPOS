@@ -8,43 +8,43 @@ import com.grid.pos.interfaces.OnGalleryResult
 import com.grid.pos.model.PopupModel
 import java.util.ArrayList
 
-sealed class ActivityScopedUIEvent {
-    data object Finish : ActivityScopedUIEvent()
+sealed class ActivityUIEvent {
+    data object Finish : ActivityUIEvent()
     class ShowLoading(
             var show: Boolean,
             val timeout: Long
-    ) : ActivityScopedUIEvent()
+    ) : ActivityUIEvent()
 
     class ShowPopup(
             var show: Boolean,
             var popupModel: PopupModel?
-    ) : ActivityScopedUIEvent()
+    ) : ActivityUIEvent()
 
-    data object OpenAppSettings : ActivityScopedUIEvent()
+    data object OpenAppSettings : ActivityUIEvent()
     class LaunchGalleryPicker(
             var mediaType: ActivityResultContracts.PickVisualMedia.VisualMediaType,
             var delegate: OnGalleryResult,
             var onPermissionDenied: () -> Unit
-    ) : ActivityScopedUIEvent()
+    ) : ActivityUIEvent()
 
     class LaunchFilePicker(
             var intentType: String,
             var delegate: OnGalleryResult,
             var onPermissionDenied: () -> Unit
-    ) : ActivityScopedUIEvent()
+    ) : ActivityUIEvent()
 
     class StartChooserActivity(
             var intent: Intent
-    ) : ActivityScopedUIEvent()
+    ) : ActivityUIEvent()
 
     class LaunchBarcodeScanner(
             var scanToAdd: Boolean,
             var items: ArrayList<Item>?,
             var delegate: OnBarcodeResult,
             var onPermissionDenied: () -> Unit
-    ) : ActivityScopedUIEvent()
+    ) : ActivityUIEvent()
 
     class ChangeAppOrientation(
             var orientationType: String
-    ) : ActivityScopedUIEvent()
+    ) : ActivityUIEvent()
 }

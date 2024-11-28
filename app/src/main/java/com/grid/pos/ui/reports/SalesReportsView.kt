@@ -68,7 +68,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
-import com.grid.pos.ActivityScopedViewModel
+import com.grid.pos.SharedViewModel
 import com.grid.pos.BuildConfig
 import com.grid.pos.R
 import com.grid.pos.model.PopupModel
@@ -90,7 +90,7 @@ import java.util.TimeZone
 fun SalesReportsView(
         modifier: Modifier = Modifier,
         navController: NavController? = null,
-        activityViewModel: ActivityScopedViewModel,
+        sharedViewModel: SharedViewModel,
         viewModel: SalesReportsViewModel = hiltViewModel()
 ) {
     val state by viewModel.reportsState.collectAsStateWithLifecycle()
@@ -131,7 +131,7 @@ fun SalesReportsView(
             )
             shareIntent.setType("application/vnd.ms-excel")
 
-            activityViewModel.startChooserActivity(
+            sharedViewModel.startChooserActivity(
                 Intent.createChooser(
                     shareIntent,
                     "send"
@@ -206,7 +206,7 @@ fun SalesReportsView(
     }
 
     LaunchedEffect(state.isLoading) {
-        activityViewModel.showLoading(state.isLoading)
+        sharedViewModel.showLoading(state.isLoading)
     }
 
     fun handleBack() {
@@ -220,7 +220,7 @@ fun SalesReportsView(
     }
 
     LaunchedEffect(isPopupVisible) {
-        activityViewModel.showPopup(
+        sharedViewModel.showPopup(
             isPopupVisible,
             if (!isPopupVisible) null else PopupModel().apply {
                 onDismissRequest = {
