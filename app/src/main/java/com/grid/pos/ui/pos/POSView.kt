@@ -70,6 +70,7 @@ import androidx.navigation.NavController
 import com.grid.pos.ActivityScopedViewModel
 import com.grid.pos.R
 import com.grid.pos.data.InvoiceHeader.InvoiceHeader
+import com.grid.pos.data.Item.Item
 import com.grid.pos.data.PosReceipt.PosReceipt
 import com.grid.pos.interfaces.OnBarcodeResult
 import com.grid.pos.model.CONNECTION_TYPE
@@ -83,7 +84,6 @@ import com.grid.pos.ui.pos.components.InvoiceBodyDetails
 import com.grid.pos.ui.pos.components.InvoiceCashView
 import com.grid.pos.ui.pos.components.InvoiceFooterView
 import com.grid.pos.ui.pos.components.InvoiceHeaderDetails
-import com.grid.pos.ui.settings.setupReports.ReportTypeEnum
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.utils.PrinterUtils
 import com.grid.pos.utils.Utils
@@ -523,29 +523,22 @@ fun POSView(
                                     activityViewModel.launchBarcodeScanner(false,
                                         ArrayList(state.items),
                                         object : OnBarcodeResult {
-                                            override fun OnBarcodeResult(barcodesList: List<String>) {
+                                            override fun OnBarcodeResult(barcodesList: List<Any>) {
                                                 if (barcodesList.isNotEmpty()) {
+                                                    activityViewModel.showLoading(true)
                                                     scope.launch {
-                                                        val map: Map<String, Int> = barcodesList.groupingBy { barcode -> barcode }
+                                                        val map: Map<Item, Int> = barcodesList.groupingBy { item -> item as Item }
                                                             .eachCount()
-                                                        val barcodes = barcodesList.joinToString(",")
-                                                        val items = state.items.filter { item ->
-                                                            item.itemBarcode?.let { barcode ->
-                                                                barcodes.contains(
-                                                                    barcode,
-                                                                    ignoreCase = true
-                                                                )
-                                                            } ?: false
-                                                        }
-                                                        items.forEach { itm ->
-                                                            val count = itm.itemBarcode?.let { barcode -> map[barcode] } ?: 1
-                                                            for (i in 0 until count) {
+
+                                                        map.forEach { (item, count) ->
+                                                            if (!item.itemBarcode.isNullOrEmpty()) {
                                                                 withContext(Dispatchers.IO) {
-                                                                    itm.itemRealUnitPrice = activityViewModel.updateRealItemPrice(itm)
+                                                                    item.itemRealUnitPrice = activityViewModel.updateRealItemPrice(item)
                                                                 }
                                                                 val invoiceItemModel = InvoiceItemModel()
-                                                                invoiceItemModel.setItem(itm)
+                                                                invoiceItemModel.setItem(item)
                                                                 invoiceItemModel.shouldPrint = true
+                                                                invoiceItemModel.invoice.invoiceQuantity = count.toDouble()
                                                                 invoicesState.add(invoiceItemModel)
                                                                 activityViewModel.invoiceItemModels = invoicesState
                                                                 invoiceHeaderState.value = POSUtils.refreshValues(
@@ -553,6 +546,9 @@ fun POSView(
                                                                     invoiceHeaderState.value
                                                                 )
                                                             }
+                                                        }
+                                                        withContext(Dispatchers.Main) {
+                                                            activityViewModel.showLoading(false)
                                                         }
                                                     }
                                                 }

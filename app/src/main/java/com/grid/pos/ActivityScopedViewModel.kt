@@ -1,6 +1,5 @@
 package com.grid.pos
 
-import android.content.Context
 import android.content.Intent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.lifecycle.viewModelScope
@@ -11,11 +10,9 @@ import com.grid.pos.data.Currency.CurrencyRepository
 import com.grid.pos.data.Family.Family
 import com.grid.pos.data.InvoiceHeader.InvoiceHeader
 import com.grid.pos.data.Item.Item
-import com.grid.pos.data.Payment.Payment
 import com.grid.pos.data.PosPrinter.PosPrinter
 import com.grid.pos.data.PosPrinter.PosPrinterRepository
 import com.grid.pos.data.PosReceipt.PosReceipt
-import com.grid.pos.data.Receipt.Receipt
 import com.grid.pos.data.Settings.SettingsRepository
 import com.grid.pos.data.ThirdParty.ThirdParty
 import com.grid.pos.data.ThirdParty.ThirdPartyRepository
@@ -30,9 +27,7 @@ import com.grid.pos.model.ReportCountry
 import com.grid.pos.model.ReportResult
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.BaseViewModel
-import com.grid.pos.ui.settings.setupReports.ReportTypeEnum
 import com.grid.pos.utils.DataStoreManager
-import com.grid.pos.utils.PrinterUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel

@@ -9,6 +9,7 @@ import android.net.LinkProperties
 import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -125,10 +126,22 @@ class MainActivity : ComponentActivity() {
     ) { result ->
         if (result.resultCode == RESULT_OK) {
             if (result.data?.extras?.containsKey("SCANNING_BARCODE") == true) {
-                val barcodes = result.data?.extras?.getStringArrayList(
-                    "SCAN_RESULTS"
-                ) ?: listOf()
-                mOnBarcodeResult?.OnBarcodeResult(barcodes)
+                if (result.data?.extras?.getBoolean("scanToAdd") == true) {
+                    val barcodes = result.data?.extras?.getStringArrayList(
+                        "SCAN_RESULTS"
+                    ) ?: listOf()
+                    mOnBarcodeResult?.OnBarcodeResult(barcodes)
+                } else {
+                    val items = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        result.data?.extras?.getSerializable(
+                            "SCAN_RESULTS",
+                            ArrayList::class.java
+                        )
+                    } else {
+                        result.data?.extras?.getSerializable("SCAN_RESULTS") as? ArrayList<*>
+                    }
+                    mOnBarcodeResult?.OnBarcodeResult(items?.toList() ?: listOf())
+                }
             } else {
                 val data = result.data?.data
                 data?.let { mGalleryCallBack?.onGalleryResult(listOf(it)) }

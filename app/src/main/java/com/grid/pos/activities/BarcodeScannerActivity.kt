@@ -42,7 +42,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -62,7 +61,7 @@ import java.util.concurrent.Executors
 @AndroidEntryPoint
 class BarcodeScannerActivity : ComponentActivity() {
 
-    private val barcodeScannedList = mutableListOf<String>()
+    private val barcodeScannedList = mutableListOf<Any>()
     private var stopScanning: Boolean = false
     private var scanToAdd: Boolean = false
     private var itemsMap: Map<String, Item>? = null
@@ -149,9 +148,9 @@ class BarcodeScannerActivity : ComponentActivity() {
 
                                         } else {
                                             scope.launch {
-                                                val item = itemsMap?.get(result)
+                                                val item = itemsMap?.get(result) ?: return@launch
                                                 var proceed = true
-                                                if (item != null && item.itemRemQty <= 0) {
+                                                if (item.itemRemQty <= 0) {
                                                     proceed = SettingsModel.allowOutOfStockSale
                                                     if (SettingsModel.showItemQtyAlert) {
                                                         isPopupShown = true
@@ -163,7 +162,7 @@ class BarcodeScannerActivity : ComponentActivity() {
                                                     }
                                                 }
                                                 if (proceed) {
-                                                    barcodeScannedList.add(result)
+                                                    barcodeScannedList.add(item)
                                                     isPopupShown = true
                                                     popupModelState.value = PopupModel().apply {
                                                         dialogText = "Scan next?"
@@ -227,6 +226,10 @@ class BarcodeScannerActivity : ComponentActivity() {
         returnIntent.putExtra(
             "SCANNING_BARCODE",
             true
+        )
+        returnIntent.putExtra(
+            "scanToAdd",
+            scanToAdd
         )
         setResult(
             RESULT_OK,

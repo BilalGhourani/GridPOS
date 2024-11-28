@@ -453,11 +453,14 @@ fun ManageItemsView(
                                 activityScopedViewModel.launchBarcodeScanner(true,
                                     ArrayList(state.items),
                                     object : OnBarcodeResult {
-                                        override fun OnBarcodeResult(barcodesList: List<String>) {
+                                        override fun OnBarcodeResult(barcodesList: List<Any>) {
                                             if (barcodesList.isNotEmpty()) {
-                                                barcodeState = barcodesList[0]
-                                                state.selectedItem.itemBarcode = barcodeState
-                                                openCostFocusRequester.requestFocus()
+                                                val resp = barcodesList[0]
+                                                if (resp is String) {
+                                                    barcodeState = resp
+                                                    state.selectedItem.itemBarcode = barcodeState
+                                                    openCostFocusRequester.requestFocus()
+                                                }
                                             }
                                         }
                                     },
