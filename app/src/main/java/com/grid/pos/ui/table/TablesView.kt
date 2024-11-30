@@ -295,7 +295,7 @@ fun TablesView(
                         .height(100.dp)
                         .padding(10.dp),
                     icon = if (stepState <= 1) R.drawable.search else R.drawable.next,
-                    text = if (stepState <= 1) "Search for invoice" else "Submit to POS",
+                    text = if (stepState <= 1) "Search for Table" else "Submit to POS",
                     iconSize = 60.dp,
                     isVertical = false
                 ) {
