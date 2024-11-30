@@ -1043,10 +1043,14 @@ fun SettingsView(
                                     autoPrintTickets
                                 )
 
-                                SettingsModel.showItemQtyAlert = showItemQtyAlert || allowOutOfStockSale
+                                if(!allowOutOfStockSale){
+                                    showItemQtyAlert = true
+                                }
+
+                                SettingsModel.showItemQtyAlert = showItemQtyAlert
                                 DataStoreManager.putBoolean(
                                     DataStoreManager.DataStoreKeys.SHOW_ITEM_QTY_ALERT.key,
-                                    showItemQtyAlert || allowOutOfStockSale
+                                    showItemQtyAlert
                                 )
 
                                 SettingsModel.allowOutOfStockSale = allowOutOfStockSale
