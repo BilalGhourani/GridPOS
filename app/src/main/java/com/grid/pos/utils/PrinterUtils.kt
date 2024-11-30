@@ -195,6 +195,12 @@ object PrinterUtils {
             "{company_phone}",
             company?.companyPhone ?: ""
         ).replace(
+            "{company_mail}",
+            company?.companyEmail ?: ""
+        ).replace(
+            "{company_website}",
+            company?.companyWeb ?: ""
+        ).replace(
             "{invoicedatevalue}",
             DateHelper.getDateInFormat(
                 invDate,
