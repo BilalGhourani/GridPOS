@@ -258,16 +258,22 @@ fun POSView(
                         withContext(Dispatchers.Main) {
                             sharedViewModel.showLoading(false)
                             clear()
-                            navController?.navigateUp()
+                            if (sharedViewModel.isFromTable){
+                                navController?.navigateUp()
+                            }
                         }
                     }
                 } else {
                     clear()
-                    navController?.navigateUp()
+                    if (sharedViewModel.isFromTable){
+                        navController?.navigateUp()
+                    }
                 }
             } else {
                 clear()
-                navController?.navigateUp()
+                if (sharedViewModel.isFromTable){
+                    navController?.navigateUp()
+                }
             }
             sharedViewModel.showLoading(false)
         }
@@ -311,6 +317,7 @@ fun POSView(
                 popupState = PopupState.BACK_PRESSED
                 isSavePopupVisible = true
             } else {
+                sharedViewModel.isFromTable = false
                 navController?.navigateUp()
             }
         }

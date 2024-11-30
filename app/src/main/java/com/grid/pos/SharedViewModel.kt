@@ -225,7 +225,6 @@ class SharedViewModel @Inject constructor(
         posReceipt = PosReceipt()
         pendingInvHeadState = null
         shouldLoadInvoice = false
-        isFromTable = false
         reportsToPrint = mutableListOf()
     }
 
