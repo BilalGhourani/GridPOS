@@ -118,7 +118,8 @@ class AdjustmentViewModel @Inject constructor(
                     itemRepository.update(itemsToUpdate)
                     state.value = state.value.copy(
                         warning = Event("Quantity is updated successfully."),
-                        isLoading = false
+                        isLoading = false,
+                        clear = true
                     )
                 }
             } catch (e: Exception) {
@@ -160,7 +161,8 @@ class AdjustmentViewModel @Inject constructor(
                 invoiceRepository.update(listOfInvoices)
                 state.value = state.value.copy(
                     warning = Event("Item cost is updated successfully."),
-                    isLoading = false
+                    isLoading = false,
+                    clear = true
                 )
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -178,6 +180,15 @@ class AdjustmentViewModel @Inject constructor(
         state.value = state.value.copy(
             warning = Event(message),
             isLoading = false
+        )
+    }
+
+    fun resetState() {
+        state.value = state.value.copy(
+            selectedItem = null,
+            warning = null,
+            isLoading = false,
+            clear = false
         )
     }
 

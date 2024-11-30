@@ -6,10 +6,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
@@ -51,6 +53,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -92,6 +96,7 @@ fun AdjustmentView(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
+    val keyboardController = LocalSoftwareKeyboardController.current
     val currentTime = Calendar.getInstance()
     currentTime.timeZone = TimeZone.getDefault()
     val initialDate = currentTime.time
@@ -152,7 +157,6 @@ fun AdjustmentView(
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
     var isPopupVisible by remember { mutableStateOf(false) }
-    val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -171,13 +175,43 @@ fun AdjustmentView(
         }
     }
 
-    LaunchedEffect(state.isLoading) {
-        sharedViewModel.showLoading(state.isLoading,-1)
+    LaunchedEffect(state.clear) {
+        if (state.clear) {
+            itemCostState = ""
+            fromDateState = DateHelper.getDateInFormat(
+                getDateFromState(
+                    initialDate.time,
+                    fromTimePickerState
+                ),
+                dateFormat
+            )
+            toDateState = DateHelper.getDateInFormat(
+                getDateFromState(
+                    initialDate.time,
+                    toTimePickerState
+                ),
+                dateFormat
+            )
+            showDatePicker = false
+            showTimePicker = false
+            isPopupVisible = false
+            viewModel.resetState()
+            keyboardController?.hide()
+        }
     }
 
+    LaunchedEffect(state.isLoading) {
+        sharedViewModel.showLoading(
+            state.isLoading,
+            -1
+        )
+    }
+    val isImeVisible = WindowInsets.ime.getBottom(LocalDensity.current) > 0
     fun handleBack() {
         if (state.isLoading) {
             isPopupVisible = true
+        } else if (isImeVisible) {
+            keyboardController?.hide()
         } else {
             viewModel.closeConnectionIfNeeded()
             viewModel.viewModelScope.cancel()
@@ -186,8 +220,7 @@ fun AdjustmentView(
     }
 
     LaunchedEffect(isPopupVisible) {
-        sharedViewModel.showPopup(
-            isPopupVisible,
+        sharedViewModel.showPopup(isPopupVisible,
             if (!isPopupVisible) null else PopupModel().apply {
                 onDismissRequest = {
                     isPopupVisible = false
@@ -273,8 +306,7 @@ fun AdjustmentView(
                         /*if (state.selectedItem == null) {
                             viewModel.showError("select an Item at first!")
                             return@UIButton
-                        }*/
-                       /* val from = getDateFromState(
+                        }*//* val from = getDateFromState(
                             fromDatePickerState.selectedDateMillis!!,
                             fromTimePickerState
                         )
