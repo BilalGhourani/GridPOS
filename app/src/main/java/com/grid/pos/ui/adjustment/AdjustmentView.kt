@@ -306,7 +306,6 @@ fun AdjustmentView(
                     UITextField(modifier = Modifier.padding(10.dp),
                         defaultValue = fromDateState,
                         label = "From",
-                        maxLines = 1,
                         readOnly = true,
                         keyboardType = KeyboardType.Text,
                         placeHolder = DateHelper.getDateInFormat(
@@ -331,7 +330,6 @@ fun AdjustmentView(
                     UITextField(modifier = Modifier.padding(10.dp),
                         defaultValue = toDateState,
                         label = "To",
-                        maxLines = 1,
                         readOnly = true,
                         keyboardType = KeyboardType.Text,
                         placeHolder = dateFormat,

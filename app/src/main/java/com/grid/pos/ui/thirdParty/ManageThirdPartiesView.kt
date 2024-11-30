@@ -287,7 +287,7 @@ fun ManageThirdPartiesView(
                     ),
                         defaultValue = addressState,
                         label = "Address",
-                        maxLines = 3,
+                        maxLines = 2,
                         placeHolder = "Enter address",
                         focusRequester = addressFocusRequester,
                         imeAction = ImeAction.Done,

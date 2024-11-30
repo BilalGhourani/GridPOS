@@ -329,7 +329,6 @@ fun ManageCompaniesView(
                     ),
                         defaultValue = addressState,
                         label = "Address",
-                        maxLines = 3,
                         focusRequester = addressFocusRequester,
                         placeHolder = "Enter address",
                         onAction = {
@@ -346,7 +345,6 @@ fun ManageCompaniesView(
                     ),
                         defaultValue = countryState,
                         label = "Country",
-                        maxLines = 3,
                         focusRequester = countryFocusRequester,
                         placeHolder = "Enter country",
                         onAction = {

@@ -245,7 +245,6 @@ fun TablesView(
                 UITextField(modifier = Modifier.padding(10.dp),
                     defaultValue = tableNameState,
                     label = "Table Number",
-                    maxLines = 3,
                     enabled = stepState <= 1,
                     focusRequester = tableNameFocusRequester,
                     keyboardType = KeyboardType.Decimal,
@@ -275,7 +274,6 @@ fun TablesView(
                             }
                         },
                         label = "Client Number",
-                        maxLines = 3,
                         focusRequester = clientsCountFocusRequester,
                         keyboardType = KeyboardType.Number,
                         placeHolder = "Enter Client Number",

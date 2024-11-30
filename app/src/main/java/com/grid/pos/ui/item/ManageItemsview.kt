@@ -378,7 +378,6 @@ fun ManageItemsView(
                         ),
                             defaultValue = taxState,
                             label = "Tax",
-                            maxLines = 3,
                             focusRequester = taxFocusRequester,
                             keyboardType = KeyboardType.Decimal,
                             placeHolder = "Enter Tax",
