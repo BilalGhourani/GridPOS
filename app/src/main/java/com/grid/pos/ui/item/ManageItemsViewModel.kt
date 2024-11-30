@@ -1,16 +1,13 @@
 package com.grid.pos.ui.item
 
 import androidx.lifecycle.viewModelScope
-import com.grid.pos.data.Currency.Currency
 import com.grid.pos.data.Currency.CurrencyRepository
-import com.grid.pos.data.Family.Family
 import com.grid.pos.data.Family.FamilyRepository
 import com.grid.pos.data.Invoice.InvoiceRepository
 import com.grid.pos.data.Item.Item
 import com.grid.pos.data.Item.ItemRepository
 import com.grid.pos.data.PosPrinter.PosPrinterRepository
 import com.grid.pos.model.Event
-import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.BaseViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -36,8 +33,7 @@ class ManageItemsViewModel @Inject constructor(
     init {
         viewModelScope.launch(Dispatchers.IO) {
             openConnectionIfNeeded()
-            fetchFamilies()
-            fetchPrinters()
+            fetchCurrencies()
         }
     }
 
@@ -49,33 +45,11 @@ class ManageItemsViewModel @Inject constructor(
         )
     }
 
-    fun fillCachedItems(
-            items: MutableList<Item> = mutableListOf(),
-            families: MutableList<Family> = mutableListOf()
-    ) {
-        if (true) return
-        if (manageItemsState.value.items.isEmpty()) {
-            manageItemsState.value = manageItemsState.value.copy(
-                items = items.toMutableList()
-            )
-        }
-        if (manageItemsState.value.families.isEmpty()) {
-            manageItemsState.value = manageItemsState.value.copy(
-                families = families
-            )
-        }
-    }
-
     fun fetchItems() {
         manageItemsState.value = manageItemsState.value.copy(
             isLoading = true
         )
         viewModelScope.launch(Dispatchers.IO) {
-            if (SettingsModel.currentCurrency == null && SettingsModel.isConnectedToSqlServer()) {
-                val currencies = currencyRepository.getAllCurrencies()
-                val currency = if (currencies.size > 0) currencies[0] else Currency()
-                SettingsModel.currentCurrency = currency
-            }
             val listOfItems = itemRepository.getAllItems()
             withContext(Dispatchers.Main) {
                 manageItemsState.value = manageItemsState.value.copy(
@@ -86,37 +60,43 @@ class ManageItemsViewModel @Inject constructor(
         }
     }
 
-    private suspend fun fetchFamilies() {
-        val listOfFamilies = familyRepository.getAllFamilies()
-        withContext(Dispatchers.Main) {
-            manageItemsState.value = manageItemsState.value.copy(
-                families = listOfFamilies
-            )
-        }
-    }
-
-    fun fetchCurrencies() {
+    fun fetchFamilies() {
         manageItemsState.value = manageItemsState.value.copy(
-            warning = null,
             isLoading = true
         )
         viewModelScope.launch(Dispatchers.IO) {
-            val currencies = currencyRepository.getAllCurrencyModels()
+            val listOfFamilies = familyRepository.getAllFamilies()
             withContext(Dispatchers.Main) {
                 manageItemsState.value = manageItemsState.value.copy(
-                    currencies = currencies,
+                    families = listOfFamilies,
                     isLoading = false
                 )
             }
         }
     }
 
-    private suspend fun fetchPrinters() {
-        val listOfPrinters = posPrinterRepository.getAllPosPrinters()
+    private suspend fun fetchCurrencies() {
+        val currencies = currencyRepository.getAllCurrencyModels()
         withContext(Dispatchers.Main) {
             manageItemsState.value = manageItemsState.value.copy(
-                printers = listOfPrinters
+                currencies = currencies,
+                isLoading = false
             )
+        }
+    }
+
+    fun fetchPrinters() {
+        manageItemsState.value = manageItemsState.value.copy(
+            isLoading = true
+        )
+        viewModelScope.launch(Dispatchers.IO) {
+            val listOfPrinters = posPrinterRepository.getAllPosPrinters()
+            withContext(Dispatchers.Main) {
+                manageItemsState.value = manageItemsState.value.copy(
+                    printers = listOfPrinters,
+                    isLoading = false
+                )
+            }
         }
     }
 

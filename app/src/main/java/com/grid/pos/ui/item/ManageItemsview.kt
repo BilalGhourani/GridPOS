@@ -126,7 +126,7 @@ fun ManageItemsView(
     var openCostState by remember { mutableStateOf("") }
     var openQtyState by remember { mutableStateOf("") }
     var remQtyState by remember { mutableStateOf("") }
-    var itemCurrState by remember { mutableStateOf(SettingsModel.currentCurrency?.currencyCode1 ?: "") }
+    var itemCurrState by remember { mutableStateOf("") }
     var familyIdState by remember { mutableStateOf("") }
     var btnColorState by remember { mutableStateOf("") }
     var btnTextColorState by remember { mutableStateOf("") }
@@ -157,6 +157,20 @@ fun ManageItemsView(
                     }
                 }
             }
+        }
+    }
+
+    fun getFirstCurrency(): String {
+        return if (SettingsModel.isConnectedToSqlServer()) {
+            SettingsModel.currentCurrency?.currencyId ?: ""
+        } else {
+            SettingsModel.currentCurrency?.currencyCode1 ?: ""
+        }
+    }
+
+    LaunchedEffect(state.currencies) {
+        if (itemCurrState == "" && state.currencies.isNotEmpty()) {
+            itemCurrState = getFirstCurrency()
         }
     }
 
@@ -204,7 +218,7 @@ fun ManageItemsView(
         openCostState = ""
         openQtyState = ""
         remQtyState = ""
-        itemCurrState = SettingsModel.currentCurrency?.currencyCode1 ?: ""
+        itemCurrState = getFirstCurrency()
         familyIdState = ""
         btnColorState = ""
         btnTextColorState = ""
@@ -527,23 +541,18 @@ fun ManageItemsView(
                         state.selectedItem.itemRemQty = remQtyState.toDoubleOrNull() ?: 0.0
                     }
 
-                    if (state.currencies.isNotEmpty()) {
-                        SearchableDropdownMenuEx(
-                            items = state.currencies.toMutableList(),
-                            modifier = Modifier.padding(
-                                horizontal = 10.dp,
-                                vertical = 5.dp
-                            ),
-                            onLoadItems = {
-                                viewModel.fetchCurrencies()
-                            },
-                            label = "Select Currency",
-                            selectedId = itemCurrState
-                        ) { currModel ->
-                            currModel as CurrencyModel
-                            itemCurrState = currModel.getId()
-                            state.selectedItem.itemCurrencyId = itemCurrState
-                        }
+                    SearchableDropdownMenuEx(
+                        items = state.currencies.toMutableList(),
+                        modifier = Modifier.padding(
+                            horizontal = 10.dp,
+                            vertical = 5.dp
+                        ),
+                        label = "Select Currency",
+                        selectedId = itemCurrState
+                    ) { currModel ->
+                        currModel as CurrencyModel
+                        itemCurrState = currModel.getId()
+                        state.selectedItem.itemCurrencyId = itemCurrState
                     }
 
                     SearchableDropdownMenuEx(items = state.families.toMutableList(),
@@ -553,6 +562,9 @@ fun ManageItemsView(
                         ),
                         label = "Select Family",
                         selectedId = familyIdState,
+                        onLoadItems = {
+                            viewModel.fetchFamilies()
+                        },
                         leadingIcon = { modifier ->
                             if (familyIdState.isNotEmpty()) {
                                 Icon(
@@ -631,6 +643,9 @@ fun ManageItemsView(
                         ),
                         label = "Select Printer",
                         selectedId = printerState,
+                        onLoadItems = {
+                            viewModel.fetchPrinters()
+                        },
                         leadingIcon = { modifier ->
                             if (printerState.isNotEmpty()) {
                                 Icon(
@@ -805,7 +820,7 @@ fun ManageItemsView(
                     openCostState = item.itemOpenCost.toString()
                     openQtyState = item.itemOpenQty.toString()
                     remQtyState = item.itemRemQty.toString()
-                    itemCurrState = item.itemCurrencyId ?: SettingsModel.currentCurrency?.currencyCode1 ?: ""
+                    itemCurrState = item.itemCurrencyId ?: ""
                     familyIdState = item.itemFaId ?: ""
                     btnColorState = item.itemBtnColor ?: ""
                     btnTextColorState = item.itemBtnTextColor ?: ""

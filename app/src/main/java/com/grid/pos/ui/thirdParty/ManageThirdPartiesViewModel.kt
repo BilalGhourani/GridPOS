@@ -44,16 +44,6 @@ class ManageThirdPartiesViewModel @Inject constructor(
         )
     }
 
-    fun fillCachedThirdParties(thirdParties: MutableList<ThirdParty> = mutableListOf()) {
-        if (manageThirdPartiesState.value.thirdParties.isEmpty()) {
-            viewModelScope.launch(Dispatchers.Main) {
-                manageThirdPartiesState.value = manageThirdPartiesState.value.copy(
-                    thirdParties = thirdParties.toMutableList()
-                )
-            }
-        }
-    }
-
     fun fetchThirdParties() {
         manageThirdPartiesState.value = manageThirdPartiesState.value.copy(
             warning = null,
@@ -89,7 +79,7 @@ class ManageThirdPartiesViewModel @Inject constructor(
                 thirdParty.prepareForInsert()
                 val addedModel = thirdPartyRepository.insert(thirdParty)
                 val thirdParties = manageThirdPartiesState.value.thirdParties
-                if(thirdParties.isNotEmpty()) {
+                if (thirdParties.isNotEmpty()) {
                     thirdParties.add(addedModel)
                 }
                 val isDefaultEnabled = thirdParties.none { it.thirdPartyDefault }
@@ -104,7 +94,10 @@ class ManageThirdPartiesViewModel @Inject constructor(
                     )
                 }
             } else {
-                thirdPartyRepository.update(currentThirdParty.thirdPartyId,thirdParty)
+                thirdPartyRepository.update(
+                    currentThirdParty.thirdPartyId,
+                    thirdParty
+                )
                 val isDefaultEnabled = manageThirdPartiesState.value.thirdParties.none { it.thirdPartyDefault }
                 withContext(Dispatchers.Main) {
                     manageThirdPartiesState.value = manageThirdPartiesState.value.copy(

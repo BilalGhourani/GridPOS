@@ -63,20 +63,6 @@ class ManageCompaniesViewModel @Inject constructor(
         }
     }
 
-    fun fillCachedCompanies(
-            companies: MutableList<Company> = mutableListOf(),
-            currencies: MutableList<Currency> = mutableListOf()
-    ) {
-        if (manageCompaniesState.value.companies.isEmpty()) {
-            viewModelScope.launch(Dispatchers.Main) {
-                manageCompaniesState.value = manageCompaniesState.value.copy(
-                    companies = companies.toMutableList(),
-                    currencies = currencies.toMutableList()
-                )
-            }
-        }
-    }
-
     fun fetchCompanies() {
         manageCompaniesState.value = manageCompaniesState.value.copy(
             isLoading = true

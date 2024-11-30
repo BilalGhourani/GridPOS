@@ -52,8 +52,8 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import com.grid.pos.SharedViewModel
 import com.grid.pos.R
+import com.grid.pos.SharedViewModel
 import com.grid.pos.data.Company.Company
 import com.grid.pos.interfaces.OnGalleryResult
 import com.grid.pos.model.PopupModel
@@ -113,15 +113,6 @@ fun ManageCompaniesView(
 
     var oldImage: String? = null
 
-    LaunchedEffect(/*activityScopedViewModel.companies,*/
-        sharedViewModel.currencies
-    ) {
-        viewModel.fillCachedCompanies(
-            state.companies /*activityScopedViewModel.companies*/,
-            sharedViewModel.currencies
-        )
-    }
-
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     LaunchedEffect(state.warning) {
@@ -173,7 +164,7 @@ fun ManageCompaniesView(
                 old
             )
         }
-        val firstCurr = state.currencies.firstOrNull()
+        val firstCurr = state.currencies.firstOrNull() ?: SettingsModel.currentCurrency
         state.selectedCompany.companyCurCodeTax = firstCurr?.currencyId
         viewModel.saveCompany(
             state.selectedCompany,
@@ -662,13 +653,13 @@ fun ManageCompaniesView(
                     label = "Select Company",
                     selectedId = state.selectedCompany.companyId,
                     onLoadItems = { viewModel.fetchCompanies() },
-                    leadingIcon = {
+                    leadingIcon = { mod ->
                         if (state.selectedCompany.companyId.isNotEmpty()) {
                             Icon(
                                 Icons.Default.RemoveCircleOutline,
                                 contentDescription = "remove family",
                                 tint = Color.Black,
-                                modifier = it
+                                modifier = mod
                             )
                         }
                     },

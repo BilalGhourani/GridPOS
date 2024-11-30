@@ -38,16 +38,6 @@ class ManageFamiliesViewModel @Inject constructor(
         )
     }
 
-    fun fillCachedFamilies(families: MutableList<Family> = mutableListOf()) {
-        if (manageFamiliesState.value.families.isEmpty()) {
-            viewModelScope.launch(Dispatchers.Main) {
-                manageFamiliesState.value = manageFamiliesState.value.copy(
-                    families = families.toMutableList()
-                )
-            }
-        }
-    }
-
     fun fetchFamilies() {
         manageFamiliesState.value = manageFamiliesState.value.copy(
             isLoading = true

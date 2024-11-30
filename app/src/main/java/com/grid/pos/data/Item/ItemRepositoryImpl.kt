@@ -76,7 +76,6 @@ class ItemRepositoryImpl(
 
                 val items = mutableListOf<Item>()
                 if (querySnapshot.size() > 0) {
-                    val currency = SettingsModel.currentCurrency
                     for (document in querySnapshot) {
                         val obj = document.toObject(Item::class.java)
                         if (obj.itemId.isNotEmpty()) {
@@ -112,7 +111,6 @@ class ItemRepositoryImpl(
                             "select st_item.*,1 it_pos from st_item,pos_itembutton,pos_groupbutton,pos_station_groupbutton  where it_id=ib_it_id and ib_gb_id=gb_id and gb_id=psg_gb_id and psg_sta_name='.'  union select *,0 it_pos from st_item where it_id not in (select ib_it_id from pos_itembutton,pos_groupbutton,pos_station_groupbutton where ib_gb_id=gb_id and gb_id=psg_gb_id and psg_sta_name='.')"
                         )
                     }
-                    val currency = SettingsModel.currentCurrency
                     dbResult?.let {
                         while (it.next()) {
                             items.add(Item().apply {

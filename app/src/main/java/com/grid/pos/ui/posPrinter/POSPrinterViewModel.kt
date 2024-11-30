@@ -38,16 +38,6 @@ class POSPrinterViewModel @Inject constructor(
         )
     }
 
-    fun fillCachedPrinters(printers: MutableList<PosPrinter> = mutableListOf()) {
-        if (posPrinterState.value.printers.isEmpty()) {
-            viewModelScope.launch(Dispatchers.Main) {
-                posPrinterState.value = posPrinterState.value.copy(
-                    printers = printers.toMutableList()
-                )
-            }
-        }
-    }
-
     fun fetchPrinters() {
         posPrinterState.value = posPrinterState.value.copy(
             warning = null,
@@ -94,7 +84,7 @@ class POSPrinterViewModel @Inject constructor(
                 printer.prepareForInsert()
                 val addedModel = posPrinterRepository.insert(printer)
                 val printers = posPrinterState.value.printers
-                if(printers.isNotEmpty()) {
+                if (printers.isNotEmpty()) {
                     printers.add(addedModel)
                 }
                 withContext(Dispatchers.Main) {

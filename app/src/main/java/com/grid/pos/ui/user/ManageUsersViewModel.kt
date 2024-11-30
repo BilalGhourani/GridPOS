@@ -1,6 +1,5 @@
 package com.grid.pos.ui.user
 
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.grid.pos.data.InvoiceHeader.InvoiceHeaderRepository
 import com.grid.pos.data.ThirdParty.ThirdPartyRepository
@@ -41,16 +40,6 @@ class ManageUsersViewModel @Inject constructor(
             isLoading = false,
             clear = false
         )
-    }
-
-    fun fillCachedUsers(users: MutableList<User> = mutableListOf()) {
-        if (manageUsersState.value.users.isEmpty()) {
-            viewModelScope.launch(Dispatchers.Main) {
-                manageUsersState.value = manageUsersState.value.copy(
-                    users = users.toMutableList()
-                )
-            }
-        }
     }
 
     fun fetchUsers() {
