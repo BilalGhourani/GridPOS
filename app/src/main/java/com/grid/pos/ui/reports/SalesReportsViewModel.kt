@@ -36,7 +36,7 @@ class SalesReportsViewModel @Inject constructor(
 ) : BaseViewModel() {
 
     private var itemMap: Map<String, Item> = mutableMapOf()
-    private var invoices: MutableList<InvoiceHeader> = mutableListOf()
+    private var invoicesMap: Map<String, InvoiceHeader> = mutableMapOf()
     private var invoiceItemMap: Map<String, List<Invoice>> = mutableMapOf()
     private var filteredInvoiceItemMap: Map<String, List<Invoice>> = mutableMapOf()
     private var currency = SettingsModel.currentCurrency ?: Currency()
@@ -58,7 +58,7 @@ class SalesReportsViewModel @Inject constructor(
             SettingsModel.currentCurrency = currency
         }
         val listOfItems = itemRepository.getAllItems()
-        itemMap = listOfItems.map { it.itemId to it }.toMap()
+        itemMap = listOfItems.associateBy { it.itemId }
     }
 
     fun fetchInvoices(
@@ -74,11 +74,13 @@ class SalesReportsViewModel @Inject constructor(
                     from,
                     to
                 )
-                invoices = listOfInvoices
-                if (invoices.isNotEmpty()) {
-                    fetchInvoiceItems(from,
+                invoicesMap = listOfInvoices.associateBy { it.invoiceHeadId }
+                if (invoicesMap.isNotEmpty()) {
+                    fetchInvoiceItems(
+                        from,
                         to,
-                        listOfInvoices.map { it.invoiceHeadId })
+                        invoicesMap.keys.toMutableList()
+                    )
                 } else {
                     withContext(Dispatchers.Main) {
                         reportsState.value = reportsState.value.copy(
@@ -99,9 +101,9 @@ class SalesReportsViewModel @Inject constructor(
         }
     }
 
-    fun fetchInvoiceItems(
+    private fun fetchInvoiceItems(
             from: Date,
-            to: Date,
+            end: Date,
             ids: List<String>
     ) {
         viewModelScope.launch(Dispatchers.IO) {
@@ -117,16 +119,16 @@ class SalesReportsViewModel @Inject constructor(
                 val idsBatch = ids.subList(
                     start,
                     to
-                );
+                )
                 listOfInvoices.addAll(invoiceRepository.getInvoicesByIds(idsBatch))
-                start = to + 1;
+                start = to + 1
             }
             invoiceItemMap = listOfInvoices.groupBy { it.invoiceItemId ?: "" }
             val filteredInvoiceItems = if (!SettingsModel.isConnectedToSqlite()) {
-                listOfInvoices.filter { from.before(it.invoiceTimeStamp) && to.after(it.invoiceTimeStamp) }
+                listOfInvoices.filter { from.before(it.invoiceTimeStamp) && end.after(it.invoiceTimeStamp) }
             } else {
                 val startTime = from.time
-                val endTime = to.time
+                val endTime = end.time
                 listOfInvoices.filter { it.invoiceDateTime in (startTime + 1)..<endTime }
             }
             filteredInvoiceItemMap = filteredInvoiceItems.groupBy { it.invoiceItemId ?: "" }
@@ -141,7 +143,7 @@ class SalesReportsViewModel @Inject constructor(
         )
     }
 
-    fun generateReportsExcel() {
+    private fun generateReportsExcel() {
         viewModelScope.launch(Dispatchers.IO) {
             val workbook = XSSFWorkbook(XSSFWorkbookType.XLSX)
 
@@ -171,26 +173,6 @@ class SalesReportsViewModel @Inject constructor(
         }
     }
 
-    private fun getFile(): File {
-        val context = App.getInstance().applicationContext
-        val storageDir = File(
-            context.filesDir,
-            "reports"
-        )
-        if (!storageDir.exists()) {
-            storageDir.mkdir()
-        }
-        val child = File(
-            storageDir,
-            "Sales_Report.xlsx"
-        )
-        if (!child.exists()) {
-            // child.delete()
-            child.createNewFile()
-        }
-        return child
-    }
-
     private fun generateFirstSheet(workbook: XSSFWorkbook) {
         val sheet = workbook.createSheet("Inventory & Profit Reports")
 
@@ -213,7 +195,10 @@ class SalesReportsViewModel @Inject constructor(
             itemInvoices?.map {
                 totalCost += it.invoiceQuantity.times(it.invoiceCost)
                 quantitiesSold += it.invoiceQuantity
-                totalSale += if (priceWithTax) (it.getAmount() - it.getDiscountAmount()) else it.getNetAmount()
+                val itemSale = if (priceWithTax) (it.getAmount() - it.getDiscountAmount()) else it.getNetAmount()
+                val invDiscount = invoicesMap[it.invoiceHeaderId]?.invoiceHeadDiscount ?: 0.0
+                val invDiscountAmount = itemSale.times(invDiscount.times(0.01))
+                totalSale += itemSale - invDiscountAmount
             }
             val row = sheet.createRow(index + 1)
             row.createCell(0).setCellValue(item.itemName)
@@ -257,7 +242,10 @@ class SalesReportsViewModel @Inject constructor(
             var totalSale = 0.0
             filteredInvoiceItemMap[itemId]?.map {
                 quantitiesSold += it.invoiceQuantity
-                totalSale += if (priceWithTax) it.getAmount() else it.getNetAmount()
+                val itemSale = if (priceWithTax) it.getAmount() else it.getNetAmount()
+                val invDiscount = invoicesMap[it.invoiceHeaderId]?.invoiceHeadDiscount ?: 0.0
+                val invDiscountAmount = itemSale.times(invDiscount.times(0.01))
+                totalSale += itemSale - invDiscountAmount
             }
             val row = sheet.createRow(index + 1)
             row.createCell(0).setCellValue(item?.itemName ?: "N/A")
