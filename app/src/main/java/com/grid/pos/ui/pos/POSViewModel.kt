@@ -502,6 +502,8 @@ class POSViewModel @Inject constructor(
             posReceiptRepository.delete(posReceipt)
             invoiceItems.forEach { invoiceItem ->
                 invoiceRepository.delete(invoiceItem.invoice)
+                invoiceItem.invoiceItem.itemRemQty += invoiceItem.invoice.invoiceQuantity
+                itemRepository.update(invoiceItem.invoiceItem)
             }
             withContext(Dispatchers.Main) {
                 posState.value = posState.value.copy(
