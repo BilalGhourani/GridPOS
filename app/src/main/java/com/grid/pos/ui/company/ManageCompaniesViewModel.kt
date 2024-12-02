@@ -1,14 +1,13 @@
 package com.grid.pos.ui.company
 
 import androidx.lifecycle.viewModelScope
-import com.grid.pos.data.Company.Company
-import com.grid.pos.data.Company.CompanyRepository
-import com.grid.pos.data.Currency.Currency
-import com.grid.pos.data.Currency.CurrencyRepository
-import com.grid.pos.data.Family.FamilyRepository
-import com.grid.pos.data.PosPrinter.PosPrinterRepository
-import com.grid.pos.data.ThirdParty.ThirdPartyRepository
-import com.grid.pos.data.User.UserRepository
+import com.grid.pos.data.company.Company
+import com.grid.pos.data.company.CompanyRepository
+import com.grid.pos.data.currency.CurrencyRepository
+import com.grid.pos.data.family.FamilyRepository
+import com.grid.pos.data.posPrinter.PosPrinterRepository
+import com.grid.pos.data.thirdParty.ThirdPartyRepository
+import com.grid.pos.data.user.UserRepository
 import com.grid.pos.model.Event
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.BaseViewModel

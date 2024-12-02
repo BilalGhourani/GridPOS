@@ -27,9 +27,7 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
-import com.grid.pos.data.Family.Family
-import com.grid.pos.model.SettingsModel
-import com.grid.pos.ui.common.UIButton
+import com.grid.pos.data.family.Family
 import com.grid.pos.ui.theme.Grey
 import com.grid.pos.ui.theme.GridPOSTheme
 

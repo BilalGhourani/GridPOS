@@ -2,13 +2,13 @@ package com.grid.pos.ui.receipts
 
 import android.content.Context
 import androidx.lifecycle.viewModelScope
-import com.grid.pos.data.Currency.CurrencyRepository
+import com.grid.pos.data.currency.CurrencyRepository
 import com.grid.pos.data.DataModel
-import com.grid.pos.data.Receipt.Receipt
-import com.grid.pos.data.Receipt.ReceiptRepository
-import com.grid.pos.data.ThirdParty.ThirdParty
-import com.grid.pos.data.ThirdParty.ThirdPartyRepository
-import com.grid.pos.data.User.UserRepository
+import com.grid.pos.data.receipt.Receipt
+import com.grid.pos.data.receipt.ReceiptRepository
+import com.grid.pos.data.thirdParty.ThirdParty
+import com.grid.pos.data.thirdParty.ThirdPartyRepository
+import com.grid.pos.data.user.UserRepository
 import com.grid.pos.model.Event
 import com.grid.pos.model.PaymentTypeModel
 import com.grid.pos.model.ReportResult

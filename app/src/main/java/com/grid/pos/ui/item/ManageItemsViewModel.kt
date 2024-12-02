@@ -1,12 +1,12 @@
 package com.grid.pos.ui.item
 
 import androidx.lifecycle.viewModelScope
-import com.grid.pos.data.Currency.CurrencyRepository
-import com.grid.pos.data.Family.FamilyRepository
-import com.grid.pos.data.Invoice.InvoiceRepository
-import com.grid.pos.data.Item.Item
-import com.grid.pos.data.Item.ItemRepository
-import com.grid.pos.data.PosPrinter.PosPrinterRepository
+import com.grid.pos.data.currency.CurrencyRepository
+import com.grid.pos.data.family.FamilyRepository
+import com.grid.pos.data.invoice.InvoiceRepository
+import com.grid.pos.data.item.Item
+import com.grid.pos.data.item.ItemRepository
+import com.grid.pos.data.posPrinter.PosPrinterRepository
 import com.grid.pos.model.Event
 import com.grid.pos.ui.common.BaseViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel

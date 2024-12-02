@@ -3,21 +3,20 @@ package com.grid.pos
 import android.content.Intent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.lifecycle.viewModelScope
-import com.grid.pos.data.Company.Company
-import com.grid.pos.data.Company.CompanyRepository
-import com.grid.pos.data.Currency.Currency
-import com.grid.pos.data.Currency.CurrencyRepository
-import com.grid.pos.data.Family.Family
-import com.grid.pos.data.InvoiceHeader.InvoiceHeader
-import com.grid.pos.data.Item.Item
-import com.grid.pos.data.PosPrinter.PosPrinter
-import com.grid.pos.data.PosPrinter.PosPrinterRepository
-import com.grid.pos.data.PosReceipt.PosReceipt
-import com.grid.pos.data.Settings.SettingsRepository
-import com.grid.pos.data.ThirdParty.ThirdParty
-import com.grid.pos.data.ThirdParty.ThirdPartyRepository
-import com.grid.pos.data.User.User
-import com.grid.pos.data.User.UserRepository
+import com.grid.pos.data.company.Company
+import com.grid.pos.data.company.CompanyRepository
+import com.grid.pos.data.currency.Currency
+import com.grid.pos.data.currency.CurrencyRepository
+import com.grid.pos.data.family.Family
+import com.grid.pos.data.invoiceHeader.InvoiceHeader
+import com.grid.pos.data.item.Item
+import com.grid.pos.data.posPrinter.PosPrinter
+import com.grid.pos.data.posPrinter.PosPrinterRepository
+import com.grid.pos.data.posReceipt.PosReceipt
+import com.grid.pos.data.settings.SettingsRepository
+import com.grid.pos.data.thirdParty.ThirdParty
+import com.grid.pos.data.thirdParty.ThirdPartyRepository
+import com.grid.pos.data.user.User
 import com.grid.pos.interfaces.OnBarcodeResult
 import com.grid.pos.interfaces.OnGalleryResult
 import com.grid.pos.model.Event
@@ -43,8 +42,7 @@ class SharedViewModel @Inject constructor(
         private val currencyRepository: CurrencyRepository,
         private val companyRepository: CompanyRepository,
         private val thirdPartyRepository: ThirdPartyRepository,
-        private val posPrinterRepository: PosPrinterRepository,
-        private val userRepository: UserRepository
+        private val posPrinterRepository: PosPrinterRepository
 ) : BaseViewModel() {
     private val _mainActivityEvent = Channel<ActivityUIEvent>()
     val mainActivityEvent = _mainActivityEvent.receiveAsFlow()

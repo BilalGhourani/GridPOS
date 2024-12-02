@@ -1,9 +1,8 @@
 package com.grid.pos.ui.payments
 
-import com.grid.pos.data.DataModel
-import com.grid.pos.data.Payment.Payment
-import com.grid.pos.data.ThirdParty.ThirdParty
-import com.grid.pos.data.User.User
+import com.grid.pos.data.payment.Payment
+import com.grid.pos.data.thirdParty.ThirdParty
+import com.grid.pos.data.user.User
 import com.grid.pos.model.CurrencyModel
 import com.grid.pos.model.Event
 

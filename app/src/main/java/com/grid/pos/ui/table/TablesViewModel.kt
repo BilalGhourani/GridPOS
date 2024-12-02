@@ -1,8 +1,8 @@
 package com.grid.pos.ui.table
 
 import androidx.lifecycle.viewModelScope
-import com.grid.pos.data.InvoiceHeader.InvoiceHeaderRepository
-import com.grid.pos.data.User.UserRepository
+import com.grid.pos.data.invoiceHeader.InvoiceHeaderRepository
+import com.grid.pos.data.user.UserRepository
 import com.grid.pos.model.Event
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.model.TableModel

@@ -1,12 +1,11 @@
 package com.grid.pos.ui.adjustment
 
 import androidx.lifecycle.viewModelScope
-import com.grid.pos.data.Invoice.Invoice
-import com.grid.pos.data.Invoice.InvoiceRepository
-import com.grid.pos.data.InvoiceHeader.InvoiceHeader
-import com.grid.pos.data.InvoiceHeader.InvoiceHeaderRepository
-import com.grid.pos.data.Item.Item
-import com.grid.pos.data.Item.ItemRepository
+import com.grid.pos.data.invoice.InvoiceRepository
+import com.grid.pos.data.invoiceHeader.InvoiceHeader
+import com.grid.pos.data.invoiceHeader.InvoiceHeaderRepository
+import com.grid.pos.data.item.Item
+import com.grid.pos.data.item.ItemRepository
 import com.grid.pos.model.Event
 import com.grid.pos.ui.common.BaseViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel

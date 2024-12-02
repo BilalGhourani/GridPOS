@@ -49,7 +49,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.grid.pos.SharedViewModel
 import com.grid.pos.R
-import com.grid.pos.data.Currency.Currency
+import com.grid.pos.data.currency.Currency
 import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.UIImageButton

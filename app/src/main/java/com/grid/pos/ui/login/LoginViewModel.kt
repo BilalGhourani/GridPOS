@@ -1,12 +1,10 @@
 package com.grid.pos.ui.login
 
 import android.content.Context
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.grid.pos.App
-import com.grid.pos.data.Company.CompanyRepository
-import com.grid.pos.data.InvoiceHeader.InvoiceHeaderRepository
-import com.grid.pos.data.User.UserRepository
+import com.grid.pos.data.company.CompanyRepository
+import com.grid.pos.data.user.UserRepository
 import com.grid.pos.model.Event
 import com.grid.pos.model.LoginResponse
 import com.grid.pos.model.SettingsModel

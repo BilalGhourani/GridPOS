@@ -50,8 +50,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.grid.pos.SharedViewModel
 import com.grid.pos.R
-import com.grid.pos.data.Payment.Payment
-import com.grid.pos.data.ThirdParty.ThirdParty
+import com.grid.pos.data.payment.Payment
+import com.grid.pos.data.thirdParty.ThirdParty
 import com.grid.pos.model.CurrencyModel
 import com.grid.pos.model.PaymentTypeModel
 import com.grid.pos.model.PopupModel

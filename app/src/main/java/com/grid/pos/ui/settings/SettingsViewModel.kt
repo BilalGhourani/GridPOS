@@ -1,10 +1,8 @@
 package com.grid.pos.ui.settings
 
 import androidx.lifecycle.viewModelScope
-import com.grid.pos.data.Company.Company
-import com.grid.pos.data.Company.CompanyRepository
-import com.grid.pos.data.Settings.SettingsRepository
-import com.grid.pos.model.ReportCountry
+import com.grid.pos.data.company.Company
+import com.grid.pos.data.company.CompanyRepository
 import com.grid.pos.ui.common.BaseViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -14,8 +12,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
-    private val companyRepository: CompanyRepository,
-    private val settingsRepository: SettingsRepository
+        private val companyRepository: CompanyRepository
 ) : BaseViewModel() {
     private var localCompanies: MutableList<Company> = mutableListOf()
 

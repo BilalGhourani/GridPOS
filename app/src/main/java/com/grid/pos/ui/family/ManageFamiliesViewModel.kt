@@ -1,9 +1,9 @@
 package com.grid.pos.ui.family
 
 import androidx.lifecycle.viewModelScope
-import com.grid.pos.data.Family.Family
-import com.grid.pos.data.Family.FamilyRepository
-import com.grid.pos.data.Item.ItemRepository
+import com.grid.pos.data.family.Family
+import com.grid.pos.data.family.FamilyRepository
+import com.grid.pos.data.item.ItemRepository
 import com.grid.pos.model.Event
 import com.grid.pos.ui.common.BaseViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel

@@ -49,7 +49,7 @@ import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.common.InputImage
 import com.grid.pos.R
-import com.grid.pos.data.Item.Item
+import com.grid.pos.data.item.Item
 import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.UIAlertDialog

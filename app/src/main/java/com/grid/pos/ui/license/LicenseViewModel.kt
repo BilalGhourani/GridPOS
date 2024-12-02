@@ -4,8 +4,7 @@ import android.content.Context
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.grid.pos.data.InvoiceHeader.InvoiceHeader
-import com.grid.pos.data.InvoiceHeader.InvoiceHeaderRepository
+import com.grid.pos.data.invoiceHeader.InvoiceHeaderRepository
 import com.grid.pos.model.Event
 import com.grid.pos.utils.FileUtils
 import dagger.hilt.android.lifecycle.HiltViewModel

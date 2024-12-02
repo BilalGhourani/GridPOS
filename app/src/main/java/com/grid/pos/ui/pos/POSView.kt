@@ -69,9 +69,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.grid.pos.SharedViewModel
 import com.grid.pos.R
-import com.grid.pos.data.InvoiceHeader.InvoiceHeader
-import com.grid.pos.data.Item.Item
-import com.grid.pos.data.PosReceipt.PosReceipt
+import com.grid.pos.data.invoiceHeader.InvoiceHeader
+import com.grid.pos.data.item.Item
+import com.grid.pos.data.posReceipt.PosReceipt
 import com.grid.pos.interfaces.OnBarcodeResult
 import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.InvoiceItemModel

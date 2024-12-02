@@ -31,8 +31,8 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.grid.pos.SharedViewModel
-import com.grid.pos.data.Family.Family
-import com.grid.pos.data.Item.Item
+import com.grid.pos.data.family.Family
+import com.grid.pos.data.item.Item
 import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.family.CategoryListCell

@@ -23,10 +23,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.grid.pos.data.Currency.Currency
-import com.grid.pos.data.InvoiceHeader.InvoiceHeader
-import com.grid.pos.data.Item.Item
-import com.grid.pos.data.ThirdParty.ThirdParty
+import com.grid.pos.data.currency.Currency
+import com.grid.pos.data.invoiceHeader.InvoiceHeader
+import com.grid.pos.data.item.Item
+import com.grid.pos.data.thirdParty.ThirdParty
 import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.SearchableDropdownMenuEx

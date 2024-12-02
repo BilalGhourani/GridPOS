@@ -16,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -52,7 +53,7 @@ fun HomeView(
     )
     val context = LocalContext.current
     var isLogoutPopupShown by remember { mutableStateOf(false) }
-    var columnCount by remember { mutableStateOf(Utils.getColumnCount(context)) }
+    var columnCount by remember { mutableIntStateOf(Utils.getColumnCount(context)) }
     val keyboardController = LocalSoftwareKeyboardController.current
     val configuration = LocalConfiguration.current
     LaunchedEffect(configuration) {

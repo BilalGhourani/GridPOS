@@ -1,10 +1,9 @@
 package com.grid.pos.ui.currency
 
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.grid.pos.data.Currency.Currency
-import com.grid.pos.data.Currency.CurrencyRepository
-import com.grid.pos.data.InvoiceHeader.InvoiceHeaderRepository
+import com.grid.pos.data.currency.Currency
+import com.grid.pos.data.currency.CurrencyRepository
+import com.grid.pos.data.invoiceHeader.InvoiceHeaderRepository
 import com.grid.pos.model.Event
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.BaseViewModel

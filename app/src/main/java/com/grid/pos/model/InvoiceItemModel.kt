@@ -1,7 +1,7 @@
 package com.grid.pos.model
 
-import com.grid.pos.data.Invoice.Invoice
-import com.grid.pos.data.Item.Item
+import com.grid.pos.data.invoice.Invoice
+import com.grid.pos.data.item.Item
 import com.grid.pos.utils.Extension.isNullOrEmptyOrNullStr
 
 data class InvoiceItemModel(

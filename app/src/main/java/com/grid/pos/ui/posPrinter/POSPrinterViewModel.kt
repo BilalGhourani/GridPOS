@@ -1,9 +1,9 @@
 package com.grid.pos.ui.posPrinter
 
 import androidx.lifecycle.viewModelScope
-import com.grid.pos.data.Item.ItemRepository
-import com.grid.pos.data.PosPrinter.PosPrinter
-import com.grid.pos.data.PosPrinter.PosPrinterRepository
+import com.grid.pos.data.item.ItemRepository
+import com.grid.pos.data.posPrinter.PosPrinter
+import com.grid.pos.data.posPrinter.PosPrinterRepository
 import com.grid.pos.model.Event
 import com.grid.pos.ui.common.BaseViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel

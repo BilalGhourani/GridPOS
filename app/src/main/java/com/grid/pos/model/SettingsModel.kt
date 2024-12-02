@@ -3,10 +3,10 @@ package com.grid.pos.model
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.grid.pos.data.Company.Company
-import com.grid.pos.data.Currency.Currency
-import com.grid.pos.data.ThirdParty.ThirdParty
-import com.grid.pos.data.User.User
+import com.grid.pos.data.company.Company
+import com.grid.pos.data.currency.Currency
+import com.grid.pos.data.thirdParty.ThirdParty
+import com.grid.pos.data.user.User
 
 object SettingsModel {
     var currentUserId: String? = null

@@ -40,7 +40,7 @@ fun UIColorPicker(
 // Derived state for the color based on RGBA values
     val color by remember {
         derivedStateOf {
-            Color(red.value, green.value, blue.value, alpha.value)
+            Color(red.floatValue, green.floatValue, blue.floatValue, alpha.floatValue)
         }
     }
 

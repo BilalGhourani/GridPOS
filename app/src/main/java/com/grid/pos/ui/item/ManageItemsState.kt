@@ -1,9 +1,8 @@
 package com.grid.pos.ui.item
 
-import com.grid.pos.data.Company.Company
-import com.grid.pos.data.Family.Family
-import com.grid.pos.data.Item.Item
-import com.grid.pos.data.PosPrinter.PosPrinter
+import com.grid.pos.data.family.Family
+import com.grid.pos.data.item.Item
+import com.grid.pos.data.posPrinter.PosPrinter
 import com.grid.pos.model.CurrencyModel
 import com.grid.pos.model.Event
 

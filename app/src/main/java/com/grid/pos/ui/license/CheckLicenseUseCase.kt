@@ -3,10 +3,10 @@ package com.grid.pos.ui.license
 import android.content.Context
 import androidx.core.net.toUri
 import com.grid.pos.App
-import com.grid.pos.data.Company.Company
-import com.grid.pos.data.Company.CompanyRepository
-import com.grid.pos.data.InvoiceHeader.InvoiceHeader
-import com.grid.pos.data.InvoiceHeader.InvoiceHeaderRepository
+import com.grid.pos.data.company.Company
+import com.grid.pos.data.company.CompanyRepository
+import com.grid.pos.data.invoiceHeader.InvoiceHeader
+import com.grid.pos.data.invoiceHeader.InvoiceHeaderRepository
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.Constants
 import com.grid.pos.utils.CryptoUtils

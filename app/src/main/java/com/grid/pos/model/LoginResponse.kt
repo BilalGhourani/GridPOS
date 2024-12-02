@@ -1,6 +1,6 @@
 package com.grid.pos.model
 
-import com.grid.pos.data.User.User
+import com.grid.pos.data.user.User
 
 data class LoginResponse(
         val allUsersSize: Int = 0,

@@ -1,7 +1,7 @@
 package com.grid.pos.ui.pos
 
-import com.grid.pos.data.Currency.Currency
-import com.grid.pos.data.InvoiceHeader.InvoiceHeader
+import com.grid.pos.data.currency.Currency
+import com.grid.pos.data.invoiceHeader.InvoiceHeader
 import com.grid.pos.model.InvoiceItemModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.Utils

@@ -1,8 +1,8 @@
 package com.grid.pos.ui.company
 
-import com.grid.pos.data.Company.Company
-import com.grid.pos.data.Currency.Currency
-import com.grid.pos.data.PosPrinter.PosPrinter
+import com.grid.pos.data.company.Company
+import com.grid.pos.data.currency.Currency
+import com.grid.pos.data.posPrinter.PosPrinter
 import com.grid.pos.model.Event
 
 data class ManageCompaniesState(

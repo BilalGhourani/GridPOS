@@ -1,6 +1,6 @@
 package com.grid.pos.ui.user
 
-import com.grid.pos.data.User.User
+import com.grid.pos.data.user.User
 import com.grid.pos.model.Event
 
 data class ManageUsersState(

@@ -37,7 +37,7 @@ import androidx.navigation.compose.rememberNavController
 import com.grid.pos.ActivityUIEvent
 import com.grid.pos.SharedViewModel
 import com.grid.pos.R
-import com.grid.pos.data.Item.Item
+import com.grid.pos.data.item.Item
 import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.interfaces.OnActivityResult
 import com.grid.pos.interfaces.OnBarcodeResult

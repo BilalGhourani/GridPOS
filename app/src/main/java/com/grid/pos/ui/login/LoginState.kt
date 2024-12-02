@@ -1,6 +1,6 @@
 package com.grid.pos.ui.login
 
-import com.grid.pos.data.User.User
+import com.grid.pos.data.user.User
 import com.grid.pos.model.Event
 
 data class LoginState(

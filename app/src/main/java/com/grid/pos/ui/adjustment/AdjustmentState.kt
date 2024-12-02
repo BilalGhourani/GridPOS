@@ -1,6 +1,6 @@
 package com.grid.pos.ui.adjustment
 
-import com.grid.pos.data.Item.Item
+import com.grid.pos.data.item.Item
 import com.grid.pos.model.Event
 
 data class AdjustmentState(

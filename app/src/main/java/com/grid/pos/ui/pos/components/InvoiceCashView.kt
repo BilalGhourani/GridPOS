@@ -28,9 +28,9 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import com.grid.pos.data.Currency.Currency
-import com.grid.pos.data.InvoiceHeader.InvoiceHeader
-import com.grid.pos.data.PosReceipt.PosReceipt
+import com.grid.pos.data.currency.Currency
+import com.grid.pos.data.invoiceHeader.InvoiceHeader
+import com.grid.pos.data.posReceipt.PosReceipt
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.UIButton
 import com.grid.pos.utils.Utils

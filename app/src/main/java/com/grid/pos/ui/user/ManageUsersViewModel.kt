@@ -1,10 +1,10 @@
 package com.grid.pos.ui.user
 
 import androidx.lifecycle.viewModelScope
-import com.grid.pos.data.InvoiceHeader.InvoiceHeaderRepository
-import com.grid.pos.data.ThirdParty.ThirdPartyRepository
-import com.grid.pos.data.User.User
-import com.grid.pos.data.User.UserRepository
+import com.grid.pos.data.invoiceHeader.InvoiceHeaderRepository
+import com.grid.pos.data.thirdParty.ThirdPartyRepository
+import com.grid.pos.data.user.User
+import com.grid.pos.data.user.UserRepository
 import com.grid.pos.model.Event
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.BaseViewModel

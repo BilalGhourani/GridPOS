@@ -1,6 +1,6 @@
 package com.grid.pos.ui.currency
 
-import com.grid.pos.data.Currency.Currency
+import com.grid.pos.data.currency.Currency
 import com.grid.pos.model.Event
 
 data class ManageCurrenciesState(

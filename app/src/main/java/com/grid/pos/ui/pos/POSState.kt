@@ -1,11 +1,11 @@
 package com.grid.pos.ui.pos
 
-import com.grid.pos.data.Family.Family
-import com.grid.pos.data.InvoiceHeader.InvoiceHeader
-import com.grid.pos.data.Item.Item
-import com.grid.pos.data.PosPrinter.PosPrinter
-import com.grid.pos.data.ThirdParty.ThirdParty
-import com.grid.pos.data.User.User
+import com.grid.pos.data.family.Family
+import com.grid.pos.data.invoiceHeader.InvoiceHeader
+import com.grid.pos.data.item.Item
+import com.grid.pos.data.posPrinter.PosPrinter
+import com.grid.pos.data.thirdParty.ThirdParty
+import com.grid.pos.data.user.User
 import com.grid.pos.model.Event
 import com.grid.pos.model.InvoiceItemModel
 

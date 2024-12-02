@@ -7,11 +7,9 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import com.grid.pos.data.Item.Item
+import com.grid.pos.data.item.Item
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.theme.GridPOSTheme
-import com.grid.pos.utils.Utils
 
 @Composable
 fun ItemListCell(

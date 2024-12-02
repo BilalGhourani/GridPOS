@@ -1,6 +1,6 @@
 package com.grid.pos.ui.posPrinter
 
-import com.grid.pos.data.PosPrinter.PosPrinter
+import com.grid.pos.data.posPrinter.PosPrinter
 import com.grid.pos.model.Event
 
 data class POSPrinterState(

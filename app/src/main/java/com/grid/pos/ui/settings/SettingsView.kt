@@ -67,7 +67,7 @@ import com.grid.pos.SharedViewModel
 import com.grid.pos.App
 import com.grid.pos.BuildConfig
 import com.grid.pos.R
-import com.grid.pos.data.Company.Company
+import com.grid.pos.data.company.Company
 import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.PopupModel

@@ -1,6 +1,5 @@
 package com.grid.pos.ui.license
 
-import com.grid.pos.data.InvoiceHeader.InvoiceHeader
 import com.grid.pos.model.Event
 
 data class LicenseState(

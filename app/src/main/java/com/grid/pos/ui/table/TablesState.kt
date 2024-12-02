@@ -1,6 +1,6 @@
 package com.grid.pos.ui.table
 
-import com.grid.pos.data.InvoiceHeader.InvoiceHeader
+import com.grid.pos.data.invoiceHeader.InvoiceHeader
 import com.grid.pos.model.Event
 import com.grid.pos.model.TableModel
 
