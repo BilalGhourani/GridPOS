@@ -661,7 +661,7 @@ class InvoiceHeaderRepositoryImpl(
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
-                var invoice = invoiceHeaderDao.getInvoiceByTable(
+                val invoice = invoiceHeaderDao.getInvoiceByTable(
                     tableModel.table_name,
                     SettingsModel.getCompanyID() ?: ""
                 ) ?: InvoiceHeader()
@@ -676,7 +676,7 @@ class InvoiceHeaderRepositoryImpl(
                         finalTableModel = getTableIdByNumber(tableModel.table_name) ?: tableModel
                     }
 
-                    if (finalTableModel.table_locked == 1 && finalTableModel.table_id.isNotEmpty() && finalTableModel.table_inv_id.isNullOrEmpty()) {
+                    if (finalTableModel.table_locked == 1 && finalTableModel.table_id.isNotEmpty()) {
                         // if table is locked but not related to any invoice
                         return if (finalTableModel.table_user == SettingsModel.currentUser?.userUsername) {
                             //same user
