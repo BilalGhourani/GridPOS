@@ -10,40 +10,65 @@ import com.grid.pos.utils.Extension.getIntValue
 import com.grid.pos.utils.Extension.getObjectValue
 import com.grid.pos.utils.Extension.getStringValue
 import kotlinx.coroutines.tasks.await
+import java.sql.Timestamp
 import java.util.Date
 
 class ItemRepositoryImpl(
         private val itemDao: ItemDao
 ) : ItemRepository {
     override suspend fun insert(item: Item): Item {
-        if (SettingsModel.isConnectedToFireStore()) {
-            val docRef = FirebaseFirestore.getInstance().collection("st_item").add(item.getMap())
-                .await()
-            item.itemDocumentId = docRef.id
-        } else {
-            itemDao.insert(item)
+        when (SettingsModel.connectionType) {
+            CONNECTION_TYPE.FIRESTORE.key -> {
+                val docRef = FirebaseFirestore.getInstance().collection("st_item")
+                    .add(item.getMap()).await()
+                item.itemDocumentId = docRef.id
+            }
+
+            CONNECTION_TYPE.LOCAL.key -> {
+                itemDao.insert(item)
+            }
+
+            else -> {
+                insertByProcedure(item)
+            }
         }
         return item
     }
 
     override suspend fun delete(item: Item) {
-        if (SettingsModel.isConnectedToFireStore()) {
-            item.itemDocumentId?.let {
-                FirebaseFirestore.getInstance().collection("st_item").document(it).delete().await()
+        when (SettingsModel.connectionType) {
+            CONNECTION_TYPE.FIRESTORE.key -> {
+                item.itemDocumentId?.let {
+                    FirebaseFirestore.getInstance().collection("st_item").document(it).delete().await()
+                }
             }
-        } else {
-            itemDao.delete(item)
+
+            CONNECTION_TYPE.LOCAL.key -> {
+                itemDao.delete(item)
+            }
+
+            else -> {
+                deleteByProcedure(item)
+            }
         }
     }
 
     override suspend fun update(item: Item) {
-        if (SettingsModel.isConnectedToFireStore()) {
-            item.itemDocumentId?.let {
-                FirebaseFirestore.getInstance().collection("st_item").document(it)
-                    .update(item.getMap()).await()
+        when (SettingsModel.connectionType) {
+            CONNECTION_TYPE.FIRESTORE.key -> {
+                item.itemDocumentId?.let {
+                    FirebaseFirestore.getInstance().collection("st_item").document(it)
+                        .update(item.getMap()).await()
+                }
             }
-        } else {
-            itemDao.update(item)
+
+            CONNECTION_TYPE.LOCAL.key -> {
+                itemDao.update(item)
+            }
+
+            else -> {
+                updateByProcedure(item)
+            }
         }
     }
 
@@ -228,6 +253,251 @@ class ItemRepositoryImpl(
                 return null
             }
         }
+    }
+
+    private fun insertByProcedure(item: Item) {
+        val parameters = if (SettingsModel.isSqlServerWebDb) {
+            listOf(
+                "null_string_output",//@it_id
+                SettingsModel.getCompanyID(),//@it_cmp_id
+                item.itemName,//@it_name
+                item.itemFaId,//@it_fa_name
+                item.itemGroup,//@it_group
+                SettingsModel.defaultSqlServerBranch,//@it_bra_name
+                null,//@it_br_name
+                null,//@it_unit
+                item.itemCurrencyId,//@it_cur_code
+                item.itemUnitPrice,//@it_unitprice
+                item.itemTax,//@it_vat
+                item.itemBarcode,//@it_barcode
+                null,//@it_alertqty
+                null,//@it_di_name
+                false,//@it_inactive
+                SettingsModel.currentCompany?.cmp_multibranchcode,//@branchcode
+                null,//@it_size
+                item.itemBtnColor,//@it_color
+                null,//@it_code
+                null,//@it_points
+                null,//@it_div_name
+                null,//@it_image
+                null,//@it_profit
+                null,//@it_profrule
+                item.itemOpenQty,//@openqty
+                item.itemOpenCost,//@opencost
+                SettingsModel.currentUser?.userUsername,//@it_userstamp
+                SettingsModel.defaultSqlServerWarehouse,//@mainwarehouse
+                item.itemCurrencyId,//@firstcurr
+                null,//@secondcurr
+                Timestamp(System.currentTimeMillis()),//@dateyearstart
+                null,//@it_altname
+                null,//@it_wa_name
+                false,//@it_specialcode
+                null,//@it_commission
+                null,//@it_minprice
+                item.itemRemQty,//@it_remqty
+                null,//@it_cost
+                null,//@it_lastsuppliername
+                null,//@it_lastsupplierprice
+                null,//@it_cashback
+                item.itemTax1,//@it_tax1
+                item.itemTax2,//@it_tax2
+                null,//@it_maxqty
+                item.itemPos,//@it_pos
+                null,//@it_desc
+                null,//@it_type
+                null,//@it_online
+                null,//@it_digitalmenu
+            )
+        } else {
+            listOf(
+                SettingsModel.getCompanyID(),//@it_cmp_id
+                item.itemName,//@it_name
+                item.itemFaId,//@it_fa_name
+                item.itemGroup,//@it_group
+                SettingsModel.defaultSqlServerBranch,//@it_bra_name
+                null,//@it_br_name
+                null,//@it_unit
+                item.itemCurrencyId,//@it_cur_code
+                item.itemUnitPrice,//@it_unitprice
+                item.itemTax,//@it_vat
+                item.itemBarcode,//@it_barcode
+                null,//@it_alertqty
+                null,//@it_di_name
+                false,//@it_inactive
+                SettingsModel.currentCompany?.cmp_multibranchcode,//@branchcode
+                null,//@it_size
+                item.itemBtnColor,//@it_color
+                null,//@it_code
+                null,//@it_points
+                null,//@it_div_name
+                null,//@it_image
+                null,//@it_profit
+                null,//@it_profrule
+                item.itemOpenQty,//@openqty
+                item.itemOpenCost,//@opencost
+                SettingsModel.currentUser?.userUsername,//@it_userstamp
+                SettingsModel.defaultSqlServerWarehouse,//@mainwarehouse
+                item.itemCurrencyId,//@firstcurr
+                null,//@secondcurr
+                Timestamp(System.currentTimeMillis()),//@dateyearstart
+                null,//@it_altname
+                null,//@it_wa_name
+                false,//@it_specialcode
+                null,//@it_commission
+                null,//@it_minprice
+                item.itemRemQty,//@it_remqty
+                null,//@it_cost
+                null,//@it_lastsuppliername
+                null,//@it_lastsupplierprice
+                null,//@it_cashback
+                item.itemTax1,//@it_tax1
+                item.itemTax2,//@it_tax2
+                null,//@it_maxqty
+            )
+        }
+        val id = SQLServerWrapper.executeProcedure(
+            "addst_item",
+            parameters
+        )
+        if (id.isNullOrEmpty()) {
+            try {
+                val dbResult = SQLServerWrapper.getQueryResult("select max(it_id) as id from st_item")
+                dbResult?.let {
+                    while (it.next()) {
+                        item.itemId = it.getStringValue(
+                            "id",
+                            item.itemId
+                        )
+                    }
+                    SQLServerWrapper.closeResultSet(it)
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        } else {
+            item.itemId = id
+        }
+    }
+
+    private fun updateByProcedure(
+            item: Item
+    ): String {
+        val parameters = if (SettingsModel.isSqlServerWebDb) {
+            listOf(
+                item.itemId,//@@it_id
+                SettingsModel.getCompanyID(),//@it_cmp_id
+                item.itemName,//@it_name
+                item.itemFaId,//@it_fa_name
+                item.itemGroup,//@it_group
+                SettingsModel.defaultSqlServerBranch,//@it_bra_name
+                null,//@it_br_name
+                null,//@it_unit
+                item.itemCurrencyId,//@it_cur_code
+                item.itemUnitPrice,//@it_unitprice
+                item.itemTax,//@it_vat
+                item.itemBarcode,//@it_barcode
+                null,//@it_alertqty
+                null,//@it_di_name
+                false,//@it_inactive
+                null,//@it_size
+                item.itemBtnColor,//@it_color
+                null,//@it_code
+                null,//@it_points
+                null,//@it_div_name
+                null,//@it_image
+                null,//@it_profit
+                null,//@it_profrule
+                item.itemOpenQty,//@openqty
+                item.itemOpenCost,//@opencost
+                SettingsModel.currentUser?.userUsername,//@it_userstamp
+                SettingsModel.defaultSqlServerWarehouse,//@mainwarehouse
+                item.itemCurrencyId,//@firstcurr
+                null,//@secondcurr
+                Timestamp(System.currentTimeMillis()),//@dateyearstart
+                SettingsModel.currentCompany?.cmp_multibranchcode,//@branchcode
+                null,//@it_altname
+                null,//@it_wa_name
+                false,//@it_specialcode
+                null,//@it_commission
+                null,//@it_minprice
+                item.itemRemQty,//@it_remqty
+                null,//@it_cost
+                null,//@it_lastsuppliername
+                null,//@it_lastsupplierprice
+                null,//@it_cashback
+                item.itemTax1,//@it_tax1
+                item.itemTax2,//@it_tax2
+                null,//@it_maxqty
+                null,//@it_order
+                item.itemPos,//@it_pos
+                null,//@it_desc
+                null,//@it_type
+                null,//@it_online
+                null,//@it_digitalmenu
+            )
+        } else {
+            listOf(
+                item.itemId,//@@it_id
+                SettingsModel.getCompanyID(),//@it_cmp_id
+                item.itemName,//@it_name
+                item.itemFaId,//@it_fa_name
+                item.itemGroup,//@it_group
+                SettingsModel.defaultSqlServerBranch,//@it_bra_name
+                null,//@it_br_name
+                null,//@it_unit
+                item.itemCurrencyId,//@it_cur_code
+                item.itemUnitPrice,//@it_unitprice
+                item.itemTax,//@it_vat
+                item.itemBarcode,//@it_barcode
+                null,//@it_alertqty
+                null,//@it_di_name
+                false,//@it_inactive
+                null,//@it_size
+                item.itemBtnColor,//@it_color
+                null,//@it_code
+                null,//@it_points
+                null,//@it_div_name
+                null,//@it_image
+                null,//@it_profit
+                null,//@it_profrule
+                item.itemOpenQty,//@openqty
+                item.itemOpenCost,//@opencost
+                SettingsModel.currentUser?.userUsername,//@it_userstamp
+                SettingsModel.defaultSqlServerWarehouse,//@mainwarehouse
+                item.itemCurrencyId,//@firstcurr
+                null,//@secondcurr
+                Timestamp(System.currentTimeMillis()),//@dateyearstart
+                SettingsModel.currentCompany?.cmp_multibranchcode,//@branchcode
+                null,//@it_altname
+                null,//@it_wa_name
+                false,//@it_specialcode
+                null,//@it_commission
+                null,//@it_minprice
+                item.itemRemQty,//@it_remqty
+                null,//@it_cost
+                null,//@it_lastsuppliername
+                null,//@it_lastsupplierprice
+                null,//@it_cashback
+                item.itemTax1,//@it_tax1
+                item.itemTax2,//@it_tax2
+                null,//@it_maxqty
+            )
+        }
+        return SQLServerWrapper.executeProcedure(
+            "updst_item",
+            parameters
+        ) ?: ""
+    }
+
+    private fun deleteByProcedure(item: Item): String {
+        return SQLServerWrapper.executeProcedure(
+            "delst_item",
+            listOf(
+                item.itemId,
+                item.itemUserStamp,
+                SettingsModel.currentCompany?.cmp_multibranchcode
+            )
+        ) ?: ""
     }
 
 }

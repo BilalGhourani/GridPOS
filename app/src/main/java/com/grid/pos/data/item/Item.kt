@@ -52,6 +52,10 @@ data class Item(
         @get:PropertyName("it_fa_id")
         var itemFaId: String? = null,
 
+        @Ignore
+        @get:Exclude
+        var itemGroup: String? = null,
+
         /**
          * Item name
          * */

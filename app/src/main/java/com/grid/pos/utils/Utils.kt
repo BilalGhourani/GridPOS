@@ -12,7 +12,6 @@ import androidx.compose.ui.unit.dp
 import androidx.core.graphics.blue
 import androidx.core.graphics.green
 import androidx.core.graphics.red
-import com.grid.pos.BuildConfig
 import com.grid.pos.R
 import com.grid.pos.data.DataModel
 import com.grid.pos.model.CONNECTION_TYPE
@@ -51,8 +50,8 @@ object Utils {
         OrientationModel(ORIENTATION_TYPE.DEVICE_SENSOR.key)
     )
 
-    var isTablet: Boolean? = null;
-    var isDeviceLargerThan7Inches: Boolean? = null;
+    private var isTablet: Boolean? = null
+    private var isDeviceLargerThan7Inches: Boolean? = null
 
     fun getColumnCount(context: Context): Int {
         return if (!Constants.SHOW_ALL_SCREENS_FOR_SQL_SERVER && SettingsModel.isConnectedToSqlServer()) {
@@ -91,6 +90,21 @@ object Utils {
                             "Setup Reports",
                             "ReportsListView"
                         )
+                    )
+                ),
+                HomeCategoryModel(
+                    title = "Items",
+                    items = listOf(
+                        HomeItemModel(
+                            R.drawable.items,
+                            "Item",
+                            "ManageItemsView"
+                        )/*,
+                        HomeItemModel(
+                            R.drawable.families,
+                            "Family",
+                            "ManageFamiliesView"
+                        )*/
                     )
                 ),
                 HomeCategoryModel(
