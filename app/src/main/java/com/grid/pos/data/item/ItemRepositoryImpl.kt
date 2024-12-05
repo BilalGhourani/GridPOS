@@ -5,6 +5,7 @@ import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.DateHelper
+import com.grid.pos.utils.Extension.getBooleanValue
 import com.grid.pos.utils.Extension.getDoubleValue
 import com.grid.pos.utils.Extension.getIntValue
 import com.grid.pos.utils.Extension.getObjectValue
@@ -73,21 +74,33 @@ class ItemRepositoryImpl(
     }
 
     override suspend fun update(items: List<Item>) {
-        if (SettingsModel.isConnectedToFireStore()) {
-            val db = FirebaseFirestore.getInstance()
-            val batch = db.batch()
-            for (item in items) {
-                val modelRef = db.collection("st_item")
-                    .document(item.itemDocumentId!!) // Assuming `id` is the document ID
-                batch.update(
-                    modelRef,
-                    item.getMap()
-                )
+        when (SettingsModel.connectionType) {
+            CONNECTION_TYPE.FIRESTORE.key -> {
+                val db = FirebaseFirestore.getInstance()
+                val batch = db.batch()
+                for (item in items) {
+                    val modelRef = db.collection("st_item")
+                        .document(item.itemDocumentId!!) // Assuming `id` is the document ID
+                    batch.update(
+                        modelRef,
+                        item.getMap()
+                    )
+                }
+                batch.commit().await()
             }
-            batch.commit().await()
-        } else {
-            itemDao.update(items)
+
+            CONNECTION_TYPE.LOCAL.key -> {
+                itemDao.update(items)
+            }
+
+            else -> {
+                items.forEach {item->
+                    updateByProcedure(item)
+                }
+
+            }
         }
+
     }
 
     override suspend fun getAllItems(): MutableList<Item> {
@@ -144,11 +157,33 @@ class ItemRepositoryImpl(
                                 itemFaId = it.getStringValue("it_fa_name")
                                 itemName = it.getStringValue("it_name")
                                 itemBarcode = it.getStringValue("it_barcode")
-                                it_div_name = it.getStringValue(
-                                    "it_div_name",
-                                    "null"
-                                )
                                 it_cashback = it.getDoubleValue("it_cashback")
+                                itemGroup = it.getStringValue("it_group")
+                                itemAlertQty = it.getDoubleValue("it_alertqty",1.0)
+                                itemInactive = it.getBooleanValue("it_inactive",false)
+                                itemSize = it.getStringValue("it_size").ifEmpty { null }
+                                itemCode = it.getStringValue("it_code").ifEmpty { null }
+                                itemDivName = it.getStringValue("it_div_name").ifEmpty { null }
+                                itemPoints = it.getIntValue("it_points")
+                                itemProfit = it.getDoubleValue("it_profit")
+                                itemProfitRule = it.getStringValue("it_profrule").ifEmpty { null }
+                                itemAltName = it.getStringValue("it_altname").ifEmpty { null }
+                                itemWarehouseName = it.getStringValue("it_wa_name").ifEmpty { null }
+                                itemSpecialCode = it.getBooleanValue("it_specialcode")
+                                itemCommission = it.getDoubleValue("it_commission")
+                                itemMinPrice = it.getDoubleValue("it_minprice")
+                                itemMaxQty = it.getDoubleValue("it_maxqty")
+                                itemLastSupplierName = it.getStringValue("it_lastsuppliername").ifEmpty { null }
+                                itemLastSupplierPrice = it.getDoubleValue("it_lastsupplierprice")
+                                itemOrder = it.getIntValue("it_order")
+                                itemDesc = it.getStringValue("it_desc").ifEmpty { null }
+                                itemType = it.getStringValue("it_type").ifEmpty { null }
+                                itemOnline = it.getBooleanValue("it_online")
+                                itemDigitalMenu = it.getBooleanValue("it_digitalmenu")
+                                itemBrand = it.getStringValue("it_br_name").ifEmpty { null }
+                                itemUnit = it.getStringValue("it_unit").ifEmpty { null }
+                                itemDiName = it.getStringValue("it_di_name").ifEmpty { null }
+
 
                                 itemTax = it.getDoubleValue("it_vat")
                                 itemTax1 = it.getDoubleValue("it_tax1")
@@ -156,6 +191,7 @@ class ItemRepositoryImpl(
                                 itemPrinter = it.getStringValue("it_di_name")
                                 itemOpenQty = it.getDoubleValue("it_maxqty")
                                 itemRemQty = it.getDoubleValue("it_remqty")
+                                itemMaxQty = it.getDoubleValue("it_remqty")
                                 itemPos = it.getIntValue(
                                     "it_pos",
                                     1
@@ -174,6 +210,7 @@ class ItemRepositoryImpl(
                                 }
                                 itemDateTime = itemTimeStamp!!.time
                                 itemUserStamp = it.getStringValue("it_userstamp")
+                                itemImage = it.getStringValue("it_image")
                                 itemCurrencyId = it.getStringValue("it_cur_code")
                                 itemCurrencyCode = if (SettingsModel.isSqlServerWebDb) it.getStringValue("cur_newcode")
                                 else it.getStringValue("it_cur_code")
@@ -264,24 +301,24 @@ class ItemRepositoryImpl(
                 item.itemFaId,//@it_fa_name
                 item.itemGroup,//@it_group
                 SettingsModel.defaultSqlServerBranch,//@it_bra_name
-                null,//@it_br_name
-                null,//@it_unit
+                item.itemBrand,//@it_br_name
+                item.itemUnit,//@it_unit
                 item.itemCurrencyId,//@it_cur_code
                 item.itemUnitPrice,//@it_unitprice
                 item.itemTax,//@it_vat
                 item.itemBarcode,//@it_barcode
-                null,//@it_alertqty
-                null,//@it_di_name
-                false,//@it_inactive
+                item.itemAlertQty,//@it_alertqty
+                item.itemDiName,//@it_di_name
+                item.itemInactive,//@it_inactive
                 SettingsModel.currentCompany?.cmp_multibranchcode,//@branchcode
-                null,//@it_size
+                item.itemSize,//@it_size
                 item.itemBtnColor,//@it_color
-                null,//@it_code
-                null,//@it_points
-                null,//@it_div_name
-                null,//@it_image
-                null,//@it_profit
-                null,//@it_profrule
+                item.itemCode,//@it_code
+                item.itemPoints,//@it_points
+                item.itemDivName,//@it_div_name
+                item.itemImage,//@it_image
+                item.itemProfit,//@it_profit
+                item.itemProfitRule,//@it_profrule
                 item.itemOpenQty,//@openqty
                 item.itemOpenCost,//@opencost
                 SettingsModel.currentUser?.userUsername,//@it_userstamp
@@ -289,24 +326,24 @@ class ItemRepositoryImpl(
                 item.itemCurrencyId,//@firstcurr
                 null,//@secondcurr
                 Timestamp(System.currentTimeMillis()),//@dateyearstart
-                null,//@it_altname
-                null,//@it_wa_name
-                false,//@it_specialcode
-                null,//@it_commission
-                null,//@it_minprice
+                item.itemAltName,//@it_altname
+                item.itemWarehouseName,//@it_wa_name
+                item.itemSpecialCode,//@it_specialcode
+                item.itemCommission,//@it_commission
+                item.itemMinPrice,//@it_minprice
                 item.itemRemQty,//@it_remqty
-                null,//@it_cost
-                null,//@it_lastsuppliername
-                null,//@it_lastsupplierprice
-                null,//@it_cashback
+                item.itemOpenCost,//@it_cost
+                item.itemLastSupplierName,//@it_lastsuppliername
+                item.itemLastSupplierPrice,//@it_lastsupplierprice
+                item.it_cashback,//@it_cashback
                 item.itemTax1,//@it_tax1
                 item.itemTax2,//@it_tax2
-                null,//@it_maxqty
+                item.itemMaxQty,//@it_maxqty
                 item.itemPos,//@it_pos
-                null,//@it_desc
-                null,//@it_type
-                null,//@it_online
-                null,//@it_digitalmenu
+                item.itemDesc,//@it_desc
+                item.itemType,//@it_type
+                item.itemOnline,//@it_online
+                item.itemDigitalMenu,//@it_digitalmenu
             )
         } else {
             listOf(
@@ -315,24 +352,24 @@ class ItemRepositoryImpl(
                 item.itemFaId,//@it_fa_name
                 item.itemGroup,//@it_group
                 SettingsModel.defaultSqlServerBranch,//@it_bra_name
-                null,//@it_br_name
-                null,//@it_unit
+                item.itemBrand,//@it_br_name
+                item.itemUnit,//@it_unit
                 item.itemCurrencyId,//@it_cur_code
                 item.itemUnitPrice,//@it_unitprice
                 item.itemTax,//@it_vat
                 item.itemBarcode,//@it_barcode
-                null,//@it_alertqty
-                null,//@it_di_name
-                false,//@it_inactive
+                item.itemAlertQty,//@it_alertqty
+                item.itemDiName,//@it_di_name
+                item.itemInactive,//@it_inactive
                 SettingsModel.currentCompany?.cmp_multibranchcode,//@branchcode
-                null,//@it_size
+                item.itemSize,//@it_size
                 item.itemBtnColor,//@it_color
-                null,//@it_code
-                null,//@it_points
-                null,//@it_div_name
-                null,//@it_image
-                null,//@it_profit
-                null,//@it_profrule
+                item.itemCode,//@it_code
+                item.itemPoints,//@it_points
+                item.itemDivName,//@it_div_name
+                item.itemImage,//@it_image
+                item.itemProfit,//@it_profit
+                item.itemProfitRule,//@it_profrule
                 item.itemOpenQty,//@openqty
                 item.itemOpenCost,//@opencost
                 SettingsModel.currentUser?.userUsername,//@it_userstamp
@@ -340,19 +377,19 @@ class ItemRepositoryImpl(
                 item.itemCurrencyId,//@firstcurr
                 null,//@secondcurr
                 Timestamp(System.currentTimeMillis()),//@dateyearstart
-                null,//@it_altname
-                null,//@it_wa_name
-                false,//@it_specialcode
-                null,//@it_commission
-                null,//@it_minprice
+                item.itemAltName,//@it_altname
+                item.itemWarehouseName,//@it_wa_name
+                item.itemSpecialCode,//@it_specialcode
+                item.itemCommission,//@it_commission
+                item.itemMinPrice,//@it_minprice
                 item.itemRemQty,//@it_remqty
-                null,//@it_cost
-                null,//@it_lastsuppliername
-                null,//@it_lastsupplierprice
-                null,//@it_cashback
+                item.itemOpenCost,//@it_cost
+                item.itemLastSupplierName,//@it_lastsuppliername
+                item.itemLastSupplierPrice,//@it_lastsupplierprice
+                item.it_cashback,//@it_cashback
                 item.itemTax1,//@it_tax1
                 item.itemTax2,//@it_tax2
-                null,//@it_maxqty
+                item.itemMaxQty,//@it_maxqty
             )
         }
         val id = SQLServerWrapper.executeProcedure(
@@ -390,23 +427,23 @@ class ItemRepositoryImpl(
                 item.itemFaId,//@it_fa_name
                 item.itemGroup,//@it_group
                 SettingsModel.defaultSqlServerBranch,//@it_bra_name
-                null,//@it_br_name
-                null,//@it_unit
+                item.itemBrand,//@it_br_name
+                item.itemUnit,//@it_unit
                 item.itemCurrencyId,//@it_cur_code
                 item.itemUnitPrice,//@it_unitprice
                 item.itemTax,//@it_vat
                 item.itemBarcode,//@it_barcode
-                null,//@it_alertqty
-                null,//@it_di_name
-                false,//@it_inactive
-                null,//@it_size
+                item.itemAlertQty,//@it_alertqty
+                item.itemDiName,//@it_di_name
+                item.itemInactive,//@it_inactive
+                item.itemSize,//@it_size
                 item.itemBtnColor,//@it_color
-                null,//@it_code
-                null,//@it_points
-                null,//@it_div_name
-                null,//@it_image
-                null,//@it_profit
-                null,//@it_profrule
+                item.itemCode,//@it_code
+                item.itemPoints,//@it_points
+                item.itemDivName,//@it_div_name
+                item.itemImage,//@it_image
+                item.itemProfit,//@it_profit
+                item.itemProfitRule,//@it_profrule
                 item.itemOpenQty,//@openqty
                 item.itemOpenCost,//@opencost
                 SettingsModel.currentUser?.userUsername,//@it_userstamp
@@ -415,25 +452,25 @@ class ItemRepositoryImpl(
                 null,//@secondcurr
                 Timestamp(System.currentTimeMillis()),//@dateyearstart
                 SettingsModel.currentCompany?.cmp_multibranchcode,//@branchcode
-                null,//@it_altname
-                null,//@it_wa_name
-                false,//@it_specialcode
-                null,//@it_commission
-                null,//@it_minprice
+                item.itemAltName,//@it_altname
+                item.itemWarehouseName,//@it_wa_name
+                item.itemSpecialCode,//@it_specialcode
+                item.itemCommission,//@it_commission
+                item.itemMinPrice,//@it_minprice
                 item.itemRemQty,//@it_remqty
-                null,//@it_cost
-                null,//@it_lastsuppliername
-                null,//@it_lastsupplierprice
-                null,//@it_cashback
+                item.itemOpenCost,//@it_cost
+                item.itemLastSupplierName,//@it_lastsuppliername
+                item.itemLastSupplierPrice,//@it_lastsupplierprice
+                item.it_cashback,//@it_cashback
                 item.itemTax1,//@it_tax1
                 item.itemTax2,//@it_tax2
-                null,//@it_maxqty
-                null,//@it_order
+                item.itemMaxQty,//@it_maxqty
+                item.itemOrder,//@it_order
                 item.itemPos,//@it_pos
-                null,//@it_desc
-                null,//@it_type
-                null,//@it_online
-                null,//@it_digitalmenu
+                item.itemDesc,//@it_desc
+                item.itemType,//@it_type
+                item.itemOnline,//@it_online
+                item.itemDigitalMenu,//@it_digitalmenu
             )
         } else {
             listOf(
@@ -443,44 +480,44 @@ class ItemRepositoryImpl(
                 item.itemFaId,//@it_fa_name
                 item.itemGroup,//@it_group
                 SettingsModel.defaultSqlServerBranch,//@it_bra_name
-                null,//@it_br_name
-                null,//@it_unit
+                item.itemBrand,//@it_br_name
+                item.itemUnit,//@it_unit
                 item.itemCurrencyId,//@it_cur_code
                 item.itemUnitPrice,//@it_unitprice
                 item.itemTax,//@it_vat
                 item.itemBarcode,//@it_barcode
-                null,//@it_alertqty
-                null,//@it_di_name
-                false,//@it_inactive
-                null,//@it_size
+                item.itemAlertQty,//@it_alertqty
+                item.itemDiName,//@it_di_name
+                item.itemInactive,//@it_inactive
+                item.itemSize,//@it_size
                 item.itemBtnColor,//@it_color
-                null,//@it_code
-                null,//@it_points
-                null,//@it_div_name
-                null,//@it_image
-                null,//@it_profit
-                null,//@it_profrule
+                item.itemCode,//@it_code
+                item.itemPoints,//@it_points
+                item.itemDivName,//@it_div_name
+                item.itemImage,//@it_image
+                item.itemProfit,//@it_profit
+                item.itemProfitRule,//@it_profrule
                 item.itemOpenQty,//@openqty
                 item.itemOpenCost,//@opencost
                 SettingsModel.currentUser?.userUsername,//@it_userstamp
-                SettingsModel.defaultSqlServerWarehouse,//@mainwarehouse
+                item.itemWarehouseName?:SettingsModel.defaultSqlServerWarehouse,//@mainwarehouse
                 item.itemCurrencyId,//@firstcurr
                 null,//@secondcurr
                 Timestamp(System.currentTimeMillis()),//@dateyearstart
                 SettingsModel.currentCompany?.cmp_multibranchcode,//@branchcode
-                null,//@it_altname
-                null,//@it_wa_name
-                false,//@it_specialcode
-                null,//@it_commission
-                null,//@it_minprice
+                item.itemAltName,//@it_altname
+                item.itemWarehouseName,//@it_wa_name
+                item.itemSpecialCode,//@it_specialcode
+                item.itemCommission,//@it_commission
+                item.itemMinPrice,//@it_minprice
                 item.itemRemQty,//@it_remqty
-                null,//@it_cost
-                null,//@it_lastsuppliername
-                null,//@it_lastsupplierprice
-                null,//@it_cashback
+                item.itemOpenCost,//@it_cost
+                item.itemLastSupplierName,//@it_lastsuppliername
+                item.itemLastSupplierPrice,//@it_lastsupplierprice
+                item.it_cashback,//@it_cashback
                 item.itemTax1,//@it_tax1
                 item.itemTax2,//@it_tax2
-                null,//@it_maxqty
+                item.itemMaxQty,//@it_maxqty
             )
         }
         return SQLServerWrapper.executeProcedure(

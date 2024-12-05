@@ -30,10 +30,6 @@ data class Item(
 
         @Ignore
         @get:Exclude
-        var it_div_name: String? = null,
-
-        @Ignore
-        @get:Exclude
         var it_cashback: Double = 0.0,
 
         /**
@@ -55,6 +51,23 @@ data class Item(
         @Ignore
         @get:Exclude
         var itemGroup: String? = null,
+
+        @Ignore
+        @get:Exclude
+        var itemBrand: String? = null,
+
+        @Ignore
+        @get:Exclude
+        var itemUnit: String? = null,
+
+        @Ignore
+        @get:Exclude
+        var itemDiName: String? = null,
+
+
+        @Ignore
+        @get:Exclude
+        var itemInactive: Boolean? = null,
 
         /**
          * Item name
@@ -83,6 +96,10 @@ data class Item(
         @Ignore
         @get:Exclude
         var itemRealUnitPrice: Double = 0.0,
+
+        @Ignore
+        @get:Exclude
+        var itemMinPrice: Double = 0.0,
 
         /**
          * Item unit price
@@ -144,6 +161,14 @@ data class Item(
         @get:PropertyName("it_remqty")
         var itemRemQty: Double = 0.0,
 
+        @Ignore
+        @get:Exclude
+        var itemAlertQty: Double? = null,
+
+        @Ignore
+        @get:Exclude
+        var itemMaxQty: Double? = null,
+
         /**
          * Item open cost
          * */
@@ -167,6 +192,74 @@ data class Item(
         @set:PropertyName("it_image")
         @get:PropertyName("it_image")
         var itemImage: String? = null,
+
+        @Ignore
+        @get:Exclude
+        var itemCode: String? = null,
+
+        @Ignore
+        @get:Exclude
+        var itemPoints: Int? = null,
+
+        @Ignore
+        @get:Exclude
+        var itemDivName: String? = null,
+
+        @Ignore
+        @get:Exclude
+        var itemSize: String? = null,
+
+        @Ignore
+        @get:Exclude
+        var itemProfit: Double? = null,
+
+        @Ignore
+        @get:Exclude
+        var itemProfitRule: String? = null,
+
+        @Ignore
+        @get:Exclude
+        var itemAltName: String? = null,
+
+        @Ignore
+        @get:Exclude
+        var itemWarehouseName: String? = null,
+
+        @Ignore
+        @get:Exclude
+        var itemSpecialCode: Boolean? = null,
+
+        @Ignore
+        @get:Exclude
+        var itemCommission: Double? = null,
+
+        @Ignore
+        @get:Exclude
+        var itemLastSupplierName: String? = null,
+
+        @Ignore
+        @get:Exclude
+        var itemLastSupplierPrice: Double? = null,
+
+        @Ignore
+        @get:Exclude
+        var itemOrder: Int? = null,
+
+        @Ignore
+        @get:Exclude
+        var itemDesc: String? = null,
+
+        @Ignore
+        @get:Exclude
+        var itemType: String? = null,
+
+        @Ignore
+        @get:Exclude
+        var itemOnline: Boolean? = null,
+
+        @Ignore
+        @get:Exclude
+        var itemDigitalMenu: Boolean? = null,
 
         /**
          * Item button color

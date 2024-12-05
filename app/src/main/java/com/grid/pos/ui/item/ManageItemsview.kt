@@ -67,6 +67,7 @@ import com.grid.pos.data.posPrinter.PosPrinter
 import com.grid.pos.interfaces.OnBarcodeResult
 import com.grid.pos.interfaces.OnGalleryResult
 import com.grid.pos.model.CurrencyModel
+import com.grid.pos.model.ItemGroupModel
 import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.ColorPickerPopup
@@ -126,6 +127,7 @@ fun ManageItemsView(
     var openCostState by remember { mutableStateOf("") }
     var openQtyState by remember { mutableStateOf("") }
     var remQtyState by remember { mutableStateOf("") }
+    var itemGroupState by remember { mutableStateOf("") }
     var itemCurrState by remember { mutableStateOf("") }
     var familyIdState by remember { mutableStateOf("") }
     var btnColorState by remember { mutableStateOf("") }
@@ -174,8 +176,35 @@ fun ManageItemsView(
         }
     }
 
+    LaunchedEffect(state.groups) {
+        if (itemGroupState == "" && state.groups.isNotEmpty()) {
+            itemGroupState = state.groups[0].groupName
+        }
+    }
+
     LaunchedEffect(state.isLoading) {
         sharedViewModel.showLoading(state.isLoading)
+    }
+
+    fun fillItemInputs(item: Item) {
+        viewModel.currentITem = item.copy()
+        state.selectedItem = item
+        nameState = item.itemName ?: ""
+        unitPriceState = item.itemUnitPrice.toString()
+        taxState = item.itemTax.toString()
+        tax1State = item.itemTax1.toString()
+        tax2State = item.itemTax2.toString()
+        barcodeState = item.itemBarcode ?: ""
+        openCostState = item.itemOpenCost.toString()
+        openQtyState = item.itemOpenQty.toString()
+        remQtyState = item.itemRemQty.toString()
+        itemCurrState = item.itemCurrencyId ?: ""
+        familyIdState = item.itemFaId ?: ""
+        btnColorState = item.itemBtnColor ?: ""
+        btnTextColorState = item.itemBtnTextColor ?: ""
+        printerState = item.itemPrinter ?: ""
+        itemPOSState = item.itemPos
+        imageState = item.itemImage ?: ""
     }
 
     fun saveItem() {
@@ -218,6 +247,11 @@ fun ManageItemsView(
         openCostState = ""
         openQtyState = ""
         remQtyState = ""
+        itemGroupState = if (state.groups.isNotEmpty()) {
+            state.groups[0].groupName
+        } else {
+            ""
+        }
         itemCurrState = getFirstCurrency()
         familyIdState = ""
         btnColorState = ""
@@ -539,6 +573,21 @@ fun ManageItemsView(
                         )
                         state.selectedItem.itemRemQty = remQtyState.toDoubleOrNull() ?: 0.0
                     }
+                    if (state.isConnectingToSQLServer) {
+                        SearchableDropdownMenuEx(
+                            items = state.groups.toMutableList(),
+                            modifier = Modifier.padding(
+                                horizontal = 10.dp,
+                                vertical = 5.dp
+                            ),
+                            label = "Select Group",
+                            selectedId = itemGroupState
+                        ) { group ->
+                            group as ItemGroupModel
+                            itemGroupState = group.getId()
+                            state.selectedItem.itemGroup = itemGroupState
+                        }
+                    }
 
                     SearchableDropdownMenuEx(
                         items = state.currencies.toMutableList(),
@@ -808,24 +857,24 @@ fun ManageItemsView(
                         clear()
                     }) { item ->
                     item as Item
-                    viewModel.currentITem = item.copy()
-                    state.selectedItem = item
-                    nameState = item.itemName ?: ""
-                    unitPriceState = item.itemUnitPrice.toString()
-                    taxState = item.itemTax.toString()
-                    tax1State = item.itemTax1.toString()
-                    tax2State = item.itemTax2.toString()
-                    barcodeState = item.itemBarcode ?: ""
-                    openCostState = item.itemOpenCost.toString()
-                    openQtyState = item.itemOpenQty.toString()
-                    remQtyState = item.itemRemQty.toString()
-                    itemCurrState = item.itemCurrencyId ?: ""
-                    familyIdState = item.itemFaId ?: ""
-                    btnColorState = item.itemBtnColor ?: ""
-                    btnTextColorState = item.itemBtnTextColor ?: ""
-                    printerState = item.itemPrinter ?: ""
-                    itemPOSState = item.itemPos
-                    imageState = item.itemImage ?: ""
+                    if (state.families.isEmpty() || state.printers.isEmpty()) {
+                        sharedViewModel.showLoading(true)
+                        scope.launch(Dispatchers.IO) {
+                            if (state.families.isEmpty() && !item.itemFaId.isNullOrEmpty()) {
+                                viewModel.fetchFamilies(false)
+                            }
+                            if (state.families.isEmpty() && !item.itemPrinter.isNullOrEmpty()) {
+                                viewModel.fetchPrinters(false)
+                            }
+                            withContext(Dispatchers.Main) {
+                                fillItemInputs(item)
+                                sharedViewModel.showLoading(false)
+                            }
+                        }
+                    } else {
+                        fillItemInputs(item)
+                    }
+
                 }
             }
         }

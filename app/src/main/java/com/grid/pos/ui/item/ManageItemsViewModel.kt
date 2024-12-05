@@ -8,6 +8,8 @@ import com.grid.pos.data.item.Item
 import com.grid.pos.data.item.ItemRepository
 import com.grid.pos.data.posPrinter.PosPrinterRepository
 import com.grid.pos.model.Event
+import com.grid.pos.model.ItemGroupModel
+import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.BaseViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -34,6 +36,7 @@ class ManageItemsViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             openConnectionIfNeeded()
             fetchCurrencies()
+            fillGroups()
         }
     }
 
@@ -60,17 +63,26 @@ class ManageItemsViewModel @Inject constructor(
         }
     }
 
-    fun fetchFamilies() {
-        manageItemsState.value = manageItemsState.value.copy(
-            isLoading = true
-        )
+    fun fetchFamilies(loading: Boolean = true) {
+        if (loading) {
+            manageItemsState.value = manageItemsState.value.copy(
+                isLoading = true
+            )
+        }
         viewModelScope.launch(Dispatchers.IO) {
             val listOfFamilies = familyRepository.getAllFamilies()
             withContext(Dispatchers.Main) {
-                manageItemsState.value = manageItemsState.value.copy(
-                    families = listOfFamilies,
-                    isLoading = false
-                )
+                manageItemsState.value = if (loading) {
+                    manageItemsState.value.copy(
+                        families = listOfFamilies,
+                        isLoading = false
+                    )
+                } else {
+                    manageItemsState.value.copy(
+                        families = listOfFamilies
+                    )
+                }
+
             }
         }
     }
@@ -85,18 +97,45 @@ class ManageItemsViewModel @Inject constructor(
         }
     }
 
-    fun fetchPrinters() {
-        manageItemsState.value = manageItemsState.value.copy(
-            isLoading = true
-        )
+    fun fetchPrinters(loading: Boolean = true) {
+        if (loading) {
+            manageItemsState.value = manageItemsState.value.copy(
+                isLoading = true
+            )
+        }
         viewModelScope.launch(Dispatchers.IO) {
             val listOfPrinters = posPrinterRepository.getAllPosPrinters()
             withContext(Dispatchers.Main) {
-                manageItemsState.value = manageItemsState.value.copy(
-                    printers = listOfPrinters,
-                    isLoading = false
-                )
+                manageItemsState.value = if (loading) {
+                    manageItemsState.value.copy(
+                        printers = listOfPrinters,
+                        isLoading = false
+                    )
+                } else {
+                    manageItemsState.value.copy(
+                        printers = listOfPrinters
+                    )
+                }
             }
+        }
+    }
+
+    private suspend fun fillGroups() {
+        val isConnectedToSQL = SettingsModel.isConnectedToSqlServer()
+        val groups = mutableListOf(
+            ItemGroupModel("Stock"),
+            ItemGroupModel("Mixed Product"),
+            ItemGroupModel("Finished Product"),
+            ItemGroupModel("Pack"),
+            ItemGroupModel("Set"),
+            ItemGroupModel("Non Stock"),
+        )
+        val listOfPrinters = posPrinterRepository.getAllPosPrinters()
+        withContext(Dispatchers.Main) {
+            manageItemsState.value = manageItemsState.value.copy(
+                groups = groups,
+                isConnectingToSQLServer = isConnectedToSQL
+            )
         }
     }
 
@@ -117,6 +156,13 @@ class ManageItemsViewModel @Inject constructor(
         if (item.itemName.isNullOrEmpty() || item.itemFaId.isNullOrEmpty()) {
             manageItemsState.value = manageItemsState.value.copy(
                 warning = Event("Please fill item name and family"),
+                isLoading = false
+            )
+            return
+        }
+        if (manageItemsState.value.isConnectingToSQLServer && item.itemGroup.isNullOrEmpty()) {
+            manageItemsState.value = manageItemsState.value.copy(
+                warning = Event("Please select an item group"),
                 isLoading = false
             )
             return
