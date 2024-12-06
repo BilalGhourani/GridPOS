@@ -142,7 +142,7 @@ class ItemRepositoryImpl(
                             ),
                             "it_cmp_id='${SettingsModel.getCompanyID()}'",
                             "",
-                            "INNER JOIN currency on it_cur_code = cur_code"
+                          /*INNER JOIN st_item_warehouse on it_id = uw_it_id*/  " INNER JOIN currency on it_cur_code = cur_code"
                         )
                     } else {
                         SQLServerWrapper.getQueryResult(
@@ -169,6 +169,8 @@ class ItemRepositoryImpl(
                                 itemProfitRule = it.getStringValue("it_profrule").ifEmpty { null }
                                 itemAltName = it.getStringValue("it_altname").ifEmpty { null }
                                 itemWarehouseName = it.getStringValue("it_wa_name").ifEmpty { null }
+                                //itemMainWarehouseName = it.getStringValue("uw_wa_name").ifEmpty { null }
+                                //itemWarehouseLocation = it.getStringValue("uw_location").ifEmpty { null }
                                 itemSpecialCode = it.getBooleanValue("it_specialcode")
                                 itemCommission = it.getDoubleValue("it_commission")
                                 itemMinPrice = it.getDoubleValue("it_minprice")
@@ -188,15 +190,15 @@ class ItemRepositoryImpl(
                                 itemTax = it.getDoubleValue("it_vat")
                                 itemTax1 = it.getDoubleValue("it_tax1")
                                 itemTax2 = it.getDoubleValue("it_tax2")
-                                itemPrinter = it.getStringValue("it_di_name")
-                                itemOpenQty = it.getDoubleValue("it_maxqty")
+                                itemPrinter = it.getStringValue("it_di_name").ifEmpty { null }
+                                itemOpenQty = it.getDoubleValue("it_maxqty"/*"uw_openqty"*/)
                                 itemRemQty = it.getDoubleValue("it_remqty")
-                                itemMaxQty = it.getDoubleValue("it_remqty")
+                                itemMaxQty = it.getDoubleValue("it_maxqty")
                                 itemPos = it.getIntValue(
                                     "it_pos",
                                     1
                                 ) == 1
-                                itemBtnColor = it.getStringValue("it_color")
+                                itemBtnColor = it.getStringValue("it_color").ifEmpty { null }
                                 itemBtnTextColor = "#000000"
                                 val timeStamp = it.getObjectValue("it_timestamp")
                                 itemTimeStamp = when (timeStamp) {
@@ -210,8 +212,8 @@ class ItemRepositoryImpl(
                                 }
                                 itemDateTime = itemTimeStamp!!.time
                                 itemUserStamp = it.getStringValue("it_userstamp")
-                                itemImage = it.getStringValue("it_image")
-                                itemCurrencyId = it.getStringValue("it_cur_code")
+                                itemImage = it.getStringValue("it_image").ifEmpty { null }
+                                itemCurrencyId = it.getStringValue("it_cur_code").ifEmpty { null }
                                 itemCurrencyCode = if (SettingsModel.isSqlServerWebDb) it.getStringValue("cur_newcode")
                                 else it.getStringValue("it_cur_code")
                                 itemUnitPrice = it.getDoubleValue("it_unitprice")
@@ -322,7 +324,7 @@ class ItemRepositoryImpl(
                 item.itemOpenQty,//@openqty
                 item.itemOpenCost,//@opencost
                 SettingsModel.currentUser?.userUsername,//@it_userstamp
-                SettingsModel.defaultSqlServerWarehouse,//@mainwarehouse
+                item.itemWarehouseName,//@mainwarehouse
                 item.itemCurrencyId,//@firstcurr
                 null,//@secondcurr
                 Timestamp(System.currentTimeMillis()),//@dateyearstart
@@ -422,7 +424,7 @@ class ItemRepositoryImpl(
         val parameters = if (SettingsModel.isSqlServerWebDb) {
             listOf(
                 item.itemId,//@@it_id
-                SettingsModel.getCompanyID(),//@it_cmp_id
+                item.itemCompId,//@it_cmp_id
                 item.itemName,//@it_name
                 item.itemFaId,//@it_fa_name
                 item.itemGroup,//@it_group

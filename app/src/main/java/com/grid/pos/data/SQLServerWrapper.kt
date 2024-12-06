@@ -252,10 +252,10 @@ object SQLServerWrapper {
                         is String -> {
                             if (any.equals("null_int_output", ignoreCase = true)) {
                                 outputIndex = index + 1
-                                callableStatement.registerOutParameter(index + 1, Types.BIGINT)
+                                callableStatement.registerOutParameter(outputIndex, Types.BIGINT)
                             } else if (any.equals("null_string_output", ignoreCase = true)) {
                                 outputIndex = index + 1
-                                callableStatement.registerOutParameter(index + 1, Types.VARCHAR)
+                                callableStatement.registerOutParameter(outputIndex, Types.VARCHAR)
                             } else if (any.equals("null", ignoreCase = true)) {
                                 callableStatement.setNull(index + 1, Types.NULL)
                             } else {

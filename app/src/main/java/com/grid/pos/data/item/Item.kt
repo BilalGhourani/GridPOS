@@ -227,6 +227,14 @@ data class Item(
 
         @Ignore
         @get:Exclude
+        var itemMainWarehouseName: String? = null,
+
+        @Ignore
+        @get:Exclude
+        var itemWarehouseLocation: String? = null,
+
+        @Ignore
+        @get:Exclude
         var itemSpecialCode: Boolean? = null,
 
         @Ignore
