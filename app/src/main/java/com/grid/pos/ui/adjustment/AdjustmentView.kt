@@ -152,6 +152,7 @@ fun AdjustmentView(
         )
     }
 
+    var itemState by remember { mutableStateOf("") }
     var itemCostState by remember { mutableStateOf("") }
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
@@ -176,6 +177,7 @@ fun AdjustmentView(
 
     LaunchedEffect(state.clear) {
         if (state.clear) {
+            itemState = ""
             itemCostState = ""
             fromDateState = DateHelper.getDateInFormat(
                 getDateFromState(
@@ -302,17 +304,10 @@ fun AdjustmentView(
                         iconSize = 60.dp,
                         isVertical = false
                     ) {
-                        /*if (state.selectedItem == null) {
+                        if (state.selectedItem == null) {
                             viewModel.showError("select an Item at first!")
-                            return@UIButton
-                        }*//* val from = getDateFromState(
-                            fromDatePickerState.selectedDateMillis!!,
-                            fromTimePickerState
-                        )
-                        val to = getDateFromState(
-                            toDatePickerState.selectedDateMillis!!,
-                            toTimePickerState
-                        )*/
+                            return@UIImageButton
+                        }
                         viewModel.adjustRemainingQuantities(
                             state.selectedItem
                         )
@@ -417,10 +412,10 @@ fun AdjustmentView(
                         end = 10.dp
                     ),
                     label = "Select Item",
-                    selectedId = state.selectedItem?.itemId,
+                    selectedId = itemState,
                     onLoadItems = { viewModel.fetchItems() },
                     leadingIcon = {
-                        if (state.selectedItem?.itemId?.isNotEmpty() == true) {
+                        if (itemState.isNotEmpty()) {
                             Icon(
                                 Icons.Default.RemoveCircleOutline,
                                 contentDescription = "remove item",
@@ -430,9 +425,11 @@ fun AdjustmentView(
                         }
                     },
                     onLeadingIconClick = {
-                        state.selectedItem = Item()
+                        itemState = ""
+                        state.selectedItem = null
                     }) { item ->
                     item as Item
+                    itemState = item.itemId
                     state.selectedItem = item
                 }
             }
