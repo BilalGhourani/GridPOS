@@ -99,12 +99,12 @@ object Utils {
                             R.drawable.items,
                             "Item",
                             "ManageItemsView"
-                        )/*,
+                        ),
                         HomeItemModel(
                             R.drawable.families,
                             "Family",
                             "ManageFamiliesView"
-                        )*/
+                        )
                     )
                 ),
                 HomeCategoryModel(
@@ -496,7 +496,7 @@ object Utils {
 
     fun convertDoubleToWords(
             amount: Double,
-            prefix:String,
+            prefix: String,
             currency: String
     ): String {
         val unitsMap = arrayOf(

@@ -415,7 +415,6 @@ class ItemRepositoryImpl(
                 "it_userstamp",
                 "it_timestamp",
                 "it_remqty",
-                "it_cost",
                 "it_cashback",
                 "it_tax1",
                 "it_tax2",
@@ -435,7 +434,6 @@ class ItemRepositoryImpl(
                 SettingsModel.currentUser?.userUsername,//@it_userstamp
                 Timestamp(System.currentTimeMillis()),//@dateyearstart
                 item.itemRemQty,//@it_remqty
-                item.itemOpenCost,//@it_cost
                 item.it_cashback,//@it_cashback
                 item.itemTax1,//@it_tax1
                 item.itemTax2,//@it_tax2

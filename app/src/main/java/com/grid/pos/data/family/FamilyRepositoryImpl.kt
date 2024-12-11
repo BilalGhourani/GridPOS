@@ -2,44 +2,70 @@ package com.grid.pos.data.family
 
 import com.google.firebase.firestore.FirebaseFirestore
 import com.grid.pos.data.SQLServerWrapper
+import com.grid.pos.data.item.Item
 import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.Extension.getStringValue
 import kotlinx.coroutines.tasks.await
+import java.sql.Timestamp
 
 class FamilyRepositoryImpl(
         private val familyDao: FamilyDao
 ) : FamilyRepository {
     override suspend fun insert(family: Family): Family {
-        if (SettingsModel.isConnectedToFireStore()) {
-            val docRef = FirebaseFirestore.getInstance().collection("st_family").add(family).await()
-            family.familyDocumentId = docRef.id
-        } else {
-            familyDao.insert(family)
+        when (SettingsModel.connectionType) {
+            CONNECTION_TYPE.FIRESTORE.key -> {
+                val docRef = FirebaseFirestore.getInstance().collection("st_family").add(family)
+                    .await()
+                family.familyDocumentId = docRef.id
+            }
+
+            CONNECTION_TYPE.LOCAL.key -> {
+                familyDao.insert(family)
+            }
+
+            else -> {
+                insertByProcedure(family)
+            }
         }
         return family
     }
 
     override suspend fun delete(family: Family) {
-        if (SettingsModel.isConnectedToFireStore()) {
-            family.familyDocumentId?.let {
-                FirebaseFirestore.getInstance().collection("st_family").document(it).delete()
-                    .await()
+        when (SettingsModel.connectionType) {
+            CONNECTION_TYPE.FIRESTORE.key -> {
+                family.familyDocumentId?.let {
+                    FirebaseFirestore.getInstance().collection("st_family").document(it).delete()
+                        .await()
+                }
             }
-        } else {
-            familyDao.delete(family)
+
+            CONNECTION_TYPE.LOCAL.key -> {
+                familyDao.delete(family)
+            }
+
+            else -> {
+                deleteByProcedure(family)
+            }
         }
     }
 
     override suspend fun update(family: Family) {
-        if (SettingsModel.isConnectedToFireStore()) {
-            family.familyDocumentId?.let {
-                FirebaseFirestore.getInstance().collection("st_family").document(it)
-                    .update(family.getMap()).await()
+        when (SettingsModel.connectionType) {
+            CONNECTION_TYPE.FIRESTORE.key -> {
+                family.familyDocumentId?.let {
+                    FirebaseFirestore.getInstance().collection("st_family").document(it)
+                        .update(family.getMap()).await()
+                }
             }
 
-        } else {
-            familyDao.update(family)
+            CONNECTION_TYPE.LOCAL.key -> {
+                familyDao.update(family)
+            }
+
+            else -> {
+                updateFamily(family)
+            }
         }
     }
 
@@ -151,6 +177,88 @@ class FamilyRepositoryImpl(
                 return null
             }
         }
+    }
+
+    private fun insertByProcedure(family: Family) {
+        val parameters = if (SettingsModel.isSqlServerWebDb) {
+            listOf(
+                null,//@fa_name
+                null,//@fa_parent
+                null,//@fa_group
+                null,//@fa_numberofyears
+                null,//@fa_codelen
+                null,//@fa_purchacc
+                null,//@fa_depacc
+                null,//@fa_depchargeacc
+                null,//@fa_salesacc
+                null,//@fa_costoffasoldacc
+                null,//@fa_periodicityofprovision
+                family.familyName,//@fa_newname
+                SettingsModel.getCompanyID(),//@fa_cmp_id
+                "null_string_output"//@output_message
+            )
+        } else {
+            listOf(
+                family.familyName,//@fa_name
+                null,//@fa_parent
+                null,//@fa_group
+                null,//@fa_numberofyears
+                null,//@fa_codelen
+                null,//@fa_purchacc
+                null,//@fa_depacc
+                null,//@fa_depchargeacc
+                null,//@fa_salesacc
+                null,//@fa_costoffasoldacc
+                null,//@fa_periodicityofprovision
+            )
+        }
+        val id = SQLServerWrapper.executeProcedure(
+            "addst_family",
+            parameters
+        )
+        if (id.isNullOrEmpty() && SettingsModel.isSqlServerWebDb) {
+            try {
+                val dbResult = SQLServerWrapper.getQueryResult("select max(fa_name) as id from st_item")
+                dbResult?.let {
+                    while (it.next()) {
+                        family.familyId = it.getStringValue(
+                            "id",
+                            family.familyId
+                        )
+                    }
+                    SQLServerWrapper.closeResultSet(it)
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        } else if(!id.isNullOrEmpty()){
+            family.familyId = id
+        }
+    }
+
+    private fun updateFamily(
+            family: Family
+    ) {
+        val columnName = if (SettingsModel.isSqlServerWebDb) "fa_newname" else "fa_name"
+        SQLServerWrapper.update(
+          "st_family",
+            listOf(
+                columnName
+            ),
+            listOf(
+                family.familyName
+            ),
+            "fa_name = '${family.familyId}'"
+        )
+    }
+
+    private fun deleteByProcedure(family: Family): String {
+        return SQLServerWrapper.executeProcedure(
+            "delst_family",
+            listOf(
+                family.familyId
+            )
+        ) ?: ""
     }
 
 }
