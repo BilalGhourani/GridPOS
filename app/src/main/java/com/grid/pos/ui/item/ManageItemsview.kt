@@ -232,6 +232,7 @@ fun ManageItemsView(
             SettingsModel.currentCurrency?.currencyName1Dec
         )
         state.selectedItem.itemPos = itemPOSState
+        state.selectedItem.itemGroup = itemGroupState
         viewModel.saveItem(state.selectedItem)
     }
 
