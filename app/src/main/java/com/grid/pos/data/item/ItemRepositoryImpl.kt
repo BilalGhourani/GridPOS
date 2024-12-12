@@ -274,7 +274,7 @@ class ItemRepositoryImpl(
     private fun insertByProcedure(item: Item) {
         val parameters = if (SettingsModel.isSqlServerWebDb) {
             listOf(
-                "null_string_output",//@it_id
+                item.itemId,//@it_id
                 SettingsModel.getCompanyID(),//@it_cmp_id
                 item.itemName,//@it_name
                 item.itemFaId,//@it_fa_name
@@ -301,7 +301,7 @@ class ItemRepositoryImpl(
                 item.itemOpenQty,//@openqty
                 item.itemOpenCost,//@opencost
                 SettingsModel.currentUser?.userUsername,//@it_userstamp
-                null,//@mainwarehouse
+                SettingsModel.defaultSqlServerWarehouse,//@mainwarehouse
                 item.itemCurrencyId,//@firstcurr
                 null,//@secondcurr
                 Timestamp(System.currentTimeMillis()),//@dateyearstart
@@ -371,11 +371,11 @@ class ItemRepositoryImpl(
                 null,//@it_maxqty
             )
         }
-        val id = SQLServerWrapper.executeProcedure(
+         SQLServerWrapper.executeProcedure(
             "addst_item",
             parameters
         )
-        if (id.isNullOrEmpty()) {
+        /*if (id.isNullOrEmpty()) {
             try {
                 val dbResult = SQLServerWrapper.getQueryResult("select max(it_id) as id from st_item")
                 dbResult?.let {
@@ -392,7 +392,7 @@ class ItemRepositoryImpl(
             }
         } else {
             item.itemId = id
-        }
+        }*/
     }
 
     private fun updateItem(
