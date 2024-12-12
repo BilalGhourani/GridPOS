@@ -182,22 +182,26 @@ class SalesReportsViewModel @Inject constructor(
         firstRow.createCell(1).setCellValue("Open Qty")
         firstRow.createCell(2).setCellValue("Qty Sold")
         firstRow.createCell(3).setCellValue("Total Cost")
-        firstRow.createCell(4).setCellValue("Total Sales")
-        firstRow.createCell(5).setCellValue("Rem.Qty")
-        firstRow.createCell(6).setCellValue("Profit")
+        firstRow.createCell(4).setCellValue("Total Discount")
+        firstRow.createCell(5).setCellValue("Total Sales")
+        firstRow.createCell(6).setCellValue("Rem.Qty")
+        firstRow.createCell(7).setCellValue("Profit")
 
         val priceWithTax = SettingsModel.currentCompany?.companyUpWithTax ?: false
         itemMap.values.forEachIndexed { index, item ->
             val itemInvoices = invoiceItemMap[item.itemId]
             var quantitiesSold = 0.0
             var totalCost = 0.0
+            var totalDisc = 0.0
             var totalSale = 0.0
             itemInvoices?.map {
                 totalCost += it.invoiceQuantity.times(it.invoiceCost)
                 quantitiesSold += it.invoiceQuantity
-                val itemSale = if (priceWithTax) (it.getAmount() - it.getDiscountAmount()) else it.getNetAmount()
+                val discAmt = it.getDiscountAmount()
+                val itemSale = if (priceWithTax) (it.getAmount() - discAmt) else it.getNetAmount()
                 val invDiscount = invoicesMap[it.invoiceHeaderId]?.invoiceHeadDiscount ?: 0.0
                 val invDiscountAmount = itemSale.times(invDiscount.times(0.01))
+                totalDisc += discAmt + invDiscountAmount
                 totalSale += itemSale - invDiscountAmount
             }
             val row = sheet.createRow(index + 1)
@@ -213,11 +217,17 @@ class SalesReportsViewModel @Inject constructor(
             row.createCell(4).setCellValue(
                 String.format(
                     "%,.${currency.currencyName1Dec}f",
+                    totalDisc
+                )
+            )
+            row.createCell(5).setCellValue(
+                String.format(
+                    "%,.${currency.currencyName1Dec}f",
                     totalSale
                 )
             )
-            row.createCell(5).setCellValue(item.itemRemQty)
-            row.createCell(6).setCellValue(
+            row.createCell(6).setCellValue(item.itemRemQty)
+            row.createCell(7).setCellValue(
                 String.format(
                     "%,.${currency.currencyName1Dec}f",
                     totalSale - totalCost
@@ -233,24 +243,29 @@ class SalesReportsViewModel @Inject constructor(
         val firstRow = sheet.createRow(0)
         firstRow.createCell(0).setCellValue("Name")
         firstRow.createCell(1).setCellValue("Qty Sold")
-        firstRow.createCell(2).setCellValue("Total")
+        firstRow.createCell(2).setCellValue("Discount")
+        firstRow.createCell(3).setCellValue("Total")
 
         val priceWithTax = SettingsModel.currentCompany?.companyUpWithTax ?: false
         filteredInvoiceItemMap.keys.forEachIndexed { index, itemId ->
             val item = itemMap[itemId]
             var quantitiesSold = 0.0
+            var totalDiscountAmount = 0.0
             var totalSale = 0.0
             filteredInvoiceItemMap[itemId]?.map {
                 quantitiesSold += it.invoiceQuantity
-                val itemSale = if (priceWithTax) it.getAmount() else it.getNetAmount()
+                val discAmt = it.getDiscountAmount()
+                val itemSale = if (priceWithTax) (it.getAmount() - discAmt) else it.getNetAmount()
                 val invDiscount = invoicesMap[it.invoiceHeaderId]?.invoiceHeadDiscount ?: 0.0
                 val invDiscountAmount = itemSale.times(invDiscount.times(0.01))
+                totalDiscountAmount += discAmt + invDiscountAmount
                 totalSale += itemSale - invDiscountAmount
             }
             val row = sheet.createRow(index + 1)
             row.createCell(0).setCellValue(item?.itemName ?: "N/A")
             row.createCell(1).setCellValue(quantitiesSold)
-            row.createCell(2).setCellValue(totalSale)
+            row.createCell(2).setCellValue(totalDiscountAmount)
+            row.createCell(3).setCellValue(totalSale)
         }
     }
 
