@@ -79,7 +79,7 @@ class POSViewModel @Inject constructor(
             val currency = if (currencies.size > 0) currencies[0] else Currency()
             SettingsModel.currentCurrency = currency
         }
-        val listOfItems = itemRepository.getAllItems()
+        val listOfItems = itemRepository.getItemsForPOS()
         withContext(Dispatchers.Main) {
             posState.value = if (stopLoading) {
                 posState.value.copy(

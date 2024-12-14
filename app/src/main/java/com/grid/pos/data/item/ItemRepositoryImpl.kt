@@ -10,6 +10,7 @@ import com.grid.pos.utils.Extension.getIntValue
 import com.grid.pos.utils.Extension.getObjectValue
 import com.grid.pos.utils.Extension.getStringValue
 import kotlinx.coroutines.tasks.await
+import java.sql.ResultSet
 import java.sql.Timestamp
 import java.util.Date
 
@@ -138,11 +139,88 @@ class ItemRepositoryImpl(
                             "",
                             mutableListOf(
                                 "st_item.*",
+                                "st_item_warehouse.*",
+                                "currency.cur_newcode",
+                                "op_id,op_unitcost"
+                            ),
+                            "it_cmp_id='${SettingsModel.getCompanyID()}'",
+                            "order by it_name",
+                            "INNER JOIN currency on it_cur_code = cur_code LEFT OUTER JOIN st_item_warehouse on it_id = uw_it_id LEFT OUTER JOIN st_opening on it_id=op_it_id"
+                        )
+                    } else {
+                        SQLServerWrapper.getListOf(
+                            "st_item",
+                            "",
+                            mutableListOf(
+                                "st_item.*",
+                                "st_item_warehouse.*",
+                                "currency.cur_newcode",
+                                "op_id,op_unitcost"
+                            ),
+                            "it_cmp_id='${SettingsModel.getCompanyID()}'",
+                            "order by it_name",
+                            "INNER JOIN currency on it_cur_code = cur_code LEFT OUTER JOIN st_item_warehouse on it_id = uw_it_id LEFT OUTER JOIN st_opening on it_id=op_it_id"
+                        )
+                        SQLServerWrapper.getQueryResult(
+                            "select st_item.*,1 it_pos from st_item,pos_itembutton,pos_groupbutton,pos_station_groupbutton  where it_id=ib_it_id and ib_gb_id=gb_id and gb_id=psg_gb_id and psg_sta_name='.'  union select *,0 it_pos from st_item where it_id not in (select ib_it_id from pos_itembutton,pos_groupbutton,pos_station_groupbutton where ib_gb_id=gb_id and gb_id=psg_gb_id and psg_sta_name='.')"
+                        )
+                    }
+                    dbResult?.let {
+                        while (it.next()) {
+                            items.add(getItemFromRow(it))
+                        }
+                        SQLServerWrapper.closeResultSet(it)
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+                return items
+            }
+        }
+
+    }
+
+    override suspend fun getItemsForPOS(): MutableList<Item> {
+        when (SettingsModel.connectionType) {
+            CONNECTION_TYPE.FIRESTORE.key -> {
+                val querySnapshot = FirebaseFirestore.getInstance().collection("st_item")
+                    .whereEqualTo(
+                        "it_cmp_id",
+                        SettingsModel.getCompanyID()
+                    ).get().await()
+
+                val items = mutableListOf<Item>()
+                if (querySnapshot.size() > 0) {
+                    for (document in querySnapshot) {
+                        val obj = document.toObject(Item::class.java)
+                        if (obj.itemId.isNotEmpty()) {
+                            obj.itemDocumentId = document.id
+                            items.add(obj)
+                        }
+                    }
+                }
+                return items
+            }
+
+            CONNECTION_TYPE.LOCAL.key -> {
+                return itemDao.getAllItems(SettingsModel.getCompanyID() ?: "")
+            }
+
+            else -> {
+                val items: MutableList<Item> = mutableListOf()
+                try {
+                    val dbResult = if (SettingsModel.isSqlServerWebDb) {
+                        SQLServerWrapper.getListOf(
+                            "st_item",
+                            "",
+                            mutableListOf(
+                                "st_item.*",
+                                "st_item_warehouse.*",
                                 "currency.cur_newcode"
                             ),
                             "it_cmp_id='${SettingsModel.getCompanyID()}'",
-                            "",/*INNER JOIN st_item_warehouse on it_id = uw_it_id*/
-                            " INNER JOIN currency on it_cur_code = cur_code"
+                            "",
+                            " INNER JOIN currency on it_cur_code = cur_code LEFT OUTER JOIN st_item_warehouse on it_id = uw_it_id"
                         )
                     } else {
                         SQLServerWrapper.getQueryResult(
@@ -151,52 +229,7 @@ class ItemRepositoryImpl(
                     }
                     dbResult?.let {
                         while (it.next()) {
-                            items.add(Item().apply {
-                                itemId = it.getStringValue("it_id")
-                                itemCompId = it.getStringValue("it_cmp_id")
-                                itemFaId = it.getStringValue("it_fa_name")
-                                itemName = it.getStringValue("it_name")
-                                itemBarcode = it.getStringValue("it_barcode")
-                                it_div_name = it.getStringValue(
-                                    "it_div_name",
-                                    "null"
-                                )
-                                it_cashback = it.getDoubleValue("it_cashback")
-                                itemGroup = it.getStringValue("it_group")
-
-
-                                itemTax = it.getDoubleValue("it_vat")
-                                itemTax1 = it.getDoubleValue("it_tax1")
-                                itemTax2 = it.getDoubleValue("it_tax2")
-                                itemPrinter = it.getStringValue("it_di_name").ifEmpty { null }
-                                itemOpenQty = it.getDoubleValue("it_maxqty"/*"uw_openqty"*/)
-                                itemRemQty = it.getDoubleValue("it_remqty")
-                                itemPos = it.getIntValue(
-                                    "it_pos",
-                                    1
-                                ) == 1
-                                itemBtnColor = it.getStringValue("it_color").ifEmpty { null }
-                                itemBtnTextColor = "#000000"
-                                val timeStamp = it.getObjectValue("it_timestamp")
-                                itemTimeStamp = when (timeStamp) {
-                                    is Date -> timeStamp
-                                    is String -> DateHelper.getDateFromString(
-                                        timeStamp,
-                                        "yyyy-MM-dd hh:mm:ss.SSS"
-                                    )
-
-                                    else -> null
-                                }
-                                itemDateTime = itemTimeStamp!!.time
-                                itemUserStamp = it.getStringValue("it_userstamp")
-                                itemImage = it.getStringValue("it_image").ifEmpty { null }
-                                itemCurrencyId = it.getStringValue("it_cur_code").ifEmpty { null }
-                                itemCurrencyCode = if (SettingsModel.isSqlServerWebDb) it.getStringValue("cur_newcode")
-                                else it.getStringValue("it_cur_code")
-                                itemUnitPrice = it.getDoubleValue("it_unitprice")
-                                itemOpenCost = it.getDoubleValue("it_cost")
-                                itemRealUnitPrice = 0.0
-                            })
+                            items.add(getItemFromRow(it))
                         }
                         SQLServerWrapper.closeResultSet(it)
                     }
@@ -266,8 +299,143 @@ class ItemRepositoryImpl(
             }
 
             else -> {
-                return null
+                var item: Item? = null
+                try {
+                    val dbResult = if (SettingsModel.isSqlServerWebDb) {
+                        SQLServerWrapper.getListOf(
+                            "st_item",
+                            "",
+                            mutableListOf(
+                                "st_item.*",
+                                "st_item_warehouse.*",
+                                "currency.cur_newcode"
+                            ),
+                            "it_cmp_id='${SettingsModel.getCompanyID()}' AND it_fa_name='$familyId'",
+                            "",
+                            " INNER JOIN currency on it_cur_code = cur_code LEFT OUTER JOIN st_item_warehouse on it_id = uw_it_id"
+                        )
+                    } else {
+                        SQLServerWrapper.getQueryResult(
+                            "select st_item.*,1 it_pos from st_item,pos_itembutton,pos_groupbutton,pos_station_groupbutton  where it_id=ib_it_id and ib_gb_id=gb_id and gb_id=psg_gb_id and psg_sta_name='.' and it_fa_name='$familyId'  union select *,0 it_pos from st_item where it_id not in (select ib_it_id from pos_itembutton,pos_groupbutton,pos_station_groupbutton where ib_gb_id=gb_id and gb_id=psg_gb_id and psg_sta_name='.'  and it_fa_name='$familyId')"
+                        )
+                    }
+                    dbResult?.let {
+                        while (it.next()) {
+                            item = getItemFromRow(it)
+                        }
+                        SQLServerWrapper.closeResultSet(it)
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+                return item
             }
+        }
+    }
+
+    override suspend fun updateWarehouseData(item: Item) {
+        if (SettingsModel.isConnectedToSqlServer() && !item.itemWarehouseRowId.isNullOrEmpty()) {
+            SQLServerWrapper.update(
+                "st_item_warehouse",
+                listOf(
+                    "uw_wa_name",
+                    "uw_location",
+                    "uw_openqty",
+                    "uw_userstamp",
+                ),
+                listOf(
+                    item.itemWarehouse,
+                    item.itemLocation,
+                    item.itemOpenQty,
+                    SettingsModel.currentUser?.userUsername
+                ),
+                "uw_id = '${item.itemWarehouseRowId}'"
+            )
+        }
+    }
+
+    override suspend fun updateOpening(
+            openingId: String?,
+            cost: Double,
+            costFirst: Double,
+            costSecond: Double
+    ) {
+        if (SettingsModel.isConnectedToSqlServer() && !openingId.isNullOrEmpty()) {
+            SQLServerWrapper.update(
+                "st_opening",
+                listOf(
+                    "op_unitcost",
+                    "op_unitcostf",
+                    "op_unitcosts",
+                    "op_date",
+                    "op_userstamp",
+                ),
+                listOf(
+                    cost,
+                    costFirst,
+                    costSecond,
+                    Timestamp(System.currentTimeMillis()),
+                    SettingsModel.currentUser?.userUsername
+                ),
+                "op_id = '$openingId'"
+            )
+        }
+    }
+
+    private fun getItemFromRow(row: ResultSet): Item {
+        return Item().apply {
+            itemId = row.getStringValue("it_id")
+            itemCompId = row.getStringValue("it_cmp_id")
+            itemFaId = row.getStringValue("it_fa_name")
+            itemName = row.getStringValue("it_name")
+            itemBarcode = row.getStringValue("it_barcode")
+            it_div_name = row.getStringValue(
+                "it_div_name",
+                "null"
+            )
+            itemCashback = row.getDoubleValue("it_cashback")
+            itemGroup = row.getStringValue("it_group")
+
+
+            itemTax = row.getDoubleValue("it_vat")
+            itemTax1 = row.getDoubleValue("it_tax1")
+            itemTax2 = row.getDoubleValue("it_tax2")
+            itemPrinter = row.getStringValue("it_di_name").ifEmpty { null }
+
+            itemOpeningId = row.getStringValue("op_id").ifEmpty { null }
+            itemWarehouseRowId = row.getStringValue("uw_id").ifEmpty { null }
+            itemWarehouse = row.getStringValue("uw_wa_name").ifEmpty { null }
+            itemLocation = row.getStringValue("uw_location").ifEmpty { null }
+            itemOpenQty = row.getDoubleValue("uw_openqty")
+            itemRemQty = row.getDoubleValue("it_remqty")
+            itemPos = row.getIntValue(
+                "it_pos",
+                1
+            ) == 1
+            itemBtnColor = row.getStringValue("it_color").ifEmpty { null }
+            itemBtnTextColor = "#000000"
+            val timeStamp = row.getObjectValue("it_timestamp")
+            itemTimeStamp = when (timeStamp) {
+                is Date -> timeStamp
+                is String -> DateHelper.getDateFromString(
+                    timeStamp,
+                    "yyyy-MM-dd hh:mm:ss.SSS"
+                )
+
+                else -> null
+            }
+            itemDateTime = itemTimeStamp!!.time
+            itemUserStamp = row.getStringValue("it_userstamp")
+            itemImage = row.getStringValue("it_image").ifEmpty { null }
+            itemCurrencyId = row.getStringValue("it_cur_code").ifEmpty { null }
+            itemCurrencyCode = if (SettingsModel.isSqlServerWebDb) row.getStringValue("cur_newcode")
+            else row.getStringValue("it_cur_code")
+            itemUnitPrice = row.getDoubleValue("it_unitprice")
+            itemOpenCost = row.getDoubleValue(
+                "op_unitcost",
+                row.getDoubleValue("it_cost")
+            )
+            itemRealUnitPrice = 0.0
         }
     }
 
@@ -314,7 +482,7 @@ class ItemRepositoryImpl(
                 item.itemOpenCost,//@it_cost
                 null,//@it_lastsuppliername
                 null,//@it_lastsupplierprice
-                item.it_cashback,//@it_cashback
+                item.itemCashback,//@it_cashback
                 item.itemTax1,//@it_tax1
                 item.itemTax2,//@it_tax2
                 null,//@it_maxqty
@@ -365,17 +533,16 @@ class ItemRepositoryImpl(
                 item.itemOpenCost,//@it_cost
                 null,//@it_lastsuppliername
                 null,//@it_lastsupplierprice
-                item.it_cashback,//@it_cashback
+                item.itemCashback,//@it_cashback
                 item.itemTax1,//@it_tax1
                 item.itemTax2,//@it_tax2
                 null,//@it_maxqty
             )
         }
-         SQLServerWrapper.executeProcedure(
+        SQLServerWrapper.executeProcedure(
             "addst_item",
             parameters
-        )
-        /*if (id.isNullOrEmpty()) {
+        )/*if (id.isNullOrEmpty()) {
             try {
                 val dbResult = SQLServerWrapper.getQueryResult("select max(it_id) as id from st_item")
                 dbResult?.let {
@@ -434,7 +601,7 @@ class ItemRepositoryImpl(
                 SettingsModel.currentUser?.userUsername,//@it_userstamp
                 Timestamp(System.currentTimeMillis()),//@dateyearstart
                 item.itemRemQty,//@it_remqty
-                item.it_cashback,//@it_cashback
+                item.itemCashback,//@it_cashback
                 item.itemTax1,//@it_tax1
                 item.itemTax2,//@it_tax2
             ),

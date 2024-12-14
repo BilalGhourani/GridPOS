@@ -25,7 +25,7 @@ data class InvoiceItemModel(
         invoice.invoiceCost = item.itemOpenCost
         invoice.invoiceRemQty = item.itemRemQty
         invoice.in_it_div_name = item.it_div_name
-        invoice.in_cashback = item.it_cashback
+        invoice.in_cashback = item.itemCashback
     }
 
     fun getName(): String {

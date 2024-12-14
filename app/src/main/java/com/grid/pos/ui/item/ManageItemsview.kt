@@ -485,7 +485,13 @@ fun ManageItemsView(
                         label = "Barcode",
                         placeHolder = "Enter Barcode",
                         focusRequester = barcodeFocusRequester,
-                        onAction = { openCostFocusRequester.requestFocus() },
+                        onAction = {
+                            if (state.isConnectingToSQLServer) {
+                                btnColorFocusRequester.requestFocus()
+                            } else {
+                                openCostFocusRequester.requestFocus()
+                            }
+                        },
                         trailingIcon = {
                             IconButton(onClick = {
                                 sharedViewModel.launchBarcodeScanner(true,
@@ -497,7 +503,11 @@ fun ManageItemsView(
                                                 if (resp is String) {
                                                     barcodeState = resp
                                                     state.selectedItem.itemBarcode = barcodeState
-                                                    openCostFocusRequester.requestFocus()
+                                                    if (state.isConnectingToSQLServer) {
+                                                        btnColorFocusRequester.requestFocus()
+                                                    } else {
+                                                        openCostFocusRequester.requestFocus()
+                                                    }
                                                 }
                                             }
                                         }
@@ -529,6 +539,7 @@ fun ManageItemsView(
                         keyboardType = KeyboardType.Decimal,
                         label = "Open cost",
                         placeHolder = "Enter Open cost",
+                        enabled = !state.isConnectingToSQLServer,
                         focusRequester = openCostFocusRequester,
                         onAction = { openQtyFocusRequester.requestFocus() }) { openCost ->
                         openCostState = Utils.getDoubleValue(
@@ -545,6 +556,7 @@ fun ManageItemsView(
                     ),
                         defaultValue = openQtyState,
                         label = "Open Qty",
+                        enabled = !state.isConnectingToSQLServer,
                         keyboardType = KeyboardType.Decimal,
                         placeHolder = "Enter Open Qty",
                         focusRequester = openQtyFocusRequester,
@@ -563,7 +575,7 @@ fun ManageItemsView(
                             vertical = 5.dp
                         ),
                         defaultValue = remQtyState,
-                        readOnly = true,
+                        enabled = false,
                         label = "Remaining Qty",
                         keyboardType = KeyboardType.Decimal,
                         placeHolder = "Remaining Qty"

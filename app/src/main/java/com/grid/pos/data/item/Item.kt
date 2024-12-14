@@ -34,7 +34,23 @@ data class Item(
 
         @Ignore
         @get:Exclude
-        var it_cashback: Double = 0.0,
+        var itemCashback: Double = 0.0,
+
+        @Ignore
+        @get:Exclude
+        var itemOpeningId: String? = null,
+
+        @Ignore
+        @get:Exclude
+        var itemWarehouseRowId: String? = null,
+
+        @Ignore
+        @get:Exclude
+        var itemWarehouse: String? = null,
+
+        @Ignore
+        @get:Exclude
+        var itemLocation: String? = null,
 
         /**
          * Item name
