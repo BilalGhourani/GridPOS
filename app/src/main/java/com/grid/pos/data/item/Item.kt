@@ -168,6 +168,14 @@ data class Item(
         @get:PropertyName("it_opencost")
         var itemOpenCost: Double = 0.0,
 
+        @Ignore
+        @get:Exclude
+        var itemCostFirst: Double? = null,
+
+        @Ignore
+        @get:Exclude
+        var itemCostSecond: Double? = null,
+
         /**
          * related Item POS id
          * */

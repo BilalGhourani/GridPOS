@@ -141,7 +141,7 @@ class ItemRepositoryImpl(
                                 "st_item.*",
                                 "st_item_warehouse.*",
                                 "currency.cur_newcode",
-                                "op_id,op_unitcost"
+                                "op_id,op_unitcost,op_unitcostf,op_unitcosts"
                             ),
                             "it_cmp_id='${SettingsModel.getCompanyID()}'",
                             "order by it_name",
@@ -155,14 +155,11 @@ class ItemRepositoryImpl(
                                 "st_item.*",
                                 "st_item_warehouse.*",
                                 "currency.cur_newcode",
-                                "op_id,op_unitcost"
+                                "op_id,op_unitcost,op_unitcostf,op_unitcosts"
                             ),
                             "it_cmp_id='${SettingsModel.getCompanyID()}'",
                             "order by it_name",
                             "INNER JOIN currency on it_cur_code = cur_code LEFT OUTER JOIN st_item_warehouse on it_id = uw_it_id LEFT OUTER JOIN st_opening on it_id=op_it_id"
-                        )
-                        SQLServerWrapper.getQueryResult(
-                            "select st_item.*,1 it_pos from st_item,pos_itembutton,pos_groupbutton,pos_station_groupbutton  where it_id=ib_it_id and ib_gb_id=gb_id and gb_id=psg_gb_id and psg_sta_name='.'  union select *,0 it_pos from st_item where it_id not in (select ib_it_id from pos_itembutton,pos_groupbutton,pos_station_groupbutton where ib_gb_id=gb_id and gb_id=psg_gb_id and psg_sta_name='.')"
                         )
                     }
                     dbResult?.let {
@@ -334,51 +331,88 @@ class ItemRepositoryImpl(
     }
 
     override suspend fun updateWarehouseData(item: Item) {
-        if (SettingsModel.isConnectedToSqlServer() && !item.itemWarehouseRowId.isNullOrEmpty()) {
-            SQLServerWrapper.update(
-                "st_item_warehouse",
-                listOf(
-                    "uw_wa_name",
-                    "uw_location",
-                    "uw_openqty",
-                    "uw_userstamp",
-                ),
-                listOf(
-                    item.itemWarehouse,
-                    item.itemLocation,
-                    item.itemOpenQty,
-                    SettingsModel.currentUser?.userUsername
-                ),
-                "uw_id = '${item.itemWarehouseRowId}'"
-            )
+        when (SettingsModel.connectionType) {
+            CONNECTION_TYPE.FIRESTORE.key -> {}
+            CONNECTION_TYPE.LOCAL.key -> {}
+            else -> {
+                if (!item.itemWarehouseRowId.isNullOrEmpty()) {
+                    SQLServerWrapper.update(
+                        "st_item_warehouse",
+                        listOf(
+                            "uw_wa_name",
+                            "uw_location",
+                            "uw_openqty",
+                            "uw_userstamp",
+                        ),
+                        listOf(
+                            item.itemWarehouse,
+                            item.itemLocation,
+                            item.itemOpenQty,
+                            SettingsModel.currentUser?.userUsername
+                        ),
+                        "uw_id = '${item.itemWarehouseRowId}'"
+                    )
+                } else {
+                    SQLServerWrapper.executeProcedure(
+                        "addst_item_warehouse",
+                        listOf(
+                            SettingsModel.getCompanyID(),//@uw_cmp_id
+                            item.itemWarehouse,//@uw_wa_name
+                            item.itemId,//@uw_it_id
+                            item.itemOpenQty,//@uw_openqty
+                            null,//@uw_qtyonhand
+                            item.itemLocation,//@uw_location
+                            SettingsModel.currentUser?.userUsername,//@uw_userstamp
+                            SettingsModel.currentCompany?.cmp_multibranchcode,//@branchcode
+                            null,//@uw_minqty
+                            0.0,//@uw_maxqty
+                        )
+                    )
+                }
+            }
         }
     }
 
-    override suspend fun updateOpening(
-            openingId: String?,
-            cost: Double,
-            costFirst: Double,
-            costSecond: Double
-    ) {
-        if (SettingsModel.isConnectedToSqlServer() && !openingId.isNullOrEmpty()) {
-            SQLServerWrapper.update(
-                "st_opening",
-                listOf(
-                    "op_unitcost",
-                    "op_unitcostf",
-                    "op_unitcosts",
-                    "op_date",
-                    "op_userstamp",
-                ),
-                listOf(
-                    cost,
-                    costFirst,
-                    costSecond,
-                    Timestamp(System.currentTimeMillis()),
-                    SettingsModel.currentUser?.userUsername
-                ),
-                "op_id = '$openingId'"
-            )
+    override suspend fun updateOpening(item: Item) {
+        when (SettingsModel.connectionType) {
+            CONNECTION_TYPE.FIRESTORE.key -> {}
+            CONNECTION_TYPE.LOCAL.key -> {}
+            else -> {
+                if (!item.itemOpeningId.isNullOrEmpty()) {
+                    SQLServerWrapper.update(
+                        "st_opening",
+                        listOf(
+                            "op_unitcost",
+                            "op_unitcostf",
+                            "op_unitcosts",
+                            "op_date",
+                            "op_userstamp",
+                        ),
+                        listOf(
+                            item.itemOpenCost,
+                            item.itemCostFirst,
+                            item.itemCostSecond,
+                            Timestamp(System.currentTimeMillis()),
+                            SettingsModel.currentUser?.userUsername
+                        ),
+                        "op_id = '${item.itemOpeningId}'"
+                    )
+                } else {
+                    SQLServerWrapper.executeProcedure(
+                        "addst_opening",
+                        listOf(
+                            SettingsModel.getCompanyID(),//@op_cmp_id
+                            item.itemId,//@op_it_id
+                            Timestamp(System.currentTimeMillis()),//@op_date
+                            item.itemOpenCost,//@op_unitcost
+                            item.itemCostFirst,//@op_unitcostf
+                            item.itemCostSecond,//@op_unitcosts
+                            SettingsModel.currentUser?.userUsername,//@op_userstamp
+                            SettingsModel.currentCompany?.cmp_multibranchcode,//@branchcode
+                        )
+                    )
+                }
+            }
         }
     }
 
@@ -435,6 +469,8 @@ class ItemRepositoryImpl(
                 "op_unitcost",
                 row.getDoubleValue("it_cost")
             )
+            itemCostFirst = row.getDoubleValue("op_unitcostf")
+            itemCostSecond = row.getDoubleValue("op_unitcosts")
             itemRealUnitPrice = 0.0
         }
     }

@@ -24,11 +24,6 @@ interface ItemRepository {
 
     suspend fun getOneItemByFamily(familyId: String): Item?
     suspend fun updateWarehouseData(item: Item)
-    suspend fun updateOpening(
-            openingId: String?,
-            cost: Double,
-            costFirst: Double,
-            costSecond: Double
-    )
+    suspend fun updateOpening(item: Item)
 
 }

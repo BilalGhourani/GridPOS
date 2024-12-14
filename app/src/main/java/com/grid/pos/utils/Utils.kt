@@ -96,14 +96,19 @@ object Utils {
                     title = "Items",
                     items = listOf(
                         HomeItemModel(
+                            R.drawable.families,
+                            "Family",
+                            "ManageFamiliesView"
+                        ),
+                        HomeItemModel(
                             R.drawable.items,
                             "Item",
                             "ManageItemsView"
                         ),
                         HomeItemModel(
-                            R.drawable.families,
-                            "Family",
-                            "ManageFamiliesView"
+                            R.drawable.item_opening,
+                            "Item Opening",
+                            "ItemOpeningView"
                         )
                     )
                 ),
@@ -199,14 +204,14 @@ object Utils {
                 title = "Items",
                 items = listOf(
                     HomeItemModel(
-                        R.drawable.items,
-                        "Item",
-                        "ManageItemsView"
-                    ),
-                    HomeItemModel(
                         R.drawable.families,
                         "Family",
                         "ManageFamiliesView"
+                    ),
+                    HomeItemModel(
+                        R.drawable.items,
+                        "Item",
+                        "ManageItemsView"
                     ),
                     HomeItemModel(
                         R.drawable.adjustment,

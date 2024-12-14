@@ -4,6 +4,7 @@ import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.ReportCountry
 import com.grid.pos.model.SettingsModel
+import com.grid.pos.model.WarehouseModel
 import com.grid.pos.utils.Extension.getStringValue
 import com.grid.pos.utils.Utils
 
@@ -189,7 +190,10 @@ class SettingsRepositoryImpl : SettingsRepository {
             else -> {
                 if (SettingsModel.isSqlServerWebDb) {
                     val result: MutableList<ReportCountry> = mutableListOf(
-                        ReportCountry("Default","Default")
+                        ReportCountry(
+                            "Default",
+                            "Default"
+                        )
                     )
                     try {
                         val dbResult = SQLServerWrapper.getListOf(
@@ -216,6 +220,52 @@ class SettingsRepositoryImpl : SettingsRepository {
                 } else {
                     return Utils.getReportCountries(true)
                 }
+            }
+        }
+    }
+
+    override suspend fun getAllWarehouses(): MutableList<WarehouseModel> {
+        when (SettingsModel.connectionType) {
+            CONNECTION_TYPE.FIRESTORE.key -> {
+                // nothing to do
+                return mutableListOf()
+            }
+
+            CONNECTION_TYPE.LOCAL.key -> {
+                //nothing to do
+                return mutableListOf()
+            }
+
+            else -> {
+                val warehouses: MutableList<WarehouseModel> = mutableListOf()
+                try {
+                    val where = if (SettingsModel.isSqlServerWebDb) {
+                        "wa_cmp_id='${SettingsModel.getCompanyID()}'"
+                    } else {
+                        ""
+                    }
+                    val dbResult = SQLServerWrapper.getListOf(
+                        "st_warehouse",
+                        "",
+                        mutableListOf(
+                            "*"
+                        ),
+                        where
+                    )
+                    dbResult?.let {
+                        if (it.next()) {
+                            warehouses.add(WarehouseModel().apply {
+                                warehouseId = it.getStringValue("wa_name")
+                                warehouseName = it.getStringValue("wa_newname")
+                                warehouseOrder = it.getStringValue("wa_order")
+                            })
+                        }
+                        SQLServerWrapper.closeResultSet(it)
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+                return warehouses
             }
         }
     }
