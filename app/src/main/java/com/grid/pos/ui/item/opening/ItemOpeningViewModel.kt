@@ -133,7 +133,7 @@ class ItemOpeningViewModel @Inject constructor(
             )
             withContext(Dispatchers.Main) {
                 state.value = state.value.copy(
-                    selectedItem = null,
+                    //selectedItem = null,
                     isLoading = false,
                     warning = Event("item cost saved successfully."),
                     clearCosts = true
@@ -179,7 +179,7 @@ class ItemOpeningViewModel @Inject constructor(
             )
             withContext(Dispatchers.Main) {
                 state.value = state.value.copy(
-                    selectedItem = null,
+                    //selectedItem = null,
                     isLoading = false,
                     warning = Event("Warehouse details saved successfully."),
                     clearWarehouseDetails = true
