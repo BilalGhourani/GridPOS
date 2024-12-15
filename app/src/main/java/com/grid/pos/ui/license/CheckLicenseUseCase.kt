@@ -152,20 +152,20 @@ class CheckLicenseUseCase(
             return false
         } else {
             if (currentCompany?.companySS == true) {
-                if (currentDate >= lastInvoiceDate || licCreatedDate >= currentDate) {
+                return if (currentDate.time >= (lastInvoiceDate?.time?:0) || licCreatedDate.time >= currentDate.time) {
                     CoroutineScope(Dispatchers.IO).launch {
                         companyRepository.disableCompanies(false)
                     }
                     //db.execSQL("UPDATE company SET cmp_ss=0")
                     // Optionally, you might want to shut down the app or handle it appropriately
-                    return true
+                    true
                 } else {
                     CoroutineScope(Dispatchers.IO).launch {
                         companyRepository.disableCompanies(true)
                     }
                     //db.execSQL("UPDATE company SET cmp_ss=1")
                     // Optionally, you might want to shut down the app or handle it appropriately
-                    return false
+                    false
                 }
             }
             return true
