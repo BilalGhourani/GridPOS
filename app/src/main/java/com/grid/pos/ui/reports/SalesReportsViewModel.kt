@@ -243,14 +243,12 @@ class SalesReportsViewModel @Inject constructor(
         val firstRow = sheet.createRow(0)
         firstRow.createCell(0).setCellValue("Name")
         firstRow.createCell(1).setCellValue("Qty Sold")
-        firstRow.createCell(2).setCellValue("Discount")
-        firstRow.createCell(3).setCellValue("Total")
+        firstRow.createCell(2).setCellValue("Total")
 
         val priceWithTax = SettingsModel.currentCompany?.companyUpWithTax ?: false
         filteredInvoiceItemMap.keys.forEachIndexed { index, itemId ->
             val item = itemMap[itemId]
             var quantitiesSold = 0.0
-            var totalDiscountAmount = 0.0
             var totalSale = 0.0
             filteredInvoiceItemMap[itemId]?.map {
                 quantitiesSold += it.invoiceQuantity
@@ -258,14 +256,12 @@ class SalesReportsViewModel @Inject constructor(
                 val itemSale = if (priceWithTax) (it.getAmount() - discAmt) else it.getNetAmount()
                 val invDiscount = invoicesMap[it.invoiceHeaderId]?.invoiceHeadDiscount ?: 0.0
                 val invDiscountAmount = itemSale.times(invDiscount.times(0.01))
-                totalDiscountAmount += discAmt + invDiscountAmount
                 totalSale += itemSale - invDiscountAmount
             }
             val row = sheet.createRow(index + 1)
             row.createCell(0).setCellValue(item?.itemName ?: "N/A")
             row.createCell(1).setCellValue(quantitiesSold)
-            row.createCell(2).setCellValue(totalDiscountAmount)
-            row.createCell(3).setCellValue(totalSale)
+            row.createCell(2).setCellValue(totalSale)
         }
     }
 
