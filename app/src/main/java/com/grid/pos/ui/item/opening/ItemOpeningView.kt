@@ -14,6 +14,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.QrCode2
 import androidx.compose.material.icons.filled.RemoveCircleOutline
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -22,6 +23,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -51,6 +53,7 @@ import androidx.navigation.NavController
 import com.grid.pos.R
 import com.grid.pos.SharedViewModel
 import com.grid.pos.data.item.Item
+import com.grid.pos.interfaces.OnBarcodeResult
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.model.WarehouseModel
 import com.grid.pos.ui.common.SearchableDropdownMenuEx
@@ -82,6 +85,8 @@ fun ItemOpeningView(
     val costFirstFocusRequester = remember { FocusRequester() }
     val costSecondFocusRequester = remember { FocusRequester() }
 
+    var barcodeSearchState by remember { mutableStateOf("") }
+
     var warehouseState by remember { mutableStateOf("") }
     var locationState by remember { mutableStateOf("") }
     var openQtyState by remember { mutableStateOf("") }
@@ -97,10 +102,17 @@ fun ItemOpeningView(
     LaunchedEffect(state.warning) {
         state.warning?.value?.let { message ->
             scope.launch {
-                snackBarHostState.showSnackbar(
+                val snackBarResult = snackBarHostState.showSnackbar(
                     message = message,
-                    duration = SnackbarDuration.Short
+                    duration = SnackbarDuration.Short,
+                    actionLabel = state.actionLabel
                 )
+                when (snackBarResult) {
+                    SnackbarResult.Dismissed -> {}
+                    SnackbarResult.ActionPerformed -> when (state.actionLabel) {
+                        "Settings" -> sharedViewModel.openAppStorageSettings()
+                    }
+                }
             }
         }
     }
@@ -404,6 +416,35 @@ fun ItemOpeningView(
                     },
                     onLeadingIconClick = {
                         clear()
+                    },
+                    searchEnteredText = barcodeSearchState,
+                    searchLeadingIcon = {
+                        IconButton(onClick = {
+                            sharedViewModel.launchBarcodeScanner(true,
+                                null,
+                                object : OnBarcodeResult {
+                                    override fun OnBarcodeResult(barcodesList: List<Any>) {
+                                        if (barcodesList.isNotEmpty()) {
+                                            val resp = barcodesList[0]
+                                            if (resp is String) {
+                                                barcodeSearchState = resp
+                                            }
+                                        }
+                                    }
+                                },
+                                onPermissionDenied = {
+                                    viewModel.showWarning(
+                                        "Permission Denied",
+                                        "Settings"
+                                    )
+                                })
+                        }) {
+                            Icon(
+                                Icons.Default.QrCode2,
+                                contentDescription = "Barcode",
+                                tint = SettingsModel.buttonColor
+                            )
+                        }
                     }) { item ->
                     item as Item
                     if (state.warehouses.isEmpty()) {

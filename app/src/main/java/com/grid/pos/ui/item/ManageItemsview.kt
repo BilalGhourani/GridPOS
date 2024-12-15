@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -67,6 +68,7 @@ import com.grid.pos.data.posPrinter.PosPrinter
 import com.grid.pos.interfaces.OnBarcodeResult
 import com.grid.pos.interfaces.OnGalleryResult
 import com.grid.pos.model.CurrencyModel
+import com.grid.pos.model.InvoiceItemModel
 import com.grid.pos.model.ItemGroupModel
 import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
@@ -75,6 +77,7 @@ import com.grid.pos.ui.common.SearchableDropdownMenuEx
 import com.grid.pos.ui.common.UIImageButton
 import com.grid.pos.ui.common.UISwitch
 import com.grid.pos.ui.common.UITextField
+import com.grid.pos.ui.pos.POSUtils
 import com.grid.pos.ui.settings.ColorPickerType
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.utils.Extension.toHexCode
@@ -123,6 +126,7 @@ fun ManageItemsView(
             SettingsModel.currentCompany?.companyTax2.toString()
         )
     }
+    var barcodeSearchState by remember { mutableStateOf("") }
     var barcodeState by remember { mutableStateOf("") }
     var openCostState by remember { mutableStateOf("") }
     var openQtyState by remember { mutableStateOf("") }
@@ -291,7 +295,6 @@ fun ManageItemsView(
         if (state.items.isNotEmpty()) {
             sharedViewModel.items = state.items
         }
-        viewModel.closeConnectionIfNeeded()
         navController?.navigateUp()
     }
 
@@ -868,6 +871,35 @@ fun ManageItemsView(
                     },
                     onLeadingIconClick = {
                         clear()
+                    },
+                    searchEnteredText = barcodeSearchState,
+                    searchLeadingIcon = {
+                        IconButton(onClick = {
+                            sharedViewModel.launchBarcodeScanner(true,
+                                null,
+                                object : OnBarcodeResult {
+                                    override fun OnBarcodeResult(barcodesList: List<Any>) {
+                                        if (barcodesList.isNotEmpty()) {
+                                            val resp = barcodesList[0]
+                                            if (resp is String) {
+                                                barcodeSearchState = resp
+                                            }
+                                        }
+                                    }
+                                },
+                                onPermissionDenied = {
+                                    viewModel.showWarning(
+                                        "Permission Denied",
+                                        "Settings"
+                                    )
+                                })
+                        }) {
+                            Icon(
+                                Icons.Default.QrCode2,
+                                contentDescription = "Barcode",
+                                tint = SettingsModel.buttonColor
+                            )
+                        }
                     }) { item ->
                     item as Item
                     if (state.families.isEmpty() || state.printers.isEmpty()) {

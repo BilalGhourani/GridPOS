@@ -20,6 +20,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.QrCode2
 import androidx.compose.material.icons.filled.RemoveCircleOutline
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -33,6 +34,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -70,6 +72,7 @@ import androidx.navigation.NavController
 import com.grid.pos.SharedViewModel
 import com.grid.pos.R
 import com.grid.pos.data.item.Item
+import com.grid.pos.interfaces.OnBarcodeResult
 import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.SearchableDropdownMenuEx
@@ -152,6 +155,7 @@ fun AdjustmentView(
         )
     }
 
+    var barcodeSearchState by remember { mutableStateOf("") }
     var itemState by remember { mutableStateOf("") }
     var itemCostState by remember { mutableStateOf("") }
     var showDatePicker by remember { mutableStateOf(false) }
@@ -167,10 +171,17 @@ fun AdjustmentView(
     ) {
         state.warning?.value?.let { message ->
             scope.launch {
-                snackbarHostState.showSnackbar(
+                val snackBarResult = snackbarHostState.showSnackbar(
                     message = message,
                     duration = SnackbarDuration.Short,
+                    actionLabel = state.actionLabel
                 )
+                when (snackBarResult) {
+                    SnackbarResult.Dismissed -> {}
+                    SnackbarResult.ActionPerformed -> when (state.actionLabel) {
+                        "Settings" -> sharedViewModel.openAppStorageSettings()
+                    }
+                }
             }
         }
     }
@@ -414,19 +425,48 @@ fun AdjustmentView(
                     label = "Select Item",
                     selectedId = itemState,
                     onLoadItems = { viewModel.fetchItems() },
-                    leadingIcon = {
+                    leadingIcon = {mod->
                         if (itemState.isNotEmpty()) {
                             Icon(
                                 Icons.Default.RemoveCircleOutline,
                                 contentDescription = "remove item",
                                 tint = Color.Black,
-                                modifier = it
+                                modifier = mod
                             )
                         }
                     },
                     onLeadingIconClick = {
                         itemState = ""
                         state.selectedItem = null
+                    },
+                    searchEnteredText = barcodeSearchState,
+                    searchLeadingIcon = {
+                        IconButton(onClick = {
+                            sharedViewModel.launchBarcodeScanner(true,
+                                null,
+                                object : OnBarcodeResult {
+                                    override fun OnBarcodeResult(barcodesList: List<Any>) {
+                                        if (barcodesList.isNotEmpty()) {
+                                            val resp = barcodesList[0]
+                                            if (resp is String) {
+                                                barcodeSearchState = resp
+                                            }
+                                        }
+                                    }
+                                },
+                                onPermissionDenied = {
+                                    viewModel.showError(
+                                        "Permission Denied",
+                                        "Settings"
+                                    )
+                                })
+                        }) {
+                            Icon(
+                                Icons.Default.QrCode2,
+                                contentDescription = "Barcode",
+                                tint = SettingsModel.buttonColor
+                            )
+                        }
                     }) { item ->
                     item as Item
                     itemState = item.itemId

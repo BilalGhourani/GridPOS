@@ -50,22 +50,24 @@ import com.grid.pos.model.SettingsModel
 
 @Composable
 fun SearchableDropdownMenuEx(
-    modifier: Modifier = Modifier,
-    items: MutableList<DataModel> = mutableListOf(),
-    placeholder: String? = null,
-    label: String = "",
-    selectedId: String? = null,
-    showSelected: Boolean = true,
-    enableSearch: Boolean = true,
-    color: Color = SettingsModel.backgroundColor,
-    leadingIcon: @Composable ((Modifier) -> Unit)? = null,
-    cornerRadius: Dp = 15.dp,
-    height :Dp = 70.dp,
-    minHeight : Dp = 50.dp,// 1 row as minimum
-    maxHeight : Dp = 170.dp,// 4 rows as maximum
-    onLeadingIconClick: () -> Unit = {},
-    onLoadItems: () -> Unit = {},
-    onSelectionChange: (DataModel) -> Unit = {},
+        modifier: Modifier = Modifier,
+        items: MutableList<DataModel> = mutableListOf(),
+        placeholder: String? = null,
+        label: String = "",
+        searchEnteredText: String? = null,
+        selectedId: String? = null,
+        showSelected: Boolean = true,
+        enableSearch: Boolean = true,
+        color: Color = SettingsModel.backgroundColor,
+        leadingIcon: @Composable ((Modifier) -> Unit)? = null,
+        searchLeadingIcon: @Composable (() -> Unit)? = null,
+        cornerRadius: Dp = 15.dp,
+        height: Dp = 70.dp,
+        minHeight: Dp = 50.dp,// 1 row as minimum
+        maxHeight: Dp = 170.dp,// 4 rows as maximum
+        onLeadingIconClick: () -> Unit = {},
+        onLoadItems: () -> Unit = {},
+        onSelectionChange: (DataModel) -> Unit = {},
 ) {
     var isLoaded by remember { mutableStateOf(false) }
     var expandedState by remember { mutableStateOf(false) }
@@ -91,6 +93,12 @@ fun SearchableDropdownMenuEx(
         }
     }
 
+    LaunchedEffect(key1 = searchEnteredText) {
+        if (!searchEnteredText.isNullOrEmpty()) {
+            searchText = searchEnteredText
+        }
+    }
+
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -102,7 +110,10 @@ fun SearchableDropdownMenuEx(
                 text = placeholder,
                 color = SettingsModel.textColor,
                 fontSize = 12.sp,
-                modifier = Modifier.padding(start = 8.dp, bottom = 4.dp)
+                modifier = Modifier.padding(
+                    start = 8.dp,
+                    bottom = 4.dp
+                )
             )
         }
         Row(modifier = Modifier
@@ -186,7 +197,10 @@ fun SearchableDropdownMenuEx(
                     if (enableSearch) {
                         OutlinedTextField(modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 8.dp, vertical = 5.dp),
+                            .padding(
+                                horizontal = 8.dp,
+                                vertical = 5.dp
+                            ),
                             value = searchText,
                             onValueChange = {
                                 searchText = it
@@ -198,6 +212,7 @@ fun SearchableDropdownMenuEx(
                                     color = SettingsModel.textColor
                                 )
                             },
+                            leadingIcon =  searchLeadingIcon,
                             trailingIcon = {
                                 IconButton(onClick = {
                                     searchText = ""
@@ -231,8 +246,7 @@ fun SearchableDropdownMenuEx(
                                             .height(40.dp)
                                             .clickable {
                                                 onSelectionChange(dataObj)
-                                                if (showSelected) selectedItemState =
-                                                    dataObj.getName()
+                                                if (showSelected) selectedItemState = dataObj.getName()
                                                 expandedState = false
                                             },
                                         text = dataObj.getName(),

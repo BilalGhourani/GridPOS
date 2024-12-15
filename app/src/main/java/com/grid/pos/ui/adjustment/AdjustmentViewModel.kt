@@ -175,9 +175,13 @@ class AdjustmentViewModel @Inject constructor(
         }
     }
 
-    fun showError(message: String) {
+    fun showError(
+            message: String,
+            action: String? = null
+    ) {
         state.value = state.value.copy(
             warning = Event(message),
+            actionLabel = action,
             isLoading = false
         )
     }

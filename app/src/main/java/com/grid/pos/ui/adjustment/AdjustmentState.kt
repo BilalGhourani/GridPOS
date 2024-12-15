@@ -9,4 +9,5 @@ data class AdjustmentState(
         var isLoading: Boolean = false,
         var clear: Boolean = false,
         var warning: Event<String>? = null,
+        var actionLabel: String? = null,
 )
