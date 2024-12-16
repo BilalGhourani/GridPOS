@@ -495,6 +495,26 @@ fun ManageItemsView(
                                 openCostFocusRequester.requestFocus()
                             }
                         },
+                        leadingIcon = {
+                            IconButton(onClick = {
+                                sharedViewModel.showLoading(true)
+                                scope.launch(Dispatchers.IO) {
+                                    viewModel.generateBarcode()?.let { barcode ->
+                                        withContext(Dispatchers.Main) {
+                                            barcodeState = barcode
+                                            sharedViewModel.showLoading(false)
+                                        }
+                                    }
+                                }
+
+                            }) {
+                                Icon(
+                                    painterResource(R.drawable.generate_barcode),
+                                    contentDescription = "Generate barcode",
+                                    tint = SettingsModel.buttonColor
+                                )
+                            }
+                        },
                         trailingIcon = {
                             IconButton(onClick = {
                                 sharedViewModel.launchBarcodeScanner(true,

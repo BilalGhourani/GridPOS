@@ -21,6 +21,7 @@ interface ItemRepository {
     suspend fun getItemsForPOS(): MutableList<Item>
 
     suspend fun getOneItemByPrinter(printerID: String): Item?
+    suspend fun generateBarcode(): String?
 
     suspend fun getOneItemByFamily(familyId: String): Item?
     suspend fun updateWarehouseData(item: Item)

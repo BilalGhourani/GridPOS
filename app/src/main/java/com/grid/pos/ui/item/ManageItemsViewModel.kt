@@ -216,7 +216,7 @@ class ManageItemsViewModel @Inject constructor(
             isLoading = true
         )
 
-        CoroutineScope(Dispatchers.IO).launch {
+        viewModelScope.launch(Dispatchers.IO) {
             if (hasRelations(item.itemId)) {
                 withContext(Dispatchers.Main) {
                     manageItemsState.value = manageItemsState.value.copy(
@@ -239,6 +239,10 @@ class ManageItemsViewModel @Inject constructor(
                 )
             }
         }
+    }
+
+    suspend fun generateBarcode(): String? {
+        return itemRepository.generateBarcode()
     }
 
     private suspend fun hasRelations(itemId: String): Boolean {

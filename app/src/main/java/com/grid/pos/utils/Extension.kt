@@ -168,7 +168,7 @@ object Extension {
             fallback: String = ""
     ): String {
         return try {
-            getString(value).takeIf { !it.isNullOrEmptyOrNullStr() }?:fallback
+            getString(value).takeIf { !it.isNullOrEmptyOrNullStr() } ?: fallback
         } catch (e: Exception) {
             e.printStackTrace()
             fallback
@@ -180,7 +180,19 @@ object Extension {
             fallback: Double = 0.0
     ): Double {
         return try {
-            getDouble(value).takeIf { !it.isNaN() } ?: 0.0
+            getDouble(value).takeIf { !it.isNaN() } ?: fallback
+        } catch (e: Exception) {
+            e.printStackTrace()
+            fallback
+        }
+    }
+
+    fun ResultSet.getLongValue(
+            value: String,
+            fallback: Long = 0
+    ): Long {
+        return try {
+            getLong(value)
         } catch (e: Exception) {
             e.printStackTrace()
             fallback

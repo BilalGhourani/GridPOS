@@ -47,4 +47,8 @@ interface ItemDao {
     @Query("SELECT * FROM `st_item` WHERE it_printer =:printerID LIMIT 1")
     fun getOneItemByPrinter(printerID: String): Item?
 
+    // Get last numeric barcode as stream.
+    @Query("SELECT it_barcode FROM `st_item` WHERE it_barcode GLOB '[0-9]*' ORDER BY CAST(it_barcode AS INTEGER) DESC  LIMIT 1")
+    fun getLastNumericPassword(): String?
+
 }

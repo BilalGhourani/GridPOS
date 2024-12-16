@@ -1,12 +1,14 @@
 package com.grid.pos.data.item
 
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.DateHelper
 import com.grid.pos.utils.Extension.getDoubleValue
 import com.grid.pos.utils.Extension.getIntValue
+import com.grid.pos.utils.Extension.getLongValue
 import com.grid.pos.utils.Extension.getObjectValue
 import com.grid.pos.utils.Extension.getStringValue
 import kotlinx.coroutines.tasks.await
@@ -157,7 +159,7 @@ class ItemRepositoryImpl(
                                 "currency.cur_newcode",
                                 "op_id,op_unitcost,op_unitcostf,op_unitcosts"
                             ),
-                            "it_cmp_id='${SettingsModel.getCompanyID()}'",
+                            "",
                             "order by it_name",
                             "INNER JOIN currency on it_cur_code = cur_code LEFT OUTER JOIN st_item_warehouse on it_id = uw_it_id LEFT OUTER JOIN st_opening on it_id=op_it_id"
                         )
@@ -266,6 +268,67 @@ class ItemRepositoryImpl(
 
             else -> {
                 return null
+            }
+        }
+    }
+
+    override suspend fun generateBarcode(): String? {
+        when (SettingsModel.connectionType) {
+            CONNECTION_TYPE.FIRESTORE.key -> {
+                val querySnapshot = FirebaseFirestore.getInstance().collection("st_item").orderBy(
+                    "it_barcode",
+                    Query.Direction.DESCENDING
+                ).get().await()
+
+                val barcode = querySnapshot.documents.mapNotNull {
+                    it.getString("barcode")?.toLongOrNull()
+                } // Filter numeric barcodes
+                    .maxOrNull() // Find the largest numeric barcode
+                return barcode?.let {
+                    (it + 1).toString()
+                } ?: "10000"
+            }
+
+            CONNECTION_TYPE.LOCAL.key -> {
+                val result = itemDao.getLastNumericPassword()
+                val numBarcode = result?.toLongOrNull() ?: 9999
+                return (numBarcode + 1).toString()
+            }
+
+            else -> {
+                var barcode: Long = 9999
+                try {
+                    val dbResult = if (SettingsModel.isSqlServerWebDb) {
+                        SQLServerWrapper.getListOf(
+                            "st_item",
+                            "TOP 1",
+                            mutableListOf(
+                                "TRY_CAST(it_barcode AS BIGINT) AS numeric_barcode"
+                            ),
+                            "it_cmp_id='${SettingsModel.getCompanyID()}' AND TRY_CAST(it_barcode AS BIGINT) IS NOT NULL",
+                            "ORDER BY TRY_CAST(it_barcode AS BIGINT) DESC"
+                        )
+                    } else {
+                        SQLServerWrapper.getListOf(
+                            "st_item",
+                            "TOP 1",
+                            mutableListOf(
+                                "TRY_CAST(it_barcode AS BIGINT) AS numeric_barcode"
+                            ),
+                            "TRY_CAST(it_barcode AS BIGINT) IS NOT NULL",
+                            "ORDER BY TRY_CAST(it_barcode AS BIGINT) DESC"
+                        )
+                    }
+                    dbResult?.let {
+                        while (it.next()) {
+                            barcode = it.getLongValue("numeric_barcode",9999)
+                        }
+                        SQLServerWrapper.closeResultSet(it)
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+                return (barcode + 1).toString()
             }
         }
     }
