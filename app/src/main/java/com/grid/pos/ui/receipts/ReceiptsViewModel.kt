@@ -192,6 +192,14 @@ class ReceiptsViewModel @Inject constructor(
                 }
             } else {
                 receiptRepository.update(receipt)
+                val index = receiptsState.value.receipts.indexOfFirst { it.receiptId == receipt.receiptId }
+                if (index >= 0) {
+                    receiptsState.value.receipts.removeAt(index)
+                    receiptsState.value.receipts.add(
+                        index,
+                        receipt
+                    )
+                }
                 prepareReceiptReport(
                     context,
                     receipt

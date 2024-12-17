@@ -192,7 +192,7 @@ fun ManageItemsView(
 
     fun fillItemInputs(item: Item) {
         viewModel.currentITem = item.copy()
-        state.selectedItem = item
+        state.selectedItem = item.copy()
         nameState = item.itemName ?: ""
         unitPriceState = item.itemUnitPrice.toString()
         taxState = item.itemTax.toString()

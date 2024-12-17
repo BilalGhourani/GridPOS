@@ -392,7 +392,7 @@ fun ManageThirdPartiesView(
                     }) { thirdParty ->
                     thirdParty as ThirdParty
                     viewModel.currentThirdParty = thirdParty.copy()
-                    state.selectedThirdParty = thirdParty
+                    state.selectedThirdParty = thirdParty.copy()
                     typeState = thirdParty.thirdPartyType ?: ""
                     nameState = thirdParty.thirdPartyName ?: ""
                     fnState = thirdParty.thirdPartyFn ?: ""

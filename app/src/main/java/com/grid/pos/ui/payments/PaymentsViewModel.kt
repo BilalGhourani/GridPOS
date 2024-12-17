@@ -188,6 +188,14 @@ class PaymentsViewModel @Inject constructor(
                 }
             } else {
                 paymentRepository.update(payment)
+                val index = paymentsState.value.payments.indexOfFirst { it.paymentId == payment.paymentId }
+                if (index >= 0) {
+                    paymentsState.value.payments.removeAt(index)
+                    paymentsState.value.payments.add(
+                        index,
+                        payment
+                    )
+                }
                 preparePaymentReport(
                     context,
                     payment

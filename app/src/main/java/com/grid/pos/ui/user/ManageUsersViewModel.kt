@@ -102,6 +102,14 @@ class ManageUsersViewModel @Inject constructor(
                 }
             } else {
                 userRepository.update(user)
+                val index = manageUsersState.value.users.indexOfFirst { it.userId == user.userId }
+                if (index >= 0) {
+                    manageUsersState.value.users.removeAt(index)
+                    manageUsersState.value.users.add(
+                        index,
+                        user
+                    )
+                }
                 withContext(Dispatchers.Main) {
                     manageUsersState.value = manageUsersState.value.copy(
                         selectedUser = user,

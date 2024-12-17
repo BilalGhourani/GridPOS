@@ -375,7 +375,7 @@ fun ManageFamiliesView(
                     }) { family ->
                     family as Family
                     viewModel.currentFamily = family.copy()
-                    state.selectedFamily = family
+                    state.selectedFamily = family.copy()
                     nameState = family.familyName ?: ""
                     imageState = family.familyImage ?: ""
                 }

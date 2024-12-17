@@ -380,7 +380,7 @@ fun ManageUsersView(
                     }) { selectedUser ->
                     selectedUser as User
                     viewModel.currentUser = selectedUser.copy()
-                    state.selectedUser = selectedUser
+                    state.selectedUser = selectedUser.copy()
                     nameState = selectedUser.userName ?: ""
                     usernameState = selectedUser.userUsername ?: ""
                     passwordState = selectedUser.userPassword?.decryptCBC() ?: ""

@@ -157,6 +157,14 @@ class ManageCompaniesViewModel @Inject constructor(
                 ) {
                     SettingsModel.currentCompany = company
                 }
+                val index = manageCompaniesState.value.companies.indexOfFirst { it.companyId == company.companyId }
+                if (index >= 0) {
+                    manageCompaniesState.value.companies.removeAt(index)
+                    manageCompaniesState.value.companies.add(
+                        index,
+                        company
+                    )
+                }
                 withContext(Dispatchers.Main) {
                     manageCompaniesState.value = manageCompaniesState.value.copy(
                         selectedCompany = company,

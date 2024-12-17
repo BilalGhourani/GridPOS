@@ -512,7 +512,7 @@ fun PaymentsView(
                     payment as Payment
                     payment.paymentCurrencyCode = viewModel.getCurrencyCode(payment.paymentCurrency)
                     viewModel.currentPayment = payment.copy()
-                    state.selectedPayment = payment
+                    state.selectedPayment = payment.copy()
                     thirdPartyState = payment.paymentThirdParty ?: ""
                     typeState = payment.paymentType ?: ""
                     currencyState = payment.paymentCurrency ?: ""

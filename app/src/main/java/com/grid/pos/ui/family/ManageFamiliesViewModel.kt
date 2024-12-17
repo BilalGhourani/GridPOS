@@ -97,6 +97,14 @@ class ManageFamiliesViewModel @Inject constructor(
                 }
             } else {
                 familyRepository.update(family)
+                val index = manageFamiliesState.value.families.indexOfFirst { it.familyId == family.familyId }
+                if (index >= 0) {
+                    manageFamiliesState.value.families.removeAt(index)
+                    manageFamiliesState.value.families.add(
+                        index,
+                        family
+                    )
+                }
                 withContext(Dispatchers.Main) {
                     manageFamiliesState.value = manageFamiliesState.value.copy(
                         selectedFamily = Family(),

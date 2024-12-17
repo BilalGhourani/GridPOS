@@ -512,7 +512,7 @@ fun ReceiptsView(
                     receipt as Receipt
                     receipt.receiptCurrencyCode = viewModel.getCurrencyCode(receipt.receiptCurrency)
                     viewModel.currentReceipt = receipt.copy()
-                    state.selectedReceipt = receipt
+                    state.selectedReceipt = receipt.copy()
                     thirdPartyState = receipt.receiptThirdParty ?: ""
                     typeState = receipt.receiptType ?: ""
                     currencyState = receipt.receiptCurrency ?: ""

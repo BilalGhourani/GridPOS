@@ -331,7 +331,7 @@ fun POSPrinterView(
                     }) { printer ->
                     printer as PosPrinter
                     viewModel.currentPrinter = printer.copy()
-                    state.selectedPrinter = printer
+                    state.selectedPrinter = printer.copy()
                     nameState = printer.posPrinterName ?: ""
                     hostState = printer.posPrinterHost
                     portState = printer.posPrinterPort.toString()

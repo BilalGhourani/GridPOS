@@ -191,6 +191,14 @@ class ManageItemsViewModel @Inject constructor(
                 }
             } else {
                 itemRepository.update(item)
+                val index = manageItemsState.value.items.indexOfFirst { it.itemId == item.itemId }
+                if (index >= 0) {
+                    manageItemsState.value.items.removeAt(index)
+                    manageItemsState.value.items.add(
+                        index,
+                        item
+                    )
+                }
                 withContext(Dispatchers.Main) {
                     manageItemsState.value = manageItemsState.value.copy(
                         selectedItem = item,

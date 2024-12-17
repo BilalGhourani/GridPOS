@@ -98,6 +98,14 @@ class ManageThirdPartiesViewModel @Inject constructor(
                     currentThirdParty.thirdPartyId,
                     thirdParty
                 )
+                val index = manageThirdPartiesState.value.thirdParties.indexOfFirst { it.thirdPartyId == thirdParty.thirdPartyId }
+                if (index >= 0) {
+                    manageThirdPartiesState.value.thirdParties.removeAt(index)
+                    manageThirdPartiesState.value.thirdParties.add(
+                        index,
+                        thirdParty
+                    )
+                }
                 val isDefaultEnabled = manageThirdPartiesState.value.thirdParties.none { it.thirdPartyDefault }
                 withContext(Dispatchers.Main) {
                     manageThirdPartiesState.value = manageThirdPartiesState.value.copy(

@@ -98,6 +98,14 @@ class POSPrinterViewModel @Inject constructor(
                 }
             } else {
                 posPrinterRepository.update(printer)
+                val index = posPrinterState.value.printers.indexOfFirst { it.posPrinterId == printer.posPrinterId }
+                if (index >= 0) {
+                    posPrinterState.value.printers.removeAt(index)
+                    posPrinterState.value.printers.add(
+                        index,
+                        printer
+                    )
+                }
                 withContext(Dispatchers.Main) {
                     posPrinterState.value = posPrinterState.value.copy(
                         selectedPrinter = PosPrinter(),

@@ -666,7 +666,7 @@ fun ManageCompaniesView(
                     }) { company ->
                     company as Company
                     viewModel.currentCompany = company.copy()
-                    state.selectedCompany = company
+                    state.selectedCompany = company.copy()
                     nameState = company.companyName ?: ""
                     phoneState = company.companyPhone ?: ""
                     addressState = company.companyAddress ?: ""
