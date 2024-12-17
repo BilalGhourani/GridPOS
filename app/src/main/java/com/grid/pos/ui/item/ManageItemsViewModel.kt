@@ -1,5 +1,6 @@
 package com.grid.pos.ui.item
 
+import android.content.Context
 import androidx.lifecycle.viewModelScope
 import com.grid.pos.data.currency.CurrencyRepository
 import com.grid.pos.data.family.FamilyRepository
@@ -7,10 +8,13 @@ import com.grid.pos.data.invoice.InvoiceRepository
 import com.grid.pos.data.item.Item
 import com.grid.pos.data.item.ItemRepository
 import com.grid.pos.data.posPrinter.PosPrinterRepository
+import com.grid.pos.data.receipt.Receipt
 import com.grid.pos.model.Event
 import com.grid.pos.model.ItemGroupModel
+import com.grid.pos.model.ReportResult
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.BaseViewModel
+import com.grid.pos.utils.PrinterUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -249,8 +253,30 @@ class ManageItemsViewModel @Inject constructor(
         }
     }
 
-    suspend fun generateBarcode(): String? {
+    suspend fun generateBarcode(): String {
         return itemRepository.generateBarcode()
+    }
+
+    fun prepareItemBarcodeReport(
+            context: Context,
+            item: Item
+    ): ReportResult {
+        val reportResult = PrinterUtils.getItemBarcodeHtmlContent(
+            context,
+            item
+        )
+        SettingsModel.cashPrinter?.let {
+            if (it.contains(":")) {
+                val printerDetails = it.split(":")
+                val size = printerDetails.size
+                reportResult.printerIP = if (size > 0) printerDetails[0] else ""
+                val port = if (size > 1) printerDetails[1] else "-1"
+                reportResult.printerPort = port.toIntOrNull() ?: -1
+            } else {
+                reportResult.printerName = it
+            }
+        }
+        return reportResult
     }
 
     private suspend fun hasRelations(itemId: String): Boolean {

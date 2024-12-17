@@ -82,6 +82,7 @@ import com.grid.pos.ui.settings.ColorPickerType
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.utils.Extension.toHexCode
 import com.grid.pos.utils.FileUtils
+import com.grid.pos.utils.PrinterUtils
 import com.grid.pos.utils.Utils
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -210,7 +211,6 @@ fun ManageItemsView(
         itemPOSState = item.itemPos
         imageState = item.itemImage ?: ""
     }
-
 
     fun saveItem() {
         oldImage?.let { old ->
@@ -522,11 +522,25 @@ fun ManageItemsView(
                             IconButton(onClick = {
                                 sharedViewModel.showLoading(true)
                                 scope.launch(Dispatchers.IO) {
-                                    viewModel.generateBarcode()?.let { barcode ->
+                                    val barcode = barcodeState.ifEmpty { viewModel.generateBarcode() }
+                                    if (barcode.isNotEmpty()) {
+                                        state.selectedItem.itemBarcode = barcode
                                         withContext(Dispatchers.Main) {
                                             barcodeState = barcode
-                                            state.selectedItem.itemBarcode = barcodeState
+                                        }
+                                        val reportResult = viewModel.prepareItemBarcodeReport(
+                                            context,
+                                            state.selectedItem
+                                        )
+                                        PrinterUtils.printReport(
+                                            context,
+                                            reportResult
+                                        )
+                                        withContext(Dispatchers.Main) {
                                             sharedViewModel.showLoading(false)
+                                            //sharedViewModel.reportsToPrint.clear()
+                                            //sharedViewModel.reportsToPrint.add(reportResult)
+                                            //navController?.navigate("UIWebView")
                                         }
                                     }
                                 }
@@ -661,6 +675,7 @@ fun ManageItemsView(
                         currModel as CurrencyModel
                         itemCurrState = currModel.getId()
                         state.selectedItem.itemCurrencyId = itemCurrState
+                        state.selectedItem.itemCurrencyCode = currModel.currencyCode
                     }
 
                     SearchableDropdownMenuEx(items = state.families.toMutableList(),

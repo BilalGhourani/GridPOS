@@ -18,6 +18,7 @@ import com.google.zxing.WriterException
 import com.grid.pos.data.company.Company
 import com.grid.pos.data.currency.Currency
 import com.grid.pos.data.invoiceHeader.InvoiceHeader
+import com.grid.pos.data.item.Item
 import com.grid.pos.data.payment.Payment
 import com.grid.pos.data.posReceipt.PosReceipt
 import com.grid.pos.data.receipt.Receipt
@@ -1234,7 +1235,11 @@ object PrinterUtils {
             thirdParty?.thirdPartyName ?: ""
         ).replace(
             "{paidOutAmountStringValue}",
-            Utils.convertDoubleToWords(payment.paymentAmount,"Only",payment.paymentCurrencyCode ?: "")
+            Utils.convertDoubleToWords(
+                payment.paymentAmount,
+                "Only",
+                payment.paymentCurrencyCode ?: ""
+            )
         ).replace(
             "{paidOutDescriptionValue}",
             payment.paymentDesc ?: ""
@@ -1287,7 +1292,11 @@ object PrinterUtils {
             thirdParty?.thirdPartyName ?: ""
         ).replace(
             "{paidInAmountStringValue}",
-            Utils.convertDoubleToWords(receipt.receiptAmount,"Only",receipt.receiptCurrencyCode ?: "")
+            Utils.convertDoubleToWords(
+                receipt.receiptAmount,
+                "Only",
+                receipt.receiptCurrencyCode ?: ""
+            )
         ).replace(
             "{paidInDescriptionValue}",
             receipt.receiptDesc ?: ""
@@ -1295,6 +1304,80 @@ object PrinterUtils {
             "{paidInBalanceValue}",
             ""
         )
+        return ReportResult(
+            found = true,
+            htmlContent = htmlContent
+        )
+    }
+
+    private fun getBarcodeReportResult(
+            context: Context
+    ): ReportResult {
+        val fileName = ReportTypeEnum.ITEM_BARCODE.key
+        var itemBarcode = FileUtils.getHtmlFile(
+            context,
+            "${SettingsModel.defaultReportCountry}/${SettingsModel.defaultReportLanguage}/$fileName.html"
+        )
+        if (itemBarcode.isEmpty()) {
+            itemBarcode = FileUtils.getHtmlFile(
+                context,
+                "${Country.DEFAULT.value}/${SettingsModel.defaultReportLanguage}/$fileName.html"
+            )
+        }
+        if (itemBarcode.isEmpty()) {
+            itemBarcode = FileUtils.getHtmlFile(
+                context,
+                "${SettingsModel.defaultReportCountry}/${Language.DEFAULT.value}/$fileName.html"
+            )
+        }
+        if (itemBarcode.isEmpty()) {
+            itemBarcode = FileUtils.getHtmlFile(
+                context,
+                "${Country.DEFAULT.value}/${Language.DEFAULT.value}/$fileName.html"
+            )
+        }
+        if (itemBarcode.isNotEmpty()) {
+            return ReportResult(
+                found = true,
+                htmlContent = itemBarcode
+            )
+        }
+
+        return ReportResult(
+            found = false,
+            htmlContent = itemBarcode
+        )
+    }
+
+    fun getItemBarcodeHtmlContent(
+            context: Context,
+            item: Item
+    ): ReportResult {
+        val result = getBarcodeReportResult(context)
+        if (!result.found) {
+            return result
+        }
+        var htmlContent = result.htmlContent
+        htmlContent = htmlContent.replace(
+            "{item_name_value}",
+            item.itemName ?: ""
+        ).replace(
+            "{item_price_value}",
+            "${item.itemUnitPrice}${item.itemCurrencyCode ?: ""}"
+        )
+        if (!item.itemBarcode.isNullOrEmpty()) {
+            val barcodeBitmap = generateBarcodeBitmapWithText(
+                item.itemBarcode!!,
+                400,
+                150,
+                true
+            )
+            val base64Barcode = convertBitmapToBase64(barcodeBitmap)
+            htmlContent = htmlContent.replace(
+                "{barcodeContent}",
+                " <img style=\"width:100%;margin-start: 20px !important;margin-end: 20px !important;height:100px;\" src=\"data:image/png;base64,$base64Barcode\" alt=\"Barcode\"/>"
+            )
+        }
         return ReportResult(
             found = true,
             htmlContent = htmlContent

@@ -27,7 +27,8 @@ class ReportsListViewModel @Inject constructor() : ViewModel() {
         ReportTypeModel(ReportTypeEnum.PAY_SLIP.key),
         ReportTypeModel(ReportTypeEnum.PAY_TICKET.key),
         ReportTypeModel(ReportTypeEnum.PAYMENT_VOUCHER.key),
-        ReportTypeModel(ReportTypeEnum.RECEIPT_VOUCHER.key)
+        ReportTypeModel(ReportTypeEnum.RECEIPT_VOUCHER.key),
+        ReportTypeModel(ReportTypeEnum.ITEM_BARCODE.key)
     )
 
     fun loadData() {
@@ -118,5 +119,5 @@ class ReportsListViewModel @Inject constructor() : ViewModel() {
 enum class ReportTypeEnum(
         val key: String
 ) {
-    PAY_SLIP("Pay-Slip"), PAY_TICKET("Pay-Ticket"), PAYMENT_VOUCHER("Payment-Voucher"), RECEIPT_VOUCHER("Receipt-Voucher")
+    PAY_SLIP("Pay-Slip"), PAY_TICKET("Pay-Ticket"), PAYMENT_VOUCHER("Payment-Voucher"), RECEIPT_VOUCHER("Receipt-Voucher"), ITEM_BARCODE("Item-Barcode")
 }
