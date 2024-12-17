@@ -147,7 +147,7 @@ class ItemRepositoryImpl(
                             ),
                             "it_cmp_id='${SettingsModel.getCompanyID()}'",
                             "order by it_name",
-                            "INNER JOIN currency on it_cur_code = cur_code LEFT OUTER JOIN st_item_warehouse on it_id = uw_it_id LEFT OUTER JOIN st_opening on it_id=op_it_id"
+                            "LEFT OUTER JOIN currency on it_cur_code = cur_code LEFT OUTER JOIN st_item_warehouse on it_id = uw_it_id LEFT OUTER JOIN st_opening on it_id=op_it_id"
                         )
                     } else {
                         SQLServerWrapper.getListOf(
@@ -156,12 +156,12 @@ class ItemRepositoryImpl(
                             mutableListOf(
                                 "st_item.*",
                                 "st_item_warehouse.*",
-                                "currency.cur_newcode",
+                                "currency.cur_code",
                                 "op_id,op_unitcost,op_unitcostf,op_unitcosts"
                             ),
                             "",
                             "order by it_name",
-                            "INNER JOIN currency on it_cur_code = cur_code LEFT OUTER JOIN st_item_warehouse on it_id = uw_it_id LEFT OUTER JOIN st_opening on it_id=op_it_id"
+                            "LEFT OUTER JOIN currency on it_cur_code = cur_code LEFT OUTER JOIN st_item_warehouse on it_id = uw_it_id LEFT OUTER JOIN st_opening on it_id=op_it_id"
                         )
                     }
                     dbResult?.let {
@@ -272,7 +272,7 @@ class ItemRepositoryImpl(
         }
     }
 
-    override suspend fun generateBarcode(): String? {
+    override suspend fun generateBarcode(): String {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
                 val querySnapshot = FirebaseFirestore.getInstance().collection("st_item").orderBy(
@@ -281,7 +281,7 @@ class ItemRepositoryImpl(
                 ).get().await()
 
                 val barcode = querySnapshot.documents.mapNotNull {
-                    it.getString("barcode")?.toLongOrNull()
+                    it.getString("it_barcode")?.toLongOrNull()
                 } // Filter numeric barcodes
                     .maxOrNull() // Find the largest numeric barcode
                 return barcode?.let {
@@ -296,39 +296,37 @@ class ItemRepositoryImpl(
             }
 
             else -> {
-                var barcode: Long = 9999
+                var barcode: String? = null
                 try {
                     val dbResult = if (SettingsModel.isSqlServerWebDb) {
                         SQLServerWrapper.getListOf(
                             "st_item",
-                            "TOP 1",
+                            "",
                             mutableListOf(
-                                "TRY_CAST(it_barcode AS BIGINT) AS numeric_barcode"
+                                "max(it_barcode) as it_barcode"
                             ),
-                            "it_cmp_id='${SettingsModel.getCompanyID()}' AND TRY_CAST(it_barcode AS BIGINT) IS NOT NULL",
-                            "ORDER BY TRY_CAST(it_barcode AS BIGINT) DESC"
+                            "it_cmp_id='${SettingsModel.getCompanyID()}' AND ISNUMERIC(it_barcode)=1"
                         )
                     } else {
                         SQLServerWrapper.getListOf(
                             "st_item",
-                            "TOP 1",
+                            "",
                             mutableListOf(
-                                "TRY_CAST(it_barcode AS BIGINT) AS numeric_barcode"
+                                "max(it_barcode) as it_barcode"
                             ),
-                            "TRY_CAST(it_barcode AS BIGINT) IS NOT NULL",
-                            "ORDER BY TRY_CAST(it_barcode AS BIGINT) DESC"
+                            "ISNUMERIC(it_barcode)=1"
                         )
                     }
                     dbResult?.let {
                         while (it.next()) {
-                            barcode = it.getLongValue("numeric_barcode",9999)
+                            barcode = it.getStringValue("it_barcode")
                         }
                         SQLServerWrapper.closeResultSet(it)
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
-                return (barcode + 1).toString()
+                return ((barcode?.toLongOrNull() ?: 9999) + 1).toString()
             }
         }
     }

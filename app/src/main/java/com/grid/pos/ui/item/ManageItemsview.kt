@@ -211,6 +211,7 @@ fun ManageItemsView(
         imageState = item.itemImage ?: ""
     }
 
+
     fun saveItem() {
         oldImage?.let { old ->
             FileUtils.deleteFile(
@@ -266,6 +267,28 @@ fun ManageItemsView(
         itemPOSState = false
         viewModel.resetState()
     }
+
+    /*fun fillItemInputs(item: Item) {
+        if (state.selectedItem.didChanged(
+                viewModel.currentITem
+            )
+        ) {
+            sharedViewModel.showPopup(true,
+                PopupModel().apply {
+                    onDismissRequest = {
+                        fillItemInputsNow(item)
+                    }
+                    onConfirmation = {
+                        saveItem()
+                    }
+                    dialogText = "Do you want to save your changes"
+                    positiveBtnText = "Save"
+                    negativeBtnText = "Close"
+                })
+        }else{
+            fillItemInputsNow(item)
+        }
+    }*/
 
     var saveAndBack by remember { mutableStateOf(false) }
     fun handleBack() {
@@ -502,6 +525,7 @@ fun ManageItemsView(
                                     viewModel.generateBarcode()?.let { barcode ->
                                         withContext(Dispatchers.Main) {
                                             barcodeState = barcode
+                                            state.selectedItem.itemBarcode = barcodeState
                                             sharedViewModel.showLoading(false)
                                         }
                                     }
