@@ -147,7 +147,7 @@ class UserRepositoryImpl(
             else -> {
                 if (SettingsModel.isSqlServerWebDb) {
                     val users: MutableList<User> = mutableListOf()
-                    var error :String? = null
+                    var error: String? = null
                     try {
                         val where = "usr_username = '$username' AND usr_password = hashBytes('SHA2_512', CONVERT(nvarchar(4000),'$password'+cast(usr_salt as nvarchar(36)))) AND usr_expiry > getdate() AND usr_cmp_id='${SettingsModel.getCompanyID()}'"
                         val dbResult = SQLServerWrapper.getListOf(
@@ -171,7 +171,7 @@ class UserRepositoryImpl(
                                     })
                                 }
                                 SQLServerWrapper.closeResultSet(it)
-                            } ?: run { error = "database connection error" }
+                            } ?: run { error = (dbResult.result as? String) ?: "database connection error" }
                         }
                     } catch (e: Exception) {
                         e.printStackTrace()
@@ -183,10 +183,13 @@ class UserRepositoryImpl(
                             error = error
                         )
                     }
-                    return LoginResponse(allUsersSize = 1,error = error)
+                    return LoginResponse(
+                        allUsersSize = 1,
+                        error = error
+                    )
                 } else {
                     val users: MutableList<User> = mutableListOf()
-                    var error :String? = null
+                    var error: String? = null
                     try {
                         val where = "emp_username = '$username' AND emp_password = hashBytes('SHA', CONVERT(nvarchar(4000),'$password')) and (emp_inactive IS NULL or emp_inactive = 0)"
                         val dbResult = SQLServerWrapper.getListOf(
@@ -210,7 +213,7 @@ class UserRepositoryImpl(
                                     })
                                 }
                                 SQLServerWrapper.closeResultSet(it)
-                            } ?: run { error = "database connection error" }
+                            } ?: run { error = (dbResult.result as? String) ?: "database connection error" }
                         }
                     } catch (e: Exception) {
                         e.printStackTrace()
@@ -222,7 +225,10 @@ class UserRepositoryImpl(
                             error = error
                         )
                     }
-                    return LoginResponse(allUsersSize = 1,error = error)
+                    return LoginResponse(
+                        allUsersSize = 1,
+                        error = error
+                    )
                 }
             }
         }
@@ -407,7 +413,6 @@ class UserRepositoryImpl(
             }
         }
     }
-
 
     override suspend fun getUserById(userId: String): User? {
         when (SettingsModel.connectionType) {
