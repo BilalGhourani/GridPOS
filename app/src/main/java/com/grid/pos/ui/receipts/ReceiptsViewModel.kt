@@ -3,7 +3,7 @@ package com.grid.pos.ui.receipts
 import android.content.Context
 import androidx.lifecycle.viewModelScope
 import com.grid.pos.data.currency.CurrencyRepository
-import com.grid.pos.data.DataModel
+import com.grid.pos.data.EntityModel
 import com.grid.pos.data.receipt.Receipt
 import com.grid.pos.data.receipt.ReceiptRepository
 import com.grid.pos.data.thirdParty.ThirdParty
@@ -38,7 +38,7 @@ class ReceiptsViewModel @Inject constructor(
     var currentReceipt: Receipt = Receipt()
     var reportResult = ReportResult()
     private var clientsMap: Map<String, ThirdParty> = mutableMapOf()
-    val receiptTypes: MutableList<DataModel> = mutableListOf(
+    val receiptTypes: MutableList<EntityModel> = mutableListOf(
         PaymentTypeModel("Cash"),
         PaymentTypeModel("Credit"),
         PaymentTypeModel("Debit")

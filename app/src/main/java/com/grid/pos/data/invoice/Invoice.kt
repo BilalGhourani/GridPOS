@@ -8,7 +8,7 @@ import com.google.firebase.firestore.Exclude
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.PropertyName
 import com.google.firebase.firestore.ServerTimestamp
-import com.grid.pos.data.DataModel
+import com.grid.pos.data.EntityModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.Utils
 import java.util.Date
@@ -165,7 +165,7 @@ data class Invoice(
         @get:PropertyName("in_extraname")
         var invoiceExtraName: String? = null,
 
-        ) : DataModel() {
+        ) : EntityModel() {
     constructor() : this("")
 
     @Exclude

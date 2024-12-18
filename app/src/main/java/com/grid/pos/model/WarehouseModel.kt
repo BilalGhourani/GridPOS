@@ -1,12 +1,12 @@
 package com.grid.pos.model
 
-import com.grid.pos.data.DataModel
+import com.grid.pos.data.EntityModel
 
 data class WarehouseModel(
         var warehouseId: String = "",
         var warehouseName: String = "",
         var warehouseOrder: String? = null,
-) : DataModel() {
+) : EntityModel() {
     override fun getId(): String {
         return warehouseId
     }

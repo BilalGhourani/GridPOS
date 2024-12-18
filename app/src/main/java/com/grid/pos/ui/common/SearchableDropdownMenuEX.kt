@@ -45,13 +45,13 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.grid.pos.R
-import com.grid.pos.data.DataModel
+import com.grid.pos.data.EntityModel
 import com.grid.pos.model.SettingsModel
 
 @Composable
 fun SearchableDropdownMenuEx(
         modifier: Modifier = Modifier,
-        items: MutableList<DataModel> = mutableListOf(),
+        items: MutableList<EntityModel> = mutableListOf(),
         placeholder: String? = null,
         label: String = "",
         searchEnteredText: String? = null,
@@ -67,7 +67,7 @@ fun SearchableDropdownMenuEx(
         maxHeight: Dp = 170.dp,// 4 rows as maximum
         onLeadingIconClick: () -> Unit = {},
         onLoadItems: () -> Unit = {},
-        onSelectionChange: (DataModel) -> Unit = {},
+        onSelectionChange: (EntityModel) -> Unit = {},
 ) {
     var isLoaded by remember { mutableStateOf(false) }
     var expandedState by remember { mutableStateOf(false) }

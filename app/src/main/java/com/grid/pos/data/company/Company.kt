@@ -6,7 +6,7 @@ import androidx.room.Ignore
 import androidx.room.PrimaryKey
 import com.google.firebase.firestore.Exclude
 import com.google.firebase.firestore.PropertyName
-import com.grid.pos.data.DataModel
+import com.grid.pos.data.EntityModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.Utils
 
@@ -165,7 +165,7 @@ data class Company(
         @get:PropertyName("cmp_tax2regno")
         var companyTax2Regno: String? = null,
 
-        ) : DataModel() {
+        ) : EntityModel() {
     constructor() : this("")
 
     @Exclude

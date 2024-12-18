@@ -3,7 +3,7 @@ package com.grid.pos.ui.payments
 import android.content.Context
 import androidx.lifecycle.viewModelScope
 import com.grid.pos.data.currency.CurrencyRepository
-import com.grid.pos.data.DataModel
+import com.grid.pos.data.EntityModel
 import com.grid.pos.data.payment.Payment
 import com.grid.pos.data.payment.PaymentRepository
 import com.grid.pos.data.thirdParty.ThirdParty
@@ -38,7 +38,7 @@ class PaymentsViewModel @Inject constructor(
     var currentPayment: Payment = Payment()
     var reportResult = ReportResult()
     private var clientsMap: Map<String, ThirdParty> = mutableMapOf()
-    val paymentTypes: MutableList<DataModel> = mutableListOf(
+    val paymentTypes: MutableList<EntityModel> = mutableListOf(
         PaymentTypeModel("Cash"),
         PaymentTypeModel("Credit"),
         PaymentTypeModel("Debit")

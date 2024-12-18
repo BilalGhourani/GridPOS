@@ -3,7 +3,7 @@ package com.grid.pos.data
 import com.google.firebase.firestore.Exclude
 import java.io.Serializable
 
-abstract class DataModel : Serializable {
+abstract class EntityModel : Serializable {
     @Exclude
     open fun getId(): String {
         return ""

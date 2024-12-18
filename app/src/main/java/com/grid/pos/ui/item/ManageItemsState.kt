@@ -1,6 +1,5 @@
 package com.grid.pos.ui.item
 
-import com.grid.pos.data.DataModel
 import com.grid.pos.data.family.Family
 import com.grid.pos.data.item.Item
 import com.grid.pos.data.posPrinter.PosPrinter

@@ -1,10 +1,10 @@
 package com.grid.pos.model
 
-import com.grid.pos.data.DataModel
+import com.grid.pos.data.EntityModel
 
 data class ThirdPartyTypeModel(
         var thirdPartyType: ThirdPartyType,
-) : DataModel() {
+) : EntityModel() {
 
     override fun getId(): String {
         return thirdPartyType.type

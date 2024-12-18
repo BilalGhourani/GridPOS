@@ -1,12 +1,8 @@
 package com.grid.pos.ui.item.opening
 
-import com.grid.pos.data.DataModel
-import com.grid.pos.data.family.Family
 import com.grid.pos.data.item.Item
-import com.grid.pos.data.posPrinter.PosPrinter
 import com.grid.pos.model.CurrencyModel
 import com.grid.pos.model.Event
-import com.grid.pos.model.ItemGroupModel
 import com.grid.pos.model.WarehouseModel
 
 data class ItemOpeningState(

@@ -17,7 +17,6 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MenuItemColors
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -36,14 +35,14 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.grid.pos.data.DataModel
+import com.grid.pos.data.EntityModel
 import com.grid.pos.model.SettingsModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchableDropdownMenu(
         modifier: Modifier = Modifier,
-        items: MutableList<DataModel> = mutableListOf(),
+        items: MutableList<EntityModel> = mutableListOf(),
         label: String = "",
         selectedId: String? = null,
         showSelected: Boolean = true,
@@ -51,7 +50,7 @@ fun SearchableDropdownMenu(
         color: Color = SettingsModel.backgroundColor,
         leadingIcon: @Composable ((Modifier) -> Unit)? = null,
         onLeadingIconClick: () -> Unit = {},
-        onSelectionChange: (DataModel) -> Unit = {},
+        onSelectionChange: (EntityModel) -> Unit = {},
 ) {
     var expandedState by remember { mutableStateOf(false) }
     var searchText by remember { mutableStateOf(label) }

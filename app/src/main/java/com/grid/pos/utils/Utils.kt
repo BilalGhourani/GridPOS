@@ -13,7 +13,7 @@ import androidx.core.graphics.blue
 import androidx.core.graphics.green
 import androidx.core.graphics.red
 import com.grid.pos.R
-import com.grid.pos.data.DataModel
+import com.grid.pos.data.EntityModel
 import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.ConnectionModel
 import com.grid.pos.model.Country
@@ -38,13 +38,13 @@ import kotlin.math.sqrt
 
 object Utils {
 
-    val connections = mutableListOf<DataModel>(
+    val connections = mutableListOf<EntityModel>(
         ConnectionModel(CONNECTION_TYPE.LOCAL.key),
         ConnectionModel(CONNECTION_TYPE.FIRESTORE.key),
         ConnectionModel(CONNECTION_TYPE.SQL_SERVER.key)
     )
 
-    val orientations = mutableListOf<DataModel>(
+    val orientations = mutableListOf<EntityModel>(
         OrientationModel(ORIENTATION_TYPE.PORTRAIT.key),
         OrientationModel(ORIENTATION_TYPE.LANDSCAPE.key),
         OrientationModel(ORIENTATION_TYPE.DEVICE_SENSOR.key)

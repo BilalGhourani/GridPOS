@@ -1,11 +1,11 @@
 package com.grid.pos.model
 
-import com.grid.pos.data.DataModel
+import com.grid.pos.data.EntityModel
 
 data class ReportCountry(
         val code: String,
         val value: String
-) : DataModel() {
+) : EntityModel() {
 
     override fun getId(): String {
         return code

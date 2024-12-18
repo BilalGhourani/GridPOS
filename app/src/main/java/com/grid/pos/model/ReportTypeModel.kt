@@ -1,10 +1,10 @@
 package com.grid.pos.model
 
-import com.grid.pos.data.DataModel
+import com.grid.pos.data.EntityModel
 
 data class ReportTypeModel(
     val type : String,
-): DataModel() {
+): EntityModel() {
 
     override fun getId(): String {
         return type

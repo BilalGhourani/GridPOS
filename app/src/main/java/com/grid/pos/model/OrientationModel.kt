@@ -1,10 +1,10 @@
 package com.grid.pos.model
 
-import com.grid.pos.data.DataModel
+import com.grid.pos.data.EntityModel
 
 data class OrientationModel(
         val orientatioName: String
-) : DataModel() {
+) : EntityModel() {
     override fun getName(): String {
         return orientatioName
     }
