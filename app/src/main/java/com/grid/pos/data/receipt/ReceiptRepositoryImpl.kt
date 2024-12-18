@@ -115,11 +115,13 @@ class ReceiptRepositoryImpl(
                         "ORDER BY hr_date DESC",
                         "INNER JOIN in_receipt on hr_id = rec_hr_id INNER JOIN in_unallocatedreceipt on hr_id = ur_hr_id"
                     )
-                    dbResult?.let {
-                        while (it.next()) {
-                            receipt = fillParams(it)
+                    if (dbResult.succeed) {
+                        (dbResult.result as? ResultSet)?.let {
+                            while (it.next()) {
+                                receipt = fillParams(it)
+                            }
+                            SQLServerWrapper.closeResultSet(it)
                         }
-                        SQLServerWrapper.closeResultSet(it)
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
@@ -166,15 +168,17 @@ class ReceiptRepositoryImpl(
                         "ORDER BY hr_date DESC",
                         "INNER JOIN in_receipt on hr_id = rec_hr_id INNER JOIN in_unallocatedreceipt on hr_id = ur_hr_id"
                     )
-                    dbResult?.let {
-                        while (it.next()) {
-                            receipts.add(
-                                fillParams(
-                                    it
+                    if (dbResult.succeed) {
+                        (dbResult.result as? ResultSet)?.let {
+                            while (it.next()) {
+                                receipts.add(
+                                    fillParams(
+                                        it
+                                    )
                                 )
-                            )
+                            }
+                            SQLServerWrapper.closeResultSet(it)
                         }
-                        SQLServerWrapper.closeResultSet(it)
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
@@ -308,29 +312,34 @@ class ReceiptRepositoryImpl(
                 null,//@hr_pathtodoc
             )
         }
-        val id = SQLServerWrapper.executeProcedure(
+        val queryResult = SQLServerWrapper.executeProcedure(
             "addin_hreceipt",
             parameters
         )
-        if (id.isNullOrEmpty()) {
-            try {
-                val dbResult = SQLServerWrapper.getQueryResult("select max(hr_id) as id from in_hreceipt")
-                dbResult?.let {
-                    while (it.next()) {
-                        receipt.receiptId = it.getStringValue(
-                            "id",
-                            receipt.receiptId
-                        )
+        if(queryResult.succeed) {
+            val id = queryResult.result as? String
+                if (id.isNullOrEmpty()) {
+                try {
+                    val dbResult = SQLServerWrapper.getQueryResult("select max(hr_id) as id from in_hreceipt")
+                    if (dbResult.succeed) {
+                        (dbResult.result as? ResultSet)?.let {
+                            while (it.next()) {
+                                receipt.receiptId = it.getStringValue(
+                                    "id",
+                                    receipt.receiptId
+                                )
+                            }
+                            SQLServerWrapper.closeResultSet(it)
+                        }
                     }
-                    SQLServerWrapper.closeResultSet(it)
+                } catch (e: Exception) {
+                    e.printStackTrace()
                 }
-            } catch (e: Exception) {
-                e.printStackTrace()
+            } else {
+                receipt.receiptId = id
             }
-        } else {
-            receipt.receiptId = id
+            insertReceipt(receipt)
         }
-        insertReceipt(receipt)
     }
 
     private fun insertReceipt(receipt: Receipt) {

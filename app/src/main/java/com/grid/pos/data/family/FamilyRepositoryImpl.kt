@@ -2,12 +2,11 @@ package com.grid.pos.data.family
 
 import com.google.firebase.firestore.FirebaseFirestore
 import com.grid.pos.data.SQLServerWrapper
-import com.grid.pos.data.item.Item
 import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.Extension.getStringValue
 import kotlinx.coroutines.tasks.await
-import java.sql.Timestamp
+import java.sql.ResultSet
 
 class FamilyRepositoryImpl(
         private val familyDao: FamilyDao
@@ -104,18 +103,20 @@ class FamilyRepositoryImpl(
                         mutableListOf("*"),
                         where
                     )
-                    dbResult?.let {
-                        while (it.next()) {
-                            families.add(Family().apply {
-                                familyId = it.getStringValue("fa_name")
-                                familyName = if (SettingsModel.isSqlServerWebDb) it.getStringValue("fa_newname") else it.getStringValue(
-                                    "fa_name"
-                                )
-                                //familyImage = obj.optString("fa_name")
-                                familyCompanyId = if (SettingsModel.isSqlServerWebDb) it.getStringValue("fa_cmp_id") else SettingsModel.getCompanyID()
-                            })
+                    if (dbResult.succeed) {
+                        (dbResult.result as? ResultSet)?.let {
+                            while (it.next()) {
+                                families.add(Family().apply {
+                                    familyId = it.getStringValue("fa_name")
+                                    familyName = if (SettingsModel.isSqlServerWebDb) it.getStringValue("fa_newname") else it.getStringValue(
+                                        "fa_name"
+                                    )
+                                    //familyImage = obj.optString("fa_name")
+                                    familyCompanyId = if (SettingsModel.isSqlServerWebDb) it.getStringValue("fa_cmp_id") else SettingsModel.getCompanyID()
+                                })
+                            }
+                            SQLServerWrapper.closeResultSet(it)
                         }
-                        SQLServerWrapper.closeResultSet(it)
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
@@ -158,18 +159,20 @@ class FamilyRepositoryImpl(
                         mutableListOf("*"),
                         where
                     )
-                    dbResult?.let {
-                        if (it.next()) {
-                            return Family().apply {
-                                familyId = it.getStringValue("fa_name")
-                                familyName = if (SettingsModel.isSqlServerWebDb) it.getStringValue("fa_newname") else it.getStringValue(
-                                    "fa_name"
-                                )
-                                //familyImage = obj.optString("fa_name")
-                                familyCompanyId = if (SettingsModel.isSqlServerWebDb) it.getStringValue("fa_cmp_id") else SettingsModel.getCompanyID()
+                    if (dbResult.succeed) {
+                        (dbResult.result as? ResultSet)?.let {
+                            if (it.next()) {
+                                return Family().apply {
+                                    familyId = it.getStringValue("fa_name")
+                                    familyName = if (SettingsModel.isSqlServerWebDb) it.getStringValue("fa_newname") else it.getStringValue(
+                                        "fa_name"
+                                    )
+                                    //familyImage = obj.optString("fa_name")
+                                    familyCompanyId = if (SettingsModel.isSqlServerWebDb) it.getStringValue("fa_cmp_id") else SettingsModel.getCompanyID()
+                                }
                             }
+                            SQLServerWrapper.closeResultSet(it)
                         }
-                        SQLServerWrapper.closeResultSet(it)
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
@@ -212,14 +215,16 @@ class FamilyRepositoryImpl(
                 null,//@fa_periodicityofprovision
             )
         }
-        val id = SQLServerWrapper.executeProcedure(
+        val queryResult = SQLServerWrapper.executeProcedure(
             "addst_family",
             parameters
         )
+        if (!queryResult.succeed) return
+        val id = queryResult.result as? String
         if (id.isNullOrEmpty() && SettingsModel.isSqlServerWebDb) {
             try {
                 val dbResult = SQLServerWrapper.getQueryResult("select max(fa_name) as id from st_item")
-                dbResult?.let {
+                (dbResult.result as? ResultSet)?.let {
                     while (it.next()) {
                         family.familyId = it.getStringValue(
                             "id",
@@ -231,7 +236,7 @@ class FamilyRepositoryImpl(
             } catch (e: Exception) {
                 e.printStackTrace()
             }
-        } else if(!id.isNullOrEmpty()){
+        } else if (!id.isNullOrEmpty()) {
             family.familyId = id
         }
     }
@@ -241,7 +246,7 @@ class FamilyRepositoryImpl(
     ) {
         val columnName = if (SettingsModel.isSqlServerWebDb) "fa_newname" else "fa_name"
         SQLServerWrapper.update(
-          "st_family",
+            "st_family",
             listOf(
                 columnName
             ),
@@ -252,13 +257,13 @@ class FamilyRepositoryImpl(
         )
     }
 
-    private fun deleteByProcedure(family: Family): String {
-        return SQLServerWrapper.executeProcedure(
+    private fun deleteByProcedure(family: Family) {
+        SQLServerWrapper.executeProcedure(
             "delst_family",
             listOf(
                 family.familyId
             )
-        ) ?: ""
+        )
     }
 
 }

@@ -115,11 +115,13 @@ class PaymentRepositoryImpl(
                         "ORDER BY hpa_date DESC",
                         "INNER JOIN in_payment on hpa_id = pay_hpa_id INNER JOIN in_unallocatedpayment on hpa_id = up_hpa_id"
                     )
-                    dbResult?.let {
-                        while (it.next()) {
-                            payment = fillParams(it)
+                    if (dbResult.succeed) {
+                        (dbResult.result as? ResultSet)?.let {
+                            while (it.next()) {
+                                payment = fillParams(it)
+                            }
+                            SQLServerWrapper.closeResultSet(it)
                         }
-                        SQLServerWrapper.closeResultSet(it)
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
@@ -166,15 +168,17 @@ class PaymentRepositoryImpl(
                         "ORDER BY hpa_date DESC",
                         "INNER JOIN in_payment on hpa_id = pay_hpa_id INNER JOIN in_unallocatedpayment on hpa_id = up_hpa_id"
                     )
-                    dbResult?.let {
-                        while (it.next()) {
-                            payments.add(
-                                fillParams(
-                                    it
+                    if (dbResult.succeed) {
+                        (dbResult.result as? ResultSet)?.let {
+                            while (it.next()) {
+                                payments.add(
+                                    fillParams(
+                                        it
+                                    )
                                 )
-                            )
+                            }
+                            SQLServerWrapper.closeResultSet(it)
                         }
-                        SQLServerWrapper.closeResultSet(it)
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
@@ -308,29 +312,35 @@ class PaymentRepositoryImpl(
                 null,//@hpa_pathtodoc
             )
         }
-        val id = SQLServerWrapper.executeProcedure(
+        val queryResult = SQLServerWrapper.executeProcedure(
             "addin_hpayment",
             parameters
         )
-        if (id.isNullOrEmpty()) {
-            try {
-                val dbResult = SQLServerWrapper.getQueryResult("select max(hpa_id) as id from in_hpayment")
-                dbResult?.let {
-                    while (it.next()) {
-                        payment.paymentId = it.getStringValue(
-                            "id",
-                            payment.paymentId
-                        )
+        if (queryResult.succeed) {
+            val id = queryResult.result as? String
+            if (id.isNullOrEmpty()) {
+                try {
+                    val dbResult = SQLServerWrapper.getQueryResult("select max(hpa_id) as id from in_hpayment")
+                    if (dbResult.succeed) {
+                        (dbResult.result as? ResultSet)?.let {
+                            while (it.next()) {
+                                payment.paymentId = it.getStringValue(
+                                    "id",
+                                    payment.paymentId
+                                )
+                            }
+                            SQLServerWrapper.closeResultSet(it)
+                        }
                     }
-                    SQLServerWrapper.closeResultSet(it)
+                } catch (e: Exception) {
+                    e.printStackTrace()
                 }
-            } catch (e: Exception) {
-                e.printStackTrace()
+            } else {
+                payment.paymentId = id
             }
-        } else {
-            payment.paymentId = id
+            insertPayment(payment)
         }
-        insertPayment(payment)
+
     }
 
     private fun insertPayment(payment: Payment) {

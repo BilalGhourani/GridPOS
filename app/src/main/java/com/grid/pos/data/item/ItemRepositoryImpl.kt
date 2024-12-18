@@ -8,7 +8,6 @@ import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.DateHelper
 import com.grid.pos.utils.Extension.getDoubleValue
 import com.grid.pos.utils.Extension.getIntValue
-import com.grid.pos.utils.Extension.getLongValue
 import com.grid.pos.utils.Extension.getObjectValue
 import com.grid.pos.utils.Extension.getStringValue
 import kotlinx.coroutines.tasks.await
@@ -164,11 +163,13 @@ class ItemRepositoryImpl(
                             "LEFT OUTER JOIN currency on it_cur_code = cur_code LEFT OUTER JOIN st_item_warehouse on it_id = uw_it_id LEFT OUTER JOIN st_opening on it_id=op_it_id"
                         )
                     }
-                    dbResult?.let {
-                        while (it.next()) {
-                            items.add(getItemFromRow(it))
+                    if (dbResult.succeed) {
+                        (dbResult.result as? ResultSet)?.let {
+                            while (it.next()) {
+                                items.add(getItemFromRow(it))
+                            }
+                            SQLServerWrapper.closeResultSet(it)
                         }
-                        SQLServerWrapper.closeResultSet(it)
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
@@ -226,11 +227,13 @@ class ItemRepositoryImpl(
                             "select st_item.*,1 it_pos from st_item,pos_itembutton,pos_groupbutton,pos_station_groupbutton  where it_id=ib_it_id and ib_gb_id=gb_id and gb_id=psg_gb_id and psg_sta_name='.'  union select *,0 it_pos from st_item where it_id not in (select ib_it_id from pos_itembutton,pos_groupbutton,pos_station_groupbutton where ib_gb_id=gb_id and gb_id=psg_gb_id and psg_sta_name='.')"
                         )
                     }
-                    dbResult?.let {
-                        while (it.next()) {
-                            items.add(getItemFromRow(it))
+                    if (dbResult.succeed) {
+                        (dbResult.result as? ResultSet)?.let {
+                            while (it.next()) {
+                                items.add(getItemFromRow(it))
+                            }
+                            SQLServerWrapper.closeResultSet(it)
                         }
-                        SQLServerWrapper.closeResultSet(it)
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
@@ -317,11 +320,13 @@ class ItemRepositoryImpl(
                             "ISNUMERIC(it_barcode)=1"
                         )
                     }
-                    dbResult?.let {
-                        while (it.next()) {
-                            barcode = it.getStringValue("it_barcode")
+                    if (dbResult.succeed) {
+                        (dbResult.result as? ResultSet)?.let {
+                            while (it.next()) {
+                                barcode = it.getStringValue("it_barcode")
+                            }
+                            SQLServerWrapper.closeResultSet(it)
                         }
-                        SQLServerWrapper.closeResultSet(it)
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
@@ -377,11 +382,13 @@ class ItemRepositoryImpl(
                             "select st_item.*,1 it_pos from st_item,pos_itembutton,pos_groupbutton,pos_station_groupbutton  where it_id=ib_it_id and ib_gb_id=gb_id and gb_id=psg_gb_id and psg_sta_name='.' and it_fa_name='$familyId'  union select *,0 it_pos from st_item where it_id not in (select ib_it_id from pos_itembutton,pos_groupbutton,pos_station_groupbutton where ib_gb_id=gb_id and gb_id=psg_gb_id and psg_sta_name='.'  and it_fa_name='$familyId')"
                         )
                     }
-                    dbResult?.let {
-                        while (it.next()) {
-                            item = getItemFromRow(it)
+                    if (dbResult.succeed) {
+                        (dbResult.result as? ResultSet)?.let {
+                            while (it.next()) {
+                                item = getItemFromRow(it)
+                            }
+                            SQLServerWrapper.closeResultSet(it)
                         }
-                        SQLServerWrapper.closeResultSet(it)
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
@@ -706,15 +713,15 @@ class ItemRepositoryImpl(
         )
     }
 
-    private fun deleteByProcedure(item: Item): String {
-        return SQLServerWrapper.executeProcedure(
+    private fun deleteByProcedure(item: Item) {
+         SQLServerWrapper.executeProcedure(
             "delst_item",
             listOf(
                 item.itemId,
                 item.itemUserStamp,
                 SettingsModel.currentCompany?.cmp_multibranchcode
             )
-        ) ?: ""
+        )
     }
 
 }

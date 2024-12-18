@@ -148,11 +148,13 @@ class InvoiceRepositoryImpl(
                         mutableListOf("*"),
                         where
                     )
-                    dbResult?.let {
-                        while (it.next()) {
-                            invoices.add(fillParams(it))
+                    if (dbResult.succeed) {
+                        (dbResult.result as? ResultSet)?.let {
+                            while (it.next()) {
+                                invoices.add(fillParams(it))
+                            }
+                            SQLServerWrapper.closeResultSet(it)
                         }
-                        SQLServerWrapper.closeResultSet(it)
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
@@ -214,11 +216,13 @@ class InvoiceRepositoryImpl(
                         mutableListOf("*"),
                         where
                     )
-                    dbResult?.let {
-                        while (it.next()) {
-                            invoices.add(fillParams(it))
+                    if (dbResult.succeed) {
+                        (dbResult.result as? ResultSet)?.let {
+                            while (it.next()) {
+                                invoices.add(fillParams(it))
+                            }
+                            SQLServerWrapper.closeResultSet(it)
                         }
-                        SQLServerWrapper.closeResultSet(it)
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
@@ -267,13 +271,16 @@ class InvoiceRepositoryImpl(
                 }
                 val size = filters.size
                 val querySnapshot = if (size > 0) {
-                    if (size == 3) {
-                        collection.where(filters[0]).where(filters[1]).where(filters[2]).get()
-                            .await()
-                    } else if (size == 2) {
-                        collection.where(filters[0]).where(filters[1]).get().await()
-                    } else {
-                        collection.where(filters[0]).get().await()
+                    when (size) {
+                        3 -> {
+                            collection.where(filters[0]).where(filters[1]).where(filters[2]).get().await()
+                        }
+                        2 -> {
+                            collection.where(filters[0]).where(filters[1]).get().await()
+                        }
+                        else -> {
+                            collection.where(filters[0]).get().await()
+                        }
                     }
                 } else {
                     collection.get().await()
@@ -410,10 +417,13 @@ class InvoiceRepositoryImpl(
             invoice.getTax1(),
             invoice.getTax2()
         )
-        invoice.invoiceId = SQLServerWrapper.executeProcedure(
+        val queryResult = SQLServerWrapper.executeProcedure(
             "addin_invoice",
             parameters
-        ) ?: ""
+        )
+        if (queryResult.succeed) {
+            invoice.invoiceId = (queryResult.result as? String) ?: ""
+        }
     }
 
     private fun updateByProcedure(invoice: Invoice) {

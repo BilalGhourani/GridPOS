@@ -7,6 +7,7 @@ import com.grid.pos.model.SettingsModel
 import com.grid.pos.model.WarehouseModel
 import com.grid.pos.utils.Extension.getStringValue
 import com.grid.pos.utils.Utils
+import java.sql.ResultSet
 
 class SettingsRepositoryImpl : SettingsRepository {
     override suspend fun getTransactionTypeId(type: String): String? {
@@ -38,11 +39,13 @@ class SettingsRepositoryImpl : SettingsRepository {
                         ),
                         where
                     )
-                    dbResult?.let {
-                        if (it.next()) {
-                            result = it.getStringValue("tt_code")
+                    if (dbResult.succeed) {
+                        (dbResult.result as? ResultSet)?.let {
+                            if (it.next()) {
+                                result = it.getStringValue("tt_code")
+                            }
+                            SQLServerWrapper.closeResultSet(it)
                         }
-                        SQLServerWrapper.closeResultSet(it)
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
@@ -80,11 +83,13 @@ class SettingsRepositoryImpl : SettingsRepository {
                         ),
                         where
                     )
-                    dbResult?.let {
-                        if (it.next()) {
-                            result = it.getStringValue("bra_name")
+                    if (dbResult.succeed) {
+                        (dbResult.result as? ResultSet)?.let {
+                            if (it.next()) {
+                                result = it.getStringValue("bra_name")
+                            }
+                            SQLServerWrapper.closeResultSet(it)
                         }
-                        SQLServerWrapper.closeResultSet(it)
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
@@ -122,11 +127,13 @@ class SettingsRepositoryImpl : SettingsRepository {
                         ),
                         where
                     )
-                    dbResult?.let {
-                        if (it.next()) {
-                            result = it.getStringValue("wa_name")
+                    if (dbResult.succeed) {
+                        (dbResult.result as? ResultSet)?.let {
+                            if (it.next()) {
+                                result = it.getStringValue("wa_name")
+                            }
+                            SQLServerWrapper.closeResultSet(it)
                         }
-                        SQLServerWrapper.closeResultSet(it)
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
@@ -163,11 +170,13 @@ class SettingsRepositoryImpl : SettingsRepository {
                         where,
                         "group by ra_id"
                     )
-                    dbResult?.let {
-                        if (it.next()) {
-                            result = it.getStringValue("ra_id")
+                    if (dbResult.succeed) {
+                        (dbResult.result as? ResultSet)?.let {
+                            if (it.next()) {
+                                result = it.getStringValue("ra_id")
+                            }
+                            SQLServerWrapper.closeResultSet(it)
                         }
-                        SQLServerWrapper.closeResultSet(it)
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
@@ -202,16 +211,18 @@ class SettingsRepositoryImpl : SettingsRepository {
                             mutableListOf("cu_name,cu_countryshortname"),
                             ""
                         )
-                        dbResult?.let {
-                            if (it.next()) {
-                                result.add(
-                                    ReportCountry(
-                                        it.getStringValue("cu_countryshortname"),
-                                        it.getStringValue("cu_name"),
+                        if (dbResult.succeed) {
+                            (dbResult.result as? ResultSet)?.let {
+                                if (it.next()) {
+                                    result.add(
+                                        ReportCountry(
+                                            it.getStringValue("cu_countryshortname"),
+                                            it.getStringValue("cu_name"),
+                                        )
                                     )
-                                )
+                                }
+                                SQLServerWrapper.closeResultSet(it)
                             }
-                            SQLServerWrapper.closeResultSet(it)
                         }
                     } catch (e: Exception) {
                         e.printStackTrace()
@@ -252,15 +263,17 @@ class SettingsRepositoryImpl : SettingsRepository {
                         ),
                         where
                     )
-                    dbResult?.let {
-                        if (it.next()) {
-                            warehouses.add(WarehouseModel().apply {
-                                warehouseId = it.getStringValue("wa_name")
-                                warehouseName = it.getStringValue("wa_newname")
-                                warehouseOrder = it.getStringValue("wa_order")
-                            })
+                    if (dbResult.succeed) {
+                        (dbResult.result as? ResultSet)?.let {
+                            if (it.next()) {
+                                warehouses.add(WarehouseModel().apply {
+                                    warehouseId = it.getStringValue("wa_name")
+                                    warehouseName = it.getStringValue("wa_newname")
+                                    warehouseOrder = it.getStringValue("wa_order")
+                                })
+                            }
+                            SQLServerWrapper.closeResultSet(it)
                         }
-                        SQLServerWrapper.closeResultSet(it)
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()

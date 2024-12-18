@@ -1,6 +1,7 @@
 package com.grid.pos.data
 
 import android.util.Log
+import com.grid.pos.model.QueryResult
 import com.grid.pos.model.SettingsModel
 import java.sql.CallableStatement
 import java.sql.Connection
@@ -17,11 +18,11 @@ object SQLServerWrapper {
     private var mConnection: Connection? = null
 
     private fun getDatabaseConnection(
-        serverPath: String? = SettingsModel.sqlServerPath,
-        dbName: String? = SettingsModel.sqlServerDbName,
-        serverName: String? = SettingsModel.sqlServerName,
-        username: String? = SettingsModel.sqlServerDbUser,
-        password: String? = SettingsModel.sqlServerDbPassword
+            serverPath: String? = SettingsModel.sqlServerPath,
+            dbName: String? = SettingsModel.sqlServerDbName,
+            serverName: String? = SettingsModel.sqlServerName,
+            username: String? = SettingsModel.sqlServerDbUser,
+            password: String? = SettingsModel.sqlServerDbPassword
     ): Connection {
         try {
             Class.forName("net.sourceforge.jtds.jdbc.Driver")
@@ -72,11 +73,11 @@ object SQLServerWrapper {
     }
 
     fun isConnectionSucceeded(
-        serverPath: String? = SettingsModel.sqlServerPath,
-        dbName: String? = SettingsModel.sqlServerDbName,
-        serverName: String? = SettingsModel.sqlServerName,
-        username: String? = SettingsModel.sqlServerDbUser,
-        passwrod: String? = SettingsModel.sqlServerDbPassword
+            serverPath: String? = SettingsModel.sqlServerPath,
+            dbName: String? = SettingsModel.sqlServerDbName,
+            serverName: String? = SettingsModel.sqlServerName,
+            username: String? = SettingsModel.sqlServerDbUser,
+            passwrod: String? = SettingsModel.sqlServerDbPassword
     ): String {
         return try {
             val connection = getDatabaseConnection(
@@ -98,64 +99,78 @@ object SQLServerWrapper {
     }
 
     fun getListOf(
-        tableName: String,
-        colPrefix: String = "",
-        columns: MutableList<String>,
-        where: String,
-        orderBy: String = "",
-        joinSubQuery: String = "",
-    ): ResultSet? {
+            tableName: String,
+            colPrefix: String = "",
+            columns: MutableList<String>,
+            where: String,
+            orderBy: String = "",
+            joinSubQuery: String = "",
+    ): QueryResult {
+        val queryResult = QueryResult()
         try {
             val connection = getConnection()
             val cols = columns.joinToString(", ")
             val whereQuery = if (where.isNotEmpty()) "WHERE $where " else ""
             val query = "SELECT $colPrefix $cols FROM $tableName $joinSubQuery $whereQuery $orderBy"
             val statement = connection.prepareStatement(query)
-            return statement.executeQuery()
+            queryResult.succeed = true
+            queryResult.result = statement.executeQuery()
         } catch (e: Exception) {
             e.printStackTrace()
+            queryResult.succeed = false
+            queryResult.result = e.message
         }
-        return null
+        return queryResult
     }
 
     fun getQueryResult(
-        query: String
-    ): ResultSet? {
+            query: String
+    ): QueryResult {
+        val queryResult = QueryResult()
         try {
             val connection = getConnection()
             val statement = connection.prepareStatement(query)
-            return statement.executeQuery()
+            queryResult.succeed = true
+            queryResult.result = statement.executeQuery()
         } catch (e: Exception) {
             e.printStackTrace()
+            queryResult.succeed = false
+            queryResult.result = e.message
         }
-        return null
+        return queryResult
     }
 
     fun selectFromProcedure(
-        procedureName: String,
-        params: List<Any>,
-    ): ResultSet? {
+            procedureName: String,
+            params: List<Any>,
+    ): QueryResult {
+        val queryResult = QueryResult()
         try {
             val connection = getConnection()
             val parameters = params.joinToString(", ")
             // Prepare the stored procedure call
-            val query =
-                "select dbo.$procedureName($parameters) as $procedureName" // Modify with your procedure and parameters
+            val query = "select dbo.$procedureName($parameters) as $procedureName" // Modify with your procedure and parameters
             val statement = connection.prepareStatement(query)
-            return statement.executeQuery()
+            queryResult.succeed = true
+            queryResult.result = statement.executeQuery()
         } catch (e: Exception) {
             e.printStackTrace()
+            queryResult.succeed = false
+            queryResult.result = e.message
         }
-        return null
+        return queryResult
     }
 
     fun insert(
-        tableName: String,
-        columns: List<String>,
-        values: List<Any?>
-    ) {
+            tableName: String,
+            columns: List<String>,
+            values: List<Any?>
+    ): QueryResult {
         if (columns.size != values.size) {
-            return
+            return QueryResult(
+                false,
+                "Column and value size mismatch."
+            )
         }
         val cols = columns.joinToString(", ")
         val vals = values.joinToString(", ") {
@@ -171,17 +186,20 @@ object SQLServerWrapper {
                 "$it"
             }
         }
-        runDbQuery("INSERT INTO $tableName ($cols) VALUES ($vals)")
+        return runDbQuery("INSERT INTO $tableName ($cols) VALUES ($vals)")
     }
 
     fun update(
-        tableName: String,
-        columns: List<String>,
-        values: List<Any?>,
-        where: String
-    ) {
+            tableName: String,
+            columns: List<String>,
+            values: List<Any?>,
+            where: String
+    ): QueryResult {
         if (columns.size != values.size) {
-            return
+            return QueryResult(
+                false,
+                "Column and value size mismatch."
+            )
         }
         //val setStatement = columns.joinToString(", ") { "$it = ?" }
         // Combine the lists into the desired format
@@ -199,29 +217,28 @@ object SQLServerWrapper {
             }
         }.joinToString(", ")
         val whereQuery = if (where.isNotEmpty()) "WHERE $where " else ""
-        runDbQuery("UPDATE $tableName SET $setStatement $whereQuery")
+        return runDbQuery("UPDATE $tableName SET $setStatement $whereQuery")
     }
 
     fun delete(
-        tableName: String,
-        where: String,
-        innerJoin: String = ""
-    ) {
+            tableName: String,
+            where: String,
+            innerJoin: String = ""
+    ): QueryResult {
         val whereQuery = if (where.isNotEmpty()) "WHERE $where " else ""
-        runDbQuery("DELETE FROM $tableName $innerJoin $whereQuery")
+        return runDbQuery("DELETE FROM $tableName $innerJoin $whereQuery")
     }
 
     fun executeProcedure(
-        procedureName: String,
-        values: List<Any?>
-    ): String? {
+            procedureName: String,
+            values: List<Any?>
+    ): QueryResult {
+        val queryResult = QueryResult()
         var connection: Connection? = null
         var callableStatement: CallableStatement? = null
-        var result: String? = null
         try {
             val params = values.joinToString(", ") { "?" }
-            var outputIndex = -1
-        /*    var index = -1
+            var outputIndex = -1/*    var index = -1
             val vals = values.joinToString(", ") {
                 index +=1
                 if (it is String) {
@@ -246,71 +263,118 @@ object SQLServerWrapper {
 
             values.forEachIndexed { index, any ->
                 if (any == null) {
-                    callableStatement.setNull(index + 1, Types.NULL)
+                    callableStatement.setNull(
+                        index + 1,
+                        Types.NULL
+                    )
                 } else {
                     when (any) {
                         is String -> {
-                            if (any.equals("null_int_output", ignoreCase = true)) {
+                            if (any.equals(
+                                    "null_int_output",
+                                    ignoreCase = true
+                                )
+                            ) {
                                 outputIndex = index + 1
-                                callableStatement.registerOutParameter(outputIndex, Types.BIGINT)
-                            } else if (any.equals("null_string_output", ignoreCase = true)) {
+                                callableStatement.registerOutParameter(
+                                    outputIndex,
+                                    Types.BIGINT
+                                )
+                            } else if (any.equals(
+                                    "null_string_output",
+                                    ignoreCase = true
+                                )
+                            ) {
                                 outputIndex = index + 1
-                                callableStatement.registerOutParameter(outputIndex, Types.VARCHAR)
-                            } else if (any.equals("null", ignoreCase = true)) {
-                                callableStatement.setNull(index + 1, Types.NULL)
+                                callableStatement.registerOutParameter(
+                                    outputIndex,
+                                    Types.VARCHAR
+                                )
+                            } else if (any.equals(
+                                    "null",
+                                    ignoreCase = true
+                                )
+                            ) {
+                                callableStatement.setNull(
+                                    index + 1,
+                                    Types.NULL
+                                )
                             } else {
-                                callableStatement.setString(index + 1, any)
+                                callableStatement.setString(
+                                    index + 1,
+                                    any
+                                )
                             }
                         }
 
                         is Timestamp -> {
-                            callableStatement.setTimestamp(index + 1, any)
+                            callableStatement.setTimestamp(
+                                index + 1,
+                                any
+                            )
                         }
 
                         is Double -> {
-                            callableStatement.setDouble(index + 1, any)
+                            callableStatement.setDouble(
+                                index + 1,
+                                any
+                            )
                         }
 
                         is Int -> {
-                            callableStatement.setInt(index + 1, any)
+                            callableStatement.setInt(
+                                index + 1,
+                                any
+                            )
                         }
 
                         is Boolean -> {
-                            callableStatement.setBoolean(index + 1, any)
+                            callableStatement.setBoolean(
+                                index + 1,
+                                any
+                            )
                         }
 
                         is Float -> {
-                            callableStatement.setFloat(index + 1, any)
+                            callableStatement.setFloat(
+                                index + 1,
+                                any
+                            )
                         }
 
                         else -> {
-                            Log.d(SQLServerWrapper::class.java.name, "missing params")
+                            Log.d(
+                                SQLServerWrapper::class.java.name,
+                                "missing params"
+                            )
                         }
                     }
                 }
             }
             callableStatement.execute()
             if (outputIndex >= 0) {
-                result = callableStatement.getString(outputIndex)
+                queryResult.result = callableStatement.getString(outputIndex)
             }
         } catch (e: Exception) {
             e.printStackTrace()
+            queryResult.succeed = false
+            queryResult.result = e.message
         } finally {
             callableStatement?.close()
             if (mConnection == null) {
                 connection?.close()
             }
         }
-        return result
+        return queryResult
     }
 
     private fun runDbQuery(
-        query: String,
-        params: List<Any?>? = null
-    ): Boolean {
+            query: String,
+            params: List<Any?>? = null
+    ): QueryResult {
+        val queryResult = QueryResult()
         var connection: Connection? = null
         var statement: PreparedStatement? = null
-        var isSuccess: Boolean
         try {
             connection = getConnection()
             statement = connection.prepareStatement(query)
@@ -322,20 +386,21 @@ object SQLServerWrapper {
                 )
             }
             val executeVal = statement.executeUpdate()
-            isSuccess = executeVal > 0
+            queryResult.succeed = executeVal > 0
         } catch (e: Exception) {
             e.printStackTrace()
-            isSuccess = false
+            queryResult.succeed = false
+            queryResult.result = e.message
         } finally {
             statement?.close()
             if (mConnection == null) {
                 connection?.close()
             }
         }
-        return isSuccess
+        return queryResult
     }
 
-    fun getConnection(): Connection {
+    private fun getConnection(): Connection {
         if (mConnection != null && !mConnection!!.isClosed) {
             return mConnection!!
         }

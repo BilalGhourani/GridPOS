@@ -10,6 +10,7 @@ import com.grid.pos.utils.DateHelper
 import com.grid.pos.utils.Extension.encryptCBC
 import com.grid.pos.utils.Extension.getStringValue
 import kotlinx.coroutines.tasks.await
+import java.sql.ResultSet
 import java.util.Date
 
 class UserRepositoryImpl(
@@ -155,21 +156,23 @@ class UserRepositoryImpl(
                             mutableListOf("*"),
                             where
                         )
-                        dbResult?.let {
-                            while (it.next()) {
-                                users.add(User().apply {
-                                    userId = it.getStringValue("usr_id")
-                                    userName = it.getStringValue("usr_name")
-                                    userUsername = it.getStringValue("usr_username")
-                                    userPassword = it.getStringValue("usr_password")
-                                    userCompanyId = it.getStringValue("usr_cmp_id")
-                                    userGrpDesc = it.getStringValue("usr_grp_desc")
-                                    userPosMode = Constants.SQL_USER_POS_MODE
-                                    userTableMode = true
-                                })
-                            }
-                            SQLServerWrapper.closeResultSet(it)
-                        }?: run { error = "database connection error" }
+                        if (dbResult.succeed) {
+                            (dbResult.result as? ResultSet)?.let {
+                                while (it.next()) {
+                                    users.add(User().apply {
+                                        userId = it.getStringValue("usr_id")
+                                        userName = it.getStringValue("usr_name")
+                                        userUsername = it.getStringValue("usr_username")
+                                        userPassword = it.getStringValue("usr_password")
+                                        userCompanyId = it.getStringValue("usr_cmp_id")
+                                        userGrpDesc = it.getStringValue("usr_grp_desc")
+                                        userPosMode = Constants.SQL_USER_POS_MODE
+                                        userTableMode = true
+                                    })
+                                }
+                                SQLServerWrapper.closeResultSet(it)
+                            } ?: run { error = "database connection error" }
+                        }
                     } catch (e: Exception) {
                         e.printStackTrace()
                     }
@@ -192,21 +195,23 @@ class UserRepositoryImpl(
                             mutableListOf("*"),
                             where
                         )
-                        dbResult?.let {
-                            while (it.next()) {
-                                users.add(User().apply {
-                                    userId = it.getStringValue("emp_id")
-                                    userName = it.getStringValue("emp_name")
-                                    userUsername = it.getStringValue("emp_username")
-                                    userPassword = it.getStringValue("emp_password")
-                                    userGrpDesc = it.getStringValue("emp_grp_desc")
-                                    userCompanyId = SettingsModel.getCompanyID()//obj.optString("usr_cmp_id")
-                                    userPosMode = Constants.SQL_USER_POS_MODE
-                                    userTableMode = true
-                                })
-                            }
-                            SQLServerWrapper.closeResultSet(it)
-                        }?: run { error = "database connection error" }
+                        if (dbResult.succeed) {
+                            (dbResult.result as? ResultSet)?.let {
+                                while (it.next()) {
+                                    users.add(User().apply {
+                                        userId = it.getStringValue("emp_id")
+                                        userName = it.getStringValue("emp_name")
+                                        userUsername = it.getStringValue("emp_username")
+                                        userPassword = it.getStringValue("emp_password")
+                                        userGrpDesc = it.getStringValue("emp_grp_desc")
+                                        userCompanyId = SettingsModel.getCompanyID()//obj.optString("usr_cmp_id")
+                                        userPosMode = Constants.SQL_USER_POS_MODE
+                                        userTableMode = true
+                                    })
+                                }
+                                SQLServerWrapper.closeResultSet(it)
+                            } ?: run { error = "database connection error" }
+                        }
                     } catch (e: Exception) {
                         e.printStackTrace()
                     }
@@ -260,19 +265,21 @@ class UserRepositoryImpl(
                             mutableListOf("*"),
                             where
                         )
-                        dbResult?.let {
-                            while (it.next()) {
-                                users.add(User().apply {
-                                    userId = it.getStringValue("usr_id")
-                                    userName = it.getStringValue("usr_name")
-                                    userUsername = it.getStringValue("usr_username")
-                                    userPassword = it.getStringValue("usr_password")
-                                    userCompanyId = it.getStringValue("usr_cmp_id")
-                                    userPosMode = Constants.SQL_USER_POS_MODE
-                                    userTableMode = true
-                                })
+                        if (dbResult.succeed) {
+                            (dbResult.result as? ResultSet)?.let {
+                                while (it.next()) {
+                                    users.add(User().apply {
+                                        userId = it.getStringValue("usr_id")
+                                        userName = it.getStringValue("usr_name")
+                                        userUsername = it.getStringValue("usr_username")
+                                        userPassword = it.getStringValue("usr_password")
+                                        userCompanyId = it.getStringValue("usr_cmp_id")
+                                        userPosMode = Constants.SQL_USER_POS_MODE
+                                        userTableMode = true
+                                    })
+                                }
+                                SQLServerWrapper.closeResultSet(it)
                             }
-                            SQLServerWrapper.closeResultSet(it)
                         }
                     } catch (e: Exception) {
                         e.printStackTrace()
@@ -288,19 +295,21 @@ class UserRepositoryImpl(
                             ""
                         )
 
-                        dbResult?.let {
-                            while (it.next()) {
-                                users.add(User().apply {
-                                    userId = it.getStringValue("emp_id")
-                                    userName = it.getStringValue("emp_name")
-                                    userUsername = it.getStringValue("emp_username")
-                                    userPassword = it.getStringValue("emp_password")
-                                    userCompanyId = SettingsModel.getCompanyID()//obj.optString("usr_cmp_id")
-                                    userPosMode = Constants.SQL_USER_POS_MODE
-                                    userTableMode = true
-                                })
+                        if (dbResult.succeed) {
+                            (dbResult.result as? ResultSet)?.let {
+                                while (it.next()) {
+                                    users.add(User().apply {
+                                        userId = it.getStringValue("emp_id")
+                                        userName = it.getStringValue("emp_name")
+                                        userUsername = it.getStringValue("emp_username")
+                                        userPassword = it.getStringValue("emp_password")
+                                        userCompanyId = SettingsModel.getCompanyID()//obj.optString("usr_cmp_id")
+                                        userPosMode = Constants.SQL_USER_POS_MODE
+                                        userTableMode = true
+                                    })
+                                }
+                                SQLServerWrapper.closeResultSet(it)
                             }
-                            SQLServerWrapper.closeResultSet(it)
                         }
                     } catch (e: Exception) {
                         e.printStackTrace()
@@ -346,19 +355,21 @@ class UserRepositoryImpl(
                             where
                         )
 
-                        dbResult?.let {
-                            if (it.next()) {
-                                return User().apply {
-                                    userId = it.getStringValue("usr_id")
-                                    userName = it.getStringValue("usr_name")
-                                    userUsername = it.getStringValue("usr_username")
-                                    userPassword = it.getStringValue("usr_password")
-                                    userCompanyId = it.getStringValue("usr_cmp_id")
-                                    userPosMode = Constants.SQL_USER_POS_MODE
-                                    userTableMode = true
+                        if (dbResult.succeed) {
+                            (dbResult.result as? ResultSet)?.let {
+                                if (it.next()) {
+                                    return User().apply {
+                                        userId = it.getStringValue("usr_id")
+                                        userName = it.getStringValue("usr_name")
+                                        userUsername = it.getStringValue("usr_username")
+                                        userPassword = it.getStringValue("usr_password")
+                                        userCompanyId = it.getStringValue("usr_cmp_id")
+                                        userPosMode = Constants.SQL_USER_POS_MODE
+                                        userTableMode = true
+                                    }
                                 }
+                                SQLServerWrapper.closeResultSet(it)
                             }
-                            SQLServerWrapper.closeResultSet(it)
                         }
                     } catch (e: Exception) {
                         e.printStackTrace()
@@ -372,19 +383,21 @@ class UserRepositoryImpl(
                             mutableListOf("*"),
                             ""
                         )
-                        dbResult?.let {
-                            while (it.next()) {
-                                return User().apply {
-                                    userId = it.getStringValue("emp_id")
-                                    userName = it.getStringValue("emp_name")
-                                    userUsername = it.getStringValue("emp_username")
-                                    userPassword = it.getStringValue("emp_password")
-                                    userCompanyId = SettingsModel.getCompanyID()//obj.optString("usr_cmp_id")
-                                    userPosMode = Constants.SQL_USER_POS_MODE
-                                    userTableMode = true
+                        if (dbResult.succeed) {
+                            (dbResult.result as? ResultSet)?.let {
+                                while (it.next()) {
+                                    return User().apply {
+                                        userId = it.getStringValue("emp_id")
+                                        userName = it.getStringValue("emp_name")
+                                        userUsername = it.getStringValue("emp_username")
+                                        userPassword = it.getStringValue("emp_password")
+                                        userCompanyId = SettingsModel.getCompanyID()//obj.optString("usr_cmp_id")
+                                        userPosMode = Constants.SQL_USER_POS_MODE
+                                        userTableMode = true
+                                    }
                                 }
+                                SQLServerWrapper.closeResultSet(it)
                             }
-                            SQLServerWrapper.closeResultSet(it)
                         }
                     } catch (e: Exception) {
                         e.printStackTrace()
@@ -431,19 +444,21 @@ class UserRepositoryImpl(
                             where
                         )
 
-                        dbResult?.let {
-                            if (it.next()) {
-                                return User().apply {
-                                    this.userId = it.getStringValue("usr_id")
-                                    userName = it.getStringValue("usr_name")
-                                    userUsername = it.getStringValue("usr_username")
-                                    userPassword = it.getStringValue("usr_password")
-                                    userCompanyId = it.getStringValue("usr_cmp_id")
-                                    userPosMode = Constants.SQL_USER_POS_MODE
-                                    userTableMode = true
+                        if (dbResult.succeed) {
+                            (dbResult.result as? ResultSet)?.let {
+                                if (it.next()) {
+                                    return User().apply {
+                                        this.userId = it.getStringValue("usr_id")
+                                        userName = it.getStringValue("usr_name")
+                                        userUsername = it.getStringValue("usr_username")
+                                        userPassword = it.getStringValue("usr_password")
+                                        userCompanyId = it.getStringValue("usr_cmp_id")
+                                        userPosMode = Constants.SQL_USER_POS_MODE
+                                        userTableMode = true
+                                    }
                                 }
+                                SQLServerWrapper.closeResultSet(it)
                             }
-                            SQLServerWrapper.closeResultSet(it)
                         }
                     } catch (e: Exception) {
                         e.printStackTrace()
@@ -458,19 +473,21 @@ class UserRepositoryImpl(
                             mutableListOf("*"),
                             where
                         )
-                        dbResult?.let {
-                            while (it.next()) {
-                                return User().apply {
-                                    this.userId = it.getStringValue("emp_id")
-                                    userName = it.getStringValue("emp_name")
-                                    userUsername = it.getStringValue("emp_username")
-                                    userPassword = it.getStringValue("emp_password")
-                                    userCompanyId = SettingsModel.getCompanyID()//obj.optString("usr_cmp_id")
-                                    userPosMode = Constants.SQL_USER_POS_MODE
-                                    userTableMode = true
+                        if (dbResult.succeed) {
+                            (dbResult.result as? ResultSet)?.let {
+                                while (it.next()) {
+                                    return User().apply {
+                                        this.userId = it.getStringValue("emp_id")
+                                        userName = it.getStringValue("emp_name")
+                                        userUsername = it.getStringValue("emp_username")
+                                        userPassword = it.getStringValue("emp_password")
+                                        userCompanyId = SettingsModel.getCompanyID()//obj.optString("usr_cmp_id")
+                                        userPosMode = Constants.SQL_USER_POS_MODE
+                                        userTableMode = true
+                                    }
                                 }
+                                SQLServerWrapper.closeResultSet(it)
                             }
-                            SQLServerWrapper.closeResultSet(it)
                         }
                     } catch (e: Exception) {
                         e.printStackTrace()

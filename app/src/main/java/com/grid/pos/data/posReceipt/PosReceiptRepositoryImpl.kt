@@ -10,6 +10,7 @@ import com.grid.pos.utils.Extension.getDoubleValue
 import com.grid.pos.utils.Extension.getObjectValue
 import com.grid.pos.utils.Extension.getStringValue
 import kotlinx.coroutines.tasks.await
+import java.sql.ResultSet
 import java.sql.Timestamp
 import java.util.Date
 
@@ -331,69 +332,75 @@ class PosReceiptRepositoryImpl(
                 try {
                     val posReceipt = PosReceipt()
                     var commonAreFilled = false
-                    dbResult?.let {
-                        while (it.next()) {
-                            if (!commonAreFilled) {
-                                commonAreFilled = true
-                                posReceipt.posReceiptId = it.getStringValue("pr_id")
-                                posReceipt.posReceiptInvoiceId = it.getStringValue("pr_hi_id")
+                    if (dbResult.succeed) {
+                        (dbResult.result as? ResultSet)?.let {
+                            while (it.next()) {
+                                if (!commonAreFilled) {
+                                    commonAreFilled = true
+                                    posReceipt.posReceiptId = it.getStringValue("pr_id")
+                                    posReceipt.posReceiptInvoiceId = it.getStringValue("pr_hi_id")
 
-                                val timeStamp = it.getObjectValue("pr_timestamp")
-                                posReceipt.posReceiptTimeStamp = when (timeStamp) {
-                                    is Date -> timeStamp
-                                    is String -> DateHelper.getDateFromString(
-                                        timeStamp,
-                                        "yyyy-MM-dd hh:mm:ss.SSS"
-                                    )
-                                    else -> null
+                                    val timeStamp = it.getObjectValue("pr_timestamp")
+                                    posReceipt.posReceiptTimeStamp = when (timeStamp) {
+                                        is Date -> timeStamp
+                                        is String -> DateHelper.getDateFromString(
+                                            timeStamp,
+                                            "yyyy-MM-dd hh:mm:ss.SSS"
+                                        )
+
+                                        else -> null
+                                    }
+                                    posReceipt.posReceiptDateTime = posReceipt.posReceiptTimeStamp!!.time
+                                    posReceipt.posReceiptUserStamp = it.getStringValue("pr_userstamp")
                                 }
-                                posReceipt.posReceiptDateTime = posReceipt.posReceiptTimeStamp!!.time
-                                posReceipt.posReceiptUserStamp = it.getStringValue("pr_userstamp")
+                                val raAccId = it.getStringValue(
+                                    "pr_ra_id",
+                                    "unknown"
+                                )
+                                val raType = it.getStringValue("ra_type")
+                                when (raType) {
+                                    "Cash" -> {
+                                        if (raAccId == SettingsModel.posReceiptAccCashId) {
+                                            posReceipt.posReceiptCashID = it.getStringValue("pr_id")
+                                            posReceipt.posReceiptCash_hsid = it.getStringValue("pr_hsid")
+                                            posReceipt.posReceiptCash = it.getDoubleValue("pr_amt")
+                                        } else if (raAccId == SettingsModel.posReceiptAccCash1Id) {
+                                            posReceipt.posReceiptCashsID = it.getStringValue("pr_id")
+                                            posReceipt.posReceiptCashs_hsid = it.getStringValue("pr_hsid")
+                                            posReceipt.posReceiptCashs = it.getDoubleValue("pr_amt")
+                                        }
+                                    }
+
+                                    "Credit", "Credit Card" -> {
+                                        if (raAccId == SettingsModel.posReceiptAccCreditId) {
+                                            posReceipt.posReceiptCreditID = it.getStringValue("pr_id")
+                                            posReceipt.posReceiptCredit_hsid = it.getStringValue("pr_hsid")
+                                            posReceipt.posReceiptCredit = it.getDoubleValue("pr_amt")
+                                        } else if (raAccId == SettingsModel.posReceiptAccCredit1Id) {
+                                            posReceipt.posReceiptCreditsID = it.getStringValue("pr_id")
+                                            posReceipt.posReceiptCredits_hsid = it.getStringValue("pr_hsid")
+                                            posReceipt.posReceiptCredits = it.getDoubleValue("pr_amt")
+                                        }
+
+                                    }
+
+                                    "Debit", "Debit Card" -> {
+                                        if (raAccId == SettingsModel.posReceiptAccDebitId) {
+                                            posReceipt.posReceiptDebitID = it.getStringValue("pr_id")
+                                            posReceipt.posReceiptDebit_hsid = it.getStringValue("pr_hsid")
+                                            posReceipt.posReceiptDebit = it.getDoubleValue("pr_amt")
+                                        } else if (raAccId == SettingsModel.posReceiptAccDebit1Id) {
+                                            posReceipt.posReceiptDebitsID = it.getStringValue("pr_id")
+                                            posReceipt.posReceiptDebits_hsid = it.getStringValue("pr_hsid")
+                                            posReceipt.posReceiptDebits = it.getDoubleValue("pr_amt")
+                                        }
+
+                                    }
+                                }
                             }
-                            val raAccId = it.getStringValue("pr_ra_id","unknown")
-                            val raType = it.getStringValue("ra_type")
-                            when (raType) {
-                                "Cash" -> {
-                                    if (raAccId == SettingsModel.posReceiptAccCashId) {
-                                        posReceipt.posReceiptCashID = it.getStringValue("pr_id")
-                                        posReceipt.posReceiptCash_hsid = it.getStringValue("pr_hsid")
-                                        posReceipt.posReceiptCash = it.getDoubleValue("pr_amt")
-                                    } else if (raAccId == SettingsModel.posReceiptAccCash1Id) {
-                                        posReceipt.posReceiptCashsID = it.getStringValue("pr_id")
-                                        posReceipt.posReceiptCashs_hsid = it.getStringValue("pr_hsid")
-                                        posReceipt.posReceiptCashs = it.getDoubleValue("pr_amt")
-                                    }
-                                }
-
-                                "Credit","Credit Card" -> {
-                                    if (raAccId == SettingsModel.posReceiptAccCreditId) {
-                                        posReceipt.posReceiptCreditID = it.getStringValue("pr_id")
-                                        posReceipt.posReceiptCredit_hsid = it.getStringValue("pr_hsid")
-                                        posReceipt.posReceiptCredit = it.getDoubleValue("pr_amt")
-                                    } else if (raAccId == SettingsModel.posReceiptAccCredit1Id)  {
-                                        posReceipt.posReceiptCreditsID = it.getStringValue("pr_id")
-                                        posReceipt.posReceiptCredits_hsid = it.getStringValue("pr_hsid")
-                                        posReceipt.posReceiptCredits = it.getDoubleValue("pr_amt")
-                                    }
-
-                                }
-
-                                "Debit","Debit Card" -> {
-                                    if (raAccId == SettingsModel.posReceiptAccDebitId) {
-                                        posReceipt.posReceiptDebitID = it.getStringValue("pr_id")
-                                        posReceipt.posReceiptDebit_hsid = it.getStringValue("pr_hsid")
-                                        posReceipt.posReceiptDebit = it.getDoubleValue("pr_amt")
-                                    } else if (raAccId == SettingsModel.posReceiptAccDebit1Id) {
-                                        posReceipt.posReceiptDebitsID = it.getStringValue("pr_id")
-                                        posReceipt.posReceiptDebits_hsid = it.getStringValue("pr_hsid")
-                                        posReceipt.posReceiptDebits = it.getDoubleValue("pr_amt")
-                                    }
-
-                                }
-                            }
+                            SQLServerWrapper.closeResultSet(it)
+                            return posReceipt
                         }
-                        SQLServerWrapper.closeResultSet(it)
-                        return posReceipt
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
@@ -414,7 +421,7 @@ class PosReceiptRepositoryImpl(
             null,//pr_id
             posReceiptInvoiceId,//pr_hi_id
             receiptAccId,//pr_ra_id
-            if(isFirst) firstValue else secondValue,
+            if (isFirst) firstValue else secondValue,
             firstValue,
             secondValue,
             SettingsModel.currentCompany?.cmp_multibranchcode,
@@ -429,10 +436,14 @@ class PosReceiptRepositoryImpl(
             parameters.add(null)//pr_denomination
             parameters.add(null)//pr_count
         }
-        return SQLServerWrapper.executeProcedure(
+        val queryResult = SQLServerWrapper.executeProcedure(
             "addpos_receipt",
             parameters
-        ) ?: ""
+        )
+        if (queryResult.succeed) {
+            return (queryResult.result as? String) ?: ""
+        }
+        return ""
     }
 
     private fun updatePOSReceiptByProcedure(
@@ -441,20 +452,20 @@ class PosReceiptRepositoryImpl(
             isFirst: Boolean,
             firstValue: String,
             secondValue: String,
-            pr_hsid: String?,
+            prHsid: String?,
             receiptAccId: String
     ) {
         val parameters = mutableListOf(
             posReceiptId,//pr_id
             posReceiptInvoiceId,//pr_hi_id
             receiptAccId,//pr_ra_id
-            if(isFirst) firstValue else secondValue,
+            if (isFirst) firstValue else secondValue,
             firstValue,
             secondValue,
             firstValue,//pr_amtinvcurr
             null,//pr_note
             Timestamp(System.currentTimeMillis()),//pr_date
-            pr_hsid,//@pr_hsid
+            prHsid,//@pr_hsid
             Timestamp(System.currentTimeMillis()),//pr_timestamp
             SettingsModel.currentUser?.userUsername,//pr_userstamp
             0,//pr_commission
