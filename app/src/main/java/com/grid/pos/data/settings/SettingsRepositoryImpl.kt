@@ -268,7 +268,7 @@ class SettingsRepositoryImpl : SettingsRepository {
                             if (it.next()) {
                                 warehouses.add(WarehouseModel().apply {
                                     warehouseId = it.getStringValue("wa_name")
-                                    warehouseName = it.getStringValue("wa_newname")
+                                    warehouseName = it.getStringValue("wa_newname",it.getStringValue("wa_name"))
                                     warehouseOrder = it.getStringValue("wa_order")
                                 })
                             }
