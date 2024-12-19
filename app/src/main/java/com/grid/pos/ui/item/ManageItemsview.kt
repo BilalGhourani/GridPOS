@@ -167,17 +167,26 @@ fun ManageItemsView(
         }
     }
 
-    fun getFirstCurrency(): String {
+    fun getFirstCurrency(): Pair<String, String> {
         return if (SettingsModel.isConnectedToSqlServer()) {
-            SettingsModel.currentCurrency?.currencyId ?: ""
+            Pair(
+                SettingsModel.currentCurrency?.currencyId ?: "",
+                SettingsModel.currentCurrency?.currencyCode1 ?: ""
+            )
         } else {
-            SettingsModel.currentCurrency?.currencyCode1 ?: ""
+            Pair(
+                SettingsModel.currentCurrency?.currencyCode1 ?: "",
+                SettingsModel.currentCurrency?.currencyCode1 ?: ""
+            )
         }
     }
 
     LaunchedEffect(state.currencies) {
         if (itemCurrState == "" && state.currencies.isNotEmpty()) {
-            itemCurrState = getFirstCurrency()
+            val firstCurrency = getFirstCurrency()
+            itemCurrState = firstCurrency.first
+            state.selectedItem.itemCurrencyId = itemCurrState
+            state.selectedItem.itemCurrencyCode = firstCurrency.second
         }
     }
 
@@ -238,6 +247,7 @@ fun ManageItemsView(
         )
         state.selectedItem.itemPos = itemPOSState
         state.selectedItem.itemGroup = itemGroupState
+        state.selectedItem.itemCurrencyId = itemCurrState
         viewModel.saveItem(state.selectedItem)
     }
 
@@ -258,7 +268,10 @@ fun ManageItemsView(
         } else {
             ""
         }
-        itemCurrState = getFirstCurrency()
+        val firstCurrency = getFirstCurrency()
+        itemCurrState = firstCurrency.first
+        state.selectedItem.itemCurrencyId = itemCurrState
+        state.selectedItem.itemCurrencyCode = firstCurrency.second
         familyIdState = ""
         btnColorState = ""
         btnTextColorState = ""
@@ -512,7 +525,7 @@ fun ManageItemsView(
                         placeHolder = "Enter Barcode",
                         focusRequester = barcodeFocusRequester,
                         onAction = {
-                            if (state.isConnectingToSQLServer) {
+                            if (state.shouldDisableCostAndQty()) {
                                 btnColorFocusRequester.requestFocus()
                             } else {
                                 openCostFocusRequester.requestFocus()
@@ -564,7 +577,7 @@ fun ManageItemsView(
                                                 if (resp is String) {
                                                     barcodeState = resp
                                                     state.selectedItem.itemBarcode = barcodeState
-                                                    if (state.isConnectingToSQLServer) {
+                                                    if (state.shouldDisableCostAndQty()) {
                                                         btnColorFocusRequester.requestFocus()
                                                     } else {
                                                         openCostFocusRequester.requestFocus()
@@ -600,7 +613,7 @@ fun ManageItemsView(
                         keyboardType = KeyboardType.Decimal,
                         label = "Open cost",
                         placeHolder = "Enter Open cost",
-                        enabled = !state.isConnectingToSQLServer,
+                        enabled = !state.shouldDisableCostAndQty(),
                         focusRequester = openCostFocusRequester,
                         onAction = { openQtyFocusRequester.requestFocus() }) { openCost ->
                         openCostState = Utils.getDoubleValue(
@@ -617,7 +630,7 @@ fun ManageItemsView(
                     ),
                         defaultValue = openQtyState,
                         label = "Open Qty",
-                        enabled = !state.isConnectingToSQLServer,
+                        enabled = !state.shouldDisableCostAndQty(),
                         keyboardType = KeyboardType.Decimal,
                         placeHolder = "Enter Open Qty",
                         focusRequester = openQtyFocusRequester,

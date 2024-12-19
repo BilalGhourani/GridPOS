@@ -19,4 +19,8 @@ data class ManageItemsState(
         val clear: Boolean = false,
         val warning: Event<String>? = null,
         val actionLabel: String? = null,
-)
+) {
+    fun shouldDisableCostAndQty(): Boolean {
+        return isConnectingToSQLServer && selectedItem.itemId.isNotEmpty()
+    }
+}

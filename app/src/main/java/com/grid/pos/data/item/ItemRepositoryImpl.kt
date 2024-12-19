@@ -575,7 +575,7 @@ class ItemRepositoryImpl(
                 SettingsModel.currentUser?.userUsername,//@it_userstamp
                 SettingsModel.defaultSqlServerWarehouse,//@mainwarehouse
                 item.itemCurrencyId,//@firstcurr
-                null,//@secondcurr
+                getSecondCurrency(item.itemCurrencyId),//@secondcurr
                 Timestamp(System.currentTimeMillis()),//@dateyearstart
                 null,//@it_altname
                 null,//@it_wa_name
@@ -626,7 +626,7 @@ class ItemRepositoryImpl(
                 SettingsModel.currentUser?.userUsername,//@it_userstamp
                 SettingsModel.defaultSqlServerWarehouse,//@mainwarehouse
                 item.itemCurrencyId,//@firstcurr
-                null,//@secondcurr
+                getSecondCurrency(item.itemCurrencyId),//@secondcurr
                 Timestamp(System.currentTimeMillis()),//@dateyearstart
                 null,//@it_altname
                 null,//@it_wa_name
@@ -714,7 +714,7 @@ class ItemRepositoryImpl(
     }
 
     private fun deleteByProcedure(item: Item) {
-         SQLServerWrapper.executeProcedure(
+        SQLServerWrapper.executeProcedure(
             "delst_item",
             listOf(
                 item.itemId,
@@ -722,6 +722,14 @@ class ItemRepositoryImpl(
                 SettingsModel.currentCompany?.cmp_multibranchcode
             )
         )
+    }
+
+    private fun getSecondCurrency(itemCurr: String?): String? {
+        return if (itemCurr == SettingsModel.currentCurrency?.currencyId) {
+            SettingsModel.currentCurrency?.currencyDocumentId//secondOne
+        } else {
+            SettingsModel.currentCurrency?.currencyId//firstOne
+        }
     }
 
 }
