@@ -1,5 +1,7 @@
 package com.grid.pos.data.company
 
+import com.grid.pos.model.DataModel
+
 interface CompanyRepository {
 
     // suspend is a coroutine keyword,
@@ -13,10 +15,10 @@ interface CompanyRepository {
     suspend fun update(company: Company)
 
     // Get Company by it's ID
-    suspend fun getCompanyById(id: String): Company?
+    suspend fun getCompanyById(id: String): DataModel
 
     // Get all Companies logs as stream.
-    suspend fun getAllCompanies(): MutableList<Company>
+    suspend fun getAllCompanies(): DataModel
 
     suspend fun getLocalCompanies(): MutableList<Company>
 

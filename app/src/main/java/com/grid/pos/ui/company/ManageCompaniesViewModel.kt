@@ -50,12 +50,12 @@ class ManageCompaniesViewModel @Inject constructor(
     }
 
     fun showWarning(
-            warning: String,
-            action: String
+            warning: String?,
+            action: String? = null
     ) {
         viewModelScope.launch(Dispatchers.Main) {
             manageCompaniesState.value = manageCompaniesState.value.copy(
-                warning = Event(warning),
+                warning = if (warning != null) Event(warning) else null,
                 actionLabel = action,
                 isLoading = false
             )
@@ -67,12 +67,20 @@ class ManageCompaniesViewModel @Inject constructor(
             isLoading = true
         )
         viewModelScope.launch(Dispatchers.IO) {
-            val companies = companyRepository.getAllCompanies()
-            withContext(Dispatchers.Main) {
-                manageCompaniesState.value = manageCompaniesState.value.copy(
-                    companies = companies,
-                    isLoading = false
+            val dataModel = companyRepository.getAllCompanies()
+            if (dataModel.succeed) {
+                val listOfCompanies = convertToMutableList(
+                    dataModel.data,
+                    Company::class.java
                 )
+                withContext(Dispatchers.Main) {
+                    manageCompaniesState.value = manageCompaniesState.value.copy(
+                        companies = listOfCompanies,
+                        isLoading = false
+                    )
+                }
+            } else {
+                showWarning(dataModel.message ?: "an error has occurred!")
             }
         }
     }
@@ -82,15 +90,6 @@ class ManageCompaniesViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.Main) {
             manageCompaniesState.value = manageCompaniesState.value.copy(
                 currencies = currencies
-            )
-        }
-    }
-
-    private suspend fun fetchPrinters() {
-        val listOfPrinters = posPrinterRepository.getAllPosPrinters()
-        viewModelScope.launch(Dispatchers.Main) {
-            manageCompaniesState.value = manageCompaniesState.value.copy(
-                printers = listOfPrinters
             )
         }
     }

@@ -8,7 +8,6 @@ import com.grid.pos.model.Event
 data class ManageCompaniesState(
         val companies: MutableList<Company> = mutableListOf(),
         val currencies: MutableList<Currency> = mutableListOf(),
-        val printers: MutableList<PosPrinter> = mutableListOf(),
         var selectedCompany: Company = Company(),
         val isLoading: Boolean = false,
         val clear: Boolean = false,
