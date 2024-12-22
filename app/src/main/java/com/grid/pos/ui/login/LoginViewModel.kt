@@ -173,7 +173,7 @@ class LoginViewModel @Inject constructor(
                             usersState.value = usersState.value.copy(
                                 isLoading = false,
                                 needRegistration = false,
-                                warning = Event(dataModel.message ?: "an error has occurred!"),
+                                warning = if (dataModel.message != null) Event(dataModel.message) else null,
                                 warningAction = null
                             )
                         }

@@ -4,6 +4,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.CurrencyModel
+import com.grid.pos.model.DataModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.DateHelper
 import com.grid.pos.utils.Extension.getDoubleValue
@@ -53,8 +54,8 @@ class CurrencyRepositoryImpl(
         }
     }
 
-    override suspend fun getAllCurrencies(): MutableList<Currency> {
-        return when (SettingsModel.connectionType) {
+    override suspend fun getAllCurrencies(): DataModel {
+        when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
                 val querySnapshot = FirebaseFirestore.getInstance().collection("currency")
                     .whereEqualTo(
@@ -71,11 +72,11 @@ class CurrencyRepositoryImpl(
                         }
                     }
                 }
-                currencies
+                return DataModel(currencies)
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
-                currencyDao.getAllCurrencies(SettingsModel.getCompanyID() ?: "")
+                return DataModel(currencyDao.getAllCurrencies(SettingsModel.getCompanyID() ?: ""))
             }
 
             else -> {
@@ -113,19 +114,33 @@ class CurrencyRepositoryImpl(
                             }
                             SQLServerWrapper.closeResultSet(it)
                         }
+                    } else {
+                        return DataModel(
+                            null,
+                            false,
+                            dbResult.result as? String
+                        )
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
-                }
-
-                if (currency.currencyId.isNotEmpty() && !currency.currencyDocumentId.isNullOrEmpty()) {
-                    currency.currencyRate = getRate(
-                        currency.currencyId,
-                        currency.currencyDocumentId!!
+                    return DataModel(
+                        null,
+                        false,
+                        e.message
                     )
                 }
 
-                mutableListOf(currency)
+                if (currency.currencyId.isNotEmpty() && !currency.currencyDocumentId.isNullOrEmpty()) {
+                    val rateResult = getRate(
+                        currency.currencyId,
+                        currency.currencyDocumentId!!
+                    )
+                    if (rateResult.succeed) {
+                        currency.currencyRate = rateResult.data as Double
+                    }
+                }
+
+                return DataModel(mutableListOf(currency))
             }
         }
     }
@@ -133,14 +148,14 @@ class CurrencyRepositoryImpl(
     override suspend fun getRate(
             firstCurr: String,
             secondCurr: String
-    ): Double {
-        return when (SettingsModel.connectionType) {
+    ): DataModel {
+         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
-                return SettingsModel.currentCurrency?.currencyRate ?: 1.0
+                return DataModel(SettingsModel.currentCurrency?.currencyRate ?: 1.0)
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
-                return SettingsModel.currentCurrency?.currencyRate ?: 1.0
+                return DataModel(SettingsModel.currentCurrency?.currencyRate ?: 1.0)
             }
 
             else -> {
@@ -167,17 +182,28 @@ class CurrencyRepositoryImpl(
                             }
                             SQLServerWrapper.closeResultSet(it)
                         }
+                    } else {
+                        return DataModel(
+                            null,
+                            false,
+                            rateDbResult.result as? String
+                        )
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
+                    return DataModel(
+                        null,
+                        false,
+                        e.message
+                    )
                 }
-                result
+                return DataModel(result)
             }
         }
     }
 
-    override suspend fun getAllCurrencyModels(): MutableList<CurrencyModel> {
-        return when (SettingsModel.connectionType) {
+    override suspend fun getAllCurrencyModels(): DataModel {
+        when (SettingsModel.connectionType) {
             CONNECTION_TYPE.LOCAL.key, CONNECTION_TYPE.FIRESTORE.key -> {
                 val currencies = mutableListOf<CurrencyModel>()
                 SettingsModel.currentCurrency?.let {
@@ -200,7 +226,7 @@ class CurrencyRepositoryImpl(
                         )
                     }
                 }
-                currencies
+                return DataModel(currencies)
             }
 
             else -> {
@@ -231,11 +257,22 @@ class CurrencyRepositoryImpl(
                             }
                             SQLServerWrapper.closeResultSet(it)
                         }
+                    } else {
+                        return DataModel(
+                            null,
+                            false,
+                            dbResult.result as? String
+                        )
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
+                    return DataModel(
+                        null,
+                        false,
+                        e.message
+                    )
                 }
-                return currencyModels
+                return DataModel(currencyModels)
             }
         }
     }

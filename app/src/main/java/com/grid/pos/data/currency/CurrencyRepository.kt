@@ -1,6 +1,6 @@
 package com.grid.pos.data.currency
 
-import com.grid.pos.model.CurrencyModel
+import com.grid.pos.model.DataModel
 
 interface CurrencyRepository {
 
@@ -15,10 +15,13 @@ interface CurrencyRepository {
     suspend fun update(currency: Currency)
 
     // Get all Currencies as stream.
-    suspend fun getAllCurrencies(): MutableList<Currency>
-    suspend fun getRate(firstCurr: String, secondCurr: String): Double
+    suspend fun getAllCurrencies(): DataModel
+    suspend fun getRate(
+            firstCurr: String,
+            secondCurr: String
+    ): DataModel
 
     // Get all Currencies as stream.
-    suspend fun getAllCurrencyModels(): MutableList<CurrencyModel>
+    suspend fun getAllCurrencyModels(): DataModel
 
 }

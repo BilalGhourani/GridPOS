@@ -9,6 +9,7 @@ import com.grid.pos.data.receipt.ReceiptRepository
 import com.grid.pos.data.thirdParty.ThirdParty
 import com.grid.pos.data.thirdParty.ThirdPartyRepository
 import com.grid.pos.data.user.UserRepository
+import com.grid.pos.model.CurrencyModel
 import com.grid.pos.model.Event
 import com.grid.pos.model.PaymentTypeModel
 import com.grid.pos.model.ReportResult
@@ -84,10 +85,20 @@ class ReceiptsViewModel @Inject constructor(
 
     private fun fetchCurrencies() {
         viewModelScope.launch(Dispatchers.IO) {
-            val currencies = currencyRepository.getAllCurrencyModels()
-            withContext(Dispatchers.Main) {
+            val dataModel = currencyRepository.getAllCurrencyModels()
+            if (dataModel.succeed) {
+                val currencies = convertToMutableList(
+                    dataModel.data,
+                    CurrencyModel::class.java
+                )
+                withContext(Dispatchers.Main) {
+                    receiptsState.value = receiptsState.value.copy(
+                        currencies = currencies
+                    )
+                }
+            } else if (dataModel.message != null) {
                 receiptsState.value = receiptsState.value.copy(
-                    currencies = currencies
+                    warning = Event(dataModel.message)
                 )
             }
         }
@@ -174,7 +185,10 @@ class ReceiptsViewModel @Inject constructor(
                 val addedModel = receiptRepository.insert(receipt)
                 val receipts = receiptsState.value.receipts
                 if (receipts.isNotEmpty()) {
-                    receipts.add(0,addedModel)
+                    receipts.add(
+                        0,
+                        addedModel
+                    )
                 }
                 prepareReceiptReport(
                     context,

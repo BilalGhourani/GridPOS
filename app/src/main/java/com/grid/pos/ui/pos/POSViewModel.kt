@@ -75,9 +75,23 @@ class POSViewModel @Inject constructor(
 
     private suspend fun fetchItems(stopLoading: Boolean = false) {
         if (SettingsModel.currentCurrency == null && SettingsModel.isConnectedToSqlServer()) {
-            val currencies = currencyRepository.getAllCurrencies()
-            val currency = if (currencies.size > 0) currencies[0] else Currency()
-            SettingsModel.currentCurrency = currency
+            val dataModel = currencyRepository.getAllCurrencies()
+            if (dataModel.succeed) {
+                val currencies = convertToMutableList(
+                    dataModel.data,
+                    Currency::class.java
+                )
+                val currency = if (currencies.size > 0) currencies[0] else Currency()
+                SettingsModel.currentCurrency = currency
+            } else {
+                withContext(Dispatchers.Main) {
+                    posState.value = posState.value.copy(
+                        warning = if (dataModel.message != null) Event(dataModel.message)else null,
+                        actionLabel = null,
+                        isLoading = false
+                    )
+                }
+            }
         }
         val listOfItems = itemRepository.getItemsForPOS()
         withContext(Dispatchers.Main) {

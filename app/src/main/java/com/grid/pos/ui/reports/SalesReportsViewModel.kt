@@ -53,9 +53,17 @@ class SalesReportsViewModel @Inject constructor(
 
     private suspend fun fetchItems() {
         if (SettingsModel.currentCurrency == null && SettingsModel.isConnectedToSqlServer()) {
-            val currencies = currencyRepository.getAllCurrencies()
-            val currency = if (currencies.size > 0) currencies[0] else Currency()
-            SettingsModel.currentCurrency = currency
+            val dataModel = currencyRepository.getAllCurrencies()
+            if (dataModel.succeed) {
+                val currencies = convertToMutableList(
+                    dataModel.data,
+                    Currency::class.java
+                )
+                val currency = if (currencies.size > 0) currencies[0] else Currency()
+                SettingsModel.currentCurrency = currency
+            } else if (dataModel.message != null) {
+                showError(dataModel.message)
+            }
         }
         val listOfItems = itemRepository.getAllItems()
         itemMap = listOfItems.associateBy { it.itemId }

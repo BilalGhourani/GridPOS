@@ -2,6 +2,7 @@ package com.grid.pos.ui.item
 
 import android.content.Context
 import androidx.lifecycle.viewModelScope
+import com.grid.pos.data.currency.Currency
 import com.grid.pos.data.currency.CurrencyRepository
 import com.grid.pos.data.family.FamilyRepository
 import com.grid.pos.data.invoice.InvoiceRepository
@@ -9,6 +10,7 @@ import com.grid.pos.data.item.Item
 import com.grid.pos.data.item.ItemRepository
 import com.grid.pos.data.posPrinter.PosPrinterRepository
 import com.grid.pos.data.receipt.Receipt
+import com.grid.pos.model.CurrencyModel
 import com.grid.pos.model.Event
 import com.grid.pos.model.ItemGroupModel
 import com.grid.pos.model.ReportResult
@@ -92,12 +94,20 @@ class ManageItemsViewModel @Inject constructor(
     }
 
     private suspend fun fetchCurrencies() {
-        val currencies = currencyRepository.getAllCurrencyModels()
-        withContext(Dispatchers.Main) {
-            manageItemsState.value = manageItemsState.value.copy(
-                currencies = currencies,
-                isLoading = false
+        val dataModel = currencyRepository.getAllCurrencyModels()
+        if (dataModel.succeed) {
+            val currencies = convertToMutableList(
+                dataModel.data,
+                CurrencyModel::class.java
             )
+            withContext(Dispatchers.Main) {
+                manageItemsState.value = manageItemsState.value.copy(
+                    currencies = currencies,
+                    isLoading = false
+                )
+            }
+        } else if (dataModel.message != null) {
+            showWarning(dataModel.message)
         }
     }
 
@@ -145,7 +155,7 @@ class ManageItemsViewModel @Inject constructor(
 
     fun showWarning(
             warning: String,
-            action: String
+            action: String? = null
     ) {
         viewModelScope.launch(Dispatchers.Main) {
             manageItemsState.value = manageItemsState.value.copy(

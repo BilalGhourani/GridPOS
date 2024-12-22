@@ -3,6 +3,7 @@ package com.grid.pos.ui.company
 import androidx.lifecycle.viewModelScope
 import com.grid.pos.data.company.Company
 import com.grid.pos.data.company.CompanyRepository
+import com.grid.pos.data.currency.Currency
 import com.grid.pos.data.currency.CurrencyRepository
 import com.grid.pos.data.family.FamilyRepository
 import com.grid.pos.data.posPrinter.PosPrinterRepository
@@ -86,11 +87,19 @@ class ManageCompaniesViewModel @Inject constructor(
     }
 
     private suspend fun fetchCurrencies() {
-        val currencies = currencyRepository.getAllCurrencies()
-        viewModelScope.launch(Dispatchers.Main) {
-            manageCompaniesState.value = manageCompaniesState.value.copy(
-                currencies = currencies
+        val dataModel = currencyRepository.getAllCurrencies()
+        if (dataModel.succeed) {
+            val currencies = convertToMutableList(
+                dataModel.data,
+                Currency::class.java
             )
+            viewModelScope.launch(Dispatchers.Main) {
+                manageCompaniesState.value = manageCompaniesState.value.copy(
+                    currencies = currencies
+                )
+            }
+        } else {
+            showWarning(dataModel.message)
         }
     }
 

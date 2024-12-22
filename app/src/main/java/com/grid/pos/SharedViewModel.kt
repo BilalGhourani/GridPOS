@@ -140,14 +140,20 @@ class SharedViewModel @Inject constructor(
 
     private suspend fun fetchCurrencies() {
         if (SettingsModel.currentCurrency == null) {
-            currencies = currencyRepository.getAllCurrencies()
-            currencies.forEach {
-                if (it.currencyCompId.equals(
-                        SettingsModel.getCompanyID(),
-                        ignoreCase = true
-                    )
-                ) {
-                    SettingsModel.currentCurrency = it
+            val dataModel = currencyRepository.getAllCurrencies()
+            if (dataModel.succeed) {
+                currencies = convertToMutableList(
+                    dataModel.data,
+                    Currency::class.java
+                )
+                currencies.forEach {
+                    if (it.currencyCompId.equals(
+                            SettingsModel.getCompanyID(),
+                            ignoreCase = true
+                        )
+                    ) {
+                        SettingsModel.currentCurrency = it
+                    }
                 }
             }
         }
@@ -193,11 +199,14 @@ class SharedViewModel @Inject constructor(
                 withContext(Dispatchers.Main) {
                     showLoading(true)
                 }
-                val rate = currencyRepository.getRate(
+                val dataModel = currencyRepository.getRate(
                     currency.currencyId,
                     item.itemCurrencyId!!
                 )
-                item.itemRealUnitPrice = item.itemUnitPrice.div(rate)
+                if (dataModel.succeed) {
+                    val rate = dataModel.data as Double
+                    item.itemRealUnitPrice = item.itemUnitPrice.div(rate)
+                }
                 withContext(Dispatchers.Main) {
                     showLoading(false)
                 }

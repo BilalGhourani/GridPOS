@@ -46,15 +46,29 @@ class ManageCurrenciesViewModel @Inject constructor(
         )
         viewModelScope.launch(Dispatchers.IO) {
             openConnectionIfNeeded()
-            val currencies = currencyRepository.getAllCurrencies()
-            val currency = if (currencies.size > 0) currencies[0] else Currency()
-            SettingsModel.currentCurrency = currency.copy()
-            withContext(Dispatchers.Main) {
-                manageCurrenciesState.value = manageCurrenciesState.value.copy(
-                    selectedCurrency = currency,
-                    fillFields = true,
-                    isLoading = false
+            val dataModel = currencyRepository.getAllCurrencies()
+            if (dataModel.succeed) {
+                val currencies = convertToMutableList(
+                    dataModel.data,
+                    Currency::class.java
                 )
+                val currency = if (currencies.size > 0) currencies[0] else Currency()
+                SettingsModel.currentCurrency = currency.copy()
+                withContext(Dispatchers.Main) {
+                    manageCurrenciesState.value = manageCurrenciesState.value.copy(
+                        selectedCurrency = currency,
+                        fillFields = true,
+                        isLoading = false
+                    )
+                }
+            } else {
+                withContext(Dispatchers.Main) {
+                    manageCurrenciesState.value = manageCurrenciesState.value.copy(
+                        warning = Event(dataModel.message ?: "an error has occurred!"),
+                        fillFields = false,
+                        isLoading = false
+                    )
+                }
             }
         }
     }
