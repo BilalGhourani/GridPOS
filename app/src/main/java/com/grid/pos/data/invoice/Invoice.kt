@@ -192,7 +192,7 @@ data class Invoice(
         if (invoiceId.isEmpty()) {
             invoiceId = Utils.generateRandomUuidString()
         }
-        invoiceUserStamp = SettingsModel.currentUserId
+        invoiceUserStamp = SettingsModel.currentUser?.userId
     }
 
     @Exclude

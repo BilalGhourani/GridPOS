@@ -179,7 +179,7 @@ class MainActivity : ComponentActivity() {
                             .padding(0.dp),
                         navController = navController,
                         sharedViewModel = sharedViewModel,
-                        startDestination = "LoginView" /*if (SettingsModel.currentUserId.isNullOrEmpty()) "LoginView" else "HomeView"*/
+                        startDestination = "LoginView"
                     )
                     AnimatedVisibility(
                         visible = popupState.value,

@@ -184,7 +184,7 @@ data class PosReceipt(
         if (posReceiptId.isEmpty()) {
             posReceiptId = Utils.generateRandomUuidString()
         }
-        posReceiptUserStamp = SettingsModel.currentUserId
+        posReceiptUserStamp = SettingsModel.currentUser?.userId
     }
 
     @Exclude

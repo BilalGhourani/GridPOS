@@ -9,8 +9,6 @@ import com.grid.pos.data.thirdParty.ThirdParty
 import com.grid.pos.data.user.User
 
 object SettingsModel {
-    var currentUserId: String? = null
-
     var connectionType: String = CONNECTION_TYPE.LOCAL.key
 
     var firebaseApplicationId: String? = null
@@ -99,23 +97,27 @@ object SettingsModel {
     }
 
     fun getCompanyID(): String? {
-        return if (connectionType == CONNECTION_TYPE.FIRESTORE.key) {
-            fireStoreCompanyID
-        } else if (connectionType == CONNECTION_TYPE.SQL_SERVER.key) {
-            sqlServerCompanyId
-        } else {
-            localCompanyID
+        return when (connectionType) {
+            CONNECTION_TYPE.FIRESTORE.key -> {
+                fireStoreCompanyID
+            }
+            CONNECTION_TYPE.SQL_SERVER.key -> {
+                sqlServerCompanyId
+            }
+            else -> {
+                localCompanyID
+            }
         }
     }
 
-    fun getSaleInvoiceType(): String {
+    private fun getSaleInvoiceType(): String {
         return if (connectionType == CONNECTION_TYPE.SQL_SERVER.key) {
             siTransactionType
         } else {
             defaultSaleInvoice
         }
     }
-    fun getReturnSaleType(): String {
+    private fun getReturnSaleType(): String {
         return if (connectionType == CONNECTION_TYPE.SQL_SERVER.key) {
             rsTransactionType
         } else {

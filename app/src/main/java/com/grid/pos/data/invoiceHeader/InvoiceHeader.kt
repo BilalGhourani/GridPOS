@@ -317,7 +317,7 @@ data class InvoiceHeader(
             invoiceHeadId = Utils.generateRandomUuidString()
         }
         invoiceHeadCompId = SettingsModel.getCompanyID()
-        invoiceHeadUserStamp = SettingsModel.currentUserId
+        invoiceHeadUserStamp = SettingsModel.currentUser?.userId
     }
 
     @Exclude

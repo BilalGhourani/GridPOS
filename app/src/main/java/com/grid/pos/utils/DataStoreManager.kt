@@ -165,7 +165,6 @@ object DataStoreManager {
     }
 
     private suspend fun initSettingsModel() {
-        SettingsModel.currentUserId = getString(DataStoreKeys.CURRENT_USER_ID.key)
         val buttonColor = getString(DataStoreKeys.BUTTON_COLOR.key)
         val buttonTextColor = getString(DataStoreKeys.BUTTON_TEXT_COLOR.key)
         val topBarColor = getString(DataStoreKeys.TOP_BAR_COLOR.key)
@@ -327,8 +326,6 @@ object DataStoreManager {
     }
 
     enum class DataStoreKeys(val key: String) {
-        CURRENT_USER_ID("CURRENT_USER_ID"),
-
         FIREBASE_APP_ID("FIREBASE_APP_ID"), FIREBASE_API_KEY(
             "FIREBASE_API_KEY"
         ),

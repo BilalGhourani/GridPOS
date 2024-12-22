@@ -153,7 +153,7 @@ data class ThirdParty(
             thirdPartyId = Utils.generateRandomUuidString()
         }
         thirdPartyCompId = SettingsModel.getCompanyID()
-        thirdPartyUserStamp = SettingsModel.currentUserId
+        thirdPartyUserStamp = SettingsModel.currentUser?.userId
     }
 
     @Exclude

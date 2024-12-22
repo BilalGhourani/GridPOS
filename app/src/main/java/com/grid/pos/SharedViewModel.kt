@@ -165,11 +165,7 @@ class SharedViewModel @Inject constructor(
             }
         }
         if (SettingsModel.currentCompany?.companySS == true) {
-            SettingsModel.currentUserId = null
             SettingsModel.currentUser = null
-            DataStoreManager.removeKey(
-                DataStoreManager.DataStoreKeys.CURRENT_USER_ID.key
-            )
             withContext(Dispatchers.Main) {
                 activityState.value = activityState.value.copy(
                     isLoggedIn = false,
@@ -357,7 +353,6 @@ class SharedViewModel @Inject constructor(
     fun logout() {
         activityState.value.isLoggedIn = false
         SettingsModel.currentUser = null
-        SettingsModel.currentUserId = null
         SettingsModel.currentCompany = null
         SettingsModel.currentCurrency = null
         SettingsModel.defaultSqlServerBranch = null

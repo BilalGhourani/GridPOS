@@ -3,6 +3,7 @@ package com.grid.pos.data.company
 import com.google.firebase.firestore.FirebaseFirestore
 import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.model.CONNECTION_TYPE
+import com.grid.pos.model.DataModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.Extension.getBooleanValue
 import com.grid.pos.utils.Extension.getDoubleValue
@@ -53,8 +54,8 @@ class CompanyRepositoryImpl(
 
     override suspend fun getCompanyById(
             id: String
-    ): Company? {
-        return when (SettingsModel.connectionType) {
+    ): DataModel {
+        when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
                 val querySnapshot = FirebaseFirestore.getInstance().collection("company")
                     .whereEqualTo(
@@ -62,15 +63,17 @@ class CompanyRepositoryImpl(
                         id
                     ).get().await()
                 val document = querySnapshot.documents.firstOrNull()
-                document?.toObject(Company::class.java)
+                val company = document?.toObject(Company::class.java)
+                company?.companyDocumentId = document?.id
+                return DataModel(company)
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
-                companyDao.getCompanyById(id)
+                return DataModel(companyDao.getCompanyById(id))
             }
 
             else -> {//CONNECTION_TYPE.SQL_SERVER.key
-                val companies: MutableList<Company> = mutableListOf()
+                var company: Company? = null
                 try {
                     val where = "cmp_id='$id'"
                     val dbResult = SQLServerWrapper.getListOf(
@@ -82,7 +85,7 @@ class CompanyRepositoryImpl(
                     if (dbResult.succeed) {
                         (dbResult.result as? ResultSet)?.let {
                             while (it.next()) {
-                                companies.add(Company().apply {
+                                company = Company().apply {
                                     companyId = it.getStringValue("cmp_id")
                                     companyName = it.getStringValue("cmp_name")
                                     companyPhone = it.getStringValue("cmp_phone")
@@ -100,21 +103,27 @@ class CompanyRepositoryImpl(
                                     companyTax2 = it.getDoubleValue("cmp_tax2")
                                     companyTax2Regno = it.getStringValue("cmp_tax2regno")
                                     cmp_multibranchcode = it.getStringValue("cmp_multibranchcode")
-                                })
+                                }
                             }
                             SQLServerWrapper.closeResultSet(it)
                         }
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
+                    return DataModel(
+                        null,
+                        false,
+                        e.message
+                    )
                 }
-                if (companies.size > 0) companies[0] else null
+                return DataModel(company)
+
             }
         }
     }
 
-    override suspend fun getAllCompanies(): MutableList<Company> {
-        return when (SettingsModel.connectionType) {
+    override suspend fun getAllCompanies(): DataModel {
+        when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
                 val querySnapshot = FirebaseFirestore.getInstance().collection("company").get()
                     .await()
@@ -128,11 +137,11 @@ class CompanyRepositoryImpl(
                         }
                     }
                 }
-                companies
+               return DataModel(companies)
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
-                companyDao.getAllCompanies()
+                return DataModel(companyDao.getAllCompanies())
             }
 
             else -> {//CONNECTION_TYPE.SQL_SERVER.key
@@ -174,8 +183,13 @@ class CompanyRepositoryImpl(
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
+                    return DataModel(
+                        null,
+                        false,
+                        e.message
+                    )
                 }
-                companies
+                return DataModel(companies)
             }
         }
     }

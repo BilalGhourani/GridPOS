@@ -285,7 +285,7 @@ data class Item(
             itemId = Utils.generateRandomUuidString()
         }
         itemCompId = SettingsModel.getCompanyID()
-        itemUserStamp = SettingsModel.currentUserId
+        itemUserStamp = SettingsModel.currentUser?.userId
         itemRemQty = itemOpenQty
     }
 

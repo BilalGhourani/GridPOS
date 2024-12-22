@@ -210,7 +210,7 @@ data class Receipt(
         }
 
         receiptCompanyId = SettingsModel.getCompanyID()
-        receiptUserStamp = SettingsModel.currentUserId
+        receiptUserStamp = SettingsModel.currentUser?.userId
     }
 
     @Exclude

@@ -161,7 +161,7 @@ class ManageUsersViewModel @Inject constructor(
     }
 
     private suspend fun hasRelations(userID: String): Boolean {
-        if (userID.equals(SettingsModel.currentUserId)) return true
+        if (userID.equals(SettingsModel.currentUser?.userId)) return true
 
         if (thirdPartyRepository.getOneThirdPartyByUserID(userID) != null) return true
 

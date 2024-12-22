@@ -210,7 +210,7 @@ data class Payment(
         }
 
         paymentCompanyId = SettingsModel.getCompanyID()
-        paymentUserStamp = SettingsModel.currentUserId
+        paymentUserStamp = SettingsModel.currentUser?.userId
     }
 
     @Exclude

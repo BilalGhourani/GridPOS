@@ -25,4 +25,13 @@ open class BaseViewModel : ViewModel() {
             }
         }
     }
+
+    fun <T : Any> convertToMutableList(any: Any?, clazz: Class<T>): MutableList<T> {
+        return if (any is List<*>) {
+            // Filter and cast items that match the provided class
+            any.filterIsInstance(clazz).toMutableList()
+        } else {
+            mutableListOf() // Return an empty mutable list if the input is not a list
+        }
+    }
 }

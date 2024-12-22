@@ -3,6 +3,7 @@ package com.grid.pos.ui.login
 import android.content.Context
 import androidx.lifecycle.viewModelScope
 import com.grid.pos.App
+import com.grid.pos.data.company.Company
 import com.grid.pos.data.company.CompanyRepository
 import com.grid.pos.data.user.UserRepository
 import com.grid.pos.model.Event
@@ -34,6 +35,7 @@ class LoginViewModel @Inject constructor(
             openConnectionIfNeeded()
         }
     }
+
     fun login(
             context: Context,
             username: String,
@@ -117,12 +119,7 @@ class LoginViewModel @Inject constructor(
                 password
             )
             loginResponse.user?.let {
-                SettingsModel.currentUserId = it.userId
                 SettingsModel.currentUser = it
-                DataStoreManager.putString(
-                    DataStoreManager.DataStoreKeys.CURRENT_USER_ID.key,
-                    it.userId
-                )
                 viewModelScope.launch(Dispatchers.Main) {
                     usersState.value = usersState.value.copy(
                         selectedUser = it,
@@ -142,30 +139,43 @@ class LoginViewModel @Inject constructor(
                     }
                 } else if (loginResponse.allUsersSize == 0) {
                     if (SettingsModel.isConnectedToSqlite() || SettingsModel.isConnectedToFireStore()) {
-                        val companies = companyRepository.getAllCompanies()
-                        withContext(Dispatchers.Main) {
-                            if (companies.isEmpty()) {
-                                usersState.value = usersState.value.copy(
-                                    warning = Event("No companies found!, do you want to register?"),
-                                    isLoading = false,
-                                    needRegistration = true,
-                                    warningAction = "Register"
-                                )
-                            } else if (SettingsModel.localCompanyID.isNullOrEmpty()) {
-                                usersState.value = usersState.value.copy(
-                                    warning = Event("select your current company to proceed!"),
-                                    isLoading = false,
-                                    needRegistration = true,
-                                    warningAction = "Settings"
-                                )
-                            } else {
-                                usersState.value = usersState.value.copy(
-                                    isLoading = false,
-                                    needRegistration = true,
-                                    warning = Event("No users found!, do you want to create a user?"),
-                                    warningAction = "Create"
-                                )
+                        val dataModel = companyRepository.getAllCompanies()
+                        if (dataModel.succeed) {
+                            val companies = convertToMutableList(
+                                dataModel.data,
+                                Company::class.java
+                            )
+                            withContext(Dispatchers.Main) {
+                                if (companies.isEmpty()) {
+                                    usersState.value = usersState.value.copy(
+                                        warning = Event("No companies found!, do you want to register?"),
+                                        isLoading = false,
+                                        needRegistration = true,
+                                        warningAction = "Register"
+                                    )
+                                } else if (SettingsModel.localCompanyID.isNullOrEmpty()) {
+                                    usersState.value = usersState.value.copy(
+                                        warning = Event("select your current company to proceed!"),
+                                        isLoading = false,
+                                        needRegistration = true,
+                                        warningAction = "Settings"
+                                    )
+                                } else {
+                                    usersState.value = usersState.value.copy(
+                                        isLoading = false,
+                                        needRegistration = true,
+                                        warning = Event("No users found!, do you want to create a user?"),
+                                        warningAction = "Create"
+                                    )
+                                }
                             }
+                        } else {
+                            usersState.value = usersState.value.copy(
+                                isLoading = false,
+                                needRegistration = false,
+                                warning = Event(dataModel.message ?: "an error has occurred!"),
+                                warningAction = null
+                            )
                         }
                     } else {
                         viewModelScope.launch(Dispatchers.Main) {
