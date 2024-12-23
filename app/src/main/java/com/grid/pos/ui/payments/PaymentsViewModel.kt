@@ -67,15 +67,28 @@ class PaymentsViewModel @Inject constructor(
             isLoading = true
         )
         viewModelScope.launch(Dispatchers.IO) {
-            val listOfPayments = paymentRepository.getAllPayments()
-            listOfPayments.map {
-                it.paymentThirdPartyName = clientsMap[it.paymentThirdParty]?.thirdPartyName
-            }
-            withContext(Dispatchers.Main) {
-                paymentsState.value = paymentsState.value.copy(
-                    payments = listOfPayments,
-                    isLoading = false
+            val dataModel = paymentRepository.getAllPayments()
+            if (dataModel.succeed) {
+                val listOfPayments = convertToMutableList(
+                    dataModel.data,
+                    Payment::class.java
                 )
+                listOfPayments.map {
+                    it.paymentThirdPartyName = clientsMap[it.paymentThirdParty]?.thirdPartyName
+                }
+                withContext(Dispatchers.Main) {
+                    paymentsState.value = paymentsState.value.copy(
+                        payments = listOfPayments,
+                        isLoading = false
+                    )
+                }
+            } else if (dataModel.message != null) {
+                withContext(Dispatchers.Main) {
+                    paymentsState.value = paymentsState.value.copy(
+                        isLoading = false,
+                        warning = Event(dataModel.message),
+                    )
+                }
             }
         }
     }
@@ -173,55 +186,77 @@ class PaymentsViewModel @Inject constructor(
             payment.calculateAmountsIfNeeded()
             if (isInserting) {
                 payment.prepareForInsert()
-                val lastTransactionNo = paymentRepository.getLastTransactionNo()
+                var dataModel = paymentRepository.getLastTransactionNo()
+                val lastTransactionNo = dataModel.data as? Payment
                 payment.paymentTransNo = POSUtils.getInvoiceTransactionNo(
                     lastTransactionNo?.paymentTransNo ?: ""
                 )
                 payment.paymentTransCode = SettingsModel.defaultPayment
-                val addedModel = paymentRepository.insert(payment)
-                val payments = paymentsState.value.payments
-                if (payments.isNotEmpty()) {
-                    payments.add(
-                        0,
+                dataModel = paymentRepository.insert(payment)
+                if (dataModel.succeed) {
+                    val addedModel = dataModel.data as Payment
+                    val payments = paymentsState.value.payments
+                    if (payments.isNotEmpty()) {
+                        payments.add(
+                            0,
+                            addedModel
+                        )
+                    }
+                    preparePaymentReport(
+                        context,
                         addedModel
                     )
-                }
-                preparePaymentReport(
-                    context,
-                    addedModel
-                )
-                withContext(Dispatchers.Main) {
-                    paymentsState.value = paymentsState.value.copy(
-                        payments = payments,
-                        selectedPayment = addedModel,
-                        isLoading = false,
-                        warning = Event("successfully saved."),
-                        isSaved = true,
-                        clear = false
-                    )
+                    withContext(Dispatchers.Main) {
+                        paymentsState.value = paymentsState.value.copy(
+                            payments = payments,
+                            selectedPayment = addedModel,
+                            isLoading = false,
+                            warning = Event("successfully saved."),
+                            isSaved = true,
+                            clear = false
+                        )
+                    }
+                } else if (dataModel.message != null) {
+                    withContext(Dispatchers.Main) {
+                        paymentsState.value = paymentsState.value.copy(
+                            selectedPayment = payment,
+                            isLoading = false,
+                            warning = Event(dataModel.message!!),
+                        )
+                    }
                 }
             } else {
-                paymentRepository.update(payment)
-                val index = paymentsState.value.payments.indexOfFirst { it.paymentId == payment.paymentId }
-                if (index >= 0) {
-                    paymentsState.value.payments.removeAt(index)
-                    paymentsState.value.payments.add(
-                        index,
+                val dataModel = paymentRepository.update(payment)
+                if (dataModel.succeed) {
+                    val index = paymentsState.value.payments.indexOfFirst { it.paymentId == payment.paymentId }
+                    if (index >= 0) {
+                        paymentsState.value.payments.removeAt(index)
+                        paymentsState.value.payments.add(
+                            index,
+                            payment
+                        )
+                    }
+                    preparePaymentReport(
+                        context,
                         payment
                     )
-                }
-                preparePaymentReport(
-                    context,
-                    payment
-                )
-                withContext(Dispatchers.Main) {
-                    paymentsState.value = paymentsState.value.copy(
-                        selectedPayment = payment,
-                        isLoading = false,
-                        warning = Event("successfully saved."),
-                        isSaved = true,
-                        clear = false
-                    )
+                    withContext(Dispatchers.Main) {
+                        paymentsState.value = paymentsState.value.copy(
+                            selectedPayment = payment,
+                            isLoading = false,
+                            warning = Event("successfully saved."),
+                            isSaved = true,
+                            clear = false
+                        )
+                    }
+                } else if (dataModel.message != null) {
+                    withContext(Dispatchers.Main) {
+                        paymentsState.value = paymentsState.value.copy(
+                            selectedPayment = payment,
+                            isLoading = false,
+                            warning = Event(dataModel.message),
+                        )
+                    }
                 }
             }
         }
@@ -242,18 +277,28 @@ class PaymentsViewModel @Inject constructor(
         )
 
         CoroutineScope(Dispatchers.IO).launch {
-            paymentRepository.delete(payment)
-            val payments = paymentsState.value.payments
-            payments.remove(payment)
-            withContext(Dispatchers.Main) {
-                paymentsState.value = paymentsState.value.copy(
-                    payments = payments,
-                    selectedPayment = Payment(),
-                    isLoading = false,
-                    warning = Event("successfully deleted."),
-                    clear = true,
-                    isSaved = false
-                )
+            val dataModel = paymentRepository.delete(payment)
+            if (dataModel.succeed) {
+                val payments = paymentsState.value.payments
+                payments.remove(payment)
+                withContext(Dispatchers.Main) {
+                    paymentsState.value = paymentsState.value.copy(
+                        payments = payments,
+                        selectedPayment = Payment(),
+                        isLoading = false,
+                        warning = Event("successfully deleted."),
+                        clear = true,
+                        isSaved = false
+                    )
+                }
+            } else if (dataModel.message != null) {
+                withContext(Dispatchers.Main) {
+                    paymentsState.value = paymentsState.value.copy(
+                        selectedPayment = payment,
+                        isLoading = false,
+                        warning = Event(dataModel.message),
+                    )
+                }
             }
         }
     }

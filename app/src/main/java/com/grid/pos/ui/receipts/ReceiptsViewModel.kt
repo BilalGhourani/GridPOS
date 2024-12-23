@@ -2,8 +2,8 @@ package com.grid.pos.ui.receipts
 
 import android.content.Context
 import androidx.lifecycle.viewModelScope
-import com.grid.pos.data.currency.CurrencyRepository
 import com.grid.pos.data.EntityModel
+import com.grid.pos.data.currency.CurrencyRepository
 import com.grid.pos.data.receipt.Receipt
 import com.grid.pos.data.receipt.ReceiptRepository
 import com.grid.pos.data.thirdParty.ThirdParty
@@ -70,15 +70,28 @@ class ReceiptsViewModel @Inject constructor(
             if (receiptsState.value.thirdParties.isEmpty()) {
                 fetchThirdParties(false)
             }
-            val listOfReceipts = receiptRepository.getAllReceipts()
-            listOfReceipts.map {
-                it.receiptThirdPartyName = clientsMap[it.receiptThirdParty]?.thirdPartyName
-            }
-            withContext(Dispatchers.Main) {
-                receiptsState.value = receiptsState.value.copy(
-                    receipts = listOfReceipts,
-                    isLoading = false
+            val dataModel = receiptRepository.getAllReceipts()
+            if (dataModel.succeed) {
+                val listOfReceipts = convertToMutableList(
+                    dataModel.data,
+                    Receipt::class.java
                 )
+                listOfReceipts.map {
+                    it.receiptThirdPartyName = clientsMap[it.receiptThirdParty]?.thirdPartyName
+                }
+                withContext(Dispatchers.Main) {
+                    receiptsState.value = receiptsState.value.copy(
+                        receipts = listOfReceipts,
+                        isLoading = false
+                    )
+                }
+            } else if (dataModel.message != null) {
+                withContext(Dispatchers.Main) {
+                    receiptsState.value = receiptsState.value.copy(
+                        isLoading = false,
+                        warning = Event(dataModel.message),
+                    )
+                }
             }
         }
     }
@@ -177,55 +190,75 @@ class ReceiptsViewModel @Inject constructor(
             receipt.calculateAmountsIfNeeded()
             if (isInserting) {
                 receipt.prepareForInsert()
-                val lastTransactionNo = receiptRepository.getLastTransactionNo()
+                var dataModel = receiptRepository.getLastTransactionNo()
+                val lastTransactionNo = dataModel.data as? Receipt
                 receipt.receiptTransNo = POSUtils.getInvoiceTransactionNo(
                     lastTransactionNo?.receiptTransNo ?: ""
                 )
                 receipt.receiptTransCode = SettingsModel.defaultReceipt
-                val addedModel = receiptRepository.insert(receipt)
-                val receipts = receiptsState.value.receipts
-                if (receipts.isNotEmpty()) {
-                    receipts.add(
-                        0,
+                dataModel = receiptRepository.insert(receipt)
+                if (dataModel.succeed) {
+                    val addedModel = dataModel.data as Receipt
+                    val receipts = receiptsState.value.receipts
+                    if (receipts.isNotEmpty()) {
+                        receipts.add(
+                            0,
+                            addedModel
+                        )
+                    }
+                    prepareReceiptReport(
+                        context,
                         addedModel
                     )
-                }
-                prepareReceiptReport(
-                    context,
-                    addedModel
-                )
-                withContext(Dispatchers.Main) {
-                    receiptsState.value = receiptsState.value.copy(
-                        receipts = receipts,
-                        selectedReceipt = addedModel,
-                        isLoading = false,
-                        warning = Event("successfully saved."),
-                        isSaved = true,
-                        clear = false
-                    )
+                    withContext(Dispatchers.Main) {
+                        receiptsState.value = receiptsState.value.copy(
+                            receipts = receipts,
+                            selectedReceipt = addedModel,
+                            isLoading = false,
+                            warning = Event("successfully saved."),
+                            isSaved = true,
+                            clear = false
+                        )
+                    }
+                } else if (dataModel.message != null) {
+                    withContext(Dispatchers.Main) {
+                        receiptsState.value = receiptsState.value.copy(
+                            isLoading = false,
+                            warning = Event(dataModel.message!!),
+                        )
+                    }
                 }
             } else {
-                receiptRepository.update(receipt)
-                val index = receiptsState.value.receipts.indexOfFirst { it.receiptId == receipt.receiptId }
-                if (index >= 0) {
-                    receiptsState.value.receipts.removeAt(index)
-                    receiptsState.value.receipts.add(
-                        index,
+                val dataModel = receiptRepository.update(receipt)
+                if (dataModel.succeed) {
+                    val index = receiptsState.value.receipts.indexOfFirst { it.receiptId == receipt.receiptId }
+                    if (index >= 0) {
+                        receiptsState.value.receipts.removeAt(index)
+                        receiptsState.value.receipts.add(
+                            index,
+                            receipt
+                        )
+                    }
+                    prepareReceiptReport(
+                        context,
                         receipt
                     )
-                }
-                prepareReceiptReport(
-                    context,
-                    receipt
-                )
-                withContext(Dispatchers.Main) {
-                    receiptsState.value = receiptsState.value.copy(
-                        selectedReceipt = receipt,
-                        isLoading = false,
-                        warning = Event("successfully saved."),
-                        isSaved = true,
-                        clear = false
-                    )
+                    withContext(Dispatchers.Main) {
+                        receiptsState.value = receiptsState.value.copy(
+                            selectedReceipt = receipt,
+                            isLoading = false,
+                            warning = Event("successfully saved."),
+                            isSaved = true,
+                            clear = false
+                        )
+                    }
+                } else if (dataModel.message != null) {
+                    withContext(Dispatchers.Main) {
+                        receiptsState.value = receiptsState.value.copy(
+                            isLoading = false,
+                            warning = Event(dataModel.message),
+                        )
+                    }
                 }
             }
         }
@@ -246,18 +279,27 @@ class ReceiptsViewModel @Inject constructor(
         )
 
         CoroutineScope(Dispatchers.IO).launch {
-            receiptRepository.delete(receipt)
-            val receipts = receiptsState.value.receipts
-            receipts.remove(receipt)
-            withContext(Dispatchers.Main) {
-                receiptsState.value = receiptsState.value.copy(
-                    receipts = receipts,
-                    selectedReceipt = Receipt(),
-                    isLoading = false,
-                    warning = Event("successfully deleted."),
-                    clear = true,
-                    isSaved = false
-                )
+            val dataModel = receiptRepository.delete(receipt)
+            if (dataModel.succeed) {
+                val receipts = receiptsState.value.receipts
+                receipts.remove(receipt)
+                withContext(Dispatchers.Main) {
+                    receiptsState.value = receiptsState.value.copy(
+                        receipts = receipts,
+                        selectedReceipt = Receipt(),
+                        isLoading = false,
+                        warning = Event("successfully deleted."),
+                        clear = true,
+                        isSaved = false
+                    )
+                }
+            } else if (dataModel.message != null) {
+                withContext(Dispatchers.Main) {
+                    receiptsState.value = receiptsState.value.copy(
+                        isLoading = false,
+                        warning = Event(dataModel.message),
+                    )
+                }
             }
         }
     }

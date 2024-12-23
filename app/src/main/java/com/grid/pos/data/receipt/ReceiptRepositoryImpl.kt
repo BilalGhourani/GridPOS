@@ -4,6 +4,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.model.CONNECTION_TYPE
+import com.grid.pos.model.DataModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.pos.POSUtils
 import com.grid.pos.utils.DateHelper
@@ -20,72 +21,89 @@ class ReceiptRepositoryImpl(
 ) : ReceiptRepository {
     override suspend fun insert(
             receipt: Receipt
-    ): Receipt {
+    ): DataModel {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
                 val docRef = FirebaseFirestore.getInstance().collection("receipt").add(receipt)
                     .await()
                 receipt.receiptDocumentId = docRef.id
+                return DataModel(receipt)
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
                 receiptDao.insert(receipt)
+                return DataModel(receipt)
             }
 
             else -> {
-                insertHReceipt(receipt)
-                return getReceiptById(receipt.receiptId) ?: receipt
+                val dataModel = insertHReceipt(receipt)
+                return if (dataModel.succeed) {
+                    getReceiptById(receipt.receiptId)
+                } else {
+                    dataModel
+                }
             }
         }
-        return receipt
     }
 
     override suspend fun delete(
             receipt: Receipt
-    ) {
+    ): DataModel {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
                 receipt.receiptDocumentId?.let {
                     FirebaseFirestore.getInstance().collection("receipt").document(it).delete()
                         .await()
+                    return DataModel(receipt)
                 }
+                return DataModel(
+                    receipt,
+                    false
+                )
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
                 receiptDao.delete(receipt)
+                return DataModel(receipt)
             }
 
             else -> {
-                deleteHReceipt(receipt)
+                return deleteHReceipt(receipt)
             }
         }
     }
 
     override suspend fun update(
             receipt: Receipt
-    ) {
+    ): DataModel {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
                 receipt.receiptDocumentId?.let {
                     FirebaseFirestore.getInstance().collection("receipt").document(it)
                         .update(receipt.getMap()).await()
+                    return DataModel(receipt)
                 }
+                return DataModel(
+                    receipt,
+                    false
+                )
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
                 receiptDao.update(receipt)
+                return DataModel(receipt)
             }
 
             else -> {
-                updateHReceipt(receipt)
+                return updateHReceipt(receipt)
             }
         }
     }
 
     override suspend fun getReceiptById(
             id: String
-    ): Receipt? {
-        return when (SettingsModel.connectionType) {
+    ): DataModel {
+        when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
                 val querySnapshot = FirebaseFirestore.getInstance().collection("receipt")
                     .whereEqualTo(
@@ -96,11 +114,11 @@ class ReceiptRepositoryImpl(
                         id
                     ).get().await()
                 val document = querySnapshot.documents.firstOrNull()
-                document?.toObject(Receipt::class.java)
+                return DataModel(document?.toObject(Receipt::class.java))
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
-                receiptDao.getReceiptById(id)
+                return DataModel(receiptDao.getReceiptById(id))
             }
 
             else -> {//CONNECTION_TYPE.SQL_SERVER.key
@@ -122,17 +140,28 @@ class ReceiptRepositoryImpl(
                             }
                             SQLServerWrapper.closeResultSet(it)
                         }
+                    } else {
+                        return DataModel(
+                            null,
+                            false,
+                            dbResult.result as? String
+                        )
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
+                    return DataModel(
+                        null,
+                        false,
+                        e.message
+                    )
                 }
-                return receipt
+                return DataModel(receipt)
             }
         }
     }
 
-    override suspend fun getAllReceipts(): MutableList<Receipt> {
-        return when (SettingsModel.connectionType) {
+    override suspend fun getAllReceipts(): DataModel {
+        when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
                 val querySnapshot = FirebaseFirestore.getInstance().collection("receipt")
                     .whereEqualTo(
@@ -149,11 +178,11 @@ class ReceiptRepositoryImpl(
                         }
                     }
                 }
-                receipts
+                return DataModel(receipts)
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
-                receiptDao.getAllReceipts()
+                return DataModel(receiptDao.getAllReceipts())
             }
 
             else -> {//CONNECTION_TYPE.SQL_SERVER.key
@@ -179,16 +208,27 @@ class ReceiptRepositoryImpl(
                             }
                             SQLServerWrapper.closeResultSet(it)
                         }
+                    } else {
+                        return DataModel(
+                            null,
+                            false,
+                            dbResult.result as? String
+                        )
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
+                    return DataModel(
+                        null,
+                        false,
+                        e.message
+                    )
                 }
-                return receipts
+                return DataModel(receipts)
             }
         }
     }
 
-    override suspend fun getLastTransactionNo(): Receipt? {
+    override suspend fun getLastTransactionNo(): DataModel {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
                 val querySnapshot = FirebaseFirestore.getInstance().collection("receipt")
@@ -203,17 +243,19 @@ class ReceiptRepositoryImpl(
                         Query.Direction.DESCENDING
                     ).limit(1).get().await()
                 val document = querySnapshot.firstOrNull()
-                return document?.toObject(Receipt::class.java)
+                return DataModel(document?.toObject(Receipt::class.java))
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
-                return receiptDao.getLastTransactionByType(
-                    SettingsModel.getCompanyID() ?: ""
+                return DataModel(
+                    receiptDao.getLastTransactionByType(
+                        SettingsModel.getCompanyID() ?: ""
+                    )
                 )
             }
 
             else -> {
-                return null/*val receipts: MutableList<Receipt> = mutableListOf()
+                return DataModel(null)/*val receipts: MutableList<Receipt> = mutableListOf()
                 try {
                     val where = if (SettingsModel.isSqlServerWebDb) "hr_cmp_id='${SettingsModel.getCompanyID()}'" else ""
                     val dbResult = SQLServerWrapper.getListOf(
@@ -271,7 +313,7 @@ class ReceiptRepositoryImpl(
         }
     }
 
-    private fun insertHReceipt(receipt: Receipt) {
+    private fun insertHReceipt(receipt: Receipt): DataModel {
         val parameters = if (SettingsModel.isSqlServerWebDb) {
             listOf(
                 "null_String_output",//@hr_id
@@ -316,9 +358,9 @@ class ReceiptRepositoryImpl(
             "addin_hreceipt",
             parameters
         )
-        if(queryResult.succeed) {
+        if (queryResult.succeed) {
             val id = queryResult.result as? String
-                if (id.isNullOrEmpty()) {
+            if (id.isNullOrEmpty()) {
                 try {
                     val dbResult = SQLServerWrapper.getQueryResult("select max(hr_id) as id from in_hreceipt")
                     if (dbResult.succeed) {
@@ -338,11 +380,17 @@ class ReceiptRepositoryImpl(
             } else {
                 receipt.receiptId = id
             }
-            insertReceipt(receipt)
+            return insertReceipt(receipt)
+        } else {
+            return DataModel(
+                null,
+                false,
+                queryResult.result as? String
+            )
         }
     }
 
-    private fun insertReceipt(receipt: Receipt) {
+    private fun insertReceipt(receipt: Receipt): DataModel {
         val decimal = SettingsModel.currentCurrency?.currencyName1Dec ?: 3
         val parameters = if (SettingsModel.isSqlServerWebDb) {
             listOf(
@@ -409,14 +457,22 @@ class ReceiptRepositoryImpl(
                 false,//@rec_tax
             )
         }
-        SQLServerWrapper.executeProcedure(
+        val queryResult = SQLServerWrapper.executeProcedure(
             "addin_receipt",
             parameters
         )
-        insertUnAllocatedReceipt(receipt)
+        return if (queryResult.succeed) {
+            insertUnAllocatedReceipt(receipt)
+        } else {
+            DataModel(
+                null,
+                false,
+                queryResult.result as? String
+            )
+        }
     }
 
-    private fun insertUnAllocatedReceipt(receipt: Receipt) {
+    private fun insertUnAllocatedReceipt(receipt: Receipt): DataModel {
         val decimal = SettingsModel.currentCurrency?.currencyName1Dec ?: 3
         val parameters = if (SettingsModel.isSqlServerWebDb) {
             listOf(
@@ -470,13 +526,18 @@ class ReceiptRepositoryImpl(
                 null,//@ur_div_name
             )
         }
-        SQLServerWrapper.executeProcedure(
+        val queryResult = SQLServerWrapper.executeProcedure(
             "addin_unallocatedreceipt",
             parameters
         )
+        return DataModel(
+            receipt,
+            queryResult.succeed,
+            queryResult.result as? String
+        )
     }
 
-    private fun updateHReceipt(receipt: Receipt) {
+    private fun updateHReceipt(receipt: Receipt): DataModel {
         val parameters = if (SettingsModel.isSqlServerWebDb) {
             listOf(
                 receipt.receiptId,//@hr_id
@@ -518,14 +579,22 @@ class ReceiptRepositoryImpl(
                 null,//@hr_pathtodoc
             )
         }
-        SQLServerWrapper.executeProcedure(
+        val queryResult = SQLServerWrapper.executeProcedure(
             "updin_hreceipt",
             parameters
         )
-        updateReceipt(receipt)
+        return if (queryResult.succeed) {
+            updateReceipt(receipt)
+        } else {
+            DataModel(
+                receipt,
+                false,
+                queryResult.result as? String
+            )
+        }
     }
 
-    private fun updateReceipt(receipt: Receipt) {
+    private fun updateReceipt(receipt: Receipt): DataModel {
         val decimal = SettingsModel.currentCurrency?.currencyName1Dec ?: 3
         val parameters = if (SettingsModel.isSqlServerWebDb) {
             listOf(
@@ -590,14 +659,22 @@ class ReceiptRepositoryImpl(
                 false,//@rec_tax
             )
         }
-        SQLServerWrapper.executeProcedure(
+        val queryResult = SQLServerWrapper.executeProcedure(
             "updin_receipt",
             parameters
         )
-        updateUnAllocatedReceipt(receipt)
+        return if (queryResult.succeed) {
+            updateUnAllocatedReceipt(receipt)
+        } else {
+            DataModel(
+                receipt,
+                false,
+                queryResult.result as? String
+            )
+        }
     }
 
-    private fun updateUnAllocatedReceipt(receipt: Receipt) {
+    private fun updateUnAllocatedReceipt(receipt: Receipt): DataModel {
         val decimal = SettingsModel.currentCurrency?.currencyName1Dec ?: 3
         val parameters = if (SettingsModel.isSqlServerWebDb) {
             listOf(
@@ -650,32 +727,59 @@ class ReceiptRepositoryImpl(
                 null,//@ur_div_name
             )
         }
-        SQLServerWrapper.executeProcedure(
+        val queryResult = SQLServerWrapper.executeProcedure(
             "addin_unallocatedreceipt",
             parameters
         )
+        return DataModel(
+            receipt,
+            queryResult.succeed,
+            queryResult.result as? String
+        )
     }
 
-    private fun deleteHReceipt(receipt: Receipt) {
-        SQLServerWrapper.executeProcedure(
+    private fun deleteHReceipt(receipt: Receipt): DataModel {
+        val queryResult = SQLServerWrapper.executeProcedure(
             "delin_hreceipt",
             listOf(receipt.receiptId)
         )
-        deleteReceipt(receipt)
+        return if (queryResult.succeed) {
+            deleteReceipt(receipt)
+        } else {
+            DataModel(
+                receipt,
+                false,
+                queryResult.result as? String
+            )
+        }
     }
 
-    private fun deleteReceipt(receipt: Receipt) {
-        SQLServerWrapper.executeProcedure(
+    private fun deleteReceipt(receipt: Receipt): DataModel {
+        val queryResult = SQLServerWrapper.executeProcedure(
             "delin_receipt",
             listOf(receipt.receiptInId)
         )
-        deleteUnAllocatedReceipt(receipt)
+        return if (queryResult.succeed) {
+            deleteUnAllocatedReceipt(receipt)
+        } else {
+            DataModel(
+                receipt,
+                false,
+                queryResult.result as? String
+            )
+        }
+
     }
 
-    private fun deleteUnAllocatedReceipt(receipt: Receipt) {
-        SQLServerWrapper.executeProcedure(
+    private fun deleteUnAllocatedReceipt(receipt: Receipt): DataModel {
+        val queryResult = SQLServerWrapper.executeProcedure(
             "delin_unallocatedreceipt",
             listOf(receipt.unAllocatedReceiptId)
+        )
+        return DataModel(
+            receipt,
+            queryResult.succeed,
+            queryResult.result as? String
         )
     }
 }

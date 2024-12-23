@@ -4,6 +4,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.model.CONNECTION_TYPE
+import com.grid.pos.model.DataModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.pos.POSUtils
 import com.grid.pos.utils.DateHelper
@@ -20,72 +21,89 @@ class PaymentRepositoryImpl(
 ) : PaymentRepository {
     override suspend fun insert(
             payment: Payment
-    ): Payment {
+    ): DataModel {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
                 val docRef = FirebaseFirestore.getInstance().collection("payment").add(payment)
                     .await()
                 payment.paymentDocumentId = docRef.id
+                return DataModel(payment)
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
                 paymentDao.insert(payment)
+                return DataModel(payment)
             }
 
             else -> {
-                insertHPayment(payment)
-                return getPaymentById(payment.paymentId) ?: payment
+                val dataModel = insertHPayment(payment)
+                return if (dataModel.succeed) {
+                    getPaymentById(payment.paymentId)
+                } else {
+                    dataModel
+                }
             }
         }
-        return payment
     }
 
     override suspend fun delete(
             payment: Payment
-    ) {
+    ): DataModel {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
                 payment.paymentDocumentId?.let {
                     FirebaseFirestore.getInstance().collection("payment").document(it).delete()
                         .await()
+                    return DataModel(payment)
                 }
+                return DataModel(
+                    payment,
+                    false
+                )
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
                 paymentDao.delete(payment)
+                return DataModel(payment)
             }
 
             else -> {
-                updateHPayment(payment)
+                return updateHPayment(payment)
             }
         }
     }
 
     override suspend fun update(
             payment: Payment
-    ) {
+    ): DataModel {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
                 payment.paymentDocumentId?.let {
                     FirebaseFirestore.getInstance().collection("payment").document(it)
                         .update(payment.getMap()).await()
+                    return DataModel(payment)
                 }
+                return DataModel(
+                    payment,
+                    false
+                )
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
                 paymentDao.update(payment)
+                return DataModel(payment)
             }
 
             else -> {
-                deleteHPayment(payment)
+                return deleteHPayment(payment)
             }
         }
     }
 
     override suspend fun getPaymentById(
             id: String
-    ): Payment? {
-        return when (SettingsModel.connectionType) {
+    ): DataModel {
+        when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
                 val querySnapshot = FirebaseFirestore.getInstance().collection("payment")
                     .whereEqualTo(
@@ -96,11 +114,11 @@ class PaymentRepositoryImpl(
                         id
                     ).get().await()
                 val document = querySnapshot.documents.firstOrNull()
-                document?.toObject(Payment::class.java)
+                return DataModel(document?.toObject(Payment::class.java))
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
-                paymentDao.getPaymentById(id)
+                return DataModel(paymentDao.getPaymentById(id))
             }
 
             else -> {//CONNECTION_TYPE.SQL_SERVER.key
@@ -122,17 +140,28 @@ class PaymentRepositoryImpl(
                             }
                             SQLServerWrapper.closeResultSet(it)
                         }
+                    } else {
+                        return DataModel(
+                            null,
+                            false,
+                            dbResult.result as? String
+                        )
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
+                    return DataModel(
+                        null,
+                        false,
+                        e.message
+                    )
                 }
-                return payment
+                return DataModel(payment)
             }
         }
     }
 
-    override suspend fun getAllPayments(): MutableList<Payment> {
-        return when (SettingsModel.connectionType) {
+    override suspend fun getAllPayments(): DataModel {
+        when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
                 val querySnapshot = FirebaseFirestore.getInstance().collection("payment")
                     .whereEqualTo(
@@ -149,11 +178,11 @@ class PaymentRepositoryImpl(
                         }
                     }
                 }
-                companies
+                return DataModel(companies)
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
-                paymentDao.getAllPayments()
+                return DataModel(paymentDao.getAllPayments())
             }
 
             else -> {//CONNECTION_TYPE.SQL_SERVER.key
@@ -179,16 +208,27 @@ class PaymentRepositoryImpl(
                             }
                             SQLServerWrapper.closeResultSet(it)
                         }
+                    } else {
+                        return DataModel(
+                            payments,
+                            false,
+                            dbResult.result as? String
+                        )
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
+                    return DataModel(
+                        payments,
+                        false,
+                        e.message
+                    )
                 }
-                return payments
+                return DataModel(payments)
             }
         }
     }
 
-    override suspend fun getLastTransactionNo(): Payment? {
+    override suspend fun getLastTransactionNo(): DataModel {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
                 val querySnapshot = FirebaseFirestore.getInstance().collection("payment")
@@ -203,17 +243,19 @@ class PaymentRepositoryImpl(
                         Query.Direction.DESCENDING
                     ).limit(1).get().await()
                 val document = querySnapshot.firstOrNull()
-                return document?.toObject(Payment::class.java)
+                return DataModel(document?.toObject(Payment::class.java))
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
-                return paymentDao.getLastTransactionByType(
-                    SettingsModel.getCompanyID() ?: ""
+                return DataModel(
+                    paymentDao.getLastTransactionByType(
+                        SettingsModel.getCompanyID() ?: ""
+                    )
                 )
             }
 
             else -> {
-                return null/*val payments: MutableList<Payment> = mutableListOf()
+                return DataModel(null)/*val payments: MutableList<Payment> = mutableListOf()
                 try {
                     val where = if (SettingsModel.isSqlServerWebDb) "hpa_cmp_id='${SettingsModel.getCompanyID()}'" else ""
                     val dbResult = SQLServerWrapper.getListOf(
@@ -271,7 +313,7 @@ class PaymentRepositoryImpl(
         }
     }
 
-    private fun insertHPayment(payment: Payment) {
+    private fun insertHPayment(payment: Payment): DataModel {
         val parameters = if (SettingsModel.isSqlServerWebDb) {
             listOf(
                 "null_String_output",//@hpa_id
@@ -338,12 +380,18 @@ class PaymentRepositoryImpl(
             } else {
                 payment.paymentId = id
             }
-            insertPayment(payment)
+            return insertPayment(payment)
+        } else {
+            return DataModel(
+                null,
+                false,
+                queryResult.result as? String
+            )
         }
 
     }
 
-    private fun insertPayment(payment: Payment) {
+    private fun insertPayment(payment: Payment): DataModel {
         val decimal = SettingsModel.currentCurrency?.currencyName1Dec ?: 3
         val parameters = if (SettingsModel.isSqlServerWebDb) {
             listOf(
@@ -410,14 +458,22 @@ class PaymentRepositoryImpl(
                 false,//@pay_tax
             )
         }
-        SQLServerWrapper.executeProcedure(
+        val queryResult = SQLServerWrapper.executeProcedure(
             "addin_payment",
             parameters
         )
-        insertUnAllocatePayment(payment)
+        return if (queryResult.succeed) {
+            insertUnAllocatePayment(payment)
+        } else {
+            DataModel(
+                null,
+                false,
+                queryResult.result as? String
+            )
+        }
     }
 
-    private fun insertUnAllocatePayment(payment: Payment) {
+    private fun insertUnAllocatePayment(payment: Payment): DataModel {
         val decimal = SettingsModel.currentCurrency?.currencyName1Dec ?: 3
         val parameters = if (SettingsModel.isSqlServerWebDb) {
             listOf(
@@ -476,13 +532,18 @@ class PaymentRepositoryImpl(
                 null,//@up_div_name
             )
         }
-        SQLServerWrapper.executeProcedure(
+        val queryResult = SQLServerWrapper.executeProcedure(
             "addin_unallocatedpayment",
             parameters
         )
+        return DataModel(
+            payment,
+            queryResult.succeed,
+            queryResult.result as? String
+        )
     }
 
-    private fun updateHPayment(payment: Payment) {
+    private fun updateHPayment(payment: Payment): DataModel {
         val parameters = if (SettingsModel.isSqlServerWebDb) {
             listOf(
                 payment.paymentId,//@hpa_id
@@ -522,14 +583,22 @@ class PaymentRepositoryImpl(
                 null,//@hpa_pathtodoc
             )
         }
-        SQLServerWrapper.executeProcedure(
+        val queryResult = SQLServerWrapper.executeProcedure(
             "updin_hpayment",
             parameters
         )
-        updatePayment(payment)
+        return if (queryResult.succeed) {
+            updatePayment(payment)
+        } else {
+            DataModel(
+                null,
+                false,
+                queryResult.result as? String
+            )
+        }
     }
 
-    private fun updatePayment(payment: Payment) {
+    private fun updatePayment(payment: Payment): DataModel {
         val decimal = SettingsModel.currentCurrency?.currencyName1Dec ?: 3
         val parameters = if (SettingsModel.isSqlServerWebDb) {
             listOf(
@@ -594,14 +663,23 @@ class PaymentRepositoryImpl(
                 false,//@pay_tax
             )
         }
-        SQLServerWrapper.executeProcedure(
+        val queryResult = SQLServerWrapper.executeProcedure(
             "updin_payment",
             parameters
         )
-        updateUnAllocatedPayment(payment)
+        return if (queryResult.succeed) {
+            updateUnAllocatedPayment(payment)
+        } else {
+            DataModel(
+                null,
+                false,
+                queryResult.result as? String
+            )
+        }
+
     }
 
-    private fun updateUnAllocatedPayment(payment: Payment) {
+    private fun updateUnAllocatedPayment(payment: Payment): DataModel {
         val decimal = SettingsModel.currentCurrency?.currencyName1Dec ?: 3
         val parameters = if (SettingsModel.isSqlServerWebDb) {
             listOf(
@@ -658,32 +736,60 @@ class PaymentRepositoryImpl(
                 null,//@up_div_name
             )
         }
-        SQLServerWrapper.executeProcedure(
+        val queryResult = SQLServerWrapper.executeProcedure(
             "updin_unallocatedpayment",
             parameters
         )
+        return DataModel(
+            payment,
+            queryResult.succeed,
+            queryResult.result as? String
+        )
     }
 
-    private fun deleteHPayment(payment: Payment) {
-        SQLServerWrapper.executeProcedure(
+    private fun deleteHPayment(payment: Payment): DataModel {
+        val queryResult = SQLServerWrapper.executeProcedure(
             "delin_hpayment",
             listOf(payment.paymentId)
         )
-        deletePayment(payment)
+        return if (queryResult.succeed) {
+            deletePayment(payment)
+        } else {
+            DataModel(
+                null,
+                false,
+                queryResult.result as? String
+            )
+        }
+
     }
 
-    private fun deletePayment(payment: Payment) {
-        SQLServerWrapper.executeProcedure(
+    private fun deletePayment(payment: Payment): DataModel {
+        val queryResult = SQLServerWrapper.executeProcedure(
             "delin_payment",
             listOf(payment.paymentInId)
         )
-        deleteUnAllocatedPayment(payment)
+
+        return if (queryResult.succeed) {
+            deleteUnAllocatedPayment(payment)
+        } else {
+            DataModel(
+                null,
+                false,
+                queryResult.result as? String
+            )
+        }
     }
 
-    private fun deleteUnAllocatedPayment(payment: Payment) {
-        SQLServerWrapper.executeProcedure(
+    private fun deleteUnAllocatedPayment(payment: Payment): DataModel {
+        val queryResult = SQLServerWrapper.executeProcedure(
             "addin_unallocatedpayment",
             listOf(payment.unAllocatedPaymentId)
+        )
+        return DataModel(
+            payment,
+            queryResult.succeed,
+            queryResult.result as? String
         )
     }
 }
