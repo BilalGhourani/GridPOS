@@ -4,6 +4,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.model.CONNECTION_TYPE
+import com.grid.pos.model.DataModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.DateHelper
 import com.grid.pos.utils.Extension.getDoubleValue
@@ -18,64 +19,77 @@ import java.util.Date
 class ItemRepositoryImpl(
         private val itemDao: ItemDao
 ) : ItemRepository {
-    override suspend fun insert(item: Item): Item {
+    override suspend fun insert(item: Item): DataModel {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
                 val docRef = FirebaseFirestore.getInstance().collection("st_item")
                     .add(item.getMap()).await()
                 item.itemDocumentId = docRef.id
+                return DataModel(item)
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
                 itemDao.insert(item)
+                return DataModel(item)
             }
 
             else -> {
-                insertByProcedure(item)
+                return insertByProcedure(item)
             }
         }
-        return item
     }
 
-    override suspend fun delete(item: Item) {
+    override suspend fun delete(item: Item): DataModel {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
                 item.itemDocumentId?.let {
                     FirebaseFirestore.getInstance().collection("st_item").document(it).delete()
                         .await()
+                    return DataModel(item)
                 }
+                return DataModel(
+                    item,
+                    false
+                )
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
                 itemDao.delete(item)
+                return DataModel(item)
             }
 
             else -> {
-                deleteByProcedure(item)
+                return deleteByProcedure(item)
             }
         }
     }
 
-    override suspend fun update(item: Item) {
+    override suspend fun update(item: Item): DataModel {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
                 item.itemDocumentId?.let {
                     FirebaseFirestore.getInstance().collection("st_item").document(it)
                         .update(item.getMap()).await()
+                    return DataModel(item)
                 }
+                return DataModel(
+                    item,
+                    false
+                )
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
                 itemDao.update(item)
+                return DataModel(item)
             }
 
             else -> {
-                updateItem(item)
+                return updateItem(item)
             }
         }
     }
 
-    override suspend fun update(items: List<Item>) {
+    override suspend fun update(items: List<Item>): DataModel {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
                 val db = FirebaseFirestore.getInstance()
@@ -89,23 +103,25 @@ class ItemRepositoryImpl(
                     )
                 }
                 batch.commit().await()
+                return DataModel(items)
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
                 itemDao.update(items)
+                return DataModel(items)
             }
 
             else -> {
                 items.forEach { item ->
                     updateItem(item)
                 }
-
+                return DataModel(items)
             }
         }
 
     }
 
-    override suspend fun getAllItems(): MutableList<Item> {
+    override suspend fun getAllItems(): DataModel {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
                 val querySnapshot = FirebaseFirestore.getInstance().collection("st_item")
@@ -124,11 +140,11 @@ class ItemRepositoryImpl(
                         }
                     }
                 }
-                return items
+                return DataModel(items)
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
-                return itemDao.getAllItems(SettingsModel.getCompanyID() ?: "")
+                return DataModel(itemDao.getAllItems(SettingsModel.getCompanyID() ?: ""))
             }
 
             else -> {
@@ -170,17 +186,28 @@ class ItemRepositoryImpl(
                             }
                             SQLServerWrapper.closeResultSet(it)
                         }
+                    } else {
+                        return DataModel(
+                            null,
+                            false,
+                            dbResult.result as? String
+                        )
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
+                    return DataModel(
+                        null,
+                        false,
+                        e.message
+                    )
                 }
-                return items
+                return DataModel(items)
             }
         }
 
     }
 
-    override suspend fun getItemsForPOS(): MutableList<Item> {
+    override suspend fun getItemsForPOS(): DataModel {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
                 val querySnapshot = FirebaseFirestore.getInstance().collection("st_item")
@@ -199,11 +226,11 @@ class ItemRepositoryImpl(
                         }
                     }
                 }
-                return items
+                return DataModel(items)
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
-                return itemDao.getAllItems(SettingsModel.getCompanyID() ?: "")
+                return DataModel(itemDao.getAllItems(SettingsModel.getCompanyID() ?: ""))
             }
 
             else -> {
@@ -234,17 +261,28 @@ class ItemRepositoryImpl(
                             }
                             SQLServerWrapper.closeResultSet(it)
                         }
+                    } else {
+                        return DataModel(
+                            null,
+                            false,
+                            dbResult.result as? String
+                        )
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
+                    return DataModel(
+                        null,
+                        false,
+                        e.message
+                    )
                 }
-                return items
+                return DataModel(items)
             }
         }
 
     }
 
-    override suspend fun getOneItemByPrinter(printerID: String): Item? {
+    override suspend fun getOneItemByPrinter(printerID: String): DataModel {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
                 val querySnapshot = FirebaseFirestore.getInstance().collection("st_item")
@@ -258,24 +296,24 @@ class ItemRepositoryImpl(
                         val obj = document.toObject(Item::class.java)
                         if (obj.itemId.isNotEmpty()) {
                             obj.itemDocumentId = document.id
-                            return obj
+                            return DataModel(obj)
                         }
                     }
                 }
-                return null
+                return DataModel(null)
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
-                return itemDao.getOneItemByPrinter(printerID)
+                return DataModel(itemDao.getOneItemByPrinter(printerID))
             }
 
             else -> {
-                return null
+                return DataModel(null)
             }
         }
     }
 
-    override suspend fun generateBarcode(): String {
+    override suspend fun generateBarcode(): DataModel {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
                 val querySnapshot = FirebaseFirestore.getInstance().collection("st_item").orderBy(
@@ -287,15 +325,15 @@ class ItemRepositoryImpl(
                     it.getString("it_barcode")?.toLongOrNull()
                 } // Filter numeric barcodes
                     .maxOrNull() // Find the largest numeric barcode
-                return barcode?.let {
+                return DataModel(barcode?.let {
                     (it + 1).toString()
-                } ?: "10000"
+                } ?: "10000")
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
                 val result = itemDao.getLastNumericPassword()
                 val numBarcode = result?.toLongOrNull() ?: 9999
-                return (numBarcode + 1).toString()
+                return DataModel((numBarcode + 1).toString())
             }
 
             else -> {
@@ -327,16 +365,27 @@ class ItemRepositoryImpl(
                             }
                             SQLServerWrapper.closeResultSet(it)
                         }
+                    } else {
+                        return DataModel(
+                            null,
+                            false,
+                            dbResult.result as? String
+                        )
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
+                    return DataModel(
+                        null,
+                        false,
+                        e.message
+                    )
                 }
-                return ((barcode?.toLongOrNull() ?: 9999) + 1).toString()
+                return DataModel(((barcode?.toLongOrNull() ?: 9999) + 1).toString())
             }
         }
     }
 
-    override suspend fun getOneItemByFamily(familyId: String): Item? {
+    override suspend fun getOneItemByFamily(familyId: String): DataModel {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
                 val querySnapshot = FirebaseFirestore.getInstance().collection("st_item")
@@ -350,15 +399,15 @@ class ItemRepositoryImpl(
                         val obj = document.toObject(Item::class.java)
                         if (obj.itemId.isNotEmpty()) {
                             obj.itemDocumentId = document.id
-                            return obj
+                            return DataModel(obj)
                         }
                     }
                 }
-                return null
+                return DataModel(null)
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
-                return itemDao.getOneItemByFamily(familyId)
+                return DataModel(itemDao.getOneItemByFamily(familyId))
             }
 
             else -> {
@@ -389,21 +438,33 @@ class ItemRepositoryImpl(
                             }
                             SQLServerWrapper.closeResultSet(it)
                         }
+                    } else {
+                        return DataModel(
+                            null,
+                            false,
+                            dbResult.result as? String
+                        )
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
+                    return DataModel(
+                        null,
+                        false,
+                        e.message
+                    )
                 }
-                return item
+                return DataModel(item)
             }
         }
     }
 
-    override suspend fun updateWarehouseData(item: Item) {
+    override suspend fun updateWarehouseData(item: Item): DataModel {
         when (SettingsModel.connectionType) {
-            CONNECTION_TYPE.FIRESTORE.key -> {}
-            CONNECTION_TYPE.LOCAL.key -> {}
+            CONNECTION_TYPE.FIRESTORE.key -> {return DataModel(null)
+            }
+            CONNECTION_TYPE.LOCAL.key -> {return DataModel(null)}
             else -> {
-                if (!item.itemWarehouseRowId.isNullOrEmpty()) {
+                val dbResult = if (!item.itemWarehouseRowId.isNullOrEmpty()) {
                     SQLServerWrapper.update(
                         "st_item_warehouse",
                         listOf(
@@ -437,16 +498,22 @@ class ItemRepositoryImpl(
                         )
                     )
                 }
+
+                return DataModel(
+                    null,
+                    dbResult.succeed,
+                    dbResult.result as? String
+                )
             }
         }
     }
 
-    override suspend fun updateOpening(item: Item) {
+    override suspend fun updateOpening(item: Item): DataModel {
         when (SettingsModel.connectionType) {
-            CONNECTION_TYPE.FIRESTORE.key -> {}
-            CONNECTION_TYPE.LOCAL.key -> {}
+            CONNECTION_TYPE.FIRESTORE.key -> {return DataModel(null)}
+            CONNECTION_TYPE.LOCAL.key -> {return DataModel(null)}
             else -> {
-                if (!item.itemOpeningId.isNullOrEmpty()) {
+                val dbResult = if (!item.itemOpeningId.isNullOrEmpty()) {
                     SQLServerWrapper.update(
                         "st_opening",
                         listOf(
@@ -480,6 +547,11 @@ class ItemRepositoryImpl(
                         )
                     )
                 }
+                return DataModel(
+                    null,
+                    dbResult.succeed,
+                    dbResult.result as? String
+                )
             }
         }
     }
@@ -543,7 +615,7 @@ class ItemRepositoryImpl(
         }
     }
 
-    private fun insertByProcedure(item: Item) {
+    private fun insertByProcedure(item: Item): DataModel {
         val parameters = if (SettingsModel.isSqlServerWebDb) {
             listOf(
                 item.itemId,//@it_id
@@ -643,33 +715,21 @@ class ItemRepositoryImpl(
                 null,//@it_maxqty
             )
         }
-        SQLServerWrapper.executeProcedure(
+        val dbResult = SQLServerWrapper.executeProcedure(
             "addst_item",
             parameters
-        )/*if (id.isNullOrEmpty()) {
-            try {
-                val dbResult = SQLServerWrapper.getQueryResult("select max(it_id) as id from st_item")
-                dbResult?.let {
-                    while (it.next()) {
-                        item.itemId = it.getStringValue(
-                            "id",
-                            item.itemId
-                        )
-                    }
-                    SQLServerWrapper.closeResultSet(it)
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        } else {
-            item.itemId = id
-        }*/
+        )
+        return DataModel(
+            null,
+            dbResult.succeed,
+            dbResult.result as? String
+        )
     }
 
     private fun updateItem(
             item: Item
-    ) {
-        SQLServerWrapper.update(
+    ): DataModel {
+        val dbResult = SQLServerWrapper.update(
             "st_item",
             listOf(
                 "it_name",
@@ -711,16 +771,26 @@ class ItemRepositoryImpl(
             ),
             "it_id = '${item.itemId}'"
         )
+        return DataModel(
+            null,
+            dbResult.succeed,
+            dbResult.result as? String
+        )
     }
 
-    private fun deleteByProcedure(item: Item) {
-        SQLServerWrapper.executeProcedure(
+    private fun deleteByProcedure(item: Item): DataModel {
+        val dbResult = SQLServerWrapper.executeProcedure(
             "delst_item",
             listOf(
                 item.itemId,
                 item.itemUserStamp,
                 SettingsModel.currentCompany?.cmp_multibranchcode
             )
+        )
+        return DataModel(
+            null,
+            dbResult.succeed,
+            dbResult.result as? String
         )
     }
 

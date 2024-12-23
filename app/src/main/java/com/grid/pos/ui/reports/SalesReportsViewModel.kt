@@ -65,8 +65,16 @@ class SalesReportsViewModel @Inject constructor(
                 showError(dataModel.message)
             }
         }
-        val listOfItems = itemRepository.getAllItems()
-        itemMap = listOfItems.associateBy { it.itemId }
+        val dataModel = itemRepository.getAllItems()
+        if (dataModel.succeed) {
+            val listOfItems = convertToMutableList(
+                dataModel.data,
+                Item::class.java
+            )
+            itemMap = listOfItems.associateBy { it.itemId }
+        } else if (dataModel.message != null) {
+            showError(dataModel.message)
+        }
     }
 
     fun fetchInvoices(

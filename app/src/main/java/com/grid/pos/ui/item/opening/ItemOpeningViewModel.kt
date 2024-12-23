@@ -1,7 +1,6 @@
 package com.grid.pos.ui.item.opening
 
 import androidx.lifecycle.viewModelScope
-import com.google.firebase.firestore.Exclude
 import com.grid.pos.data.item.Item
 import com.grid.pos.data.item.ItemRepository
 import com.grid.pos.data.settings.SettingsRepository
@@ -62,12 +61,20 @@ class ItemOpeningViewModel @Inject constructor(
             isLoading = true
         )
         viewModelScope.launch(Dispatchers.IO) {
-            val listOfItems = itemRepository.getAllItems()
-            withContext(Dispatchers.Main) {
-                state.value = state.value.copy(
-                    items = listOfItems,
-                    isLoading = false
+            val dataModel = itemRepository.getAllItems()
+            if (dataModel.succeed) {
+                val listOfItems = convertToMutableList(
+                    dataModel.data,
+                    Item::class.java
                 )
+                withContext(Dispatchers.Main) {
+                    state.value = state.value.copy(
+                        items = listOfItems,
+                        isLoading = false
+                    )
+                }
+            } else if (dataModel.message != null) {
+                showWarning(dataModel.message)
             }
         }
     }
@@ -90,7 +97,7 @@ class ItemOpeningViewModel @Inject constructor(
 
     fun showWarning(
             warning: String,
-            action: String
+            action: String? = null
     ) {
         viewModelScope.launch(Dispatchers.Main) {
             state.value = state.value.copy(
@@ -128,16 +135,20 @@ class ItemOpeningViewModel @Inject constructor(
             if (cost.isNotEmpty()) {
                 item.itemCostSecond = costSecond.toDoubleOrNull() ?: 0.0
             }
-            itemRepository.updateOpening(
+            val dataModel = itemRepository.updateOpening(
                 item
             )
-            withContext(Dispatchers.Main) {
-                state.value = state.value.copy(
-                    //selectedItem = null,
-                    isLoading = false,
-                    warning = Event("item cost saved successfully."),
-                    clearCosts = true
-                )
+            if (dataModel.succeed) {
+                withContext(Dispatchers.Main) {
+                    state.value = state.value.copy(
+                        //selectedItem = null,
+                        isLoading = false,
+                        warning = Event("item cost saved successfully."),
+                        clearCosts = true
+                    )
+                }
+            } else if (dataModel.message != null) {
+                showWarning(dataModel.message)
             }
         }
     }
@@ -174,16 +185,20 @@ class ItemOpeningViewModel @Inject constructor(
             if (openQty.isNotEmpty()) {
                 item.itemOpenQty = openQty.toDoubleOrNull() ?: item.itemOpenQty
             }
-            itemRepository.updateWarehouseData(
+            val dataModel = itemRepository.updateWarehouseData(
                 item
             )
-            withContext(Dispatchers.Main) {
-                state.value = state.value.copy(
-                    //selectedItem = null,
-                    isLoading = false,
-                    warning = Event("Warehouse details saved successfully."),
-                    clearWarehouseDetails = true
-                )
+            if (dataModel.succeed) {
+                withContext(Dispatchers.Main) {
+                    state.value = state.value.copy(
+                        //selectedItem = null,
+                        isLoading = false,
+                        warning = Event("Warehouse details saved successfully."),
+                        clearWarehouseDetails = true
+                    )
+                }
+            } else if (dataModel.message != null) {
+                showWarning(dataModel.message)
             }
         }
     }

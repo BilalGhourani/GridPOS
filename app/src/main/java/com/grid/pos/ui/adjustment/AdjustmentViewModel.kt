@@ -38,26 +38,22 @@ class AdjustmentViewModel @Inject constructor(
             isLoading = true
         )
         viewModelScope.launch(Dispatchers.IO) {
-            val listOfItems = itemRepository.getAllItems()
-            withContext(Dispatchers.Main) {
-                state.value = state.value.copy(
-                    items = listOfItems,
-                    isLoading = false
+            val dataModel = itemRepository.getAllItems()
+            if (dataModel.succeed) {
+                val listOfItems = convertToMutableList(
+                    dataModel.data,
+                    Item::class.java
                 )
+                withContext(Dispatchers.Main) {
+                    state.value = state.value.copy(
+                        items = listOfItems,
+                        isLoading = false
+                    )
+                }
+            } else if (dataModel.message != null) {
+                showError(dataModel.message)
             }
         }
-    }
-
-    private suspend fun fetchInvoices(
-            from: Date,
-            to: Date,
-            callback: (MutableList<InvoiceHeader>) -> Unit
-    ) {
-        val listOfInvoices = invoiceHeaderRepository.getInvoicesBetween(
-            from,
-            to
-        )
-        callback.invoke(listOfInvoices)
     }
 
     fun adjustRemainingQuantities(
@@ -86,9 +82,9 @@ class AdjustmentViewModel @Inject constructor(
                         val idsBatch = invoiceIds.subList(
                             start,
                             to
-                        );
+                        )
                         listOfInvoiceHeaders.addAll(invoiceHeaderRepository.getAllInvoicesByIds(idsBatch))
-                        start = to + 1;
+                        start = to + 1
                     }
 
                     val invoicesMap = listOfInvoiceHeaders.associateBy { it.invoiceHeadId }

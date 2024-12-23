@@ -157,7 +157,8 @@ class POSPrinterViewModel @Inject constructor(
     }
 
     private suspend fun hasRelations(printerId: String): Boolean {
-        if (itemRepository.getOneItemByPrinter(printerId) != null) return true
+        val itemDataModel = itemRepository.getOneItemByPrinter(printerId)
+        if (itemDataModel.succeed && itemDataModel.data != null) return true
 
         return false
     }

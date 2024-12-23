@@ -2,7 +2,6 @@ package com.grid.pos.ui.item
 
 import android.content.Context
 import androidx.lifecycle.viewModelScope
-import com.grid.pos.data.currency.Currency
 import com.grid.pos.data.currency.CurrencyRepository
 import com.grid.pos.data.family.Family
 import com.grid.pos.data.family.FamilyRepository
@@ -10,7 +9,6 @@ import com.grid.pos.data.invoice.InvoiceRepository
 import com.grid.pos.data.item.Item
 import com.grid.pos.data.item.ItemRepository
 import com.grid.pos.data.posPrinter.PosPrinterRepository
-import com.grid.pos.data.receipt.Receipt
 import com.grid.pos.model.CurrencyModel
 import com.grid.pos.model.Event
 import com.grid.pos.model.ItemGroupModel
@@ -60,12 +58,20 @@ class ManageItemsViewModel @Inject constructor(
             isLoading = true
         )
         viewModelScope.launch(Dispatchers.IO) {
-            val listOfItems = itemRepository.getAllItems()
-            withContext(Dispatchers.Main) {
-                manageItemsState.value = manageItemsState.value.copy(
-                    items = listOfItems,
-                    isLoading = false
+            val dataModel = itemRepository.getAllItems()
+            if (dataModel.succeed) {
+                val listOfItems = convertToMutableList(
+                    dataModel.data,
+                    Item::class.java
                 )
+                withContext(Dispatchers.Main) {
+                    manageItemsState.value = manageItemsState.value.copy(
+                        items = listOfItems,
+                        isLoading = false
+                    )
+                }
+            } else if (dataModel.message != null) {
+                showWarning(dataModel.message)
             }
         }
     }
@@ -152,7 +158,6 @@ class ManageItemsViewModel @Inject constructor(
             ItemGroupModel("Set"),
             ItemGroupModel("Non Stock"),
         )
-        val listOfPrinters = posPrinterRepository.getAllPosPrinters()
         withContext(Dispatchers.Main) {
             manageItemsState.value = manageItemsState.value.copy(
                 groups = groups,
@@ -197,37 +202,46 @@ class ManageItemsViewModel @Inject constructor(
         CoroutineScope(Dispatchers.IO).launch {
             if (isInserting) {
                 item.prepareForInsert()
-                val addedModel = itemRepository.insert(item)
-                val items = manageItemsState.value.items
-                if (items.isNotEmpty()) {
-                    items.add(addedModel)
-                }
-                withContext(Dispatchers.Main) {
-                    manageItemsState.value = manageItemsState.value.copy(
-                        items = items,
-                        selectedItem = addedModel,
-                        isLoading = false,
-                        warning = Event("Item saved successfully."),
-                        clear = true
-                    )
+                val dataModel = itemRepository.insert(item)
+                if (dataModel.succeed) {
+                    val addedModel = dataModel.data as Item
+                    val items = manageItemsState.value.items
+                    if (items.isNotEmpty()) {
+                        items.add(addedModel)
+                    }
+                    withContext(Dispatchers.Main) {
+                        manageItemsState.value = manageItemsState.value.copy(
+                            items = items,
+                            selectedItem = addedModel,
+                            isLoading = false,
+                            warning = Event("Item saved successfully."),
+                            clear = true
+                        )
+                    }
+                } else if (dataModel.message != null) {
+                    showWarning(dataModel.message)
                 }
             } else {
-                itemRepository.update(item)
-                val index = manageItemsState.value.items.indexOfFirst { it.itemId == item.itemId }
-                if (index >= 0) {
-                    manageItemsState.value.items.removeAt(index)
-                    manageItemsState.value.items.add(
-                        index,
-                        item
-                    )
-                }
-                withContext(Dispatchers.Main) {
-                    manageItemsState.value = manageItemsState.value.copy(
-                        selectedItem = item,
-                        isLoading = false,
-                        warning = Event("Item saved successfully."),
-                        clear = true
-                    )
+                val dataModel = itemRepository.update(item)
+                if (dataModel.succeed) {
+                    val index = manageItemsState.value.items.indexOfFirst { it.itemId == item.itemId }
+                    if (index >= 0) {
+                        manageItemsState.value.items.removeAt(index)
+                        manageItemsState.value.items.add(
+                            index,
+                            item
+                        )
+                    }
+                    withContext(Dispatchers.Main) {
+                        manageItemsState.value = manageItemsState.value.copy(
+                            selectedItem = item,
+                            isLoading = false,
+                            warning = Event("Item saved successfully."),
+                            clear = true
+                        )
+                    }
+                } else if (dataModel.message != null) {
+                    showWarning(dataModel.message)
                 }
             }
         }
@@ -256,23 +270,33 @@ class ManageItemsViewModel @Inject constructor(
                 }
                 return@launch
             }
-            itemRepository.delete(item)
-            val items = manageItemsState.value.items
-            items.remove(item)
-            withContext(Dispatchers.Main) {
-                manageItemsState.value = manageItemsState.value.copy(
-                    items = items,
-                    selectedItem = Item(),
-                    isLoading = false,
-                    warning = Event("successfully deleted."),
-                    clear = true
-                )
+            val dataModel = itemRepository.delete(item)
+            if (dataModel.succeed) {
+                val items = manageItemsState.value.items
+                items.remove(item)
+                withContext(Dispatchers.Main) {
+                    manageItemsState.value = manageItemsState.value.copy(
+                        items = items,
+                        selectedItem = Item(),
+                        isLoading = false,
+                        warning = Event("successfully deleted."),
+                        clear = true
+                    )
+                }
+            } else if (dataModel.message != null) {
+                showWarning(dataModel.message)
             }
         }
     }
 
     suspend fun generateBarcode(): String {
-        return itemRepository.generateBarcode()
+        val dataModel = itemRepository.generateBarcode()
+        if (dataModel.succeed) {
+            return dataModel.data as String
+        } else if (dataModel.message != null) {
+            showWarning(dataModel.message)
+        }
+        return ""
     }
 
     fun prepareItemBarcodeReport(

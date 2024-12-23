@@ -94,18 +94,26 @@ class POSViewModel @Inject constructor(
                 }
             }
         }
-        val listOfItems = itemRepository.getItemsForPOS()
-        withContext(Dispatchers.Main) {
-            posState.value = if (stopLoading) {
-                posState.value.copy(
-                    items = listOfItems,
-                    isLoading = false
-                )
-            } else {
-                posState.value.copy(
-                    items = listOfItems
-                )
+        val dataModel = itemRepository.getItemsForPOS()
+        if (dataModel.succeed) {
+            val listOfItems = convertToMutableList(
+                dataModel.data,
+                Item::class.java
+            )
+            withContext(Dispatchers.Main) {
+                posState.value = if (stopLoading) {
+                    posState.value.copy(
+                        items = listOfItems,
+                        isLoading = false
+                    )
+                } else {
+                    posState.value.copy(
+                        items = listOfItems
+                    )
+                }
             }
+        }else if (dataModel.message != null) {
+            showWarning(dataModel.message)
         }
     }
 

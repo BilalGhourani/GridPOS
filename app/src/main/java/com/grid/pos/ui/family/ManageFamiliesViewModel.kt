@@ -177,7 +177,8 @@ class ManageFamiliesViewModel @Inject constructor(
     }
 
     private suspend fun hasRelations(familyId: String): Boolean {
-        if (itemRepository.getOneItemByFamily(familyId) != null) return true
+        val itemDataModel = itemRepository.getOneItemByFamily(familyId)
+        if (itemDataModel.succeed && itemDataModel.data != null) return true
 
         return false
     }
