@@ -225,7 +225,8 @@ class ManageCompaniesViewModel @Inject constructor(
     }
 
     private suspend fun hasRelations(companyID: String): Boolean {
-        if (familyRepository.getOneFamily(companyID) != null) return true
+        val familyDataModel = familyRepository.getOneFamily(companyID)
+        if (familyDataModel.succeed && familyDataModel.data != null) return true
         if (userRepository.getOneUser(companyID) != null) {
             return true
         }

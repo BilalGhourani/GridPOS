@@ -3,6 +3,7 @@ package com.grid.pos.data.family
 import com.google.firebase.firestore.FirebaseFirestore
 import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.model.CONNECTION_TYPE
+import com.grid.pos.model.DataModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.Extension.getStringValue
 import kotlinx.coroutines.tasks.await
@@ -11,65 +12,71 @@ import java.sql.ResultSet
 class FamilyRepositoryImpl(
         private val familyDao: FamilyDao
 ) : FamilyRepository {
-    override suspend fun insert(family: Family): Family {
-        when (SettingsModel.connectionType) {
+    override suspend fun insert(family: Family): DataModel {
+        return when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
                 val docRef = FirebaseFirestore.getInstance().collection("st_family").add(family)
                     .await()
                 family.familyDocumentId = docRef.id
+                DataModel(family)
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
                 familyDao.insert(family)
+                DataModel(family)
             }
 
             else -> {
-                insertByProcedure(family)
+                return insertByProcedure(family)
             }
         }
-        return family
     }
 
-    override suspend fun delete(family: Family) {
-        when (SettingsModel.connectionType) {
+    override suspend fun delete(family: Family): DataModel {
+         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
                 family.familyDocumentId?.let {
                     FirebaseFirestore.getInstance().collection("st_family").document(it).delete()
                         .await()
                 }
+                return  DataModel(family)
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
                 familyDao.delete(family)
+                return DataModel(family)
             }
 
             else -> {
-                deleteByProcedure(family)
+                return deleteByProcedure(family)
             }
         }
     }
 
-    override suspend fun update(family: Family) {
+    override suspend fun update(family: Family): DataModel {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
                 family.familyDocumentId?.let {
                     FirebaseFirestore.getInstance().collection("st_family").document(it)
                         .update(family.getMap()).await()
+                    DataModel(family)
                 }
+                return DataModel(family,false,"")
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
                 familyDao.update(family)
+                return DataModel(family)
             }
 
             else -> {
-                updateFamily(family)
+                return updateFamily(family)
             }
         }
     }
 
-    override suspend fun getAllFamilies(): MutableList<Family> {
-        return when (SettingsModel.connectionType) {
+    override suspend fun getAllFamilies(): DataModel {
+        when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
                 val querySnapshot = FirebaseFirestore.getInstance().collection("st_family")
                     .whereEqualTo(
@@ -86,11 +93,11 @@ class FamilyRepositoryImpl(
                         }
                     }
                 }
-                families
+                return DataModel(families)
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
-                familyDao.getAllFamilies(SettingsModel.getCompanyID() ?: "")
+                return DataModel(familyDao.getAllFamilies(SettingsModel.getCompanyID() ?: ""))
             }
 
             else -> {
@@ -120,13 +127,18 @@ class FamilyRepositoryImpl(
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
+                    return DataModel(
+                        null,
+                        false,
+                        e.message
+                    )
                 }
-                families
+                return DataModel(families)
             }
         }
     }
 
-    override suspend fun getOneFamily(companyId: String): Family? {
+    override suspend fun getOneFamily(companyId: String): DataModel {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
                 val querySnapshot = FirebaseFirestore.getInstance().collection("st_family")
@@ -139,18 +151,19 @@ class FamilyRepositoryImpl(
                         val obj = document.toObject(Family::class.java)
                         if (obj.familyId.isNotEmpty()) {
                             obj.familyDocumentId = document.id
-                            return obj
+                            return DataModel(obj)
                         }
                     }
                 }
-                return null
+                return DataModel(null)
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
-                return familyDao.getOneFamily(companyId)
+                return DataModel(familyDao.getOneFamily(companyId))
             }
 
             else -> {
+                var family: Family? = null
                 try {
                     val where = if (SettingsModel.isSqlServerWebDb) "fa_cmp_id='$companyId'" else ""
                     val dbResult = SQLServerWrapper.getListOf(
@@ -162,7 +175,7 @@ class FamilyRepositoryImpl(
                     if (dbResult.succeed) {
                         (dbResult.result as? ResultSet)?.let {
                             if (it.next()) {
-                                return Family().apply {
+                                family = Family().apply {
                                     familyId = it.getStringValue("fa_name")
                                     familyName = if (SettingsModel.isSqlServerWebDb) it.getStringValue("fa_newname") else it.getStringValue(
                                         "fa_name"
@@ -176,13 +189,18 @@ class FamilyRepositoryImpl(
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
+                    return DataModel(
+                        null,
+                        false,
+                        e.message
+                    )
                 }
-                return null
+                return DataModel(family)
             }
         }
     }
 
-    private fun insertByProcedure(family: Family) {
+    private fun insertByProcedure(family: Family): DataModel {
         val parameters = if (SettingsModel.isSqlServerWebDb) {
             listOf(
                 null,//@fa_name
@@ -219,33 +237,41 @@ class FamilyRepositoryImpl(
             "addst_family",
             parameters
         )
-        if (!queryResult.succeed) return
-        val id = queryResult.result as? String
-        if (id.isNullOrEmpty() && SettingsModel.isSqlServerWebDb) {
-            try {
-                val dbResult = SQLServerWrapper.getQueryResult("select max(fa_name) as id from st_item")
-                (dbResult.result as? ResultSet)?.let {
-                    while (it.next()) {
-                        family.familyId = it.getStringValue(
-                            "id",
-                            family.familyId
-                        )
+        if (queryResult.succeed) {
+            val id = queryResult.result as? String
+            if (id.isNullOrEmpty() && SettingsModel.isSqlServerWebDb) {
+                try {
+                    val dbResult = SQLServerWrapper.getQueryResult("select max(fa_name) as id from st_item")
+                    (dbResult.result as? ResultSet)?.let {
+                        while (it.next()) {
+                            family.familyId = it.getStringValue(
+                                "id",
+                                family.familyId
+                            )
+                        }
+                        SQLServerWrapper.closeResultSet(it)
                     }
-                    SQLServerWrapper.closeResultSet(it)
+                } catch (e: Exception) {
+                    e.printStackTrace()
                 }
-            } catch (e: Exception) {
-                e.printStackTrace()
+            } else if (!id.isNullOrEmpty()) {
+                family.familyId = id
             }
-        } else if (!id.isNullOrEmpty()) {
-            family.familyId = id
+            return DataModel(family)
+        } else {
+            return DataModel(
+                family,
+                false,
+                queryResult.result as? String
+            )
         }
     }
 
     private fun updateFamily(
             family: Family
-    ) {
+    ): DataModel {
         val columnName = if (SettingsModel.isSqlServerWebDb) "fa_newname" else "fa_name"
-        SQLServerWrapper.update(
+        val queryResult = SQLServerWrapper.update(
             "st_family",
             listOf(
                 columnName
@@ -255,14 +281,24 @@ class FamilyRepositoryImpl(
             ),
             "fa_name = '${family.familyId}'"
         )
+        return DataModel(
+            family,
+            queryResult.succeed,
+            queryResult.result as? String
+        )
     }
 
-    private fun deleteByProcedure(family: Family) {
-        SQLServerWrapper.executeProcedure(
+    private fun deleteByProcedure(family: Family): DataModel {
+        val queryResult = SQLServerWrapper.executeProcedure(
             "delst_family",
             listOf(
                 family.familyId
             )
+        )
+        return DataModel(
+            family,
+            queryResult.succeed,
+            queryResult.result as? String
         )
     }
 

@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.lifecycle.viewModelScope
 import com.grid.pos.data.currency.Currency
 import com.grid.pos.data.currency.CurrencyRepository
+import com.grid.pos.data.family.Family
 import com.grid.pos.data.family.FamilyRepository
 import com.grid.pos.data.invoice.InvoiceRepository
 import com.grid.pos.data.invoiceHeader.InvoiceHeader
@@ -86,7 +87,7 @@ class POSViewModel @Inject constructor(
             } else {
                 withContext(Dispatchers.Main) {
                     posState.value = posState.value.copy(
-                        warning = if (dataModel.message != null) Event(dataModel.message)else null,
+                        warning = if (dataModel.message != null) Event(dataModel.message) else null,
                         actionLabel = null,
                         isLoading = false
                     )
@@ -109,18 +110,26 @@ class POSViewModel @Inject constructor(
     }
 
     private suspend fun fetchFamilies(stopLoading: Boolean = false) {
-        val listOfFamilies = familyRepository.getAllFamilies()
-        withContext(Dispatchers.Main) {
-            posState.value = if (stopLoading) {
-                posState.value.copy(
-                    families = listOfFamilies,
-                    isLoading = false
-                )
-            } else {
-                posState.value.copy(
-                    families = listOfFamilies
-                )
+        val dataModel = familyRepository.getAllFamilies()
+        if (dataModel.succeed) {
+            val listOfFamilies = convertToMutableList(
+                dataModel.data,
+                Family::class.java
+            )
+            withContext(Dispatchers.Main) {
+                posState.value = if (stopLoading) {
+                    posState.value.copy(
+                        families = listOfFamilies,
+                        isLoading = false
+                    )
+                } else {
+                    posState.value.copy(
+                        families = listOfFamilies
+                    )
+                }
             }
+        } else if (dataModel.message != null) {
+            showWarning(dataModel.message)
         }
     }
 
@@ -178,7 +187,7 @@ class POSViewModel @Inject constructor(
 
     fun showWarning(
             warning: String,
-            action: String
+            action: String? = null
     ) {
         viewModelScope.launch(Dispatchers.Main) {
             posState.value = posState.value.copy(

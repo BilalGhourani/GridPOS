@@ -26,7 +26,7 @@ class ManageFamiliesViewModel @Inject constructor(
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
-           openConnectionIfNeeded()
+            openConnectionIfNeeded()
         }
     }
 
@@ -43,19 +43,27 @@ class ManageFamiliesViewModel @Inject constructor(
             isLoading = true
         )
         viewModelScope.launch(Dispatchers.IO) {
-            val listOfFamilies = familyRepository.getAllFamilies()
-            withContext(Dispatchers.Main) {
-                manageFamiliesState.value = manageFamiliesState.value.copy(
-                    families = listOfFamilies,
-                    isLoading = false
+            val dataModel = familyRepository.getAllFamilies()
+            if (dataModel.succeed) {
+                val listOfFamilies = convertToMutableList(
+                    dataModel.data,
+                    Family::class.java
                 )
+                withContext(Dispatchers.Main) {
+                    manageFamiliesState.value = manageFamiliesState.value.copy(
+                        families = listOfFamilies,
+                        isLoading = false
+                    )
+                }
+            } else if (dataModel.message != null) {
+                showWarning(dataModel.message)
             }
         }
     }
 
     fun showWarning(
             warning: String,
-            action: String
+            action: String? = null
     ) {
         viewModelScope.launch(Dispatchers.Main) {
             manageFamiliesState.value = manageFamiliesState.value.copy(
@@ -81,37 +89,46 @@ class ManageFamiliesViewModel @Inject constructor(
         CoroutineScope(Dispatchers.IO).launch {
             if (isInserting) {
                 family.prepareForInsert()
-                val addedModel = familyRepository.insert(family)
-                val families = manageFamiliesState.value.families
-                if(families.isNotEmpty()) {
-                    families.add(addedModel)
-                }
-                withContext(Dispatchers.Main) {
-                    manageFamiliesState.value = manageFamiliesState.value.copy(
-                        families = families,
-                        selectedFamily = Family(),
-                        isLoading = false,
-                        warning = Event("Family saved successfully."),
-                        clear = true,
-                    )
+                val dataModel = familyRepository.insert(family)
+                if (dataModel.succeed) {
+                    val addedModel = dataModel.data as Family
+                    val families = manageFamiliesState.value.families
+                    if (families.isNotEmpty()) {
+                        families.add(addedModel)
+                    }
+                    withContext(Dispatchers.Main) {
+                        manageFamiliesState.value = manageFamiliesState.value.copy(
+                            families = families,
+                            selectedFamily = Family(),
+                            isLoading = false,
+                            warning = Event("Family saved successfully."),
+                            clear = true,
+                        )
+                    }
+                } else if (dataModel.message != null) {
+                    showWarning(dataModel.message)
                 }
             } else {
-                familyRepository.update(family)
-                val index = manageFamiliesState.value.families.indexOfFirst { it.familyId == family.familyId }
-                if (index >= 0) {
-                    manageFamiliesState.value.families.removeAt(index)
-                    manageFamiliesState.value.families.add(
-                        index,
-                        family
-                    )
-                }
-                withContext(Dispatchers.Main) {
-                    manageFamiliesState.value = manageFamiliesState.value.copy(
-                        selectedFamily = Family(),
-                        isLoading = false,
-                        warning = Event("Family saved successfully."),
-                        clear = true,
-                    )
+                val dataModel = familyRepository.update(family)
+                if (dataModel.succeed) {
+                    val index = manageFamiliesState.value.families.indexOfFirst { it.familyId == family.familyId }
+                    if (index >= 0) {
+                        manageFamiliesState.value.families.removeAt(index)
+                        manageFamiliesState.value.families.add(
+                            index,
+                            family
+                        )
+                    }
+                    withContext(Dispatchers.Main) {
+                        manageFamiliesState.value = manageFamiliesState.value.copy(
+                            selectedFamily = Family(),
+                            isLoading = false,
+                            warning = Event("Family saved successfully."),
+                            clear = true,
+                        )
+                    }
+                } else if (dataModel.message != null) {
+                    showWarning(dataModel.message)
                 }
             }
         }
@@ -140,17 +157,21 @@ class ManageFamiliesViewModel @Inject constructor(
                 }
                 return@launch
             }
-            familyRepository.delete(family)
-            val families = manageFamiliesState.value.families
-            families.remove(family)
-            withContext(Dispatchers.Main) {
-                manageFamiliesState.value = manageFamiliesState.value.copy(
-                    families = families,
-                    selectedFamily = Family(),
-                    isLoading = false,
-                    warning = Event("successfully deleted."),
-                    clear = true
-                )
+            val dataModel = familyRepository.delete(family)
+            if (dataModel.succeed) {
+                val families = manageFamiliesState.value.families
+                families.remove(family)
+                withContext(Dispatchers.Main) {
+                    manageFamiliesState.value = manageFamiliesState.value.copy(
+                        families = families,
+                        selectedFamily = Family(),
+                        isLoading = false,
+                        warning = Event("successfully deleted."),
+                        clear = true
+                    )
+                }
+            } else if (dataModel.message != null) {
+                showWarning(dataModel.message)
             }
         }
     }

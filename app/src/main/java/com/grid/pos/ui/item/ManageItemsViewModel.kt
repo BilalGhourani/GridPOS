@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.lifecycle.viewModelScope
 import com.grid.pos.data.currency.Currency
 import com.grid.pos.data.currency.CurrencyRepository
+import com.grid.pos.data.family.Family
 import com.grid.pos.data.family.FamilyRepository
 import com.grid.pos.data.invoice.InvoiceRepository
 import com.grid.pos.data.item.Item
@@ -76,19 +77,26 @@ class ManageItemsViewModel @Inject constructor(
             )
         }
         viewModelScope.launch(Dispatchers.IO) {
-            val listOfFamilies = familyRepository.getAllFamilies()
-            withContext(Dispatchers.Main) {
-                manageItemsState.value = if (loading) {
-                    manageItemsState.value.copy(
-                        families = listOfFamilies,
-                        isLoading = false
-                    )
-                } else {
-                    manageItemsState.value.copy(
-                        families = listOfFamilies
-                    )
+            val dataModel = familyRepository.getAllFamilies()
+            if (dataModel.succeed) {
+                val listOfFamilies = convertToMutableList(
+                    dataModel.data,
+                    Family::class.java
+                )
+                withContext(Dispatchers.Main) {
+                    manageItemsState.value = if (loading) {
+                        manageItemsState.value.copy(
+                            families = listOfFamilies,
+                            isLoading = false
+                        )
+                    } else {
+                        manageItemsState.value.copy(
+                            families = listOfFamilies
+                        )
+                    }
                 }
-
+            } else if (dataModel.message != null) {
+                showWarning(dataModel.message)
             }
         }
     }
