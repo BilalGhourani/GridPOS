@@ -230,7 +230,8 @@ class ManageCompaniesViewModel @Inject constructor(
         if (userRepository.getOneUser(companyID) != null) {
             return true
         }
-        if (thirdPartyRepository.getOneThirdPartyByCompanyID(companyID) != null) {
+        val thirdPartyDataModel = thirdPartyRepository.getOneThirdPartyByCompanyID(companyID)
+        if (thirdPartyDataModel.succeed && thirdPartyDataModel.data != null) {
             return true
         }
         if (posPrinterRepository.getOnePosPrinter(companyID) != null) {

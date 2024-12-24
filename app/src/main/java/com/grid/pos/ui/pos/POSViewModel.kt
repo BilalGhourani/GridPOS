@@ -112,7 +112,7 @@ class POSViewModel @Inject constructor(
                     )
                 }
             }
-        }else if (dataModel.message != null) {
+        } else if (dataModel.message != null) {
             showWarning(dataModel.message)
         }
     }
@@ -148,29 +148,37 @@ class POSViewModel @Inject constructor(
             )
         }
         viewModelScope.launch(Dispatchers.IO) {
-            val listOfThirdParties = thirdPartyRepository.getAllThirdParties()
-            val defaultTp = posState.value.selectedThirdParty
-            if (defaultTp.thirdPartyId.isNotEmpty()) {
-                val defTp = listOfThirdParties.firstOrNull { it.thirdPartyId == defaultTp.thirdPartyId }
-                if (defTp == null) {
-                    listOfThirdParties.add(
-                        0,
-                        defaultTp
-                    )
+            val dataModel = thirdPartyRepository.getAllThirdParties()
+            if (dataModel.succeed) {
+                val listOfThirdParties = convertToMutableList(
+                    dataModel.data,
+                    ThirdParty::class.java
+                )
+                val defaultTp = posState.value.selectedThirdParty
+                if (defaultTp.thirdPartyId.isNotEmpty()) {
+                    val defTp = listOfThirdParties.firstOrNull { it.thirdPartyId == defaultTp.thirdPartyId }
+                    if (defTp == null) {
+                        listOfThirdParties.add(
+                            0,
+                            defaultTp
+                        )
+                    }
                 }
-            }
-            clientsMap = listOfThirdParties.associateBy { it.thirdPartyId }
-            withContext(Dispatchers.Main) {
-                posState.value = if (withLoading) {
-                    posState.value.copy(
-                        thirdParties = listOfThirdParties,
-                        isLoading = false
-                    )
-                } else {
-                    posState.value.copy(
-                        thirdParties = listOfThirdParties
-                    )
+                clientsMap = listOfThirdParties.associateBy { it.thirdPartyId }
+                withContext(Dispatchers.Main) {
+                    posState.value = if (withLoading) {
+                        posState.value.copy(
+                            thirdParties = listOfThirdParties,
+                            isLoading = false
+                        )
+                    } else {
+                        posState.value.copy(
+                            thirdParties = listOfThirdParties
+                        )
+                    }
                 }
+            } else if (dataModel.message != null) {
+                showWarning(dataModel.message)
             }
         }
     }
@@ -572,7 +580,7 @@ class POSViewModel @Inject constructor(
             SettingsModel.defaultThirdParty
         } else {
             if (posState.value.thirdParties.isEmpty()) {
-                thirdPartyRepository.getThirdPartyByID(invoiceHeader.invoiceHeadThirdPartyName!!)
+                thirdPartyRepository.getThirdPartyByID(invoiceHeader.invoiceHeadThirdPartyName!!).data as? ThirdParty
             } else {
                 posState.value.thirdParties.firstOrNull {
                     it.thirdPartyId == invoiceHeader.invoiceHeadThirdPartyName

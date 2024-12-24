@@ -26,7 +26,6 @@ import com.grid.pos.model.ReportCountry
 import com.grid.pos.model.ReportResult
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.BaseViewModel
-import com.grid.pos.utils.DataStoreManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
@@ -94,7 +93,10 @@ class SharedViewModel @Inject constructor(
         )
         SettingsModel.defaultSqlServerBranch = settingsRepository.getDefaultBranch()
         SettingsModel.defaultSqlServerWarehouse = settingsRepository.getDefaultWarehouse()
-        SettingsModel.defaultThirdParty = thirdPartyRepository.getDefaultThirdParty()
+        val dataModel = thirdPartyRepository.getDefaultThirdParty()
+        if (dataModel.succeed) {
+            SettingsModel.defaultThirdParty = dataModel.data as? ThirdParty
+        }
         val currency = SettingsModel.currentCurrency ?: return
 
         SettingsModel.posReceiptAccCashId = settingsRepository.getPosReceiptAccIdBy(
@@ -337,21 +339,6 @@ class SharedViewModel @Inject constructor(
 
     fun isLoggedIn(): Boolean {
         return activityState.value.isLoggedIn
-    }
-
-    fun isInvoiceItemQtyChanged(
-            invoiceItemId: String,
-            newQty: Double
-    ): Boolean {
-        if (invoiceItemId.isEmpty()) {
-            return false
-        }
-        initialInvoiceItemModels.forEach {
-            if (it.invoice.invoiceId == invoiceItemId && it.invoice.invoiceQuantity != newQty) {
-                return true
-            }
-        }
-        return false
     }
 
     fun logout() {

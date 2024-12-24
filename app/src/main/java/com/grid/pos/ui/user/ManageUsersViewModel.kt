@@ -163,7 +163,10 @@ class ManageUsersViewModel @Inject constructor(
     private suspend fun hasRelations(userID: String): Boolean {
         if (userID.equals(SettingsModel.currentUser?.userId)) return true
 
-        if (thirdPartyRepository.getOneThirdPartyByUserID(userID) != null) return true
+        val thirdPartyDataModel = thirdPartyRepository.getOneThirdPartyByUserID(userID)
+        if (thirdPartyDataModel.succeed && thirdPartyDataModel.data != null) {
+            return true
+        }
 
         if (invoiceHeaderRepository.getOneInvoiceByUserID(userID) != null) return true
 

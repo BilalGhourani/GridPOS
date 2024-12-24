@@ -67,6 +67,9 @@ class PaymentsViewModel @Inject constructor(
             isLoading = true
         )
         viewModelScope.launch(Dispatchers.IO) {
+            if (paymentsState.value.thirdParties.isEmpty()) {
+                fetchThirdParties(false)
+            }
             val dataModel = paymentRepository.getAllPayments()
             if (dataModel.succeed) {
                 val listOfPayments = convertToMutableList(
@@ -121,27 +124,49 @@ class PaymentsViewModel @Inject constructor(
 
     suspend fun fetchThirdParties(loading: Boolean = true) {
         if (loading) {
-            paymentsState.value = paymentsState.value.copy(
-                warning = null,
-                isLoading = true
-            )
+            withContext(Dispatchers.Main) {
+                paymentsState.value = paymentsState.value.copy(
+                    warning = null,
+                    isLoading = true
+                )
+            }
         }
-        val listOfThirdParties = thirdPartyRepository.getAllThirdParties(
+
+        val dataModel = thirdPartyRepository.getAllThirdParties(
             listOf(
                 ThirdPartyType.PAYABLE.type,
                 ThirdPartyType.PAYABLE_RECEIVALBE.type
             )
         )
-        withContext(Dispatchers.Main) {
-            if (loading) {
-                paymentsState.value = paymentsState.value.copy(
-                    thirdParties = listOfThirdParties,
-                    isLoading = false
-                )
-            } else {
-                paymentsState.value = paymentsState.value.copy(
-                    thirdParties = listOfThirdParties
-                )
+        if (dataModel.succeed) {
+            val listOfThirdParties = convertToMutableList(
+                dataModel.data,
+                ThirdParty::class.java
+            )
+            withContext(Dispatchers.Main) {
+                if (loading) {
+                    paymentsState.value = paymentsState.value.copy(
+                        thirdParties = listOfThirdParties,
+                        isLoading = false
+                    )
+                } else {
+                    paymentsState.value = paymentsState.value.copy(
+                        thirdParties = listOfThirdParties
+                    )
+                }
+            }
+        } else if (dataModel.message != null) {
+            withContext(Dispatchers.Main) {
+                if (loading) {
+                    paymentsState.value = paymentsState.value.copy(
+                        warning = Event(dataModel.message),
+                        isLoading = false
+                    )
+                } else {
+                    paymentsState.value = paymentsState.value.copy(
+                        warning = Event(dataModel.message)
+                    )
+                }
             }
         }
     }

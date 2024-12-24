@@ -124,28 +124,49 @@ class ReceiptsViewModel @Inject constructor(
 
     suspend fun fetchThirdParties(loading: Boolean = true) {
         if (loading) {
-            receiptsState.value = receiptsState.value.copy(
-                warning = null,
-                isLoading = true
-            )
+            withContext(Dispatchers.Main) {
+                receiptsState.value = receiptsState.value.copy(
+                    warning = null,
+                    isLoading = true
+                )
+            }
         }
-        val listOfThirdParties = thirdPartyRepository.getAllThirdParties(
+        val dataModel = thirdPartyRepository.getAllThirdParties(
             listOf(
                 ThirdPartyType.RECEIVALBE.type,
                 ThirdPartyType.PAYABLE_RECEIVALBE.type
             )
         )
-        clientsMap = listOfThirdParties.associateBy { it.thirdPartyId }
-        withContext(Dispatchers.Main) {
-            if (loading) {
-                receiptsState.value = receiptsState.value.copy(
-                    thirdParties = listOfThirdParties,
-                    isLoading = false
-                )
-            } else {
-                receiptsState.value = receiptsState.value.copy(
-                    thirdParties = listOfThirdParties
-                )
+        if (dataModel.succeed) {
+            val listOfThirdParties = convertToMutableList(
+                dataModel.data,
+                ThirdParty::class.java
+            )
+            clientsMap = listOfThirdParties.associateBy { it.thirdPartyId }
+            withContext(Dispatchers.Main) {
+                if (loading) {
+                    receiptsState.value = receiptsState.value.copy(
+                        thirdParties = listOfThirdParties,
+                        isLoading = false
+                    )
+                } else {
+                    receiptsState.value = receiptsState.value.copy(
+                        thirdParties = listOfThirdParties
+                    )
+                }
+            }
+        } else if (dataModel.message != null) {
+            withContext(Dispatchers.Main) {
+                if (loading) {
+                    receiptsState.value = receiptsState.value.copy(
+                        warning = Event(dataModel.message),
+                        isLoading = false
+                    )
+                } else {
+                    receiptsState.value = receiptsState.value.copy(
+                        warning = Event(dataModel.message)
+                    )
+                }
             }
         }
     }

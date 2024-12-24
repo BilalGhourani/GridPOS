@@ -27,7 +27,8 @@ class ManageThirdPartiesViewModel @Inject constructor(
     init {
         viewModelScope.launch(Dispatchers.IO) {
             openConnectionIfNeeded()
-            val isDefaultEnabled = thirdPartyRepository.getDefaultThirdParty() == null
+            val dataModel = thirdPartyRepository.getDefaultThirdParty()
+            val isDefaultEnabled = dataModel.succeed && dataModel.data == null
             withContext(Dispatchers.Main) {
                 manageThirdPartiesState.value = manageThirdPartiesState.value.copy(
                     enableIsDefault = isDefaultEnabled
@@ -50,14 +51,28 @@ class ManageThirdPartiesViewModel @Inject constructor(
             isLoading = true
         )
         viewModelScope.launch(Dispatchers.IO) {
-            val listOfThirdParties = thirdPartyRepository.getAllThirdParties()
-            val isDefaultEnabled = listOfThirdParties.none { it.thirdPartyDefault }
-            withContext(Dispatchers.Main) {
-                manageThirdPartiesState.value = manageThirdPartiesState.value.copy(
-                    thirdParties = listOfThirdParties,
-                    enableIsDefault = isDefaultEnabled,
-                    isLoading = false
+            val dataModel = thirdPartyRepository.getAllThirdParties()
+            if (dataModel.succeed) {
+                val listOfThirdParties = convertToMutableList(
+                    dataModel.data,
+                    ThirdParty::class.java
                 )
+                val isDefaultEnabled = listOfThirdParties.none { it.thirdPartyDefault }
+                withContext(Dispatchers.Main) {
+                    manageThirdPartiesState.value = manageThirdPartiesState.value.copy(
+                        thirdParties = listOfThirdParties,
+                        enableIsDefault = isDefaultEnabled,
+                        isLoading = false
+                    )
+                }
+            } else if (dataModel.message != null) {
+                withContext(Dispatchers.Main) {
+                    manageThirdPartiesState.value = manageThirdPartiesState.value.copy(
+                        isLoading = false,
+                        warning = Event(dataModel.message),
+
+                        )
+                }
             }
         }
     }
@@ -77,44 +92,65 @@ class ManageThirdPartiesViewModel @Inject constructor(
         CoroutineScope(Dispatchers.IO).launch {
             if (isInserting) {
                 thirdParty.prepareForInsert()
-                val addedModel = thirdPartyRepository.insert(thirdParty)
-                val thirdParties = manageThirdPartiesState.value.thirdParties
-                if (thirdParties.isNotEmpty()) {
-                    thirdParties.add(addedModel)
-                }
-                val isDefaultEnabled = thirdParties.none { it.thirdPartyDefault }
-                withContext(Dispatchers.Main) {
-                    manageThirdPartiesState.value = manageThirdPartiesState.value.copy(
-                        thirdParties = thirdParties,
-                        enableIsDefault = isDefaultEnabled,
-                        selectedThirdParty = addedModel,
-                        isLoading = false,
-                        warning = Event("ThirdParty saved successfully."),
-                        clear = true
-                    )
+                val dataModel = thirdPartyRepository.insert(thirdParty)
+                if (dataModel.succeed) {
+                    val addedModel = dataModel.data as ThirdParty
+                    val thirdParties = manageThirdPartiesState.value.thirdParties
+                    if (thirdParties.isNotEmpty()) {
+                        thirdParties.add(addedModel)
+                    }
+                    val isDefaultEnabled = thirdParties.none { it.thirdPartyDefault }
+                    withContext(Dispatchers.Main) {
+                        manageThirdPartiesState.value = manageThirdPartiesState.value.copy(
+                            thirdParties = thirdParties,
+                            enableIsDefault = isDefaultEnabled,
+                            selectedThirdParty = addedModel,
+                            isLoading = false,
+                            warning = Event("ThirdParty saved successfully."),
+                            clear = true
+                        )
+                    }
+                } else if (dataModel.message != null) {
+                    withContext(Dispatchers.Main) {
+                        manageThirdPartiesState.value = manageThirdPartiesState.value.copy(
+                            isLoading = false,
+                            warning = Event(dataModel.message),
+
+                            )
+                    }
                 }
             } else {
-                thirdPartyRepository.update(
+                val dataModel = thirdPartyRepository.update(
                     currentThirdParty.thirdPartyId,
                     thirdParty
                 )
-                val index = manageThirdPartiesState.value.thirdParties.indexOfFirst { it.thirdPartyId == thirdParty.thirdPartyId }
-                if (index >= 0) {
-                    manageThirdPartiesState.value.thirdParties.removeAt(index)
-                    manageThirdPartiesState.value.thirdParties.add(
-                        index,
-                        thirdParty
-                    )
-                }
-                val isDefaultEnabled = manageThirdPartiesState.value.thirdParties.none { it.thirdPartyDefault }
-                withContext(Dispatchers.Main) {
-                    manageThirdPartiesState.value = manageThirdPartiesState.value.copy(
-                        selectedThirdParty = thirdParty,
-                        enableIsDefault = isDefaultEnabled,
-                        isLoading = false,
-                        warning = Event("ThirdParty saved successfully."),
-                        clear = true
-                    )
+                if (dataModel.succeed) {
+                    val index = manageThirdPartiesState.value.thirdParties.indexOfFirst { it.thirdPartyId == thirdParty.thirdPartyId }
+                    if (index >= 0) {
+                        manageThirdPartiesState.value.thirdParties.removeAt(index)
+                        manageThirdPartiesState.value.thirdParties.add(
+                            index,
+                            thirdParty
+                        )
+                    }
+                    val isDefaultEnabled = manageThirdPartiesState.value.thirdParties.none { it.thirdPartyDefault }
+                    withContext(Dispatchers.Main) {
+                        manageThirdPartiesState.value = manageThirdPartiesState.value.copy(
+                            selectedThirdParty = thirdParty,
+                            enableIsDefault = isDefaultEnabled,
+                            isLoading = false,
+                            warning = Event("ThirdParty saved successfully."),
+                            clear = true
+                        )
+                    }
+                } else if (dataModel.message != null) {
+                    withContext(Dispatchers.Main) {
+                        manageThirdPartiesState.value = manageThirdPartiesState.value.copy(
+                            isLoading = false,
+                            warning = Event(dataModel.message),
+
+                            )
+                    }
                 }
             }
         }
@@ -144,27 +180,35 @@ class ManageThirdPartiesViewModel @Inject constructor(
                 }
                 return@launch
             }
-            thirdPartyRepository.delete(thirdParty)
-            val thirdParties = manageThirdPartiesState.value.thirdParties
-            thirdParties.remove(thirdParty)
-            val isDefaultEnabled = thirdParties.none { it.thirdPartyDefault }
-            withContext(Dispatchers.Main) {
-                manageThirdPartiesState.value = manageThirdPartiesState.value.copy(
-                    thirdParties = thirdParties,
-                    selectedThirdParty = ThirdParty(),
-                    enableIsDefault = isDefaultEnabled,
-                    isLoading = false,
-                    warning = Event("successfully deleted."),
-                    clear = true
-                )
+            val dataModel = thirdPartyRepository.delete(thirdParty)
+            if (dataModel.succeed) {
+                val thirdParties = manageThirdPartiesState.value.thirdParties
+                thirdParties.remove(thirdParty)
+                val isDefaultEnabled = thirdParties.none { it.thirdPartyDefault }
+                withContext(Dispatchers.Main) {
+                    manageThirdPartiesState.value = manageThirdPartiesState.value.copy(
+                        thirdParties = thirdParties,
+                        selectedThirdParty = ThirdParty(),
+                        enableIsDefault = isDefaultEnabled,
+                        isLoading = false,
+                        warning = Event("successfully deleted."),
+                        clear = true
+                    )
+                }
+            } else if (dataModel.message != null) {
+                withContext(Dispatchers.Main) {
+                    manageThirdPartiesState.value = manageThirdPartiesState.value.copy(
+                        isLoading = false,
+                        warning = Event(dataModel.message),
+
+                        )
+                }
             }
         }
     }
 
     private suspend fun hasRelations(clientID: String): Boolean {
-        if (invoiceHeaderRepository.getOneInvoiceByClientID(clientID) != null) return true
-
-        return false
+        return invoiceHeaderRepository.getOneInvoiceByClientID(clientID) != null
     }
 
 }
