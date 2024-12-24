@@ -8,6 +8,7 @@ import com.grid.pos.data.family.FamilyRepository
 import com.grid.pos.data.invoice.InvoiceRepository
 import com.grid.pos.data.item.Item
 import com.grid.pos.data.item.ItemRepository
+import com.grid.pos.data.posPrinter.PosPrinter
 import com.grid.pos.data.posPrinter.PosPrinterRepository
 import com.grid.pos.model.CurrencyModel
 import com.grid.pos.model.Event
@@ -132,18 +133,26 @@ class ManageItemsViewModel @Inject constructor(
             )
         }
         viewModelScope.launch(Dispatchers.IO) {
-            val listOfPrinters = posPrinterRepository.getAllPosPrinters()
-            withContext(Dispatchers.Main) {
-                manageItemsState.value = if (loading) {
-                    manageItemsState.value.copy(
-                        printers = listOfPrinters,
-                        isLoading = false
-                    )
-                } else {
-                    manageItemsState.value.copy(
-                        printers = listOfPrinters
-                    )
+            val dataModel = posPrinterRepository.getAllPosPrinters()
+            if (dataModel.succeed) {
+                val listOfPrinters = convertToMutableList(
+                    dataModel.data,
+                    PosPrinter::class.java
+                )
+                withContext(Dispatchers.Main) {
+                    manageItemsState.value = if (loading) {
+                        manageItemsState.value.copy(
+                            printers = listOfPrinters,
+                            isLoading = false
+                        )
+                    } else {
+                        manageItemsState.value.copy(
+                            printers = listOfPrinters
+                        )
+                    }
                 }
+            } else if (dataModel.message != null) {
+                showWarning(dataModel.message)
             }
         }
     }

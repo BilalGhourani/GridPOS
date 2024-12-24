@@ -236,7 +236,8 @@ class ManageCompaniesViewModel @Inject constructor(
         if (dataModel.succeed && dataModel.data != null) {
             return true
         }
-        if (posPrinterRepository.getOnePosPrinter(companyID) != null) {
+        dataModel = posPrinterRepository.getOnePosPrinter(companyID)
+        if (dataModel.succeed && dataModel.data != null) {
             return true
         }
         return false

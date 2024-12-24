@@ -11,6 +11,7 @@ import com.grid.pos.data.invoiceHeader.InvoiceHeader
 import com.grid.pos.data.invoiceHeader.InvoiceHeaderRepository
 import com.grid.pos.data.item.Item
 import com.grid.pos.data.item.ItemRepository
+import com.grid.pos.data.posPrinter.PosPrinter
 import com.grid.pos.data.posPrinter.PosPrinterRepository
 import com.grid.pos.data.posReceipt.PosReceipt
 import com.grid.pos.data.posReceipt.PosReceiptRepository
@@ -636,7 +637,13 @@ class POSViewModel @Inject constructor(
     ) {
         if (SettingsModel.autoPrintTickets) {
             if (posState.value.printers.isEmpty()) {
-                posState.value.printers = posPrinterRepository.getAllPosPrinters()
+                val dataModel = posPrinterRepository.getAllPosPrinters()
+                if (dataModel.succeed) {
+                    posState.value.printers = convertToMutableList(
+                        dataModel.data,
+                        PosPrinter::class.java
+                    )
+                }
             }
             val itemsPrintersMap = invoiceItems.filter { it.shouldPrint || it.isDeleted }
                 .groupBy { it.invoiceItem.itemPrinter ?: "" }

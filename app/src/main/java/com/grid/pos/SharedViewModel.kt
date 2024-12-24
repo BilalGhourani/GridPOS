@@ -180,7 +180,10 @@ class SharedViewModel @Inject constructor(
     }
 
     private suspend fun fetchPrinters() {
-        printers = posPrinterRepository.getAllPosPrinters()
+        val dataModel = posPrinterRepository.getAllPosPrinters()
+        if(dataModel.succeed){
+            printers = convertToMutableList(dataModel.data,PosPrinter::class.java)
+        }
     }
 
     suspend fun updateRealItemPrice(item: Item): Double {

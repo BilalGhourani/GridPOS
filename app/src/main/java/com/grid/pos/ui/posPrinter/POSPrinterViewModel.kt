@@ -44,19 +44,27 @@ class POSPrinterViewModel @Inject constructor(
             isLoading = true
         )
         viewModelScope.launch(Dispatchers.IO) {
-            val listOfPrinters = posPrinterRepository.getAllPosPrinters()
-            withContext(Dispatchers.Main) {
-                posPrinterState.value = posPrinterState.value.copy(
-                    printers = listOfPrinters,
-                    isLoading = false
+            val dataModel = posPrinterRepository.getAllPosPrinters()
+            if (dataModel.succeed) {
+                val listOfPrinters = convertToMutableList(
+                    dataModel.data,
+                    PosPrinter::class.java
                 )
+                withContext(Dispatchers.Main) {
+                    posPrinterState.value = posPrinterState.value.copy(
+                        printers = listOfPrinters,
+                        isLoading = false
+                    )
+                }
+            } else if (dataModel.message != null) {
+                showWarning(dataModel.message)
             }
         }
     }
 
     fun showWarning(
             warning: String,
-            action: String
+            action: String? = null
     ) {
         viewModelScope.launch(Dispatchers.Main) {
             posPrinterState.value = posPrinterState.value.copy(
@@ -82,37 +90,46 @@ class POSPrinterViewModel @Inject constructor(
         CoroutineScope(Dispatchers.IO).launch {
             if (isInserting) {
                 printer.prepareForInsert()
-                val addedModel = posPrinterRepository.insert(printer)
-                val printers = posPrinterState.value.printers
-                if (printers.isNotEmpty()) {
-                    printers.add(addedModel)
-                }
-                withContext(Dispatchers.Main) {
-                    posPrinterState.value = posPrinterState.value.copy(
-                        printers = printers,
-                        selectedPrinter = PosPrinter(),
-                        isLoading = false,
-                        warning = Event("Printer saved successfully."),
-                        clear = true,
-                    )
+                val dataModel = posPrinterRepository.insert(printer)
+                if (dataModel.succeed) {
+                    val addedModel = dataModel.data as PosPrinter
+                    val printers = posPrinterState.value.printers
+                    if (printers.isNotEmpty()) {
+                        printers.add(addedModel)
+                    }
+                    withContext(Dispatchers.Main) {
+                        posPrinterState.value = posPrinterState.value.copy(
+                            printers = printers,
+                            selectedPrinter = PosPrinter(),
+                            isLoading = false,
+                            warning = Event("Printer saved successfully."),
+                            clear = true,
+                        )
+                    }
+                } else if (dataModel.message != null) {
+                    showWarning(dataModel.message)
                 }
             } else {
-                posPrinterRepository.update(printer)
-                val index = posPrinterState.value.printers.indexOfFirst { it.posPrinterId == printer.posPrinterId }
-                if (index >= 0) {
-                    posPrinterState.value.printers.removeAt(index)
-                    posPrinterState.value.printers.add(
-                        index,
-                        printer
-                    )
-                }
-                withContext(Dispatchers.Main) {
-                    posPrinterState.value = posPrinterState.value.copy(
-                        selectedPrinter = PosPrinter(),
-                        isLoading = false,
-                        warning = Event("Printer saved successfully."),
-                        clear = true,
-                    )
+                val dataModel = posPrinterRepository.update(printer)
+                if (dataModel.succeed) {
+                    val index = posPrinterState.value.printers.indexOfFirst { it.posPrinterId == printer.posPrinterId }
+                    if (index >= 0) {
+                        posPrinterState.value.printers.removeAt(index)
+                        posPrinterState.value.printers.add(
+                            index,
+                            printer
+                        )
+                    }
+                    withContext(Dispatchers.Main) {
+                        posPrinterState.value = posPrinterState.value.copy(
+                            selectedPrinter = PosPrinter(),
+                            isLoading = false,
+                            warning = Event("Printer saved successfully."),
+                            clear = true,
+                        )
+                    }
+                } else if (dataModel.message != null) {
+                    showWarning(dataModel.message)
                 }
             }
         }
@@ -141,25 +158,27 @@ class POSPrinterViewModel @Inject constructor(
                 }
                 return@launch
             }
-            posPrinterRepository.delete(printer)
-            val printers = posPrinterState.value.printers
-            printers.remove(printer)
-            withContext(Dispatchers.Main) {
-                posPrinterState.value = posPrinterState.value.copy(
-                    printers = printers,
-                    selectedPrinter = PosPrinter(),
-                    isLoading = false,
-                    warning = Event("successfully deleted."),
-                    clear = true
-                )
+            val dataModel = posPrinterRepository.delete(printer)
+            if (dataModel.succeed) {
+                val printers = posPrinterState.value.printers
+                printers.remove(printer)
+                withContext(Dispatchers.Main) {
+                    posPrinterState.value = posPrinterState.value.copy(
+                        printers = printers,
+                        selectedPrinter = PosPrinter(),
+                        isLoading = false,
+                        warning = Event("successfully deleted."),
+                        clear = true
+                    )
+                }
+            } else if (dataModel.message != null) {
+                showWarning(dataModel.message)
             }
         }
     }
 
     private suspend fun hasRelations(printerId: String): Boolean {
         val itemDataModel = itemRepository.getOneItemByPrinter(printerId)
-        if (itemDataModel.succeed && itemDataModel.data != null) return true
-
-        return false
+        return itemDataModel.succeed && itemDataModel.data != null
     }
 }
