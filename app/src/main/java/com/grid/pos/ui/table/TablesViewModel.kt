@@ -2,6 +2,7 @@ package com.grid.pos.ui.table
 
 import androidx.lifecycle.viewModelScope
 import com.grid.pos.data.invoiceHeader.InvoiceHeaderRepository
+import com.grid.pos.data.user.User
 import com.grid.pos.data.user.UserRepository
 import com.grid.pos.model.Event
 import com.grid.pos.model.SettingsModel
@@ -96,10 +97,13 @@ class TablesViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             val tableInvoiceModel = invoiceHeaderRepository.getInvoiceByTable(tableModel)
             if (!tableInvoiceModel.lockedByUser.isNullOrEmpty()) {
-                val user = userRepository.getUserById(tableInvoiceModel.lockedByUser!!)
+                val dataModel = userRepository.getUserById(tableInvoiceModel.lockedByUser!!)
                 var name = "someone"
-                if (user != null) {
-                    name = user.userName ?: "someone"
+                if (dataModel.succeed) {
+                    val user = dataModel.data as? User
+                    if (user != null) {
+                        name = user.userName ?: "someone"
+                    }
                 }
                 viewModelScope.launch(Dispatchers.Main) {
                     tablesState.value = tablesState.value.copy(

@@ -47,12 +47,25 @@ class ManageUsersViewModel @Inject constructor(
             isLoading = true
         )
         viewModelScope.launch(Dispatchers.IO) {
-            val listOfUsers = userRepository.getAllUsers()
-            withContext(Dispatchers.Main) {
-                manageUsersState.value = manageUsersState.value.copy(
-                    users = listOfUsers,
-                    isLoading = false
+            val dataModel = userRepository.getAllUsers()
+            if (dataModel.succeed) {
+                val listOfUsers = convertToMutableList(
+                    dataModel.data,
+                    User::class.java
                 )
+                withContext(Dispatchers.Main) {
+                    manageUsersState.value = manageUsersState.value.copy(
+                        users = listOfUsers,
+                        isLoading = false
+                    )
+                }
+            } else if (dataModel.message != null) {
+                withContext(Dispatchers.Main) {
+                    manageUsersState.value = manageUsersState.value.copy(
+                        isLoading = false,
+                        warning = Event(dataModel.message),
+                    )
+                }
             }
         }
     }
@@ -80,43 +93,62 @@ class ManageUsersViewModel @Inject constructor(
                     user.userPosMode = true
                     user.userTableMode = true
                 }
-                val addedModel = userRepository.insert(user)
-                val users = manageUsersState.value.users
-                if (users.isNotEmpty()) {
-                    users.add(addedModel)
-                }
-                val msg = if (isRegistering) {
-                    "User saved successfully and Registration is done."
-                } else {
-                    "User saved successfully."
-                }
-                withContext(Dispatchers.Main) {
-                    manageUsersState.value = manageUsersState.value.copy(
-                        users = users,
-                        selectedUser = addedModel,
-                        isLoading = false,
-                        warning = Event(msg),
-                        action = "done",
-                        clear = true
-                    )
+                val dataModel = userRepository.insert(user)
+                if (dataModel.succeed) {
+                    val addedModel = dataModel.data as User
+                    val users = manageUsersState.value.users
+                    if (users.isNotEmpty()) {
+                        users.add(addedModel)
+                    }
+                    val msg = if (isRegistering) {
+                        "User saved successfully and Registration is done."
+                    } else {
+                        "User saved successfully."
+                    }
+                    withContext(Dispatchers.Main) {
+                        manageUsersState.value = manageUsersState.value.copy(
+                            users = users,
+                            selectedUser = addedModel,
+                            isLoading = false,
+                            warning = Event(msg),
+                            action = "done",
+                            clear = true
+                        )
+                    }
+                } else if (dataModel.message != null) {
+                    withContext(Dispatchers.Main) {
+                        manageUsersState.value = manageUsersState.value.copy(
+                            isLoading = false,
+                            warning = Event(dataModel.message),
+                        )
+                    }
                 }
             } else {
-                userRepository.update(user)
-                val index = manageUsersState.value.users.indexOfFirst { it.userId == user.userId }
-                if (index >= 0) {
-                    manageUsersState.value.users.removeAt(index)
-                    manageUsersState.value.users.add(
-                        index,
-                        user
-                    )
-                }
-                withContext(Dispatchers.Main) {
-                    manageUsersState.value = manageUsersState.value.copy(
-                        selectedUser = user,
-                        isLoading = false,
-                        warning = Event("User saved successfully."),
-                        clear = true
-                    )
+                val dataModel = userRepository.update(user)
+                if (dataModel.succeed) {
+                    val index = manageUsersState.value.users.indexOfFirst { it.userId == user.userId }
+                    if (index >= 0) {
+                        manageUsersState.value.users.removeAt(index)
+                        manageUsersState.value.users.add(
+                            index,
+                            user
+                        )
+                    }
+                    withContext(Dispatchers.Main) {
+                        manageUsersState.value = manageUsersState.value.copy(
+                            selectedUser = user,
+                            isLoading = false,
+                            warning = Event("User saved successfully."),
+                            clear = true
+                        )
+                    }
+                } else if (dataModel.message != null) {
+                    withContext(Dispatchers.Main) {
+                        manageUsersState.value = manageUsersState.value.copy(
+                            isLoading = false,
+                            warning = Event(dataModel.message),
+                        )
+                    }
                 }
             }
         }
@@ -145,23 +177,32 @@ class ManageUsersViewModel @Inject constructor(
                 }
                 return@launch
             }
-            userRepository.delete(user)
-            val users = manageUsersState.value.users
-            users.remove(user)
-            withContext(Dispatchers.Main) {
-                manageUsersState.value = manageUsersState.value.copy(
-                    users = users,
-                    selectedUser = User(),
-                    isLoading = false,
-                    warning = Event("successfully deleted."),
-                    clear = true
-                )
+            val dataModel = userRepository.delete(user)
+            if (dataModel.succeed) {
+                val users = manageUsersState.value.users
+                users.remove(user)
+                withContext(Dispatchers.Main) {
+                    manageUsersState.value = manageUsersState.value.copy(
+                        users = users,
+                        selectedUser = User(),
+                        isLoading = false,
+                        warning = Event("successfully deleted."),
+                        clear = true
+                    )
+                }
+            } else if (dataModel.message != null) {
+                withContext(Dispatchers.Main) {
+                    manageUsersState.value = manageUsersState.value.copy(
+                        isLoading = false,
+                        warning = Event(dataModel.message),
+                    )
+                }
             }
         }
     }
 
     private suspend fun hasRelations(userID: String): Boolean {
-        if (userID.equals(SettingsModel.currentUser?.userId)) return true
+        if (userID == SettingsModel.currentUser?.userId) return true
 
         val thirdPartyDataModel = thirdPartyRepository.getOneThirdPartyByUserID(userID)
         if (thirdPartyDataModel.succeed && thirdPartyDataModel.data != null) {

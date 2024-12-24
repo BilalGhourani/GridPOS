@@ -8,6 +8,7 @@ import com.grid.pos.data.payment.Payment
 import com.grid.pos.data.payment.PaymentRepository
 import com.grid.pos.data.thirdParty.ThirdParty
 import com.grid.pos.data.thirdParty.ThirdPartyRepository
+import com.grid.pos.data.user.User
 import com.grid.pos.data.user.UserRepository
 import com.grid.pos.model.CurrencyModel
 import com.grid.pos.model.Event
@@ -345,7 +346,7 @@ class PaymentsViewModel @Inject constructor(
             SettingsModel.currentUser
         } else {
             if (paymentsState.value.users.isEmpty()) {
-                paymentsState.value.users = userRepository.getAllUsers()
+                paymentsState.value.users = convertToMutableList(userRepository.getAllUsers().data,User::class.java)
             }
             paymentsState.value.users.firstOrNull {
                 it.userId == userId || it.userUsername == userId

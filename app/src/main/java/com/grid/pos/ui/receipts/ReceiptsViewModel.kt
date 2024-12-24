@@ -8,6 +8,7 @@ import com.grid.pos.data.receipt.Receipt
 import com.grid.pos.data.receipt.ReceiptRepository
 import com.grid.pos.data.thirdParty.ThirdParty
 import com.grid.pos.data.thirdParty.ThirdPartyRepository
+import com.grid.pos.data.user.User
 import com.grid.pos.data.user.UserRepository
 import com.grid.pos.model.CurrencyModel
 import com.grid.pos.model.Event
@@ -342,7 +343,8 @@ class ReceiptsViewModel @Inject constructor(
             SettingsModel.currentUser
         } else {
             if (receiptsState.value.users.isEmpty()) {
-                receiptsState.value.users = userRepository.getAllUsers()
+                receiptsState.value.users = convertToMutableList(userRepository.getAllUsers().data,
+                    User::class.java)
             }
             receiptsState.value.users.firstOrNull {
                 it.userId == userId || it.userUsername == userId

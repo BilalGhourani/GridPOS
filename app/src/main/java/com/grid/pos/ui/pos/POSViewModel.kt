@@ -16,6 +16,7 @@ import com.grid.pos.data.posReceipt.PosReceipt
 import com.grid.pos.data.posReceipt.PosReceiptRepository
 import com.grid.pos.data.thirdParty.ThirdParty
 import com.grid.pos.data.thirdParty.ThirdPartyRepository
+import com.grid.pos.data.user.User
 import com.grid.pos.data.user.UserRepository
 import com.grid.pos.model.Event
 import com.grid.pos.model.InvoiceItemModel
@@ -591,7 +592,7 @@ class POSViewModel @Inject constructor(
             SettingsModel.currentUser
         } else {
             if (posState.value.users.isEmpty()) {
-                userRepository.getUserById(invoiceHeader.invoiceHeadUserStamp!!)
+                userRepository.getUserById(invoiceHeader.invoiceHeadUserStamp!!).data as? User
             } else {
                 posState.value.users.firstOrNull {
                     it.userId == invoiceHeader.invoiceHeadUserStamp || it.userUsername == invoiceHeader.invoiceHeadUserStamp

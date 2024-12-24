@@ -225,13 +225,15 @@ class ManageCompaniesViewModel @Inject constructor(
     }
 
     private suspend fun hasRelations(companyID: String): Boolean {
-        val familyDataModel = familyRepository.getOneFamily(companyID)
-        if (familyDataModel.succeed && familyDataModel.data != null) return true
-        if (userRepository.getOneUser(companyID) != null) {
+        var dataModel = familyRepository.getOneFamily(companyID)
+        if (dataModel.succeed && dataModel.data != null) return true
+
+        dataModel = userRepository.getOneUser(companyID)
+        if (dataModel.succeed && dataModel.data != null) {
             return true
         }
-        val thirdPartyDataModel = thirdPartyRepository.getOneThirdPartyByCompanyID(companyID)
-        if (thirdPartyDataModel.succeed && thirdPartyDataModel.data != null) {
+        dataModel = thirdPartyRepository.getOneThirdPartyByCompanyID(companyID)
+        if (dataModel.succeed && dataModel.data != null) {
             return true
         }
         if (posPrinterRepository.getOnePosPrinter(companyID) != null) {
