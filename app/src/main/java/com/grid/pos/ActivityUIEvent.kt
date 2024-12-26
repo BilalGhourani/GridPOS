@@ -15,6 +15,10 @@ sealed class ActivityUIEvent {
             val timeout: Long
     ) : ActivityUIEvent()
 
+    class ShowWarning(
+            var message:String
+    ) : ActivityUIEvent()
+
     class ShowPopup(
             var show: Boolean,
             var popupModel: PopupModel?

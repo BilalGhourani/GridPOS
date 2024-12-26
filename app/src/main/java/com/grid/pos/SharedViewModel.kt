@@ -3,6 +3,7 @@ package com.grid.pos
 import android.content.Intent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.lifecycle.viewModelScope
+import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.data.company.Company
 import com.grid.pos.data.company.CompanyRepository
 import com.grid.pos.data.currency.Currency
@@ -71,6 +72,10 @@ class SharedViewModel @Inject constructor(
 
     private val _activityState = MutableStateFlow(ActivityState())
     val activityState: MutableStateFlow<ActivityState> = _activityState
+
+    init {
+        SQLServerWrapper.initialize(this)
+    }
 
     suspend fun initiateValues() {
         if (SettingsModel.currentUser != null) {
@@ -181,8 +186,11 @@ class SharedViewModel @Inject constructor(
 
     private suspend fun fetchPrinters() {
         val dataModel = posPrinterRepository.getAllPosPrinters()
-        if(dataModel.succeed){
-            printers = convertToMutableList(dataModel.data,PosPrinter::class.java)
+        if (dataModel.succeed) {
+            printers = convertToMutableList(
+                dataModel.data,
+                PosPrinter::class.java
+            )
         }
     }
 
@@ -247,6 +255,18 @@ class SharedViewModel @Inject constructor(
                 ActivityUIEvent.ShowLoading(
                     show,
                     timeout
+                )
+            )
+        }
+    }
+
+    fun showWarning(
+            message: String
+    ) {
+        viewModelScope.launch {
+            _mainActivityEvent.send(
+                ActivityUIEvent.ShowWarning(
+                    message
                 )
             )
         }

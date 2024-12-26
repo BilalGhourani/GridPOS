@@ -35,16 +35,17 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.navigation.compose.rememberNavController
 import com.grid.pos.ActivityUIEvent
-import com.grid.pos.SharedViewModel
 import com.grid.pos.R
-import com.grid.pos.data.item.Item
+import com.grid.pos.SharedViewModel
 import com.grid.pos.data.SQLServerWrapper
+import com.grid.pos.data.item.Item
 import com.grid.pos.interfaces.OnActivityResult
 import com.grid.pos.interfaces.OnBarcodeResult
 import com.grid.pos.interfaces.OnGalleryResult
 import com.grid.pos.model.ORIENTATION_TYPE
 import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
+import com.grid.pos.ui.common.CustomSnackBar
 import com.grid.pos.ui.common.LoadingIndicator
 import com.grid.pos.ui.common.UIAlertDialog
 import com.grid.pos.ui.navigation.AuthNavGraph
@@ -58,7 +59,6 @@ import kotlinx.coroutines.Runnable
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import java.util.ArrayList
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -148,6 +148,8 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+    private val showWarning = mutableStateOf(false)
+    private var warning: String = ""
     private val loadingState = mutableStateOf(false)
     private val popupState = mutableStateOf(false)
     private var popupModel: PopupModel? = null
@@ -202,6 +204,11 @@ class MainActivity : ComponentActivity() {
                             popupModel = popupModel ?: PopupModel()
                         )
                     }
+                    CustomSnackBar(show = showWarning.value,
+                        message = warning,
+                        onDismiss = {
+                            showWarning.value = false
+                        })
                     LoadingIndicator(
                         show = loadingState.value
                     )
@@ -288,6 +295,11 @@ class MainActivity : ComponentActivity() {
                         )
                     }
                     loadingState.value = sharedEvent.show
+                }
+
+                is ActivityUIEvent.ShowWarning -> {
+                    warning = sharedEvent.message
+                    showWarning.value = true
                 }
 
                 is ActivityUIEvent.ShowPopup -> {

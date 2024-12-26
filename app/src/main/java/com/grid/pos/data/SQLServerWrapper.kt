@@ -1,6 +1,7 @@
 package com.grid.pos.data
 
 import android.util.Log
+import com.grid.pos.SharedViewModel
 import com.grid.pos.model.QueryResult
 import com.grid.pos.model.SettingsModel
 import java.sql.CallableStatement
@@ -17,6 +18,12 @@ object SQLServerWrapper {
 
     private var mConnection: Connection? = null
 
+    private lateinit var sharedViewModel: SharedViewModel
+
+    fun initialize(model: SharedViewModel) {
+        this.sharedViewModel = model
+    }
+
     private fun getDatabaseConnection(
             serverPath: String? = SettingsModel.sqlServerPath,
             dbName: String? = SettingsModel.sqlServerDbName,
@@ -28,6 +35,11 @@ object SQLServerWrapper {
             Class.forName("net.sourceforge.jtds.jdbc.Driver")
         } catch (e: ClassNotFoundException) {
             e.printStackTrace()
+            if (::sharedViewModel.isInitialized) {
+                e.message?.let {
+                    sharedViewModel.showWarning(it)
+                }
+            }
         }
         return DriverManager.getConnection(
             "jdbc:jtds:sqlserver://${serverPath}/$dbName;instance=$serverName;encrypt=true",
@@ -44,6 +56,11 @@ object SQLServerWrapper {
             mConnection = getDatabaseConnection()
         } catch (e: Throwable) {
             e.printStackTrace()
+            if (::sharedViewModel.isInitialized) {
+                e.message?.let {
+                    sharedViewModel.showWarning(it)
+                }
+            }
         }
     }
 
@@ -52,6 +69,11 @@ object SQLServerWrapper {
             mConnection?.close()
         } catch (e: Exception) {
             e.printStackTrace()
+            if (::sharedViewModel.isInitialized) {
+                e.message?.let {
+                    sharedViewModel.showWarning(it)
+                }
+            }
         }
     }
 
@@ -117,6 +139,11 @@ object SQLServerWrapper {
             queryResult.result = statement.executeQuery()
         } catch (e: Exception) {
             e.printStackTrace()
+            if (::sharedViewModel.isInitialized) {
+                e.message?.let {
+                    sharedViewModel.showWarning(it)
+                }
+            }
             queryResult.succeed = false
             queryResult.result = e.message
         }
@@ -134,6 +161,11 @@ object SQLServerWrapper {
             queryResult.result = statement.executeQuery()
         } catch (e: Exception) {
             e.printStackTrace()
+            if (::sharedViewModel.isInitialized) {
+                e.message?.let {
+                    sharedViewModel.showWarning(it)
+                }
+            }
             queryResult.succeed = false
             queryResult.result = e.message
         }
@@ -155,6 +187,11 @@ object SQLServerWrapper {
             queryResult.result = statement.executeQuery()
         } catch (e: Exception) {
             e.printStackTrace()
+            if (::sharedViewModel.isInitialized) {
+                e.message?.let {
+                    sharedViewModel.showWarning(it)
+                }
+            }
             queryResult.succeed = false
             queryResult.result = e.message
         }
@@ -357,6 +394,11 @@ object SQLServerWrapper {
             }
         } catch (e: Exception) {
             e.printStackTrace()
+            if (::sharedViewModel.isInitialized) {
+                e.message?.let {
+                    sharedViewModel.showWarning(it)
+                }
+            }
             queryResult.succeed = false
             queryResult.result = e.message
         } finally {
@@ -389,6 +431,11 @@ object SQLServerWrapper {
             queryResult.succeed = executeVal > 0
         } catch (e: Exception) {
             e.printStackTrace()
+            if (::sharedViewModel.isInitialized) {
+                e.message?.let {
+                    sharedViewModel.showWarning(it)
+                }
+            }
             queryResult.succeed = false
             queryResult.result = e.message
         } finally {
