@@ -97,29 +97,21 @@ class CurrencyRepositoryImpl(
                         "ORDER BY cur_order ASC"
                     )
                     currency.currencyCompId = companyID
-                    if (dbResult.succeed) {
-                        (dbResult.result as? ResultSet)?.let {
-                            while (it.next()) {
-                                if (it.getIntValue("cur_order") == 1) {
-                                    currency.currencyId = it.getStringValue("cur_code")
-                                    currency.currencyCode1 = if (SettingsModel.isSqlServerWebDb) it.getStringValue("cur_newcode") else it.getStringValue("cur_code")
-                                    currency.currencyName1 = it.getStringValue("cur_name")
-                                    currency.currencyName1Dec = it.getIntValue("cur_decimal")
-                                } else {
-                                    currency.currencyDocumentId = it.getStringValue("cur_code")
-                                    currency.currencyCode2 = if (SettingsModel.isSqlServerWebDb) it.getStringValue("cur_newcode") else it.getStringValue("cur_code")
-                                    currency.currencyName2 = it.getStringValue("cur_name")
-                                    currency.currencyName2Dec = it.getIntValue("cur_decimal")
-                                }
+                    dbResult?.let {
+                        while (it.next()) {
+                            if (it.getIntValue("cur_order") == 1) {
+                                currency.currencyId = it.getStringValue("cur_code")
+                                currency.currencyCode1 = if (SettingsModel.isSqlServerWebDb) it.getStringValue("cur_newcode") else it.getStringValue("cur_code")
+                                currency.currencyName1 = it.getStringValue("cur_name")
+                                currency.currencyName1Dec = it.getIntValue("cur_decimal")
+                            } else {
+                                currency.currencyDocumentId = it.getStringValue("cur_code")
+                                currency.currencyCode2 = if (SettingsModel.isSqlServerWebDb) it.getStringValue("cur_newcode") else it.getStringValue("cur_code")
+                                currency.currencyName2 = it.getStringValue("cur_name")
+                                currency.currencyName2Dec = it.getIntValue("cur_decimal")
                             }
-                            SQLServerWrapper.closeResultSet(it)
                         }
-                    } else {
-                        return DataModel(
-                            null,
-                            false,
-                            dbResult.result as? String
-                        )
+                        SQLServerWrapper.closeResultSet(it)
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
@@ -149,7 +141,7 @@ class CurrencyRepositoryImpl(
             firstCurr: String,
             secondCurr: String
     ): DataModel {
-         when (SettingsModel.connectionType) {
+        when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
                 return DataModel(SettingsModel.currentCurrency?.currencyRate ?: 1.0)
             }
@@ -175,19 +167,11 @@ class CurrencyRepositoryImpl(
                     )
                 )
                 try {
-                    if (rateDbResult.succeed) {
-                        (rateDbResult.result as? ResultSet)?.let {
-                            if (it.next()) {
-                                result = it.getDoubleValue("getrate")
-                            }
-                            SQLServerWrapper.closeResultSet(it)
+                    rateDbResult?.let {
+                        if (it.next()) {
+                            result = it.getDoubleValue("getrate")
                         }
-                    } else {
-                        return DataModel(
-                            null,
-                            false,
-                            rateDbResult.result as? String
-                        )
+                        SQLServerWrapper.closeResultSet(it)
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
@@ -244,25 +228,17 @@ class CurrencyRepositoryImpl(
                         where,
                         "ORDER BY cur_order ASC"
                     )
-                    if (dbResult.succeed) {
-                        (dbResult.result as? ResultSet)?.let {
-                            while (it.next()) {
-                                currencyModels.add(
-                                    CurrencyModel(
-                                        currencyId = it.getStringValue("cur_code"),
-                                        currencyCode = if (SettingsModel.isSqlServerWebDb) it.getStringValue("cur_newcode") else it.getStringValue("cur_code"),
-                                        currencyName = it.getStringValue("cur_name")
-                                    )
+                    dbResult?.let {
+                        while (it.next()) {
+                            currencyModels.add(
+                                CurrencyModel(
+                                    currencyId = it.getStringValue("cur_code"),
+                                    currencyCode = if (SettingsModel.isSqlServerWebDb) it.getStringValue("cur_newcode") else it.getStringValue("cur_code"),
+                                    currencyName = it.getStringValue("cur_name")
                                 )
-                            }
-                            SQLServerWrapper.closeResultSet(it)
+                            )
                         }
-                    } else {
-                        return DataModel(
-                            null,
-                            false,
-                            dbResult.result as? String
-                        )
+                        SQLServerWrapper.closeResultSet(it)
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()

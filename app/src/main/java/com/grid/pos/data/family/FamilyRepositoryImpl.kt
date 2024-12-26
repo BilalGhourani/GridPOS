@@ -33,13 +33,13 @@ class FamilyRepositoryImpl(
     }
 
     override suspend fun delete(family: Family): DataModel {
-         when (SettingsModel.connectionType) {
+        when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
                 family.familyDocumentId?.let {
                     FirebaseFirestore.getInstance().collection("st_family").document(it).delete()
                         .await()
                 }
-                return  DataModel(family)
+                return DataModel(family)
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
@@ -61,7 +61,11 @@ class FamilyRepositoryImpl(
                         .update(family.getMap()).await()
                     DataModel(family)
                 }
-                return DataModel(family,false,"")
+                return DataModel(
+                    family,
+                    false,
+                    ""
+                )
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
@@ -110,20 +114,18 @@ class FamilyRepositoryImpl(
                         mutableListOf("*"),
                         where
                     )
-                    if (dbResult.succeed) {
-                        (dbResult.result as? ResultSet)?.let {
-                            while (it.next()) {
-                                families.add(Family().apply {
-                                    familyId = it.getStringValue("fa_name")
-                                    familyName = if (SettingsModel.isSqlServerWebDb) it.getStringValue("fa_newname") else it.getStringValue(
-                                        "fa_name"
-                                    )
-                                    //familyImage = obj.optString("fa_name")
-                                    familyCompanyId = if (SettingsModel.isSqlServerWebDb) it.getStringValue("fa_cmp_id") else SettingsModel.getCompanyID()
-                                })
-                            }
-                            SQLServerWrapper.closeResultSet(it)
+                    dbResult?.let {
+                        while (it.next()) {
+                            families.add(Family().apply {
+                                familyId = it.getStringValue("fa_name")
+                                familyName = if (SettingsModel.isSqlServerWebDb) it.getStringValue("fa_newname") else it.getStringValue(
+                                    "fa_name"
+                                )
+                                //familyImage = obj.optString("fa_name")
+                                familyCompanyId = if (SettingsModel.isSqlServerWebDb) it.getStringValue("fa_cmp_id") else SettingsModel.getCompanyID()
+                            })
                         }
+                        SQLServerWrapper.closeResultSet(it)
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
@@ -172,8 +174,7 @@ class FamilyRepositoryImpl(
                         mutableListOf("*"),
                         where
                     )
-                    if (dbResult.succeed) {
-                        (dbResult.result as? ResultSet)?.let {
+                    dbResult?.let {
                             if (it.next()) {
                                 family = Family().apply {
                                     familyId = it.getStringValue("fa_name")
@@ -186,7 +187,6 @@ class FamilyRepositoryImpl(
                             }
                             SQLServerWrapper.closeResultSet(it)
                         }
-                    }
                 } catch (e: Exception) {
                     e.printStackTrace()
                     return DataModel(
@@ -242,7 +242,7 @@ class FamilyRepositoryImpl(
             if (id.isNullOrEmpty() && SettingsModel.isSqlServerWebDb) {
                 try {
                     val dbResult = SQLServerWrapper.getQueryResult("select max(fa_name) as id from st_item")
-                    (dbResult.result as? ResultSet)?.let {
+                    dbResult?.let {
                         while (it.next()) {
                             family.familyId = it.getStringValue(
                                 "id",
@@ -271,7 +271,7 @@ class FamilyRepositoryImpl(
             family: Family
     ): DataModel {
         val columnName = if (SettingsModel.isSqlServerWebDb) "fa_newname" else "fa_name"
-        val queryResult = SQLServerWrapper.update(
+        val succeed = SQLServerWrapper.update(
             "st_family",
             listOf(
                 columnName
@@ -283,8 +283,7 @@ class FamilyRepositoryImpl(
         )
         return DataModel(
             family,
-            queryResult.succeed,
-            queryResult.result as? String
+            succeed
         )
     }
 

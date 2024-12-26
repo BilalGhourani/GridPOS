@@ -148,14 +148,12 @@ class InvoiceRepositoryImpl(
                         mutableListOf("*"),
                         where
                     )
-                    if (dbResult.succeed) {
-                        (dbResult.result as? ResultSet)?.let {
+                    dbResult?.let {
                             while (it.next()) {
                                 invoices.add(fillParams(it))
                             }
                             SQLServerWrapper.closeResultSet(it)
                         }
-                    }
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
@@ -216,14 +214,12 @@ class InvoiceRepositoryImpl(
                         mutableListOf("*"),
                         where
                     )
-                    if (dbResult.succeed) {
-                        (dbResult.result as? ResultSet)?.let {
+                    dbResult?.let {
                             while (it.next()) {
                                 invoices.add(fillParams(it))
                             }
                             SQLServerWrapper.closeResultSet(it)
                         }
-                    }
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }

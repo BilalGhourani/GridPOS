@@ -127,16 +127,14 @@ object SQLServerWrapper {
             where: String,
             orderBy: String = "",
             joinSubQuery: String = "",
-    ): QueryResult {
-        val queryResult = QueryResult()
+    ): ResultSet? {
         try {
             val connection = getConnection()
             val cols = columns.joinToString(", ")
             val whereQuery = if (where.isNotEmpty()) "WHERE $where " else ""
             val query = "SELECT $colPrefix $cols FROM $tableName $joinSubQuery $whereQuery $orderBy"
             val statement = connection.prepareStatement(query)
-            queryResult.succeed = true
-            queryResult.result = statement.executeQuery()
+            return statement.executeQuery()
         } catch (e: Exception) {
             e.printStackTrace()
             if (::sharedViewModel.isInitialized) {
@@ -144,21 +142,17 @@ object SQLServerWrapper {
                     sharedViewModel.showWarning(it)
                 }
             }
-            queryResult.succeed = false
-            queryResult.result = e.message
         }
-        return queryResult
+        return null
     }
 
     fun getQueryResult(
             query: String
-    ): QueryResult {
-        val queryResult = QueryResult()
+    ): ResultSet? {
         try {
             val connection = getConnection()
             val statement = connection.prepareStatement(query)
-            queryResult.succeed = true
-            queryResult.result = statement.executeQuery()
+            return statement.executeQuery()
         } catch (e: Exception) {
             e.printStackTrace()
             if (::sharedViewModel.isInitialized) {
@@ -166,25 +160,21 @@ object SQLServerWrapper {
                     sharedViewModel.showWarning(it)
                 }
             }
-            queryResult.succeed = false
-            queryResult.result = e.message
         }
-        return queryResult
+        return null
     }
 
     fun selectFromProcedure(
             procedureName: String,
             params: List<Any>,
-    ): QueryResult {
-        val queryResult = QueryResult()
+    ): ResultSet? {
         try {
             val connection = getConnection()
             val parameters = params.joinToString(", ")
             // Prepare the stored procedure call
             val query = "select dbo.$procedureName($parameters) as $procedureName" // Modify with your procedure and parameters
             val statement = connection.prepareStatement(query)
-            queryResult.succeed = true
-            queryResult.result = statement.executeQuery()
+            return statement.executeQuery()
         } catch (e: Exception) {
             e.printStackTrace()
             if (::sharedViewModel.isInitialized) {
@@ -192,22 +182,20 @@ object SQLServerWrapper {
                     sharedViewModel.showWarning(it)
                 }
             }
-            queryResult.succeed = false
-            queryResult.result = e.message
         }
-        return queryResult
+        return null
     }
 
     fun insert(
             tableName: String,
             columns: List<String>,
             values: List<Any?>
-    ): QueryResult {
+    ): Boolean {
         if (columns.size != values.size) {
-            return QueryResult(
-                false,
-                "Column and value size mismatch."
-            )
+            if (::sharedViewModel.isInitialized) {
+                sharedViewModel.showWarning( "Column and value size mismatch.")
+            }
+            return false
         }
         val cols = columns.joinToString(", ")
         val vals = values.joinToString(", ") {
@@ -231,12 +219,12 @@ object SQLServerWrapper {
             columns: List<String>,
             values: List<Any?>,
             where: String
-    ): QueryResult {
+    ): Boolean {
         if (columns.size != values.size) {
-            return QueryResult(
-                false,
-                "Column and value size mismatch."
-            )
+            if (::sharedViewModel.isInitialized) {
+                sharedViewModel.showWarning( "Column and value size mismatch.")
+            }
+            return false
         }
         //val setStatement = columns.joinToString(", ") { "$it = ?" }
         // Combine the lists into the desired format
@@ -261,7 +249,7 @@ object SQLServerWrapper {
             tableName: String,
             where: String,
             innerJoin: String = ""
-    ): QueryResult {
+    ): Boolean {
         val whereQuery = if (where.isNotEmpty()) "WHERE $where " else ""
         return runDbQuery("DELETE FROM $tableName $innerJoin $whereQuery")
     }
@@ -400,7 +388,6 @@ object SQLServerWrapper {
                 }
             }
             queryResult.succeed = false
-            queryResult.result = e.message
         } finally {
             callableStatement?.close()
             if (mConnection == null) {
@@ -413,8 +400,8 @@ object SQLServerWrapper {
     private fun runDbQuery(
             query: String,
             params: List<Any?>? = null
-    ): QueryResult {
-        val queryResult = QueryResult()
+    ): Boolean {
+        var succeed: Boolean
         var connection: Connection? = null
         var statement: PreparedStatement? = null
         try {
@@ -428,7 +415,7 @@ object SQLServerWrapper {
                 )
             }
             val executeVal = statement.executeUpdate()
-            queryResult.succeed = executeVal > 0
+            succeed =  executeVal > 0
         } catch (e: Exception) {
             e.printStackTrace()
             if (::sharedViewModel.isInitialized) {
@@ -436,15 +423,14 @@ object SQLServerWrapper {
                     sharedViewModel.showWarning(it)
                 }
             }
-            queryResult.succeed = false
-            queryResult.result = e.message
+            succeed = false
         } finally {
             statement?.close()
             if (mConnection == null) {
                 connection?.close()
             }
         }
-        return queryResult
+        return succeed
     }
 
     private fun getConnection(): Connection {

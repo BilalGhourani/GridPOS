@@ -39,13 +39,11 @@ class SettingsRepositoryImpl : SettingsRepository {
                         ),
                         where
                     )
-                    if (dbResult.succeed) {
-                        (dbResult.result as? ResultSet)?.let {
-                            if (it.next()) {
-                                result = it.getStringValue("tt_code")
-                            }
-                            SQLServerWrapper.closeResultSet(it)
+                    dbResult?.let {
+                        if (it.next()) {
+                            result = it.getStringValue("tt_code")
                         }
+                        SQLServerWrapper.closeResultSet(it)
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
@@ -83,13 +81,11 @@ class SettingsRepositoryImpl : SettingsRepository {
                         ),
                         where
                     )
-                    if (dbResult.succeed) {
-                        (dbResult.result as? ResultSet)?.let {
-                            if (it.next()) {
-                                result = it.getStringValue("bra_name")
-                            }
-                            SQLServerWrapper.closeResultSet(it)
+                    dbResult?.let {
+                        if (it.next()) {
+                            result = it.getStringValue("bra_name")
                         }
+                        SQLServerWrapper.closeResultSet(it)
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
@@ -127,13 +123,11 @@ class SettingsRepositoryImpl : SettingsRepository {
                         ),
                         where
                     )
-                    if (dbResult.succeed) {
-                        (dbResult.result as? ResultSet)?.let {
-                            if (it.next()) {
-                                result = it.getStringValue("wa_name")
-                            }
-                            SQLServerWrapper.closeResultSet(it)
+                    dbResult?.let {
+                        if (it.next()) {
+                            result = it.getStringValue("wa_name")
                         }
+                        SQLServerWrapper.closeResultSet(it)
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
@@ -170,13 +164,11 @@ class SettingsRepositoryImpl : SettingsRepository {
                         where,
                         "group by ra_id"
                     )
-                    if (dbResult.succeed) {
-                        (dbResult.result as? ResultSet)?.let {
-                            if (it.next()) {
-                                result = it.getStringValue("ra_id")
-                            }
-                            SQLServerWrapper.closeResultSet(it)
+                    dbResult?.let {
+                        if (it.next()) {
+                            result = it.getStringValue("ra_id")
                         }
+                        SQLServerWrapper.closeResultSet(it)
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
@@ -211,18 +203,16 @@ class SettingsRepositoryImpl : SettingsRepository {
                             mutableListOf("cu_name,cu_countryshortname"),
                             ""
                         )
-                        if (dbResult.succeed) {
-                            (dbResult.result as? ResultSet)?.let {
-                                if (it.next()) {
-                                    result.add(
-                                        ReportCountry(
-                                            it.getStringValue("cu_countryshortname"),
-                                            it.getStringValue("cu_name"),
-                                        )
+                        dbResult?.let {
+                            if (it.next()) {
+                                result.add(
+                                    ReportCountry(
+                                        it.getStringValue("cu_countryshortname"),
+                                        it.getStringValue("cu_name"),
                                     )
-                                }
-                                SQLServerWrapper.closeResultSet(it)
+                                )
                             }
+                            SQLServerWrapper.closeResultSet(it)
                         }
                     } catch (e: Exception) {
                         e.printStackTrace()
@@ -263,17 +253,18 @@ class SettingsRepositoryImpl : SettingsRepository {
                         ),
                         where
                     )
-                    if (dbResult.succeed) {
-                        (dbResult.result as? ResultSet)?.let {
-                            if (it.next()) {
-                                warehouses.add(WarehouseModel().apply {
-                                    warehouseId = it.getStringValue("wa_name")
-                                    warehouseName = it.getStringValue("wa_newname",it.getStringValue("wa_name"))
-                                    warehouseOrder = it.getStringValue("wa_order")
-                                })
-                            }
-                            SQLServerWrapper.closeResultSet(it)
+                    dbResult?.let {
+                        if (it.next()) {
+                            warehouses.add(WarehouseModel().apply {
+                                warehouseId = it.getStringValue("wa_name")
+                                warehouseName = it.getStringValue(
+                                    "wa_newname",
+                                    it.getStringValue("wa_name")
+                                )
+                                warehouseOrder = it.getStringValue("wa_order")
+                            })
                         }
+                        SQLServerWrapper.closeResultSet(it)
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()

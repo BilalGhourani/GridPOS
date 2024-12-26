@@ -133,19 +133,11 @@ class ReceiptRepositoryImpl(
                         "ORDER BY hr_date DESC",
                         "INNER JOIN in_receipt on hr_id = rec_hr_id INNER JOIN in_unallocatedreceipt on hr_id = ur_hr_id"
                     )
-                    if (dbResult.succeed) {
-                        (dbResult.result as? ResultSet)?.let {
-                            while (it.next()) {
-                                receipt = fillParams(it)
-                            }
-                            SQLServerWrapper.closeResultSet(it)
+                    dbResult?.let {
+                        while (it.next()) {
+                            receipt = fillParams(it)
                         }
-                    } else {
-                        return DataModel(
-                            null,
-                            false,
-                            dbResult.result as? String
-                        )
+                        SQLServerWrapper.closeResultSet(it)
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
@@ -197,23 +189,15 @@ class ReceiptRepositoryImpl(
                         "ORDER BY hr_date DESC",
                         "INNER JOIN in_receipt on hr_id = rec_hr_id INNER JOIN in_unallocatedreceipt on hr_id = ur_hr_id"
                     )
-                    if (dbResult.succeed) {
-                        (dbResult.result as? ResultSet)?.let {
-                            while (it.next()) {
-                                receipts.add(
-                                    fillParams(
-                                        it
-                                    )
+                    dbResult?.let {
+                        while (it.next()) {
+                            receipts.add(
+                                fillParams(
+                                    it
                                 )
-                            }
-                            SQLServerWrapper.closeResultSet(it)
+                            )
                         }
-                    } else {
-                        return DataModel(
-                            null,
-                            false,
-                            dbResult.result as? String
-                        )
+                        SQLServerWrapper.closeResultSet(it)
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
@@ -363,16 +347,14 @@ class ReceiptRepositoryImpl(
             if (id.isNullOrEmpty()) {
                 try {
                     val dbResult = SQLServerWrapper.getQueryResult("select max(hr_id) as id from in_hreceipt")
-                    if (dbResult.succeed) {
-                        (dbResult.result as? ResultSet)?.let {
-                            while (it.next()) {
-                                receipt.receiptId = it.getStringValue(
-                                    "id",
-                                    receipt.receiptId
-                                )
-                            }
-                            SQLServerWrapper.closeResultSet(it)
+                    dbResult?.let {
+                        while (it.next()) {
+                            receipt.receiptId = it.getStringValue(
+                                "id",
+                                receipt.receiptId
+                            )
                         }
+                        SQLServerWrapper.closeResultSet(it)
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()

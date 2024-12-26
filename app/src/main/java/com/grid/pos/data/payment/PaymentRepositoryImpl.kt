@@ -133,19 +133,11 @@ class PaymentRepositoryImpl(
                         "ORDER BY hpa_date DESC",
                         "INNER JOIN in_payment on hpa_id = pay_hpa_id INNER JOIN in_unallocatedpayment on hpa_id = up_hpa_id"
                     )
-                    if (dbResult.succeed) {
-                        (dbResult.result as? ResultSet)?.let {
-                            while (it.next()) {
-                                payment = fillParams(it)
-                            }
-                            SQLServerWrapper.closeResultSet(it)
+                    dbResult?.let {
+                        while (it.next()) {
+                            payment = fillParams(it)
                         }
-                    } else {
-                        return DataModel(
-                            null,
-                            false,
-                            dbResult.result as? String
-                        )
+                        SQLServerWrapper.closeResultSet(it)
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
@@ -197,23 +189,15 @@ class PaymentRepositoryImpl(
                         "ORDER BY hpa_date DESC",
                         "INNER JOIN in_payment on hpa_id = pay_hpa_id INNER JOIN in_unallocatedpayment on hpa_id = up_hpa_id"
                     )
-                    if (dbResult.succeed) {
-                        (dbResult.result as? ResultSet)?.let {
-                            while (it.next()) {
-                                payments.add(
-                                    fillParams(
-                                        it
-                                    )
+                    dbResult?.let {
+                        while (it.next()) {
+                            payments.add(
+                                fillParams(
+                                    it
                                 )
-                            }
-                            SQLServerWrapper.closeResultSet(it)
+                            )
                         }
-                    } else {
-                        return DataModel(
-                            payments,
-                            false,
-                            dbResult.result as? String
-                        )
+                        SQLServerWrapper.closeResultSet(it)
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
@@ -363,16 +347,14 @@ class PaymentRepositoryImpl(
             if (id.isNullOrEmpty()) {
                 try {
                     val dbResult = SQLServerWrapper.getQueryResult("select max(hpa_id) as id from in_hpayment")
-                    if (dbResult.succeed) {
-                        (dbResult.result as? ResultSet)?.let {
-                            while (it.next()) {
-                                payment.paymentId = it.getStringValue(
-                                    "id",
-                                    payment.paymentId
-                                )
-                            }
-                            SQLServerWrapper.closeResultSet(it)
+                    dbResult?.let {
+                        while (it.next()) {
+                            payment.paymentId = it.getStringValue(
+                                "id",
+                                payment.paymentId
+                            )
                         }
+                        SQLServerWrapper.closeResultSet(it)
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()

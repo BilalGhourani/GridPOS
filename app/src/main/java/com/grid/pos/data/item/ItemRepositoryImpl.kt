@@ -179,19 +179,11 @@ class ItemRepositoryImpl(
                             "LEFT OUTER JOIN currency on it_cur_code = cur_code LEFT OUTER JOIN st_item_warehouse on it_id = uw_it_id LEFT OUTER JOIN st_opening on it_id=op_it_id"
                         )
                     }
-                    if (dbResult.succeed) {
-                        (dbResult.result as? ResultSet)?.let {
-                            while (it.next()) {
-                                items.add(getItemFromRow(it))
-                            }
-                            SQLServerWrapper.closeResultSet(it)
+                    dbResult?.let {
+                        while (it.next()) {
+                            items.add(getItemFromRow(it))
                         }
-                    } else {
-                        return DataModel(
-                            null,
-                            false,
-                            dbResult.result as? String
-                        )
+                        SQLServerWrapper.closeResultSet(it)
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
@@ -254,19 +246,11 @@ class ItemRepositoryImpl(
                             "select st_item.*,1 it_pos from st_item,pos_itembutton,pos_groupbutton,pos_station_groupbutton  where it_id=ib_it_id and ib_gb_id=gb_id and gb_id=psg_gb_id and psg_sta_name='.'  union select *,0 it_pos from st_item where it_id not in (select ib_it_id from pos_itembutton,pos_groupbutton,pos_station_groupbutton where ib_gb_id=gb_id and gb_id=psg_gb_id and psg_sta_name='.')"
                         )
                     }
-                    if (dbResult.succeed) {
-                        (dbResult.result as? ResultSet)?.let {
-                            while (it.next()) {
-                                items.add(getItemFromRow(it))
-                            }
-                            SQLServerWrapper.closeResultSet(it)
+                    dbResult?.let {
+                        while (it.next()) {
+                            items.add(getItemFromRow(it))
                         }
-                    } else {
-                        return DataModel(
-                            null,
-                            false,
-                            dbResult.result as? String
-                        )
+                        SQLServerWrapper.closeResultSet(it)
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
@@ -358,19 +342,11 @@ class ItemRepositoryImpl(
                             "ISNUMERIC(it_barcode)=1"
                         )
                     }
-                    if (dbResult.succeed) {
-                        (dbResult.result as? ResultSet)?.let {
-                            while (it.next()) {
-                                barcode = it.getStringValue("it_barcode")
-                            }
-                            SQLServerWrapper.closeResultSet(it)
+                    dbResult?.let {
+                        while (it.next()) {
+                            barcode = it.getStringValue("it_barcode")
                         }
-                    } else {
-                        return DataModel(
-                            null,
-                            false,
-                            dbResult.result as? String
-                        )
+                        SQLServerWrapper.closeResultSet(it)
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
@@ -431,19 +407,11 @@ class ItemRepositoryImpl(
                             "select st_item.*,1 it_pos from st_item,pos_itembutton,pos_groupbutton,pos_station_groupbutton  where it_id=ib_it_id and ib_gb_id=gb_id and gb_id=psg_gb_id and psg_sta_name='.' and it_fa_name='$familyId'  union select *,0 it_pos from st_item where it_id not in (select ib_it_id from pos_itembutton,pos_groupbutton,pos_station_groupbutton where ib_gb_id=gb_id and gb_id=psg_gb_id and psg_sta_name='.'  and it_fa_name='$familyId')"
                         )
                     }
-                    if (dbResult.succeed) {
-                        (dbResult.result as? ResultSet)?.let {
-                            while (it.next()) {
-                                item = getItemFromRow(it)
-                            }
-                            SQLServerWrapper.closeResultSet(it)
+                    dbResult?.let {
+                        while (it.next()) {
+                            item = getItemFromRow(it)
                         }
-                    } else {
-                        return DataModel(
-                            null,
-                            false,
-                            dbResult.result as? String
-                        )
+                        SQLServerWrapper.closeResultSet(it)
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
@@ -460,11 +428,16 @@ class ItemRepositoryImpl(
 
     override suspend fun updateWarehouseData(item: Item): DataModel {
         when (SettingsModel.connectionType) {
-            CONNECTION_TYPE.FIRESTORE.key -> {return DataModel(null)
+            CONNECTION_TYPE.FIRESTORE.key -> {
+                return DataModel(null)
             }
-            CONNECTION_TYPE.LOCAL.key -> {return DataModel(null)}
+
+            CONNECTION_TYPE.LOCAL.key -> {
+                return DataModel(null)
+            }
+
             else -> {
-                val dbResult = if (!item.itemWarehouseRowId.isNullOrEmpty()) {
+                val succeed = if (!item.itemWarehouseRowId.isNullOrEmpty()) {
                     SQLServerWrapper.update(
                         "st_item_warehouse",
                         listOf(
@@ -496,13 +469,12 @@ class ItemRepositoryImpl(
                             null,//@uw_minqty
                             0.0,//@uw_maxqty
                         )
-                    )
+                    ).succeed
                 }
 
                 return DataModel(
-                    null,
-                    dbResult.succeed,
-                    dbResult.result as? String
+                    item,
+                    succeed
                 )
             }
         }
@@ -510,10 +482,16 @@ class ItemRepositoryImpl(
 
     override suspend fun updateOpening(item: Item): DataModel {
         when (SettingsModel.connectionType) {
-            CONNECTION_TYPE.FIRESTORE.key -> {return DataModel(null)}
-            CONNECTION_TYPE.LOCAL.key -> {return DataModel(null)}
+            CONNECTION_TYPE.FIRESTORE.key -> {
+                return DataModel(null)
+            }
+
+            CONNECTION_TYPE.LOCAL.key -> {
+                return DataModel(null)
+            }
+
             else -> {
-                val dbResult = if (!item.itemOpeningId.isNullOrEmpty()) {
+                val succeed = if (!item.itemOpeningId.isNullOrEmpty()) {
                     SQLServerWrapper.update(
                         "st_opening",
                         listOf(
@@ -545,12 +523,11 @@ class ItemRepositoryImpl(
                             SettingsModel.currentUser?.userUsername,//@op_userstamp
                             SettingsModel.currentCompany?.cmp_multibranchcode,//@branchcode
                         )
-                    )
+                    ).succeed
                 }
                 return DataModel(
-                    null,
-                    dbResult.succeed,
-                    dbResult.result as? String
+                    item,
+                    succeed
                 )
             }
         }
@@ -720,16 +697,15 @@ class ItemRepositoryImpl(
             parameters
         )
         return DataModel(
-            null,
-            dbResult.succeed,
-            dbResult.result as? String
+            item,
+            dbResult.succeed
         )
     }
 
     private fun updateItem(
             item: Item
     ): DataModel {
-        val dbResult = SQLServerWrapper.update(
+        val succeed = SQLServerWrapper.update(
             "st_item",
             listOf(
                 "it_name",
@@ -772,9 +748,8 @@ class ItemRepositoryImpl(
             "it_id = '${item.itemId}'"
         )
         return DataModel(
-            null,
-            dbResult.succeed,
-            dbResult.result as? String
+            item,
+            succeed
         )
     }
 
@@ -788,9 +763,8 @@ class ItemRepositoryImpl(
             )
         )
         return DataModel(
-            null,
-            dbResult.succeed,
-            dbResult.result as? String
+            item,
+            dbResult.succeed
         )
     }
 

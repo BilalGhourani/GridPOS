@@ -24,28 +24,34 @@ class PosPrinterRepositoryImpl(
         }
     }
 
-    override suspend fun delete(posPrinter: PosPrinter):DataModel {
+    override suspend fun delete(posPrinter: PosPrinter): DataModel {
         if (SettingsModel.isConnectedToFireStore()) {
             posPrinter.posPrinterDocumentId?.let {
                 FirebaseFirestore.getInstance().collection("pos_printer").document(it).delete()
                     .await()
                 return DataModel(posPrinter)
             }
-            return DataModel(posPrinter,false)
+            return DataModel(
+                posPrinter,
+                false
+            )
         } else {
             posPrinterDao.delete(posPrinter)
             return DataModel(posPrinter)
         }
     }
 
-    override suspend fun update(posPrinter: PosPrinter):DataModel {
+    override suspend fun update(posPrinter: PosPrinter): DataModel {
         if (SettingsModel.isConnectedToFireStore()) {
             posPrinter.posPrinterDocumentId?.let {
                 FirebaseFirestore.getInstance().collection("pos_printer").document(it)
                     .update(posPrinter.getMap()).await()
                 return DataModel(posPrinter)
             }
-            return DataModel(posPrinter,false)
+            return DataModel(
+                posPrinter,
+                false
+            )
         } else {
             posPrinterDao.update(posPrinter)
             return DataModel(posPrinter)
@@ -90,29 +96,21 @@ class PosPrinterRepositoryImpl(
                             where
                         )
 
-                        if (dbResult.succeed) {
-                            (dbResult.result as? ResultSet)?.let {
-                                while (it.next()) {
-                                    printers.add(PosPrinter().apply {
-                                        posPrinterId = it.getStringValue("di_name")
-                                        posPrinterCompId = it.getStringValue("di_cmp_id")
-                                        posPrinterName = it.getStringValue("di_printer")
-                                        val diaAppPrinters = it.getStringValue("dia_appprinter")
-                                            .split(":")
-                                        val size = diaAppPrinters.size
-                                        posPrinterHost = if (size > 0) diaAppPrinters[0] else ""
-                                        val port = if (size > 1) diaAppPrinters[1] else "-1"
-                                        posPrinterPort = port.toIntOrNull() ?: -1
-                                    })
-                                }
-                                SQLServerWrapper.closeResultSet(it)
+                        dbResult?.let {
+                            while (it.next()) {
+                                printers.add(PosPrinter().apply {
+                                    posPrinterId = it.getStringValue("di_name")
+                                    posPrinterCompId = it.getStringValue("di_cmp_id")
+                                    posPrinterName = it.getStringValue("di_printer")
+                                    val diaAppPrinters = it.getStringValue("dia_appprinter")
+                                        .split(":")
+                                    val size = diaAppPrinters.size
+                                    posPrinterHost = if (size > 0) diaAppPrinters[0] else ""
+                                    val port = if (size > 1) diaAppPrinters[1] else "-1"
+                                    posPrinterPort = port.toIntOrNull() ?: -1
+                                })
                             }
-                        } else {
-                            return DataModel(
-                                null,
-                                false,
-                                dbResult.result as? String
-                            )
+                            SQLServerWrapper.closeResultSet(it)
                         }
                         return DataModel(printers)
                     } catch (e: Exception) {
@@ -132,29 +130,21 @@ class PosPrinterRepositoryImpl(
                             ""
                         )
 
-                        if (dbResult.succeed) {
-                            (dbResult.result as? ResultSet)?.let {
-                                while (it.next()) {
-                                    printers.add(PosPrinter().apply {
-                                        posPrinterId = it.getStringValue("di_name")
-                                        posPrinterCompId = it.getStringValue("di_bra_name")//branch
-                                        posPrinterName = it.getStringValue("di_printer")
-                                        val diaAppPrinters = it.getStringValue("di_appprinter")
-                                            .split(":")
-                                        val size = diaAppPrinters.size
-                                        posPrinterHost = if (size > 0) diaAppPrinters[0] else ""
-                                        val port = if (size > 1) diaAppPrinters[1] else "-1"
-                                        posPrinterPort = port.toIntOrNull() ?: -1
-                                    })
-                                }
-                                SQLServerWrapper.closeResultSet(it)
+                        dbResult?.let {
+                            while (it.next()) {
+                                printers.add(PosPrinter().apply {
+                                    posPrinterId = it.getStringValue("di_name")
+                                    posPrinterCompId = it.getStringValue("di_bra_name")//branch
+                                    posPrinterName = it.getStringValue("di_printer")
+                                    val diaAppPrinters = it.getStringValue("di_appprinter")
+                                        .split(":")
+                                    val size = diaAppPrinters.size
+                                    posPrinterHost = if (size > 0) diaAppPrinters[0] else ""
+                                    val port = if (size > 1) diaAppPrinters[1] else "-1"
+                                    posPrinterPort = port.toIntOrNull() ?: -1
+                                })
                             }
-                        } else {
-                            return DataModel(
-                                null,
-                                false,
-                                dbResult.result as? String
-                            )
+                            SQLServerWrapper.closeResultSet(it)
                         }
                         return DataModel(printers)
                     } catch (e: Exception) {
@@ -206,30 +196,22 @@ class PosPrinterRepositoryImpl(
                             mutableListOf("*"),
                             where
                         )
-                        if (dbResult.succeed) {
-                            (dbResult.result as? ResultSet)?.let {
-                                while (it.next()) {
-                                    printer = PosPrinter().apply {
-                                        posPrinterId = it.getStringValue("di_name")
-                                        posPrinterCompId = it.getStringValue("di_cmp_id")
-                                        posPrinterName = it.getStringValue("di_printer")
-                                        val diaAppPrinters = it.getStringValue("dia_appprinter")
-                                            .split(":")
-                                        val size = diaAppPrinters.size
-                                        posPrinterHost = if (size > 0) diaAppPrinters[0] else ""
-                                        val port = if (size > 1) diaAppPrinters[1] else "-1"
-                                        posPrinterPort = port.toIntOrNull() ?: -1
-                                        posPrinterType = it.getStringValue("usr_cmp_id")
-                                    }
+                        dbResult?.let {
+                            while (it.next()) {
+                                printer = PosPrinter().apply {
+                                    posPrinterId = it.getStringValue("di_name")
+                                    posPrinterCompId = it.getStringValue("di_cmp_id")
+                                    posPrinterName = it.getStringValue("di_printer")
+                                    val diaAppPrinters = it.getStringValue("dia_appprinter")
+                                        .split(":")
+                                    val size = diaAppPrinters.size
+                                    posPrinterHost = if (size > 0) diaAppPrinters[0] else ""
+                                    val port = if (size > 1) diaAppPrinters[1] else "-1"
+                                    posPrinterPort = port.toIntOrNull() ?: -1
+                                    posPrinterType = it.getStringValue("usr_cmp_id")
                                 }
-                                SQLServerWrapper.closeResultSet(it)
                             }
-                        } else {
-                            return DataModel(
-                                null,
-                                false,
-                                dbResult.result as? String
-                            )
+                            SQLServerWrapper.closeResultSet(it)
                         }
                         return DataModel(printer)
                     } catch (e: Exception) {
@@ -249,29 +231,21 @@ class PosPrinterRepositoryImpl(
                             mutableListOf("*"),
                             ""
                         )
-                        if (dbResult.succeed) {
-                            (dbResult.result as? ResultSet)?.let {
-                                while (it.next()) {
-                                    printer = PosPrinter().apply {
-                                        posPrinterId = it.getStringValue("di_name")
-                                        posPrinterCompId = it.getStringValue("di_bra_name")//branch
-                                        posPrinterName = it.getStringValue("di_printer")
-                                        val diaAppPrinters = it.getStringValue("di_appprinter")
-                                            .split(":")
-                                        val size = diaAppPrinters.size
-                                        posPrinterHost = if (size > 0) diaAppPrinters[0] else ""
-                                        val port = if (size > 1) diaAppPrinters[1] else "-1"
-                                        posPrinterPort = port.toIntOrNull() ?: -1
-                                    }
+                        dbResult?.let {
+                            while (it.next()) {
+                                printer = PosPrinter().apply {
+                                    posPrinterId = it.getStringValue("di_name")
+                                    posPrinterCompId = it.getStringValue("di_bra_name")//branch
+                                    posPrinterName = it.getStringValue("di_printer")
+                                    val diaAppPrinters = it.getStringValue("di_appprinter")
+                                        .split(":")
+                                    val size = diaAppPrinters.size
+                                    posPrinterHost = if (size > 0) diaAppPrinters[0] else ""
+                                    val port = if (size > 1) diaAppPrinters[1] else "-1"
+                                    posPrinterPort = port.toIntOrNull() ?: -1
                                 }
-                                SQLServerWrapper.closeResultSet(it)
                             }
-                        } else {
-                            return DataModel(
-                                null,
-                                false,
-                                dbResult.result as? String
-                            )
+                            SQLServerWrapper.closeResultSet(it)
                         }
                         return DataModel(printer)
                     } catch (e: Exception) {

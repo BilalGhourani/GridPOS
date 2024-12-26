@@ -246,18 +246,16 @@ class InvoiceHeaderRepositoryImpl(
                         "ORDER BY hi_date DESC",
                         if (SettingsModel.isSqlServerWebDb) "INNER JOIN acc_transactiontype tt on hi_tt_code = tt.tt_code" else ""
                     )
-                    if (dbResult.succeed) {
-                        (dbResult.result as? ResultSet)?.let {
-                            while (it.next()) {
-                                invoiceHeaders.add(
-                                    fillParams(
-                                        it,
-                                        "tt_newcode"
-                                    )
+                    dbResult?.let {
+                        while (it.next()) {
+                            invoiceHeaders.add(
+                                fillParams(
+                                    it,
+                                    "tt_newcode"
                                 )
-                            }
-                            SQLServerWrapper.closeResultSet(it)
+                            )
                         }
+                        SQLServerWrapper.closeResultSet(it)
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
@@ -338,13 +336,11 @@ class InvoiceHeaderRepositoryImpl(
                         where,
                         "ORDER BY hi_timestamp DESC"
                     )
-                    if (dbResult.succeed) {
-                        (dbResult.result as? ResultSet)?.let {
-                            while (it.next()) {
-                                invoiceHeaders.add(fillParams(it))
-                            }
-                            SQLServerWrapper.closeResultSet(it)
+                    dbResult?.let {
+                        while (it.next()) {
+                            invoiceHeaders.add(fillParams(it))
                         }
+                        SQLServerWrapper.closeResultSet(it)
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
@@ -395,13 +391,11 @@ class InvoiceHeaderRepositoryImpl(
                         where,
                         "ORDER BY hi_transno DESC"
                     )
-                    if (dbResult.succeed) {
-                        (dbResult.result as? ResultSet)?.let {
-                            while (it.next()) {
-                                invoiceHeaders.add(fillParams(it))
-                            }
-                            SQLServerWrapper.closeResultSet(it)
+                    dbResult?.let {
+                        while (it.next()) {
+                            invoiceHeaders.add(fillParams(it))
                         }
+                        SQLServerWrapper.closeResultSet(it)
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
@@ -443,13 +437,11 @@ class InvoiceHeaderRepositoryImpl(
                         where,
                         "ORDER BY hi_transno DESC"
                     )
-                    if (dbResult.succeed) {
-                        (dbResult.result as? ResultSet)?.let {
-                            while (it.next()) {
-                                invoiceHeaders.add(fillParams(it))
-                            }
-                            SQLServerWrapper.closeResultSet(it)
+                    dbResult?.let {
+                        while (it.next()) {
+                            invoiceHeaders.add(fillParams(it))
                         }
+                        SQLServerWrapper.closeResultSet(it)
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
@@ -522,22 +514,20 @@ class InvoiceHeaderRepositoryImpl(
                             mutableListOf("*"),
                             where
                         )
-                        if (dbResult.succeed) {
-                            (dbResult.result as? ResultSet)?.let {
-                                while (it.next()) {
-                                    tables.add(
-                                        TableModel(
-                                            it.getStringValue("ta_name"),
-                                            it.getStringValue("ta_newname"),
-                                            it.getStringValue("ta_type"),
-                                            it.getStringValue("ta_hiid"),
-                                            it.getStringValue("ta_userstamp"),
-                                            it.getIntValue("ta_locked")
-                                        )
+                        dbResult?.let {
+                            while (it.next()) {
+                                tables.add(
+                                    TableModel(
+                                        it.getStringValue("ta_name"),
+                                        it.getStringValue("ta_newname"),
+                                        it.getStringValue("ta_type"),
+                                        it.getStringValue("ta_hiid"),
+                                        it.getStringValue("ta_userstamp"),
+                                        it.getIntValue("ta_locked")
                                     )
-                                }
-                                SQLServerWrapper.closeResultSet(it)
+                                )
                             }
+                            SQLServerWrapper.closeResultSet(it)
                         }
                     } catch (e: Exception) {
                         e.printStackTrace()
@@ -551,22 +541,20 @@ class InvoiceHeaderRepositoryImpl(
                             mutableListOf("*"),
                             where
                         )
-                        if (dbResult.succeed) {
-                            (dbResult.result as? ResultSet)?.let {
-                                while (it.next()) {
-                                    tables.add(
-                                        TableModel(
-                                            it.getStringValue("ta_name"),
-                                            it.getStringValue("ta_name"),
-                                            it.getStringValue("ta_type"),
-                                            it.getStringValue("ta_hiid"),
-                                            it.getStringValue("ta_userstamp"),
-                                            it.getIntValue("ta_locked")
-                                        )
+                        dbResult?.let {
+                            while (it.next()) {
+                                tables.add(
+                                    TableModel(
+                                        it.getStringValue("ta_name"),
+                                        it.getStringValue("ta_name"),
+                                        it.getStringValue("ta_type"),
+                                        it.getStringValue("ta_hiid"),
+                                        it.getStringValue("ta_userstamp"),
+                                        it.getIntValue("ta_locked")
                                     )
-                                }
-                                SQLServerWrapper.closeResultSet(it)
+                                )
                             }
+                            SQLServerWrapper.closeResultSet(it)
                         }
                     } catch (e: Exception) {
                         e.printStackTrace()
@@ -718,17 +706,15 @@ class InvoiceHeaderRepositoryImpl(
                         mutableListOf("*"),
                         where
                     )
-                    if (dbResult.succeed) {
-                        (dbResult.result as? ResultSet)?.let {
-                            while (it.next()) {
-                                val invoiceHeader = fillParams(it)
-                                invoiceHeader.invoiceHeadTableId = finalTableModel.table_id
-                                invoiceHeader.invoiceHeadTaName = finalTableModel.table_name
-                                invoiceHeader.invoiceHeadTableType = finalTableModel.table_type
-                                invoiceHeaders.add(invoiceHeader)
-                            }
-                            SQLServerWrapper.closeResultSet(it)
+                    dbResult?.let {
+                        while (it.next()) {
+                            val invoiceHeader = fillParams(it)
+                            invoiceHeader.invoiceHeadTableId = finalTableModel.table_id
+                            invoiceHeader.invoiceHeadTaName = finalTableModel.table_name
+                            invoiceHeader.invoiceHeadTableType = finalTableModel.table_type
+                            invoiceHeaders.add(invoiceHeader)
                         }
+                        SQLServerWrapper.closeResultSet(it)
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
@@ -893,31 +879,29 @@ class InvoiceHeaderRepositoryImpl(
                 mutableListOf("*"),
                 where
             )
-            if (dbResult.succeed) {
-                (dbResult.result as? ResultSet)?.let {
-                    if (it.next()) {
-                        return if (SettingsModel.isSqlServerWebDb) {
-                            TableModel(
-                                it.getStringValue("ta_name"),
-                                it.getStringValue("ta_newname"),
-                                it.getStringValue("ta_type"),
-                                it.getStringValue("ta_hiid"),
-                                it.getStringValue("ta_userstamp"),
-                                it.getIntValue("ta_locked")
-                            )
-                        } else {
-                            TableModel(
-                                it.getStringValue("ta_name"),
-                                it.getStringValue("ta_name"),
-                                it.getStringValue("ta_type"),
-                                it.getStringValue("ta_hiid"),
-                                it.getStringValue("ta_userstamp"),
-                                it.getIntValue("ta_locked")
-                            )
-                        }
+            dbResult?.let {
+                if (it.next()) {
+                    return if (SettingsModel.isSqlServerWebDb) {
+                        TableModel(
+                            it.getStringValue("ta_name"),
+                            it.getStringValue("ta_newname"),
+                            it.getStringValue("ta_type"),
+                            it.getStringValue("ta_hiid"),
+                            it.getStringValue("ta_userstamp"),
+                            it.getIntValue("ta_locked")
+                        )
+                    } else {
+                        TableModel(
+                            it.getStringValue("ta_name"),
+                            it.getStringValue("ta_name"),
+                            it.getStringValue("ta_type"),
+                            it.getStringValue("ta_hiid"),
+                            it.getStringValue("ta_userstamp"),
+                            it.getIntValue("ta_locked")
+                        )
                     }
-                    SQLServerWrapper.closeResultSet(it)
                 }
+                SQLServerWrapper.closeResultSet(it)
             }
         } catch (e: Exception) {
             e.printStackTrace()

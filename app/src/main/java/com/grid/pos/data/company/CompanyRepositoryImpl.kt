@@ -9,7 +9,6 @@ import com.grid.pos.utils.Extension.getBooleanValue
 import com.grid.pos.utils.Extension.getDoubleValue
 import com.grid.pos.utils.Extension.getStringValue
 import kotlinx.coroutines.tasks.await
-import java.sql.ResultSet
 
 class CompanyRepositoryImpl(
         private val companyDao: CompanyDao
@@ -82,42 +81,34 @@ class CompanyRepositoryImpl(
                         mutableListOf("*"),
                         where
                     )
-                    if (dbResult.succeed) {
-                        (dbResult.result as? ResultSet)?.let {
-                            while (it.next()) {
-                                company = Company().apply {
-                                    companyId = it.getStringValue("cmp_id")
-                                    companyName = it.getStringValue("cmp_name")
-                                    companyPhone = it.getStringValue("cmp_phone")
-                                    companyAddress = it.getStringValue("cmp_address")
-                                    companyTaxRegno = it.getStringValue("cmp_vatregno")
-                                    companyTax = it.getDoubleValue("cmp_vat")
-                                    companyCurCodeTax = it.getStringValue("cmp_cur_codetax")
-                                    companyEmail = it.getStringValue("cmp_email")
-                                    companyWeb = it.getStringValue("cmp_web")
-                                    companyLogo = it.getStringValue("cmp_logo")
-                                    companySS = it.getBooleanValue("cmp_ss")
-                                    companyCountry = it.getStringValue("cmp_country")
-                                    companyTax1 = it.getDoubleValue("cmp_tax1")
-                                    companyTax1Regno = it.getStringValue("cmp_tax1regno")
-                                    companyTax2 = it.getDoubleValue("cmp_tax2")
-                                    companyTax2Regno = it.getStringValue("cmp_tax2regno")
-                                    cmp_multibranchcode = it.getStringValue("cmp_multibranchcode")
-                                }
+                    dbResult?.let {
+                        while (it.next()) {
+                            company = Company().apply {
+                                companyId = it.getStringValue("cmp_id")
+                                companyName = it.getStringValue("cmp_name")
+                                companyPhone = it.getStringValue("cmp_phone")
+                                companyAddress = it.getStringValue("cmp_address")
+                                companyTaxRegno = it.getStringValue("cmp_vatregno")
+                                companyTax = it.getDoubleValue("cmp_vat")
+                                companyCurCodeTax = it.getStringValue("cmp_cur_codetax")
+                                companyEmail = it.getStringValue("cmp_email")
+                                companyWeb = it.getStringValue("cmp_web")
+                                companyLogo = it.getStringValue("cmp_logo")
+                                companySS = it.getBooleanValue("cmp_ss")
+                                companyCountry = it.getStringValue("cmp_country")
+                                companyTax1 = it.getDoubleValue("cmp_tax1")
+                                companyTax1Regno = it.getStringValue("cmp_tax1regno")
+                                companyTax2 = it.getDoubleValue("cmp_tax2")
+                                companyTax2Regno = it.getStringValue("cmp_tax2regno")
+                                cmp_multibranchcode = it.getStringValue("cmp_multibranchcode")
                             }
-                            SQLServerWrapper.closeResultSet(it)
                         }
+                        SQLServerWrapper.closeResultSet(it)
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
-                    return DataModel(
-                        null,
-                        false,
-                        e.message
-                    )
                 }
                 return DataModel(company)
-
             }
         }
     }
@@ -137,7 +128,7 @@ class CompanyRepositoryImpl(
                         }
                     }
                 }
-               return DataModel(companies)
+                return DataModel(companies)
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
@@ -154,40 +145,33 @@ class CompanyRepositoryImpl(
                         mutableListOf("*"),
                         where
                     )
-                    if (dbResult.succeed) {
-                        (dbResult.result as? ResultSet)?.let {
-                            while (it.next()) {
-                                companies.add(Company().apply {
-                                    companyId = it.getStringValue("cmp_id")
-                                    companyName = it.getStringValue("cmp_name")
-                                    companyPhone = it.getStringValue("cmp_phone")
-                                    companyAddress = it.getStringValue("cmp_address")
-                                    companyTaxRegno = it.getStringValue("cmp_vatregno")
-                                    companyTax = it.getDoubleValue("cmp_vat")
-                                    companyCurCodeTax = it.getStringValue("cmp_cur_codetax")
-                                    companyUpWithTax = it.getBooleanValue("cmp_upwithtax")
-                                    companyEmail = it.getStringValue("cmp_email")
-                                    companyWeb = it.getStringValue("cmp_web")
-                                    companyLogo = it.getStringValue("cmp_logo")
-                                    companySS = it.getBooleanValue("cmp_ss")
-                                    companyCountry = it.getStringValue("cmp_country")
-                                    companyTax1 = it.getDoubleValue("cmp_tax1")
-                                    companyTax1Regno = it.getStringValue("cmp_tax1regno")
-                                    companyTax2 = it.getDoubleValue("cmp_tax2")
-                                    companyTax2Regno = it.getStringValue("cmp_tax2regno")
-                                    cmp_multibranchcode = it.getStringValue("cmp_multibranchcode")
-                                })
-                            }
-                            SQLServerWrapper.closeResultSet(it)
+                    dbResult?.let {
+                        while (it.next()) {
+                            companies.add(Company().apply {
+                                companyId = it.getStringValue("cmp_id")
+                                companyName = it.getStringValue("cmp_name")
+                                companyPhone = it.getStringValue("cmp_phone")
+                                companyAddress = it.getStringValue("cmp_address")
+                                companyTaxRegno = it.getStringValue("cmp_vatregno")
+                                companyTax = it.getDoubleValue("cmp_vat")
+                                companyCurCodeTax = it.getStringValue("cmp_cur_codetax")
+                                companyUpWithTax = it.getBooleanValue("cmp_upwithtax")
+                                companyEmail = it.getStringValue("cmp_email")
+                                companyWeb = it.getStringValue("cmp_web")
+                                companyLogo = it.getStringValue("cmp_logo")
+                                companySS = it.getBooleanValue("cmp_ss")
+                                companyCountry = it.getStringValue("cmp_country")
+                                companyTax1 = it.getDoubleValue("cmp_tax1")
+                                companyTax1Regno = it.getStringValue("cmp_tax1regno")
+                                companyTax2 = it.getDoubleValue("cmp_tax2")
+                                companyTax2Regno = it.getStringValue("cmp_tax2regno")
+                                cmp_multibranchcode = it.getStringValue("cmp_multibranchcode")
+                            })
                         }
+                        SQLServerWrapper.closeResultSet(it)
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
-                    return DataModel(
-                        null,
-                        false,
-                        e.message
-                    )
                 }
                 return DataModel(companies)
             }
