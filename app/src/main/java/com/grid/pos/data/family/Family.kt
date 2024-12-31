@@ -105,7 +105,17 @@ data class Family(
     }
 
     @Exclude
-    fun getMap(): Map<String, Any?> {
+    override fun setDocumentId(documentId: String) {
+        familyDocumentId = documentId
+    }
+
+    @Exclude
+    override fun getDocumentId(): String? {
+        return familyDocumentId
+    }
+
+    @Exclude
+    override fun getMap(): Map<String, Any?> {
         return mapOf(
             "fa_name" to familyName, "fa_cmp_id" to familyCompanyId, "fa_image" to familyImage
         )

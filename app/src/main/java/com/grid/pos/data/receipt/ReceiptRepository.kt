@@ -15,11 +15,11 @@ interface ReceiptRepository {
     suspend fun update(receipt: Receipt):DataModel
 
     // Get Receipt by it's ID
-    suspend fun getReceiptById(id: String): DataModel
+    suspend fun getReceiptById(id: String): Receipt?
 
     // Get all Receipts logs as stream.
-    suspend fun getAllReceipts(): DataModel
+    suspend fun getAllReceipts(): MutableList<Receipt>
 
-    suspend fun getLastTransactionNo(): DataModel
+    suspend fun getLastTransactionNo(): Receipt?
 
 }

@@ -1,5 +1,6 @@
 package com.grid.pos.data.invoiceHeader
 
+import com.grid.pos.model.DataModel
 import com.grid.pos.model.TableInvoiceModel
 import com.grid.pos.model.TableModel
 import java.util.Date
@@ -12,18 +13,18 @@ interface InvoiceHeaderRepository {
             invoiceHeader: InvoiceHeader,
             willPrint: Boolean = false,
             isFinished: Boolean = false
-    ): InvoiceHeader
+    ): DataModel
 
     // Delete an Invoice Header
-    suspend fun delete(invoiceHeader: InvoiceHeader)
+    suspend fun delete(invoiceHeader: InvoiceHeader):DataModel
 
     // Update an Invoice Header
-    suspend fun updateInvoiceHeader(invoiceHeader: InvoiceHeader)
+    suspend fun updateInvoiceHeader(invoiceHeader: InvoiceHeader):DataModel
     suspend fun update(
             invoiceHeader: InvoiceHeader,
             willPrint: Boolean,
             isFinished: Boolean = false
-    )
+    ):DataModel
 
     // Get all Invoice Headers logs as stream.
     suspend fun getAllInvoiceHeaders(): MutableList<InvoiceHeader>

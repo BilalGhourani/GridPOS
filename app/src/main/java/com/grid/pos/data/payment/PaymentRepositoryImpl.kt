@@ -1,7 +1,8 @@
 package com.grid.pos.data.payment
 
-import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Filter
 import com.google.firebase.firestore.Query
+import com.grid.pos.data.FirebaseWrapper
 import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.DataModel
@@ -11,7 +12,6 @@ import com.grid.pos.utils.DateHelper
 import com.grid.pos.utils.Extension.getDoubleValue
 import com.grid.pos.utils.Extension.getObjectValue
 import com.grid.pos.utils.Extension.getStringValue
-import kotlinx.coroutines.tasks.await
 import java.sql.ResultSet
 import java.sql.Timestamp
 import java.util.Date
@@ -24,10 +24,10 @@ class PaymentRepositoryImpl(
     ): DataModel {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
-                val docRef = FirebaseFirestore.getInstance().collection("payment").add(payment)
-                    .await()
-                payment.paymentDocumentId = docRef.id
-                return DataModel(payment)
+                return FirebaseWrapper.insert(
+                    "payment",
+                    payment
+                )
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
@@ -37,11 +37,9 @@ class PaymentRepositoryImpl(
 
             else -> {
                 val dataModel = insertHPayment(payment)
-                return if (dataModel.succeed) {
-                    getPaymentById(payment.paymentId)
-                } else {
-                    dataModel
-                }
+                dataModel.data = getPaymentById(payment.paymentId)
+                return dataModel
+
             }
         }
     }
@@ -49,26 +47,21 @@ class PaymentRepositoryImpl(
     override suspend fun delete(
             payment: Payment
     ): DataModel {
-        when (SettingsModel.connectionType) {
+        return when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
-                payment.paymentDocumentId?.let {
-                    FirebaseFirestore.getInstance().collection("payment").document(it).delete()
-                        .await()
-                    return DataModel(payment)
-                }
-                return DataModel(
-                    payment,
-                    false
+                FirebaseWrapper.delete(
+                    "payment",
+                    payment
                 )
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
                 paymentDao.delete(payment)
-                return DataModel(payment)
+                DataModel(payment)
             }
 
             else -> {
-                return updateHPayment(payment)
+                updateHPayment(payment)
             }
         }
     }
@@ -76,49 +69,48 @@ class PaymentRepositoryImpl(
     override suspend fun update(
             payment: Payment
     ): DataModel {
-        when (SettingsModel.connectionType) {
+        return when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
-                payment.paymentDocumentId?.let {
-                    FirebaseFirestore.getInstance().collection("payment").document(it)
-                        .update(payment.getMap()).await()
-                    return DataModel(payment)
-                }
-                return DataModel(
-                    payment,
-                    false
+                FirebaseWrapper.update(
+                    "payment",
+                    payment
                 )
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
                 paymentDao.update(payment)
-                return DataModel(payment)
+                DataModel(payment)
             }
 
             else -> {
-                return deleteHPayment(payment)
+                deleteHPayment(payment)
             }
         }
     }
 
     override suspend fun getPaymentById(
             id: String
-    ): DataModel {
-        when (SettingsModel.connectionType) {
+    ): Payment? {
+        return when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
-                val querySnapshot = FirebaseFirestore.getInstance().collection("payment")
-                    .whereEqualTo(
-                        "pay_cmp_id",
-                        SettingsModel.getCompanyID()
-                    ).whereEqualTo(
-                        "pay_id",
-                        id
-                    ).get().await()
-                val document = querySnapshot.documents.firstOrNull()
-                return DataModel(document?.toObject(Payment::class.java))
+                val querySnapshot = FirebaseWrapper.getQuerySnapshot(
+                    collection = "payment",
+                    limit = 1,
+                    filters = mutableListOf(
+                        Filter.equalTo(
+                            "pay_id",
+                            id
+                        )
+                    )
+                )
+                val document = querySnapshot?.documents?.firstOrNull()
+                val payment = document?.toObject(Payment::class.java)
+                payment?.paymentDocumentId = document?.id
+                payment
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
-                return DataModel(paymentDao.getPaymentById(id))
+                paymentDao.getPaymentById(id)
             }
 
             else -> {//CONNECTION_TYPE.SQL_SERVER.key
@@ -141,28 +133,28 @@ class PaymentRepositoryImpl(
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
-                    return DataModel(
-                        null,
-                        false,
-                        e.message
-                    )
                 }
-                return DataModel(payment)
+                return payment
             }
         }
     }
 
-    override suspend fun getAllPayments(): DataModel {
-        when (SettingsModel.connectionType) {
+    override suspend fun getAllPayments(): MutableList<Payment> {
+        return when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
-                val querySnapshot = FirebaseFirestore.getInstance().collection("payment")
-                    .whereEqualTo(
-                        "pay_cmp_id",
-                        SettingsModel.getCompanyID()
-                    ).get().await()
+                val querySnapshot = FirebaseWrapper.getQuerySnapshot(
+                    collection = "payment",
+                    filters = mutableListOf(
+                        Filter.equalTo(
+                            "pay_cmp_id",
+                            SettingsModel.getCompanyID()
+                        )
+                    )
+                )
+                val size = querySnapshot?.size() ?: 0
                 val companies = mutableListOf<Payment>()
-                if (querySnapshot.size() > 0) {
-                    for (document in querySnapshot) {
+                if (size > 0) {
+                    for (document in querySnapshot!!) {
                         val obj = document.toObject(Payment::class.java)
                         if (obj.paymentId.isNotEmpty()) {
                             obj.paymentDocumentId = document.id
@@ -170,11 +162,11 @@ class PaymentRepositoryImpl(
                         }
                     }
                 }
-                return DataModel(companies)
+                companies
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
-                return DataModel(paymentDao.getAllPayments())
+                paymentDao.getAllPayments()
             }
 
             else -> {//CONNECTION_TYPE.SQL_SERVER.key
@@ -201,45 +193,46 @@ class PaymentRepositoryImpl(
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
-                    return DataModel(
-                        payments,
-                        false,
-                        e.message
-                    )
                 }
-                return DataModel(payments)
+                return payments
             }
         }
     }
 
-    override suspend fun getLastTransactionNo(): DataModel {
+    override suspend fun getLastTransactionNo(): Payment? {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
-                val querySnapshot = FirebaseFirestore.getInstance().collection("payment")
-                    .whereEqualTo(
-                        "pay_cmp_id",
-                        SettingsModel.getCompanyID()
-                    ).whereNotEqualTo(
-                        "pay_transno",
-                        null
-                    ).orderBy(
-                        "pay_transno",
-                        Query.Direction.DESCENDING
-                    ).limit(1).get().await()
-                val document = querySnapshot.firstOrNull()
-                return DataModel(document?.toObject(Payment::class.java))
+                val querySnapshot = FirebaseWrapper.getQuerySnapshot(
+                    collection = "payment",
+                    limit = 1,
+                    filters = mutableListOf(
+                        Filter.equalTo(
+                            "pay_cmp_id",
+                            SettingsModel.getCompanyID()
+                        ),
+                        Filter.notEqualTo(
+                            "pay_transno",
+                            null
+                        )
+                    ),
+                    orderBy = mutableListOf(
+                        "pay_transno" to Query.Direction.DESCENDING
+                    )
+                )
+                val document = querySnapshot?.documents?.firstOrNull()
+                val payment = document?.toObject(Payment::class.java)
+                payment?.paymentDocumentId = document?.id
+                return  payment
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
-                return DataModel(
-                    paymentDao.getLastTransactionByType(
-                        SettingsModel.getCompanyID() ?: ""
-                    )
+                return paymentDao.getLastTransactionByType(
+                    SettingsModel.getCompanyID() ?: ""
                 )
             }
 
             else -> {
-                return DataModel(null)/*val payments: MutableList<Payment> = mutableListOf()
+                return null/*val payments: MutableList<Payment> = mutableListOf()
                 try {
                     val where = if (SettingsModel.isSqlServerWebDb) "hpa_cmp_id='${SettingsModel.getCompanyID()}'" else ""
                     val dbResult = SQLServerWrapper.getListOf(
@@ -343,7 +336,7 @@ class PaymentRepositoryImpl(
             parameters
         )
         if (queryResult.succeed) {
-            val id = queryResult.result as? String
+            val id = queryResult.result
             if (id.isNullOrEmpty()) {
                 try {
                     val dbResult = SQLServerWrapper.getQueryResult("select max(hpa_id) as id from in_hpayment")
@@ -366,8 +359,7 @@ class PaymentRepositoryImpl(
         } else {
             return DataModel(
                 null,
-                false,
-                queryResult.result as? String
+                false
             )
         }
 
@@ -449,8 +441,7 @@ class PaymentRepositoryImpl(
         } else {
             DataModel(
                 null,
-                false,
-                queryResult.result as? String
+                false
             )
         }
     }
@@ -520,8 +511,7 @@ class PaymentRepositoryImpl(
         )
         return DataModel(
             payment,
-            queryResult.succeed,
-            queryResult.result as? String
+            queryResult.succeed
         )
     }
 
@@ -574,8 +564,7 @@ class PaymentRepositoryImpl(
         } else {
             DataModel(
                 null,
-                false,
-                queryResult.result as? String
+                false
             )
         }
     }
@@ -654,8 +643,7 @@ class PaymentRepositoryImpl(
         } else {
             DataModel(
                 null,
-                false,
-                queryResult.result as? String
+                false
             )
         }
 
@@ -724,8 +712,7 @@ class PaymentRepositoryImpl(
         )
         return DataModel(
             payment,
-            queryResult.succeed,
-            queryResult.result as? String
+            queryResult.succeed
         )
     }
 
@@ -739,8 +726,7 @@ class PaymentRepositoryImpl(
         } else {
             DataModel(
                 null,
-                false,
-                queryResult.result as? String
+                false
             )
         }
 
@@ -757,8 +743,7 @@ class PaymentRepositoryImpl(
         } else {
             DataModel(
                 null,
-                false,
-                queryResult.result as? String
+                false
             )
         }
     }
@@ -770,8 +755,7 @@ class PaymentRepositoryImpl(
         )
         return DataModel(
             payment,
-            queryResult.succeed,
-            queryResult.result as? String
+            queryResult.succeed
         )
     }
 }

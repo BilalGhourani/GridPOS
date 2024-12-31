@@ -2,15 +2,14 @@ package com.grid.pos.ui.payments
 
 import android.content.Context
 import androidx.lifecycle.viewModelScope
-import com.grid.pos.data.currency.CurrencyRepository
 import com.grid.pos.data.EntityModel
+import com.grid.pos.data.currency.CurrencyRepository
 import com.grid.pos.data.payment.Payment
 import com.grid.pos.data.payment.PaymentRepository
 import com.grid.pos.data.thirdParty.ThirdParty
 import com.grid.pos.data.thirdParty.ThirdPartyRepository
 import com.grid.pos.data.user.User
 import com.grid.pos.data.user.UserRepository
-import com.grid.pos.model.CurrencyModel
 import com.grid.pos.model.Event
 import com.grid.pos.model.PaymentTypeModel
 import com.grid.pos.model.ReportResult
@@ -71,48 +70,25 @@ class PaymentsViewModel @Inject constructor(
             if (paymentsState.value.thirdParties.isEmpty()) {
                 fetchThirdParties(false)
             }
-            val dataModel = paymentRepository.getAllPayments()
-            if (dataModel.succeed) {
-                val listOfPayments = convertToMutableList(
-                    dataModel.data,
-                    Payment::class.java
+            val listOfPayments = paymentRepository.getAllPayments()
+            listOfPayments.map {
+                it.paymentThirdPartyName = clientsMap[it.paymentThirdParty]?.thirdPartyName
+            }
+            withContext(Dispatchers.Main) {
+                paymentsState.value = paymentsState.value.copy(
+                    payments = listOfPayments,
+                    isLoading = false
                 )
-                listOfPayments.map {
-                    it.paymentThirdPartyName = clientsMap[it.paymentThirdParty]?.thirdPartyName
-                }
-                withContext(Dispatchers.Main) {
-                    paymentsState.value = paymentsState.value.copy(
-                        payments = listOfPayments,
-                        isLoading = false
-                    )
-                }
-            } else if (dataModel.message != null) {
-                withContext(Dispatchers.Main) {
-                    paymentsState.value = paymentsState.value.copy(
-                        isLoading = false,
-                        warning = Event(dataModel.message),
-                    )
-                }
             }
         }
     }
 
     private fun fetchCurrencies() {
         viewModelScope.launch(Dispatchers.IO) {
-            val dataModel = currencyRepository.getAllCurrencyModels()
-            if (dataModel.succeed) {
-                val currencies = convertToMutableList(
-                    dataModel.data,
-                    CurrencyModel::class.java
-                )
-                withContext(Dispatchers.Main) {
-                    paymentsState.value = paymentsState.value.copy(
-                        currencies = currencies
-                    )
-                }
-            } else if (dataModel.message != null) {
+            val currencies = currencyRepository.getAllCurrencyModels()
+            withContext(Dispatchers.Main) {
                 paymentsState.value = paymentsState.value.copy(
-                    warning = Event(dataModel.message)
+                    currencies = currencies
                 )
             }
         }
@@ -133,41 +109,22 @@ class PaymentsViewModel @Inject constructor(
             }
         }
 
-        val dataModel = thirdPartyRepository.getAllThirdParties(
+        val listOfThirdParties = thirdPartyRepository.getAllThirdParties(
             listOf(
                 ThirdPartyType.PAYABLE.type,
                 ThirdPartyType.PAYABLE_RECEIVALBE.type
             )
         )
-        if (dataModel.succeed) {
-            val listOfThirdParties = convertToMutableList(
-                dataModel.data,
-                ThirdParty::class.java
-            )
-            withContext(Dispatchers.Main) {
-                if (loading) {
-                    paymentsState.value = paymentsState.value.copy(
-                        thirdParties = listOfThirdParties,
-                        isLoading = false
-                    )
-                } else {
-                    paymentsState.value = paymentsState.value.copy(
-                        thirdParties = listOfThirdParties
-                    )
-                }
-            }
-        } else if (dataModel.message != null) {
-            withContext(Dispatchers.Main) {
-                if (loading) {
-                    paymentsState.value = paymentsState.value.copy(
-                        warning = Event(dataModel.message),
-                        isLoading = false
-                    )
-                } else {
-                    paymentsState.value = paymentsState.value.copy(
-                        warning = Event(dataModel.message)
-                    )
-                }
+        withContext(Dispatchers.Main) {
+            if (loading) {
+                paymentsState.value = paymentsState.value.copy(
+                    thirdParties = listOfThirdParties,
+                    isLoading = false
+                )
+            } else {
+                paymentsState.value = paymentsState.value.copy(
+                    thirdParties = listOfThirdParties
+                )
             }
         }
     }
@@ -212,13 +169,12 @@ class PaymentsViewModel @Inject constructor(
             payment.calculateAmountsIfNeeded()
             if (isInserting) {
                 payment.prepareForInsert()
-                var dataModel = paymentRepository.getLastTransactionNo()
-                val lastTransactionNo = dataModel.data as? Payment
+                val lastTransactionNo = paymentRepository.getLastTransactionNo()
                 payment.paymentTransNo = POSUtils.getInvoiceTransactionNo(
                     lastTransactionNo?.paymentTransNo ?: ""
                 )
                 payment.paymentTransCode = SettingsModel.defaultPayment
-                dataModel = paymentRepository.insert(payment)
+                val dataModel = paymentRepository.insert(payment)
                 if (dataModel.succeed) {
                     val addedModel = dataModel.data as Payment
                     val payments = paymentsState.value.payments
@@ -242,12 +198,11 @@ class PaymentsViewModel @Inject constructor(
                             clear = false
                         )
                     }
-                } else if (dataModel.message != null) {
+                } else {
                     withContext(Dispatchers.Main) {
                         paymentsState.value = paymentsState.value.copy(
-                            selectedPayment = payment,
                             isLoading = false,
-                            warning = Event(dataModel.message!!),
+                            warning = null,
                         )
                     }
                 }
@@ -275,12 +230,11 @@ class PaymentsViewModel @Inject constructor(
                             clear = false
                         )
                     }
-                } else if (dataModel.message != null) {
+                } else {
                     withContext(Dispatchers.Main) {
                         paymentsState.value = paymentsState.value.copy(
-                            selectedPayment = payment,
                             isLoading = false,
-                            warning = Event(dataModel.message),
+                            warning = null,
                         )
                     }
                 }
@@ -317,12 +271,11 @@ class PaymentsViewModel @Inject constructor(
                         isSaved = false
                     )
                 }
-            } else if (dataModel.message != null) {
+            } else {
                 withContext(Dispatchers.Main) {
                     paymentsState.value = paymentsState.value.copy(
-                        selectedPayment = payment,
                         isLoading = false,
-                        warning = Event(dataModel.message),
+                        warning = null,
                     )
                 }
             }
@@ -346,7 +299,7 @@ class PaymentsViewModel @Inject constructor(
             SettingsModel.currentUser
         } else {
             if (paymentsState.value.users.isEmpty()) {
-                paymentsState.value.users = convertToMutableList(userRepository.getAllUsers().data,User::class.java)
+                paymentsState.value.users = userRepository.getAllUsers()
             }
             paymentsState.value.users.firstOrNull {
                 it.userId == userId || it.userUsername == userId

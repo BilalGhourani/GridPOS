@@ -112,7 +112,17 @@ data class PosPrinter(
     }
 
     @Exclude
-    fun getMap(): Map<String, Any?> {
+    override fun setDocumentId(documentId: String) {
+        posPrinterDocumentId = documentId
+    }
+
+    @Exclude
+    override fun getDocumentId(): String? {
+        return posPrinterDocumentId
+    }
+
+    @Exclude
+    override fun getMap(): Map<String, Any?> {
         return mapOf(
             "pp_id" to posPrinterId,
             "pp_cmp_id" to posPrinterCompId,

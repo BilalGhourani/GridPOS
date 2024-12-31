@@ -18,14 +18,14 @@ interface ThirdPartyRepository {
     ): DataModel
 
     // Get all ThirdParties as stream.
-    suspend fun getAllThirdParties(): DataModel
-    suspend fun getAllThirdParties(types: List<String>): DataModel
+    suspend fun getAllThirdParties(): MutableList<ThirdParty>
+    suspend fun getAllThirdParties(types: List<String>): MutableList<ThirdParty>
 
-    suspend fun getThirdPartyByID(thirdpartyId: String): DataModel
-    suspend fun getOneThirdPartyByCompanyID(companyId: String): DataModel
+    suspend fun getThirdPartyByID(thirdpartyId: String): ThirdParty?
+    suspend fun getOneThirdPartyByCompanyID(companyId: String): ThirdParty?
 
-    suspend fun getOneThirdPartyByUserID(userId: String): DataModel
+    suspend fun getOneThirdPartyByUserID(userId: String): ThirdParty?
 
-    suspend fun getDefaultThirdParty(): DataModel
+    suspend fun getDefaultThirdParty(): ThirdParty?
 
 }

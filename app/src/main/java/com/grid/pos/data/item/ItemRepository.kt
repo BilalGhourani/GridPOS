@@ -18,15 +18,15 @@ interface ItemRepository {
     suspend fun update(items: List<Item>):DataModel
 
     // Get all Items logs as stream.
-    suspend fun getAllItems(): DataModel
+    suspend fun getAllItems(): MutableList<Item>
 
-    suspend fun getItemsForPOS(): DataModel
+    suspend fun getItemsForPOS(): MutableList<Item>
 
-    suspend fun getOneItemByPrinter(printerID: String): DataModel
-    suspend fun generateBarcode(): DataModel
+    suspend fun getOneItemByPrinter(printerID: String): Item?
+    suspend fun generateBarcode(): String
 
-    suspend fun getOneItemByFamily(familyId: String): DataModel
-    suspend fun updateWarehouseData(item: Item) : DataModel
-    suspend fun updateOpening(item: Item) : DataModel
+    suspend fun getOneItemByFamily(familyId: String): Item?
+    suspend fun updateWarehouseData(item: Item):DataModel
+    suspend fun updateOpening(item: Item):DataModel
 
 }

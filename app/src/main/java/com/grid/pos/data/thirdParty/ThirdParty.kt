@@ -166,7 +166,17 @@ data class ThirdParty(
     }
 
     @Exclude
-    fun getMap(): Map<String, Any?> {
+    override fun setDocumentId(documentId: String) {
+        thirdPartyDocumentId = documentId
+    }
+
+    @Exclude
+    override fun getDocumentId(): String? {
+        return thirdPartyDocumentId
+    }
+
+    @Exclude
+    override fun getMap(): Map<String, Any?> {
         return mapOf(
             "tp_id" to thirdPartyId,
             "tp_name" to thirdPartyName,

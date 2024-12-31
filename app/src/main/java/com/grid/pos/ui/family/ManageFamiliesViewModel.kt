@@ -43,20 +43,12 @@ class ManageFamiliesViewModel @Inject constructor(
             isLoading = true
         )
         viewModelScope.launch(Dispatchers.IO) {
-            val dataModel = familyRepository.getAllFamilies()
-            if (dataModel.succeed) {
-                val listOfFamilies = convertToMutableList(
-                    dataModel.data,
-                    Family::class.java
+            val listOfFamilies = familyRepository.getAllFamilies()
+            withContext(Dispatchers.Main) {
+                manageFamiliesState.value = manageFamiliesState.value.copy(
+                    families = listOfFamilies,
+                    isLoading = false
                 )
-                withContext(Dispatchers.Main) {
-                    manageFamiliesState.value = manageFamiliesState.value.copy(
-                        families = listOfFamilies,
-                        isLoading = false
-                    )
-                }
-            } else if (dataModel.message != null) {
-                showWarning(dataModel.message)
             }
         }
     }
@@ -177,9 +169,6 @@ class ManageFamiliesViewModel @Inject constructor(
     }
 
     private suspend fun hasRelations(familyId: String): Boolean {
-        val itemDataModel = itemRepository.getOneItemByFamily(familyId)
-        if (itemDataModel.succeed && itemDataModel.data != null) return true
-
-        return false
+        return itemRepository.getOneItemByFamily(familyId) != null
     }
 }

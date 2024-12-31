@@ -61,20 +61,12 @@ class ItemOpeningViewModel @Inject constructor(
             isLoading = true
         )
         viewModelScope.launch(Dispatchers.IO) {
-            val dataModel = itemRepository.getAllItems()
-            if (dataModel.succeed) {
-                val listOfItems = convertToMutableList(
-                    dataModel.data,
-                    Item::class.java
+            val listOfItems = itemRepository.getAllItems()
+            withContext(Dispatchers.Main) {
+                state.value = state.value.copy(
+                    items = listOfItems,
+                    isLoading = false
                 )
-                withContext(Dispatchers.Main) {
-                    state.value = state.value.copy(
-                        items = listOfItems,
-                        isLoading = false
-                    )
-                }
-            } else if (dataModel.message != null) {
-                showWarning(dataModel.message)
             }
         }
     }

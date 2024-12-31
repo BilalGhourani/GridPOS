@@ -1,6 +1,7 @@
 package com.grid.pos.data.user
 
-import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Filter
+import com.grid.pos.data.FirebaseWrapper
 import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.DataModel
@@ -10,8 +11,6 @@ import com.grid.pos.utils.Constants
 import com.grid.pos.utils.DateHelper
 import com.grid.pos.utils.Extension.encryptCBC
 import com.grid.pos.utils.Extension.getStringValue
-import kotlinx.coroutines.tasks.await
-import java.sql.ResultSet
 import java.util.Date
 
 class UserRepositoryImpl(
@@ -20,51 +19,42 @@ class UserRepositoryImpl(
     override suspend fun insert(
             user: User
     ): DataModel {
-        if (SettingsModel.isConnectedToFireStore()) {
-            val docRef = FirebaseFirestore.getInstance().collection("set_users").add(user).await()
-            user.userDocumentId = docRef.id
-            return DataModel(user)
+        return if (SettingsModel.isConnectedToFireStore()) {
+            FirebaseWrapper.insert(
+                "set_users",
+                user
+            )
         } else {
             userDao.insert(user)
-            return DataModel(user)
+            DataModel(user)
         }
     }
 
     override suspend fun delete(
             user: User
     ): DataModel {
-        if (SettingsModel.isConnectedToFireStore()) {
-            user.userDocumentId?.let {
-                FirebaseFirestore.getInstance().collection("set_users").document(it).delete()
-                    .await()
-                return DataModel(user)
-            }
-            return DataModel(
-                user,
-                false
+        return if (SettingsModel.isConnectedToFireStore()) {
+            FirebaseWrapper.delete(
+                "set_users",
+                user
             )
         } else {
             userDao.delete(user)
-            return DataModel(user)
+            DataModel(user)
         }
     }
 
     override suspend fun update(
             user: User
     ): DataModel {
-        if (SettingsModel.isConnectedToFireStore()) {
-            user.userDocumentId?.let {
-                FirebaseFirestore.getInstance().collection("set_users").document(it)
-                    .update(user.getMap()).await()
-                return DataModel(user)
-            }
-            return DataModel(
-                user,
-                false
+        return if (SettingsModel.isConnectedToFireStore()) {
+            FirebaseWrapper.update(
+                "set_users",
+                user
             )
         } else {
             userDao.update(user)
-            return DataModel(user)
+            DataModel(user)
         }
     }
 
@@ -75,15 +65,19 @@ class UserRepositoryImpl(
         val encryptedPassword = password.encryptCBC()
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
-                val querySnapshot = FirebaseFirestore.getInstance().collection("set_users")
-                    .whereEqualTo(
-                        "usr_cmp_id",
-                        SettingsModel.getCompanyID()
-                    ).get().await()
-                val size = querySnapshot.size()
+                val querySnapshot = FirebaseWrapper.getQuerySnapshot(
+                    collection = "set_users",
+                    filters = mutableListOf(
+                        Filter.equalTo(
+                            "usr_cmp_id",
+                            SettingsModel.getCompanyID()
+                        )
+                    )
+                )
+                val size = querySnapshot?.size() ?: 0
                 val result = LoginResponse(allUsersSize = size)
                 if (size > 0) {
-                    for (document in querySnapshot) {
+                    for (document in querySnapshot!!) {
                         val obj = document.toObject(User::class.java)
                         if (obj.userId.isNotEmpty() && username.equals(
                                 obj.userUsername,
@@ -190,8 +184,7 @@ class UserRepositoryImpl(
                     if (users.isNotEmpty()) {
                         return LoginResponse(
                             allUsersSize = 1,
-                            user = users[0],
-                            error = error
+                            user = users[0]
                         )
                     }
                     return LoginResponse(
@@ -230,8 +223,7 @@ class UserRepositoryImpl(
                     if (users.isNotEmpty()) {
                         return LoginResponse(
                             allUsersSize = 1,
-                            user = users[0],
-                            error = error
+                            user = users[0]
                         )
                     }
                     return LoginResponse(
@@ -243,18 +235,22 @@ class UserRepositoryImpl(
         }
     }
 
-    override suspend fun getAllUsers(): DataModel {
+    override suspend fun getAllUsers(): MutableList<User> {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
-                val querySnapshot = FirebaseFirestore.getInstance().collection("set_users")
-                    .whereEqualTo(
-                        "usr_cmp_id",
-                        SettingsModel.getCompanyID()
-                    ).get().await()
-
+                val querySnapshot = FirebaseWrapper.getQuerySnapshot(
+                    collection = "set_users",
+                    filters = mutableListOf(
+                        Filter.equalTo(
+                            "usr_cmp_id",
+                            SettingsModel.getCompanyID()
+                        )
+                    )
+                )
+                val size = querySnapshot?.size() ?: 0
                 val users = mutableListOf<User>()
-                if (querySnapshot.size() > 0) {
-                    for (document in querySnapshot) {
+                if (size > 0) {
+                    for (document in querySnapshot!!) {
                         val obj = document.toObject(User::class.java)
                         if (obj.userId.isNotEmpty()) {
                             obj.userDocumentId = document.id
@@ -262,11 +258,11 @@ class UserRepositoryImpl(
                         }
                     }
                 }
-                return DataModel(users)
+                return   users
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
-                return DataModel(userDao.getAllUsers(SettingsModel.getCompanyID() ?: ""))
+              return  userDao.getAllUsers(SettingsModel.getCompanyID() ?: "")
             }
 
             else -> {//CONNECTION_TYPE.SQL_SERVER.key
@@ -294,15 +290,10 @@ class UserRepositoryImpl(
                             }
                             SQLServerWrapper.closeResultSet(it)
                         }
-                        return DataModel(users)
                     } catch (e: Exception) {
                         e.printStackTrace()
-                        return DataModel(
-                            null,
-                            false,
-                            e.message
-                        )
                     }
+                   return users
                 } else {
                     val users: MutableList<User> = mutableListOf()
                     try {
@@ -327,48 +318,49 @@ class UserRepositoryImpl(
                             }
                             SQLServerWrapper.closeResultSet(it)
                         }
-                        return DataModel(users)
                     } catch (e: Exception) {
                         e.printStackTrace()
-                        return DataModel(
-                            null,
-                            false,
-                            e.message
-                        )
                     }
+                  return  users
                 }
             }
         }
     }
 
-    override suspend fun getOneUser(companyId: String): DataModel {
+    override suspend fun getOneUser(companyId: String): User? {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
-                val querySnapshot = FirebaseFirestore.getInstance().collection("set_users")
-                    .whereEqualTo(
-                        "usr_cmp_id",
-                        companyId
-                    ).limit(1).get().await()
-                if (querySnapshot.size() > 0) {
-                    for (document in querySnapshot) {
+                val querySnapshot = FirebaseWrapper.getQuerySnapshot(
+                    collection = "set_users",
+                    limit = 1,
+                    filters = mutableListOf(
+                        Filter.equalTo(
+                            "usr_cmp_id",
+                            SettingsModel.getCompanyID()
+                        )
+                    )
+                )
+                val size = querySnapshot?.size() ?: 0
+                if (size > 0) {
+                    for (document in querySnapshot!!) {
                         val obj = document.toObject(User::class.java)
                         if (obj.userId.isNotEmpty()) {
                             obj.userDocumentId = document.id
-                            return DataModel(obj)
+                            return obj
                         }
                     }
                 }
-                return DataModel(null)
+                return null
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
-                return DataModel(userDao.getOneUser(companyId))
+                return userDao.getOneUser(companyId)
             }
 
             else -> {//CONNECTION_TYPE.SQL_SERVER.key
                 if (SettingsModel.isSqlServerWebDb) {
+                    var user: User? = null
                     try {
-                        var user: User? = null
                         val where = "usr_cmp_id='$companyId'"
                         val dbResult = SQLServerWrapper.getListOf(
                             "set_users",
@@ -391,18 +383,13 @@ class UserRepositoryImpl(
                             }
                             SQLServerWrapper.closeResultSet(it)
                         }
-                        return DataModel(user)
                     } catch (e: Exception) {
                         e.printStackTrace()
-                        return DataModel(
-                            null,
-                            false,
-                            e.message
-                        )
                     }
+                    return user
                 } else {
+                    var user: User? = null
                     try {
-                        var user: User? = null
                         val dbResult = SQLServerWrapper.getListOf(
                             "pay_employees",
                             "TOP 1",
@@ -423,48 +410,49 @@ class UserRepositoryImpl(
                             }
                             SQLServerWrapper.closeResultSet(it)
                         }
-                        return DataModel(user)
                     } catch (e: Exception) {
                         e.printStackTrace()
-                        return DataModel(
-                            null,
-                            false,
-                            e.message
-                        )
                     }
+                    return user
                 }
             }
         }
     }
 
-    override suspend fun getUserById(userId: String): DataModel {
+    override suspend fun getUserById(userId: String): User? {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
-                val querySnapshot = FirebaseFirestore.getInstance().collection("set_users")
-                    .whereEqualTo(
-                        "usr_id",
-                        userId
-                    ).limit(1).get().await()
-                if (querySnapshot.size() > 0) {
-                    for (document in querySnapshot) {
+                val querySnapshot = FirebaseWrapper.getQuerySnapshot(
+                    collection = "set_users",
+                    limit = 1,
+                    filters = mutableListOf(
+                        Filter.equalTo(
+                            "usr_id",
+                            userId
+                        )
+                    )
+                )
+                val size = querySnapshot?.size() ?: 0
+                if (size > 0) {
+                    for (document in querySnapshot!!) {
                         val obj = document.toObject(User::class.java)
                         if (obj.userId.isNotEmpty()) {
                             obj.userDocumentId = document.id
-                            return DataModel(obj)
+                            return obj
                         }
                     }
                 }
-                return DataModel(null)
+                return null
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
-                return DataModel(userDao.getUserById(userId))
+                return userDao.getUserById(userId)
             }
 
             else -> {//CONNECTION_TYPE.SQL_SERVER.key
                 if (SettingsModel.isSqlServerWebDb) {
+                    var user: User? = null
                     try {
-                        var user: User? = null
                         val where = "usr_username='$userId'"
                         val dbResult = SQLServerWrapper.getListOf(
                             "set_users",
@@ -487,18 +475,13 @@ class UserRepositoryImpl(
                             }
                             SQLServerWrapper.closeResultSet(it)
                         }
-                        return DataModel(user)
                     } catch (e: Exception) {
                         e.printStackTrace()
-                        return DataModel(
-                            null,
-                            false,
-                            e.message
-                        )
                     }
+                    return user
                 } else {
+                    var user: User? = null
                     try {
-                        var user: User? = null
                         val where = "emp_username='$userId'"
                         val dbResult = SQLServerWrapper.getListOf(
                             "pay_employees",
@@ -520,15 +503,10 @@ class UserRepositoryImpl(
                             }
                             SQLServerWrapper.closeResultSet(it)
                         }
-                        return DataModel(user)
                     } catch (e: Exception) {
                         e.printStackTrace()
-                        return DataModel(
-                            null,
-                            false,
-                            e.message
-                        )
                     }
+                    return user
                 }
             }
         }

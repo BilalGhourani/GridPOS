@@ -1,13 +1,12 @@
 package com.grid.pos.data.family
 
-import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Filter
+import com.grid.pos.data.FirebaseWrapper
 import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.DataModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.Extension.getStringValue
-import kotlinx.coroutines.tasks.await
-import java.sql.ResultSet
 
 class FamilyRepositoryImpl(
         private val familyDao: FamilyDao
@@ -15,10 +14,10 @@ class FamilyRepositoryImpl(
     override suspend fun insert(family: Family): DataModel {
         return when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
-                val docRef = FirebaseFirestore.getInstance().collection("st_family").add(family)
-                    .await()
-                family.familyDocumentId = docRef.id
-                DataModel(family)
+                FirebaseWrapper.insert(
+                    "st_family",
+                    family
+                )
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
@@ -35,11 +34,10 @@ class FamilyRepositoryImpl(
     override suspend fun delete(family: Family): DataModel {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
-                family.familyDocumentId?.let {
-                    FirebaseFirestore.getInstance().collection("st_family").document(it).delete()
-                        .await()
-                }
-                return DataModel(family)
+               return FirebaseWrapper.delete(
+                    "st_family",
+                    family
+                )
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
@@ -56,15 +54,9 @@ class FamilyRepositoryImpl(
     override suspend fun update(family: Family): DataModel {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
-                family.familyDocumentId?.let {
-                    FirebaseFirestore.getInstance().collection("st_family").document(it)
-                        .update(family.getMap()).await()
-                    DataModel(family)
-                }
-                return DataModel(
-                    family,
-                    false,
-                    ""
+                return FirebaseWrapper.update(
+                    "st_family",
+                    family
                 )
             }
 
@@ -79,17 +71,22 @@ class FamilyRepositoryImpl(
         }
     }
 
-    override suspend fun getAllFamilies(): DataModel {
-        when (SettingsModel.connectionType) {
+    override suspend fun getAllFamilies(): MutableList<Family> {
+        return when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
-                val querySnapshot = FirebaseFirestore.getInstance().collection("st_family")
-                    .whereEqualTo(
-                        "fa_cmp_id",
-                        SettingsModel.getCompanyID()
-                    ).get().await()
+                val querySnapshot = FirebaseWrapper.getQuerySnapshot(
+                    collection = "st_family",
+                    filters = mutableListOf(
+                        Filter.equalTo(
+                            "fa_cmp_id",
+                            SettingsModel.getCompanyID()
+                        )
+                    )
+                )
+                val size = querySnapshot?.size() ?: 0
                 val families = mutableListOf<Family>()
-                if (querySnapshot.size() > 0) {
-                    for (document in querySnapshot) {
+                if (size > 0) {
+                    for (document in querySnapshot!!) {
                         val obj = document.toObject(Family::class.java)
                         if (obj.familyId.isNotEmpty()) {
                             obj.familyDocumentId = document.id
@@ -97,11 +94,11 @@ class FamilyRepositoryImpl(
                         }
                     }
                 }
-                return DataModel(families)
+                families
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
-                return DataModel(familyDao.getAllFamilies(SettingsModel.getCompanyID() ?: ""))
+                familyDao.getAllFamilies(SettingsModel.getCompanyID() ?: "")
             }
 
             else -> {
@@ -129,39 +126,40 @@ class FamilyRepositoryImpl(
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
-                    return DataModel(
-                        null,
-                        false,
-                        e.message
-                    )
                 }
-                return DataModel(families)
+                families
             }
         }
     }
 
-    override suspend fun getOneFamily(companyId: String): DataModel {
+    override suspend fun getOneFamily(companyId: String): Family? {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
-                val querySnapshot = FirebaseFirestore.getInstance().collection("st_family")
-                    .whereEqualTo(
-                        "fa_cmp_id",
-                        companyId
-                    ).limit(1).get().await()
-                if (querySnapshot.size() > 0) {
-                    for (document in querySnapshot) {
+                val querySnapshot = FirebaseWrapper.getQuerySnapshot(
+                    collection = "st_family",
+                    limit = 1,
+                    filters = mutableListOf(
+                        Filter.equalTo(
+                            "fa_cmp_id",
+                            companyId
+                        )
+                    )
+                )
+                val size = querySnapshot?.size() ?: 0
+                if (size > 0) {
+                    for (document in querySnapshot!!) {
                         val obj = document.toObject(Family::class.java)
                         if (obj.familyId.isNotEmpty()) {
                             obj.familyDocumentId = document.id
-                            return DataModel(obj)
+                            return obj
                         }
                     }
                 }
-                return DataModel(null)
+                return null
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
-                return DataModel(familyDao.getOneFamily(companyId))
+                return familyDao.getOneFamily(companyId)
             }
 
             else -> {
@@ -175,27 +173,22 @@ class FamilyRepositoryImpl(
                         where
                     )
                     dbResult?.let {
-                            if (it.next()) {
-                                family = Family().apply {
-                                    familyId = it.getStringValue("fa_name")
-                                    familyName = if (SettingsModel.isSqlServerWebDb) it.getStringValue("fa_newname") else it.getStringValue(
-                                        "fa_name"
-                                    )
-                                    //familyImage = obj.optString("fa_name")
-                                    familyCompanyId = if (SettingsModel.isSqlServerWebDb) it.getStringValue("fa_cmp_id") else SettingsModel.getCompanyID()
-                                }
+                        if (it.next()) {
+                            family = Family().apply {
+                                familyId = it.getStringValue("fa_name")
+                                familyName = if (SettingsModel.isSqlServerWebDb) it.getStringValue("fa_newname") else it.getStringValue(
+                                    "fa_name"
+                                )
+                                //familyImage = obj.optString("fa_name")
+                                familyCompanyId = if (SettingsModel.isSqlServerWebDb) it.getStringValue("fa_cmp_id") else SettingsModel.getCompanyID()
                             }
-                            SQLServerWrapper.closeResultSet(it)
                         }
+                        SQLServerWrapper.closeResultSet(it)
+                    }
                 } catch (e: Exception) {
                     e.printStackTrace()
-                    return DataModel(
-                        null,
-                        false,
-                        e.message
-                    )
                 }
-                return DataModel(family)
+                return family
             }
         }
     }
@@ -238,7 +231,7 @@ class FamilyRepositoryImpl(
             parameters
         )
         if (queryResult.succeed) {
-            val id = queryResult.result as? String
+            val id = queryResult.result
             if (id.isNullOrEmpty() && SettingsModel.isSqlServerWebDb) {
                 try {
                     val dbResult = SQLServerWrapper.getQueryResult("select max(fa_name) as id from st_item")
@@ -261,8 +254,7 @@ class FamilyRepositoryImpl(
         } else {
             return DataModel(
                 family,
-                false,
-                queryResult.result as? String
+                false
             )
         }
     }
@@ -296,8 +288,7 @@ class FamilyRepositoryImpl(
         )
         return DataModel(
             family,
-            queryResult.succeed,
-            queryResult.result as? String
+            queryResult.succeed
         )
     }
 

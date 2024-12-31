@@ -1,5 +1,6 @@
 package com.grid.pos.data
 
+import com.google.firebase.firestore.DocumentId
 import com.google.firebase.firestore.Exclude
 import java.io.Serializable
 
@@ -15,7 +16,7 @@ abstract class EntityModel : Serializable {
     }
 
     @Exclude
-    open fun search(key:String): Boolean {
+    open fun search(key: String): Boolean {
         return false
     }
 
@@ -25,5 +26,20 @@ abstract class EntityModel : Serializable {
 
     @Exclude
     open fun prepareForInsert() {
+    }
+
+    @Exclude
+    open fun getDocumentId(): String? {
+        return null
+    }
+
+    @Exclude
+    open fun setDocumentId(documentId: String) {
+
+    }
+
+    @Exclude
+    open fun getMap(): Map<String, Any?> {
+        return mutableMapOf()
     }
 }

@@ -3,6 +3,7 @@ package com.grid.pos
 import android.content.Intent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.lifecycle.viewModelScope
+import com.grid.pos.data.FirebaseWrapper
 import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.data.company.Company
 import com.grid.pos.data.company.CompanyRepository
@@ -74,6 +75,7 @@ class SharedViewModel @Inject constructor(
     val activityState: MutableStateFlow<ActivityState> = _activityState
 
     init {
+        FirebaseWrapper.initialize(this)
         SQLServerWrapper.initialize(this)
     }
 
@@ -98,10 +100,7 @@ class SharedViewModel @Inject constructor(
         )
         SettingsModel.defaultSqlServerBranch = settingsRepository.getDefaultBranch()
         SettingsModel.defaultSqlServerWarehouse = settingsRepository.getDefaultWarehouse()
-        val dataModel = thirdPartyRepository.getDefaultThirdParty()
-        if (dataModel.succeed) {
-            SettingsModel.defaultThirdParty = dataModel.data as? ThirdParty
-        }
+        SettingsModel.defaultThirdParty = thirdPartyRepository.getDefaultThirdParty()
         val currency = SettingsModel.currentCurrency ?: return
 
         SettingsModel.posReceiptAccCashId = settingsRepository.getPosReceiptAccIdBy(
@@ -147,20 +146,14 @@ class SharedViewModel @Inject constructor(
 
     private suspend fun fetchCurrencies() {
         if (SettingsModel.currentCurrency == null) {
-            val dataModel = currencyRepository.getAllCurrencies()
-            if (dataModel.succeed) {
-                currencies = convertToMutableList(
-                    dataModel.data,
-                    Currency::class.java
-                )
-                currencies.forEach {
-                    if (it.currencyCompId.equals(
-                            SettingsModel.getCompanyID(),
-                            ignoreCase = true
-                        )
-                    ) {
-                        SettingsModel.currentCurrency = it
-                    }
+            currencies = currencyRepository.getAllCurrencies()
+            currencies.forEach {
+                if (it.currencyCompId.equals(
+                        SettingsModel.getCompanyID(),
+                        ignoreCase = true
+                    )
+                ) {
+                    SettingsModel.currentCurrency = it
                 }
             }
         }
@@ -185,13 +178,7 @@ class SharedViewModel @Inject constructor(
     }
 
     private suspend fun fetchPrinters() {
-        val dataModel = posPrinterRepository.getAllPosPrinters()
-        if (dataModel.succeed) {
-            printers = convertToMutableList(
-                dataModel.data,
-                PosPrinter::class.java
-            )
-        }
+        printers = posPrinterRepository.getAllPosPrinters()
     }
 
     suspend fun updateRealItemPrice(item: Item): Double {
@@ -212,14 +199,11 @@ class SharedViewModel @Inject constructor(
                 withContext(Dispatchers.Main) {
                     showLoading(true)
                 }
-                val dataModel = currencyRepository.getRate(
+                val rate = currencyRepository.getRate(
                     currency.currencyId,
                     item.itemCurrencyId!!
                 )
-                if (dataModel.succeed) {
-                    val rate = dataModel.data as Double
-                    item.itemRealUnitPrice = item.itemUnitPrice.div(rate)
-                }
+                item.itemRealUnitPrice = item.itemUnitPrice.div(rate)
                 withContext(Dispatchers.Main) {
                     showLoading(false)
                 }

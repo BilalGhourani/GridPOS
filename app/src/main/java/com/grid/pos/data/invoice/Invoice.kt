@@ -196,7 +196,17 @@ data class Invoice(
     }
 
     @Exclude
-    fun getMap(): Map<String, Any?> {
+    override fun setDocumentId(documentId: String) {
+        invoiceDocumentId = documentId
+    }
+
+    @Exclude
+    override fun getDocumentId(): String? {
+        return invoiceDocumentId
+    }
+
+    @Exclude
+    override fun getMap(): Map<String, Any?> {
         return mapOf(
             "in_id" to invoiceId,
             "in_hi_id" to invoiceHeaderId,

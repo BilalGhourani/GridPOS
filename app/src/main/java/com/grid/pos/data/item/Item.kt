@@ -295,7 +295,17 @@ data class Item(
     }
 
     @Exclude
-    fun getMap(): Map<String, Any?> {
+    override fun setDocumentId(documentId: String) {
+        itemDocumentId = documentId
+    }
+
+    @Exclude
+    override fun getDocumentId(): String? {
+        return itemDocumentId
+    }
+
+    @Exclude
+    override fun getMap(): Map<String, Any?> {
         return mapOf(
             "it_id" to itemId,
             "it_cmp_id" to itemCompId,

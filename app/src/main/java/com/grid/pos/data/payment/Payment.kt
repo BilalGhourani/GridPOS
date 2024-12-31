@@ -252,7 +252,17 @@ data class Payment(
     }
 
     @Exclude
-    fun getMap(): Map<String, Any?> {
+    override fun setDocumentId(documentId: String) {
+        paymentDocumentId = documentId
+    }
+
+    @Exclude
+    override fun getDocumentId(): String? {
+        return paymentDocumentId
+    }
+
+    @Exclude
+    override fun getMap(): Map<String, Any?> {
         return mapOf(
             "pay_cmp_id" to paymentCompanyId,
             "pay_type" to paymentType,

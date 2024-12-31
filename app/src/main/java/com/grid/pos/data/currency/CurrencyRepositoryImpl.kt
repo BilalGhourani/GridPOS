@@ -1,6 +1,8 @@
 package com.grid.pos.data.currency
 
+import com.google.firebase.firestore.Filter
 import com.google.firebase.firestore.FirebaseFirestore
+import com.grid.pos.data.FirebaseWrapper
 import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.CurrencyModel
@@ -18,53 +20,62 @@ import java.util.Date
 class CurrencyRepositoryImpl(
         private val currencyDao: CurrencyDao
 ) : CurrencyRepository {
-    override suspend fun insert(currency: Currency): Currency {
-        if (SettingsModel.isConnectedToFireStore()) {
-            val docRef = FirebaseFirestore.getInstance().collection("currency").add(currency)
-                .await()
-            currency.currencyDocumentId = docRef.id
+    override suspend fun insert(currency: Currency): DataModel {
+        return if (SettingsModel.isConnectedToFireStore()) {
+            FirebaseWrapper.insert(
+                "currency",
+                currency
+            )
         } else {
             currencyDao.insert(currency)
+            DataModel(currency)
         }
-        return currency
     }
 
     override suspend fun delete(
             currency: Currency
-    ) {
-        if (SettingsModel.isConnectedToFireStore()) {
-            currency.currencyDocumentId?.let {
-                FirebaseFirestore.getInstance().collection("currency").document(it).delete().await()
-            }
+    ): DataModel {
+        return if (SettingsModel.isConnectedToFireStore()) {
+            FirebaseWrapper.delete(
+                "currency",
+                currency
+            )
         } else {
             currencyDao.delete(currency)
+            DataModel(currency)
         }
     }
 
     override suspend fun update(
             currency: Currency
-    ) {
-        if (SettingsModel.isConnectedToFireStore()) {
-            currency.currencyDocumentId?.let {
-                FirebaseFirestore.getInstance().collection("currency").document(it)
-                    .update(currency.getMap()).await()
-            }
+    ): DataModel {
+        return if (SettingsModel.isConnectedToFireStore()) {
+            FirebaseWrapper.update(
+                "currency",
+                currency
+            )
         } else {
             currencyDao.update(currency)
+            DataModel(currency)
         }
     }
 
-    override suspend fun getAllCurrencies(): DataModel {
-        when (SettingsModel.connectionType) {
+    override suspend fun getAllCurrencies(): MutableList<Currency> {
+        return when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
-                val querySnapshot = FirebaseFirestore.getInstance().collection("currency")
-                    .whereEqualTo(
-                        "cur_cmp_id",
-                        SettingsModel.getCompanyID()
-                    ).get().await()
+                val querySnapshot = FirebaseWrapper.getQuerySnapshot(
+                    collection = "currency",
+                    filters = mutableListOf(
+                        Filter.equalTo(
+                            "cur_cmp_id",
+                            SettingsModel.getCompanyID()
+                        )
+                    )
+                )
+                val size = querySnapshot?.size() ?: 0
                 val currencies = mutableListOf<Currency>()
-                if (querySnapshot.size() > 0) {
-                    for (document in querySnapshot) {
+                if (size > 0) {
+                    for (document in querySnapshot!!) {
                         val obj = document.toObject(Currency::class.java)
                         if (obj.currencyId.isNotEmpty()) {
                             obj.currencyDocumentId = document.id
@@ -72,11 +83,11 @@ class CurrencyRepositoryImpl(
                         }
                     }
                 }
-                return DataModel(currencies)
+                currencies
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
-                return DataModel(currencyDao.getAllCurrencies(SettingsModel.getCompanyID() ?: ""))
+                currencyDao.getAllCurrencies(SettingsModel.getCompanyID() ?: "")
             }
 
             else -> {
@@ -115,24 +126,16 @@ class CurrencyRepositoryImpl(
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
-                    return DataModel(
-                        null,
-                        false,
-                        e.message
-                    )
                 }
 
                 if (currency.currencyId.isNotEmpty() && !currency.currencyDocumentId.isNullOrEmpty()) {
-                    val rateResult = getRate(
+                    currency.currencyRate = getRate(
                         currency.currencyId,
                         currency.currencyDocumentId!!
                     )
-                    if (rateResult.succeed) {
-                        currency.currencyRate = rateResult.data as Double
-                    }
                 }
 
-                return DataModel(mutableListOf(currency))
+                mutableListOf(currency)
             }
         }
     }
@@ -140,14 +143,14 @@ class CurrencyRepositoryImpl(
     override suspend fun getRate(
             firstCurr: String,
             secondCurr: String
-    ): DataModel {
-        when (SettingsModel.connectionType) {
+    ): Double {
+        return when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
-                return DataModel(SettingsModel.currentCurrency?.currencyRate ?: 1.0)
+                return SettingsModel.currentCurrency?.currencyRate ?: 1.0
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
-                return DataModel(SettingsModel.currentCurrency?.currencyRate ?: 1.0)
+                return SettingsModel.currentCurrency?.currencyRate ?: 1.0
             }
 
             else -> {
@@ -175,19 +178,14 @@ class CurrencyRepositoryImpl(
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
-                    return DataModel(
-                        null,
-                        false,
-                        e.message
-                    )
                 }
-                return DataModel(result)
+                result
             }
         }
     }
 
-    override suspend fun getAllCurrencyModels(): DataModel {
-        when (SettingsModel.connectionType) {
+    override suspend fun getAllCurrencyModels(): MutableList<CurrencyModel> {
+        return when (SettingsModel.connectionType) {
             CONNECTION_TYPE.LOCAL.key, CONNECTION_TYPE.FIRESTORE.key -> {
                 val currencies = mutableListOf<CurrencyModel>()
                 SettingsModel.currentCurrency?.let {
@@ -210,7 +208,7 @@ class CurrencyRepositoryImpl(
                         )
                     }
                 }
-                return DataModel(currencies)
+                currencies
             }
 
             else -> {
@@ -242,13 +240,8 @@ class CurrencyRepositoryImpl(
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
-                    return DataModel(
-                        null,
-                        false,
-                        e.message
-                    )
                 }
-                return DataModel(currencyModels)
+                return currencyModels
             }
         }
     }

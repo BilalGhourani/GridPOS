@@ -1,7 +1,9 @@
 package com.grid.pos.data.receipt
 
+import com.google.firebase.firestore.Filter
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
+import com.grid.pos.data.FirebaseWrapper
 import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.DataModel
@@ -24,10 +26,10 @@ class ReceiptRepositoryImpl(
     ): DataModel {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
-                val docRef = FirebaseFirestore.getInstance().collection("receipt").add(receipt)
-                    .await()
-                receipt.receiptDocumentId = docRef.id
-                return DataModel(receipt)
+                return FirebaseWrapper.insert(
+                    "receipt",
+                    receipt
+                )
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
@@ -37,11 +39,8 @@ class ReceiptRepositoryImpl(
 
             else -> {
                 val dataModel = insertHReceipt(receipt)
-                return if (dataModel.succeed) {
-                    getReceiptById(receipt.receiptId)
-                } else {
-                    dataModel
-                }
+                dataModel.data = getReceiptById(receipt.receiptId)
+                return dataModel
             }
         }
     }
@@ -49,26 +48,21 @@ class ReceiptRepositoryImpl(
     override suspend fun delete(
             receipt: Receipt
     ): DataModel {
-        when (SettingsModel.connectionType) {
+        return when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
-                receipt.receiptDocumentId?.let {
-                    FirebaseFirestore.getInstance().collection("receipt").document(it).delete()
-                        .await()
-                    return DataModel(receipt)
-                }
-                return DataModel(
-                    receipt,
-                    false
+                FirebaseWrapper.delete(
+                    "receipt",
+                    receipt
                 )
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
                 receiptDao.delete(receipt)
-                return DataModel(receipt)
+                DataModel(receipt)
             }
 
             else -> {
-                return deleteHReceipt(receipt)
+                deleteHReceipt(receipt)
             }
         }
     }
@@ -76,49 +70,48 @@ class ReceiptRepositoryImpl(
     override suspend fun update(
             receipt: Receipt
     ): DataModel {
-        when (SettingsModel.connectionType) {
+        return when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
-                receipt.receiptDocumentId?.let {
-                    FirebaseFirestore.getInstance().collection("receipt").document(it)
-                        .update(receipt.getMap()).await()
-                    return DataModel(receipt)
-                }
-                return DataModel(
-                    receipt,
-                    false
+                FirebaseWrapper.update(
+                    "receipt",
+                    receipt
                 )
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
                 receiptDao.update(receipt)
-                return DataModel(receipt)
+                DataModel(receipt)
             }
 
             else -> {
-                return updateHReceipt(receipt)
+                updateHReceipt(receipt)
             }
         }
     }
 
     override suspend fun getReceiptById(
             id: String
-    ): DataModel {
-        when (SettingsModel.connectionType) {
+    ): Receipt? {
+        return when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
-                val querySnapshot = FirebaseFirestore.getInstance().collection("receipt")
-                    .whereEqualTo(
-                        "rec_cmp_id",
-                        SettingsModel.getCompanyID()
-                    ).whereEqualTo(
-                        "rec_id",
-                        id
-                    ).get().await()
-                val document = querySnapshot.documents.firstOrNull()
-                return DataModel(document?.toObject(Receipt::class.java))
+                val querySnapshot = FirebaseWrapper.getQuerySnapshot(
+                    collection = "receipt",
+                    limit = 1,
+                    filters = mutableListOf(
+                        Filter.equalTo(
+                            "rec_id",
+                            id
+                        )
+                    )
+                )
+                val document = querySnapshot?.documents?.firstOrNull()
+                val receipt = document?.toObject(Receipt::class.java)
+                receipt?.receiptDocumentId = document?.id
+                receipt
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
-                return DataModel(receiptDao.getReceiptById(id))
+                receiptDao.getReceiptById(id)
             }
 
             else -> {//CONNECTION_TYPE.SQL_SERVER.key
@@ -141,28 +134,28 @@ class ReceiptRepositoryImpl(
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
-                    return DataModel(
-                        null,
-                        false,
-                        e.message
-                    )
                 }
-                return DataModel(receipt)
+                return receipt
             }
         }
     }
 
-    override suspend fun getAllReceipts(): DataModel {
-        when (SettingsModel.connectionType) {
+    override suspend fun getAllReceipts(): MutableList<Receipt> {
+        return when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
-                val querySnapshot = FirebaseFirestore.getInstance().collection("receipt")
-                    .whereEqualTo(
-                        "rec_cmp_id",
-                        SettingsModel.getCompanyID()
-                    ).get().await()
+                val querySnapshot = FirebaseWrapper.getQuerySnapshot(
+                    collection = "receipt",
+                    filters = mutableListOf(
+                        Filter.equalTo(
+                            "rec_cmp_id",
+                            SettingsModel.getCompanyID()
+                        )
+                    )
+                )
+                val size = querySnapshot?.size() ?: 0
                 val receipts = mutableListOf<Receipt>()
-                if (querySnapshot.size() > 0) {
-                    for (document in querySnapshot) {
+                if (size > 0) {
+                    for (document in querySnapshot!!) {
                         val obj = document.toObject(Receipt::class.java)
                         if (obj.receiptId.isNotEmpty()) {
                             obj.receiptDocumentId = document.id
@@ -170,11 +163,11 @@ class ReceiptRepositoryImpl(
                         }
                     }
                 }
-                return DataModel(receipts)
+                receipts
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
-                return DataModel(receiptDao.getAllReceipts())
+                receiptDao.getAllReceipts()
             }
 
             else -> {//CONNECTION_TYPE.SQL_SERVER.key
@@ -201,45 +194,45 @@ class ReceiptRepositoryImpl(
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
-                    return DataModel(
-                        null,
-                        false,
-                        e.message
-                    )
                 }
-                return DataModel(receipts)
+                return receipts
             }
         }
     }
 
-    override suspend fun getLastTransactionNo(): DataModel {
+    override suspend fun getLastTransactionNo(): Receipt? {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
-                val querySnapshot = FirebaseFirestore.getInstance().collection("receipt")
-                    .whereEqualTo(
-                        "rec_cmp_id",
-                        SettingsModel.getCompanyID()
-                    ).whereNotEqualTo(
-                        "rec_transno",
-                        null
-                    ).orderBy(
-                        "rec_transno",
-                        Query.Direction.DESCENDING
-                    ).limit(1).get().await()
-                val document = querySnapshot.firstOrNull()
-                return DataModel(document?.toObject(Receipt::class.java))
+                val querySnapshot = FirebaseWrapper.getQuerySnapshot(
+                    collection = "receipt",
+                    limit = 1,
+                    filters = mutableListOf(
+                        Filter.equalTo(
+                            "rec_cmp_id",
+                            SettingsModel.getCompanyID()
+                        ),Filter.notEqualTo(
+                            "rec_transno",
+                            null
+                        )
+                    ),
+                    orderBy = mutableListOf(
+                        "rec_transno" to Query.Direction.DESCENDING
+                    )
+                )
+                val document = querySnapshot?.documents?.firstOrNull()
+                val receipt = document?.toObject(Receipt::class.java)
+                receipt?.receiptDocumentId = document?.id
+                return receipt
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
-                return DataModel(
-                    receiptDao.getLastTransactionByType(
-                        SettingsModel.getCompanyID() ?: ""
-                    )
+                return receiptDao.getLastTransactionByType(
+                    SettingsModel.getCompanyID() ?: ""
                 )
             }
 
             else -> {
-                return DataModel(null)/*val receipts: MutableList<Receipt> = mutableListOf()
+                return null/*val receipts: MutableList<Receipt> = mutableListOf()
                 try {
                     val where = if (SettingsModel.isSqlServerWebDb) "hr_cmp_id='${SettingsModel.getCompanyID()}'" else ""
                     val dbResult = SQLServerWrapper.getListOf(
@@ -343,7 +336,7 @@ class ReceiptRepositoryImpl(
             parameters
         )
         if (queryResult.succeed) {
-            val id = queryResult.result as? String
+            val id = queryResult.result
             if (id.isNullOrEmpty()) {
                 try {
                     val dbResult = SQLServerWrapper.getQueryResult("select max(hr_id) as id from in_hreceipt")
@@ -367,7 +360,7 @@ class ReceiptRepositoryImpl(
             return DataModel(
                 null,
                 false,
-                queryResult.result as? String
+                queryResult.result
             )
         }
     }
@@ -449,7 +442,7 @@ class ReceiptRepositoryImpl(
             DataModel(
                 null,
                 false,
-                queryResult.result as? String
+                queryResult.result
             )
         }
     }
@@ -515,7 +508,7 @@ class ReceiptRepositoryImpl(
         return DataModel(
             receipt,
             queryResult.succeed,
-            queryResult.result as? String
+            queryResult.result
         )
     }
 
@@ -571,7 +564,7 @@ class ReceiptRepositoryImpl(
             DataModel(
                 receipt,
                 false,
-                queryResult.result as? String
+                queryResult.result
             )
         }
     }
@@ -651,7 +644,7 @@ class ReceiptRepositoryImpl(
             DataModel(
                 receipt,
                 false,
-                queryResult.result as? String
+                queryResult.result
             )
         }
     }
@@ -716,7 +709,7 @@ class ReceiptRepositoryImpl(
         return DataModel(
             receipt,
             queryResult.succeed,
-            queryResult.result as? String
+            queryResult.result
         )
     }
 
@@ -731,7 +724,7 @@ class ReceiptRepositoryImpl(
             DataModel(
                 receipt,
                 false,
-                queryResult.result as? String
+                queryResult.result
             )
         }
     }
@@ -747,7 +740,7 @@ class ReceiptRepositoryImpl(
             DataModel(
                 receipt,
                 false,
-                queryResult.result as? String
+                queryResult.result
             )
         }
 
@@ -761,7 +754,7 @@ class ReceiptRepositoryImpl(
         return DataModel(
             receipt,
             queryResult.succeed,
-            queryResult.result as? String
+            queryResult.result
         )
     }
 }

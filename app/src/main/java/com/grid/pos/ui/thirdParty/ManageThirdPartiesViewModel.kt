@@ -27,8 +27,7 @@ class ManageThirdPartiesViewModel @Inject constructor(
     init {
         viewModelScope.launch(Dispatchers.IO) {
             openConnectionIfNeeded()
-            val dataModel = thirdPartyRepository.getDefaultThirdParty()
-            val isDefaultEnabled = dataModel.succeed && dataModel.data == null
+            val isDefaultEnabled = thirdPartyRepository.getDefaultThirdParty()  == null
             withContext(Dispatchers.Main) {
                 manageThirdPartiesState.value = manageThirdPartiesState.value.copy(
                     enableIsDefault = isDefaultEnabled
@@ -51,28 +50,14 @@ class ManageThirdPartiesViewModel @Inject constructor(
             isLoading = true
         )
         viewModelScope.launch(Dispatchers.IO) {
-            val dataModel = thirdPartyRepository.getAllThirdParties()
-            if (dataModel.succeed) {
-                val listOfThirdParties = convertToMutableList(
-                    dataModel.data,
-                    ThirdParty::class.java
+            val listOfThirdParties = thirdPartyRepository.getAllThirdParties()
+            val isDefaultEnabled = listOfThirdParties.none { it.thirdPartyDefault }
+            withContext(Dispatchers.Main) {
+                manageThirdPartiesState.value = manageThirdPartiesState.value.copy(
+                    thirdParties = listOfThirdParties,
+                    enableIsDefault = isDefaultEnabled,
+                    isLoading = false
                 )
-                val isDefaultEnabled = listOfThirdParties.none { it.thirdPartyDefault }
-                withContext(Dispatchers.Main) {
-                    manageThirdPartiesState.value = manageThirdPartiesState.value.copy(
-                        thirdParties = listOfThirdParties,
-                        enableIsDefault = isDefaultEnabled,
-                        isLoading = false
-                    )
-                }
-            } else if (dataModel.message != null) {
-                withContext(Dispatchers.Main) {
-                    manageThirdPartiesState.value = manageThirdPartiesState.value.copy(
-                        isLoading = false,
-                        warning = Event(dataModel.message),
-
-                        )
-                }
             }
         }
     }

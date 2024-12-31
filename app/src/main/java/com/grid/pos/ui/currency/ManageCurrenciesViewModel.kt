@@ -46,29 +46,15 @@ class ManageCurrenciesViewModel @Inject constructor(
         )
         viewModelScope.launch(Dispatchers.IO) {
             openConnectionIfNeeded()
-            val dataModel = currencyRepository.getAllCurrencies()
-            if (dataModel.succeed) {
-                val currencies = convertToMutableList(
-                    dataModel.data,
-                    Currency::class.java
+            val currencies = currencyRepository.getAllCurrencies()
+            val currency = if (currencies.size > 0) currencies[0] else Currency()
+            SettingsModel.currentCurrency = currency.copy()
+            withContext(Dispatchers.Main) {
+                manageCurrenciesState.value = manageCurrenciesState.value.copy(
+                    selectedCurrency = currency,
+                    fillFields = true,
+                    isLoading = false
                 )
-                val currency = if (currencies.size > 0) currencies[0] else Currency()
-                SettingsModel.currentCurrency = currency.copy()
-                withContext(Dispatchers.Main) {
-                    manageCurrenciesState.value = manageCurrenciesState.value.copy(
-                        selectedCurrency = currency,
-                        fillFields = true,
-                        isLoading = false
-                    )
-                }
-            } else {
-                withContext(Dispatchers.Main) {
-                    manageCurrenciesState.value = manageCurrenciesState.value.copy(
-                        warning = Event(dataModel.message ?: "an error has occurred!"),
-                        fillFields = false,
-                        isLoading = false
-                    )
-                }
             }
         }
     }
@@ -100,28 +86,45 @@ class ManageCurrenciesViewModel @Inject constructor(
             }
             if (isInserting) {
                 currency.prepareForInsert()
-                val addedCurr = currencyRepository.insert(currency)
-                SettingsModel.currentCurrency = addedCurr.copy()
-                withContext(Dispatchers.Main) {
-                    manageCurrenciesState.value = manageCurrenciesState.value.copy(
-                        selectedCurrency = addedCurr,
-                        isLoading = false,
-                        isSaved = true,
-                        warning = Event("Currency saved successfully."),
-                    )
+                val dataModel = currencyRepository.insert(currency)
+                if (dataModel.succeed) {
+                    val addedCurr = dataModel.data as Currency
+                    SettingsModel.currentCurrency = addedCurr.copy()
+                    withContext(Dispatchers.Main) {
+                        manageCurrenciesState.value = manageCurrenciesState.value.copy(
+                            selectedCurrency = addedCurr,
+                            isLoading = false,
+                            isSaved = true,
+                            warning = Event("Currency saved successfully."),
+                        )
+                    }
+                } else {
+                    withContext(Dispatchers.Main) {
+                        manageCurrenciesState.value = manageCurrenciesState.value.copy(
+                            isLoading = false,
+                            warning = null,
+                        )
+                    }
                 }
             } else {
-                currencyRepository.update(
-                    currency
-                )
-                SettingsModel.currentCurrency = currency.copy()
-                withContext(Dispatchers.Main) {
-                    manageCurrenciesState.value = manageCurrenciesState.value.copy(
-                        selectedCurrency = currency,
-                        warning = Event("Currency saved successfully."),
-                        isSaved = true,
-                        isLoading = false
-                    )
+                val dataModel = currencyRepository.update(currency)
+                if (dataModel.succeed) {
+                    SettingsModel.currentCurrency = currency.copy()
+                    withContext(Dispatchers.Main) {
+                        manageCurrenciesState.value = manageCurrenciesState.value.copy(
+                            selectedCurrency = currency,
+                            warning = Event("Currency saved successfully."),
+                            isSaved = true,
+                            isLoading = false
+                        )
+                    }
+                } else {
+                    withContext(Dispatchers.Main) {
+                        manageCurrenciesState.value = manageCurrenciesState.value.copy(
+                            isLoading = false,
+                            warning = null,
+                        )
+                    }
                 }
             }
         }

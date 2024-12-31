@@ -1,6 +1,7 @@
 package com.grid.pos.data.company
 
-import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Filter
+import com.grid.pos.data.FirebaseWrapper
 import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.DataModel
@@ -8,46 +9,49 @@ import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.Extension.getBooleanValue
 import com.grid.pos.utils.Extension.getDoubleValue
 import com.grid.pos.utils.Extension.getStringValue
-import kotlinx.coroutines.tasks.await
 
 class CompanyRepositoryImpl(
         private val companyDao: CompanyDao
 ) : CompanyRepository {
     override suspend fun insert(
             company: Company
-    ): Company {
-        if (SettingsModel.isConnectedToFireStore()) {
-            val docRef = FirebaseFirestore.getInstance().collection("company").add(company).await()
-            company.companyDocumentId = docRef.id
+    ): DataModel {
+        return if (SettingsModel.isConnectedToFireStore()) {
+            FirebaseWrapper.insert(
+                "company",
+                company
+            )
         } else {
             companyDao.insert(company)
+            DataModel(company)
         }
-        return company
     }
 
     override suspend fun delete(
             company: Company
-    ) {
-        if (SettingsModel.isConnectedToFireStore()) {
-            company.companyDocumentId?.let {
-                FirebaseFirestore.getInstance().collection("company").document(it).delete().await()
-            }
+    ): DataModel {
+        return if (SettingsModel.isConnectedToFireStore()) {
+            FirebaseWrapper.delete(
+                "company",
+                company
+            )
         } else {
             companyDao.delete(company)
+            DataModel(company)
         }
     }
 
     override suspend fun update(
             company: Company
-    ) {
-        if (SettingsModel.isConnectedToFireStore()) {
-            company.companyDocumentId?.let {
-                FirebaseFirestore.getInstance().collection("company").document(it)
-                    .update(company.getMap()).await()
-            }
-
+    ): DataModel {
+        return if (SettingsModel.isConnectedToFireStore()) {
+            FirebaseWrapper.update(
+                "company",
+                company
+            )
         } else {
             companyDao.update(company)
+            DataModel(company)
         }
     }
 
@@ -56,12 +60,17 @@ class CompanyRepositoryImpl(
     ): DataModel {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
-                val querySnapshot = FirebaseFirestore.getInstance().collection("company")
-                    .whereEqualTo(
-                        "cmp_id",
-                        id
-                    ).get().await()
-                val document = querySnapshot.documents.firstOrNull()
+                val querySnapshot = FirebaseWrapper.getQuerySnapshot(
+                    collection = "company",
+                    limit = 1,
+                    filters = mutableListOf(
+                        Filter.equalTo(
+                            "cmp_id",
+                            id
+                        )
+                    )
+                )
+                val document = querySnapshot?.documents?.firstOrNull()
                 val company = document?.toObject(Company::class.java)
                 company?.companyDocumentId = document?.id
                 return DataModel(company)
@@ -116,11 +125,13 @@ class CompanyRepositoryImpl(
     override suspend fun getAllCompanies(): DataModel {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
-                val querySnapshot = FirebaseFirestore.getInstance().collection("company").get()
-                    .await()
+                val querySnapshot = FirebaseWrapper.getQuerySnapshot(
+                    collection = "company"
+                )
+                val size = querySnapshot?.size() ?: 0
                 val companies = mutableListOf<Company>()
-                if (querySnapshot.size() > 0) {
-                    for (document in querySnapshot) {
+                if (size > 0) {
+                    for (document in querySnapshot!!) {
                         val obj = document.toObject(Company::class.java)
                         if (obj.companyId.isNotEmpty()) {
                             obj.companyDocumentId = document.id
@@ -185,13 +196,12 @@ class CompanyRepositoryImpl(
     override suspend fun disableCompanies(disabled: Boolean) {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
-                val querySnapshot = FirebaseFirestore.getInstance().collection("company")
-                    .whereEqualTo(
-                        "cmp_id",
-                        SettingsModel.getCompanyID()
-                    ).get().await()
-                if (querySnapshot.size() > 0) {
-                    for (document in querySnapshot) {
+                val querySnapshot = FirebaseWrapper.getQuerySnapshot(
+                    collection = "company"
+                )
+                val size = querySnapshot?.size() ?: 0
+                if (size > 0) {
+                    for (document in querySnapshot!!) {
                         val obj = document.toObject(Company::class.java)
                         if (obj.companyId.isNotEmpty()) {
                             obj.companyDocumentId = document.id

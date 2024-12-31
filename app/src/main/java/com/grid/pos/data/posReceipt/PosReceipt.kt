@@ -188,7 +188,17 @@ data class PosReceipt(
     }
 
     @Exclude
-    fun getMap(): Map<String, Any?> {
+    override fun setDocumentId(documentId: String) {
+        posReceiptDocumentId = documentId
+    }
+
+    @Exclude
+    override fun getDocumentId(): String? {
+        return posReceiptDocumentId
+    }
+
+    @Exclude
+    override fun getMap(): Map<String, Any?> {
         return mapOf(
             "pr_id" to posReceiptId,
             "pr_hi_id" to posReceiptInvoiceId,

@@ -3,14 +3,11 @@ package com.grid.pos.ui.item
 import android.content.Context
 import androidx.lifecycle.viewModelScope
 import com.grid.pos.data.currency.CurrencyRepository
-import com.grid.pos.data.family.Family
 import com.grid.pos.data.family.FamilyRepository
 import com.grid.pos.data.invoice.InvoiceRepository
 import com.grid.pos.data.item.Item
 import com.grid.pos.data.item.ItemRepository
-import com.grid.pos.data.posPrinter.PosPrinter
 import com.grid.pos.data.posPrinter.PosPrinterRepository
-import com.grid.pos.model.CurrencyModel
 import com.grid.pos.model.Event
 import com.grid.pos.model.ItemGroupModel
 import com.grid.pos.model.ReportResult
@@ -59,20 +56,12 @@ class ManageItemsViewModel @Inject constructor(
             isLoading = true
         )
         viewModelScope.launch(Dispatchers.IO) {
-            val dataModel = itemRepository.getAllItems()
-            if (dataModel.succeed) {
-                val listOfItems = convertToMutableList(
-                    dataModel.data,
-                    Item::class.java
+            val listOfItems = itemRepository.getAllItems()
+            withContext(Dispatchers.Main) {
+                manageItemsState.value = manageItemsState.value.copy(
+                    items = listOfItems,
+                    isLoading = false
                 )
-                withContext(Dispatchers.Main) {
-                    manageItemsState.value = manageItemsState.value.copy(
-                        items = listOfItems,
-                        isLoading = false
-                    )
-                }
-            } else if (dataModel.message != null) {
-                showWarning(dataModel.message)
             }
         }
     }
@@ -84,45 +73,29 @@ class ManageItemsViewModel @Inject constructor(
             )
         }
         viewModelScope.launch(Dispatchers.IO) {
-            val dataModel = familyRepository.getAllFamilies()
-            if (dataModel.succeed) {
-                val listOfFamilies = convertToMutableList(
-                    dataModel.data,
-                    Family::class.java
-                )
-                withContext(Dispatchers.Main) {
-                    manageItemsState.value = if (loading) {
-                        manageItemsState.value.copy(
-                            families = listOfFamilies,
-                            isLoading = false
-                        )
-                    } else {
-                        manageItemsState.value.copy(
-                            families = listOfFamilies
-                        )
-                    }
+            val listOfFamilies = familyRepository.getAllFamilies()
+            withContext(Dispatchers.Main) {
+                manageItemsState.value = if (loading) {
+                    manageItemsState.value.copy(
+                        families = listOfFamilies,
+                        isLoading = false
+                    )
+                } else {
+                    manageItemsState.value.copy(
+                        families = listOfFamilies
+                    )
                 }
-            } else if (dataModel.message != null) {
-                showWarning(dataModel.message)
             }
         }
     }
 
     private suspend fun fetchCurrencies() {
-        val dataModel = currencyRepository.getAllCurrencyModels()
-        if (dataModel.succeed) {
-            val currencies = convertToMutableList(
-                dataModel.data,
-                CurrencyModel::class.java
+        val currencies = currencyRepository.getAllCurrencyModels()
+        withContext(Dispatchers.Main) {
+            manageItemsState.value = manageItemsState.value.copy(
+                currencies = currencies,
+                isLoading = false
             )
-            withContext(Dispatchers.Main) {
-                manageItemsState.value = manageItemsState.value.copy(
-                    currencies = currencies,
-                    isLoading = false
-                )
-            }
-        } else if (dataModel.message != null) {
-            showWarning(dataModel.message)
         }
     }
 
@@ -133,26 +106,18 @@ class ManageItemsViewModel @Inject constructor(
             )
         }
         viewModelScope.launch(Dispatchers.IO) {
-            val dataModel = posPrinterRepository.getAllPosPrinters()
-            if (dataModel.succeed) {
-                val listOfPrinters = convertToMutableList(
-                    dataModel.data,
-                    PosPrinter::class.java
-                )
-                withContext(Dispatchers.Main) {
-                    manageItemsState.value = if (loading) {
-                        manageItemsState.value.copy(
-                            printers = listOfPrinters,
-                            isLoading = false
-                        )
-                    } else {
-                        manageItemsState.value.copy(
-                            printers = listOfPrinters
-                        )
-                    }
+            val listOfPrinters = posPrinterRepository.getAllPosPrinters()
+            withContext(Dispatchers.Main) {
+                manageItemsState.value = if (loading) {
+                    manageItemsState.value.copy(
+                        printers = listOfPrinters,
+                        isLoading = false
+                    )
+                } else {
+                    manageItemsState.value.copy(
+                        printers = listOfPrinters
+                    )
                 }
-            } else if (dataModel.message != null) {
-                showWarning(dataModel.message)
             }
         }
     }
@@ -299,13 +264,7 @@ class ManageItemsViewModel @Inject constructor(
     }
 
     suspend fun generateBarcode(): String {
-        val dataModel = itemRepository.generateBarcode()
-        if (dataModel.succeed) {
-            return dataModel.data as String
-        } else if (dataModel.message != null) {
-            showWarning(dataModel.message)
-        }
-        return ""
+        return itemRepository.generateBarcode()
     }
 
     fun prepareItemBarcodeReport(

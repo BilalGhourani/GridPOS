@@ -1,10 +1,12 @@
 package com.grid.pos.data.invoiceHeader
 
-import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Filter
 import com.google.firebase.firestore.Query
 import com.grid.pos.App
+import com.grid.pos.data.FirebaseWrapper
 import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.model.CONNECTION_TYPE
+import com.grid.pos.model.DataModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.model.TableInvoiceModel
 import com.grid.pos.model.TableModel
@@ -15,7 +17,6 @@ import com.grid.pos.utils.Extension.getIntValue
 import com.grid.pos.utils.Extension.getObjectValue
 import com.grid.pos.utils.Extension.getStringValue
 import com.grid.pos.utils.Utils
-import kotlinx.coroutines.tasks.await
 import java.sql.ResultSet
 import java.sql.Timestamp
 import java.util.Date
@@ -27,20 +28,22 @@ class InvoiceHeaderRepositoryImpl(
             invoiceHeader: InvoiceHeader,
             willPrint: Boolean,
             isFinished: Boolean
-    ): InvoiceHeader {
+    ): DataModel {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
-                val docRef = FirebaseFirestore.getInstance().collection("in_hinvoice")
-                    .add(invoiceHeader.getMap()).await()
-                invoiceHeader.invoiceHeadDocumentId = docRef.id
+                return FirebaseWrapper.insert(
+                    "in_hinvoice",
+                    invoiceHeader
+                )
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
                 invoiceHeaderDao.insert(invoiceHeader)
+                return DataModel(invoiceHeader)
             }
 
             else -> {
-                insertByProcedure(invoiceHeader)
+                val dataModel = insertByProcedure(invoiceHeader)
                 if (!invoiceHeader.invoiceHeadTableId.isNullOrEmpty()) {
                     if (SettingsModel.isSqlServerWebDb) {
                         if (isFinished && invoiceHeader.invoiceHeadTableType?.equals("temp") == true) {
@@ -61,70 +64,62 @@ class InvoiceHeaderRepositoryImpl(
                             0
                         )
                     }
-                } /*else if (!invoiceHeader.invoiceHeadTaName.isNullOrEmpty()) {
-                    if (SettingsModel.isSqlServerWebDb) {
-                        if (!isFinished) {
-                            invoiceHeader.invoiceHeadTableId = insertTable(
-                                invoiceHeader.invoiceHeadId,
-                                invoiceHeader.invoiceHeadTaName!!,
-                                if (willPrint) "RTL" else "Busy",
-                                1
-                            )
-                        }
-                    } else {
-                        insertTable(
-                            if (isFinished) null else invoiceHeader.invoiceHeadId,
-                            invoiceHeader.invoiceHeadTaName!!,
-                            if (isFinished) null else if (willPrint) "RTL" else null,
-                            if (isFinished) 0 else 1
-                        )
-                    }
-                }*/
+                }
+                return dataModel
             }
         }
-        return invoiceHeader
     }
 
     override suspend fun delete(
             invoiceHeader: InvoiceHeader
-    ) {
+    ): DataModel {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
-                invoiceHeader.invoiceHeadDocumentId?.let {
-                    FirebaseFirestore.getInstance().collection("in_hinvoice").document(it).delete()
-                        .await()
-                }
+                return FirebaseWrapper.delete(
+                    "in_hinvoice",
+                    invoiceHeader
+                )
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
                 invoiceHeaderDao.delete(invoiceHeader)
+                return DataModel(invoiceHeader)
             }
 
             else -> {
-                SQLServerWrapper.executeProcedure(
+                val queryResult = SQLServerWrapper.executeProcedure(
                     "delin_hinvoice",
                     listOf(
                         invoiceHeader.invoiceHeadId,
                         SettingsModel.currentUser?.userUsername
                     )
                 )
+                return if (queryResult.succeed) {
+                    DataModel(invoiceHeader)
+                } else {
+                    DataModel(
+                        invoiceHeader,
+                        false
+                    )
+                }
             }
         }
     }
 
     override suspend fun updateInvoiceHeader(
             invoiceHeader: InvoiceHeader
-    ) {
-        when (SettingsModel.connectionType) {
+    ): DataModel {
+        return when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
-                invoiceHeader.invoiceHeadDocumentId?.let {
-                    FirebaseFirestore.getInstance().collection("in_hinvoice").document(it)
-                        .update(invoiceHeader.getMap()).await()
-                }
+                FirebaseWrapper.update(
+                    "in_hinvoice",
+                    invoiceHeader
+                )
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
                 invoiceHeaderDao.update(invoiceHeader)
+                DataModel(invoiceHeader)
             }
 
             else -> {
@@ -137,21 +132,22 @@ class InvoiceHeaderRepositoryImpl(
             invoiceHeader: InvoiceHeader,
             willPrint: Boolean,
             isFinished: Boolean
-    ) {
+    ): DataModel {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
-                invoiceHeader.invoiceHeadDocumentId?.let {
-                    FirebaseFirestore.getInstance().collection("in_hinvoice").document(it)
-                        .update(invoiceHeader.getMap()).await()
-                }
+                return FirebaseWrapper.update(
+                    "in_hinvoice",
+                    invoiceHeader
+                )
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
                 invoiceHeaderDao.update(invoiceHeader)
+                return DataModel(invoiceHeader)
             }
 
             else -> {
-                updateByProcedure(invoiceHeader)
+                val dataModel = updateByProcedure(invoiceHeader)
                 if (!invoiceHeader.invoiceHeadTableId.isNullOrEmpty()) {
                     if (isFinished && invoiceHeader.invoiceHeadTableType?.equals("temp") == true) {
                         deleteTable(invoiceHeader.invoiceHeadTableId!!)
@@ -174,6 +170,7 @@ class InvoiceHeaderRepositoryImpl(
 
                     }
                 }
+                return dataModel
             }
         }
     }
@@ -182,20 +179,27 @@ class InvoiceHeaderRepositoryImpl(
         val limit = 100
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
-                val querySnapshot = FirebaseFirestore.getInstance().collection("in_hinvoice")
-                    .whereEqualTo(
-                        "hi_cmp_id",
-                        SettingsModel.getCompanyID()
-                    ).whereNotEqualTo(
-                        "hi_transno",
-                        null
-                    ).orderBy(
-                        "hi_transno",
-                        Query.Direction.DESCENDING
-                    ).limit(limit.toLong()).get().await()
+                val querySnapshot = FirebaseWrapper.getQuerySnapshot(
+                    collection = "in_hinvoice",
+                    limit = limit.toLong(),
+                    filters = mutableListOf(
+                        Filter.equalTo(
+                            "hi_cmp_id",
+                            SettingsModel.getCompanyID()
+                        ),
+                        Filter.notEqualTo(
+                            "hi_transno",
+                            null
+                        )
+                    ),
+                    orderBy = mutableListOf(
+                        "hi_transno" to Query.Direction.DESCENDING
+                    )
+                )
+                val size = querySnapshot?.size() ?: 0
                 val invoices = mutableListOf<InvoiceHeader>()
-                if (querySnapshot.size() > 0) {
-                    for (document in querySnapshot) {
+                if (size > 0) {
+                    for (document in querySnapshot!!) {
                         val obj = document.toObject(InvoiceHeader::class.java)
                         if (obj.invoiceHeadId.isNotEmpty()) {
                             obj.invoiceHeadDocumentId = document.id
@@ -204,19 +208,27 @@ class InvoiceHeaderRepositoryImpl(
                     }
                 }
 
-                val tablesQuerySnapshot = FirebaseFirestore.getInstance().collection("in_hinvoice")
-                    .whereEqualTo(
-                        "hi_cmp_id",
-                        SettingsModel.getCompanyID()
-                    ).whereEqualTo(
-                        "hi_transno",
-                        null
-                    ).whereEqualTo(
-                        "hi_ta_name",
-                        null
-                    ).limit(limit.toLong()).get().await()
-                if (tablesQuerySnapshot.size() > 0) {
-                    for (document in tablesQuerySnapshot) {
+                val tablesQuerySnapshot = FirebaseWrapper.getQuerySnapshot(
+                    collection = "in_hinvoice",
+                    limit = limit.toLong(),
+                    filters = mutableListOf(
+                        Filter.equalTo(
+                            "hi_cmp_id",
+                            SettingsModel.getCompanyID()
+                        ),
+                        Filter.equalTo(
+                            "hi_transno",
+                            null
+                        ),
+                        Filter.equalTo(
+                            "hi_ta_name",
+                            null
+                        )
+                    )
+                )
+                val tableSize = tablesQuerySnapshot?.size() ?: 0
+                if (tableSize > 0) {
+                    for (document in tablesQuerySnapshot!!) {
                         val obj = document.toObject(InvoiceHeader::class.java)
                         if (obj.invoiceHeadId.isNotEmpty()) {
                             obj.invoiceHeadDocumentId = document.id
@@ -268,17 +280,23 @@ class InvoiceHeaderRepositoryImpl(
     override suspend fun getAllInvoicesByIds(ids: List<String>): MutableList<InvoiceHeader> {
         return when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
-                val querySnapshot = FirebaseFirestore.getInstance().collection("in_hinvoice")
-                    .whereIn(
-                        "hi_id",
-                        ids
-                    ).whereEqualTo(
-                        "hi_cmp_id",
-                        SettingsModel.getCompanyID()
-                    ).get().await()
+                val querySnapshot = FirebaseWrapper.getQuerySnapshot(
+                    collection = "in_hinvoice",
+                    filters = mutableListOf(
+                        Filter.inArray(
+                            "hi_id",
+                            ids
+                        ),
+                        Filter.equalTo(
+                            "hi_cmp_id",
+                            SettingsModel.getCompanyID()
+                        )
+                    )
+                )
+                val size = querySnapshot?.size() ?: 0
                 val invoices = mutableListOf<InvoiceHeader>()
-                if (querySnapshot.size() > 0) {
-                    for (document in querySnapshot) {
+                if (size > 0) {
+                    for (document in querySnapshot!!) {
                         val obj = document.toObject(InvoiceHeader::class.java)
                         if (obj.invoiceHeadId.isNotEmpty()) {
                             obj.invoiceHeadDocumentId = document.id
@@ -306,19 +324,27 @@ class InvoiceHeaderRepositoryImpl(
     override suspend fun getLastOrderByType(): InvoiceHeader? {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
-                val querySnapshot = FirebaseFirestore.getInstance().collection("in_hinvoice")
-                    .whereEqualTo(
-                        "hi_cmp_id",
-                        SettingsModel.getCompanyID()
-                    ).whereNotEqualTo(
-                        "hi_orderno",
-                        null
-                    ).orderBy(
-                        "hi_timestamp",
-                        Query.Direction.DESCENDING
-                    ).limit(1).get().await()
-                val document = querySnapshot.firstOrNull()
-                return document?.toObject(InvoiceHeader::class.java)
+                val querySnapshot = FirebaseWrapper.getQuerySnapshot(
+                    collection = "in_hinvoice",
+                    limit = 1,
+                    filters = mutableListOf(
+                        Filter.equalTo(
+                            "hi_cmp_id",
+                            SettingsModel.getCompanyID()
+                        ),
+                        Filter.notEqualTo(
+                            "hi_orderno",
+                            null
+                        )
+                    ),
+                    orderBy = mutableListOf(
+                        "hi_timestamp" to Query.Direction.DESCENDING
+                    )
+                )
+                val document = querySnapshot?.firstOrNull()
+                val invoiceHeader = document?.toObject(InvoiceHeader::class.java)
+                invoiceHeader?.invoiceHeadDocumentId = document?.id
+                return invoiceHeader
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
@@ -355,22 +381,31 @@ class InvoiceHeaderRepositoryImpl(
     ): InvoiceHeader? {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
-                val querySnapshot = FirebaseFirestore.getInstance().collection("in_hinvoice")
-                    .whereEqualTo(
-                        "hi_cmp_id",
-                        SettingsModel.getCompanyID()
-                    ).whereEqualTo(
-                        "hi_tt_code",
-                        type
-                    ).whereNotEqualTo(
-                        "hi_transno",
-                        null
-                    ).orderBy(
-                        "hi_transno",
-                        Query.Direction.DESCENDING
-                    ).limit(1).get().await()
-                val document = querySnapshot.firstOrNull()
-                return document?.toObject(InvoiceHeader::class.java)
+                val querySnapshot = FirebaseWrapper.getQuerySnapshot(
+                    collection = "in_hinvoice",
+                    limit = 1,
+                    filters = mutableListOf(
+                        Filter.equalTo(
+                            "hi_cmp_id",
+                            SettingsModel.getCompanyID()
+                        ),
+                        Filter.equalTo(
+                            "hi_tt_code",
+                            type
+                        ),
+                        Filter.notEqualTo(
+                            "hi_transno",
+                            null
+                        )
+                    ),
+                    orderBy = mutableListOf(
+                        "hi_transno" to Query.Direction.DESCENDING
+                    )
+                )
+                val document = querySnapshot?.firstOrNull()
+                val invoiceHeader = document?.toObject(InvoiceHeader::class.java)
+                invoiceHeader?.invoiceHeadDocumentId = document?.id
+                return invoiceHeader
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
@@ -408,16 +443,23 @@ class InvoiceHeaderRepositoryImpl(
     override suspend fun getLastInvoice(): InvoiceHeader? {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
-                val querySnapshot = FirebaseFirestore.getInstance().collection("in_hinvoice")
-                    .whereEqualTo(
-                        "hi_cmp_id",
-                        SettingsModel.getCompanyID()
-                    ).orderBy(
-                        "hi_transno",
-                        Query.Direction.DESCENDING
-                    ).limit(1).get().await()
-                val document = querySnapshot.firstOrNull()
-                return document?.toObject(InvoiceHeader::class.java)
+                val querySnapshot = FirebaseWrapper.getQuerySnapshot(
+                    collection = "in_hinvoice",
+                    limit = 1,
+                    filters = mutableListOf(
+                        Filter.equalTo(
+                            "hi_cmp_id",
+                            SettingsModel.getCompanyID()
+                        )
+                    ),
+                    orderBy = mutableListOf(
+                        "hi_transno" to Query.Direction.DESCENDING
+                    )
+                )
+                val document = querySnapshot?.firstOrNull()
+                val invoiceHeader = document?.toObject(InvoiceHeader::class.java)
+                invoiceHeader?.invoiceHeadDocumentId = document?.id
+                return invoiceHeader
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
@@ -454,20 +496,25 @@ class InvoiceHeaderRepositoryImpl(
     override suspend fun getAllOpenedTables(): MutableList<TableModel> {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
-                val querySnapshot = FirebaseFirestore.getInstance().collection("in_hinvoice")
-                    .whereEqualTo(
-                        "hi_cmp_id",
-                        SettingsModel.getCompanyID()
-                    ).whereNotEqualTo(
-                        "hi_ta_name",
-                        null
-                    ).whereEqualTo(
-                        "hi_transno",
-                        null
-                    ).get().await()
+                val querySnapshot = FirebaseWrapper.getQuerySnapshot(
+                    collection = "in_hinvoice",
+                    filters = mutableListOf(
+                        Filter.equalTo(
+                            "hi_cmp_id",
+                            SettingsModel.getCompanyID()
+                        ),Filter.notEqualTo(
+                            "hi_ta_name",
+                            null
+                        ),Filter.equalTo(
+                            "hi_transno",
+                            null
+                        )
+                    )
+                )
+                val size = querySnapshot?.size()?:0
                 val tables = mutableListOf<TableModel>()
-                if (querySnapshot.size() > 0) {
-                    for (document in querySnapshot) {
+                if (size > 0) {
+                    for (document in querySnapshot!!) {
                         val obj = document.toObject(InvoiceHeader::class.java)
                         if (obj.invoiceHeadId.isNotEmpty()) {
                             obj.invoiceHeadDocumentId = document.id
@@ -640,18 +687,23 @@ class InvoiceHeaderRepositoryImpl(
     ): TableInvoiceModel {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
-                val querySnapshot = FirebaseFirestore.getInstance().collection("in_hinvoice")
-                    .whereEqualTo(
-                        "hi_cmp_id",
-                        SettingsModel.getCompanyID()
-                    ).whereEqualTo(
-                        "hi_ta_name",
-                        tableModel.table_name
-                    ).whereEqualTo(
-                        "hi_transno",
-                        null
-                    ).limit(1).get().await()
-                val document = querySnapshot.firstOrNull()
+                val querySnapshot = FirebaseWrapper.getQuerySnapshot(
+                    collection = "in_hinvoice",
+                    limit = 1,
+                    filters = mutableListOf(
+                        Filter.equalTo(
+                            "hi_cmp_id",
+                            SettingsModel.getCompanyID()
+                        ),Filter.equalTo(
+                            "hi_ta_name",
+                            tableModel.table_name
+                        ),Filter.equalTo(
+                            "hi_transno",
+                            null
+                        )
+                    )
+                )
+                val document = querySnapshot?.firstOrNull()
                 if (document != null) {
                     val obj = document.toObject(InvoiceHeader::class.java)
                     obj.invoiceHeadDocumentId = document.id
@@ -739,20 +791,25 @@ class InvoiceHeaderRepositoryImpl(
             to: Date
     ): MutableList<InvoiceHeader> {
         if (SettingsModel.isConnectedToFireStore()) {
-            val querySnapshot = FirebaseFirestore.getInstance().collection("in_hinvoice")
-                .whereEqualTo(
-                    "hi_cmp_id",
-                    SettingsModel.getCompanyID()
-                ).whereGreaterThanOrEqualTo(
-                    "hi_timestamp",
-                    from
-                ).whereLessThan(
-                    "hi_timestamp",
-                    to
-                ).get().await()
+            val querySnapshot = FirebaseWrapper.getQuerySnapshot(
+                collection = "in_hinvoice",
+                filters = mutableListOf(
+                    Filter.equalTo(
+                        "hi_cmp_id",
+                        SettingsModel.getCompanyID()
+                    ),Filter.greaterThanOrEqualTo(
+                        "hi_timestamp",
+                        from
+                    ),Filter.lessThan(
+                        "hi_timestamp",
+                        to
+                    )
+                )
+            )
+          val size = querySnapshot?.size()?:0
             val invoices = mutableListOf<InvoiceHeader>()
-            if (querySnapshot.size() > 0) {
-                for (document in querySnapshot) {
+            if (size > 0) {
+                for (document in querySnapshot!!) {
                     val obj = document.toObject(InvoiceHeader::class.java)
                     if (obj.invoiceHeadId.isNotEmpty()) {
                         obj.invoiceHeadDocumentId = document.id
@@ -773,12 +830,17 @@ class InvoiceHeaderRepositoryImpl(
     override suspend fun getOneInvoiceByUserID(userId: String): InvoiceHeader? {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
-                val querySnapshot = FirebaseFirestore.getInstance().collection("in_hinvoice")
-                    .whereEqualTo(
-                        "hi_userstamp",
-                        userId
-                    ).limit(1).get().await()
-                val document = querySnapshot.firstOrNull()
+                val querySnapshot = FirebaseWrapper.getQuerySnapshot(
+                    collection = "in_hinvoice",
+                    limit = 1,
+                    filters = mutableListOf(
+                        Filter.equalTo(
+                            "hi_userstamp",
+                            userId
+                        )
+                    )
+                )
+                val document = querySnapshot?.firstOrNull()
                 if (document != null) {
                     return document.toObject(InvoiceHeader::class.java)
                 }
@@ -798,12 +860,17 @@ class InvoiceHeaderRepositoryImpl(
     override suspend fun getOneInvoiceByClientID(clientId: String): InvoiceHeader? {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
-                val querySnapshot = FirebaseFirestore.getInstance().collection("in_hinvoice")
-                    .whereEqualTo(
-                        "hi_tp_name",
-                        clientId
-                    ).limit(1).get().await()
-                val document = querySnapshot.firstOrNull()
+                val querySnapshot = FirebaseWrapper.getQuerySnapshot(
+                    collection = "in_hinvoice",
+                    limit = 1,
+                    filters = mutableListOf(
+                        Filter.equalTo(
+                            "hi_tp_name",
+                            clientId
+                        )
+                    )
+                )
+                val document = querySnapshot?.firstOrNull()
                 if (document != null) {
                     return document.toObject(InvoiceHeader::class.java)
                 }
@@ -909,7 +976,7 @@ class InvoiceHeaderRepositoryImpl(
         return null
     }
 
-    private fun insertByProcedure(invoiceHeader: InvoiceHeader) {
+    private fun insertByProcedure(invoiceHeader: InvoiceHeader): DataModel {
         val decimal = SettingsModel.currentCurrency?.currencyName1Dec ?: 3
         val parameters = if (SettingsModel.isSqlServerWebDb) {
             listOf(
@@ -1038,12 +1105,18 @@ class InvoiceHeaderRepositoryImpl(
             "addin_hinvoice",
             parameters
         )
-        if (queryResult.succeed) {
-            invoiceHeader.invoiceHeadId = (queryResult.result as? String) ?: ""
+        return if (queryResult.succeed) {
+            invoiceHeader.invoiceHeadId = queryResult.result ?: ""
+            DataModel(invoiceHeader)
+        } else {
+            DataModel(
+                invoiceHeader,
+                false
+            )
         }
     }
 
-    private fun updateByProcedure(invoiceHeader: InvoiceHeader) {
+    private fun updateByProcedure(invoiceHeader: InvoiceHeader): DataModel {
         val decimal = SettingsModel.currentCurrency?.currencyName1Dec ?: 3
         val parameters = if (SettingsModel.isSqlServerWebDb) {
             listOf(
@@ -1167,10 +1240,18 @@ class InvoiceHeaderRepositoryImpl(
                 )
             )
         }
-        SQLServerWrapper.executeProcedure(
+        val queryResult = SQLServerWrapper.executeProcedure(
             "updin_hinvoice",
             parameters
         )
+        return if (queryResult.succeed) {
+            DataModel(invoiceHeader)
+        } else {
+            DataModel(
+                invoiceHeader,
+                false
+            )
+        }
     }
 
     private fun getRateTax(): Double {
@@ -1232,7 +1313,7 @@ class InvoiceHeaderRepositoryImpl(
             parameters
         )
         if (queryResult.succeed) {
-            return (queryResult.result as? String) ?: fallback
+            return queryResult.result ?: fallback
         }
         return fallback
     }

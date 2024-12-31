@@ -4,20 +4,17 @@ import android.content.Context
 import androidx.lifecycle.viewModelScope
 import com.grid.pos.data.currency.Currency
 import com.grid.pos.data.currency.CurrencyRepository
-import com.grid.pos.data.family.Family
 import com.grid.pos.data.family.FamilyRepository
 import com.grid.pos.data.invoice.InvoiceRepository
 import com.grid.pos.data.invoiceHeader.InvoiceHeader
 import com.grid.pos.data.invoiceHeader.InvoiceHeaderRepository
 import com.grid.pos.data.item.Item
 import com.grid.pos.data.item.ItemRepository
-import com.grid.pos.data.posPrinter.PosPrinter
 import com.grid.pos.data.posPrinter.PosPrinterRepository
 import com.grid.pos.data.posReceipt.PosReceipt
 import com.grid.pos.data.posReceipt.PosReceiptRepository
 import com.grid.pos.data.thirdParty.ThirdParty
 import com.grid.pos.data.thirdParty.ThirdPartyRepository
-import com.grid.pos.data.user.User
 import com.grid.pos.data.user.UserRepository
 import com.grid.pos.model.Event
 import com.grid.pos.model.InvoiceItemModel
@@ -78,68 +75,38 @@ class POSViewModel @Inject constructor(
 
     private suspend fun fetchItems(stopLoading: Boolean = false) {
         if (SettingsModel.currentCurrency == null && SettingsModel.isConnectedToSqlServer()) {
-            val dataModel = currencyRepository.getAllCurrencies()
-            if (dataModel.succeed) {
-                val currencies = convertToMutableList(
-                    dataModel.data,
-                    Currency::class.java
-                )
-                val currency = if (currencies.size > 0) currencies[0] else Currency()
-                SettingsModel.currentCurrency = currency
-            } else {
-                withContext(Dispatchers.Main) {
-                    posState.value = posState.value.copy(
-                        warning = if (dataModel.message != null) Event(dataModel.message) else null,
-                        actionLabel = null,
-                        isLoading = false
-                    )
-                }
-            }
+            val currencies = currencyRepository.getAllCurrencies()
+            val currency = if (currencies.size > 0) currencies[0] else Currency()
+            SettingsModel.currentCurrency = currency
         }
-        val dataModel = itemRepository.getItemsForPOS()
-        if (dataModel.succeed) {
-            val listOfItems = convertToMutableList(
-                dataModel.data,
-                Item::class.java
-            )
-            withContext(Dispatchers.Main) {
-                posState.value = if (stopLoading) {
-                    posState.value.copy(
-                        items = listOfItems,
-                        isLoading = false
-                    )
-                } else {
-                    posState.value.copy(
-                        items = listOfItems
-                    )
-                }
+        val listOfItems = itemRepository.getItemsForPOS()
+        withContext(Dispatchers.Main) {
+            posState.value = if (stopLoading) {
+                posState.value.copy(
+                    items = listOfItems,
+                    isLoading = false
+                )
+            } else {
+                posState.value.copy(
+                    items = listOfItems
+                )
             }
-        } else if (dataModel.message != null) {
-            showWarning(dataModel.message)
         }
     }
 
     private suspend fun fetchFamilies(stopLoading: Boolean = false) {
-        val dataModel = familyRepository.getAllFamilies()
-        if (dataModel.succeed) {
-            val listOfFamilies = convertToMutableList(
-                dataModel.data,
-                Family::class.java
-            )
-            withContext(Dispatchers.Main) {
-                posState.value = if (stopLoading) {
-                    posState.value.copy(
-                        families = listOfFamilies,
-                        isLoading = false
-                    )
-                } else {
-                    posState.value.copy(
-                        families = listOfFamilies
-                    )
-                }
+        val listOfFamilies = familyRepository.getAllFamilies()
+        withContext(Dispatchers.Main) {
+            posState.value = if (stopLoading) {
+                posState.value.copy(
+                    families = listOfFamilies,
+                    isLoading = false
+                )
+            } else {
+                posState.value.copy(
+                    families = listOfFamilies
+                )
             }
-        } else if (dataModel.message != null) {
-            showWarning(dataModel.message)
         }
     }
 
@@ -150,37 +117,29 @@ class POSViewModel @Inject constructor(
             )
         }
         viewModelScope.launch(Dispatchers.IO) {
-            val dataModel = thirdPartyRepository.getAllThirdParties()
-            if (dataModel.succeed) {
-                val listOfThirdParties = convertToMutableList(
-                    dataModel.data,
-                    ThirdParty::class.java
-                )
-                val defaultTp = posState.value.selectedThirdParty
-                if (defaultTp.thirdPartyId.isNotEmpty()) {
-                    val defTp = listOfThirdParties.firstOrNull { it.thirdPartyId == defaultTp.thirdPartyId }
-                    if (defTp == null) {
-                        listOfThirdParties.add(
-                            0,
-                            defaultTp
-                        )
-                    }
+            val listOfThirdParties = thirdPartyRepository.getAllThirdParties()
+            val defaultTp = posState.value.selectedThirdParty
+            if (defaultTp.thirdPartyId.isNotEmpty()) {
+                val defTp = listOfThirdParties.firstOrNull { it.thirdPartyId == defaultTp.thirdPartyId }
+                if (defTp == null) {
+                    listOfThirdParties.add(
+                        0,
+                        defaultTp
+                    )
                 }
-                clientsMap = listOfThirdParties.associateBy { it.thirdPartyId }
-                withContext(Dispatchers.Main) {
-                    posState.value = if (withLoading) {
-                        posState.value.copy(
-                            thirdParties = listOfThirdParties,
-                            isLoading = false
-                        )
-                    } else {
-                        posState.value.copy(
-                            thirdParties = listOfThirdParties
-                        )
-                    }
+            }
+            clientsMap = listOfThirdParties.associateBy { it.thirdPartyId }
+            withContext(Dispatchers.Main) {
+                posState.value = if (withLoading) {
+                    posState.value.copy(
+                        thirdParties = listOfThirdParties,
+                        isLoading = false
+                    )
+                } else {
+                    posState.value.copy(
+                        thirdParties = listOfThirdParties
+                    )
                 }
-            } else if (dataModel.message != null) {
-                showWarning(dataModel.message)
             }
         }
     }
@@ -263,12 +222,13 @@ class POSViewModel @Inject constructor(
                     invoiceHeader.invoiceHeadTtCode = SettingsModel.getTransactionType(invoiceHeader.invoiceHeadGrossAmount)
                 }
                 invoiceHeader.prepareForInsert()
-                val addedInv = invoiceHeaderRepository.insert(
+                val dataModel = invoiceHeaderRepository.insert(
                     invoiceHeader,
                     print,
                     finish
                 )
-                if (addedInv.invoiceHeadId.isNotEmpty()) {
+                if (dataModel.succeed) {
+                    val addedInv = dataModel.data as InvoiceHeader
                     if ((finish || invoiceHeader.invoiceHeadTaName.isNullOrEmpty()) && posState.value.invoiceHeaders.isNotEmpty()) {
                         posState.value.invoiceHeaders.add(
                             0,
@@ -281,11 +241,6 @@ class POSViewModel @Inject constructor(
                         posReceipt,
                         invoiceItems,
                         print
-                    )
-                } else {
-                    showWarning(
-                        "An error has occurd!.",
-                        ""
                     )
                 }
             } else {
@@ -308,31 +263,33 @@ class POSViewModel @Inject constructor(
                         )
                     }
                 }
-                invoiceHeaderRepository.update(
+                val dataModel = invoiceHeaderRepository.update(
                     invoiceHeader,
                     print,
                     finish
                 )
-                val index = posState.value.invoiceHeaders.indexOfFirst { it.invoiceHeadId == invoiceHeader.invoiceHeadId }
-                if (index >= 0) {
-                    posState.value.invoiceHeaders.removeAt(index)
-                    posState.value.invoiceHeaders.add(
-                        index,
-                        invoiceHeader
-                    )
-                } else if ((finish || invoiceHeader.invoiceHeadTaName.isNullOrEmpty()) && posState.value.invoiceHeaders.isNotEmpty()) {
-                    posState.value.invoiceHeaders.add(
-                        0,
-                        invoiceHeader
+                if (dataModel.succeed) {
+                    val index = posState.value.invoiceHeaders.indexOfFirst { it.invoiceHeadId == invoiceHeader.invoiceHeadId }
+                    if (index >= 0) {
+                        posState.value.invoiceHeaders.removeAt(index)
+                        posState.value.invoiceHeaders.add(
+                            index,
+                            invoiceHeader
+                        )
+                    } else if ((finish || invoiceHeader.invoiceHeadTaName.isNullOrEmpty()) && posState.value.invoiceHeaders.isNotEmpty()) {
+                        posState.value.invoiceHeaders.add(
+                            0,
+                            invoiceHeader
+                        )
+                    }
+                    savePOSReceipt(
+                        context,
+                        invoiceHeader,
+                        posReceipt,
+                        invoiceItems,
+                        print
                     )
                 }
-                savePOSReceipt(
-                    context,
-                    invoiceHeader,
-                    posReceipt,
-                    invoiceItems,
-                    print
-                )
             }
         }
     }
@@ -539,19 +496,21 @@ class POSViewModel @Inject constructor(
             isLoading = true
         )
         viewModelScope.launch(Dispatchers.IO) {
-            invoiceHeaderRepository.delete(invoiceHeader)
-            posReceiptRepository.delete(posReceipt)
-            invoiceItems.forEach { invoiceItem ->
-                invoiceRepository.delete(invoiceItem.invoice)
-                invoiceItem.invoiceItem.itemRemQty += invoiceItem.invoice.invoiceQuantity
-                itemRepository.update(invoiceItem.invoiceItem)
-            }
-            withContext(Dispatchers.Main) {
-                posState.value = posState.value.copy(
-                    isLoading = false,
-                    warning = Event("successfully deleted."),
-                    isDeleted = true
-                )
+            val dataModel = invoiceHeaderRepository.delete(invoiceHeader)
+            if (dataModel.succeed) {
+                posReceiptRepository.delete(posReceipt)
+                invoiceItems.forEach { invoiceItem ->
+                    invoiceRepository.delete(invoiceItem.invoice)
+                    invoiceItem.invoiceItem.itemRemQty += invoiceItem.invoice.invoiceQuantity
+                    itemRepository.update(invoiceItem.invoiceItem)
+                }
+                withContext(Dispatchers.Main) {
+                    posState.value = posState.value.copy(
+                        isLoading = false,
+                        warning = Event("successfully deleted."),
+                        isDeleted = true
+                    )
+                }
             }
         }
     }
@@ -582,7 +541,7 @@ class POSViewModel @Inject constructor(
             SettingsModel.defaultThirdParty
         } else {
             if (posState.value.thirdParties.isEmpty()) {
-                thirdPartyRepository.getThirdPartyByID(invoiceHeader.invoiceHeadThirdPartyName!!).data as? ThirdParty
+                thirdPartyRepository.getThirdPartyByID(invoiceHeader.invoiceHeadThirdPartyName!!)
             } else {
                 posState.value.thirdParties.firstOrNull {
                     it.thirdPartyId == invoiceHeader.invoiceHeadThirdPartyName
@@ -593,7 +552,7 @@ class POSViewModel @Inject constructor(
             SettingsModel.currentUser
         } else {
             if (posState.value.users.isEmpty()) {
-                userRepository.getUserById(invoiceHeader.invoiceHeadUserStamp!!).data as? User
+                userRepository.getUserById(invoiceHeader.invoiceHeadUserStamp!!)
             } else {
                 posState.value.users.firstOrNull {
                     it.userId == invoiceHeader.invoiceHeadUserStamp || it.userUsername == invoiceHeader.invoiceHeadUserStamp
@@ -637,13 +596,7 @@ class POSViewModel @Inject constructor(
     ) {
         if (SettingsModel.autoPrintTickets) {
             if (posState.value.printers.isEmpty()) {
-                val dataModel = posPrinterRepository.getAllPosPrinters()
-                if (dataModel.succeed) {
-                    posState.value.printers = convertToMutableList(
-                        dataModel.data,
-                        PosPrinter::class.java
-                    )
-                }
+                posState.value.printers = posPrinterRepository.getAllPosPrinters()
             }
             val itemsPrintersMap = invoiceItems.filter { it.shouldPrint || it.isDeleted }
                 .groupBy { it.invoiceItem.itemPrinter ?: "" }

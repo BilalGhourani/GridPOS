@@ -124,9 +124,19 @@ data class User(
                 || !user.userTableMode.equals(userTableMode)
     }
 
+    @Exclude
+    override fun setDocumentId(documentId: String) {
+        userDocumentId = documentId
+    }
 
     @Exclude
-    fun getMap(): Map<String, Any?> {
+    override fun getDocumentId(): String? {
+        return userDocumentId
+    }
+
+
+    @Exclude
+    override fun getMap(): Map<String, Any?> {
         return mapOf(
             "usr_name" to userName,
             "usr_cmp_id" to userCompanyId,

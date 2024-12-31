@@ -1,7 +1,8 @@
 package com.grid.pos.data.item
 
-import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Filter
 import com.google.firebase.firestore.Query
+import com.grid.pos.data.FirebaseWrapper
 import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.DataModel
@@ -11,7 +12,6 @@ import com.grid.pos.utils.Extension.getDoubleValue
 import com.grid.pos.utils.Extension.getIntValue
 import com.grid.pos.utils.Extension.getObjectValue
 import com.grid.pos.utils.Extension.getStringValue
-import kotlinx.coroutines.tasks.await
 import java.sql.ResultSet
 import java.sql.Timestamp
 import java.util.Date
@@ -22,10 +22,10 @@ class ItemRepositoryImpl(
     override suspend fun insert(item: Item): DataModel {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
-                val docRef = FirebaseFirestore.getInstance().collection("st_item")
-                    .add(item.getMap()).await()
-                item.itemDocumentId = docRef.id
-                return DataModel(item)
+                return FirebaseWrapper.insert(
+                    "st_item",
+                    item
+                )
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
@@ -42,14 +42,9 @@ class ItemRepositoryImpl(
     override suspend fun delete(item: Item): DataModel {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
-                item.itemDocumentId?.let {
-                    FirebaseFirestore.getInstance().collection("st_item").document(it).delete()
-                        .await()
-                    return DataModel(item)
-                }
-                return DataModel(
-                    item,
-                    false
+                return FirebaseWrapper.delete(
+                    "st_item",
+                    item
                 )
             }
 
@@ -67,14 +62,9 @@ class ItemRepositoryImpl(
     override suspend fun update(item: Item): DataModel {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
-                item.itemDocumentId?.let {
-                    FirebaseFirestore.getInstance().collection("st_item").document(it)
-                        .update(item.getMap()).await()
-                    return DataModel(item)
-                }
-                return DataModel(
-                    item,
-                    false
+                return FirebaseWrapper.update(
+                    "st_item",
+                    item
                 )
             }
 
@@ -92,18 +82,10 @@ class ItemRepositoryImpl(
     override suspend fun update(items: List<Item>): DataModel {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
-                val db = FirebaseFirestore.getInstance()
-                val batch = db.batch()
-                for (item in items) {
-                    val modelRef = db.collection("st_item")
-                        .document(item.itemDocumentId!!) // Assuming `id` is the document ID
-                    batch.update(
-                        modelRef,
-                        item.getMap()
-                    )
-                }
-                batch.commit().await()
-                return DataModel(items)
+                return FirebaseWrapper.update(
+                    "st_item",
+                    items
+                )
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
@@ -121,18 +103,22 @@ class ItemRepositoryImpl(
 
     }
 
-    override suspend fun getAllItems(): DataModel {
+    override suspend fun getAllItems(): MutableList<Item> {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
-                val querySnapshot = FirebaseFirestore.getInstance().collection("st_item")
-                    .whereEqualTo(
-                        "it_cmp_id",
-                        SettingsModel.getCompanyID()
-                    ).get().await()
-
+                val querySnapshot = FirebaseWrapper.getQuerySnapshot(
+                    collection = "st_item",
+                    filters = mutableListOf(
+                        Filter.equalTo(
+                            "it_cmp_id",
+                            SettingsModel.getCompanyID()
+                        )
+                    )
+                )
+                val size = querySnapshot?.size() ?: 0
                 val items = mutableListOf<Item>()
-                if (querySnapshot.size() > 0) {
-                    for (document in querySnapshot) {
+                if (size > 0) {
+                    for (document in querySnapshot!!) {
                         val obj = document.toObject(Item::class.java)
                         if (obj.itemId.isNotEmpty()) {
                             obj.itemDocumentId = document.id
@@ -140,11 +126,11 @@ class ItemRepositoryImpl(
                         }
                     }
                 }
-                return DataModel(items)
+                return items
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
-                return DataModel(itemDao.getAllItems(SettingsModel.getCompanyID() ?: ""))
+                return itemDao.getAllItems(SettingsModel.getCompanyID() ?: "")
             }
 
             else -> {
@@ -187,30 +173,29 @@ class ItemRepositoryImpl(
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
-                    return DataModel(
-                        null,
-                        false,
-                        e.message
-                    )
                 }
-                return DataModel(items)
+                return items
             }
         }
 
     }
 
-    override suspend fun getItemsForPOS(): DataModel {
+    override suspend fun getItemsForPOS(): MutableList<Item> {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
-                val querySnapshot = FirebaseFirestore.getInstance().collection("st_item")
-                    .whereEqualTo(
-                        "it_cmp_id",
-                        SettingsModel.getCompanyID()
-                    ).get().await()
-
+                val querySnapshot = FirebaseWrapper.getQuerySnapshot(
+                    collection = "st_item",
+                    filters = mutableListOf(
+                        Filter.equalTo(
+                            "it_cmp_id",
+                            SettingsModel.getCompanyID()
+                        )
+                    )
+                )
+                val size = querySnapshot?.size() ?: 0
                 val items = mutableListOf<Item>()
-                if (querySnapshot.size() > 0) {
-                    for (document in querySnapshot) {
+                if (size > 0) {
+                    for (document in querySnapshot!!) {
                         val obj = document.toObject(Item::class.java)
                         if (obj.itemId.isNotEmpty()) {
                             obj.itemDocumentId = document.id
@@ -218,11 +203,11 @@ class ItemRepositoryImpl(
                         }
                     }
                 }
-                return DataModel(items)
+                return items
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
-                return DataModel(itemDao.getAllItems(SettingsModel.getCompanyID() ?: ""))
+                return itemDao.getAllItems(SettingsModel.getCompanyID() ?: "")
             }
 
             else -> {
@@ -254,70 +239,70 @@ class ItemRepositoryImpl(
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
-                    return DataModel(
-                        null,
-                        false,
-                        e.message
-                    )
                 }
-                return DataModel(items)
+                return items
             }
         }
 
     }
 
-    override suspend fun getOneItemByPrinter(printerID: String): DataModel {
+    override suspend fun getOneItemByPrinter(printerID: String): Item? {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
-                val querySnapshot = FirebaseFirestore.getInstance().collection("st_item")
-                    .whereEqualTo(
-                        "it_printer",
-                        printerID
-                    ).limit(1).get().await()
-
-                if (querySnapshot.size() > 0) {
-                    for (document in querySnapshot) {
+                val querySnapshot = FirebaseWrapper.getQuerySnapshot(
+                    collection = "st_item",
+                    limit = 1,
+                    filters = mutableListOf(
+                        Filter.equalTo(
+                            "it_printer",
+                            printerID
+                        )
+                    )
+                )
+                val size = querySnapshot?.size() ?: 0
+                if (size > 0) {
+                    for (document in querySnapshot!!) {
                         val obj = document.toObject(Item::class.java)
                         if (obj.itemId.isNotEmpty()) {
                             obj.itemDocumentId = document.id
-                            return DataModel(obj)
+                            return obj
                         }
                     }
                 }
-                return DataModel(null)
+                return null
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
-                return DataModel(itemDao.getOneItemByPrinter(printerID))
+                return itemDao.getOneItemByPrinter(printerID)
             }
 
             else -> {
-                return DataModel(null)
+                return null
             }
         }
     }
 
-    override suspend fun generateBarcode(): DataModel {
+    override suspend fun generateBarcode(): String {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
-                val querySnapshot = FirebaseFirestore.getInstance().collection("st_item").orderBy(
-                    "it_barcode",
-                    Query.Direction.DESCENDING
-                ).get().await()
-
-                val barcode = querySnapshot.documents.mapNotNull {
+                val querySnapshot = FirebaseWrapper.getQuerySnapshot(
+                    collection = "st_item",
+                    orderBy = mutableListOf(
+                        "it_barcode" to Query.Direction.DESCENDING
+                    )
+                )
+                val barcode = querySnapshot?.documents?.mapNotNull {
                     it.getString("it_barcode")?.toLongOrNull()
-                } // Filter numeric barcodes
-                    .maxOrNull() // Find the largest numeric barcode
-                return DataModel(barcode?.let {
+                }?.maxOrNull() // Find the largest numeric barcode
+                return barcode?.let {
                     (it + 1).toString()
-                } ?: "10000")
+                } ?: "10000"
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
                 val result = itemDao.getLastNumericPassword()
                 val numBarcode = result?.toLongOrNull() ?: 9999
-                return DataModel((numBarcode + 1).toString())
+                return (numBarcode + 1).toString()
             }
 
             else -> {
@@ -350,40 +335,40 @@ class ItemRepositoryImpl(
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
-                    return DataModel(
-                        null,
-                        false,
-                        e.message
-                    )
                 }
-                return DataModel(((barcode?.toLongOrNull() ?: 9999) + 1).toString())
+                return ((barcode?.toLongOrNull() ?: 9999) + 1).toString()
             }
         }
     }
 
-    override suspend fun getOneItemByFamily(familyId: String): DataModel {
+    override suspend fun getOneItemByFamily(familyId: String): Item? {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
-                val querySnapshot = FirebaseFirestore.getInstance().collection("st_item")
-                    .whereEqualTo(
-                        "it_fa_id",
-                        familyId
-                    ).limit(1).get().await()
-
-                if (querySnapshot.size() > 0) {
-                    for (document in querySnapshot) {
+                val querySnapshot = FirebaseWrapper.getQuerySnapshot(
+                    collection = "st_item",
+                    limit = 1,
+                    filters = mutableListOf(
+                        Filter.equalTo(
+                            "it_fa_id",
+                            familyId
+                        )
+                    )
+                )
+                val size = querySnapshot?.size() ?: 0
+                if (size > 0) {
+                    for (document in querySnapshot!!) {
                         val obj = document.toObject(Item::class.java)
                         if (obj.itemId.isNotEmpty()) {
                             obj.itemDocumentId = document.id
-                            return DataModel(obj)
+                            return obj
                         }
                     }
                 }
-                return DataModel(null)
+                return null
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
-                return DataModel(itemDao.getOneItemByFamily(familyId))
+                return itemDao.getOneItemByFamily(familyId)
             }
 
             else -> {
@@ -415,13 +400,8 @@ class ItemRepositoryImpl(
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
-                    return DataModel(
-                        null,
-                        false,
-                        e.message
-                    )
                 }
-                return DataModel(item)
+                return item
             }
         }
     }

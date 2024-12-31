@@ -1,6 +1,7 @@
 package com.grid.pos.data.thirdParty
 
-import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Filter
+import com.grid.pos.data.FirebaseWrapper
 import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.DataModel
@@ -8,8 +9,6 @@ import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.DateHelper
 import com.grid.pos.utils.Extension.getObjectValue
 import com.grid.pos.utils.Extension.getStringValue
-import kotlinx.coroutines.tasks.await
-import java.sql.ResultSet
 import java.sql.Timestamp
 import java.util.Date
 
@@ -17,46 +16,41 @@ class ThirdPartyRepositoryImpl(
         private val thirdPartyDao: ThirdPartyDao
 ) : ThirdPartyRepository {
     override suspend fun insert(thirdParty: ThirdParty): DataModel {
-        when (SettingsModel.connectionType) {
+        return when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
-                val docRef = FirebaseFirestore.getInstance().collection("thirdParty")
-                    .add(thirdParty.getMap()).await()
-                thirdParty.thirdPartyDocumentId = docRef.id
-                return DataModel(thirdParty)
+                FirebaseWrapper.insert(
+                    "thirdParty",
+                    thirdParty
+                )
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
                 thirdPartyDao.insert(thirdParty)
-                return DataModel(thirdParty)
+                DataModel(thirdParty)
             }
 
             else -> {
-                return insertByProcedure(thirdParty)
+                insertByProcedure(thirdParty)
             }
         }
     }
 
     override suspend fun delete(thirdParty: ThirdParty): DataModel {
-        when (SettingsModel.connectionType) {
+        return when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
-                thirdParty.thirdPartyDocumentId?.let {
-                    FirebaseFirestore.getInstance().collection("thirdParty").document(it).delete()
-                        .await()
-                    return DataModel(thirdParty)
-                }
-                return DataModel(
-                    thirdParty,
-                    false
+                FirebaseWrapper.delete(
+                    "thirdParty",
+                    thirdParty
                 )
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
                 thirdPartyDao.delete(thirdParty)
-                return DataModel(thirdParty)
+                DataModel(thirdParty)
             }
 
             else -> {
-                return deleteByProcedure(thirdParty)
+                deleteByProcedure(thirdParty)
             }
         }
     }
@@ -67,14 +61,9 @@ class ThirdPartyRepositoryImpl(
     ): DataModel {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
-                thirdParty.thirdPartyDocumentId?.let {
-                    FirebaseFirestore.getInstance().collection("thirdParty").document(it)
-                        .update(thirdParty.getMap()).await()
-                    return DataModel(thirdParty)
-                }
-                return DataModel(
-                    thirdParty,
-                    false
+                return FirebaseWrapper.update(
+                    "thirdParty",
+                    thirdParty
                 )
             }
 
@@ -92,17 +81,22 @@ class ThirdPartyRepositoryImpl(
         }
     }
 
-    override suspend fun getAllThirdParties(): DataModel {
-        when (SettingsModel.connectionType) {
+    override suspend fun getAllThirdParties(): MutableList<ThirdParty> {
+        return when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
-                val querySnapshot = FirebaseFirestore.getInstance().collection("thirdParty")
-                    .whereEqualTo(
-                        "tp_cmp_id",
-                        SettingsModel.getCompanyID()
-                    ).get().await()
+                val querySnapshot = FirebaseWrapper.getQuerySnapshot(
+                    collection = "thirdParty",
+                    filters = mutableListOf(
+                        Filter.equalTo(
+                            "tp_cmp_id",
+                            SettingsModel.getCompanyID()
+                        )
+                    )
+                )
+                val size = querySnapshot?.size() ?: 0
                 val thirdParties = mutableListOf<ThirdParty>()
-                if (querySnapshot.size() > 0) {
-                    for (document in querySnapshot) {
+                if (size > 0) {
+                    for (document in querySnapshot!!) {
                         val obj = document.toObject(ThirdParty::class.java)
                         if (obj.thirdPartyId.isNotEmpty()) {
                             obj.thirdPartyDocumentId = document.id
@@ -110,11 +104,11 @@ class ThirdPartyRepositoryImpl(
                         }
                     }
                 }
-                return DataModel(thirdParties)
+                thirdParties
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
-                return DataModel(thirdPartyDao.getAllThirdParties(SettingsModel.getCompanyID() ?: ""))
+                thirdPartyDao.getAllThirdParties(SettingsModel.getCompanyID() ?: "")
             }
 
             else -> {
@@ -161,33 +155,35 @@ class ThirdPartyRepositoryImpl(
                         }
                         SQLServerWrapper.closeResultSet(it)
                     }
-                    return DataModel(thirdParties)
                 } catch (e: Exception) {
                     e.printStackTrace()
-                    return DataModel(
-                        null,
-                        false,
-                        e.message
-                    )
                 }
+                thirdParties
             }
         }
+
     }
 
-    override suspend fun getAllThirdParties(types: List<String>): DataModel {
+    override suspend fun getAllThirdParties(types: List<String>): MutableList<ThirdParty> {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
-                val querySnapshot = FirebaseFirestore.getInstance().collection("thirdParty")
-                    .whereEqualTo(
-                        "tp_cmp_id",
-                        SettingsModel.getCompanyID()
-                    ).whereIn(
-                        "tp_cse",
-                        types
-                    ).get().await()
+                val querySnapshot = FirebaseWrapper.getQuerySnapshot(
+                    collection = "thirdParty",
+                    filters = mutableListOf(
+                        Filter.equalTo(
+                            "tp_cmp_id",
+                            SettingsModel.getCompanyID()
+                        ),
+                        Filter.inArray(
+                            "tp_cse",
+                            types
+                        )
+                    )
+                )
+                val size = querySnapshot?.size() ?: 0
                 val thirdParties = mutableListOf<ThirdParty>()
-                if (querySnapshot.size() > 0) {
-                    for (document in querySnapshot) {
+                if (size > 0) {
+                    for (document in querySnapshot!!) {
                         val obj = document.toObject(ThirdParty::class.java)
                         if (obj.thirdPartyId.isNotEmpty()) {
                             obj.thirdPartyDocumentId = document.id
@@ -195,15 +191,13 @@ class ThirdPartyRepositoryImpl(
                         }
                     }
                 }
-                return DataModel(thirdParties)
+                return thirdParties
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
-                return DataModel(
-                    thirdPartyDao.getAllThirdParties(
-                        types,
-                        SettingsModel.getCompanyID() ?: ""
-                    )
+                return thirdPartyDao.getAllThirdParties(
+                    types,
+                    SettingsModel.getCompanyID() ?: ""
                 )
             }
 
@@ -252,46 +246,47 @@ class ThirdPartyRepositoryImpl(
                         }
                         SQLServerWrapper.closeResultSet(it)
                     }
-                    return DataModel(thirdParties)
                 } catch (e: Exception) {
                     e.printStackTrace()
-                    return DataModel(
-                        null,
-                        false,
-                        e.message
-                    )
                 }
+                return thirdParties
             }
         }
     }
 
-    override suspend fun getThirdPartyByID(thirdpartyId: String): DataModel {
+    override suspend fun getThirdPartyByID(thirdpartyId: String): ThirdParty? {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
-                val querySnapshot = FirebaseFirestore.getInstance().collection("thirdParty")
-                    .whereEqualTo(
-                        "tp_id",
-                        thirdpartyId
-                    ).limit(1).get().await()
-                if (querySnapshot.size() > 0) {
-                    for (document in querySnapshot) {
+                val querySnapshot = FirebaseWrapper.getQuerySnapshot(
+                    collection = "thirdParty",
+                    limit = 1,
+                    filters = mutableListOf(
+                        Filter.equalTo(
+                            "tp_id",
+                            thirdpartyId
+                        )
+                    )
+                )
+                val size = querySnapshot?.size() ?: 0
+                if (size > 0) {
+                    for (document in querySnapshot!!) {
                         val obj = document.toObject(ThirdParty::class.java)
                         if (obj.thirdPartyId.isNotEmpty()) {
                             obj.thirdPartyDocumentId = document.id
-                            return DataModel(obj)
+                            return obj
                         }
                     }
                 }
-                return DataModel(null)
+                return null
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
-                return DataModel(thirdPartyDao.getThirdPartyByID(thirdpartyId))
+                return thirdPartyDao.getThirdPartyByID(thirdpartyId)
             }
 
             else -> {
+                var thirdParty: ThirdParty? = null
                 try {
-                    var thirdParty: ThirdParty? = null
                     val where = " tp_id='$thirdpartyId'"
                     val dbResult = SQLServerWrapper.getListOf(
                         "thirdparty",
@@ -329,109 +324,123 @@ class ThirdPartyRepositoryImpl(
                         }
                         SQLServerWrapper.closeResultSet(it)
                     }
-                    return DataModel(thirdParty)
                 } catch (e: Exception) {
                     e.printStackTrace()
-                    return DataModel(
-                        null,
-                        false,
-                        e.message
+                }
+                return thirdParty
+            }
+        }
+    }
+
+    override suspend fun getOneThirdPartyByCompanyID(companyId: String): ThirdParty? {
+        when (SettingsModel.connectionType) {
+            CONNECTION_TYPE.FIRESTORE.key -> {
+                val querySnapshot = FirebaseWrapper.getQuerySnapshot(
+                    collection = "thirdParty",
+                    limit = 1,
+                    filters = mutableListOf(
+                        Filter.equalTo(
+                            "tp_cmp_id",
+                            companyId
+                        )
                     )
+                )
+                val size = querySnapshot?.size() ?: 0
+                if (size > 0) {
+                    for (document in querySnapshot!!) {
+                        val obj = document.toObject(ThirdParty::class.java)
+                        if (obj.thirdPartyId.isNotEmpty()) {
+                            obj.thirdPartyDocumentId = document.id
+                            return obj
+                        }
+                    }
                 }
+                return null
+            }
+
+            CONNECTION_TYPE.LOCAL.key -> {
+                return thirdPartyDao.getOneThirdPartyByCompanyID(companyId)
+            }
+
+            else -> {
+                return null
             }
         }
     }
 
-    override suspend fun getOneThirdPartyByCompanyID(companyId: String): DataModel {
+    override suspend fun getOneThirdPartyByUserID(userId: String): ThirdParty? {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
-                val querySnapshot = FirebaseFirestore.getInstance().collection("thirdParty")
-                    .whereEqualTo(
-                        "tp_cmp_id",
-                        companyId
-                    ).limit(1).get().await()
-                if (querySnapshot.size() > 0) {
-                    for (document in querySnapshot) {
+                val querySnapshot = FirebaseWrapper.getQuerySnapshot(
+                    collection = "thirdParty",
+                    limit = 1,
+                    filters = mutableListOf(
+                        Filter.equalTo(
+                            "tp_userstamp",
+                            userId
+                        )
+                    )
+                )
+                val size = querySnapshot?.size() ?: 0
+                if (size > 0) {
+                    for (document in querySnapshot!!) {
                         val obj = document.toObject(ThirdParty::class.java)
                         if (obj.thirdPartyId.isNotEmpty()) {
                             obj.thirdPartyDocumentId = document.id
-                            return DataModel(obj)
+                            return obj
                         }
                     }
                 }
-                return DataModel(null)
+                return null
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
-                return DataModel(thirdPartyDao.getOneThirdPartyByCompanyID(companyId))
+                return thirdPartyDao.getOneThirdPartyByUserID(userId)
             }
 
             else -> {
-                return DataModel(null)
+                return null
             }
         }
     }
 
-    override suspend fun getOneThirdPartyByUserID(userId: String): DataModel {
+    override suspend fun getDefaultThirdParty(): ThirdParty? {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
-                val querySnapshot = FirebaseFirestore.getInstance().collection("thirdParty")
-                    .whereEqualTo(
-                        "tp_userstamp",
-                        userId
-                    ).limit(1).get().await()
-                if (querySnapshot.size() > 0) {
-                    for (document in querySnapshot) {
+                val querySnapshot = FirebaseWrapper.getQuerySnapshot(
+                    collection = "thirdParty",
+                    limit = 1,
+                    filters = mutableListOf(
+                        Filter.equalTo(
+                            "tp_cmp_id",
+                            SettingsModel.getCompanyID()
+                        ),
+                        Filter.equalTo(
+                            "tp_default",
+                            true
+                        )
+                    )
+                )
+                val size = querySnapshot?.size() ?: 0
+                if (size > 0) {
+                    for (document in querySnapshot!!) {
                         val obj = document.toObject(ThirdParty::class.java)
                         if (obj.thirdPartyId.isNotEmpty()) {
                             obj.thirdPartyDocumentId = document.id
-                            return DataModel(obj)
+                            return obj
                         }
                     }
                 }
-                return DataModel(null)
+                return null
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
-                return DataModel(thirdPartyDao.getOneThirdPartyByUserID(userId))
+                return thirdPartyDao.getDefaultThirdParties(SettingsModel.getCompanyID() ?: "")
             }
 
             else -> {
-                return DataModel(null)
-            }
-        }
-    }
-
-    override suspend fun getDefaultThirdParty(): DataModel {
-        when (SettingsModel.connectionType) {
-            CONNECTION_TYPE.FIRESTORE.key -> {
-                val querySnapshot = FirebaseFirestore.getInstance().collection("thirdParty")
-                    .whereEqualTo(
-                        "tp_cmp_id",
-                        SettingsModel.getCompanyID()
-                    ).whereEqualTo(
-                        "tp_default",
-                        true
-                    ).limit(1).get().await()
-                if (querySnapshot.size() > 0) {
-                    for (document in querySnapshot) {
-                        val obj = document.toObject(ThirdParty::class.java)
-                        if (obj.thirdPartyId.isNotEmpty()) {
-                            obj.thirdPartyDocumentId = document.id
-                            return DataModel(obj)
-                        }
-                    }
-                }
-                return DataModel(null)
-            }
-
-            CONNECTION_TYPE.LOCAL.key -> {
-                return DataModel(thirdPartyDao.getDefaultThirdParties(SettingsModel.getCompanyID() ?: ""))
-            }
-
-            else -> {
+                var thirdParty: ThirdParty? = null
                 try {
-                    var thirdParty: ThirdParty? = null
                     val where = if (SettingsModel.isSqlServerWebDb) "tp_cse in ('Receivable','Payable and Receivable') AND tp_cmp_id='${SettingsModel.getCompanyID()}'" else "tp_cse in ('Receivable','Payable and Receivable')"
                     val dbResult = SQLServerWrapper.getListOf(
                         "thirdparty",
@@ -469,15 +478,10 @@ class ThirdPartyRepositoryImpl(
                         }
                         SQLServerWrapper.closeResultSet(it)
                     }
-                    return DataModel(thirdParty)
                 } catch (e: Exception) {
                     e.printStackTrace()
-                    return DataModel(
-                        null,
-                        false,
-                        e.message
-                    )
                 }
+                return thirdParty
             }
         }
     }
@@ -583,13 +587,13 @@ class ThirdPartyRepositoryImpl(
             parameters
         )
         return if (queryResult.succeed) {
-            thirdParty.thirdPartyId = (queryResult.result as? String) ?: ""
+            thirdParty.thirdPartyId = (queryResult.result) ?: ""
             DataModel(thirdParty)
         } else {
             DataModel(
                 thirdParty,
                 false,
-                queryResult.result as? String
+                queryResult.result
             )
         }
     }
@@ -702,7 +706,7 @@ class ThirdPartyRepositoryImpl(
             DataModel(
                 thirdParty,
                 false,
-                queryResult.result as? String
+                queryResult.result
             )
         }
     }
@@ -718,7 +722,7 @@ class ThirdPartyRepositoryImpl(
             DataModel(
                 thirdParty,
                 false,
-                queryResult.result as? String
+                queryResult.result
             )
         }
     }

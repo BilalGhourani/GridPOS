@@ -252,7 +252,17 @@ data class Receipt(
     }
 
     @Exclude
-    fun getMap(): Map<String, Any?> {
+    override fun setDocumentId(documentId: String) {
+        receiptDocumentId = documentId
+    }
+
+    @Exclude
+    override fun getDocumentId(): String? {
+        return receiptDocumentId
+    }
+
+    @Exclude
+    override fun getMap(): Map<String, Any?> {
         return mapOf(
             "rec_cmp_id" to receiptCompanyId,
             "rec_type" to receiptType,

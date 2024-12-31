@@ -1,75 +1,68 @@
 package com.grid.pos.data.posPrinter
 
-import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Filter
+import com.grid.pos.data.FirebaseWrapper
 import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.DataModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.Extension.getStringValue
-import kotlinx.coroutines.tasks.await
-import java.sql.ResultSet
 
 class PosPrinterRepositoryImpl(
         private val posPrinterDao: PosPrinterDao
 ) : PosPrinterRepository {
     override suspend fun insert(posPrinter: PosPrinter): DataModel {
-        if (SettingsModel.isConnectedToFireStore()) {
-            val docRef = FirebaseFirestore.getInstance().collection("pos_printer")
-                .add(posPrinter.getMap()).await()
-            posPrinter.posPrinterDocumentId = docRef.id
-            return DataModel(posPrinter)
+        return if (SettingsModel.isConnectedToFireStore()) {
+            FirebaseWrapper.insert(
+                "pos_printer",
+                posPrinter
+            )
         } else {
             posPrinterDao.insert(posPrinter)
-            return DataModel(posPrinter)
+            DataModel(posPrinter)
         }
     }
 
     override suspend fun delete(posPrinter: PosPrinter): DataModel {
-        if (SettingsModel.isConnectedToFireStore()) {
-            posPrinter.posPrinterDocumentId?.let {
-                FirebaseFirestore.getInstance().collection("pos_printer").document(it).delete()
-                    .await()
-                return DataModel(posPrinter)
-            }
-            return DataModel(
-                posPrinter,
-                false
+        return if (SettingsModel.isConnectedToFireStore()) {
+            FirebaseWrapper.delete(
+                "pos_printer",
+                posPrinter
             )
         } else {
             posPrinterDao.delete(posPrinter)
-            return DataModel(posPrinter)
+            DataModel(posPrinter)
         }
     }
 
     override suspend fun update(posPrinter: PosPrinter): DataModel {
-        if (SettingsModel.isConnectedToFireStore()) {
-            posPrinter.posPrinterDocumentId?.let {
-                FirebaseFirestore.getInstance().collection("pos_printer").document(it)
-                    .update(posPrinter.getMap()).await()
-                return DataModel(posPrinter)
-            }
-            return DataModel(
-                posPrinter,
-                false
+        return if (SettingsModel.isConnectedToFireStore()) {
+            FirebaseWrapper.update(
+                "pos_printer",
+                posPrinter
             )
         } else {
             posPrinterDao.update(posPrinter)
-            return DataModel(posPrinter)
+            DataModel(posPrinter)
         }
     }
 
-    override suspend fun getAllPosPrinters(): DataModel {
-        when (SettingsModel.connectionType) {
+    override suspend fun getAllPosPrinters(): MutableList<PosPrinter> {
+         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
-                val querySnapshot = FirebaseFirestore.getInstance().collection("pos_printer")
-                    .whereEqualTo(
-                        "pp_cmp_id",
-                        SettingsModel.getCompanyID()
-                    ).get().await()
-
+                val querySnapshot = FirebaseWrapper.getQuerySnapshot(
+                    collection = "pos_printer",
+                    filters = mutableListOf(
+                        Filter.equalTo(
+                            "pp_cmp_id",
+                            SettingsModel.getCompanyID()
+                        )
+                    )
+                )
+                val size = querySnapshot?.size() ?: 0
                 val printers = mutableListOf<PosPrinter>()
-                if (querySnapshot.size() > 0) {
-                    for (document in querySnapshot) {
+                if (size > 0) {
+                    for (document in querySnapshot!!) {
                         val obj = document.toObject(PosPrinter::class.java)
                         if (obj.posPrinterId.isNotEmpty()) {
                             obj.posPrinterDocumentId = document.id
@@ -77,11 +70,11 @@ class PosPrinterRepositoryImpl(
                         }
                     }
                 }
-                return DataModel(printers)
+                return printers
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
-                return DataModel(posPrinterDao.getAllPosPrinters(SettingsModel.getCompanyID() ?: ""))
+                return posPrinterDao.getAllPosPrinters(SettingsModel.getCompanyID() ?: "")
             }
 
             else -> {
@@ -112,14 +105,8 @@ class PosPrinterRepositoryImpl(
                             }
                             SQLServerWrapper.closeResultSet(it)
                         }
-                        return DataModel(printers)
                     } catch (e: Exception) {
                         e.printStackTrace()
-                        return DataModel(
-                            null,
-                            false,
-                            e.message
-                        )
                     }
                 } else {
                     try {
@@ -129,7 +116,6 @@ class PosPrinterRepositoryImpl(
                             mutableListOf("*"),
                             ""
                         )
-
                         dbResult?.let {
                             while (it.next()) {
                                 printers.add(PosPrinter().apply {
@@ -146,43 +132,43 @@ class PosPrinterRepositoryImpl(
                             }
                             SQLServerWrapper.closeResultSet(it)
                         }
-                        return DataModel(printers)
                     } catch (e: Exception) {
                         e.printStackTrace()
-                        return DataModel(
-                            null,
-                            false,
-                            e.message
-                        )
                     }
                 }
+                return printers
             }
         }
     }
 
-    override suspend fun getOnePosPrinter(companyId: String): DataModel {
+    override suspend fun getOnePosPrinter(companyId: String): PosPrinter? {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
-                val querySnapshot = FirebaseFirestore.getInstance().collection("pos_printer")
-                    .whereEqualTo(
-                        "pp_cmp_id",
-                        companyId
-                    ).limit(1).get().await()
-
-                if (querySnapshot.size() > 0) {
-                    for (document in querySnapshot) {
+                val querySnapshot = FirebaseWrapper.getQuerySnapshot(
+                    collection = "pos_printer",
+                    limit = 1,
+                    filters = mutableListOf(
+                        Filter.equalTo(
+                            "pp_cmp_id",
+                            companyId
+                        )
+                    )
+                )
+                val size = querySnapshot?.size() ?: 0
+                if (size > 0) {
+                    for (document in querySnapshot!!) {
                         val obj = document.toObject(PosPrinter::class.java)
                         if (obj.posPrinterId.isNotEmpty()) {
                             obj.posPrinterDocumentId = document.id
-                            return DataModel(obj)
+                            return obj
                         }
                     }
                 }
-                return DataModel(null)
+                return null
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
-                return DataModel(posPrinterDao.getOnePosPrinter(companyId))
+                return posPrinterDao.getOnePosPrinter(companyId)
             }
 
             else -> {
@@ -213,15 +199,11 @@ class PosPrinterRepositoryImpl(
                             }
                             SQLServerWrapper.closeResultSet(it)
                         }
-                        return DataModel(printer)
+                        return printer
                     } catch (e: Exception) {
                         e.printStackTrace()
-                        return DataModel(
-                            null,
-                            false,
-                            e.message
-                        )
                     }
+                    return null
                 } else {
                     try {
                         var printer: PosPrinter? = null
@@ -247,15 +229,11 @@ class PosPrinterRepositoryImpl(
                             }
                             SQLServerWrapper.closeResultSet(it)
                         }
-                        return DataModel(printer)
+                        return printer
                     } catch (e: Exception) {
                         e.printStackTrace()
-                        return DataModel(
-                            null,
-                            false,
-                            e.message
-                        )
                     }
+                    return null
                 }
             }
         }

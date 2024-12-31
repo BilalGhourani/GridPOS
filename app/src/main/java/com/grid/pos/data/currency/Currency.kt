@@ -155,7 +155,17 @@ data class Currency(
     }
 
     @Exclude
-    fun getMap(): Map<String, Any?> {
+    override fun setDocumentId(documentId: String) {
+        currencyDocumentId = documentId
+    }
+
+    @Exclude
+    override fun getDocumentId(): String? {
+        return currencyDocumentId
+    }
+
+    @Exclude
+    override fun getMap(): Map<String, Any?> {
         return mapOf(
             "cur_cmp_id" to currencyCompId,
             "cur_code1" to currencyCode1,

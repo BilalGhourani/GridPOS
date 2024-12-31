@@ -22,8 +22,8 @@ interface UserRepository {
     ): LoginResponse
 
     // Get all Users as stream.
-    suspend fun getAllUsers(): DataModel
+    suspend fun getAllUsers(): MutableList<User>
 
-    suspend fun getOneUser(companyId: String): DataModel
-    suspend fun getUserById(userId: String): DataModel
+    suspend fun getOneUser(companyId: String): User?
+    suspend fun getUserById(userId: String): User?
 }

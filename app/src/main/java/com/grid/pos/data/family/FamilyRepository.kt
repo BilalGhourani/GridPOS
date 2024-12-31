@@ -15,9 +15,9 @@ interface FamilyRepository {
     suspend fun update(family: Family): DataModel
 
     // Get all Families as stream.
-    suspend fun getAllFamilies(): DataModel
+    suspend fun getAllFamilies(): MutableList<Family>
 
     // Get all Families as stream.
-    suspend fun getOneFamily(companyId:String): DataModel
+    suspend fun getOneFamily(companyId:String): Family?
 
 }

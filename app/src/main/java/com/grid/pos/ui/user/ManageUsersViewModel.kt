@@ -47,25 +47,12 @@ class ManageUsersViewModel @Inject constructor(
             isLoading = true
         )
         viewModelScope.launch(Dispatchers.IO) {
-            val dataModel = userRepository.getAllUsers()
-            if (dataModel.succeed) {
-                val listOfUsers = convertToMutableList(
-                    dataModel.data,
-                    User::class.java
+            val listOfUsers = userRepository.getAllUsers()
+            withContext(Dispatchers.Main) {
+                manageUsersState.value = manageUsersState.value.copy(
+                    users = listOfUsers,
+                    isLoading = false
                 )
-                withContext(Dispatchers.Main) {
-                    manageUsersState.value = manageUsersState.value.copy(
-                        users = listOfUsers,
-                        isLoading = false
-                    )
-                }
-            } else if (dataModel.message != null) {
-                withContext(Dispatchers.Main) {
-                    manageUsersState.value = manageUsersState.value.copy(
-                        isLoading = false,
-                        warning = Event(dataModel.message),
-                    )
-                }
             }
         }
     }
@@ -204,8 +191,7 @@ class ManageUsersViewModel @Inject constructor(
     private suspend fun hasRelations(userID: String): Boolean {
         if (userID == SettingsModel.currentUser?.userId) return true
 
-        val thirdPartyDataModel = thirdPartyRepository.getOneThirdPartyByUserID(userID)
-        if (thirdPartyDataModel.succeed && thirdPartyDataModel.data != null) {
+        if (thirdPartyRepository.getOneThirdPartyByUserID(userID) != null) {
             return true
         }
 

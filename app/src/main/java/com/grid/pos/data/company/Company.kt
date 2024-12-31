@@ -208,7 +208,17 @@ data class Company(
     }
 
     @Exclude
-    fun getMap(): Map<String, Any?> {
+    override fun setDocumentId(documentId: String) {
+        companyDocumentId = documentId
+    }
+
+    @Exclude
+    override fun getDocumentId(): String? {
+        return companyDocumentId
+    }
+
+    @Exclude
+   override fun getMap(): Map<String, Any?> {
         return mapOf(
             "cmp_name" to companyName,
             "cmp_phone" to companyPhone,

@@ -3,7 +3,6 @@ package com.grid.pos.ui.company
 import androidx.lifecycle.viewModelScope
 import com.grid.pos.data.company.Company
 import com.grid.pos.data.company.CompanyRepository
-import com.grid.pos.data.currency.Currency
 import com.grid.pos.data.currency.CurrencyRepository
 import com.grid.pos.data.family.FamilyRepository
 import com.grid.pos.data.posPrinter.PosPrinterRepository
@@ -87,19 +86,11 @@ class ManageCompaniesViewModel @Inject constructor(
     }
 
     private suspend fun fetchCurrencies() {
-        val dataModel = currencyRepository.getAllCurrencies()
-        if (dataModel.succeed) {
-            val currencies = convertToMutableList(
-                dataModel.data,
-                Currency::class.java
+        val currencies = currencyRepository.getAllCurrencies()
+        viewModelScope.launch(Dispatchers.Main) {
+            manageCompaniesState.value = manageCompaniesState.value.copy(
+                currencies = currencies
             )
-            viewModelScope.launch(Dispatchers.Main) {
-                manageCompaniesState.value = manageCompaniesState.value.copy(
-                    currencies = currencies
-                )
-            }
-        } else {
-            showWarning(dataModel.message)
         }
     }
 
@@ -123,63 +114,84 @@ class ManageCompaniesViewModel @Inject constructor(
         CoroutineScope(Dispatchers.IO).launch {
             if (isInserting) {
                 company.prepareForInsert()
-                val addedCompany = companyRepository.insert(company)
-                val companies = manageCompaniesState.value.companies
-                if (companies.isNotEmpty()) {
-                    companies.add(addedCompany)
-                }
-                if (isRegistering) {
-                    SettingsModel.currentCompany = addedCompany
-                    SettingsModel.localCompanyID = addedCompany.companyId
-                    DataStoreManager.putString(
-                        DataStoreManager.DataStoreKeys.LOCAL_COMPANY_ID.key,
-                        addedCompany.companyId
-                    )
+                val dataModel = companyRepository.insert(company)
+                if (dataModel.succeed) {
+                    val addedCompany = dataModel.data as Company
+                    val companies = manageCompaniesState.value.companies
+                    if (companies.isNotEmpty()) {
+                        companies.add(addedCompany)
+                    }
+                    if (isRegistering) {
+                        SettingsModel.currentCompany = addedCompany
+                        SettingsModel.localCompanyID = addedCompany.companyId
+                        DataStoreManager.putString(
+                            DataStoreManager.DataStoreKeys.LOCAL_COMPANY_ID.key,
+                            addedCompany.companyId
+                        )
+                        withContext(Dispatchers.Main) {
+                            manageCompaniesState.value = manageCompaniesState.value.copy(
+                                companies = companies,
+                                selectedCompany = Company(),
+                                isLoading = false,
+                                warning = Event("Company saved successfully, do you want to continue?"),
+                                actionLabel = "next",
+                                clear = true
+                            )
+                        }
+                    } else {
+                        withContext(Dispatchers.Main) {
+                            manageCompaniesState.value = manageCompaniesState.value.copy(
+                                companies = companies,
+                                selectedCompany = Company(),
+                                isLoading = false,
+                                warning = Event("Company saved successfully."),
+                                clear = true
+                            )
+                        }
+                    }
+                } else {
                     withContext(Dispatchers.Main) {
                         manageCompaniesState.value = manageCompaniesState.value.copy(
-                            companies = companies,
-                            selectedCompany = Company(),
                             isLoading = false,
-                            warning = Event("Company saved successfully, do you want to continue?"),
-                            actionLabel = "next",
+                            warning = null,
+                            actionLabel = null
+                        )
+                    }
+                }
+            } else {
+                val dataModel = companyRepository.update(company)
+                if (dataModel.succeed) {
+                    if (company.companyId.equals(
+                            SettingsModel.currentCompany?.companyId,
+                            ignoreCase = true
+                        )
+                    ) {
+                        SettingsModel.currentCompany = company
+                    }
+                    val index = manageCompaniesState.value.companies.indexOfFirst { it.companyId == company.companyId }
+                    if (index >= 0) {
+                        manageCompaniesState.value.companies.removeAt(index)
+                        manageCompaniesState.value.companies.add(
+                            index,
+                            company
+                        )
+                    }
+                    withContext(Dispatchers.Main) {
+                        manageCompaniesState.value = manageCompaniesState.value.copy(
+                            selectedCompany = company,
+                            isLoading = false,
+                            warning = Event("Company saved successfully."),
                             clear = true
                         )
                     }
                 } else {
                     withContext(Dispatchers.Main) {
                         manageCompaniesState.value = manageCompaniesState.value.copy(
-                            companies = companies,
-                            selectedCompany = Company(),
                             isLoading = false,
-                            warning = Event("Company saved successfully."),
-                            clear = true
+                            warning = null,
+                            actionLabel = null
                         )
                     }
-                }
-            } else {
-                companyRepository.update(company)
-                if (company.companyId.equals(
-                        SettingsModel.currentCompany?.companyId,
-                        ignoreCase = true
-                    )
-                ) {
-                    SettingsModel.currentCompany = company
-                }
-                val index = manageCompaniesState.value.companies.indexOfFirst { it.companyId == company.companyId }
-                if (index >= 0) {
-                    manageCompaniesState.value.companies.removeAt(index)
-                    manageCompaniesState.value.companies.add(
-                        index,
-                        company
-                    )
-                }
-                withContext(Dispatchers.Main) {
-                    manageCompaniesState.value = manageCompaniesState.value.copy(
-                        selectedCompany = company,
-                        isLoading = false,
-                        warning = Event("Company saved successfully."),
-                        clear = true
-                    )
                 }
             }
         }
@@ -209,38 +221,40 @@ class ManageCompaniesViewModel @Inject constructor(
                 }
                 return@launch
             }
-            companyRepository.delete(company)
-            val companies = manageCompaniesState.value.companies
-            companies.remove(company)
-            withContext(Dispatchers.Main) {
-                manageCompaniesState.value = manageCompaniesState.value.copy(
-                    companies = companies,
-                    selectedCompany = Company(),
-                    isLoading = false,
-                    warning = Event("successfully deleted."),
-                    clear = true
-                )
+            val dataModel = companyRepository.delete(company)
+            if (dataModel.succeed) {
+                val companies = manageCompaniesState.value.companies
+                companies.remove(company)
+                withContext(Dispatchers.Main) {
+                    manageCompaniesState.value = manageCompaniesState.value.copy(
+                        companies = companies,
+                        selectedCompany = Company(),
+                        isLoading = false,
+                        warning = Event("successfully deleted."),
+                        clear = true
+                    )
+                }
+            } else {
+                withContext(Dispatchers.Main) {
+                    manageCompaniesState.value = manageCompaniesState.value.copy(
+                        isLoading = false,
+                        warning = null,
+                        actionLabel = null
+                    )
+                }
             }
         }
     }
 
     private suspend fun hasRelations(companyID: String): Boolean {
-        var dataModel = familyRepository.getOneFamily(companyID)
-        if (dataModel.succeed && dataModel.data != null) return true
-
-        dataModel = userRepository.getOneUser(companyID)
-        if (dataModel.succeed && dataModel.data != null) {
+        if (familyRepository.getOneFamily(companyID) != null) return true
+        if (userRepository.getOneUser(companyID) != null) {
             return true
         }
-        dataModel = thirdPartyRepository.getOneThirdPartyByCompanyID(companyID)
-        if (dataModel.succeed && dataModel.data != null) {
+        if (thirdPartyRepository.getOneThirdPartyByCompanyID(companyID) != null) {
             return true
         }
-        dataModel = posPrinterRepository.getOnePosPrinter(companyID)
-        if (dataModel.succeed && dataModel.data != null) {
-            return true
-        }
-        return false
+        return posPrinterRepository.getOnePosPrinter(companyID) != null
     }
 
 }

@@ -15,10 +15,10 @@ interface PaymentRepository {
     suspend fun update(payment: Payment):DataModel
 
     // Get Payment by it's ID
-    suspend fun getPaymentById(id: String): DataModel
+    suspend fun getPaymentById(id: String): Payment?
 
     // Get all Companies logs as stream.
-    suspend fun getAllPayments(): DataModel
-    suspend fun getLastTransactionNo(): DataModel
+    suspend fun getAllPayments(): MutableList<Payment>
+    suspend fun getLastTransactionNo(): Payment?
 
 }

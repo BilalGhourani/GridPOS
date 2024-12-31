@@ -6,13 +6,13 @@ interface CompanyRepository {
 
     // suspend is a coroutine keyword,
     // instead of having a callback we can just wait till insert is done
-    suspend fun insert(company: Company): Company
+    suspend fun insert(company: Company): DataModel
 
     // Delete a Company
-    suspend fun delete(company: Company)
+    suspend fun delete(company: Company):DataModel
 
     // Update a Company
-    suspend fun update(company: Company)
+    suspend fun update(company: Company):DataModel
 
     // Get Company by it's ID
     suspend fun getCompanyById(id: String): DataModel

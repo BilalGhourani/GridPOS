@@ -44,20 +44,12 @@ class POSPrinterViewModel @Inject constructor(
             isLoading = true
         )
         viewModelScope.launch(Dispatchers.IO) {
-            val dataModel = posPrinterRepository.getAllPosPrinters()
-            if (dataModel.succeed) {
-                val listOfPrinters = convertToMutableList(
-                    dataModel.data,
-                    PosPrinter::class.java
+            val listOfPrinters = posPrinterRepository.getAllPosPrinters()
+            withContext(Dispatchers.Main) {
+                posPrinterState.value = posPrinterState.value.copy(
+                    printers = listOfPrinters,
+                    isLoading = false
                 )
-                withContext(Dispatchers.Main) {
-                    posPrinterState.value = posPrinterState.value.copy(
-                        printers = listOfPrinters,
-                        isLoading = false
-                    )
-                }
-            } else if (dataModel.message != null) {
-                showWarning(dataModel.message)
             }
         }
     }
@@ -178,7 +170,6 @@ class POSPrinterViewModel @Inject constructor(
     }
 
     private suspend fun hasRelations(printerId: String): Boolean {
-        val itemDataModel = itemRepository.getOneItemByPrinter(printerId)
-        return itemDataModel.succeed && itemDataModel.data != null
+        return itemRepository.getOneItemByPrinter(printerId) != null
     }
 }
