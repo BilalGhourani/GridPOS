@@ -198,15 +198,18 @@ class InvoiceHeaderRepositoryImpl(
                 )
                 val size = querySnapshot?.size() ?: 0
                 val invoices = mutableListOf<InvoiceHeader>()
+                val firstBatch = mutableListOf<InvoiceHeader>()
                 if (size > 0) {
                     for (document in querySnapshot!!) {
                         val obj = document.toObject(InvoiceHeader::class.java)
                         if (obj.invoiceHeadId.isNotEmpty()) {
                             obj.invoiceHeadDocumentId = document.id
-                            invoices.add(obj)
+                            firstBatch.add(obj)
                         }
                     }
                 }
+                invoices.addAll(firstBatch.sortedByDescending { it.invoiceHeadTransNo }
+                    .toMutableList())
 
                 val tablesQuerySnapshot = FirebaseWrapper.getQuerySnapshot(
                     collection = "in_hinvoice",
@@ -227,16 +230,21 @@ class InvoiceHeaderRepositoryImpl(
                     )
                 )
                 val tableSize = tablesQuerySnapshot?.size() ?: 0
+                val secondBatch = mutableListOf<InvoiceHeader>()
                 if (tableSize > 0) {
                     for (document in tablesQuerySnapshot!!) {
                         val obj = document.toObject(InvoiceHeader::class.java)
                         if (obj.invoiceHeadId.isNotEmpty()) {
                             obj.invoiceHeadDocumentId = document.id
-                            invoices.add(obj)
+                            secondBatch.add(obj)
                         }
                     }
                 }
-                return invoices.sortedByDescending { it.invoiceHeadDate }.toMutableList()
+                invoices.addAll(
+                    0,
+                    secondBatch.sortedByDescending { it.invoiceHeadOrderNo }.toMutableList()
+                )
+                return invoices
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
@@ -502,16 +510,18 @@ class InvoiceHeaderRepositoryImpl(
                         Filter.equalTo(
                             "hi_cmp_id",
                             SettingsModel.getCompanyID()
-                        ),Filter.notEqualTo(
+                        ),
+                        Filter.notEqualTo(
                             "hi_ta_name",
                             null
-                        ),Filter.equalTo(
+                        ),
+                        Filter.equalTo(
                             "hi_transno",
                             null
                         )
                     )
                 )
-                val size = querySnapshot?.size()?:0
+                val size = querySnapshot?.size() ?: 0
                 val tables = mutableListOf<TableModel>()
                 if (size > 0) {
                     for (document in querySnapshot!!) {
@@ -694,10 +704,12 @@ class InvoiceHeaderRepositoryImpl(
                         Filter.equalTo(
                             "hi_cmp_id",
                             SettingsModel.getCompanyID()
-                        ),Filter.equalTo(
+                        ),
+                        Filter.equalTo(
                             "hi_ta_name",
                             tableModel.table_name
-                        ),Filter.equalTo(
+                        ),
+                        Filter.equalTo(
                             "hi_transno",
                             null
                         )
@@ -797,16 +809,18 @@ class InvoiceHeaderRepositoryImpl(
                     Filter.equalTo(
                         "hi_cmp_id",
                         SettingsModel.getCompanyID()
-                    ),Filter.greaterThanOrEqualTo(
+                    ),
+                    Filter.greaterThanOrEqualTo(
                         "hi_timestamp",
                         from
-                    ),Filter.lessThan(
+                    ),
+                    Filter.lessThan(
                         "hi_timestamp",
                         to
                     )
                 )
             )
-          val size = querySnapshot?.size()?:0
+            val size = querySnapshot?.size() ?: 0
             val invoices = mutableListOf<InvoiceHeader>()
             if (size > 0) {
                 for (document in querySnapshot!!) {

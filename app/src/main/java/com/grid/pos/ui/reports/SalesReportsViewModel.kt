@@ -187,6 +187,7 @@ class SalesReportsViewModel @Inject constructor(
         firstRow.createCell(6).setCellValue("Rem.Qty")
         firstRow.createCell(7).setCellValue("Profit")
 
+        val currency = SettingsModel.currentCurrency?: Currency()
         val priceWithTax = SettingsModel.currentCompany?.companyUpWithTax ?: false
         itemMap.values.forEachIndexed { index, item ->
             val itemInvoices = invoiceItemMap[item.itemId]
@@ -195,7 +196,11 @@ class SalesReportsViewModel @Inject constructor(
             var totalDisc = 0.0
             var totalSale = 0.0
             itemInvoices?.map {
-                totalCost += it.invoiceQuantity.times(it.invoiceCost)
+                var invoiceCost = it.invoiceCost
+                if(item.itemCurrencyId == currency.currencyCode2 || item.itemCurrencyId == currency.currencyDocumentId){
+                    invoiceCost = invoiceCost.div(currency.currencyRate)
+                }
+                totalCost += it.invoiceQuantity.times(invoiceCost)
                 quantitiesSold += it.invoiceQuantity
                 val discAmt = it.getDiscountAmount()
                 val itemSale = if (priceWithTax) (it.getAmount() - discAmt) else it.getNetAmount()

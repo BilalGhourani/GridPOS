@@ -178,18 +178,18 @@ class SharedViewModel @Inject constructor(
         printers = posPrinterRepository.getAllPosPrinters()
     }
 
-    suspend fun updateRealItemPrice(item: Item): Double {
-        if (item.itemRealUnitPrice > 0.0 || item.itemCurrencyId.isNullOrEmpty()) {
-            return item.itemRealUnitPrice
-        }
-        val currency = SettingsModel.currentCurrency ?: return item.itemUnitPrice
+    suspend fun updateRealItemPrice(item: Item) {
+        if (item.itemCurrencyId.isNullOrEmpty()) return
+        val currency = SettingsModel.currentCurrency ?: return
         when (item.itemCurrencyId) {
             currency.currencyDocumentId, currency.currencyCode2 -> {//second currency
                 item.itemRealUnitPrice = item.itemUnitPrice.div(currency.currencyRate)
+                item.itemRealOpenCost = item.itemOpenCost.div(currency.currencyRate)
             }
 
             currency.currencyId, currency.currencyCode1 -> {//first currency
                 item.itemRealUnitPrice = item.itemUnitPrice
+                item.itemRealOpenCost = item.itemOpenCost
             }
 
             else -> {
@@ -201,12 +201,12 @@ class SharedViewModel @Inject constructor(
                     item.itemCurrencyId!!
                 )
                 item.itemRealUnitPrice = item.itemUnitPrice.div(rate)
+                item.itemRealOpenCost = item.itemOpenCost.div(rate)
                 withContext(Dispatchers.Main) {
                     showLoading(false)
                 }
             }
         }
-        return item.itemRealUnitPrice
     }
 
     fun clearPosValues() {

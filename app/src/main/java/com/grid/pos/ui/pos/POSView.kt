@@ -258,20 +258,20 @@ fun POSView(
                         withContext(Dispatchers.Main) {
                             sharedViewModel.showLoading(false)
                             clear()
-                            if (sharedViewModel.isFromTable){
+                            if (sharedViewModel.isFromTable) {
                                 navController?.navigateUp()
                             }
                         }
                     }
                 } else {
                     clear()
-                    if (sharedViewModel.isFromTable){
+                    if (sharedViewModel.isFromTable) {
                         navController?.navigateUp()
                     }
                 }
             } else {
                 clear()
-                if (sharedViewModel.isFromTable){
+                if (sharedViewModel.isFromTable) {
                     navController?.navigateUp()
                 }
             }
@@ -540,7 +540,7 @@ fun POSView(
                                                         map.forEach { (item, count) ->
                                                             if (!item.itemBarcode.isNullOrEmpty()) {
                                                                 withContext(Dispatchers.IO) {
-                                                                    item.itemRealUnitPrice = sharedViewModel.updateRealItemPrice(item)
+                                                                    sharedViewModel.updateRealItemPrice(item)
                                                                 }
                                                                 val invoiceItemModel = InvoiceItemModel()
                                                                 invoiceItemModel.setItem(item)
@@ -656,7 +656,7 @@ fun POSView(
                                     }
                                     if (proceed) {
                                         withContext(Dispatchers.IO) {
-                                            item.itemRealUnitPrice = sharedViewModel.updateRealItemPrice(item)
+                                            sharedViewModel.updateRealItemPrice(item)
                                         }
                                         val invoiceItemModel = InvoiceItemModel()
                                         invoiceItemModel.setItem(item)

@@ -100,6 +100,10 @@ data class Item(
         @get:Exclude
         var itemRealUnitPrice: Double = 0.0,
 
+        @Ignore
+        @get:Exclude
+        var itemRealOpenCost: Double = 0.0,
+
         /**
          * Item unit price
          * */

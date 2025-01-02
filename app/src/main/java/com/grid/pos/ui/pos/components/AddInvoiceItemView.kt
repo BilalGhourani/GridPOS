@@ -119,7 +119,7 @@ fun AddInvoiceItemView(
                         }
                         if (proceed) {
                             withContext(Dispatchers.IO) {
-                                item.itemRealUnitPrice = sharedViewModel.updateRealItemPrice(item)
+                                sharedViewModel.updateRealItemPrice(item)
                             }
                             if (notifyDirectly) {
                                 onSelect.invoke(listOf(item))
