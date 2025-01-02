@@ -5,7 +5,6 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.QuerySnapshot
 import com.grid.pos.SharedViewModel
-import com.grid.pos.data.invoice.Invoice
 import com.grid.pos.model.DataModel
 import kotlinx.coroutines.tasks.await
 

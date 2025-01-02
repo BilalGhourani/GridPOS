@@ -27,7 +27,7 @@ class ManageThirdPartiesViewModel @Inject constructor(
     init {
         viewModelScope.launch(Dispatchers.IO) {
             openConnectionIfNeeded()
-            val isDefaultEnabled = thirdPartyRepository.getDefaultThirdParty()  == null
+            val isDefaultEnabled = thirdPartyRepository.getDefaultThirdParty() == null
             withContext(Dispatchers.Main) {
                 manageThirdPartiesState.value = manageThirdPartiesState.value.copy(
                     enableIsDefault = isDefaultEnabled
@@ -95,13 +95,13 @@ class ManageThirdPartiesViewModel @Inject constructor(
                             clear = true
                         )
                     }
-                } else if (dataModel.message != null) {
+                } else {
                     withContext(Dispatchers.Main) {
                         manageThirdPartiesState.value = manageThirdPartiesState.value.copy(
                             isLoading = false,
-                            warning = Event(dataModel.message),
+                            warning = null
 
-                            )
+                        )
                     }
                 }
             } else {
@@ -128,13 +128,13 @@ class ManageThirdPartiesViewModel @Inject constructor(
                             clear = true
                         )
                     }
-                } else if (dataModel.message != null) {
+                } else {
                     withContext(Dispatchers.Main) {
                         manageThirdPartiesState.value = manageThirdPartiesState.value.copy(
                             isLoading = false,
-                            warning = Event(dataModel.message),
+                            warning = null
 
-                            )
+                        )
                     }
                 }
             }
@@ -180,13 +180,12 @@ class ManageThirdPartiesViewModel @Inject constructor(
                         clear = true
                     )
                 }
-            } else if (dataModel.message != null) {
+            } else {
                 withContext(Dispatchers.Main) {
                     manageThirdPartiesState.value = manageThirdPartiesState.value.copy(
                         isLoading = false,
-                        warning = Event(dataModel.message),
-
-                        )
+                        warning = null
+                    )
                 }
             }
         }

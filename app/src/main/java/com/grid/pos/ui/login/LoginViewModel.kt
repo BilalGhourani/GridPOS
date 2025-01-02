@@ -3,7 +3,6 @@ package com.grid.pos.ui.login
 import android.content.Context
 import androidx.lifecycle.viewModelScope
 import com.grid.pos.App
-import com.grid.pos.data.company.Company
 import com.grid.pos.data.company.CompanyRepository
 import com.grid.pos.data.user.UserRepository
 import com.grid.pos.model.Event
@@ -12,7 +11,6 @@ import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.BaseViewModel
 import com.grid.pos.ui.license.CheckLicenseUseCase
 import com.grid.pos.utils.Constants
-import com.grid.pos.utils.DataStoreManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -139,43 +137,30 @@ class LoginViewModel @Inject constructor(
                     }
                 } else if (loginResponse.allUsersSize == 0) {
                     if (SettingsModel.isConnectedToSqlite() || SettingsModel.isConnectedToFireStore()) {
-                        val dataModel = companyRepository.getAllCompanies()
-                        if (dataModel.succeed) {
-                            val companies = convertToMutableList(
-                                dataModel.data,
-                                Company::class.java
-                            )
-                            withContext(Dispatchers.Main) {
-                                if (companies.isEmpty()) {
-                                    usersState.value = usersState.value.copy(
-                                        warning = Event("No companies found!, do you want to register?"),
-                                        isLoading = false,
-                                        needRegistration = true,
-                                        warningAction = "Register"
-                                    )
-                                } else if (SettingsModel.localCompanyID.isNullOrEmpty()) {
-                                    usersState.value = usersState.value.copy(
-                                        warning = Event("select your current company to proceed!"),
-                                        isLoading = false,
-                                        needRegistration = true,
-                                        warningAction = "Settings"
-                                    )
-                                } else {
-                                    usersState.value = usersState.value.copy(
-                                        isLoading = false,
-                                        needRegistration = true,
-                                        warning = Event("No users found!, do you want to create a user?"),
-                                        warningAction = "Create"
-                                    )
-                                }
+                        val companies = companyRepository.getAllCompanies()
+                        withContext(Dispatchers.Main) {
+                            if (companies.isEmpty()) {
+                                usersState.value = usersState.value.copy(
+                                    warning = Event("No companies found!, do you want to register?"),
+                                    isLoading = false,
+                                    needRegistration = true,
+                                    warningAction = "Register"
+                                )
+                            } else if (SettingsModel.localCompanyID.isNullOrEmpty()) {
+                                usersState.value = usersState.value.copy(
+                                    warning = Event("select your current company to proceed!"),
+                                    isLoading = false,
+                                    needRegistration = true,
+                                    warningAction = "Settings"
+                                )
+                            } else {
+                                usersState.value = usersState.value.copy(
+                                    isLoading = false,
+                                    needRegistration = true,
+                                    warning = Event("No users found!, do you want to create a user?"),
+                                    warningAction = "Create"
+                                )
                             }
-                        } else {
-                            usersState.value = usersState.value.copy(
-                                isLoading = false,
-                                needRegistration = false,
-                                warning = if (dataModel.message != null) Event(dataModel.message) else null,
-                                warningAction = null
-                            )
                         }
                     } else {
                         viewModelScope.launch(Dispatchers.Main) {

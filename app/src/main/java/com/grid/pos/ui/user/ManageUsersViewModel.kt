@@ -102,11 +102,11 @@ class ManageUsersViewModel @Inject constructor(
                             clear = true
                         )
                     }
-                } else if (dataModel.message != null) {
+                } else {
                     withContext(Dispatchers.Main) {
                         manageUsersState.value = manageUsersState.value.copy(
                             isLoading = false,
-                            warning = Event(dataModel.message),
+                            warning = null
                         )
                     }
                 }
@@ -129,11 +129,11 @@ class ManageUsersViewModel @Inject constructor(
                             clear = true
                         )
                     }
-                } else if (dataModel.message != null) {
+                } else {
                     withContext(Dispatchers.Main) {
                         manageUsersState.value = manageUsersState.value.copy(
                             isLoading = false,
-                            warning = Event(dataModel.message),
+                            warning = null
                         )
                     }
                 }
@@ -177,11 +177,11 @@ class ManageUsersViewModel @Inject constructor(
                         clear = true
                     )
                 }
-            } else if (dataModel.message != null) {
+            } else {
                 withContext(Dispatchers.Main) {
                     manageUsersState.value = manageUsersState.value.copy(
                         isLoading = false,
-                        warning = Event(dataModel.message),
+                        warning = null
                     )
                 }
             }

@@ -1,12 +1,11 @@
 package com.grid.pos.data.invoice
 
 import com.google.firebase.firestore.Filter
-import com.google.firebase.firestore.FirebaseFirestore
+import com.grid.pos.data.FirebaseWrapper
 import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.DateHelper
-import kotlinx.coroutines.tasks.await
 import java.sql.ResultSet
 import java.util.Date
 
@@ -18,9 +17,10 @@ class InvoiceRepositoryImpl(
     ): Invoice {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
-                val docRef = FirebaseFirestore.getInstance().collection("in_invoice")
-                    .add(invoice.getMap()).await()
-                invoice.invoiceDocumentId = docRef.id
+                FirebaseWrapper.insert(
+                    "in_invoice",
+                    invoice
+                )
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
@@ -40,10 +40,10 @@ class InvoiceRepositoryImpl(
     ) {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
-                invoice.invoiceDocumentId?.let {
-                    FirebaseFirestore.getInstance().collection("in_invoice").document(it).delete()
-                        .await()
-                }
+                FirebaseWrapper.delete(
+                    "in_invoice",
+                    invoice
+                )
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
@@ -67,10 +67,10 @@ class InvoiceRepositoryImpl(
     ) {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
-                invoice.invoiceDocumentId?.let {
-                    FirebaseFirestore.getInstance().collection("in_invoice").document(it)
-                        .update(invoice.getMap()).await()
-                }
+                FirebaseWrapper.update(
+                    "in_invoice",
+                    invoice
+                )
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
@@ -86,17 +86,10 @@ class InvoiceRepositoryImpl(
     override suspend fun update(invoices: List<Invoice>) {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
-                val db = FirebaseFirestore.getInstance()
-                val batch = db.batch()
-                for (inv in invoices) {
-                    val modelRef = db.collection("in_invoice")
-                        .document(inv.invoiceDocumentId!!) // Assuming `id` is the document ID
-                    batch.update(
-                        modelRef,
-                        inv.getMap()
-                    )
-                }
-                batch.commit().await()
+                FirebaseWrapper.update(
+                    "in_invoice",
+                    invoices
+                )
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
@@ -116,14 +109,19 @@ class InvoiceRepositoryImpl(
     ): MutableList<Invoice> {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
-                val querySnapshot = FirebaseFirestore.getInstance().collection("in_invoice")
-                    .whereEqualTo(
-                        "in_hi_id",
-                        invoiceHeaderId
-                    ).get().await()
+                val querySnapshot = FirebaseWrapper.getQuerySnapshot(
+                    collection = "in_invoice",
+                    filters = mutableListOf(
+                        Filter.equalTo(
+                            "in_hi_id",
+                            invoiceHeaderId
+                        )
+                    )
+                )
+                val size = querySnapshot?.size() ?: 0
                 val invoiceItems = mutableListOf<Invoice>()
-                if (querySnapshot.size() > 0) {
-                    for (document in querySnapshot) {
+                if (size > 0) {
+                    for (document in querySnapshot!!) {
                         val obj = document.toObject(Invoice::class.java)
                         if (obj.invoiceId.isNotEmpty()) {
                             obj.invoiceDocumentId = document.id
@@ -149,11 +147,11 @@ class InvoiceRepositoryImpl(
                         where
                     )
                     dbResult?.let {
-                            while (it.next()) {
-                                invoices.add(fillParams(it))
-                            }
-                            SQLServerWrapper.closeResultSet(it)
+                        while (it.next()) {
+                            invoices.add(fillParams(it))
                         }
+                        SQLServerWrapper.closeResultSet(it)
+                    }
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
@@ -168,20 +166,28 @@ class InvoiceRepositoryImpl(
     ): MutableList<Invoice> {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
-                var query = FirebaseFirestore.getInstance().collection("in_invoice").whereIn(
-                    "in_hi_id",
-                    ids
+                val filters = mutableListOf(
+                    Filter.inArray(
+                        "in_hi_id",
+                        ids
+                    )
                 )
                 if (!itemId.isNullOrEmpty()) {
-                    query = query.whereEqualTo(
-                        "in_it_id",
-                        itemId
+                    filters.add(
+                        Filter.equalTo(
+                            "in_it_id",
+                            itemId
+                        )
                     )
                 }
-                val querySnapshot = query.get().await()
+                val querySnapshot = FirebaseWrapper.getQuerySnapshot(
+                    collection = "in_invoice",
+                    filters = filters
+                )
+                val size = querySnapshot?.size() ?: 0
                 val invoiceItems = mutableListOf<Invoice>()
-                if (querySnapshot.size() > 0) {
-                    for (document in querySnapshot) {
+                if (size > 0) {
+                    for (document in querySnapshot!!) {
                         val obj = document.toObject(Invoice::class.java)
                         if (obj.invoiceId.isNotEmpty()) {
                             obj.invoiceDocumentId = document.id
@@ -215,11 +221,11 @@ class InvoiceRepositoryImpl(
                         where
                     )
                     dbResult?.let {
-                            while (it.next()) {
-                                invoices.add(fillParams(it))
-                            }
-                            SQLServerWrapper.closeResultSet(it)
+                        while (it.next()) {
+                            invoices.add(fillParams(it))
                         }
+                        SQLServerWrapper.closeResultSet(it)
+                    }
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
@@ -235,56 +241,40 @@ class InvoiceRepositoryImpl(
     ): MutableList<Invoice> {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
-                val collection = FirebaseFirestore.getInstance().collection("in_invoice")
-
-                // Create a list to hold the filters
                 val filters = mutableListOf<Filter>()
-
                 // Add filters based on non-null parameters
-                itemId?.let {
+                if (!itemId.isNullOrEmpty()) {
                     filters.add(
                         Filter.equalTo(
                             "in_it_id",
-                            it
+                            itemId
                         )
                     )
                 }
-                from?.let {
+                if (from != null) {
                     filters.add(
                         Filter.greaterThanOrEqualTo(
                             "in_timestamp",
-                            it
+                            from
                         )
                     )
                 }
-                to?.let {
+                if (to != null) {
                     filters.add(
                         Filter.lessThan(
                             "in_timestamp",
-                            it
+                            to
                         )
                     )
                 }
-                val size = filters.size
-                val querySnapshot = if (size > 0) {
-                    when (size) {
-                        3 -> {
-                            collection.where(filters[0]).where(filters[1]).where(filters[2]).get().await()
-                        }
-                        2 -> {
-                            collection.where(filters[0]).where(filters[1]).get().await()
-                        }
-                        else -> {
-                            collection.where(filters[0]).get().await()
-                        }
-                    }
-                } else {
-                    collection.get().await()
-                }
-
+                val querySnapshot = FirebaseWrapper.getQuerySnapshot(
+                    collection = "in_invoice",
+                    filters = filters
+                )
+                val size = querySnapshot?.size() ?: 0
                 val invoiceItems = mutableListOf<Invoice>()
-                if (querySnapshot.size() > 0) {
-                    for (document in querySnapshot) {
+                if (size > 0) {
+                    for (document in querySnapshot!!) {
                         val obj = document.toObject(Invoice::class.java)
                         if (obj.invoiceId.isNotEmpty()) {
                             obj.invoiceDocumentId = document.id
@@ -325,13 +315,17 @@ class InvoiceRepositoryImpl(
     override suspend fun getOneInvoiceByItemID(itemId: String): Invoice? {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
-                val querySnapshot = FirebaseFirestore.getInstance().collection("in_invoice")
-                    .whereEqualTo(
-                        "in_it_id",
-                        itemId
-                    ).limit(1).get().await()
-                if (querySnapshot.size() > 0) {
-                    for (document in querySnapshot) {
+                val querySnapshot = FirebaseWrapper.getQuerySnapshot(
+                    collection = "in_invoice",
+                    limit = 1,
+                    filters = mutableListOf(
+                        Filter.equalTo("in_it_id",
+                            itemId)
+                    )
+                )
+                val size = querySnapshot?.size() ?: 0
+                if (size > 0) {
+                    for (document in querySnapshot!!) {
                         val obj = document.toObject(Invoice::class.java)
                         if (obj.invoiceId.isNotEmpty()) {
                             obj.invoiceDocumentId = document.id

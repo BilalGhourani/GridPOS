@@ -161,10 +161,7 @@ class SharedViewModel @Inject constructor(
 
     private suspend fun fetchCompanies() {
         val companyId = SettingsModel.getCompanyID() ?: return
-        val dataModel = companyRepository.getCompanyById(companyId)
-        if (dataModel.succeed) {
-            SettingsModel.currentCompany = dataModel.data as? Company
-        }
+        SettingsModel.currentCompany = companyRepository.getCompanyById(companyId)
         if (SettingsModel.currentCompany?.companySS == true) {
             SettingsModel.currentUser = null
             withContext(Dispatchers.Main) {

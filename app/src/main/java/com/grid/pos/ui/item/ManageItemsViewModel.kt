@@ -192,8 +192,12 @@ class ManageItemsViewModel @Inject constructor(
                             clear = true
                         )
                     }
-                } else if (dataModel.message != null) {
-                    showWarning(dataModel.message)
+                } else {
+                    withContext(Dispatchers.Main) {
+                        manageItemsState.value = manageItemsState.value.copy(
+                            isLoading = false
+                        )
+                    }
                 }
             } else {
                 val dataModel = itemRepository.update(item)
@@ -214,8 +218,12 @@ class ManageItemsViewModel @Inject constructor(
                             clear = true
                         )
                     }
-                } else if (dataModel.message != null) {
-                    showWarning(dataModel.message)
+                } else {
+                    withContext(Dispatchers.Main) {
+                        manageItemsState.value = manageItemsState.value.copy(
+                            isLoading = false
+                        )
+                    }
                 }
             }
         }
@@ -257,8 +265,12 @@ class ManageItemsViewModel @Inject constructor(
                         clear = true
                     )
                 }
-            } else if (dataModel.message != null) {
-                showWarning(dataModel.message)
+            } else {
+                withContext(Dispatchers.Main) {
+                    manageItemsState.value = manageItemsState.value.copy(
+                        isLoading = false
+                    )
+                }
             }
         }
     }

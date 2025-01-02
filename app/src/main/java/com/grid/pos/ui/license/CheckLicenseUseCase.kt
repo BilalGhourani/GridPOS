@@ -33,8 +33,7 @@ class CheckLicenseUseCase(
             if (licenseFile != null) {
                 val companyID = SettingsModel.getCompanyID()
                 if (!companyID.isNullOrEmpty()) {
-                    val dataModel = companyRepository.getCompanyById(companyID)
-                    val company = dataModel.data as? Company
+                    val company = companyRepository.getCompanyById(companyID)
                     val lastInvoice = try {
                         invoiceHeaderRepository.getLastInvoice()
                     }catch (e:Exception){

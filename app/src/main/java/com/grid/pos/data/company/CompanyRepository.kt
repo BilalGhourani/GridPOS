@@ -15,10 +15,10 @@ interface CompanyRepository {
     suspend fun update(company: Company):DataModel
 
     // Get Company by it's ID
-    suspend fun getCompanyById(id: String): DataModel
+    suspend fun getCompanyById(id: String): Company?
 
     // Get all Companies logs as stream.
-    suspend fun getAllCompanies(): DataModel
+    suspend fun getAllCompanies(): MutableList<Company>
 
     suspend fun getLocalCompanies(): MutableList<Company>
 

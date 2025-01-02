@@ -242,6 +242,12 @@ class POSViewModel @Inject constructor(
                         invoiceItems,
                         print
                     )
+                } else {
+                    withContext(Dispatchers.Main) {
+                        posState.value = posState.value.copy(
+                            isLoading = false
+                        )
+                    }
                 }
             } else {
                 if (invoiceHeader.invoiceHeadOrderNo.isNullOrEmpty()) {
@@ -289,6 +295,12 @@ class POSViewModel @Inject constructor(
                         invoiceItems,
                         print
                     )
+                } else {
+                    withContext(Dispatchers.Main) {
+                        posState.value = posState.value.copy(
+                            isLoading = false
+                        )
+                    }
                 }
             }
         }
@@ -509,6 +521,12 @@ class POSViewModel @Inject constructor(
                         isLoading = false,
                         warning = Event("successfully deleted."),
                         isDeleted = true
+                    )
+                }
+            } else {
+                withContext(Dispatchers.Main) {
+                    posState.value = posState.value.copy(
+                        isLoading = false
                     )
                 }
             }

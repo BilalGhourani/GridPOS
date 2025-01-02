@@ -198,11 +198,10 @@ class ReceiptsViewModel @Inject constructor(
                             clear = false
                         )
                     }
-                } else if (dataModel.message != null) {
+                } else {
                     withContext(Dispatchers.Main) {
                         receiptsState.value = receiptsState.value.copy(
-                            isLoading = false,
-                            warning = Event(dataModel.message),
+                            isLoading = false
                         )
                     }
                 }
@@ -230,11 +229,10 @@ class ReceiptsViewModel @Inject constructor(
                             clear = false
                         )
                     }
-                } else if (dataModel.message != null) {
+                } else {
                     withContext(Dispatchers.Main) {
                         receiptsState.value = receiptsState.value.copy(
-                            isLoading = false,
-                            warning = Event(dataModel.message),
+                            isLoading = false
                         )
                     }
                 }
@@ -271,11 +269,10 @@ class ReceiptsViewModel @Inject constructor(
                         isSaved = false
                     )
                 }
-            } else if (dataModel.message != null) {
+            } else {
                 withContext(Dispatchers.Main) {
                     receiptsState.value = receiptsState.value.copy(
-                        isLoading = false,
-                        warning = Event(dataModel.message),
+                        isLoading = false
                     )
                 }
             }

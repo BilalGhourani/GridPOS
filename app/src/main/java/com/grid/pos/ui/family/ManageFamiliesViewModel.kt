@@ -98,7 +98,11 @@ class ManageFamiliesViewModel @Inject constructor(
                         )
                     }
                 } else if (dataModel.message != null) {
-                    showWarning(dataModel.message)
+                    withContext(Dispatchers.Main) {
+                        manageFamiliesState.value = manageFamiliesState.value.copy(
+                            isLoading = false,
+                        )
+                    }
                 }
             } else {
                 val dataModel = familyRepository.update(family)
@@ -120,7 +124,11 @@ class ManageFamiliesViewModel @Inject constructor(
                         )
                     }
                 } else if (dataModel.message != null) {
-                    showWarning(dataModel.message)
+                    withContext(Dispatchers.Main) {
+                        manageFamiliesState.value = manageFamiliesState.value.copy(
+                            isLoading = false,
+                        )
+                    }
                 }
             }
         }
@@ -163,7 +171,11 @@ class ManageFamiliesViewModel @Inject constructor(
                     )
                 }
             } else if (dataModel.message != null) {
-                showWarning(dataModel.message)
+                withContext(Dispatchers.Main) {
+                    manageFamiliesState.value = manageFamiliesState.value.copy(
+                        isLoading = false,
+                    )
+                }
             }
         }
     }

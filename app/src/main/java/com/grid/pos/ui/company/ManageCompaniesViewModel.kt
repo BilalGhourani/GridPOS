@@ -67,20 +67,12 @@ class ManageCompaniesViewModel @Inject constructor(
             isLoading = true
         )
         viewModelScope.launch(Dispatchers.IO) {
-            val dataModel = companyRepository.getAllCompanies()
-            if (dataModel.succeed) {
-                val listOfCompanies = convertToMutableList(
-                    dataModel.data,
-                    Company::class.java
+            val listOfCompanies = companyRepository.getAllCompanies()
+            withContext(Dispatchers.Main) {
+                manageCompaniesState.value = manageCompaniesState.value.copy(
+                    companies = listOfCompanies,
+                    isLoading = false
                 )
-                withContext(Dispatchers.Main) {
-                    manageCompaniesState.value = manageCompaniesState.value.copy(
-                        companies = listOfCompanies,
-                        isLoading = false
-                    )
-                }
-            } else {
-                showWarning(dataModel.message ?: "an error has occurred!")
             }
         }
     }

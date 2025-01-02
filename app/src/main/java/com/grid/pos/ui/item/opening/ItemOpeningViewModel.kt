@@ -139,8 +139,12 @@ class ItemOpeningViewModel @Inject constructor(
                         clearCosts = true
                     )
                 }
-            } else if (dataModel.message != null) {
-                showWarning(dataModel.message)
+            } else  {
+                withContext(Dispatchers.Main) {
+                    state.value = state.value.copy(
+                        isLoading = false
+                    )
+                }
             }
         }
     }
@@ -189,8 +193,12 @@ class ItemOpeningViewModel @Inject constructor(
                         clearWarehouseDetails = true
                     )
                 }
-            } else if (dataModel.message != null) {
-                showWarning(dataModel.message)
+            } else  {
+                withContext(Dispatchers.Main) {
+                    state.value = state.value.copy(
+                        isLoading = false
+                    )
+                }
             }
         }
     }

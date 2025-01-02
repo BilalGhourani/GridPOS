@@ -98,8 +98,12 @@ class POSPrinterViewModel @Inject constructor(
                             clear = true,
                         )
                     }
-                } else if (dataModel.message != null) {
-                    showWarning(dataModel.message)
+                } else {
+                    withContext(Dispatchers.Main) {
+                        posPrinterState.value = posPrinterState.value.copy(
+                            isLoading = false
+                        )
+                    }
                 }
             } else {
                 val dataModel = posPrinterRepository.update(printer)
@@ -120,8 +124,12 @@ class POSPrinterViewModel @Inject constructor(
                             clear = true,
                         )
                     }
-                } else if (dataModel.message != null) {
-                    showWarning(dataModel.message)
+                } else {
+                    withContext(Dispatchers.Main) {
+                        posPrinterState.value = posPrinterState.value.copy(
+                            isLoading = false
+                        )
+                    }
                 }
             }
         }
@@ -163,8 +171,12 @@ class POSPrinterViewModel @Inject constructor(
                         clear = true
                     )
                 }
-            } else if (dataModel.message != null) {
-                showWarning(dataModel.message)
+            } else {
+                withContext(Dispatchers.Main) {
+                    posPrinterState.value = posPrinterState.value.copy(
+                        isLoading = false
+                    )
+                }
             }
         }
     }

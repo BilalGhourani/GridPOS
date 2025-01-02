@@ -57,7 +57,7 @@ class CompanyRepositoryImpl(
 
     override suspend fun getCompanyById(
             id: String
-    ): DataModel {
+    ): Company? {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
                 val querySnapshot = FirebaseWrapper.getQuerySnapshot(
@@ -73,11 +73,11 @@ class CompanyRepositoryImpl(
                 val document = querySnapshot?.documents?.firstOrNull()
                 val company = document?.toObject(Company::class.java)
                 company?.companyDocumentId = document?.id
-                return DataModel(company)
+                return company
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
-                return DataModel(companyDao.getCompanyById(id))
+                return companyDao.getCompanyById(id)
             }
 
             else -> {//CONNECTION_TYPE.SQL_SERVER.key
@@ -117,12 +117,12 @@ class CompanyRepositoryImpl(
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
-                return DataModel(company)
+                return company
             }
         }
     }
 
-    override suspend fun getAllCompanies(): DataModel {
+    override suspend fun getAllCompanies(): MutableList<Company> {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
                 val querySnapshot = FirebaseWrapper.getQuerySnapshot(
@@ -139,11 +139,11 @@ class CompanyRepositoryImpl(
                         }
                     }
                 }
-                return DataModel(companies)
+                return companies
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
-                return DataModel(companyDao.getAllCompanies())
+                return companyDao.getAllCompanies()
             }
 
             else -> {//CONNECTION_TYPE.SQL_SERVER.key
@@ -184,7 +184,7 @@ class CompanyRepositoryImpl(
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
-                return DataModel(companies)
+                return companies
             }
         }
     }

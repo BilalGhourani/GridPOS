@@ -1,6 +1,7 @@
 package com.grid.pos.data.posReceipt
 
-import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Filter
+import com.grid.pos.data.FirebaseWrapper
 import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.SettingsModel
@@ -9,8 +10,6 @@ import com.grid.pos.utils.DateHelper
 import com.grid.pos.utils.Extension.getDoubleValue
 import com.grid.pos.utils.Extension.getObjectValue
 import com.grid.pos.utils.Extension.getStringValue
-import kotlinx.coroutines.tasks.await
-import java.sql.ResultSet
 import java.sql.Timestamp
 import java.util.Date
 
@@ -22,9 +21,10 @@ class PosReceiptRepositoryImpl(
     ): PosReceipt {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
-                val docRef = FirebaseFirestore.getInstance().collection("pos_receipt")
-                    .add(posReceipt.getMap()).await()
-                posReceipt.posReceiptDocumentId = docRef.id
+                FirebaseWrapper.insert(
+                    "pos_receipt",
+                    posReceipt
+                )
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
@@ -102,10 +102,10 @@ class PosReceiptRepositoryImpl(
     ) {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
-                posReceipt.posReceiptDocumentId?.let {
-                    FirebaseFirestore.getInstance().collection("pos_receipt").document(it).delete()
-                        .await()
-                }
+                FirebaseWrapper.delete(
+                    "pos_receipt",
+                    posReceipt
+                )
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
@@ -163,10 +163,10 @@ class PosReceiptRepositoryImpl(
     ) {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
-                posReceipt.posReceiptDocumentId?.let {
-                    FirebaseFirestore.getInstance().collection("pos_receipt").document(it)
-                        .update(posReceipt.getMap()).await()
-                }
+                FirebaseWrapper.update(
+                    "pos_receipt",
+                    posReceipt
+                )
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
@@ -298,18 +298,21 @@ class PosReceiptRepositoryImpl(
     ): PosReceipt? {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
-                val querySnapshot = FirebaseFirestore.getInstance().collection("pos_receipt")
-                    .whereEqualTo(
-                        "pr_hi_id",
-                        invoiceHeaderId
-                    ).get().await()
-                val document = querySnapshot.documents.firstOrNull()
-                if (document != null) {
-                    val obj = document.toObject(PosReceipt::class.java)
-                    if (obj != null && obj.posReceiptId.isNotEmpty()) {
-                        obj.posReceiptDocumentId = document.id
-                        return obj
-                    }
+                val querySnapshot = FirebaseWrapper.getQuerySnapshot(
+                    collection = "pos_receipt",
+                    limit = 1,
+                    filters = mutableListOf(
+                        Filter.equalTo(
+                            "pr_hi_id",
+                            invoiceHeaderId
+                        )
+                    )
+                )
+                val document = querySnapshot?.documents?.firstOrNull()
+                val obj = document?.toObject(PosReceipt::class.java)
+                if (!obj?.posReceiptId.isNullOrEmpty()) {
+                    obj?.posReceiptDocumentId = document?.id
+                    return obj
                 }
                 return null
             }
@@ -439,7 +442,7 @@ class PosReceiptRepositoryImpl(
             parameters
         )
         if (queryResult.succeed) {
-            return (queryResult.result as? String) ?: ""
+            return queryResult.result ?: ""
         }
         return ""
     }
