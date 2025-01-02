@@ -213,6 +213,7 @@ fun POSView(
         proceedToPrint = true
         invoicesState.clear()
         invoiceHeaderState.value = sharedViewModel.invoiceHeader
+        viewModel.clearPosState()
     }
 
     fun cashLoadedData() {

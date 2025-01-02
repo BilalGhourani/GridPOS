@@ -55,6 +55,18 @@ class POSViewModel @Inject constructor(
         }
     }
 
+    fun clearPosState() {
+        posState.value = posState.value.copy(
+            itemsToDelete = mutableListOf(),
+            selectedThirdParty = SettingsModel.defaultThirdParty ?: ThirdParty(),
+            isSaved = false,
+            isDeleted = false,
+            isLoading = false,
+            warning = null,
+            actionLabel = null
+        )
+    }
+
     fun loadFamiliesAndItems() {
         val loadItems = posState.value.items.isEmpty()
         val loadFamilies = posState.value.families.isEmpty()
