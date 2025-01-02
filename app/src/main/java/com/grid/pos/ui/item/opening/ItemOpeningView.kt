@@ -121,7 +121,7 @@ fun ItemOpeningView(
         sharedViewModel.showLoading(state.isLoading)
     }
 
-    fun fillItemInputs(item: Item) {
+    fun fillItemInputsNow(item: Item) {
         state.selectedItem = item
         warehouseState = item.itemWarehouse ?: ""
         locationState = item.itemLocation ?: ""
@@ -131,7 +131,19 @@ fun ItemOpeningView(
         costState = (item.itemOpenCost.takeIf { it > 0.0 } ?: "").toString()
         costFirstState = item.itemCostFirst?.toString() ?: ""
         costSecondState = item.itemCostSecond?.toString() ?: ""
+    }
 
+    fun fillItemInputs(item: Item) {
+        if (state.warehouses.isEmpty()) {
+            scope.launch(Dispatchers.IO) {
+                viewModel.fetchWarehouses()
+                withContext(Dispatchers.Main) {
+                    fillItemInputsNow(item)
+                }
+            }
+        } else {
+            fillItemInputsNow(item)
+        }
     }
 
     fun clear() {
@@ -427,7 +439,21 @@ fun ItemOpeningView(
                                         if (barcodesList.isNotEmpty()) {
                                             val resp = barcodesList[0]
                                             if (resp is String) {
-                                                barcodeSearchState = resp
+                                                scope.launch(Dispatchers.Default) {
+                                                    val item = state.items.firstOrNull {
+                                                        it.itemBarcode.equals(
+                                                            resp,
+                                                            ignoreCase = true
+                                                        )
+                                                    }
+                                                    withContext(Dispatchers.Main) {
+                                                        if (item != null) {
+                                                            fillItemInputs(item)
+                                                        } else {
+                                                            barcodeSearchState = resp
+                                                        }
+                                                    }
+                                                }
                                             }
                                         }
                                     }
@@ -447,16 +473,7 @@ fun ItemOpeningView(
                         }
                     }) { item ->
                     item as Item
-                    if (state.warehouses.isEmpty()) {
-                        scope.launch(Dispatchers.IO) {
-                            viewModel.fetchWarehouses()
-                            withContext(Dispatchers.Main) {
-                                fillItemInputs(item)
-                            }
-                        }
-                    } else {
-                        fillItemInputs(item)
-                    }
+                    fillItemInputs(item)
                 }
             }
         }

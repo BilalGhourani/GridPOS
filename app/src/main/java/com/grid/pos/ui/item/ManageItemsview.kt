@@ -200,7 +200,7 @@ fun ManageItemsView(
         sharedViewModel.showLoading(state.isLoading)
     }
 
-    fun fillItemInputs(item: Item) {
+    fun fillItemInputsNow(item: Item) {
         viewModel.currentITem = item.copy()
         state.selectedItem = item.copy()
         nameState = item.itemName ?: ""
@@ -219,6 +219,26 @@ fun ManageItemsView(
         printerState = item.itemPrinter ?: ""
         itemPOSState = item.itemPos
         imageState = item.itemImage ?: ""
+    }
+
+    fun fillItemInputs(item: Item) {
+        if (state.families.isEmpty() || state.printers.isEmpty()) {
+            sharedViewModel.showLoading(true)
+            scope.launch(Dispatchers.IO) {
+                if (state.families.isEmpty() && !item.itemFaId.isNullOrEmpty()) {
+                    viewModel.fetchFamilies(false)
+                }
+                if (state.families.isEmpty() && !item.itemPrinter.isNullOrEmpty()) {
+                    viewModel.fetchPrinters(false)
+                }
+                withContext(Dispatchers.Main) {
+                    fillItemInputsNow(item)
+                    sharedViewModel.showLoading(false)
+                }
+            }
+        } else {
+            fillItemInputsNow(item)
+        }
     }
 
     fun saveItem() {
@@ -954,7 +974,21 @@ fun ManageItemsView(
                                         if (barcodesList.isNotEmpty()) {
                                             val resp = barcodesList[0]
                                             if (resp is String) {
-                                                barcodeSearchState = resp
+                                                scope.launch(Dispatchers.Default) {
+                                                    val item = state.items.firstOrNull {
+                                                        it.itemBarcode.equals(
+                                                            resp,
+                                                            ignoreCase = true
+                                                        )
+                                                    }
+                                                    withContext(Dispatchers.Main) {
+                                                        if (item != null) {
+                                                            fillItemInputs(item)
+                                                        } else {
+                                                            barcodeSearchState = resp
+                                                        }
+                                                    }
+                                                }
                                             }
                                         }
                                     }
@@ -974,24 +1008,7 @@ fun ManageItemsView(
                         }
                     }) { item ->
                     item as Item
-                    if (state.families.isEmpty() || state.printers.isEmpty()) {
-                        sharedViewModel.showLoading(true)
-                        scope.launch(Dispatchers.IO) {
-                            if (state.families.isEmpty() && !item.itemFaId.isNullOrEmpty()) {
-                                viewModel.fetchFamilies(false)
-                            }
-                            if (state.families.isEmpty() && !item.itemPrinter.isNullOrEmpty()) {
-                                viewModel.fetchPrinters(false)
-                            }
-                            withContext(Dispatchers.Main) {
-                                fillItemInputs(item)
-                                sharedViewModel.showLoading(false)
-                            }
-                        }
-                    } else {
-                        fillItemInputs(item)
-                    }
-
+                    fillItemInputs(item)
                 }
             }
         }

@@ -82,8 +82,10 @@ import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.ui.theme.LightBlue
 import com.grid.pos.utils.DateHelper
 import com.grid.pos.utils.Utils
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.Calendar
 import java.util.Date
 import java.util.TimeZone
@@ -331,7 +333,7 @@ fun AdjustmentView(
                         ),
                         defaultValue = itemCostState,
                         label = "Item Cost",
-                        placeHolder = "Enter Name",
+                        placeHolder = "Enter Cost",
                         keyboardType = KeyboardType.Decimal
                     ) { cost ->
                         itemCostState = Utils.getDoubleValue(
@@ -449,7 +451,22 @@ fun AdjustmentView(
                                         if (barcodesList.isNotEmpty()) {
                                             val resp = barcodesList[0]
                                             if (resp is String) {
-                                                barcodeSearchState = resp
+                                                scope.launch(Dispatchers.Default) {
+                                                    val item = state.items.firstOrNull {
+                                                        it.itemBarcode.equals(
+                                                            resp,
+                                                            ignoreCase = true
+                                                        )
+                                                    }
+                                                    withContext(Dispatchers.Main) {
+                                                        if (item != null) {
+                                                            itemState = item.itemId
+                                                            state.selectedItem = item
+                                                        } else {
+                                                            barcodeSearchState = resp
+                                                        }
+                                                    }
+                                                }
                                             }
                                         }
                                     }
