@@ -5,6 +5,7 @@ import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
+import java.util.concurrent.TimeUnit
 
 object DateHelper {
 
@@ -74,11 +75,13 @@ object DateHelper {
         return date
     }
 
-    fun getDatesDiff(
-            startDate: Date,
-            endDate: Date
+    fun getDaysDiff(
+            date1: Date,
+            date2: Date
     ): Long {
-        val diff = endDate.time -  startDate.time
-        return diff / (24 * 60 * 60 * 1000)
+        // Calculate the difference in milliseconds
+        val differenceInMillis = date1.time - date2.time
+        // Convert milliseconds to days
+        return TimeUnit.MILLISECONDS.toDays(differenceInMillis)
     }
 }

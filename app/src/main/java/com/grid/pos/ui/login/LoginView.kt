@@ -141,6 +141,8 @@ fun LoginView(
                         }
                     }
                 }
+                state.warning = null
+                state.warningAction = null
             }
         }
     }
