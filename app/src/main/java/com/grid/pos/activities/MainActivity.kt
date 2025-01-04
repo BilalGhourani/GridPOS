@@ -45,6 +45,7 @@ import com.grid.pos.interfaces.OnGalleryResult
 import com.grid.pos.model.ORIENTATION_TYPE
 import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
+import com.grid.pos.model.ToastModel
 import com.grid.pos.ui.common.CustomSnackBar
 import com.grid.pos.ui.common.LoadingIndicator
 import com.grid.pos.ui.common.UIAlertDialog
@@ -83,14 +84,14 @@ class MainActivity : ComponentActivity() {
         }
 
         override fun onCapabilitiesChanged(
-                network: Network,
-                networkCapabilities: NetworkCapabilities
+            network: Network,
+            networkCapabilities: NetworkCapabilities
         ) {
         }
 
         override fun onLinkPropertiesChanged(
-                network: Network,
-                linkProperties: LinkProperties
+            network: Network,
+            linkProperties: LinkProperties
         ) {
         }
     }
@@ -148,8 +149,8 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
-    private val showWarning = mutableStateOf(false)
-    private var warning: String = ""
+    private val showToastMessage = mutableStateOf(false)
+    private var toastModel: ToastModel? = null
     private val loadingState = mutableStateOf(false)
     private val popupState = mutableStateOf(false)
     private var popupModel: PopupModel? = null
@@ -204,11 +205,14 @@ class MainActivity : ComponentActivity() {
                             popupModel = popupModel ?: PopupModel()
                         )
                     }
-                    CustomSnackBar(show = showWarning.value,
-                        message = warning,
+                    CustomSnackBar(
+                        show = showToastMessage.value,
                         onDismiss = {
-                            showWarning.value = false
-                        })
+                            showToastMessage.value = false
+                            toastModel?.onDismiss?.invoke()
+                        },
+                        toastModel = toastModel ?: ToastModel()
+                    )
                     LoadingIndicator(
                         show = loadingState.value
                     )
@@ -219,8 +223,8 @@ class MainActivity : ComponentActivity() {
     }
 
     fun launchActivityForResult(
-            i: Intent,
-            activityResult: OnActivityResult
+        i: Intent,
+        activityResult: OnActivityResult
     ) {
         try {
             mActivityResultCallBack = activityResult
@@ -234,8 +238,8 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun launchGalleryPicker(
-            mediaType: ActivityResultContracts.PickVisualMedia.VisualMediaType = ActivityResultContracts.PickVisualMedia.ImageOnly,
-            galleryResult: OnGalleryResult
+        mediaType: ActivityResultContracts.PickVisualMedia.VisualMediaType = ActivityResultContracts.PickVisualMedia.ImageOnly,
+        galleryResult: OnGalleryResult
     ) {
         try {
             mGalleryCallBack = galleryResult
@@ -297,9 +301,9 @@ class MainActivity : ComponentActivity() {
                     loadingState.value = sharedEvent.show
                 }
 
-                is ActivityUIEvent.ShowWarning -> {
-                    warning = sharedEvent.message
-                    showWarning.value = true
+                is ActivityUIEvent.ShowToastMessage -> {
+                    toastModel = sharedEvent.toastModel
+                    showToastMessage.value = true
                 }
 
                 is ActivityUIEvent.ShowPopup -> {
@@ -422,8 +426,8 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun launchFilePicker(
-            intentType: String,
-            delegate: OnGalleryResult
+        intentType: String,
+        delegate: OnGalleryResult
     ) {
         val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
             addCategory(Intent.CATEGORY_OPENABLE)
@@ -460,9 +464,9 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun launchCameraActivity(
-            scanToAdd: Boolean,
-            items: ArrayList<Item>?,
-            delegate: OnBarcodeResult
+        scanToAdd: Boolean,
+        items: ArrayList<Item>?,
+        delegate: OnBarcodeResult
     ) {
         mOnBarcodeResult = delegate
         val intent = Intent(

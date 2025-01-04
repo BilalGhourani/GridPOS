@@ -6,6 +6,7 @@ import com.grid.pos.data.item.Item
 import com.grid.pos.interfaces.OnBarcodeResult
 import com.grid.pos.interfaces.OnGalleryResult
 import com.grid.pos.model.PopupModel
+import com.grid.pos.model.ToastModel
 import java.util.ArrayList
 
 sealed class ActivityUIEvent {
@@ -15,8 +16,8 @@ sealed class ActivityUIEvent {
             val timeout: Long
     ) : ActivityUIEvent()
 
-    class ShowWarning(
-            var message:String
+    class ShowToastMessage(
+            var toastModel: ToastModel? = null,
     ) : ActivityUIEvent()
 
     class ShowPopup(

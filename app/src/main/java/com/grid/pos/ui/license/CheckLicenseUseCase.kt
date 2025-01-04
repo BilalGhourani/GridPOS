@@ -18,7 +18,7 @@ class CheckLicenseUseCase(private val companyRepository: CompanyRepository,
         private val invoiceHeaderRepository: InvoiceHeaderRepository) {
 
     suspend fun invoke(context: Context,
-            onResult: (Int) -> Unit) {// if license not exist add new screen to take the file
+            onResult: (Int, String) -> Unit) {// if license not exist add new screen to take the file
         try {
             val licenseFile = FileUtils.getLicenseFileContent(context)
             if (licenseFile != null) {
@@ -48,22 +48,27 @@ class CheckLicenseUseCase(private val companyRepository: CompanyRepository,
                                     App.getInstance().getConfigValue("key_for_license"))
                                 FileUtils.saveRtaLicense(context, encryptedContent)
                             }
-                            onResult.invoke(Constants.SUCCEEDED)
+                            onResult.invoke(Constants.SUCCEEDED, "")
                         } else {
-                            onResult.invoke(Constants.LICENSE_EXPIRED)
+                            onResult.invoke(Constants.LICENSE_EXPIRED,
+                                "Your license has expired. Please renew it to continue.")
                         }
                     } else {
-                        onResult.invoke(Constants.WRONG_DEVICE_ID)
+                        onResult.invoke(Constants.WRONG_DEVICE_ID,
+                            "This license is not valid for this device. Contact support.")
                     }
                 } else {
-                    onResult.invoke(Constants.WRONG_DEVICE_DATE)
+                    onResult.invoke(Constants.WRONG_DEVICE_DATE,
+                        "Incorrect device date detected. Please check your device settings.")
                 }
             } else {
-                onResult.invoke(Constants.LICENSE_NOT_FOUND)
+                onResult.invoke(Constants.LICENSE_NOT_FOUND,
+                    "License not found. Please ensure your app is registered.")
             }
         } catch (e: Exception) {
             e.printStackTrace()
-            onResult.invoke(Constants.LICENSE_ACCESS_DENIED)
+            onResult.invoke(Constants.LICENSE_ACCESS_DENIED,
+                e.message ?: "An error occurred while verifying your license. Please try again or contact support if the issue persists.")
         }
     }
 
@@ -73,9 +78,9 @@ class CheckLicenseUseCase(private val companyRepository: CompanyRepository,
         val firstInstallDate = DateHelper.editDate(Date(firstInstallTime), 0, 0, 0)
 
         val licCreatedDate = DateHelper.editDate(Date(licenseFile.lastModified()), 0, 0, 0)
-        if (DateHelper.getDaysDiff(currentDate,licCreatedDate) < 0 ||
-            DateHelper.getDaysDiff(firstInstallDate, currentDate) < 0 ||
-            DateHelper.getDaysDiff(firstInstallDate, licCreatedDate) < 0
+        if (DateHelper.getDaysDiff(currentDate, licCreatedDate) < 0 || DateHelper.getDaysDiff(
+                firstInstallDate, currentDate) < 0 || DateHelper.getDaysDiff(firstInstallDate,
+                licCreatedDate) < 0
         ) {
             companyRepository.disableCompanies(true)
             //db.execSQL("UPDATE company SET cmp_ss=1")

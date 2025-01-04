@@ -12,6 +12,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.grid.pos.model.SettingsModel
+import com.grid.pos.model.ToastModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -19,10 +21,9 @@ import kotlinx.coroutines.withContext
 
 @Composable
 fun CustomSnackBar(
-        show: Boolean,
-        message: String,
-        timeout: Long = 3000L,
-        onDismiss: () -> Unit
+    show: Boolean,
+    toastModel: ToastModel,
+    onDismiss: () -> Unit,
 ) {
     // Local state to control visibility
     val scope = rememberCoroutineScope()
@@ -30,7 +31,7 @@ fun CustomSnackBar(
     LaunchedEffect(show) {
         if (show) {
             scope.launch(Dispatchers.Default) {
-                delay(timeout)  // Wait for 3 seconds
+                delay(toastModel.timeout)  // Wait for 3 seconds
                 withContext(Dispatchers.Main) {
                     onDismiss.invoke()
                 }
@@ -49,9 +50,9 @@ fun CustomSnackBar(
         contentAlignment = Alignment.BottomCenter // Aligns content at the bottom center
     ) {
         AnimatedVisibility(visible = show,
-            enter = slideInVertically { it } + fadeIn(),
-            exit = slideOutVertically { it } + fadeOut()) {
-            Row(
+                           enter = slideInVertically { it } + fadeIn(),
+                           exit = slideOutVertically { it } + fadeOut()) {
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(
@@ -59,14 +60,34 @@ fun CustomSnackBar(
                         shape = RoundedCornerShape(15.dp)
                     )
                     .padding(16.dp), // Inner padding
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.Bottom
+                verticalArrangement = Arrangement.SpaceBetween,
+                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Text(
-                    text = message,
+                    text = toastModel.message,
                     color = Color.White,
                     style = TextStyle(fontSize = 16.sp)
                 )
+                if (!toastModel.actionButton.isNullOrEmpty()) {
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Button(
+                        onClick = {
+                            toastModel.onActionClick.invoke()
+                            onDismiss()
+                        },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color.White,
+                            contentColor = Color.Black
+                        ),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Text(
+                            text = toastModel.actionButton!!,
+                            color = Color.Black,
+                            style = TextStyle(fontSize = 16.sp)
+                        )
+                    }
+                }
             }
         }
     }

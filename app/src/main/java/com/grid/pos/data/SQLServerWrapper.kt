@@ -4,6 +4,7 @@ import android.util.Log
 import com.grid.pos.SharedViewModel
 import com.grid.pos.model.QueryResult
 import com.grid.pos.model.SettingsModel
+import com.grid.pos.model.ToastModel
 import java.sql.CallableStatement
 import java.sql.Connection
 import java.sql.DriverManager
@@ -37,7 +38,7 @@ object SQLServerWrapper {
             e.printStackTrace()
             if (::sharedViewModel.isInitialized) {
                 e.message?.let {
-                    sharedViewModel.showWarning(it)
+                    sharedViewModel.showToastMessage(ToastModel(it))
                 }
             }
         }
@@ -58,7 +59,7 @@ object SQLServerWrapper {
             e.printStackTrace()
             if (::sharedViewModel.isInitialized) {
                 e.message?.let {
-                    sharedViewModel.showWarning(it)
+                    sharedViewModel.showToastMessage(ToastModel(it))
                 }
             }
         }
@@ -71,7 +72,7 @@ object SQLServerWrapper {
             e.printStackTrace()
             if (::sharedViewModel.isInitialized) {
                 e.message?.let {
-                    sharedViewModel.showWarning(it)
+                    sharedViewModel.showToastMessage(ToastModel(it))
                 }
             }
         }
@@ -139,7 +140,7 @@ object SQLServerWrapper {
             e.printStackTrace()
             if (::sharedViewModel.isInitialized) {
                 e.message?.let {
-                    sharedViewModel.showWarning(it)
+                    sharedViewModel.showToastMessage(ToastModel(it))
                 }
             }
         }
@@ -157,7 +158,7 @@ object SQLServerWrapper {
             e.printStackTrace()
             if (::sharedViewModel.isInitialized) {
                 e.message?.let {
-                    sharedViewModel.showWarning(it)
+                    sharedViewModel.showToastMessage(ToastModel(it))
                 }
             }
         }
@@ -179,7 +180,7 @@ object SQLServerWrapper {
             e.printStackTrace()
             if (::sharedViewModel.isInitialized) {
                 e.message?.let {
-                    sharedViewModel.showWarning(it)
+                    sharedViewModel.showToastMessage(ToastModel(it))
                 }
             }
         }
@@ -193,7 +194,7 @@ object SQLServerWrapper {
     ): Boolean {
         if (columns.size != values.size) {
             if (::sharedViewModel.isInitialized) {
-                sharedViewModel.showWarning( "Column and value size mismatch.")
+                sharedViewModel.showToastMessage(ToastModel("Column and value size mismatch."))
             }
             return false
         }
@@ -222,7 +223,7 @@ object SQLServerWrapper {
     ): Boolean {
         if (columns.size != values.size) {
             if (::sharedViewModel.isInitialized) {
-                sharedViewModel.showWarning( "Column and value size mismatch.")
+                sharedViewModel.showToastMessage(ToastModel("Column and value size mismatch."))
             }
             return false
         }
@@ -384,7 +385,7 @@ object SQLServerWrapper {
             e.printStackTrace()
             if (::sharedViewModel.isInitialized) {
                 e.message?.let {
-                    sharedViewModel.showWarning(it)
+                    sharedViewModel.showToastMessage(ToastModel(it))
                 }
             }
             queryResult.succeed = false
@@ -420,7 +421,7 @@ object SQLServerWrapper {
             e.printStackTrace()
             if (::sharedViewModel.isInitialized) {
                 e.message?.let {
-                    sharedViewModel.showWarning(it)
+                    sharedViewModel.showToastMessage(ToastModel(it))
                 }
             }
             succeed = false

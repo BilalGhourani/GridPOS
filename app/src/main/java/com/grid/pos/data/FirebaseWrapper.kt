@@ -6,6 +6,7 @@ import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.QuerySnapshot
 import com.grid.pos.SharedViewModel
 import com.grid.pos.model.DataModel
+import com.grid.pos.model.ToastModel
 import kotlinx.coroutines.tasks.await
 
 object FirebaseWrapper {
@@ -31,7 +32,7 @@ object FirebaseWrapper {
             e.printStackTrace()
             if (::sharedViewModel.isInitialized) {
                 e.message?.let {
-                    sharedViewModel.showWarning(it)
+                    sharedViewModel.showToastMessage(ToastModel(it))
                 }
             }
             DataModel(
@@ -62,7 +63,7 @@ object FirebaseWrapper {
             e.printStackTrace()
             if (::sharedViewModel.isInitialized) {
                 e.message?.let {
-                    sharedViewModel.showWarning(it)
+                    sharedViewModel.showToastMessage(ToastModel(it))
                 }
             }
             return DataModel(
@@ -96,7 +97,7 @@ object FirebaseWrapper {
             e.printStackTrace()
             if (::sharedViewModel.isInitialized) {
                 e.message?.let {
-                    sharedViewModel.showWarning(it)
+                    sharedViewModel.showToastMessage(ToastModel(it))
                 }
             }
             return DataModel(
@@ -126,7 +127,7 @@ object FirebaseWrapper {
             e.printStackTrace()
             if (::sharedViewModel.isInitialized) {
                 e.message?.let {
-                    sharedViewModel.showWarning(it)
+                    sharedViewModel.showToastMessage(ToastModel(it))
                 }
             }
             return DataModel(
@@ -165,7 +166,7 @@ object FirebaseWrapper {
             e.printStackTrace()
             if (::sharedViewModel.isInitialized) {
                 e.message?.let {
-                    sharedViewModel.showWarning(it)
+                    sharedViewModel.showToastMessage(ToastModel(it))
                 }
             }
             return null

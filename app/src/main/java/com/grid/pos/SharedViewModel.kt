@@ -27,6 +27,7 @@ import com.grid.pos.model.PopupModel
 import com.grid.pos.model.ReportCountry
 import com.grid.pos.model.ReportResult
 import com.grid.pos.model.SettingsModel
+import com.grid.pos.model.ToastModel
 import com.grid.pos.ui.common.BaseViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -241,14 +242,10 @@ class SharedViewModel @Inject constructor(
         }
     }
 
-    fun showWarning(
-            message: String
-    ) {
+    fun showToastMessage(toastModel: ToastModel) {
         viewModelScope.launch {
             _mainActivityEvent.send(
-                ActivityUIEvent.ShowWarning(
-                    message
-                )
+                ActivityUIEvent.ShowToastMessage(toastModel)
             )
         }
     }
