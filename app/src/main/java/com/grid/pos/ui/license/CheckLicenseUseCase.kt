@@ -56,7 +56,7 @@ class CheckLicenseUseCase(private val companyRepository: CompanyRepository,
                         onResult.invoke(Constants.WRONG_DEVICE_ID)
                     }
                 } else {
-                    onResult.invoke(Constants.LICENSE_EXPIRED)
+                    onResult.invoke(Constants.WRONG_DEVICE_DATE)
                 }
             } else {
                 onResult.invoke(Constants.LICENSE_NOT_FOUND)
