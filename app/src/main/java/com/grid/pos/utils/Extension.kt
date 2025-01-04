@@ -2,10 +2,6 @@ package com.grid.pos.utils
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.app.Activity
-import android.content.Context
-import android.content.ContextWrapper
-import android.content.pm.PackageManager
 import android.os.Build
 import android.util.Base64
 import androidx.compose.foundation.clickable
@@ -17,7 +13,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.core.content.ContextCompat
 import com.grid.pos.App
 import kotlinx.coroutines.launch
 import java.sql.ResultSet
@@ -31,10 +26,6 @@ object Extension {
             "null",
             ignoreCase = true
         )
-    }
-
-    fun Long?.isNullOrZero(): Boolean {
-        return this != null && this != 0L
     }
 
     fun Float.toColorInt(): Int = (this * 255 + 0.5f).toInt()
@@ -57,7 +48,7 @@ object Extension {
     ): Modifier = composed {
         val scope = rememberCoroutineScope()
         pointerInput(Unit) {
-            detectDragGestures { change, dragAmount ->
+            detectDragGestures { change, _ ->
                 scope.launch {
                     interactionSource.emit(PressInteraction.Press(change.position))
                 }
@@ -124,17 +115,6 @@ object Extension {
         return String(output)
     }
 
-    fun Context.isPermissionGranted(name: String): Boolean {
-        return ContextCompat.checkSelfPermission(
-            this,
-            name
-        ) == PackageManager.PERMISSION_GRANTED
-    }
-
-    fun Activity.shouldShowRationale(name: String): Boolean {
-        return shouldShowRequestPermissionRationale(name)
-    }
-
     fun getStoragePermissions(): String {
         return when {
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU -> {
@@ -145,21 +125,6 @@ object Extension {
                 Manifest.permission.READ_EXTERNAL_STORAGE + ","
                 Manifest.permission.WRITE_EXTERNAL_STORAGE
             }
-        }
-    }
-
-    fun Context.hasPickMediaPermission(): Boolean {
-        return isPermissionGranted(getStoragePermissions())
-    }
-
-    fun Context.findActivity(): Activity? {
-        return when (this) {
-            is Activity -> this
-            is ContextWrapper -> {
-                baseContext.findActivity()
-            }
-
-            else -> null
         }
     }
 

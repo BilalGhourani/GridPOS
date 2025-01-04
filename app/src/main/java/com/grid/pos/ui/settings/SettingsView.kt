@@ -92,10 +92,10 @@ import kotlinx.coroutines.withContext
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsView(
-        modifier: Modifier = Modifier,
-        navController: NavController? = null,
-        sharedViewModel: SharedViewModel,
-        viewModel: SettingsViewModel = hiltViewModel()
+    modifier: Modifier = Modifier,
+    navController: NavController? = null,
+    sharedViewModel: SharedViewModel,
+    viewModel: SettingsViewModel = hiltViewModel()
 ) {
     var firebaseApplicationId by remember {
         mutableStateOf(
@@ -138,10 +138,14 @@ fun SettingsView(
     var cashPrinterState by remember { mutableStateOf(SettingsModel.cashPrinter ?: "") }
     var defaultSaleInvoiceState by remember { mutableStateOf(SettingsModel.defaultSaleInvoice) }
     var defaultReturnSaleState by remember { mutableStateOf(SettingsModel.defaultReturnSale) }
-    var defaultPaymentState by remember { mutableStateOf(SettingsModel.defaultPayment ?: "") }
-    var defaultReceiptState by remember { mutableStateOf(SettingsModel.defaultReceipt ?: "") }
+    var defaultPaymentState by remember { mutableStateOf(SettingsModel.defaultPayment) }
+    var defaultReceiptState by remember { mutableStateOf(SettingsModel.defaultReceipt) }
     var defaultBranchState by remember { mutableStateOf(SettingsModel.defaultLocalBranch ?: "") }
-    var defaultWarehouseState by remember { mutableStateOf(SettingsModel.defaultLocalWarehouse ?: "") }
+    var defaultWarehouseState by remember {
+        mutableStateOf(
+            SettingsModel.defaultLocalWarehouse ?: ""
+        )
+    }
     var showItemsInPOS by remember { mutableStateOf(SettingsModel.showItemsInPOS) }
     var showTax by remember { mutableStateOf(SettingsModel.showTax) }
     var showTax1 by remember { mutableStateOf(SettingsModel.showTax1) }
@@ -180,7 +184,7 @@ fun SettingsView(
         if (companies.isEmpty()) {
             viewModel.fetchLocalCompanies { comps ->
                 companies.addAll(comps)
-                val selected = comps.firstOrNull { it.companyId.equals(localCompanyID) }
+                val selected = comps.firstOrNull { it.companyId == localCompanyID }
                 localCompanyName = selected?.companyName ?: ""
             }
         }
@@ -282,10 +286,10 @@ fun SettingsView(
                                 color = LightGrey,
                                 placeholder = "Database",
                                 label = connectionTypeState.ifEmpty { "Select Database" },
-                                leadingIcon = {
+                                leadingIcon = { modifier ->
                                     if (connectionTypeState == CONNECTION_TYPE.SQL_SERVER.key) {
                                         Icon(
-                                            modifier = it.size(20.dp),
+                                            modifier = modifier.size(20.dp),
                                             painter = painterResource(R.drawable.refresh),
                                             contentDescription = "check connectivity",
                                             tint = Color.Black,
@@ -412,7 +416,9 @@ fun SettingsView(
                                             sqlServerCmpIdRequester.requestFocus()
                                         },
                                         trailingIcon = {
-                                            IconButton(onClick = { passwordVisibility = !passwordVisibility }) {
+                                            IconButton(onClick = {
+                                                passwordVisibility = !passwordVisibility
+                                            }) {
                                                 Icon(
                                                     imageVector = if (passwordVisibility) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
                                                     contentDescription = if (passwordVisibility) "Hide password" else "Show password",
@@ -486,7 +492,8 @@ fun SettingsView(
                                     )
                                     when (connectionTypeState) {
                                         CONNECTION_TYPE.FIRESTORE.key -> {
-                                            SettingsModel.firebaseApplicationId = firebaseApplicationId
+                                            SettingsModel.firebaseApplicationId =
+                                                firebaseApplicationId
                                             DataStoreManager.putString(
                                                 DataStoreManager.DataStoreKeys.FIREBASE_APP_ID.key,
                                                 firebaseApplicationId
@@ -1043,7 +1050,7 @@ fun SettingsView(
                                     autoPrintTickets
                                 )
 
-                                if(!allowOutOfStockSale){
+                                if (!allowOutOfStockSale) {
                                     showItemQtyAlert = true
                                 }
 

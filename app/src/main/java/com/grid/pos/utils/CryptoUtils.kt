@@ -1,7 +1,5 @@
 package com.grid.pos.utils
 
-import android.os.Build
-import android.util.Base64
 import java.nio.charset.StandardCharsets
 import java.security.spec.KeySpec
 import java.util.Arrays
@@ -14,30 +12,30 @@ import javax.crypto.spec.SecretKeySpec
 
 object CryptoUtils {
 
-    val salt = byteArrayOf(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12)
-    val uEncode = StandardCharsets.UTF_16LE
-    val transformation = "DESede/CBC/PKCS5Padding"
-    val secretKetAlgorithm = "PBKDF2WithHmacSHA1"
-    val SecretKeySpecAlgorithm = "DESede"
-    val iterationCount = 1000
-    val keyLength = 192// 192 bits for TripleDES
+    private val salt = byteArrayOf(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12)
+    private val uEncode = StandardCharsets.UTF_16LE
+    private const val TRANSFORMATION = "DESede/CBC/PKCS5Padding"
+    private const val SECRET_KEY_ALGORITHM = "PBKDF2WithHmacSHA1"
+    private const val SECRET_KEY_SPEC_ALGORITHM = "DESede"
+    private const val ITERATOR_COUNT = 1000
+    private const val KEY_LENGTH = 192// 192 bits for TripleDES
 
     fun encrypt(text: String, key: String): String {
         try {
             // Derive the key
-            val factory = SecretKeyFactory.getInstance(secretKetAlgorithm)
-            val spec: KeySpec = PBEKeySpec(key.toCharArray(), salt, iterationCount, keyLength)
+            val factory = SecretKeyFactory.getInstance(SECRET_KEY_ALGORITHM)
+            val spec: KeySpec = PBEKeySpec(key.toCharArray(), salt, ITERATOR_COUNT, KEY_LENGTH)
             val secretKey = factory.generateSecret(spec)
             val keyBytes = secretKey.encoded.copyOf(24) // TripleDES requires 24 bytes key
 
             // Create the key and IV
-            val secretKeySpec: SecretKey = SecretKeySpec(keyBytes, SecretKeySpecAlgorithm)
+            val secretKeySpec: SecretKey = SecretKeySpec(keyBytes, SECRET_KEY_SPEC_ALGORITHM)
 
             // Convert text to bytes
             val plainTextBytes = text.toByteArray(uEncode)
 
             // Initialize the cipher
-            val cipher = Cipher.getInstance(transformation)
+            val cipher = Cipher.getInstance(TRANSFORMATION)
 
 
 
@@ -51,11 +49,8 @@ object CryptoUtils {
             val cipherTextBytes = cipher.doFinal(plainTextBytes)
 
             // Encode to Base64
-            return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                java.util.Base64.getEncoder().encodeToString(cipherTextBytes)
-            } else {
-                String(Base64.encode(cipherTextBytes, Base64.DEFAULT))
-            }.trim()
+            return java.util.Base64.getEncoder().encodeToString(cipherTextBytes)
+                .trim()
         } catch (ex: Exception) {
             ex.printStackTrace()
         }
@@ -68,21 +63,17 @@ object CryptoUtils {
     ): String {
         try {
             // Derive the key
-            val factory = SecretKeyFactory.getInstance(secretKetAlgorithm)
-            val spec: KeySpec = PBEKeySpec(key.toCharArray(), salt, iterationCount, keyLength)
+            val factory = SecretKeyFactory.getInstance(SECRET_KEY_ALGORITHM)
+            val spec: KeySpec = PBEKeySpec(key.toCharArray(), salt, ITERATOR_COUNT, KEY_LENGTH)
             val secretKey = factory.generateSecret(spec)
             val keyBytes = secretKey.encoded.copyOf(24)
-            val secretKeySpec = SecretKeySpec(keyBytes, SecretKeySpecAlgorithm)
+            val secretKeySpec = SecretKeySpec(keyBytes, SECRET_KEY_SPEC_ALGORITHM)
 
 
-            val bytCipherText: ByteArray = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                java.util.Base64.getDecoder().decode(encryptedString)
-            } else {
-                Base64.decode(encryptedString, Base64.DEFAULT)
-            }
+            val bytCipherText: ByteArray = java.util.Base64.getDecoder().decode(encryptedString)
 
             // Initialize the cipher
-            val cipher = Cipher.getInstance(transformation)
+            val cipher = Cipher.getInstance(TRANSFORMATION)
 
             val iv = Arrays.copyOfRange(keyBytes, 0, cipher.blockSize)
             val ivSpec = IvParameterSpec(iv)
@@ -99,22 +90,6 @@ object CryptoUtils {
              ex.printStackTrace()
         }
         return ""
-    }
-
-    fun test(key: String){
-        val enc1 = CryptoUtils.encrypt(
-         "test",
-            key
-     )
-     val dec1 = CryptoUtils.decrypt(
-         enc1,
-         key
-     )
-     val enc2 = Constants.LICENSE_FILE_CONTENT
-     val dec2 = CryptoUtils.decrypt(
-         enc2,
-         key
-     )
     }
 
 }

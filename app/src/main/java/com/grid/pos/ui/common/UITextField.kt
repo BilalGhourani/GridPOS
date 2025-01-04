@@ -67,18 +67,18 @@ fun UITextField(
                         text = label,
                         color = SettingsModel.textColor
                     )
-                }.run { null }
+                }
             },
             readOnly = readOnly,
             enabled = enabled,
-            placeholder = { placeHolder?.let { Text(text = placeHolder) }.run { null } },
+            placeholder = { placeHolder?.let { Text(text = placeHolder) } },
             modifier = Modifier
                 .fillMaxSize()
                 .focusRequester(focusRequester)
                 .onFocusChanged { onFocusChanged?.invoke(it) },
             keyboardOptions = KeyboardOptions(
                 capitalization = capitalization,
-                autoCorrect = autoCorrect,
+                autoCorrectEnabled = autoCorrect,
                 keyboardType = keyboardType,
                 imeAction = imeAction
             ),

@@ -95,10 +95,10 @@ import kotlinx.coroutines.withContext
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun POSView(
-        modifier: Modifier = Modifier,
-        navController: NavController? = null,
-        sharedViewModel: SharedViewModel,
-        viewModel: POSViewModel = hiltViewModel()
+    modifier: Modifier = Modifier,
+    navController: NavController? = null,
+    sharedViewModel: SharedViewModel,
+    viewModel: POSViewModel = hiltViewModel()
 ) {
     val state by viewModel.posState.collectAsStateWithLifecycle()
     val invoicesState = remember { mutableStateListOf<InvoiceItemModel>() }
@@ -535,24 +535,31 @@ fun POSView(
                                                 if (barcodesList.isNotEmpty()) {
                                                     sharedViewModel.showLoading(true)
                                                     scope.launch {
-                                                        val map: Map<Item, Int> = barcodesList.groupingBy { item -> item as Item }
-                                                            .eachCount()
+                                                        val map: Map<Item, Int> =
+                                                            barcodesList.groupingBy { item -> item as Item }
+                                                                .eachCount()
 
                                                         map.forEach { (item, count) ->
                                                             if (!item.itemBarcode.isNullOrEmpty()) {
                                                                 withContext(Dispatchers.IO) {
-                                                                    sharedViewModel.updateRealItemPrice(item)
+                                                                    sharedViewModel.updateRealItemPrice(
+                                                                        item
+                                                                    )
                                                                 }
-                                                                val invoiceItemModel = InvoiceItemModel()
+                                                                val invoiceItemModel =
+                                                                    InvoiceItemModel()
                                                                 invoiceItemModel.setItem(item)
                                                                 invoiceItemModel.shouldPrint = true
-                                                                invoiceItemModel.invoice.invoiceQuantity = count.toDouble()
+                                                                invoiceItemModel.invoice.invoiceQuantity =
+                                                                    count.toDouble()
                                                                 invoicesState.add(invoiceItemModel)
-                                                                sharedViewModel.invoiceItemModels = invoicesState
-                                                                invoiceHeaderState.value = POSUtils.refreshValues(
-                                                                    sharedViewModel.invoiceItemModels,
-                                                                    invoiceHeaderState.value
-                                                                )
+                                                                sharedViewModel.invoiceItemModels =
+                                                                    invoicesState
+                                                                invoiceHeaderState.value =
+                                                                    POSUtils.refreshValues(
+                                                                        sharedViewModel.invoiceItemModels,
+                                                                        invoiceHeaderState.value
+                                                                    )
                                                             }
                                                         }
                                                         withContext(Dispatchers.Main) {
@@ -673,9 +680,11 @@ fun POSView(
                                 }
                             },
                             onThirdPartySelected = { thirdParty ->
-                                isInvoiceEdited = isInvoiceEdited || invoiceHeaderState.value.invoiceHeadThirdPartyName != thirdParty.thirdPartyId
+                                isInvoiceEdited =
+                                    isInvoiceEdited || invoiceHeaderState.value.invoiceHeadThirdPartyName != thirdParty.thirdPartyId
                                 state.selectedThirdParty = thirdParty
-                                invoiceHeaderState.value.invoiceHeadThirdPartyName = thirdParty.thirdPartyId
+                                invoiceHeaderState.value.invoiceHeadThirdPartyName =
+                                    thirdParty.thirdPartyId
                             },
                             onInvoiceSelected = { invoiceHeader ->
                                 if (invoicesState.isNotEmpty()) {
@@ -738,7 +747,11 @@ fun POSView(
                             color = SettingsModel.backgroundColor
                         ),
                     onSave = { invHeader, itemModel ->
-                        val isChanged = !itemModel.invoice.isNew() && sharedViewModel.initialInvoiceItemModels[itemIndexToEdit].invoice.didChanged(itemModel.invoice) || (sharedViewModel.pendingInvHeadState ?: sharedViewModel.invoiceHeader).didChanged(invHeader)
+                        val isChanged =
+                            !itemModel.invoice.isNew() && sharedViewModel.initialInvoiceItemModels[itemIndexToEdit].invoice.didChanged(
+                                itemModel.invoice
+                            ) || (sharedViewModel.pendingInvHeadState
+                                ?: sharedViewModel.invoiceHeader).didChanged(invHeader)
                         isInvoiceEdited = isInvoiceEdited || isChanged/* itemModel.shouldPrint = sharedViewModel.isInvoiceItemQtyChanged(
                             itemModel.invoice.invoiceId,
                             itemModel.invoice.invoiceQuantity
@@ -747,9 +760,6 @@ fun POSView(
                         sharedViewModel.invoiceItemModels = invoicesState
                         invoiceHeaderState.value = invHeader
                         sharedViewModel.invoiceHeader = invHeader
-                        isEditBottomSheetVisible = false
-                    },
-                    onClose = {
                         isEditBottomSheetVisible = false
                     })
             }
@@ -825,8 +835,8 @@ fun POSView(
                             )
                         } else {
                             proceedToPrint = true
-                            invoicesState.forEach {
-                                it.shouldPrint = true
+                            invoicesState.forEach { invoiceItemModel ->
+                                invoiceItemModel.shouldPrint = true
                             }
                             invoiceHeaderState.value.invoiceHeadPrinted += 1
                             viewModel.savePrintedNumber(

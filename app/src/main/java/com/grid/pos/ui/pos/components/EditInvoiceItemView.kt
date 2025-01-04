@@ -63,8 +63,7 @@ fun EditInvoiceItemView(
         invoices: MutableList<InvoiceItemModel>,
         invHeader: InvoiceHeader,
         invoiceIndex: Int = 0,
-        onSave: (InvoiceHeader, InvoiceItemModel) -> Unit = { _, _ -> },
-        onClose: () -> Unit = {},
+        onSave: (InvoiceHeader, InvoiceItemModel) -> Unit = { _, _ -> }
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
     val rDiscount1FocusRequester = remember { FocusRequester() }
@@ -638,53 +637,6 @@ fun EditInvoiceItemView(
                 }
             }
         }
-
-        /*Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(60.dp)
-                .fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            UIButton(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxHeight(),
-                text = "Save",
-                shape = RoundedCornerShape(15.dp)
-            ) {
-                backAndSave()
-            }
-
-            UIButton(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxHeight(),
-                text = "Clear",
-                shape = RoundedCornerShape(15.dp)
-            ) {
-                price = ""
-                qty = 1
-                rDiscount1 = ""
-                rDiscount2 = ""
-                discount1 = ""
-                discount2 = ""
-                itemExtraName = ""
-                itemNote = ""
-                invoiceNote = ""
-                clientExtraName = ""
-            }
-
-            UIButton(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxHeight(),
-                text = "Close",
-                shape = RoundedCornerShape(15.dp)
-            ) {
-                onClose.invoke()
-            }
-        }*/
 
     }
 }

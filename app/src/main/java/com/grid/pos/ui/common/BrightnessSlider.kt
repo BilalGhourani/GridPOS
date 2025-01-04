@@ -26,7 +26,7 @@ fun BrightnessSlider(
 ) {
     Box(
         modifier = modifier.pointerInput(Unit) { // Empty lambda for initial setup
-            detectDragGestures { change, dragAmount ->
+            detectDragGestures { change, _ ->
                 val newProgress = (change.position.x / size.width).coerceIn(0f, 1f)
                 onValueChange(newProgress)
             }
@@ -41,12 +41,12 @@ fun BrightnessSlider(
                 topLeft = Offset(0f, size.height / 2f - trackHeight / 2f),
                 size = Size(trackWidth, trackHeight)
             )
-            val thumbSize = thumbSize.toPx()
-            val thumbPosition = (trackWidth * progress) - thumbSize / 2f
+            val thumbnailSize = thumbSize.toPx()
+            val thumbPosition = (trackWidth * progress) - thumbnailSize / 2f
             drawCircle(
                 color = thumbColor,
-                center = Offset(thumbPosition + thumbSize / 2f, size.height / 2f),
-                radius = thumbSize / 2f
+                center = Offset(thumbPosition + thumbnailSize / 2f, size.height / 2f),
+                radius = thumbnailSize / 2f
             )
         }
     }

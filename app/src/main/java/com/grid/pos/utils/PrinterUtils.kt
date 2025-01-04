@@ -6,12 +6,9 @@ import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Typeface
-import android.net.InetAddresses
 import android.net.Uri
-import android.os.Build
 import android.util.Base64
 import android.util.Log
-import android.util.Patterns
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.EncodeHintType
 import com.google.zxing.WriterException
@@ -212,7 +209,7 @@ object PrinterUtils {
         if (!invoiceNo.isNullOrEmpty() && invoiceNo.length > 1) {
             htmlContent = htmlContent.replace(
                 "{invoicenumbervalue}",
-                "Invoice# ${invoiceNo ?: ""}"
+                "Invoice# $invoiceNo"
             ).replace(
                 "{invoice_no_display}",
                 "block"
@@ -788,12 +785,7 @@ object PrinterUtils {
         }
 
         if (!invoiceNo.isNullOrEmpty()) {
-            val barcodeBitmap = generateBarcodeBitmapWithText(
-                invoiceNo,
-                400,
-                150,
-                true
-            )
+            val barcodeBitmap = generateBarcodeBitmapWithText(invoiceNo)
             val base64Barcode = convertBitmapToBase64(barcodeBitmap)
             htmlContent = htmlContent.replace(
                 "{barcodeContent}",
@@ -1366,12 +1358,7 @@ object PrinterUtils {
             "${item.itemUnitPrice}${item.itemCurrencyCode ?: ""}"
         )
         if (!item.itemBarcode.isNullOrEmpty()) {
-            val barcodeBitmap = generateBarcodeBitmapWithText(
-                item.itemBarcode!!,
-                400,
-                150,
-                true
-            )
+            val barcodeBitmap = generateBarcodeBitmapWithText(item.itemBarcode!!)
             val base64Barcode = convertBitmapToBase64(barcodeBitmap)
             htmlContent = htmlContent.replace(
                 "{barcodeContent}",
@@ -1459,9 +1446,9 @@ object PrinterUtils {
 
     private fun generateBarcodeBitmapWithText(
             barcodeData: String,
-            width: Int,
-            height: Int,
-            withText: Boolean
+            width: Int = 400,
+            height: Int = 150,
+            withText: Boolean = true
     ): Bitmap? {
         try {
             // Generate the barcode bitmap
@@ -1540,13 +1527,5 @@ object PrinterUtils {
             byteArray,
             Base64.NO_PADDING
         )
-    }
-
-    fun isIpValid(ip: String): Boolean {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            InetAddresses.isNumericAddress(ip)
-        } else {
-            Patterns.IP_ADDRESS.matcher(ip).matches()
-        }
     }
 }

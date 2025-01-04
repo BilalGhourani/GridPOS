@@ -6,12 +6,12 @@ import android.graphics.Paint
 
 class PrintPicture private constructor() {
 
-    var canvas: Canvas? = null // Canvas for drawing on the bitmap
-    var paint: Paint? = null // Paint object to define how to draw
-    var bm: Bitmap? = null // Bitmap to hold the image
+    private var canvas: Canvas? = null // Canvas for drawing on the bitmap
+    private var paint: Paint? = null // Paint object to define how to draw
+    private var bm: Bitmap? = null // Bitmap to hold the image
     var width: Int = 0 // Width of the bitmap
-    var length: Float = 0.0f // Length of the content drawn on the bitmap
-    var bitbuf: ByteArray? = null // Buffer to hold bitmap data
+    private var length: Float = 0.0f // Length of the content drawn on the bitmap
+    private var bitbuf: ByteArray? = null // Buffer to hold bitmap data
 
     companion object {
         private val instance = PrintPicture()
@@ -20,7 +20,7 @@ class PrintPicture private constructor() {
         }
     }
 
-    fun getLength(): Int {
+    private fun getLength(): Int {
         return length.toInt() /*+ 20*/ // Returns the length with some padding
     }
 
@@ -36,7 +36,7 @@ class PrintPicture private constructor() {
         }
     }
 
-    fun initCanvas(w: Int, h: Int) {
+    private fun initCanvas(w: Int, h: Int) {
         bm = Bitmap.createBitmap(
             w,
             h,
@@ -48,7 +48,7 @@ class PrintPicture private constructor() {
         bitbuf = ByteArray(width / 8) // Initialize bit buffer for raster image data
     }
 
-    fun initPaint() {
+    private fun initPaint() {
         paint = Paint() // Create a new Paint object
         paint?.isAntiAlias = true // Enable anti-aliasing
         paint?.color = -16777216 // Set paint color to black
@@ -58,7 +58,7 @@ class PrintPicture private constructor() {
     /**
      * Draw bitmap on the canvas
      */
-    fun drawImage(x: Float, y: Float, btm: Bitmap) {
+    private fun drawImage(x: Float, y: Float, btm: Bitmap) {
         try {
             canvas?.drawBitmap(btm, x, y, null) // Draw the bitmap at the specified position
             if (length < y + btm.height)
@@ -87,8 +87,6 @@ class PrintPicture private constructor() {
 
             val imgbuf = ByteArray(width / 8 * getLength() + 8) // Initialize the image buffer
 
-            var s = 0
-
             // Print raster bitmap command
             imgbuf[0] = 29 // Hex 0x1D
             imgbuf[1] = 118 // Hex 0x76
@@ -101,7 +99,7 @@ class PrintPicture private constructor() {
             imgbuf[6] = (getLength() % 256).toByte()
             imgbuf[7] = (getLength() / 256).toByte()
 
-            s = 7
+            var s = 7
             for (i in 0 until getLength()) { // Loop through the height of the bitmap
                 for (k in 0 until width / 8) { // Loop through the width of the bitmap
                     val p0 = if (nbm.getPixel(k * 8 + 0, i) == -1) 0 else 1

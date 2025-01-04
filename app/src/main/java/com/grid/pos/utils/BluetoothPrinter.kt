@@ -1,7 +1,6 @@
 package com.grid.pos.utils
 
 import android.Manifest
-import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
 import android.bluetooth.BluetoothSocket
@@ -17,14 +16,14 @@ import java.util.UUID
 class BluetoothPrinter {
 
     private var bluetoothSocket: BluetoothSocket? = null
-    var outputStream: OutputStream? = null
+    private var outputStream: OutputStream? = null
 
     fun connectToPrinter(
             context: Context,
             printerName: String
     ): Boolean {
         val bluetoothManager = context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
-        val bluetoothAdapter: BluetoothAdapter = bluetoothManager.adapter ?: BluetoothAdapter.getDefaultAdapter()
+        val bluetoothAdapter = bluetoothManager.adapter
         if (!bluetoothAdapter.isEnabled) {
             return false
         }

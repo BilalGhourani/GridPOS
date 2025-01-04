@@ -412,7 +412,7 @@ class InvoiceRepositoryImpl(
             parameters
         )
         if (queryResult.succeed) {
-            invoice.invoiceId = (queryResult.result as? String) ?: ""
+            invoice.invoiceId = queryResult.result ?: ""
         }
     }
 

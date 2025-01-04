@@ -22,9 +22,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -35,7 +32,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -50,10 +46,11 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import com.grid.pos.SharedViewModel
 import com.grid.pos.R
+import com.grid.pos.SharedViewModel
 import com.grid.pos.interfaces.OnGalleryResult
 import com.grid.pos.model.SettingsModel
+import com.grid.pos.model.ToastModel
 import com.grid.pos.ui.common.UIImageButton
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.ui.theme.licenseErrorColor
@@ -72,9 +69,6 @@ fun LicenseView(
     val context = LocalContext.current
 
     val deviceIDState by remember { mutableStateOf(Utils.getDeviceID(context)) }
-    var fileState by remember { mutableStateOf(state.filePath ?: "") }
-
-    val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
     fun handleBack() {
@@ -88,10 +82,7 @@ fun LicenseView(
     LaunchedEffect(state.warning) {
         state.warning?.value?.let { message ->
             scope.launch {
-                snackbarHostState.showSnackbar(
-                    message = message,
-                    duration = SnackbarDuration.Short,
-                )
+                sharedViewModel.showToastMessage(ToastModel(message))
             }
         }
     }
@@ -114,9 +105,6 @@ fun LicenseView(
 
     GridPOSTheme {
         Scaffold(containerColor = SettingsModel.backgroundColor,
-            snackbarHost = {
-                SnackbarHost(hostState = snackbarHostState)
-            },
             topBar = {
                 Surface(
                     shadowElevation = 3.dp,
@@ -186,7 +174,7 @@ fun LicenseView(
                     modifier = Modifier.padding(horizontal = 10.dp)
                 ) {
                     Text(
-                        text = "Device ID: ${deviceIDState}",
+                        text = "Device ID: $deviceIDState",
                         color = SettingsModel.textColor,
                         modifier = Modifier.weight(1f),
                         style = TextStyle(

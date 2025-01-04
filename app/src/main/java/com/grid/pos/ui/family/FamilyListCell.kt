@@ -32,13 +32,11 @@ fun CategoryListCell(
     }
     ScrollableTabRow(selectedTabIndex = selectionState,
         modifier = modifier.padding(vertical = 5.dp),
-        divider = { null },
+        divider = { },
         edgePadding = 0.dp,
         contentColor = SettingsModel.backgroundColor,
         containerColor = SettingsModel.backgroundColor,
-        indicator = {
-            null
-        }) {
+        indicator = {}) {
         categories.forEachIndexed { index, category ->
             CategoryCell(
                 family = category,
