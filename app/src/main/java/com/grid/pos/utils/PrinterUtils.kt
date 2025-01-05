@@ -14,6 +14,7 @@ import com.google.zxing.EncodeHintType
 import com.google.zxing.WriterException
 import com.grid.pos.data.company.Company
 import com.grid.pos.data.currency.Currency
+import com.grid.pos.data.family.Family
 import com.grid.pos.data.invoiceHeader.InvoiceHeader
 import com.grid.pos.data.item.Item
 import com.grid.pos.data.payment.Payment
@@ -146,14 +147,14 @@ object PrinterUtils {
     }
 
     fun getInvoiceReceiptHtmlContent(
-            context: Context,
-            invoiceHeader: InvoiceHeader,
-            invoiceItemModels: MutableList<InvoiceItemModel>,
-            posReceipt: PosReceipt,
-            thirdParty: ThirdParty? = null,
-            user: User? = SettingsModel.currentUser,
-            company: Company? = SettingsModel.currentCompany,
-            currency: Currency? = SettingsModel.currentCurrency,
+        context: Context,
+        invoiceHeader: InvoiceHeader,
+        invoiceItemModels: MutableList<InvoiceItemModel>,
+        posReceipt: PosReceipt,
+        thirdParty: ThirdParty? = null,
+        user: User? = SettingsModel.currentUser,
+        company: Company? = SettingsModel.currentCompany,
+        currency: Currency? = SettingsModel.currentCurrency,
     ): ReportResult {
         val result = getPaySlipHtmlContent(context)
         if (!result.found) {
@@ -230,20 +231,21 @@ object PrinterUtils {
             )
         }
 
-        htmlContent = if (!thirdParty?.thirdPartyName.isNullOrEmpty() || !invoiceHeader.invoiceHeadCashName.isNullOrEmpty()) {
-            htmlContent.replace(
-                "{clientnamevalue}",
-                "${thirdParty?.thirdPartyName ?: ""} ${invoiceHeader.invoiceHeadCashName ?: ""}"
-            ).replace(
-                "{client_display}",
-                "block"
-            )
-        } else {
-            htmlContent.replace(
-                "{client_display}",
-                "none"
-            )
-        }
+        htmlContent =
+            if (!thirdParty?.thirdPartyName.isNullOrEmpty() || !invoiceHeader.invoiceHeadCashName.isNullOrEmpty()) {
+                htmlContent.replace(
+                    "{clientnamevalue}",
+                    "${thirdParty?.thirdPartyName ?: ""} ${invoiceHeader.invoiceHeadCashName ?: ""}"
+                ).replace(
+                    "{client_display}",
+                    "block"
+                )
+            } else {
+                htmlContent.replace(
+                    "{client_display}",
+                    "none"
+                )
+            }
 
         htmlContent = if (!thirdParty?.thirdPartyFn.isNullOrEmpty()) {
             htmlContent.replace(
@@ -568,23 +570,24 @@ object PrinterUtils {
                 "none"
             )
         }
-        htmlContent = if (SettingsModel.currentCompany?.companyUpWithTax == true && (showTotalTax)) {
-            htmlContent.replace(
-                "{total_befor_tax}",
-                POSUtils.formatDouble(
-                    invoiceHeader.invoiceHeadTotal - invoiceHeader.invoiceHeadTotalTax,
-                    2
+        htmlContent =
+            if (SettingsModel.currentCompany?.companyUpWithTax == true && (showTotalTax)) {
+                htmlContent.replace(
+                    "{total_befor_tax}",
+                    POSUtils.formatDouble(
+                        invoiceHeader.invoiceHeadTotal - invoiceHeader.invoiceHeadTotalTax,
+                        2
+                    )
+                ).replace(
+                    "{total_befor_tax_disp}",
+                    "table-row"
                 )
-            ).replace(
-                "{total_befor_tax_disp}",
-                "table-row"
-            )
-        } else {
-            htmlContent.replace(
-                "{total_befor_tax_disp}",
-                "none"
-            )
-        }
+            } else {
+                htmlContent.replace(
+                    "{total_befor_tax_disp}",
+                    "none"
+                )
+            }
         htmlContent = if (showTotalTax) {
             htmlContent.replace(
                 "{inv_total_tax_amount}",
@@ -927,12 +930,18 @@ object PrinterUtils {
     }
 
     private fun styleElement(
-            style: String
+        style: String
     ): ByteArray {
         var res = byteArrayOf()
-        res += if (style.contains("align-items:right") || style.contains("text-align:right") || style.contains("justify-content:right")) {
+        res += if (style.contains("align-items:right") || style.contains("text-align:right") || style.contains(
+                "justify-content:right"
+            )
+        ) {
             ALIGN_RIGHT
-        } else if (style.contains("align-items:center") || style.contains("text-align:center") || style.contains("justify-content:center")) {
+        } else if (style.contains("align-items:center") || style.contains("text-align:center") || style.contains(
+                "justify-content:center"
+            )
+        ) {
             ALIGN_CENTER
         } else {
             ALIGN_LEFT
@@ -1032,9 +1041,9 @@ object PrinterUtils {
     }
 
     fun getItemReceiptHtmlContent(
-            context: Context,
-            invoiceHeader: InvoiceHeader,
-            invItemModels: List<InvoiceItemModel>
+        context: Context,
+        invoiceHeader: InvoiceHeader,
+        invItemModels: List<InvoiceItemModel>
     ): ReportResult {
         val result = getPayTicketHtmlContent(context)
         if (!result.found) {
@@ -1145,10 +1154,11 @@ object PrinterUtils {
     }
 
     private fun getPaymentReportResult(
-            context: Context,
-            isPayment: Boolean
+        context: Context,
+        isPayment: Boolean
     ): ReportResult {
-        val fileName = if (isPayment) ReportTypeEnum.PAYMENT_VOUCHER.key else ReportTypeEnum.RECEIPT_VOUCHER.key
+        val fileName =
+            if (isPayment) ReportTypeEnum.PAYMENT_VOUCHER.key else ReportTypeEnum.RECEIPT_VOUCHER.key
         var paymentVoucher = FileUtils.getHtmlFile(
             context,
             "${SettingsModel.defaultReportCountry}/${SettingsModel.defaultReportLanguage}/$fileName.html"
@@ -1189,10 +1199,10 @@ object PrinterUtils {
     }
 
     fun getPaymentHtmlContent(
-            context: Context,
-            payment: Payment,
-            user: User?,
-            thirdParty: ThirdParty?
+        context: Context,
+        payment: Payment,
+        user: User?,
+        thirdParty: ThirdParty?
     ): ReportResult {
         val result = getPaymentReportResult(
             context,
@@ -1246,10 +1256,10 @@ object PrinterUtils {
     }
 
     fun getReceiptHtmlContent(
-            context: Context,
-            receipt: Receipt,
-            user: User?,
-            thirdParty: ThirdParty?
+        context: Context,
+        receipt: Receipt,
+        user: User?,
+        thirdParty: ThirdParty?
     ): ReportResult {
         val result = getPaymentReportResult(
             context,
@@ -1303,7 +1313,7 @@ object PrinterUtils {
     }
 
     private fun getBarcodeReportResult(
-            context: Context
+        context: Context
     ): ReportResult {
         val fileName = ReportTypeEnum.ITEM_BARCODE.key
         var itemBarcode = FileUtils.getHtmlFile(
@@ -1342,21 +1352,118 @@ object PrinterUtils {
     }
 
     fun getItemBarcodeHtmlContent(
-            context: Context,
-            item: Item
+        context: Context,
+        item: Item,
+        family: Family?,
+        itemSizeName: String = "",
+        itemColorName: String = "",
+        itemBranchName: String? = null
     ): ReportResult {
         val result = getBarcodeReportResult(context)
         if (!result.found) {
             return result
         }
         var htmlContent = result.htmlContent
+
+        htmlContent = if (!SettingsModel.currentCompany?.companyName.isNullOrEmpty()) {
+            htmlContent.replace(
+                "{item_company_name_value}",
+                SettingsModel.currentCompany?.companyName!!
+            ).replace(
+                "{company_name_display}",
+                "block"
+            )
+        } else {
+            htmlContent.replace(
+                "{company_name_display}",
+                "none"
+            )
+        }
+
         htmlContent = htmlContent.replace(
             "{item_name_value}",
-            item.itemName ?: ""
+            item.itemName ?: "~item name"
+        ).replace(
+            "{item_price_name}",
+            ""
         ).replace(
             "{item_price_value}",
-            "${item.itemUnitPrice}${item.itemCurrencyCode ?: ""}"
+            String.format(
+                "%,.2f",
+                item.itemUnitPrice
+            )
+        ).replace(
+            "{item_currency_code}",
+            item.itemCurrencyCode
+                ?: if (!SettingsModel.isConnectedToSqlServer()) item.itemCurrencyId ?: "" else ""
+        ).replace(
+            "{item_color_value}",
+            itemColorName
+        ).replace(
+            "{item_size_value}",
+            itemSizeName
         )
+
+        htmlContent = if (!item.itemAltName.isNullOrEmpty()) {
+            htmlContent.replace(
+                "{item_alt_name_value}",
+                item.itemAltName!!
+            ).replace(
+                "{alt_name_display}",
+                "block"
+            )
+        } else {
+            htmlContent.replace(
+                "{alt_name_display}",
+                "none"
+            )
+        }
+
+        htmlContent = if (!itemBranchName.isNullOrEmpty()) {
+            htmlContent.replace(
+                "{item_branch_name_value}",
+                itemBranchName
+            ).replace(
+                "{branch_name_display}",
+                "block"
+            )
+        } else {
+            htmlContent.replace(
+                "{branch_name_display}",
+                "none"
+            )
+        }
+
+        htmlContent = if (!family?.familyName.isNullOrEmpty()) {
+            htmlContent.replace(
+                "{item_family_name_value}",
+                family?.familyName!!
+            ).replace(
+                "{family_name_display}",
+                "block"
+            )
+        } else {
+            htmlContent.replace(
+                "{family_name_display}",
+                "none"
+            )
+        }
+
+        htmlContent = if (!item.itemCode.isNullOrEmpty()) {
+            htmlContent.replace(
+                "{item_code_value}",
+                item.itemCode!!
+            ).replace(
+                "{item_code_display}",
+                "block"
+            )
+        } else {
+            htmlContent.replace(
+                "{item_code_display}",
+                "none"
+            )
+        }
+
         if (!item.itemBarcode.isNullOrEmpty()) {
             val barcodeBitmap = generateBarcodeBitmapWithText(item.itemBarcode!!)
             val base64Barcode = convertBitmapToBase64(barcodeBitmap)
@@ -1372,8 +1479,8 @@ object PrinterUtils {
     }
 
     suspend fun printReport(
-            context: Context,
-            reportResult: ReportResult
+        context: Context,
+        reportResult: ReportResult
     ) {
         if (reportResult.found) {
             val output = parseHtmlContent(reportResult.htmlContent)
@@ -1388,11 +1495,11 @@ object PrinterUtils {
     }
 
     private suspend fun printOutput(
-            context: Context,
-            output: ByteArray,
-            printerName: String? = null,
-            printerIP: String = "",
-            printerPort: Int = 9100
+        context: Context,
+        output: ByteArray,
+        printerName: String? = null,
+        printerIP: String = "",
+        printerPort: Int = 9100
     ) {
         if (printerIP.isNotEmpty() && printerPort != -1) {
             try {
@@ -1445,10 +1552,10 @@ object PrinterUtils {
     }
 
     private fun generateBarcodeBitmapWithText(
-            barcodeData: String,
-            width: Int = 400,
-            height: Int = 150,
-            withText: Boolean = true
+        barcodeData: String,
+        width: Int = 400,
+        height: Int = 150,
+        withText: Boolean = true
     ): Bitmap? {
         try {
             // Generate the barcode bitmap

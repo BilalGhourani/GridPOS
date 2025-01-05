@@ -17,7 +17,7 @@ import java.sql.Timestamp
 import java.util.Date
 
 class ItemRepositoryImpl(
-        private val itemDao: ItemDao
+    private val itemDao: ItemDao
 ) : ItemRepository {
     override suspend fun insert(item: Item): DataModel {
         when (SettingsModel.connectionType) {
@@ -526,6 +526,11 @@ class ItemRepositoryImpl(
             )
             itemCashback = row.getDoubleValue("it_cashback")
             itemGroup = row.getStringValue("it_group")
+            itemAltName = row.getStringValue("it_altname")
+            itemSize = row.getStringValue("it_size")
+            itemColor = row.getStringValue("it_color")
+            itemCode = row.getStringValue("it_code")
+            itemBranchName = row.getStringValue("it_bra_name")
 
 
             itemTax = row.getDoubleValue("it_vat")
@@ -683,7 +688,7 @@ class ItemRepositoryImpl(
     }
 
     private fun updateItem(
-            item: Item
+        item: Item
     ): DataModel {
         val succeed = SQLServerWrapper.update(
             "st_item",

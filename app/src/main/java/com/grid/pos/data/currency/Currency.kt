@@ -151,7 +151,7 @@ data class Currency(
         } else if (item.itemCurrencyId == currencyCode2 || item.itemCurrencyId == currencyDocumentId) {
             return currencyCode2
         }
-        return null
+        return currencyCode1
     }
 
     @Exclude

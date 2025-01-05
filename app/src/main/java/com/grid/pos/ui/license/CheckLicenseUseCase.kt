@@ -79,8 +79,7 @@ class CheckLicenseUseCase(private val companyRepository: CompanyRepository,
 
         val licCreatedDate = DateHelper.editDate(Date(licenseFile.lastModified()), 0, 0, 0)
         if (DateHelper.getDaysDiff(currentDate, licCreatedDate) < 0 || DateHelper.getDaysDiff(
-                firstInstallDate, currentDate) < 0 || DateHelper.getDaysDiff(firstInstallDate,
-                licCreatedDate) < 0
+                currentDate, firstInstallDate) < 0 || DateHelper.getDaysDiff(licCreatedDate,firstInstallDate) < 0
         ) {
             companyRepository.disableCompanies(true)
             //db.execSQL("UPDATE company SET cmp_ss=1")

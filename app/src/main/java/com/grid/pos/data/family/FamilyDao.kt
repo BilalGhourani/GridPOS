@@ -39,4 +39,8 @@ interface FamilyDao {
     @Query("SELECT * FROM `st_family` WHERE fa_cmp_id = :companyId LIMIT 1")
     fun getOneFamily(companyId:String): Family?
 
+    // Get one Family as stream.
+    @Query("SELECT * FROM `st_family` WHERE fa_id = :familyId LIMIT 1")
+    fun getFamilyById(familyId:String): Family?
+
 }

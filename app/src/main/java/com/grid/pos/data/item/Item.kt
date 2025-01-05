@@ -72,6 +72,26 @@ data class Item(
         @get:Exclude
         var itemGroup: String? = null,
 
+        @Ignore
+        @get:Exclude
+        var itemBranchName: String? = null,
+
+        @Ignore
+        @get:Exclude
+        var itemCode: String? = null,
+
+        @Ignore
+        @get:Exclude
+        var itemColor: String? = null,
+
+        @Ignore
+        @get:Exclude
+        var itemSize: String? = null,
+
+        @Ignore
+        @get:Exclude
+        var itemAltName: String? = null,
+
         /**
          * Item name
          * */

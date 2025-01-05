@@ -1,14 +1,19 @@
 <!DOCTYPE html>
 <html>
 <body>
-<div style="display: flex;align-items: center; justify-content: center;flex-direction: column;">
-    <div style="font-weight: Normal;align-items: center;font-size: 16px;">{item_name_value}</div>
-    <div style="width: 100%;display: {barcode_display}; align-items: start; justify-content: start; flex-direction: column;">
-        <div style="font-weight: Normal;align-items: start;font-size: 16px;">{item_price_value}</div>
-        <div style="height: 10px; width: 100%;"></div>
+<div style="display: flex; align-items: center; justify-content: center; flex-direction: column;">
+    <div style="display: flex; align-items: center; justify-content: center; flex-direction: column;">
+        <div style="display:{company_name_display};font-weight: bold;">{item_company_name_value}</div>
+        <div style="font-weight: bold;">{item_name_value}</div>
         {barcodeContent}
-        <div style="height: 10px; width: 100%;"></div>
+        <div style="font-weight: bold;">{item_price_name} {item_price_value}
+            {item_currency_code}
+            {item_color_value} {item_size_value}
+        </div>
+        <div style="display:{alt_name_display};font-weight: bold;">{item_alt_name_value}</div>
+        <div style="display:{branch_name_display};font-weight: bold;">{item_branch_name_value}</div>
+        <div style="display:{family_name_display};font-weight: bold;">{item_family_name_value}</div>
+        <div style="display:{item_code_display};font-weight: bold;">{item_code_value}</div>
     </div>
-</div>
 </body>
 </html>

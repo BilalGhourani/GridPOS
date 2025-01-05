@@ -94,10 +94,10 @@ import kotlinx.coroutines.withContext
 )
 @Composable
 fun ManageItemsView(
-        modifier: Modifier = Modifier,
-        navController: NavController? = null,
-        sharedViewModel: SharedViewModel,
-        viewModel: ManageItemsViewModel = hiltViewModel()
+    modifier: Modifier = Modifier,
+    navController: NavController? = null,
+    sharedViewModel: SharedViewModel,
+    viewModel: ManageItemsViewModel = hiltViewModel()
 ) {
     val state by viewModel.manageItemsState.collectAsStateWithLifecycle()
 
@@ -167,23 +167,9 @@ fun ManageItemsView(
         }
     }
 
-    fun getFirstCurrency(): Pair<String, String> {
-        return if (SettingsModel.isConnectedToSqlServer()) {
-            Pair(
-                SettingsModel.currentCurrency?.currencyId ?: "",
-                SettingsModel.currentCurrency?.currencyCode1 ?: ""
-            )
-        } else {
-            Pair(
-                SettingsModel.currentCurrency?.currencyCode1 ?: "",
-                SettingsModel.currentCurrency?.currencyCode1 ?: ""
-            )
-        }
-    }
-
     LaunchedEffect(state.currencies) {
         if (itemCurrState == "" && state.currencies.isNotEmpty()) {
-            val firstCurrency = getFirstCurrency()
+            val firstCurrency = viewModel.getFirstCurrency()
             itemCurrState = firstCurrency.first
             state.selectedItem.itemCurrencyId = itemCurrState
             state.selectedItem.itemCurrencyCode = firstCurrency.second
@@ -241,6 +227,12 @@ fun ManageItemsView(
         }
     }
 
+    LaunchedEffect(Unit) {
+        if (state.selectedItem.itemId.isNotEmpty()) {
+            fillItemInputsNow(state.selectedItem)
+        }
+    }
+
     fun saveItem() {
         oldImage?.let { old ->
             FileUtils.deleteFile(
@@ -267,7 +259,14 @@ fun ManageItemsView(
         )
         state.selectedItem.itemPos = itemPOSState
         state.selectedItem.itemGroup = itemGroupState
-        state.selectedItem.itemCurrencyId = itemCurrState
+        if (itemCurrState.isNotEmpty()) {
+            state.selectedItem.itemCurrencyId = itemCurrState
+        } else if (state.selectedItem.itemCurrencyId.isNullOrEmpty()) {
+            val firstCurrency = viewModel.getFirstCurrency()
+            state.selectedItem.itemCurrencyId = firstCurrency.first
+            state.selectedItem.itemCurrencyCode = firstCurrency.second
+        }
+
         viewModel.saveItem(state.selectedItem)
     }
 
@@ -288,7 +287,7 @@ fun ManageItemsView(
         } else {
             ""
         }
-        val firstCurrency = getFirstCurrency()
+        val firstCurrency = viewModel.getFirstCurrency()
         itemCurrState = firstCurrency.first
         state.selectedItem.itemCurrencyId = itemCurrState
         state.selectedItem.itemCurrencyCode = firstCurrency.second
@@ -555,7 +554,8 @@ fun ManageItemsView(
                             IconButton(onClick = {
                                 sharedViewModel.showLoading(true)
                                 scope.launch(Dispatchers.IO) {
-                                    val barcode = barcodeState.ifEmpty { viewModel.generateBarcode() }
+                                    val barcode =
+                                        barcodeState.ifEmpty { viewModel.generateBarcode() }
                                     if (barcode.isNotEmpty()) {
                                         state.selectedItem.itemBarcode = barcode
                                         withContext(Dispatchers.Main) {
@@ -565,15 +565,15 @@ fun ManageItemsView(
                                             context,
                                             state.selectedItem
                                         )
-                                        PrinterUtils.printReport(
-                                            context,
-                                            reportResult
-                                        )
+//                                        PrinterUtils.printReport(
+//                                            context,
+//                                            reportResult
+//                                        )
                                         withContext(Dispatchers.Main) {
                                             sharedViewModel.showLoading(false)
-                                            //sharedViewModel.reportsToPrint.clear()
-                                            //sharedViewModel.reportsToPrint.add(reportResult)
-                                            //navController?.navigate("UIWebView")
+                                            sharedViewModel.reportsToPrint.clear()
+                                            sharedViewModel.reportsToPrint.add(reportResult)
+                                            navController?.navigate("UIWebView")
                                         }
                                     }
                                 }
@@ -839,19 +839,21 @@ fun ManageItemsView(
                                             if (uris.isNotEmpty()) {
                                                 sharedViewModel.showLoading(true)
                                                 CoroutineScope(Dispatchers.IO).launch {
-                                                    val internalPath = FileUtils.saveToExternalStorage(context = context,
-                                                        parent = "item",
-                                                        uris[0],
-                                                        nameState.trim().replace(
-                                                            " ",
-                                                            "_"
-                                                        ).ifEmpty { "item" })
+                                                    val internalPath =
+                                                        FileUtils.saveToExternalStorage(context = context,
+                                                            parent = "item",
+                                                            uris[0],
+                                                            nameState.trim().replace(
+                                                                " ",
+                                                                "_"
+                                                            ).ifEmpty { "item" })
                                                     withContext(Dispatchers.Main) {
                                                         sharedViewModel.showLoading(false)
                                                         if (internalPath != null) {
                                                             oldImage = imageState
                                                             imageState = internalPath
-                                                            state.selectedItem.itemImage = imageState
+                                                            state.selectedItem.itemImage =
+                                                                imageState
                                                         }
                                                     }
                                                 }

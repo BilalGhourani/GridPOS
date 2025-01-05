@@ -8,6 +8,7 @@ import com.grid.pos.data.invoice.InvoiceRepository
 import com.grid.pos.data.item.Item
 import com.grid.pos.data.item.ItemRepository
 import com.grid.pos.data.posPrinter.PosPrinterRepository
+import com.grid.pos.data.settings.SettingsRepository
 import com.grid.pos.model.Event
 import com.grid.pos.model.ItemGroupModel
 import com.grid.pos.model.ReportResult
@@ -24,11 +25,12 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ManageItemsViewModel @Inject constructor(
-        private val itemRepository: ItemRepository,
-        private val familyRepository: FamilyRepository,
-        private val posPrinterRepository: PosPrinterRepository,
-        private val currencyRepository: CurrencyRepository,
-        private val invoiceRepository: InvoiceRepository
+    private val itemRepository: ItemRepository,
+    private val familyRepository: FamilyRepository,
+    private val posPrinterRepository: PosPrinterRepository,
+    private val currencyRepository: CurrencyRepository,
+    private val invoiceRepository: InvoiceRepository,
+    private val settingsRepository: SettingsRepository,
 ) : BaseViewModel() {
 
     private val _manageItemsState = MutableStateFlow(ManageItemsState())
@@ -141,8 +143,8 @@ class ManageItemsViewModel @Inject constructor(
     }
 
     fun showWarning(
-            warning: String,
-            action: String? = null
+        warning: String,
+        action: String? = null
     ) {
         viewModelScope.launch(Dispatchers.Main) {
             manageItemsState.value = manageItemsState.value.copy(
@@ -202,7 +204,8 @@ class ManageItemsViewModel @Inject constructor(
             } else {
                 val dataModel = itemRepository.update(item)
                 if (dataModel.succeed) {
-                    val index = manageItemsState.value.items.indexOfFirst { it.itemId == item.itemId }
+                    val index =
+                        manageItemsState.value.items.indexOfFirst { it.itemId == item.itemId }
                     if (index >= 0) {
                         manageItemsState.value.items.removeAt(index)
                         manageItemsState.value.items.add(
@@ -279,13 +282,46 @@ class ManageItemsViewModel @Inject constructor(
         return itemRepository.generateBarcode()
     }
 
-    fun prepareItemBarcodeReport(
-            context: Context,
-            item: Item
+    suspend fun prepareItemBarcodeReport(
+        context: Context,
+        item: Item
     ): ReportResult {
+        if (item.itemCurrencyId.isNullOrEmpty()) {
+            val firstCurr = getFirstCurrency()
+            item.itemCurrencyId = firstCurr.first
+            item.itemCurrencyCode = firstCurr.second
+        } else if (item.itemCurrencyCode.isNullOrEmpty()) {
+            item.itemCurrencyCode =
+                manageItemsState.value.currencies.firstOrNull { it.currencyId == item.itemCurrencyId }?.currencyCode
+        }
+        val family = if (!item.itemFaId.isNullOrEmpty()) {
+            manageItemsState.value.families.firstOrNull { it.familyId == item.itemFaId } ?: run {
+                familyRepository.getFamilyById(item.itemFaId!!)
+            }
+        } else {
+            null
+        }
+        var itemColorName = item.itemColor
+        var itemSizeName = item.itemSize
+        var itemBranchName = item.itemBranchName
+        if (SettingsModel.isConnectedToSqlServer() && SettingsModel.isSqlServerWebDb) {
+            if (!itemSizeName.isNullOrEmpty()) {
+                itemSizeName = settingsRepository.getSizeById(itemSizeName)
+            }
+            if (!itemColorName.isNullOrEmpty()) {
+                itemColorName = settingsRepository.getColorById(itemColorName)
+            }
+            if (!itemBranchName.isNullOrEmpty()) {
+                itemBranchName = settingsRepository.getBranchById(itemBranchName)
+            }
+        }
         val reportResult = PrinterUtils.getItemBarcodeHtmlContent(
             context,
-            item
+            item,
+            family,
+            itemSizeName ?: "",
+            itemColorName ?: "",
+            itemBranchName
         )
         SettingsModel.cashPrinter?.let {
             if (it.contains(":")) {
@@ -303,5 +339,19 @@ class ManageItemsViewModel @Inject constructor(
 
     private suspend fun hasRelations(itemId: String): Boolean {
         return invoiceRepository.getOneInvoiceByItemID(itemId) != null
+    }
+
+    fun getFirstCurrency(): Pair<String, String> {
+        return if (SettingsModel.isConnectedToSqlServer()) {
+            Pair(
+                SettingsModel.currentCurrency?.currencyId ?: "",
+                SettingsModel.currentCurrency?.currencyCode1 ?: ""
+            )
+        } else {
+            Pair(
+                SettingsModel.currentCurrency?.currencyCode1 ?: "",
+                SettingsModel.currentCurrency?.currencyCode1 ?: ""
+            )
+        }
     }
 }

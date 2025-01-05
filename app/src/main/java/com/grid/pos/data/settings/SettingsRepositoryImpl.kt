@@ -138,8 +138,8 @@ class SettingsRepositoryImpl : SettingsRepository {
     }
 
     override suspend fun getPosReceiptAccIdBy(
-            type: String,
-            currCode: String
+        type: String,
+        currCode: String
     ): String? {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
@@ -270,6 +270,117 @@ class SettingsRepositoryImpl : SettingsRepository {
                     e.printStackTrace()
                 }
                 return warehouses
+            }
+        }
+    }
+
+    override suspend fun getSizeById(sizeId: String): String? {
+        when (SettingsModel.connectionType) {
+            CONNECTION_TYPE.FIRESTORE.key,
+            CONNECTION_TYPE.LOCAL.key -> {
+                // nothing to do
+                return null
+            }
+
+            else -> {
+                if (SettingsModel.isSqlServerWebDb) {
+                    var sizeName: String? = null
+                    try {
+                        val dbResult = SQLServerWrapper.getListOf(
+                            "st_itemsize",
+                            "",
+                            mutableListOf(
+                                "sz_name"
+                            ),
+                            "sz_id='$sizeId'"
+                        )
+                        dbResult?.let {
+                            if (it.next()) {
+                                sizeName = it.getStringValue("sz_name")
+                            }
+                            SQLServerWrapper.closeResultSet(it)
+                        }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                    return sizeName
+                } else {
+                    return null
+                }
+            }
+        }
+    }
+
+    override suspend fun getColorById(colorId: String): String? {
+        when (SettingsModel.connectionType) {
+            CONNECTION_TYPE.FIRESTORE.key,
+            CONNECTION_TYPE.LOCAL.key -> {
+                // nothing to do
+                return null
+            }
+
+            else -> {
+                if (SettingsModel.isSqlServerWebDb) {
+                    var colorName: String? = null
+                    try {
+                        val dbResult = SQLServerWrapper.getListOf(
+                            "st_itemcolor",
+                            "",
+                            mutableListOf(
+                                "co_name"
+                            ),
+                            "co_id='$colorId'"
+                        )
+                        dbResult?.let {
+                            if (it.next()) {
+                                colorName = it.getStringValue("co_name")
+                            }
+                            SQLServerWrapper.closeResultSet(it)
+                        }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                    return colorName
+                } else {
+                    return null
+                }
+            }
+        }
+    }
+
+    override suspend fun getBranchById(branchId: String): String? {
+        when (SettingsModel.connectionType) {
+            CONNECTION_TYPE.FIRESTORE.key,
+            CONNECTION_TYPE.LOCAL.key -> {
+                // nothing to do
+                return null
+            }
+
+            else -> {
+                if (SettingsModel.isSqlServerWebDb) {
+                    var branchName: String? = null
+                    try {
+                        val dbResult = SQLServerWrapper.getListOf(
+                            "branch",
+                            "",
+                            mutableListOf(
+                                "bra_newname"
+                            ),
+                            "bra_name='$branchId'"
+                        )
+                        dbResult?.let {
+                            if (it.next()) {
+                                branchName = it.getStringValue("bra_newname")
+                            }
+                            SQLServerWrapper.closeResultSet(it)
+                        }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                    return branchName
+                } else {
+                    return null
+                }
             }
         }
     }

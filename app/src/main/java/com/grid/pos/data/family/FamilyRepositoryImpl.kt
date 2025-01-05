@@ -193,6 +193,66 @@ class FamilyRepositoryImpl(
         }
     }
 
+    override suspend fun getFamilyById(familyId:String): Family? {
+        when (SettingsModel.connectionType) {
+            CONNECTION_TYPE.FIRESTORE.key -> {
+                val querySnapshot = FirebaseWrapper.getQuerySnapshot(
+                    collection = "st_family",
+                    limit = 1,
+                    filters = mutableListOf(
+                        Filter.equalTo(
+                            "fa_id",
+                            familyId
+                        )
+                    )
+                )
+                val size = querySnapshot?.size() ?: 0
+                if (size > 0) {
+                    for (document in querySnapshot!!) {
+                        val obj = document.toObject(Family::class.java)
+                        if (obj.familyId.isNotEmpty()) {
+                            obj.familyDocumentId = document.id
+                            return obj
+                        }
+                    }
+                }
+                return null
+            }
+
+            CONNECTION_TYPE.LOCAL.key -> {
+                return familyDao.getFamilyById(familyId)
+            }
+
+            else -> {
+                var family: Family? = null
+                try {
+                    val dbResult = SQLServerWrapper.getListOf(
+                        "st_family",
+                        "TOP 1",
+                        mutableListOf("*"),
+                        "fa_name='$familyId'"
+                    )
+                    dbResult?.let {
+                        if (it.next()) {
+                            family = Family().apply {
+                                this.familyId = it.getStringValue("fa_name")
+                                this.familyName = if (SettingsModel.isSqlServerWebDb) it.getStringValue("fa_newname") else it.getStringValue(
+                                    "fa_name"
+                                )
+                                //familyImage = obj.optString("fa_name")
+                                this.familyCompanyId = if (SettingsModel.isSqlServerWebDb) it.getStringValue("fa_cmp_id") else SettingsModel.getCompanyID()
+                            }
+                        }
+                        SQLServerWrapper.closeResultSet(it)
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+                return family
+            }
+        }
+    }
+
     private fun insertByProcedure(family: Family): DataModel {
         val parameters = if (SettingsModel.isSqlServerWebDb) {
             listOf(
