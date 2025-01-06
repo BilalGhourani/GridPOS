@@ -32,8 +32,8 @@ object DataStoreManager {
     }
 
     suspend fun putString(
-            key: String,
-            value: String
+        key: String,
+        value: String
     ) {
         val preferencesKey = stringPreferencesKey(key)
         App.getInstance().applicationContext.dataStore.edit { preferences ->
@@ -42,7 +42,7 @@ object DataStoreManager {
     }
 
     suspend fun removeKey(
-            key: String
+        key: String
     ) {
         val preferencesKey = stringPreferencesKey(key)
         App.getInstance().applicationContext.dataStore.edit { preferences ->
@@ -51,8 +51,8 @@ object DataStoreManager {
     }
 
     suspend fun putInt(
-            key: String,
-            value: Int
+        key: String,
+        value: Int
     ) {
         val preferencesKey = intPreferencesKey(key)
         App.getInstance().applicationContext.dataStore.edit { preferences ->
@@ -61,8 +61,8 @@ object DataStoreManager {
     }
 
     suspend fun putLong(
-            key: String,
-            value: Long
+        key: String,
+        value: Long
     ) {
         val preferencesKey = longPreferencesKey(key)
         App.getInstance().applicationContext.dataStore.edit { preferences ->
@@ -71,8 +71,8 @@ object DataStoreManager {
     }
 
     suspend fun putBoolean(
-            key: String,
-            value: Boolean
+        key: String,
+        value: Boolean
     ) {
         val preferencesKey = booleanPreferencesKey(key)
         App.getInstance().applicationContext.dataStore.edit { preferences ->
@@ -81,8 +81,8 @@ object DataStoreManager {
     }
 
     suspend fun getString(
-            key: String,
-            fallback: String = ""
+        key: String,
+        fallback: String = ""
     ): String {
         return try {
             val preferencesKey = stringPreferencesKey(key)
@@ -99,8 +99,8 @@ object DataStoreManager {
     }
 
     suspend fun getInt(
-            key: String,
-            fallback: Int = -1
+        key: String,
+        fallback: Int = -1
     ): Int {
         return try {
             val preferencesKey = intPreferencesKey(key)
@@ -117,8 +117,8 @@ object DataStoreManager {
     }
 
     suspend fun getLong(
-            key: String,
-            fallback: Long = -1L
+        key: String,
+        fallback: Long = -1L
     ): Long {
         return try {
             val preferencesKey = longPreferencesKey(key)
@@ -134,8 +134,8 @@ object DataStoreManager {
     }
 
     suspend fun getBoolean(
-            key: String,
-            fallback: Boolean = false
+        key: String,
+        fallback: Boolean = false
     ): Boolean {
         return try {
             val preferencesKey = booleanPreferencesKey(key)
@@ -298,7 +298,7 @@ object DataStoreManager {
         SettingsModel.cashPrinter = getString(
             DataStoreKeys.CASH_PRINTER.key,
             ""
-        )
+        ).ifEmpty { null }
         SettingsModel.defaultSaleInvoice = getString(
             DataStoreKeys.DEFAULT_SALE_INVOICE.key,
             "SI"
@@ -318,11 +318,15 @@ object DataStoreManager {
         SettingsModel.defaultLocalBranch = getString(
             DataStoreKeys.DEFAULT_BRANCH.key,
             ""
-        )
+        ).ifEmpty { null }
         SettingsModel.defaultLocalWarehouse = getString(
             DataStoreKeys.DEFAULT_WAREHOUSE.key,
             ""
-        )
+        ).ifEmpty { null }
+        SettingsModel.barcodePriceName = getString(
+            DataStoreKeys.BARCODE_PRICE_NAME.key,
+            ""
+        ).ifEmpty { null }
     }
 
     enum class DataStoreKeys(val key: String) {
@@ -334,18 +338,33 @@ object DataStoreManager {
         ),
         FIRESTORE_COMPANY_ID("FIRESTORE_COMPANY_ID"), LOCAL_COMPANY_ID("LOCAL_COMPANY_ID"),
 
-        SQL_SERVER_PATH("SQL_SERVER_PATH"), SQL_SERVER_NAME("SQL_SERVER_NAME"),SQL_SERVER_DB_NAME("SQL_SERVER_DB_NAME"),
-        SQL_SERVER_DB_USER("SQL_SERVER_DB_USER"), SQL_SERVER_DB_PASSWORD("SQL_SERVER_DB_PASSWORD"), SQL_SERVER_COMPANY_ID("SQL_SERVER_COMPANY_ID"), IS_SQL_SERVER_WEB_DB("IS_SQL_SERVER_WEB_DB"),
+        SQL_SERVER_PATH("SQL_SERVER_PATH"), SQL_SERVER_NAME("SQL_SERVER_NAME"), SQL_SERVER_DB_NAME("SQL_SERVER_DB_NAME"),
+        SQL_SERVER_DB_USER("SQL_SERVER_DB_USER"), SQL_SERVER_DB_PASSWORD("SQL_SERVER_DB_PASSWORD"), SQL_SERVER_COMPANY_ID(
+            "SQL_SERVER_COMPANY_ID"
+        ),
+        IS_SQL_SERVER_WEB_DB("IS_SQL_SERVER_WEB_DB"),
 
 
-        CASH_PRINTER("CASH_PRINTER"),DEFAULT_SALE_INVOICE("DEFAULT_SSALE_INVOICE"),DEFAULT_RETURN_SALE("DEFAULT_RETURN_SALE"),
-        DEFAULT_BRANCH("DEFAULT_BRANCH"),DEFAULT_WAREHOUSE("DEFAULT_WAREHOUSE"),DEFAULT_PAYMENT("DEFAULT_PAYMENT"),DEFAULT_RECEIPT("DEFAULT_RECEIPT"),
+        CASH_PRINTER("CASH_PRINTER"), DEFAULT_SALE_INVOICE("DEFAULT_SSALE_INVOICE"), DEFAULT_RETURN_SALE(
+            "DEFAULT_RETURN_SALE"
+        ),
+        DEFAULT_BRANCH("DEFAULT_BRANCH"), DEFAULT_WAREHOUSE("DEFAULT_WAREHOUSE"), BARCODE_PRICE_NAME(
+            "BARCODE_PRICE_NAME"
+        ),
+        DEFAULT_PAYMENT("DEFAULT_PAYMENT"), DEFAULT_RECEIPT("DEFAULT_RECEIPT"),
 
-        CONNECTION_TYPE("CONNECTION_TYPE"), SHOW_ITEMS_IN_POS("SHOW_ITEMS_IN_POS"), ORIENTATION_TYPE("ORIENTATION_TYPE"),REPORT_LANGUAGE("REPORT_LANGUAGE"),REPORT_COUNTRY("REPORT_COUNTRY"), SHOW_TAX("SHOW_TAX"), SHOW_TAX1(
+        CONNECTION_TYPE("CONNECTION_TYPE"), SHOW_ITEMS_IN_POS("SHOW_ITEMS_IN_POS"), ORIENTATION_TYPE(
+            "ORIENTATION_TYPE"
+        ),
+        REPORT_LANGUAGE("REPORT_LANGUAGE"), REPORT_COUNTRY("REPORT_COUNTRY"), SHOW_TAX("SHOW_TAX"), SHOW_TAX1(
             "SHOW_TAX1"
         ),
-        SHOW_TAX2("SHOW_TAX2"), SHOW_PRICE_IN_ITEM_BTN("SHOW_PRICE_IN_ITEM_BTN"),AUTO_PRINT_TICKETS("AUTO_PRINT_TICKETS"),
-        SHOW_ITEM_QTY_ALERT("SHOW_ITEM_QTY_ALERT"),ALLOW_OUT_OF_STOCK_SALE("ALLOW_OUT_OF_STOCK_SALE"),HIDE_SECOND_CURRENCY("HIDE_SECOND_CURRENCY"),
+        SHOW_TAX2("SHOW_TAX2"), SHOW_PRICE_IN_ITEM_BTN("SHOW_PRICE_IN_ITEM_BTN"), AUTO_PRINT_TICKETS(
+            "AUTO_PRINT_TICKETS"
+        ),
+        SHOW_ITEM_QTY_ALERT("SHOW_ITEM_QTY_ALERT"), ALLOW_OUT_OF_STOCK_SALE("ALLOW_OUT_OF_STOCK_SALE"), HIDE_SECOND_CURRENCY(
+            "HIDE_SECOND_CURRENCY"
+        ),
 
         BUTTON_COLOR("BUTTON_COLOR"), BUTTON_TEXT_COLOR("BUTTON_TEXT_COLOR"), BACKGROUND_COLOR(
             "BACKGROUND_COLOR"

@@ -132,6 +132,14 @@ fun SettingsView(
     val sqlServerCmpIdRequester = remember { FocusRequester() }
     val keyboardController = LocalSoftwareKeyboardController.current
 
+    val defaultSaleInvFocusRequester = remember { FocusRequester() }
+    val defaultRetSaleFocusRequester = remember { FocusRequester() }
+    val defaultPaymentFocusRequester = remember { FocusRequester() }
+    val defaultReceiptFocusRequester = remember { FocusRequester() }
+    val defaultBranchFocusRequester = remember { FocusRequester() }
+    val defaultWarehouseFocusRequester = remember { FocusRequester() }
+    val barcodePriceNameRequester = remember { FocusRequester() }
+
     var orientationType by remember { mutableStateOf(SettingsModel.orientationType) }
     var defaultReportCountry by remember { mutableStateOf(SettingsModel.defaultReportCountry) }
     var defaultReportLanguage by remember { mutableStateOf(SettingsModel.defaultReportLanguage) }
@@ -146,6 +154,7 @@ fun SettingsView(
             SettingsModel.defaultLocalWarehouse ?: ""
         )
     }
+    var barcodePriceNameState by remember { mutableStateOf(SettingsModel.barcodePriceName ?: "") }
     var showItemsInPOS by remember { mutableStateOf(SettingsModel.showItemsInPOS) }
     var showTax by remember { mutableStateOf(SettingsModel.showTax) }
     var showTax1 by remember { mutableStateOf(SettingsModel.showTax1) }
@@ -676,10 +685,10 @@ fun SettingsView(
                             defaultValue = defaultPaymentState,
                             label = "Default Payment",
                             placeHolder = "Enter Default Payment",
-                            focusRequester = sqlServerCmpIdRequester,
+                            focusRequester = defaultPaymentFocusRequester,
                             imeAction = ImeAction.Next,
                             onAction = {
-
+                                defaultReceiptFocusRequester.requestFocus()
                             }) { defPayment ->
                             defaultPaymentState = defPayment
                         }
@@ -688,10 +697,10 @@ fun SettingsView(
                             defaultValue = defaultReceiptState,
                             label = "Default Receipt",
                             placeHolder = "Enter Default Receipt",
-                            focusRequester = sqlServerCmpIdRequester,
+                            focusRequester = defaultReceiptFocusRequester,
                             imeAction = ImeAction.Next,
                             onAction = {
-
+                                defaultBranchFocusRequester.requestFocus()
                             }) { defReceipt ->
                             defaultReceiptState = defReceipt
                         }
@@ -700,10 +709,10 @@ fun SettingsView(
                             defaultValue = defaultBranchState,
                             label = "Default Branch",
                             placeHolder = "Enter Default Branch",
-                            focusRequester = sqlServerCmpIdRequester,
+                            focusRequester = defaultBranchFocusRequester,
                             imeAction = ImeAction.Next,
                             onAction = {
-
+                                defaultWarehouseFocusRequester.requestFocus()
                             }) { defBranch ->
                             defaultBranchState = defBranch
                         }
@@ -712,12 +721,24 @@ fun SettingsView(
                             defaultValue = defaultWarehouseState,
                             label = "Default Warehouse",
                             placeHolder = "Enter Default Warehouse",
-                            focusRequester = sqlServerCmpIdRequester,
+                            focusRequester = defaultWarehouseFocusRequester,
                             imeAction = ImeAction.Next,
                             onAction = {
-
+                                barcodePriceNameRequester.requestFocus()
                             }) { defWarehouse ->
                             defaultWarehouseState = defWarehouse
+                        }
+
+                        UITextField(modifier = Modifier.padding(10.dp),
+                            defaultValue = barcodePriceNameState,
+                            label = "Barcode Price Name",
+                            placeHolder = "Enter Price Name",
+                            focusRequester = barcodePriceNameRequester,
+                            imeAction = ImeAction.Next,
+                            onAction = {
+                                keyboardController?.hide()
+                            }) { priceName ->
+                            barcodePriceNameState = priceName
                         }
 
                         UIButton(
@@ -776,6 +797,11 @@ fun SettingsView(
                                 DataStoreManager.putString(
                                     DataStoreManager.DataStoreKeys.DEFAULT_WAREHOUSE.key,
                                     defaultWarehouseState
+                                )
+                                SettingsModel.barcodePriceName = barcodePriceNameState
+                                DataStoreManager.putString(
+                                    DataStoreManager.DataStoreKeys.BARCODE_PRICE_NAME.key,
+                                    barcodePriceNameState
                                 )
                                 delay(1000L)
                                 withContext(Dispatchers.Main) {
@@ -841,10 +867,9 @@ fun SettingsView(
                             defaultValue = cashPrinterState,
                             label = "Cash Printer",
                             placeHolder = "ex. 127.0.0.1:9100",
-                            focusRequester = sqlServerCmpIdRequester,
                             imeAction = ImeAction.Next,
                             onAction = {
-
+                                defaultSaleInvFocusRequester.requestFocus()
                             }) { cashPrinter ->
                             cashPrinterState = cashPrinter
                         }
@@ -853,10 +878,10 @@ fun SettingsView(
                             defaultValue = defaultSaleInvoiceState,
                             label = "Sale Invoice Type",
                             placeHolder = "Enter Sale Invoice Type",
-                            focusRequester = sqlServerCmpIdRequester,
+                            focusRequester = defaultSaleInvFocusRequester,
                             imeAction = ImeAction.Next,
                             onAction = {
-
+                                defaultRetSaleFocusRequester.requestFocus()
                             }) { siType ->
                             defaultSaleInvoiceState = siType
                         }
@@ -865,10 +890,10 @@ fun SettingsView(
                             defaultValue = defaultReturnSaleState,
                             label = "Return Sale Type",
                             placeHolder = "Enter Return Sale Type",
-                            focusRequester = sqlServerCmpIdRequester,
+                            focusRequester = defaultRetSaleFocusRequester,
                             imeAction = ImeAction.Next,
                             onAction = {
-
+                                keyboardController?.hide()
                             }) { rsType ->
                             defaultReturnSaleState = rsType
                         }

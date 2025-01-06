@@ -1375,6 +1375,9 @@ object PrinterUtils {
             )
         } else {
             htmlContent.replace(
+                "{item_company_name_value}",
+                ""
+            ).replace(
                 "{company_name_display}",
                 "none"
             )
@@ -1385,7 +1388,7 @@ object PrinterUtils {
             item.itemName ?: "~item name"
         ).replace(
             "{item_price_name}",
-            ""
+            SettingsModel.barcodePriceName ?: ""
         ).replace(
             "{item_price_value}",
             String.format(
@@ -1414,6 +1417,9 @@ object PrinterUtils {
             )
         } else {
             htmlContent.replace(
+                "{item_alt_name_value}",
+                ""
+            ).replace(
                 "{alt_name_display}",
                 "none"
             )
@@ -1429,6 +1435,9 @@ object PrinterUtils {
             )
         } else {
             htmlContent.replace(
+                "{item_branch_name_value}",
+                ""
+            ).replace(
                 "{branch_name_display}",
                 "none"
             )
@@ -1444,6 +1453,9 @@ object PrinterUtils {
             )
         } else {
             htmlContent.replace(
+                "{item_family_name_value}",
+                ""
+            ).replace(
                 "{family_name_display}",
                 "none"
             )
@@ -1459,6 +1471,9 @@ object PrinterUtils {
             )
         } else {
             htmlContent.replace(
+                "{item_code_value}",
+                ""
+            ).replace(
                 "{item_code_display}",
                 "none"
             )

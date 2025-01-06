@@ -33,6 +33,8 @@ object SettingsModel {
     var defaultLocalBranch: String? = null
     var defaultLocalWarehouse: String? = null
 
+    var barcodePriceName: String? = null
+
     var orientationType: String = ORIENTATION_TYPE.DEVICE_SENSOR.key
     var defaultReportCountry: String = Country.DEFAULT.value
     var defaultReportLanguage: String = Language.ENGLISH.value
