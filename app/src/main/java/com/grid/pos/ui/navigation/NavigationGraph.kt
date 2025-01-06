@@ -26,6 +26,7 @@ import com.grid.pos.ui.settings.BackupView
 import com.grid.pos.ui.settings.SettingsView
 import com.grid.pos.ui.settings.setupReports.SetupReportView
 import com.grid.pos.ui.settings.setupReports.ReportsListView
+import com.grid.pos.ui.stockInOut.StockInOutView
 import com.grid.pos.ui.table.TablesView
 import com.grid.pos.ui.theme.White
 import com.grid.pos.ui.thirdParty.ManageThirdPartiesView
@@ -179,6 +180,13 @@ fun AuthNavGraph(
 
         composable(route = "ItemOpeningView") {
             ItemOpeningView(
+                navController = navController,
+                sharedViewModel = sharedViewModel
+            )
+        }
+
+        composable(route = "StockInOutView") {
+            StockInOutView(
                 navController = navController,
                 sharedViewModel = sharedViewModel
             )

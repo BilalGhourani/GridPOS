@@ -1,8 +1,8 @@
 package com.grid.pos.utils
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.res.Configuration
-import android.os.Build
 import android.provider.Settings
 import android.util.DisplayMetrics
 import android.util.Log
@@ -30,7 +30,6 @@ import com.grid.pos.model.ThirdPartyType
 import com.grid.pos.model.ThirdPartyTypeModel
 import java.math.BigInteger
 import java.time.Year
-import java.util.Calendar
 import java.util.Random
 import java.util.UUID
 import kotlin.math.pow
@@ -63,7 +62,7 @@ object Utils {
         }
     }
 
-    fun randomColor(): Color {
+    private fun randomColor(): Color {
         val red = kotlin.random.Random.nextFloat()
         val green = kotlin.random.Random.nextFloat()
         val blue = kotlin.random.Random.nextFloat()
@@ -109,6 +108,11 @@ object Utils {
                             R.drawable.item_opening,
                             "Item Opening",
                             "ItemOpeningView"
+                        ),
+                        HomeItemModel(
+                            R.drawable.stock_correction,
+                            "Stock In/Out",
+                            "StockInOutView"
                         )
                     )
                 ),
@@ -454,15 +458,11 @@ object Utils {
     }
 
     fun getCurrentYear(): String {
-        val calendar: Calendar = Calendar.getInstance()
-        val currentYear = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            Year.now().value
-        } else {
-            calendar[Calendar.YEAR]
-        }
+        val currentYear = Year.now().value
         return currentYear.toString()
     }
 
+    @SuppressLint("HardwareIds")
     fun getDeviceID(context: Context): String {
         return Settings.Secure.getString(
             context.contentResolver,
