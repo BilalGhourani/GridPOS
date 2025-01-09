@@ -334,9 +334,9 @@ object Utils {
     }
 
     fun floatToColor(
-            hue: Float,
-            saturation: Float = 1f,
-            brightness: Float = 1f
+        hue: Float,
+        saturation: Float = 1f,
+        brightness: Float = 1f
     ): Color {
         // Convert HSV to RGB
         val hsv = floatArrayOf(
@@ -348,7 +348,7 @@ object Utils {
     }
 
     fun convertColorToInt(
-            color: Color
+        color: Color
     ): Int {
         return android.graphics.Color.rgb(
             color.red,
@@ -358,8 +358,8 @@ object Utils {
     }
 
     fun getDoubleValue(
-            new: String,
-            old: String
+        new: String,
+        old: String
     ): String {
         return if (new.isEmpty()) {
             new
@@ -372,8 +372,8 @@ object Utils {
     }
 
     fun roundDoubleValue(
-            value: Double,
-            decimal: Int? = 2
+        value: Double,
+        decimal: Int? = 2
     ): Double {
         val doubleStr = String.format(
             "%.${decimal}f",
@@ -383,8 +383,8 @@ object Utils {
     }
 
     fun getIntValue(
-            new: String,
-            old: String
+        new: String,
+        old: String
     ): String {
         return if (new.isEmpty()) {
             new
@@ -397,7 +397,7 @@ object Utils {
     }
 
     fun getDoubleOrZero(
-            value: Double?
+        value: Double?
     ): Double {
         return if (value?.isNaN() == true) {
             0.0
@@ -407,9 +407,8 @@ object Utils {
     }
 
     fun getItemsNumberStr(
-            items: MutableList<InvoiceItemModel>
+        size: Int
     ): String {
-        val size = items.size
         return if (size <= 1) {
             "$size item"
         } else {
@@ -426,7 +425,7 @@ object Utils {
     }
 
     fun isDeviceLargerThan7Inches(
-            context: Context
+        context: Context
     ): Boolean {
         if (isDeviceLargerThan7Inches != null) {
             return isDeviceLargerThan7Inches!!
@@ -446,10 +445,10 @@ object Utils {
     }
 
     fun getListHeight(
-            listSize: Int = 0,
-            cellHeight: Int,
-            min: Int = 1,
-            max: Int = 8
+        listSize: Int = 0,
+        cellHeight: Int,
+        min: Int = 1,
+        max: Int = 8
     ): Dp {
         var size = listSize
         if (size < min) size = min
@@ -500,9 +499,9 @@ object Utils {
     }
 
     fun convertDoubleToWords(
-            amount: Double,
-            prefix: String,
-            currency: String
+        amount: Double,
+        prefix: String,
+        currency: String
     ): String {
         val unitsMap = arrayOf(
             "",
@@ -543,8 +542,14 @@ object Utils {
             return when {
                 n < 20 -> unitsMap[n]
                 n < 100 -> tensMap[n / 10] + (if (n % 10 != 0) " " + unitsMap[n % 10] else "")
-                n < 1000 -> unitsMap[n / 100] + " Hundred" + (if (n % 100 != 0) " " + numberToWords(n % 100) else "")
-                n < 1_000_000 -> numberToWords(n / 1000) + " Thousand" + (if (n % 1000 != 0) " " + numberToWords(n % 1000) else "")
+                n < 1000 -> unitsMap[n / 100] + " Hundred" + (if (n % 100 != 0) " " + numberToWords(
+                    n % 100
+                ) else "")
+
+                n < 1_000_000 -> numberToWords(n / 1000) + " Thousand" + (if (n % 1000 != 0) " " + numberToWords(
+                    n % 1000
+                ) else "")
+
                 else -> "Out of Range"
             }
         }

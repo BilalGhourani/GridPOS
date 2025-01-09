@@ -1,11 +1,13 @@
 package com.grid.pos.ui.stockInOut
 
+import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.viewModelScope
 import com.grid.pos.data.item.Item
 import com.grid.pos.data.item.ItemRepository
 import com.grid.pos.data.settings.SettingsRepository
 import com.grid.pos.model.Event
 import com.grid.pos.model.SettingsModel
+import com.grid.pos.model.StockAdjItemModel
 import com.grid.pos.ui.common.BaseViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -17,12 +19,14 @@ import javax.inject.Inject
 
 @HiltViewModel
 class StockInOutViewModel @Inject constructor(
-        private val itemRepository: ItemRepository,
-        private val settingsRepository: SettingsRepository
+    private val itemRepository: ItemRepository,
+    private val settingsRepository: SettingsRepository
 ) : BaseViewModel() {
 
     private val _state = MutableStateFlow(StockInOutState())
     val state: MutableStateFlow<StockInOutState> = _state
+
+     val items = mutableStateListOf<StockAdjItemModel>()
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
@@ -70,53 +74,24 @@ class StockInOutViewModel @Inject constructor(
     }
 
     fun showWarning(
-            warning: String,
-            action: String? = null
+        warning: String?,
+        action: String? = null
     ) {
         viewModelScope.launch(Dispatchers.Main) {
             state.value = state.value.copy(
-                warning = Event(warning),
+                warning = if (warning.isNullOrEmpty()) null else Event(warning),
                 actionLabel = action,
                 isLoading = false
             )
         }
     }
 
-    fun save(
-            item: Item?,
-            warehouseId: String,
-            location: String,
-            openQty: String
-    ) {
-        if (item == null) {
-            state.value = state.value.copy(
-                warning = Event("Please select an item at first."),
-                isLoading = false
-            )
-            return
-        }
-
-        if (warehouseId.isEmpty()) {
-            state.value = state.value.copy(
-                warning = Event("Please select a warehouse at first."),
-                isLoading = false
-            )
-            return
-        }
-
+    fun save() {
         state.value = state.value.copy(
             isLoading = true
         )
 
-        CoroutineScope(Dispatchers.IO).launch {
-            item.itemWarehouse = warehouseId
-            item.itemLocation = location.ifEmpty { null }
-            if (openQty.isNotEmpty()) {
-                item.itemOpenQty = openQty.toDoubleOrNull() ?: item.itemOpenQty
-            }
-            val dataModel = itemRepository.updateWarehouseData(
-                item
-            )
+        /*CoroutineScope(Dispatchers.IO).launch {
             if (dataModel.succeed) {
                 withContext(Dispatchers.Main) {
                     state.value = state.value.copy(
@@ -126,14 +101,14 @@ class StockInOutViewModel @Inject constructor(
                         clear = true
                     )
                 }
-            } else  {
+            } else {
                 withContext(Dispatchers.Main) {
                     state.value = state.value.copy(
                         isLoading = false
                     )
                 }
             }
-        }
+        }*/
     }
 
 }

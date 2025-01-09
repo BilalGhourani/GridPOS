@@ -595,7 +595,7 @@ fun POSView(
                             )
 
                             Text(
-                                text = Utils.getItemsNumberStr(invoicesState),
+                                text = Utils.getItemsNumberStr(invoicesState.size),
                                 modifier = Modifier.wrapContentWidth(),
                                 textAlign = TextAlign.End,
                                 style = TextStyle(
