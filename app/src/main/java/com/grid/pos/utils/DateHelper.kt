@@ -80,7 +80,7 @@ object DateHelper {
             date2: Date
     ): Long {
         // Calculate the difference in milliseconds
-        val differenceInMillis = date1.time - date2.time
+        val differenceInMillis = date2.time - date1.time
         // Convert milliseconds to days
         return TimeUnit.MILLISECONDS.toDays(differenceInMillis)
     }
