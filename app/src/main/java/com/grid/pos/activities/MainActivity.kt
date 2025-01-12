@@ -53,6 +53,7 @@ import com.grid.pos.ui.navigation.AuthNavGraph
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.ui.theme.White
 import com.grid.pos.utils.Extension.getStoragePermissions
+import com.grid.pos.utils.FileUtils
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -220,6 +221,12 @@ class MainActivity : ComponentActivity() {
             }
         }
         registerActivityScopedEvent()
+        handleSharedFile()
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        handleSharedFile()
     }
 
     fun launchActivityForResult(
@@ -485,6 +492,28 @@ class MainActivity : ComponentActivity() {
         }
 
         startForResult.launch(intent)
+    }
+
+    private fun handleSharedFile() {
+        loadingState.value = true
+        val intent = intent
+        if (intent.action == Intent.ACTION_SEND) {
+            val fileUri = intent.getParcelableExtra<Uri>(Intent.EXTRA_STREAM)
+            fileUri?.let {
+                FileUtils.saveToInternalStorage(
+                    context = this,
+                    parent = "licenses",
+                    it,
+                    "license"
+                )
+                toastModel = ToastModel("license file saved successfully!")
+                showToastMessage.value = true
+            } ?: run {
+                toastModel = ToastModel("No file received")
+                showToastMessage.value = true
+            }
+        }
+        loadingState.value = false
     }
 }
 
