@@ -52,8 +52,8 @@ import com.grid.pos.ui.common.UIAlertDialog
 import com.grid.pos.ui.navigation.AuthNavGraph
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.ui.theme.White
-import com.grid.pos.utils.Extension.getStoragePermissions
 import com.grid.pos.utils.FileUtils
+import com.grid.pos.utils.Utils
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -327,7 +327,7 @@ class MainActivity : ComponentActivity() {
                 is ActivityUIEvent.LaunchGalleryPicker -> {
                     if (ContextCompat.checkSelfPermission(
                             this@MainActivity,
-                            getStoragePermissions()
+                            Utils.getStoragePermissions()
                         ) != PackageManager.PERMISSION_GRANTED
                     ) {
                         permissionDelegate = { granted ->
@@ -340,7 +340,7 @@ class MainActivity : ComponentActivity() {
                                 sharedEvent.onPermissionDenied.invoke()
                             }
                         }
-                        requestStoragePermission.launch(getStoragePermissions())
+                        requestStoragePermission.launch( Utils.getStoragePermissions())
                     } else {
                         launchGalleryPicker(
                             sharedEvent.mediaType,
@@ -352,7 +352,7 @@ class MainActivity : ComponentActivity() {
                 is ActivityUIEvent.LaunchFilePicker -> {
                     if (ContextCompat.checkSelfPermission(
                             this@MainActivity,
-                            getStoragePermissions()
+                            Utils.getStoragePermissions()
                         ) != PackageManager.PERMISSION_GRANTED
                     ) {
                         permissionDelegate = { granted ->
@@ -365,7 +365,7 @@ class MainActivity : ComponentActivity() {
                                 sharedEvent.onPermissionDenied.invoke()
                             }
                         }
-                        requestStoragePermission.launch(getStoragePermissions())
+                        requestStoragePermission.launch( Utils.getStoragePermissions())
                     } else {
                         launchFilePicker(
                             sharedEvent.intentType,

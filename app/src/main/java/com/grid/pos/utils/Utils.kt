@@ -1,8 +1,10 @@
 package com.grid.pos.utils
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.res.Configuration
+import android.os.Build
 import android.provider.Settings
 import android.util.DisplayMetrics
 import android.util.Log
@@ -562,6 +564,19 @@ object Utils {
             "$prefix $integerWords $currency and ${numberToWords(decimalPart)}"
         } else {
             "$prefix $integerWords $currency"
+        }
+    }
+
+    fun getStoragePermissions(): String {
+        return when {
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU -> {
+                Manifest.permission.READ_MEDIA_IMAGES
+            }
+
+            else -> {
+                Manifest.permission.READ_EXTERNAL_STORAGE + ","
+                Manifest.permission.WRITE_EXTERNAL_STORAGE
+            }
         }
     }
 }

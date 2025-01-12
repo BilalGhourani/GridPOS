@@ -115,19 +115,6 @@ object Extension {
         return String(output)
     }
 
-    fun getStoragePermissions(): String {
-        return when {
-            Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU -> {
-                Manifest.permission.READ_MEDIA_IMAGES
-            }
-
-            else -> {
-                Manifest.permission.READ_EXTERNAL_STORAGE + ","
-                Manifest.permission.WRITE_EXTERNAL_STORAGE
-            }
-        }
-    }
-
     fun ResultSet.getStringValue(
             value: String,
             fallback: String = ""
