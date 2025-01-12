@@ -345,7 +345,7 @@ object FileUtils {
         val dbFile: File = app.getDatabasePath(Constants.DATABASE_NAME)
         saveToExternalStorage(
             context = app.applicationContext,
-            parent = "bachup",
+            parent = "backup",
             sourceFilePath = dbFile.toUri(),
             destName = "grids ${
                 DateHelper.getDateInFormat(
