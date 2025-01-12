@@ -14,6 +14,7 @@ import android.webkit.MimeTypeMap
 import androidx.core.net.toUri
 import androidx.documentfile.provider.DocumentFile
 import com.grid.pos.App
+import com.grid.pos.R
 import com.grid.pos.data.AppDatabase
 import com.grid.pos.di.AppModule
 import com.grid.pos.model.FileModel
@@ -92,6 +93,7 @@ object FileUtils {
             workbook: XSSFWorkbook? = null
     ): String? {
         val resolver = context.contentResolver
+        val appName = context.getString(R.string.app_name)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             val contentValues = ContentValues().apply {
                 put(
@@ -107,7 +109,7 @@ object FileUtils {
                 )
                 put(
                     MediaStore.DownloadColumns.RELATIVE_PATH,
-                    "Download/${context.packageName}/$parent"
+                    "Download/$appName/$parent"
                 )
                 put(
                     MediaStore.DownloadColumns.IS_PENDING,
@@ -184,7 +186,7 @@ object FileUtils {
             val mediaDir: File? = context.getExternalFilesDir(null)?.parentFile?.let {
                 File(
                     it,
-                    "Android/media/${context.packageName}/$parent"
+                    "Android/media/$appName/$parent"
                 )
             }
 
@@ -572,19 +574,7 @@ object FileUtils {
             if (licenseFile.exists()) {
                 return licenseFile
             }
-        }/* val downloadDirectory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-         val licensesFolder = File(
-             downloadDirectory,
-             "${context.packageName}/licenses"
-         )
-         val licenseFile = File(
-             licensesFolder,
-             "license"
-         )
-
-         if (licenseFile.exists()) {
-             return licenseFile
-         }*/
+        }
         return null
     }
 
