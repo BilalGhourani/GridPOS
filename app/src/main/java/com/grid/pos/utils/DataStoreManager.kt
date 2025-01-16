@@ -33,11 +33,15 @@ object DataStoreManager {
 
     suspend fun putString(
         key: String,
-        value: String
+        value: String?
     ) {
         val preferencesKey = stringPreferencesKey(key)
         App.getInstance().applicationContext.dataStore.edit { preferences ->
-            preferences[preferencesKey] = value
+            value?.let { v ->
+                preferences[preferencesKey] = v
+            }?:run {
+                preferences.remove(preferencesKey)
+            }
         }
     }
 

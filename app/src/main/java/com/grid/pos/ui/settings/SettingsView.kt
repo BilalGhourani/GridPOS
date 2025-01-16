@@ -502,31 +502,35 @@ fun SettingsView(
                                     when (connectionTypeState) {
                                         CONNECTION_TYPE.FIRESTORE.key -> {
                                             SettingsModel.firebaseApplicationId =
-                                                firebaseApplicationId
+                                                firebaseApplicationId.trim().ifEmpty { null }
                                             DataStoreManager.putString(
                                                 DataStoreManager.DataStoreKeys.FIREBASE_APP_ID.key,
-                                                firebaseApplicationId
+                                                SettingsModel.firebaseApplicationId
                                             )
 
-                                            SettingsModel.firebaseApiKey = firebaseApiKey
+
+                                            SettingsModel.firebaseApiKey = firebaseApiKey.trim().ifEmpty { null }
                                             DataStoreManager.putString(
                                                 DataStoreManager.DataStoreKeys.FIREBASE_API_KEY.key,
-                                                firebaseApiKey
+                                                SettingsModel.firebaseApiKey
                                             )
-                                            SettingsModel.firebaseProjectId = firebaseProjectId
+
+                                            SettingsModel.firebaseProjectId = firebaseProjectId.trim().ifEmpty { null }
                                             DataStoreManager.putString(
                                                 DataStoreManager.DataStoreKeys.FIREBASE_PROJECT_ID.key,
-                                                firebaseProjectId
+                                                SettingsModel.firebaseProjectId
                                             )
-                                            SettingsModel.firebaseDbPath = firebaseDbPath
+
+                                            SettingsModel.firebaseDbPath = firebaseDbPath.trim().ifEmpty { null }
                                             DataStoreManager.putString(
                                                 DataStoreManager.DataStoreKeys.FIREBASE_DB_PATH.key,
-                                                firebaseDbPath
+                                                SettingsModel.firebaseDbPath
                                             )
-                                            SettingsModel.fireStoreCompanyID = fireStoreCompanyID
+
+                                            SettingsModel.fireStoreCompanyID = fireStoreCompanyID.trim().ifEmpty { null }
                                             DataStoreManager.putString(
                                                 DataStoreManager.DataStoreKeys.FIRESTORE_COMPANY_ID.key,
-                                                fireStoreCompanyID
+                                                SettingsModel.fireStoreCompanyID
                                             )
 
                                             if (SettingsModel.isConnectedToFireStore()) {
@@ -535,36 +539,42 @@ fun SettingsView(
                                         }
 
                                         CONNECTION_TYPE.SQL_SERVER.key -> {
-                                            SettingsModel.sqlServerPath = sqlServerPath
+                                            SettingsModel.sqlServerPath = sqlServerPath.trim().ifEmpty { null }
                                             DataStoreManager.putString(
                                                 DataStoreManager.DataStoreKeys.SQL_SERVER_PATH.key,
-                                                sqlServerPath
-                                            )
-                                            SettingsModel.sqlServerName = sqlServerName
-                                            DataStoreManager.putString(
-                                                DataStoreManager.DataStoreKeys.SQL_SERVER_NAME.key,
-                                                sqlServerName
-                                            )
-                                            SettingsModel.sqlServerDbName = sqlServerDbName
-                                            DataStoreManager.putString(
-                                                DataStoreManager.DataStoreKeys.SQL_SERVER_DB_NAME.key,
-                                                sqlServerDbName
-                                            )
-                                            SettingsModel.sqlServerDbUser = sqlServerDbUser
-                                            DataStoreManager.putString(
-                                                DataStoreManager.DataStoreKeys.SQL_SERVER_DB_USER.key,
-                                                sqlServerDbUser
-                                            )
-                                            SettingsModel.sqlServerDbPassword = sqlServerDbPassword
-                                            DataStoreManager.putString(
-                                                DataStoreManager.DataStoreKeys.SQL_SERVER_DB_PASSWORD.key,
-                                                sqlServerDbPassword
+                                                SettingsModel.sqlServerPath
                                             )
 
-                                            SettingsModel.sqlServerCompanyId = sqlServerCompanyId
+                                            SettingsModel.sqlServerName = sqlServerName.trim().ifEmpty { null }
+                                            DataStoreManager.putString(
+                                                DataStoreManager.DataStoreKeys.SQL_SERVER_NAME.key,
+                                                SettingsModel.sqlServerName
+                                            )
+
+                                            SettingsModel.sqlServerDbName = sqlServerDbName.trim().ifEmpty { null }
+                                            DataStoreManager.putString(
+                                                DataStoreManager.DataStoreKeys.SQL_SERVER_DB_NAME.key,
+                                                SettingsModel.sqlServerDbName
+                                            )
+
+                                            SettingsModel.sqlServerDbUser = sqlServerDbUser.trim().ifEmpty { null }
+                                            DataStoreManager.putString(
+                                                DataStoreManager.DataStoreKeys.SQL_SERVER_DB_USER.key,
+                                                SettingsModel.sqlServerDbUser
+                                            )
+
+                                            SettingsModel.sqlServerDbPassword =
+                                                sqlServerDbPassword.trim().ifEmpty { null }
+                                            DataStoreManager.putString(
+                                                DataStoreManager.DataStoreKeys.SQL_SERVER_DB_PASSWORD.key,
+                                                SettingsModel.sqlServerDbPassword
+                                            )
+
+                                            SettingsModel.sqlServerCompanyId =
+                                                sqlServerCompanyId.trim().ifEmpty { null }
                                             DataStoreManager.putString(
                                                 DataStoreManager.DataStoreKeys.SQL_SERVER_COMPANY_ID.key,
-                                                sqlServerCompanyId
+                                                SettingsModel.sqlServerCompanyId
                                             )
 
                                             SettingsModel.isSqlServerWebDb = isSqlServerWebDb
@@ -572,6 +582,7 @@ fun SettingsView(
                                                 DataStoreManager.DataStoreKeys.IS_SQL_SERVER_WEB_DB.key,
                                                 isSqlServerWebDb
                                             )
+
                                             if (SettingsModel.connectionType == CONNECTION_TYPE.SQL_SERVER.key) {
                                                 SQLServerWrapper.openConnection()
                                             }
@@ -775,34 +786,40 @@ fun SettingsView(
                                     defaultReportLanguage
                                 )
 
-                                SettingsModel.defaultPayment = defaultPaymentState
+                                SettingsModel.defaultPayment = defaultPaymentState.trim()
                                 DataStoreManager.putString(
                                     DataStoreManager.DataStoreKeys.DEFAULT_PAYMENT.key,
-                                    defaultPaymentState
+                                    SettingsModel.defaultPayment
                                 )
 
-                                SettingsModel.defaultReceipt = defaultReceiptState
+                                SettingsModel.defaultReceipt = defaultReceiptState.trim()
                                 DataStoreManager.putString(
                                     DataStoreManager.DataStoreKeys.DEFAULT_RECEIPT.key,
-                                    defaultReceiptState
+                                    SettingsModel.defaultReceipt
                                 )
 
-                                SettingsModel.defaultLocalBranch = defaultBranchState
+                                SettingsModel.defaultLocalBranch =
+                                    defaultBranchState.trim().ifEmpty { null }
                                 DataStoreManager.putString(
                                     DataStoreManager.DataStoreKeys.DEFAULT_BRANCH.key,
-                                    defaultBranchState
+                                    SettingsModel.defaultLocalBranch
                                 )
 
-                                SettingsModel.defaultLocalWarehouse = defaultWarehouseState
+
+                                SettingsModel.defaultLocalWarehouse =
+                                    defaultWarehouseState.trim().ifEmpty { null }
                                 DataStoreManager.putString(
                                     DataStoreManager.DataStoreKeys.DEFAULT_WAREHOUSE.key,
-                                    defaultWarehouseState
+                                    SettingsModel.defaultLocalWarehouse
                                 )
-                                SettingsModel.barcodePriceName = barcodePriceNameState
+
+                                SettingsModel.barcodePriceName =
+                                    barcodePriceNameState.trim().ifEmpty { null }
                                 DataStoreManager.putString(
                                     DataStoreManager.DataStoreKeys.BARCODE_PRICE_NAME.key,
-                                    barcodePriceNameState
+                                    SettingsModel.barcodePriceName
                                 )
+
                                 delay(1000L)
                                 withContext(Dispatchers.Main) {
                                     isLoading = false
@@ -1021,22 +1038,23 @@ fun SettingsView(
                             isLoading = true
                             keyboardController?.hide()
                             scope.launch(Dispatchers.IO) {
-                                SettingsModel.cashPrinter = cashPrinterState
+                                SettingsModel.cashPrinter = cashPrinterState.trim().ifEmpty { null }
                                 DataStoreManager.putString(
                                     DataStoreManager.DataStoreKeys.CASH_PRINTER.key,
-                                    cashPrinterState
+                                    SettingsModel.cashPrinter
                                 )
 
-                                SettingsModel.defaultSaleInvoice = defaultSaleInvoiceState
+
+                                SettingsModel.defaultSaleInvoice = defaultSaleInvoiceState.trim()
                                 DataStoreManager.putString(
                                     DataStoreManager.DataStoreKeys.DEFAULT_SALE_INVOICE.key,
-                                    defaultSaleInvoiceState
+                                    SettingsModel.defaultSaleInvoice
                                 )
 
-                                SettingsModel.defaultReturnSale = defaultReturnSaleState
+                                SettingsModel.defaultReturnSale = defaultReturnSaleState.trim()
                                 DataStoreManager.putString(
                                     DataStoreManager.DataStoreKeys.DEFAULT_RETURN_SALE.key,
-                                    defaultReturnSaleState
+                                    SettingsModel.defaultReturnSale
                                 )
 
                                 SettingsModel.showItemsInPOS = showItemsInPOS
