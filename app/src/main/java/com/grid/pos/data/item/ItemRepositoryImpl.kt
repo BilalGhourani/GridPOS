@@ -594,7 +594,7 @@ class ItemRepositoryImpl(
                 item.itemBarcode,//@it_barcode
                 null,//@it_alertqty
                 null,//@it_di_name
-                null,//@it_inactive
+                0,//@it_inactive
                 SettingsModel.currentCompany?.cmp_multibranchcode,//@branchcode
                 null,//@it_size
                 item.itemBtnColor,//@it_color
@@ -645,7 +645,7 @@ class ItemRepositoryImpl(
                 item.itemBarcode,//@it_barcode
                 null,//@it_alertqty
                 null,//@it_di_name
-                null,//@it_inactive
+                0,//@it_inactive
                 SettingsModel.currentCompany?.cmp_multibranchcode,//@branchcode
                 null,//@it_size
                 item.itemBtnColor,//@it_color
