@@ -138,6 +138,10 @@ data class StockAdjustment(
 
     @Ignore
     @get:Exclude
+    var stockAdjRowguid: String? = null,
+
+    @Ignore
+    @get:Exclude
     var stockAdjDivName: String? = null,
 
     /**

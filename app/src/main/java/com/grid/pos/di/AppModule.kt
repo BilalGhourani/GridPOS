@@ -33,6 +33,10 @@ import com.grid.pos.data.receipt.ReceiptRepository
 import com.grid.pos.data.receipt.ReceiptRepositoryImpl
 import com.grid.pos.data.settings.SettingsRepository
 import com.grid.pos.data.settings.SettingsRepositoryImpl
+import com.grid.pos.data.stockAdjustment.StockAdjustmentRepository
+import com.grid.pos.data.stockAdjustment.StockAdjustmentRepositoryImpl
+import com.grid.pos.data.stockHeaderAdjustment.StockHeaderAdjustmentRepository
+import com.grid.pos.data.stockHeaderAdjustment.StockHeaderAdjustmentRepositoryImpl
 import com.grid.pos.data.thirdParty.ThirdPartyRepository
 import com.grid.pos.data.thirdParty.ThirdPartyRepositoryImpl
 import com.grid.pos.data.user.UserRepository
@@ -152,9 +156,21 @@ object AppModule {
 
     @Provides
     @Singleton
+    fun provideStockHeaderAdjustmentRepository(): StockHeaderAdjustmentRepository {
+        return StockHeaderAdjustmentRepositoryImpl()
+    }
+
+    @Provides
+    @Singleton
+    fun provideStockAdjustmentRepository(): StockAdjustmentRepository {
+        return StockAdjustmentRepositoryImpl()
+    }
+
+    @Provides
+    @Singleton
     fun provideLicenseUseCase(
-            companyRepository: CompanyRepository,
-            invoiceHeaderRepository: InvoiceHeaderRepository
+        companyRepository: CompanyRepository,
+        invoiceHeaderRepository: InvoiceHeaderRepository
     ): CheckLicenseUseCase {
         return CheckLicenseUseCase(
             companyRepository,

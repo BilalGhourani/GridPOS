@@ -219,7 +219,7 @@ fun StockInOutView(
                     modifier = Modifier
                         .fillMaxWidth()
                         .fillMaxHeight()
-                        .padding(top = 185.dp),
+                        .padding(top = 270.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
 
@@ -336,7 +336,7 @@ fun StockInOutView(
 
                 Row(
                     modifier = Modifier.padding(
-                        top = 100.dp,
+                        top = 185.dp,
                         start = 10.dp,
                         end = 10.dp
                     )
@@ -356,7 +356,7 @@ fun StockInOutView(
 
                 Row(
                     modifier = Modifier.padding(
-                        top = 15.dp,
+                        top = 100.dp,
                         start = 10.dp,
                         end = 10.dp
                     )
@@ -366,7 +366,11 @@ fun StockInOutView(
                         modifier = Modifier
                             .weight(1f)
                             .padding(horizontal = 3.dp),
-                        onLoadItems = { viewModel.fetchWarehouses() },
+                        onLoadItems = {
+                            scope.launch(Dispatchers.IO) {
+                                viewModel.fetchWarehouses()
+                            }
+                        },
                         label = "From Warehouse",
                         selectedId = fromWarehouseState
                     ) { warehouse ->
@@ -379,13 +383,33 @@ fun StockInOutView(
                         modifier = Modifier
                             .weight(1f)
                             .padding(horizontal = 3.dp),
-                        onLoadItems = { viewModel.fetchWarehouses() },
+                        onLoadItems = {
+                            scope.launch(Dispatchers.IO) {
+                                viewModel.fetchWarehouses()
+                            }
+                        },
                         label = "To Warehouse",
                         selectedId = toWarehouseState
                     ) { warehouse ->
                         warehouse as WarehouseModel
                         toWarehouseState = warehouse.getId()
                     }
+                }
+
+                SearchableDropdownMenuEx(items = state.stockHeaderAdjustments.toMutableList(),
+                    modifier = Modifier.padding(
+                        top = 15.dp,
+                        start = 10.dp,
+                        end = 10.dp
+                    ),
+                    showSelected = false,
+                    label = "Select Transfer",
+                    onLoadItems = { viewModel.fetchTransfers() }) { stockHeaderAdjustment ->
+                    stockHeaderAdjustment as StockHeaderAdjustment
+
+                    fromWarehouseState = stockHeaderAdjustment.stockHAWaName ?: ""
+                    toWarehouseState = stockHeaderAdjustment.stockHAWaName ?: ""
+                    viewModel.loadTransferDetails(stockHeaderAdjustment)
                 }
             }
 

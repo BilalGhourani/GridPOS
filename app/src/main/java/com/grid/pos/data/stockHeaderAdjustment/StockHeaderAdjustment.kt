@@ -57,6 +57,10 @@ data class StockHeaderAdjustment(
     @get:PropertyName("hsa_tt_code")
     var stockHATtCode: String? = null,
 
+    @Ignore
+    @get:Exclude
+    var stockHATtCodeName: String? = null,
+
     /**
      * Invoice Header Trans number
      * */
@@ -84,6 +88,14 @@ data class StockHeaderAdjustment(
     @Ignore
     @get:Exclude
     var stockHAWaName: String? = null,
+
+    @Ignore
+    @get:Exclude
+    var stockHASessionPointer: String? = null,
+
+    @Ignore
+    @get:Exclude
+    var stockHARowguid: String? = null,
 
 
     /**
@@ -124,7 +136,7 @@ data class StockHeaderAdjustment(
 
     @Exclude
     override fun getName(): String {
-        return stockHATransNo ?: stockHANo ?: ""
+        return "${stockHATtCodeName ?: ""} ${stockHATransNo ?: ""}"
     }
 
     @Exclude
