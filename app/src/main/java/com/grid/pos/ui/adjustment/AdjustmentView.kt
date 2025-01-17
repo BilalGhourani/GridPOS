@@ -93,10 +93,10 @@ import java.util.TimeZone
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdjustmentView(
-        modifier: Modifier = Modifier,
-        navController: NavController? = null,
-        sharedViewModel: SharedViewModel,
-        viewModel: AdjustmentViewModel = hiltViewModel()
+    modifier: Modifier = Modifier,
+    navController: NavController? = null,
+    sharedViewModel: SharedViewModel,
+    viewModel: AdjustmentViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
@@ -107,8 +107,8 @@ fun AdjustmentView(
     val dateFormat = "yyyy-MM-dd HH:mm"
 
     fun getDateFromState(
-            time: Long,
-            timePickerState: TimePickerState
+        time: Long,
+        timePickerState: TimePickerState
     ): Date {
         val date = currentTime.apply {
             timeInMillis = time
@@ -163,6 +163,7 @@ fun AdjustmentView(
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
     var isPopupVisible by remember { mutableStateOf(false) }
+    var collapseItemListState by remember { mutableStateOf(false) }
 
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -427,7 +428,7 @@ fun AdjustmentView(
                     label = "Select Item",
                     selectedId = itemState,
                     onLoadItems = { viewModel.fetchItems() },
-                    leadingIcon = {mod->
+                    leadingIcon = { mod ->
                         if (itemState.isNotEmpty()) {
                             Icon(
                                 Icons.Default.RemoveCircleOutline,
@@ -441,9 +442,11 @@ fun AdjustmentView(
                         itemState = ""
                         state.selectedItem = null
                     },
+                    collapseOnInit = collapseItemListState,
                     searchEnteredText = barcodeSearchState,
                     searchLeadingIcon = {
                         IconButton(onClick = {
+                            collapseItemListState = false
                             sharedViewModel.launchBarcodeScanner(true,
                                 null,
                                 object : OnBarcodeResult {
@@ -452,14 +455,15 @@ fun AdjustmentView(
                                             val resp = barcodesList[0]
                                             if (resp is String) {
                                                 scope.launch(Dispatchers.Default) {
-                                                    val item = state.items.firstOrNull {
-                                                        it.itemBarcode.equals(
+                                                    val item = state.items.firstOrNull {iterator->
+                                                        iterator.itemBarcode.equals(
                                                             resp,
                                                             ignoreCase = true
                                                         )
                                                     }
                                                     withContext(Dispatchers.Main) {
                                                         if (item != null) {
+                                                            collapseItemListState = true
                                                             itemState = item.itemId
                                                             state.selectedItem = item
                                                         } else {

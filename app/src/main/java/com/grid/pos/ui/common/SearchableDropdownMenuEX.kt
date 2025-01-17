@@ -58,6 +58,7 @@ fun SearchableDropdownMenuEx(
         selectedId: String? = null,
         showSelected: Boolean = true,
         enableSearch: Boolean = true,
+        collapseOnInit: Boolean = false,
         color: Color = SettingsModel.backgroundColor,
         leadingIcon: @Composable ((Modifier) -> Unit)? = null,
         searchLeadingIcon: @Composable (() -> Unit)? = null,
@@ -70,7 +71,7 @@ fun SearchableDropdownMenuEx(
         onSelectionChange: (EntityModel) -> Unit = {},
 ) {
     var isLoaded by remember { mutableStateOf(false) }
-    var expandedState by remember { mutableStateOf(false) }
+    var isExpanded by remember { mutableStateOf(false) }
     var searchText by remember { mutableStateOf("") }
     var selectedItemState by remember { mutableStateOf(label) }
     LaunchedEffect(
@@ -96,6 +97,13 @@ fun SearchableDropdownMenuEx(
     LaunchedEffect(key1 = searchEnteredText) {
         if (!searchEnteredText.isNullOrEmpty()) {
             searchText = searchEnteredText
+        }
+    }
+
+    // Handle initialization of collapse state
+    LaunchedEffect(collapseOnInit) {
+        if (collapseOnInit) {
+            isExpanded = false
         }
     }
 
@@ -125,11 +133,11 @@ fun SearchableDropdownMenuEx(
                 RoundedCornerShape(cornerRadius)
             )
             .clickable {
-                if (!expandedState && !isLoaded) {
+                if (!isExpanded && !isLoaded) {
                     isLoaded = true
                     onLoadItems.invoke()
                 }
-                expandedState = !expandedState
+                isExpanded = !isExpanded
             }) {
             leadingIcon?.invoke(
                 Modifier
@@ -141,7 +149,7 @@ fun SearchableDropdownMenuEx(
                     .align(Alignment.CenterVertically)
                     .clickable {
                         onLeadingIconClick.invoke()
-                        expandedState = false
+                        isExpanded = false
                     })
             Text(
                 modifier = Modifier
@@ -172,12 +180,12 @@ fun SearchableDropdownMenuEx(
                         end = 10.dp
                     )
                     .align(Alignment.CenterVertically)
-                    .rotate(if (expandedState) 180f else 0f),
+                    .rotate(if (isExpanded) 180f else 0f),
                 tint = SettingsModel.buttonColor
             )
         }
 
-        if (expandedState) {
+        if (isExpanded) {
             val filteredItems = if (searchText.isEmpty()) items else items.filter {
                 it.search(searchText)
             }
@@ -247,7 +255,7 @@ fun SearchableDropdownMenuEx(
                                             .clickable {
                                                 onSelectionChange(dataObj)
                                                 if (showSelected) selectedItemState = dataObj.getName()
-                                                expandedState = false
+                                                isExpanded = false
                                             },
                                         text = dataObj.getName(),
                                         maxLines = 2,

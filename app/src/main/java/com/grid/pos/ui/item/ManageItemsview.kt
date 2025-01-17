@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -60,15 +59,14 @@ import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import com.grid.pos.SharedViewModel
 import com.grid.pos.R
+import com.grid.pos.SharedViewModel
 import com.grid.pos.data.family.Family
 import com.grid.pos.data.item.Item
 import com.grid.pos.data.posPrinter.PosPrinter
 import com.grid.pos.interfaces.OnBarcodeResult
 import com.grid.pos.interfaces.OnGalleryResult
 import com.grid.pos.model.CurrencyModel
-import com.grid.pos.model.InvoiceItemModel
 import com.grid.pos.model.ItemGroupModel
 import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
@@ -77,12 +75,10 @@ import com.grid.pos.ui.common.SearchableDropdownMenuEx
 import com.grid.pos.ui.common.UIImageButton
 import com.grid.pos.ui.common.UISwitch
 import com.grid.pos.ui.common.UITextField
-import com.grid.pos.ui.pos.POSUtils
 import com.grid.pos.ui.settings.ColorPickerType
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.utils.Extension.toHexCode
 import com.grid.pos.utils.FileUtils
-import com.grid.pos.utils.PrinterUtils
 import com.grid.pos.utils.Utils
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -127,6 +123,7 @@ fun ManageItemsView(
             SettingsModel.currentCompany?.companyTax2.toString()
         )
     }
+    var collapseItemListState by remember { mutableStateOf(false) }
     var barcodeSearchState by remember { mutableStateOf("") }
     var barcodeState by remember { mutableStateOf("") }
     var openCostState by remember { mutableStateOf("") }
@@ -966,9 +963,11 @@ fun ManageItemsView(
                     onLeadingIconClick = {
                         clear()
                     },
+                    collapseOnInit = collapseItemListState,
                     searchEnteredText = barcodeSearchState,
                     searchLeadingIcon = {
                         IconButton(onClick = {
+                            collapseItemListState = false
                             sharedViewModel.launchBarcodeScanner(true,
                                 null,
                                 object : OnBarcodeResult {
@@ -977,14 +976,15 @@ fun ManageItemsView(
                                             val resp = barcodesList[0]
                                             if (resp is String) {
                                                 scope.launch(Dispatchers.Default) {
-                                                    val item = state.items.firstOrNull {
-                                                        it.itemBarcode.equals(
+                                                    val item = state.items.firstOrNull {iterator->
+                                                        iterator.itemBarcode.equals(
                                                             resp,
                                                             ignoreCase = true
                                                         )
                                                     }
                                                     withContext(Dispatchers.Main) {
                                                         if (item != null) {
+                                                            collapseItemListState = true
                                                             fillItemInputs(item)
                                                         } else {
                                                             barcodeSearchState = resp

@@ -71,10 +71,10 @@ import kotlinx.coroutines.withContext
 )
 @Composable
 fun ItemOpeningView(
-        modifier: Modifier = Modifier,
-        navController: NavController? = null,
-        sharedViewModel: SharedViewModel,
-        viewModel: ItemOpeningViewModel = hiltViewModel()
+    modifier: Modifier = Modifier,
+    navController: NavController? = null,
+    sharedViewModel: SharedViewModel,
+    viewModel: ItemOpeningViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
@@ -85,6 +85,7 @@ fun ItemOpeningView(
     val costFirstFocusRequester = remember { FocusRequester() }
     val costSecondFocusRequester = remember { FocusRequester() }
 
+    var collapseItemListState by remember { mutableStateOf(false) }
     var barcodeSearchState by remember { mutableStateOf("") }
 
     var warehouseState by remember { mutableStateOf("") }
@@ -315,14 +316,16 @@ fun ItemOpeningView(
 
                         val costDouble = costState.toDoubleOrNull() ?: 0.0
                         if (currencyIndexState == 1) {
-                            val second = costDouble.times(SettingsModel.currentCurrency?.currencyRate ?: 1.0)
+                            val second =
+                                costDouble.times(SettingsModel.currentCurrency?.currencyRate ?: 1.0)
                             costSecondState = POSUtils.formatDouble(
                                 second,
                                 SettingsModel.currentCurrency?.currencyName2Dec ?: 2
                             )
                             costFirstState = costState
                         } else if (currencyIndexState == 2) {
-                            val first = costDouble.div(SettingsModel.currentCurrency?.currencyRate ?: 1.0)
+                            val first =
+                                costDouble.div(SettingsModel.currentCurrency?.currencyRate ?: 1.0)
                             costFirstState = POSUtils.formatDouble(
                                 first,
                                 SettingsModel.currentCurrency?.currencyName1Dec ?: 2
@@ -432,6 +435,7 @@ fun ItemOpeningView(
                     searchEnteredText = barcodeSearchState,
                     searchLeadingIcon = {
                         IconButton(onClick = {
+                            collapseItemListState = false
                             sharedViewModel.launchBarcodeScanner(true,
                                 null,
                                 object : OnBarcodeResult {
@@ -440,14 +444,15 @@ fun ItemOpeningView(
                                             val resp = barcodesList[0]
                                             if (resp is String) {
                                                 scope.launch(Dispatchers.Default) {
-                                                    val item = state.items.firstOrNull {
-                                                        it.itemBarcode.equals(
+                                                    val item = state.items.firstOrNull { iterator ->
+                                                        iterator.itemBarcode.equals(
                                                             resp,
                                                             ignoreCase = true
                                                         )
                                                     }
                                                     withContext(Dispatchers.Main) {
                                                         if (item != null) {
+                                                            collapseItemListState = true
                                                             fillItemInputs(item)
                                                         } else {
                                                             barcodeSearchState = resp
