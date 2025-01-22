@@ -9,7 +9,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -21,7 +20,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -38,9 +37,9 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -65,16 +64,17 @@ import androidx.navigation.NavController
 import com.grid.pos.R
 import com.grid.pos.SharedViewModel
 import com.grid.pos.data.item.Item
-import com.grid.pos.data.stockHeaderAdjustment.StockHeaderAdjustment
+import com.grid.pos.data.stockHeadInOut.header.StockHeaderInOut
 import com.grid.pos.interfaces.OnBarcodeResult
+import com.grid.pos.model.PopupModel
+import com.grid.pos.model.PopupState
 import com.grid.pos.model.SettingsModel
-import com.grid.pos.model.StockAdjItemModel
+import com.grid.pos.model.StockInOutItemModel
 import com.grid.pos.model.ToastModel
 import com.grid.pos.model.WarehouseModel
 import com.grid.pos.ui.common.SearchableDropdownMenuEx
 import com.grid.pos.ui.common.UIImageButton
-import com.grid.pos.ui.pos.components.EditInvoiceItemView
-import com.grid.pos.ui.stockInOut.components.EditStockAdjustItemView
+import com.grid.pos.ui.stockInOut.components.EditStockInOutItemView
 import com.grid.pos.ui.stockInOut.components.itemDataGrid
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.utils.Utils
@@ -93,12 +93,13 @@ fun StockInOutView(
     viewModel: StockInOutViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val stockHeaderInOut = viewModel.stockHeaderInOutState.collectAsState().value
 
-    var fromWarehouseState by remember { mutableStateOf("") }
-    var toWarehouseState by remember { mutableStateOf("") }
-
-    var itemIndexToEdit by remember { mutableIntStateOf(-1) }
     var isEditBottomSheetVisible by remember { mutableStateOf(false) }
+
+
+    var popupState by remember { mutableStateOf(PopupState.BACK_PRESSED) }
+    var isPopupShown by remember { mutableStateOf(false) }
 
     val scope = rememberCoroutineScope()
     var orientation by remember { mutableIntStateOf(Configuration.ORIENTATION_PORTRAIT) }
@@ -140,9 +141,6 @@ fun StockInOutView(
     }
 
     fun clear() {
-        fromWarehouseState = ""
-        toWarehouseState = ""
-
         viewModel.resetState()
     }
 
@@ -155,9 +153,55 @@ fun StockInOutView(
             keyboardController?.hide()
         } else if (isEditBottomSheetVisible) {
             isEditBottomSheetVisible = false
+        } else if (viewModel.items.isNotEmpty()) {
+            popupState = PopupState.DISCARD_CHANGES
+            isPopupShown = true
         } else {
             navController?.navigateUp()
         }
+    }
+
+    LaunchedEffect(isPopupShown) {
+        sharedViewModel.showPopup(isPopupShown,
+            if (!isPopupShown) null else PopupModel().apply {
+                onDismissRequest = {
+                    isPopupShown = false
+                }
+                onConfirmation = {
+                    isPopupShown = false
+                    if (popupState != PopupState.DELETE_ITEM) {
+                        viewModel.resetState()
+                    }
+                    when (popupState) {
+                        PopupState.BACK_PRESSED -> {}
+
+                        PopupState.DISCARD_CHANGES -> {
+                            handleBack()
+                        }
+
+                        PopupState.CHANGE_ITEM -> {
+                            viewModel.pendingStockHeaderInOut?.let { stockHeaderInOut ->
+                                viewModel.loadTransferDetails(stockHeaderInOut)
+                                viewModel.pendingStockHeaderInOut = null
+                            }
+
+                        }
+
+                        PopupState.DELETE_ITEM -> {
+                            viewModel.deleteEntry()
+                        }
+                    }
+                }
+                dialogText = when (popupState) {
+                    PopupState.DELETE_ITEM -> "Are you sure you want to Delete this transfer?"
+                    else -> "Are you sure you want to discard current transfer?"
+                }
+                positiveBtnText = when (popupState) {
+                    PopupState.DELETE_ITEM -> "Delete"
+                    else -> "Discard"
+                }
+                negativeBtnText = "Cancel"
+            })
     }
 
     LaunchedEffect(
@@ -222,9 +266,8 @@ fun StockInOutView(
                         .padding(top = 270.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-
                     itemDataGrid(
-                        stockAdjItems = viewModel.items,
+                        stockInOutItems = viewModel.items,
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(
@@ -241,82 +284,28 @@ fun StockInOutView(
                             ),
                         isLandscape = isTablet || isDeviceLargerThan7Inches || isLandscape,
                         onEdit = { index ->
-                            itemIndexToEdit = index
+                            viewModel.selectedItemIndex = index
                             isEditBottomSheetVisible = true
                         },
                         onRemove = { index ->
                             val deletedRow = viewModel.items.removeAt(index)
-                            if (!deletedRow.stockAdjustment.isNew()) {
+                            if (!deletedRow.stockInOut.isNew()) {
                                 deletedRow.isDeleted = true
-                                state.itemsToDelete.add(deletedRow)
+                                viewModel.deletedItems.add(deletedRow)
                             }
                         })
-                    Row(
+                    Text(
+                        text = Utils.getItemsNumberStr(viewModel.items.size),
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .height(25.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        IconButton(modifier = Modifier.size(25.dp),
-                            onClick = {
-                                sharedViewModel.launchBarcodeScanner(false,
-                                    ArrayList(state.items),
-                                    object : OnBarcodeResult {
-                                        override fun OnBarcodeResult(barcodesList: List<Any>) {
-                                            if (barcodesList.isNotEmpty()) {
-                                                sharedViewModel.showLoading(true)
-                                                scope.launch {
-                                                    val map: Map<Item, Int> =
-                                                        barcodesList.groupingBy { item -> item as Item }
-                                                            .eachCount()
-
-                                                    map.forEach { (item, count) ->
-                                                        if (!item.itemBarcode.isNullOrEmpty()) {
-                                                            withContext(Dispatchers.IO) {
-                                                                sharedViewModel.updateRealItemPrice(
-                                                                    item
-                                                                )
-                                                            }
-                                                            val stockAdjItemModel =
-                                                                StockAdjItemModel()
-                                                            stockAdjItemModel.setItem(item)
-                                                            stockAdjItemModel.stockAdjustment.stockAdjQty =
-                                                                count.toDouble()
-                                                            viewModel.items.add(stockAdjItemModel)
-                                                        }
-                                                    }
-                                                    withContext(Dispatchers.Main) {
-                                                        sharedViewModel.showLoading(false)
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    },
-                                    onPermissionDenied = {
-                                        viewModel.showWarning(
-                                            "Permission Denied",
-                                            "Settings"
-                                        )
-                                    })
-                            }) {
-                            Icon(
-                                Icons.Default.QrCode2,
-                                contentDescription = "Barcode",
-                                tint = SettingsModel.buttonColor
-                            )
-                        }
-
-                        Text(
-                            text = Utils.getItemsNumberStr(viewModel.items.size),
-                            modifier = Modifier.wrapContentWidth(),
-                            textAlign = TextAlign.End,
-                            style = TextStyle(
-                                fontWeight = FontWeight.Normal,
-                                fontSize = 12.sp
-                            ),
-                            color = SettingsModel.textColor
-                        )
-                    }
+                            .wrapContentWidth(align = Alignment.End)
+                            .wrapContentHeight(),
+                        textAlign = TextAlign.End,
+                        style = TextStyle(
+                            fontWeight = FontWeight.Normal,
+                            fontSize = 12.sp
+                        ),
+                        color = SettingsModel.textColor
+                    )
 
                     Spacer(modifier = Modifier.weight(1f))
 
@@ -345,12 +334,60 @@ fun StockInOutView(
                         modifier = Modifier.weight(1f),
                         showSelected = false,
                         label = "Select Item",
-                        onLoadItems = { viewModel.fetchItems() }) { item ->
+                        onLoadItems = { viewModel.fetchItems() },
+                        leadingIcon = { modifier ->
+                            Icon(
+                                Icons.Default.QrCode2,
+                                contentDescription = "Barcode",
+                                tint = SettingsModel.buttonColor,
+                                modifier = modifier
+                            )
+                        }, onLeadingIconClick = {
+                            sharedViewModel.launchBarcodeScanner(false,
+                                ArrayList(state.items),
+                                object : OnBarcodeResult {
+                                    override fun OnBarcodeResult(barcodesList: List<Any>) {
+                                        if (barcodesList.isNotEmpty()) {
+                                            sharedViewModel.showLoading(true)
+                                            scope.launch {
+                                                val map: Map<Item, Int> =
+                                                    barcodesList.groupingBy { item -> item as Item }
+                                                        .eachCount()
+
+                                                map.forEach { (item, count) ->
+                                                    if (!item.itemBarcode.isNullOrEmpty()) {
+                                                        withContext(Dispatchers.IO) {
+                                                            sharedViewModel.updateRealItemPrice(
+                                                                item
+                                                            )
+                                                        }
+                                                        val stockInOutItem =
+                                                            StockInOutItemModel()
+                                                        stockInOutItem.setItem(item)
+                                                        stockInOutItem.stockInOut.stockInOutQty =
+                                                            count.toDouble()
+                                                        viewModel.items.add(stockInOutItem)
+                                                    }
+                                                }
+                                                withContext(Dispatchers.Main) {
+                                                    sharedViewModel.showLoading(false)
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
+                                onPermissionDenied = {
+                                    viewModel.showWarning(
+                                        "Permission Denied",
+                                        "Settings"
+                                    )
+                                })
+                        }) { item ->
                         item as Item
-                        val stockAdjItemModel =
-                            StockAdjItemModel()
-                        stockAdjItemModel.setItem(item)
-                        viewModel.items.add(stockAdjItemModel)
+                        val stockInOutItem =
+                            StockInOutItemModel()
+                        stockInOutItem.setItem(item)
+                        viewModel.items.add(stockInOutItem)
                     }
                 }
 
@@ -372,10 +409,14 @@ fun StockInOutView(
                             }
                         },
                         label = "From Warehouse",
-                        selectedId = fromWarehouseState
+                        selectedId = stockHeaderInOut.stockHeadInOutWaTpName
                     ) { warehouse ->
                         warehouse as WarehouseModel
-                        fromWarehouseState = warehouse.getId()
+                        viewModel.updateStockHeaderInOut(
+                            stockHeaderInOut.copy(
+                                stockHeadInOutWaTpName = warehouse.getId()
+                            )
+                        )
                     }
 
                     SearchableDropdownMenuEx(
@@ -389,14 +430,18 @@ fun StockInOutView(
                             }
                         },
                         label = "To Warehouse",
-                        selectedId = toWarehouseState
+                        selectedId = stockHeaderInOut.stockHeadInOutWaName
                     ) { warehouse ->
                         warehouse as WarehouseModel
-                        toWarehouseState = warehouse.getId()
+                        viewModel.updateStockHeaderInOut(
+                            stockHeaderInOut.copy(
+                                stockHeadInOutWaName = warehouse.getId()
+                            )
+                        )
                     }
                 }
 
-                SearchableDropdownMenuEx(items = state.stockHeaderAdjustments.toMutableList(),
+                SearchableDropdownMenuEx(items = state.stockHeaderInOutList.toMutableList(),
                     modifier = Modifier.padding(
                         top = 15.dp,
                         start = 10.dp,
@@ -404,12 +449,18 @@ fun StockInOutView(
                     ),
                     showSelected = false,
                     label = "Select Transfer",
-                    onLoadItems = { viewModel.fetchTransfers() }) { stockHeaderAdjustment ->
-                    stockHeaderAdjustment as StockHeaderAdjustment
+                    onLoadItems = { viewModel.fetchTransfers() }) { stockHeaderInOut ->
+                    stockHeaderInOut as StockHeaderInOut
 
-                    fromWarehouseState = stockHeaderAdjustment.stockHAWaName ?: ""
-                    toWarehouseState = stockHeaderAdjustment.stockHAWaName ?: ""
-                    viewModel.loadTransferDetails(stockHeaderAdjustment)
+                    if (viewModel.items.isNotEmpty()) {
+                        viewModel.pendingStockHeaderInOut = stockHeaderInOut
+                        popupState = PopupState.CHANGE_ITEM
+                        isPopupShown = true
+                    } else {
+                        /*fromWarehouseState = stockHeaderInOut.stockHeadInOutWaName ?: ""
+                        toWarehouseState = stockHeaderInOut.stockHeadInOutWaName ?: ""*/
+                        viewModel.loadTransferDetails(stockHeaderInOut)
+                    }
                 }
             }
 
@@ -422,9 +473,9 @@ fun StockInOutView(
                     animationSpec = tween(durationMillis = 250)
                 )
             ) {
-                EditStockAdjustItemView(
-                    stockAdjItemModel = viewModel.items.get(itemIndexToEdit),
-                    stockHeaderAdjustment = StockHeaderAdjustment(),
+                EditStockInOutItemView(
+                    stockInOutItemModel = viewModel.items.get(viewModel.selectedItemIndex),
+                    stockHeaderInOut = state.stockHeaderInOut,
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(it)
@@ -432,7 +483,7 @@ fun StockInOutView(
                             color = SettingsModel.backgroundColor
                         ),
                     onSave = { stockItemModel ->
-                        viewModel.items[itemIndexToEdit] = stockItemModel
+                        viewModel.items[viewModel.selectedItemIndex] = stockItemModel
                         isEditBottomSheetVisible = false
                     })
             }

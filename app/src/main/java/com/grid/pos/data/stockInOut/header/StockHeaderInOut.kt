@@ -53,6 +53,11 @@ data class StockHeaderInOut(
     var stockHeadInOutTtCode: String? = null,
 
     /*
+    * tt_newcode
+    */
+    var stockHeadInOutTtCodeName: String? = null,
+
+    /*
     * hio_transno
     */
     var stockHeadInOutTransNo: String? = null,
@@ -108,7 +113,7 @@ data class StockHeaderInOut(
 
     @Exclude
     override fun getName(): String {
-        return ""
+        return "${stockHeadInOutTtCode ?: ""} ${stockHeadInOutTransNo ?: ""}"
     }
 
     @Exclude

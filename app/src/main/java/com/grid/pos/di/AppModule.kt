@@ -37,6 +37,10 @@ import com.grid.pos.data.stockAdjustment.StockAdjustmentRepository
 import com.grid.pos.data.stockAdjustment.StockAdjustmentRepositoryImpl
 import com.grid.pos.data.stockHeaderAdjustment.StockHeaderAdjustmentRepository
 import com.grid.pos.data.stockHeaderAdjustment.StockHeaderAdjustmentRepositoryImpl
+import com.grid.pos.data.stockInOut.StockInOutRepository
+import com.grid.pos.data.stockInOut.StockInOutRepositoryImpl
+import com.grid.pos.data.stockInOut.header.StockHeaderInOutRepository
+import com.grid.pos.data.stockInOut.header.StockHeaderInOutRepositoryImpl
 import com.grid.pos.data.thirdParty.ThirdPartyRepository
 import com.grid.pos.data.thirdParty.ThirdPartyRepositoryImpl
 import com.grid.pos.data.user.UserRepository
@@ -156,14 +160,14 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideStockHeaderAdjustmentRepository(): StockHeaderAdjustmentRepository {
-        return StockHeaderAdjustmentRepositoryImpl()
+    fun provideStockHeaderInOutRepository(): StockHeaderInOutRepository {
+        return StockHeaderInOutRepositoryImpl()
     }
 
     @Provides
     @Singleton
-    fun provideStockAdjustmentRepository(): StockAdjustmentRepository {
-        return StockAdjustmentRepositoryImpl()
+    fun provideStockInOutRepository(): StockInOutRepository {
+        return StockInOutRepositoryImpl()
     }
 
     @Provides

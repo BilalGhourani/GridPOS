@@ -20,35 +20,39 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import com.grid.pos.data.invoiceHeader.InvoiceHeader
+import com.grid.pos.data.stockHeadInOut.header.StockHeaderInOut
 import com.grid.pos.data.stockHeaderAdjustment.StockHeaderAdjustment
-import com.grid.pos.model.InvoiceItemModel
 import com.grid.pos.model.StockAdjItemModel
+import com.grid.pos.model.StockInOutItemModel
 import com.grid.pos.ui.common.UITextField
 import com.grid.pos.utils.Utils
 
 @Composable
-fun EditStockAdjustItemView(
+fun EditStockInOutItemView(
     modifier: Modifier = Modifier,
-    stockAdjItemModel: StockAdjItemModel,
-    stockHeaderAdjustment: StockHeaderAdjustment,
-    onSave: (StockAdjItemModel) -> Unit = { }
+    stockInOutItemModel: StockInOutItemModel,
+    stockHeaderInOut: StockHeaderInOut,
+    onSave: (StockInOutItemModel) -> Unit = { }
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
     val stockHeadDescFocusRequester = remember { FocusRequester() }
+    val stockHeadNoteFocusRequester = remember { FocusRequester() }
 
     var qtyState by remember { mutableStateOf("") }
     var stockHeadDescState by remember { mutableStateOf("") }
+    var stockHeadNoteState by remember { mutableStateOf("") }
 
     LaunchedEffect(Unit) {
-        qtyState = stockAdjItemModel.stockAdjustment.stockAdjQty.toString()
-        stockHeadDescState = stockHeaderAdjustment.stockHADesc ?: ""
+        qtyState = stockInOutItemModel.stockInOut.stockInOutQty.toString()
+        stockHeadDescState = stockHeaderInOut.stockHeadInOutDesc ?: ""
+        stockHeadNoteState = stockHeaderInOut.stockHeadInOutNote ?: ""
     }
 
     fun backAndSave() {
-        val stockItemModel = stockAdjItemModel.copy()
-        stockItemModel.stockAdjustment.stockAdjQty = qtyState.toDoubleOrNull() ?: 1.0
-        stockHeaderAdjustment.stockHADesc = stockHeadDescState.ifEmpty { null }
+        val stockItemModel = stockInOutItemModel.copy()
+        stockItemModel.stockInOut.stockInOutQty = qtyState.toDoubleOrNull() ?: 1.0
+        stockHeaderInOut.stockHeadInOutDesc = stockHeadDescState.ifEmpty { null }
+        stockHeaderInOut.stockHeadInOutNote = stockHeadNoteState.ifEmpty { null }
         onSave.invoke(stockItemModel)
     }
 
@@ -84,12 +88,22 @@ fun EditStockAdjustItemView(
 
         UITextField(modifier = Modifier.padding(10.dp),
             defaultValue = stockHeadDescState,
-            label = "Client Exta Name",
+            label = "Description",
             focusRequester = stockHeadDescFocusRequester,
+            onAction = {
+                stockHeadNoteFocusRequester.requestFocus()
+            }) {
+            stockHeadDescState = it
+        }
+
+        UITextField(modifier = Modifier.padding(10.dp),
+            defaultValue = stockHeadNoteState,
+            label = "Note",
+            focusRequester = stockHeadNoteFocusRequester,
             onAction = {
                 keyboardController?.hide()
             }) {
-            stockHeadDescState = it
+            stockHeadNoteState = it
         }
 
     }

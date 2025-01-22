@@ -63,7 +63,7 @@ class StockHeaderInOutRepositoryImpl : StockHeaderInOutRepository {
             else -> {
                 val stockHeaderAdjustments: MutableList<StockHeaderInOut> = mutableListOf()
                 try {
-                    val where = "hsa_cmp_id='${SettingsModel.getCompanyID()}'"
+                    val where = "hio_cmp_id='${SettingsModel.getCompanyID()}'"
                     val dbResult = SQLServerWrapper.getListOf(
                         "st_hstockinout",
                         "TOP $limit",

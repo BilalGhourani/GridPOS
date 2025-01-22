@@ -2,21 +2,20 @@ package com.grid.pos.ui.stockInOut
 
 import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.viewModelScope
-import com.grid.pos.data.invoiceHeader.InvoiceHeader
 import com.grid.pos.data.item.Item
 import com.grid.pos.data.item.ItemRepository
-import com.grid.pos.data.posReceipt.PosReceipt
 import com.grid.pos.data.settings.SettingsRepository
-import com.grid.pos.data.stockAdjustment.StockAdjustmentRepository
-import com.grid.pos.data.stockHeaderAdjustment.StockHeaderAdjustment
-import com.grid.pos.data.stockHeaderAdjustment.StockHeaderAdjustmentRepository
+import com.grid.pos.data.stockHeadInOut.header.StockHeaderInOut
+import com.grid.pos.data.stockInOut.StockInOutRepository
+import com.grid.pos.data.stockInOut.header.StockHeaderInOutRepository
 import com.grid.pos.model.Event
-import com.grid.pos.model.InvoiceItemModel
-import com.grid.pos.model.StockAdjItemModel
+import com.grid.pos.model.StockInOutItemModel
 import com.grid.pos.ui.common.BaseViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -24,15 +23,20 @@ import javax.inject.Inject
 @HiltViewModel
 class StockInOutViewModel @Inject constructor(
     private val itemRepository: ItemRepository,
-    private val stockAdjustmentRepository: StockAdjustmentRepository,
-    private val stockHeaderAdjustmentRepository: StockHeaderAdjustmentRepository,
+    private val stockHeaderInOutRepository: StockHeaderInOutRepository,
+    private val stockInOutRepository: StockInOutRepository,
     private val settingsRepository: SettingsRepository
 ) : BaseViewModel() {
 
     private val _state = MutableStateFlow(StockInOutState())
     val state: MutableStateFlow<StockInOutState> = _state
 
-    val items = mutableStateListOf<StockAdjItemModel>()
+    var selectedItemIndex: Int = 0
+    var pendingStockHeaderInOut: StockHeaderInOut? = null
+    private var _stockHeaderInOutState = MutableStateFlow(StockHeaderInOut())
+    var stockHeaderInOutState = _stockHeaderInOutState.asStateFlow()
+    val items = mutableStateListOf<StockInOutItemModel>()
+    val deletedItems: MutableList<StockInOutItemModel> = mutableListOf()
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
@@ -40,12 +44,21 @@ class StockInOutViewModel @Inject constructor(
         }
     }
 
+    fun updateStockHeaderInOut(stockHeaderInOut: StockHeaderInOut) {
+        _stockHeaderInOutState.value = stockHeaderInOut
+    }
+
     fun resetState() {
-        state.value = state.value.copy(
-            warning = null,
-            isLoading = false,
-            clear = false
-        )
+        state.update {
+            it.copy(
+                warning = null,
+                isLoading = false,
+                clear = false
+            )
+        }
+        items.clear()
+        deletedItems.clear()
+        updateStockHeaderInOut(StockHeaderInOut())
     }
 
     fun fetchTransfers() {
@@ -53,10 +66,10 @@ class StockInOutViewModel @Inject constructor(
             isLoading = true
         )
         viewModelScope.launch(Dispatchers.IO) {
-            val listOfTransfer = stockHeaderAdjustmentRepository.getAllStockHeaderAdjustments()
+            val listOfTransfer = stockHeaderInOutRepository.getAllStockHeaderInOuts()
             withContext(Dispatchers.Main) {
                 state.value = state.value.copy(
-                    stockHeaderAdjustments = listOfTransfer,
+                    stockHeaderInOutList = listOfTransfer,
                     isLoading = false
                 )
             }
@@ -64,11 +77,12 @@ class StockInOutViewModel @Inject constructor(
     }
 
     fun loadTransferDetails(
-        stockHeaderAdjustment: StockHeaderAdjustment
+        stockHeaderInOut: StockHeaderInOut
     ) {
         state.value = state.value.copy(
             isLoading = true
         )
+        updateStockHeaderInOut(stockHeaderInOut)
         viewModelScope.launch(Dispatchers.IO) {
             if (state.value.items.isEmpty()) {
                 fetchItems(false)
@@ -77,21 +91,21 @@ class StockInOutViewModel @Inject constructor(
                 fetchWarehouses(false)
             }
             val result =
-                stockAdjustmentRepository.getAllStockAdjustments(stockHeaderAdjustment.stockHAId)
-            val stockAdjItemModels = mutableListOf<StockAdjItemModel>()
-            result.forEach { stockAdj ->
-                stockAdjItemModels.add(StockAdjItemModel(
-                    stockAdjustment = stockAdj,
-                    stockAdjItem = state.value.items.firstOrNull {
+                stockInOutRepository.getAllStockInOuts(stockHeaderInOut.stockHeadInOutId)
+            val stockInOutItemModel = mutableListOf<StockInOutItemModel>()
+            result.forEach { stockIO ->
+                stockInOutItemModel.add(StockInOutItemModel(
+                    stockInOut = stockIO,
+                    stockItem = state.value.items.firstOrNull {
                         it.itemId.equals(
-                            stockAdj.stockAdjItemId,
+                            stockIO.stockInOutItemId,
                             ignoreCase = true
                         )
                     } ?: Item()))
             }
             withContext(Dispatchers.Main) {
                 items.clear()
-                items.addAll(stockAdjItemModels)
+                items.addAll(stockInOutItemModel)
                 state.value = state.value.copy(
                     isLoading = false
                 )
@@ -181,6 +195,10 @@ class StockInOutViewModel @Inject constructor(
                 }
             }
         }*/
+    }
+
+    fun deleteEntry() {
+
     }
 
 }

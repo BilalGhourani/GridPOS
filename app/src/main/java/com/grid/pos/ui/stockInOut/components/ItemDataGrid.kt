@@ -13,13 +13,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.grid.pos.model.StockAdjItemModel
+import com.grid.pos.model.StockInOutItemModel
 import com.grid.pos.ui.theme.GridPOSTheme
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun itemDataGrid(
-    stockAdjItems: MutableList<StockAdjItemModel> = mutableListOf(),
+    stockInOutItems: MutableList<StockInOutItemModel> = mutableListOf(),
     modifier: Modifier = Modifier,
     isLandscape: Boolean = false,
     onEdit: (Int) -> Unit = {},
@@ -43,13 +43,13 @@ fun itemDataGrid(
                     .fillMaxWidth()
                     .height(50.dp)
                     .background(color = Color.LightGray),
-                stockAdjItemModel = StockAdjItemModel(),
+                stockInOutItem = StockInOutItemModel(),
                 isHeader = true,
                 isLandscape = isLandscape,
                 index = 0
             )
         }
-        stockAdjItems.toMutableList().forEachIndexed { index, stockAdjItemModel ->
+        stockInOutItems.toMutableList().forEachIndexed { index, stockInOutItem ->
             item {
                 val color = if (index % 2 == 0) Color.White else Color.LightGray
                 ItemGridCell(
@@ -57,7 +57,7 @@ fun itemDataGrid(
                         .fillMaxWidth()
                         .height(50.dp)
                         .background(color = color),
-                    stockAdjItemModel = stockAdjItemModel,
+                    stockInOutItem = stockInOutItem,
                     isLandscape = isLandscape,
                     index = index,
                     onEdit = { onEdit.invoke(it) },
@@ -73,10 +73,10 @@ fun itemDataGrid(
 fun InvoiceBodyDetailsCellPreview() {
     GridPOSTheme {
         itemDataGrid(
-            stockAdjItems = mutableListOf(
-                StockAdjItemModel(),
-                StockAdjItemModel(),
-                StockAdjItemModel()
+            stockInOutItems = mutableListOf(
+                StockInOutItemModel(),
+                StockInOutItemModel(),
+                StockInOutItemModel()
             ), isLandscape = true
         )
     }

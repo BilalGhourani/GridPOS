@@ -76,6 +76,7 @@ import com.grid.pos.interfaces.OnBarcodeResult
 import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.InvoiceItemModel
 import com.grid.pos.model.PopupModel
+import com.grid.pos.model.PopupState
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.model.UserType
 import com.grid.pos.ui.pos.components.AddInvoiceItemView
@@ -302,7 +303,7 @@ fun POSView(
         } else if (isPayBottomSheetVisible) {
             isPayBottomSheetVisible = false
         } else if (invoicesState.isNotEmpty()) {
-            popupState = PopupState.DISCARD_INVOICE
+            popupState = PopupState.DISCARD_CHANGES
             isSavePopupVisible = true
         } else {
             if (!invoiceHeaderState.value.invoiceHeadTableId.isNullOrEmpty()) {
@@ -331,7 +332,7 @@ fun POSView(
                 }
                 onConfirmation = {
                     isSavePopupVisible = false
-                    if (popupState == PopupState.DISCARD_INVOICE) {
+                    if (popupState == PopupState.DISCARD_CHANGES) {
                         if (!invoiceHeaderState.value.invoiceHeadTableId.isNullOrEmpty()) {
                             viewModel.unLockTable(
                                 invoiceHeaderState.value.invoiceHeadId,
@@ -340,7 +341,7 @@ fun POSView(
                             )
                         }
                     }
-                    if (popupState != PopupState.DELETE_INVOICE) {
+                    if (popupState != PopupState.DELETE_ITEM) {
                         invoicesState.clear()
                         invoiceHeaderState.value = InvoiceHeader()
                         sharedViewModel.posReceipt = PosReceipt()
@@ -355,19 +356,19 @@ fun POSView(
                             navController?.navigate("LoginView")
                         }
 
-                        PopupState.DISCARD_INVOICE -> {
+                        PopupState.DISCARD_CHANGES -> {
                             if (SettingsModel.getUserType() != UserType.POS) {
                                 handleBack()
                             }
                         }
 
-                        PopupState.CHANGE_INVOICE -> {
+                        PopupState.CHANGE_ITEM -> {
                             sharedViewModel.pendingInvHeadState?.let {
                                 selectInvoice(it)
                             }
                         }
 
-                        PopupState.DELETE_INVOICE -> {
+                        PopupState.DELETE_ITEM -> {
                             viewModel.deleteInvoiceHeader(
                                 invoiceHeaderState.value,
                                 sharedViewModel.posReceipt,
@@ -378,12 +379,12 @@ fun POSView(
                 }
                 dialogText = when (popupState) {
                     PopupState.BACK_PRESSED -> "Are you sure you want to logout?"
-                    PopupState.DELETE_INVOICE -> "Are you sure you want to Delete this invoice?"
+                    PopupState.DELETE_ITEM -> "Are you sure you want to Delete this invoice?"
                     else -> "Are you sure you want to discard current invoice?"
                 }
                 positiveBtnText = when (popupState) {
                     PopupState.BACK_PRESSED -> "Logout"
-                    PopupState.DELETE_INVOICE -> "Delete"
+                    PopupState.DELETE_ITEM -> "Delete"
                     else -> "Discard"
                 }
                 negativeBtnText = "Cancel"
@@ -483,7 +484,7 @@ fun POSView(
                                 isPayBottomSheetVisible = true
                             },
                             onDelete = {
-                                popupState = PopupState.DELETE_INVOICE
+                                popupState = PopupState.DELETE_ITEM
                                 isSavePopupVisible = true
                             })
 
@@ -689,7 +690,7 @@ fun POSView(
                             onInvoiceSelected = { invoiceHeader ->
                                 if (invoicesState.isNotEmpty()) {
                                     sharedViewModel.pendingInvHeadState = invoiceHeader
-                                    popupState = PopupState.CHANGE_INVOICE
+                                    popupState = PopupState.CHANGE_ITEM
                                     isSavePopupVisible = true
                                 } else {
                                     selectInvoice(invoiceHeader)
@@ -892,10 +893,4 @@ fun POSView(
             }
         }
     }
-}
-
-enum class PopupState(val key: String) {
-    BACK_PRESSED("BACK_PRESSEF"), DISCARD_INVOICE("DISCARD_INVOICE"), CHANGE_INVOICE("CHANGE_INVOICE"), DELETE_INVOICE(
-        "DELETE_INVOICE"
-    )
 }

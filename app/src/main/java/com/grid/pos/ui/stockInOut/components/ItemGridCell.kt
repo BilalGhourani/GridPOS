@@ -26,15 +26,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.grid.pos.model.InvoiceItemModel
 import com.grid.pos.model.SettingsModel
-import com.grid.pos.model.StockAdjItemModel
+import com.grid.pos.model.StockInOutItemModel
 import com.grid.pos.ui.theme.GridPOSTheme
 
 @Composable
 fun ItemGridCell(
     modifier: Modifier = Modifier,
-    stockAdjItemModel: StockAdjItemModel,
+    stockInOutItem: StockInOutItemModel,
     isHeader: Boolean = false,
     isLandscape: Boolean = false,
     index: Int,
@@ -54,7 +53,7 @@ fun ItemGridCell(
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Text(
-            text = if (isHeader) "Barcode" else stockAdjItemModel.stockAdjItem.itemBarcode ?: "~",
+            text = if (isHeader) "Barcode" else stockInOutItem.stockItem.itemBarcode ?: "~",
             modifier = if (isLandscape) {
                 Modifier
                     .weight(1.8f)
@@ -90,7 +89,7 @@ fun ItemGridCell(
             }
         )
         Text(
-            text = if (isHeader) "Name" else stockAdjItemModel.getName(),
+            text = if (isHeader) "Name" else stockInOutItem.getName(),
             modifier = if (isLandscape) {
                 Modifier
                     .weight(1.8f)
@@ -126,7 +125,7 @@ fun ItemGridCell(
             }
         )
         Text(
-            text = if (isHeader) "Qty" else stockAdjItemModel.stockAdjustment.stockAdjQty.toString(),
+            text = if (isHeader) "Qty" else stockInOutItem.stockInOut.stockInOutQty.toString(),
             modifier = if (isLandscape) {
                 Modifier
                     .weight(.8f)
@@ -221,7 +220,7 @@ fun ItemGridCell(
 fun InvoiceItemCellPreview() {
     GridPOSTheme {
         ItemGridCell(
-            stockAdjItemModel = StockAdjItemModel(),
+            stockInOutItem = StockInOutItemModel(),
             index = 0,
             isLandscape = true
         )
