@@ -97,17 +97,18 @@ class StockHeaderInOutRepositoryImpl : StockHeaderInOutRepository {
             stockHeadInOutId = obj.getStringValue("hio_id")
             stockHeadInOutNo = obj.getStringValue("hio_no")
             stockHeadInOutCmpId = obj.getStringValue("hio_cmp_id")
-            stockHeadInOutWaName = obj.getStringValue("hio_wa_name")
-            stockHeadInOutInOut = obj.getStringValue("hio_inout")
-            stockHeadInOutType = obj.getStringValue("hio_type")
-            stockHeadInOutWaTpName = obj.getStringValue("hio_wa_tp_name")
+            stockHeadInOutWaName = obj.getStringValue("hio_wa_name").ifEmpty { null }
+            stockHeadInOutInOut = obj.getStringValue("hio_inout").ifEmpty { null }
+            stockHeadInOutType = obj.getStringValue("hio_type").ifEmpty { null }
+            stockHeadInOutWaTpName = obj.getStringValue("hio_wa_tp_name").ifEmpty { null }
             stockHeadInOutDate = obj.getStringValue("hio_date")
-            stockHeadInOutTtCode = obj.getStringValue("tt_newcode", obj.getStringValue("hio_tt_code"))
+            stockHeadInOutTtCode = obj.getStringValue("hio_tt_code")
+            stockHeadInOutTtCodeName = obj.getStringValue("tt_newcode", obj.getStringValue("hio_tt_code"))
             stockHeadInOutTransNo = obj.getStringValue("hio_transno")
-            stockHeadInOutDesc = obj.getStringValue("hio_desc")
-            stockHeadInOutPrjName = obj.getStringValue("hio_prj_name")
-            stockHeadInOutBraName = obj.getStringValue("hio_bra_name")
-            stockHeadInOutNote = obj.getStringValue("hio_note")
+            stockHeadInOutDesc = obj.getStringValue("hio_desc").ifEmpty { null }
+            stockHeadInOutPrjName = obj.getStringValue("hio_prj_name").ifEmpty { null }
+            stockHeadInOutBraName = obj.getStringValue("hio_bra_name").ifEmpty { null }
+            stockHeadInOutNote = obj.getStringValue("hio_note").ifEmpty { null }
 
             val timeStamp = obj.getObjectValue("hio_timestamp")
             stockHeadInOutTimeStamp = if (timeStamp is Date) timeStamp else DateHelper.getDateFromString(
@@ -120,7 +121,7 @@ class StockHeaderInOutRepositoryImpl : StockHeaderInOutRepository {
                 valueDate as String,
                 "yyyy-MM-dd hh:mm:ss.SSS"
             )
-            stockHeadInOutHjNo = obj.getStringValue("hio_hj_no")
+            stockHeadInOutHjNo = obj.getStringValue("hio_hj_no").ifEmpty { null }
         }
     }
 
