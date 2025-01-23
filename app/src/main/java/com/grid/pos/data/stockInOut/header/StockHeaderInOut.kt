@@ -114,7 +114,7 @@ data class StockHeaderInOut(
 
     @Exclude
     override fun getName(): String {
-        return "${stockHeadInOutTtCode ?: ""} ${stockHeadInOutTransNo ?: ""}"
+        return "${stockHeadInOutTtCodeName ?: ""}${stockHeadInOutTransNo ?: ""}"
     }
 
     @Exclude

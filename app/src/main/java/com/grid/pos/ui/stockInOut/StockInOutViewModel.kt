@@ -192,34 +192,24 @@ class StockInOutViewModel @Inject constructor(
         )
         viewModelScope.launch(Dispatchers.IO) {
             val stockHInOut = stockHeaderInOutState.value.copy()
+            var succeed: Boolean = false
             if (stockHInOut.isNew()) {
                 stockHInOut.prepareForInsert()
                 stockHInOut.stockHeadInOutTtCode = stockIOTransCode
                 val dataModel = stockHeaderInOutRepository.insert(stockHInOut)
-                if (dataModel.succeed) {
+                succeed = dataModel.succeed
+                if (succeed) {
                     val addedModel = dataModel.data as StockHeaderInOut
                     val stockHInOuts = state.value.stockHeaderInOutList
                     if (stockHInOuts.isNotEmpty()) {
                         stockHInOuts.add(addedModel)
                     }
                     saveStockInOutItems(addedModel)
-                    withContext(Dispatchers.Main) {
-                        state.value = state.value.copy(
-                            isLoading = false,
-                            warning = Event("data saved successfully."),
-                            clear = true
-                        )
-                    }
-                } else {
-                    withContext(Dispatchers.Main) {
-                        state.value = state.value.copy(
-                            isLoading = false
-                        )
-                    }
                 }
             } else {
                 val dataModel = stockHeaderInOutRepository.update(stockHInOut)
-                if (dataModel.succeed) {
+                succeed = dataModel.succeed
+                if (succeed) {
                     val addedModel = dataModel.data as StockHeaderInOut
                     val stockHInOuts = state.value.stockHeaderInOutList
                     val index =
@@ -232,21 +222,23 @@ class StockInOutViewModel @Inject constructor(
                         )
                     }
                     saveStockInOutItems(addedModel)
-                    withContext(Dispatchers.Main) {
-                        state.value = state.value.copy(
-                            isLoading = false,
-                            warning = Event("data saved successfully.")
-                        )
-                    }
-                } else {
-                    withContext(Dispatchers.Main) {
-                        state.value = state.value.copy(
-                            isLoading = false
-                        )
-                    }
                 }
             }
-
+            if (succeed) {
+                withContext(Dispatchers.Main) {
+                    state.value = state.value.copy(
+                        isLoading = false,
+                        warning = Event("data saved successfully."),
+                        clear = true
+                    )
+                }
+            } else {
+                withContext(Dispatchers.Main) {
+                    state.value = state.value.copy(
+                        isLoading = false
+                    )
+                }
+            }
         }
     }
 
@@ -260,6 +252,11 @@ class StockInOutViewModel @Inject constructor(
                 stockInOutRepository.insert(it.stockInOut)
             } else {
                 stockInOutRepository.update(it.stockInOut)
+            }
+        }
+        deletedItems.forEach {
+            if(!it.stockInOut.isNew()){
+                stockInOutRepository.delete(it.stockInOut)
             }
         }
     }
