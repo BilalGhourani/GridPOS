@@ -2,6 +2,7 @@ package com.grid.pos.data.stockHeadInOut.header
 
 import com.google.firebase.firestore.Exclude
 import com.grid.pos.data.EntityModel
+import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.DateHelper
 import java.util.Date
 
@@ -101,7 +102,7 @@ data class StockHeaderInOut(
     /*
     * hio_hj_no
     * */
-    var stockHeadInOutHjNo: String?=null,
+    var stockHeadInOutHjNo: String? = null,
 
     ) : EntityModel() {
     constructor() : this("")
@@ -123,7 +124,9 @@ data class StockHeaderInOut(
 
     @Exclude
     override fun prepareForInsert() {
-
+        stockHeadInOutInOut = "Out"
+        stockHeadInOutType = "Inter-Warehouse"
+        stockHeadInOutCmpId = SettingsModel.getCompanyID()
     }
 
     @Exclude

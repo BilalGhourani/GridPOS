@@ -40,11 +40,11 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SharedViewModel @Inject constructor(
-        private val settingsRepository: SettingsRepository,
-        private val currencyRepository: CurrencyRepository,
-        private val companyRepository: CompanyRepository,
-        private val thirdPartyRepository: ThirdPartyRepository,
-        private val posPrinterRepository: PosPrinterRepository
+    private val settingsRepository: SettingsRepository,
+    private val currencyRepository: CurrencyRepository,
+    private val companyRepository: CompanyRepository,
+    private val thirdPartyRepository: ThirdPartyRepository,
+    private val posPrinterRepository: PosPrinterRepository
 ) : BaseViewModel() {
     private val _mainActivityEvent = Channel<ActivityUIEvent>()
     val mainActivityEvent = _mainActivityEvent.receiveAsFlow()
@@ -91,8 +91,10 @@ class SharedViewModel @Inject constructor(
     }
 
     private suspend fun fetchSettings() {
-        SettingsModel.siTransactionType = settingsRepository.getTransactionTypeId("Sale Invoice") ?: "null"
-        SettingsModel.rsTransactionType = settingsRepository.getTransactionTypeId("Return Sale") ?: "null"
+        SettingsModel.siTransactionType =
+            settingsRepository.getTransactionTypeId("Sale Invoice") ?: "null"
+        SettingsModel.rsTransactionType =
+            settingsRepository.getTransactionTypeId("Return Sale") ?: "null"
         SettingsModel.pvTransactionType = settingsRepository.getTransactionTypeId(
             if (SettingsModel.isSqlServerWebDb) "Payment Voucher" else "Payment"
         )
@@ -229,8 +231,8 @@ class SharedViewModel @Inject constructor(
     }
 
     fun showLoading(
-            show: Boolean,
-            timeout: Long = 30000
+        show: Boolean,
+        timeout: Long = 30000
     ) {
         viewModelScope.launch {
             _mainActivityEvent.send(
@@ -251,8 +253,8 @@ class SharedViewModel @Inject constructor(
     }
 
     fun showPopup(
-            show: Boolean,
-            popupModel: PopupModel?
+        show: Boolean,
+        popupModel: PopupModel?
     ) {
         viewModelScope.launch {
             _mainActivityEvent.send(
@@ -271,9 +273,9 @@ class SharedViewModel @Inject constructor(
     }
 
     fun launchGalleryPicker(
-            mediaType: ActivityResultContracts.PickVisualMedia.VisualMediaType,
-            delegate: OnGalleryResult,
-            onPermissionDenied: () -> Unit
+        mediaType: ActivityResultContracts.PickVisualMedia.VisualMediaType,
+        delegate: OnGalleryResult,
+        onPermissionDenied: () -> Unit
     ) {
         viewModelScope.launch {
             _mainActivityEvent.send(
@@ -287,9 +289,9 @@ class SharedViewModel @Inject constructor(
     }
 
     fun launchFilePicker(
-            intentType: String,
-            delegate: OnGalleryResult,
-            onPermissionDenied: () -> Unit
+        intentType: String,
+        delegate: OnGalleryResult,
+        onPermissionDenied: () -> Unit
     ) {
         viewModelScope.launch {
             _mainActivityEvent.send(
@@ -303,7 +305,7 @@ class SharedViewModel @Inject constructor(
     }
 
     fun startChooserActivity(
-            intent: Intent
+        intent: Intent
     ) {
         viewModelScope.launch {
             _mainActivityEvent.send(ActivityUIEvent.StartChooserActivity(intent))
@@ -311,10 +313,10 @@ class SharedViewModel @Inject constructor(
     }
 
     fun launchBarcodeScanner(
-            scanToAdd: Boolean,
-            items: ArrayList<Item>?,
-            delegate: OnBarcodeResult,
-            onPermissionDenied: () -> Unit
+        scanToAdd: Boolean,
+        items: ArrayList<Item>?,
+        delegate: OnBarcodeResult,
+        onPermissionDenied: () -> Unit
     ) {
         viewModelScope.launch {
             _mainActivityEvent.send(

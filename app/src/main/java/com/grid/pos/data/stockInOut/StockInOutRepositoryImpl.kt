@@ -66,7 +66,8 @@ class StockInOutRepositoryImpl : StockInOutRepository {
                         "st_stockinout",
                         "",
                         mutableListOf("*"),
-                        "io_hio_id='$stockHeaderInOutId'"
+                        "io_hio_id='$stockHeaderInOutId'",
+                        "ORDER BY io_order ASC"
                     )
                     dbResult?.let {
                         while (it.next()) {
@@ -118,7 +119,7 @@ class StockInOutRepositoryImpl : StockInOutRepository {
     private fun insertByProcedure(stockInOut: StockInOut): DataModel {
         val parameters = if (SettingsModel.isSqlServerWebDb) {
             listOf(
-                stockInOut.stockInOutId,//@io_id
+                null,//stockInOut.stockInOutId,//@io_id
                 stockInOut.stockInOutHeaderId,//@io_hio_id
                 stockInOut.stockInOutItemId,//@io_it_id
                 stockInOut.stockInOutQty,//@io_qty
@@ -131,7 +132,7 @@ class StockInOutRepositoryImpl : StockInOutRepository {
             )
         } else {
             listOf(
-                stockInOut.stockInOutId,//@io_id
+                null,//stockInOut.stockInOutId,//@io_id
                 stockInOut.stockInOutHeaderId,//@io_hio_id
                 stockInOut.stockInOutItemId,//@io_it_id
                 stockInOut.stockInOutQty,//@io_qty

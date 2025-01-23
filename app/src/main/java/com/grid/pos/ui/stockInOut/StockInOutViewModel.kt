@@ -31,6 +31,7 @@ class StockInOutViewModel @Inject constructor(
     private val _state = MutableStateFlow(StockInOutState())
     val state: MutableStateFlow<StockInOutState> = _state
 
+    var stockIOTransCode: String? = null
     var selectedItemIndex: Int = 0
     var pendingStockHeaderInOut: StockHeaderInOut? = null
     private var _stockHeaderInOutState = MutableStateFlow(StockHeaderInOut())
@@ -41,6 +42,7 @@ class StockInOutViewModel @Inject constructor(
     init {
         viewModelScope.launch(Dispatchers.IO) {
             openConnectionIfNeeded()
+            stockIOTransCode = settingsRepository.getTransactionTypeId("Stock InOut")
         }
     }
 
@@ -113,13 +115,15 @@ class StockInOutViewModel @Inject constructor(
         }
     }
 
-    fun fetchItems(withLoading: Boolean = true) {
+    suspend fun fetchItems(withLoading: Boolean = true) {
         if (withLoading) {
-            state.value = state.value.copy(
-                isLoading = true
-            )
+            withContext(Dispatchers.Main) {
+                state.value = state.value.copy(
+                    isLoading = true
+                )
+            }
         }
-        viewModelScope.launch(Dispatchers.IO) {
+        withContext(Dispatchers.IO) {
             val listOfItems = itemRepository.getAllItems()
             withContext(Dispatchers.Main) {
                 if (withLoading) {
@@ -138,24 +142,26 @@ class StockInOutViewModel @Inject constructor(
 
     suspend fun fetchWarehouses(withLoading: Boolean = true) {
         if (withLoading) {
-            state.value = state.value.copy(
-                isLoading = true
-            )
-        }
-        val listOfWarehouses = settingsRepository.getAllWarehouses()
-        withContext(Dispatchers.Main) {
-            if (withLoading) {
+            withContext(Dispatchers.Main) {
                 state.value = state.value.copy(
-                    warehouses = listOfWarehouses,
-                    isLoading = false
-                )
-            } else {
-                state.value = state.value.copy(
-                    warehouses = listOfWarehouses,
+                    isLoading = true
                 )
             }
-
-
+        }
+        withContext(Dispatchers.IO) {
+            val listOfWarehouses = settingsRepository.getAllWarehouses()
+            withContext(Dispatchers.Main) {
+                if (withLoading) {
+                    state.value = state.value.copy(
+                        warehouses = listOfWarehouses,
+                        isLoading = false
+                    )
+                } else {
+                    state.value = state.value.copy(
+                        warehouses = listOfWarehouses,
+                    )
+                }
+            }
         }
     }
 
@@ -173,18 +179,113 @@ class StockInOutViewModel @Inject constructor(
     }
 
     fun save() {
+        if (stockHeaderInOutState.value.stockHeadInOutWaName.isNullOrEmpty()) {
+            showWarning("Please select from warehouse at first!")
+            return
+        }
+        if (stockHeaderInOutState.value.stockHeadInOutWaTpName.isNullOrEmpty()) {
+            showWarning("Please select to warehouse at first!")
+            return
+        }
         state.value = state.value.copy(
             isLoading = true
         )
+        viewModelScope.launch(Dispatchers.IO) {
+            val stockHInOut = stockHeaderInOutState.value.copy()
+            if (stockHInOut.isNew()) {
+                stockHInOut.prepareForInsert()
+                stockHInOut.stockHeadInOutTtCode = stockIOTransCode
+                val dataModel = stockHeaderInOutRepository.insert(stockHInOut)
+                if (dataModel.succeed) {
+                    val addedModel = dataModel.data as StockHeaderInOut
+                    val stockHInOuts = state.value.stockHeaderInOutList
+                    if (stockHInOuts.isNotEmpty()) {
+                        stockHInOuts.add(addedModel)
+                    }
+                    saveStockInOutItems(addedModel)
+                    withContext(Dispatchers.Main) {
+                        state.value = state.value.copy(
+                            isLoading = false,
+                            warning = Event("data saved successfully."),
+                            clear = true
+                        )
+                    }
+                } else {
+                    withContext(Dispatchers.Main) {
+                        state.value = state.value.copy(
+                            isLoading = false
+                        )
+                    }
+                }
+            } else {
+                val dataModel = stockHeaderInOutRepository.update(stockHInOut)
+                if (dataModel.succeed) {
+                    val addedModel = dataModel.data as StockHeaderInOut
+                    val stockHInOuts = state.value.stockHeaderInOutList
+                    val index =
+                        stockHInOuts.indexOfFirst { it.stockHeadInOutId == addedModel.stockHeadInOutId }
+                    if (index >= 0) {
+                        stockHInOuts.removeAt(index)
+                        stockHInOuts.add(
+                            index,
+                            addedModel
+                        )
+                    }
+                    saveStockInOutItems(addedModel)
+                    withContext(Dispatchers.Main) {
+                        state.value = state.value.copy(
+                            isLoading = false,
+                            warning = Event("data saved successfully.")
+                        )
+                    }
+                } else {
+                    withContext(Dispatchers.Main) {
+                        state.value = state.value.copy(
+                            isLoading = false
+                        )
+                    }
+                }
+            }
 
-        /*CoroutineScope(Dispatchers.IO).launch {
+        }
+    }
+
+    private suspend fun saveStockInOutItems(stockHInOut: StockHeaderInOut) {
+        val stockInOutItems = items.toMutableList()
+        stockInOutItems.forEach {
+            it.stockInOut.prepareForInsert()
+            it.stockInOut.stockInOutHeaderId = stockHInOut.stockHeadInOutId
+            it.stockInOut.stockInOutWaTpName = stockHInOut.stockHeadInOutWaTpName
+            if (it.stockInOut.isNew()) {
+                stockInOutRepository.insert(it.stockInOut)
+            } else {
+                stockInOutRepository.update(it.stockInOut)
+            }
+        }
+    }
+
+    fun deleteEntry() {
+        state.value = state.value.copy(
+            isLoading = true
+        )
+        viewModelScope.launch(Dispatchers.IO) {
+            val stockHInOut = stockHeaderInOutState.value.copy()
+            val dataModel = stockHeaderInOutRepository.delete(stockHInOut)
             if (dataModel.succeed) {
+                val stockHInOuts = state.value.stockHeaderInOutList
+                val index =
+                    stockHInOuts.indexOfFirst { it.stockHeadInOutId == stockHInOut.stockHeadInOutId }
+                if (index >= 0) {
+                    stockHInOuts.removeAt(index)
+                }
+                val stockInOutItems = items.toMutableList()
+                stockInOutItems.forEach {
+                    stockInOutRepository.delete(it.stockInOut)
+                }
                 withContext(Dispatchers.Main) {
                     state.value = state.value.copy(
-                        //selectedItem = null,
                         isLoading = false,
-                        warning = Event("Warehouse details saved successfully."),
-                        clear = true
+                        warning = Event("data deleted successfully.")
                     )
                 }
             } else {
@@ -194,11 +295,7 @@ class StockInOutViewModel @Inject constructor(
                     )
                 }
             }
-        }*/
-    }
-
-    fun deleteEntry() {
-
+        }
     }
 
 }

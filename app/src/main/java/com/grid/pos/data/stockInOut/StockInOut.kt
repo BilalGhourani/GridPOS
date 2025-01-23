@@ -117,7 +117,7 @@ data class StockInOut(
 
     @Exclude
     override fun prepareForInsert() {
-
+        stockInOutType = "Inter-Warehouse"
     }
 
     @Exclude

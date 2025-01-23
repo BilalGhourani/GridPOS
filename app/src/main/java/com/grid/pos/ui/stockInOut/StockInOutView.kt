@@ -97,7 +97,6 @@ fun StockInOutView(
 
     var isEditBottomSheetVisible by remember { mutableStateOf(false) }
 
-
     var popupState by remember { mutableStateOf(PopupState.BACK_PRESSED) }
     var isPopupShown by remember { mutableStateOf(false) }
 
@@ -334,7 +333,11 @@ fun StockInOutView(
                         modifier = Modifier.weight(1f),
                         showSelected = false,
                         label = "Select Item",
-                        onLoadItems = { viewModel.fetchItems() },
+                        onLoadItems = {
+                            scope.launch(Dispatchers.IO) {
+                                viewModel.fetchItems()
+                            }
+                        },
                         leadingIcon = { modifier ->
                             Icon(
                                 Icons.Default.QrCode2,
@@ -409,12 +412,12 @@ fun StockInOutView(
                             }
                         },
                         label = "From Warehouse",
-                        selectedId = stockHeaderInOut.stockHeadInOutWaTpName
+                        selectedId = stockHeaderInOut.stockHeadInOutWaName
                     ) { warehouse ->
                         warehouse as WarehouseModel
                         viewModel.updateStockHeaderInOut(
                             stockHeaderInOut.copy(
-                                stockHeadInOutWaTpName = warehouse.getId()
+                                stockHeadInOutWaName = warehouse.getId()
                             )
                         )
                     }
@@ -430,12 +433,12 @@ fun StockInOutView(
                             }
                         },
                         label = "To Warehouse",
-                        selectedId = stockHeaderInOut.stockHeadInOutWaName
+                        selectedId = stockHeaderInOut.stockHeadInOutWaTpName
                     ) { warehouse ->
                         warehouse as WarehouseModel
                         viewModel.updateStockHeaderInOut(
                             stockHeaderInOut.copy(
-                                stockHeadInOutWaName = warehouse.getId()
+                                stockHeadInOutWaTpName = warehouse.getId()
                             )
                         )
                     }
@@ -457,8 +460,6 @@ fun StockInOutView(
                         popupState = PopupState.CHANGE_ITEM
                         isPopupShown = true
                     } else {
-                        /*fromWarehouseState = stockHeaderInOut.stockHeadInOutWaName ?: ""
-                        toWarehouseState = stockHeaderInOut.stockHeadInOutWaName ?: ""*/
                         viewModel.loadTransferDetails(stockHeaderInOut)
                     }
                 }
@@ -474,7 +475,7 @@ fun StockInOutView(
                 )
             ) {
                 EditStockInOutItemView(
-                    stockInOutItemModel = viewModel.items.get(viewModel.selectedItemIndex),
+                    stockInOutItemModel = viewModel.items[viewModel.selectedItemIndex],
                     stockHeaderInOut = state.stockHeaderInOut,
                     modifier = Modifier
                         .fillMaxSize()
