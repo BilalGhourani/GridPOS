@@ -9,7 +9,6 @@ data class StockInOutState(
         val stockHeaderInOutList: MutableList<StockHeaderInOut> = mutableListOf(),
         val items: MutableList<Item> = mutableListOf(),
         val warehouses: MutableList<WarehouseModel> = mutableListOf(),
-        val stockHeaderInOut: StockHeaderInOut = StockHeaderInOut(),
         val isLoading: Boolean = false,
         val clear: Boolean = false,
         val warning: Event<String>? = null,

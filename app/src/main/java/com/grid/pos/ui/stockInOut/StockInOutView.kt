@@ -97,6 +97,7 @@ fun StockInOutView(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val stockHeaderInOut = viewModel.stockHeaderInOutState.collectAsState().value
 
+    var triggerSaveCallback by remember { mutableStateOf(false) }
     var isEditBottomSheetVisible by remember { mutableStateOf(false) }
 
     var popupState by remember { mutableStateOf(PopupState.BACK_PRESSED) }
@@ -229,7 +230,13 @@ fun StockInOutView(
                         containerColor = SettingsModel.topBarColor
                     ),
                         navigationIcon = {
-                            IconButton(onClick = { handleBack() }) {
+                            IconButton(onClick = {
+                                if (isEditBottomSheetVisible) {
+                                    triggerSaveCallback = true
+                                } else {
+                                    handleBack()
+                                }
+                            }) {
                                 Icon(
                                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                                     contentDescription = "Back",
@@ -239,19 +246,21 @@ fun StockInOutView(
                         },
                         title = {
                             Text(
-                                text = "Stock In/Out",
+                                text = if (isEditBottomSheetVisible) "Edit Item" else "Stock In/Out",
                                 color = SettingsModel.textColor,
                                 fontSize = 16.sp,
                                 textAlign = TextAlign.Center
                             )
                         },
                         actions = {
-                            IconButton(onClick = { navController?.navigate("SettingsView") }) {
-                                Icon(
-                                    painterResource(R.drawable.ic_settings),
-                                    contentDescription = "Settings",
-                                    tint = SettingsModel.buttonColor
-                                )
+                            if (!isEditBottomSheetVisible) {
+                                IconButton(onClick = { navController?.navigate("SettingsView") }) {
+                                    Icon(
+                                        painterResource(R.drawable.ic_settings),
+                                        contentDescription = "Settings",
+                                        tint = SettingsModel.buttonColor
+                                    )
+                                }
                             }
                         })
                 }
@@ -523,16 +532,19 @@ fun StockInOutView(
             ) {
                 EditStockInOutItemView(
                     stockInOutItemModel = viewModel.items[viewModel.selectedItemIndex],
-                    stockHeaderInOut = state.stockHeaderInOut,
+                    stockHeaderInOut = stockHeaderInOut,
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(it)
                         .background(
                             color = SettingsModel.backgroundColor
                         ),
-                    onSave = { stockItemModel ->
+                    triggerOnSave = triggerSaveCallback,
+                    onSave = { stockHeaderInOut, stockItemModel ->
                         viewModel.items[viewModel.selectedItemIndex] = stockItemModel
+                        viewModel.updateStockHeaderInOut(stockHeaderInOut)
                         isEditBottomSheetVisible = false
+                        triggerSaveCallback = false
                     })
             }
         }
