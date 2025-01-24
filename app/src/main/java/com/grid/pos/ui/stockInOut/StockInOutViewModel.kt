@@ -202,7 +202,7 @@ class StockInOutViewModel @Inject constructor(
                     val addedModel = dataModel.data as StockHeaderInOut
                     val stockHInOuts = state.value.stockHeaderInOutList
                     if (stockHInOuts.isNotEmpty()) {
-                        stockHInOuts.add(addedModel)
+                        stockHInOuts.add(0,addedModel)
                     }
                     saveStockInOutItems(addedModel)
                 }
@@ -255,13 +255,13 @@ class StockInOutViewModel @Inject constructor(
             }
         }
         deletedItems.forEach {
-            if(!it.stockInOut.isNew()){
+            if (!it.stockInOut.isNew()) {
                 stockInOutRepository.delete(it.stockInOut)
             }
         }
     }
 
-    fun deleteEntry() {
+    fun delete() {
         state.value = state.value.copy(
             isLoading = true
         )
@@ -282,7 +282,8 @@ class StockInOutViewModel @Inject constructor(
                 withContext(Dispatchers.Main) {
                     state.value = state.value.copy(
                         isLoading = false,
-                        warning = Event("data deleted successfully.")
+                        warning = Event("data deleted successfully."),
+                        clear = true
                     )
                 }
             } else {

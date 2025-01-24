@@ -21,7 +21,12 @@ class StockHeaderInOutRepositoryImpl : StockHeaderInOutRepository {
             }
 
             else -> {
-                insertByProcedure(stockHeaderInOut)
+                val dataModel = insertByProcedure(stockHeaderInOut)
+                if (dataModel.succeed && stockHeaderInOut.stockHeadInOutId.isNotEmpty()) {
+                    dataModel.data =
+                        getStockHeaderInOutById(stockHeaderInOut.stockHeadInOutId) ?: dataModel.data
+                }
+                dataModel
             }
         }
     }
@@ -90,6 +95,41 @@ class StockHeaderInOutRepositoryImpl : StockHeaderInOutRepository {
         }
     }
 
+    override suspend fun getStockHeaderInOutById(id: String): StockHeaderInOut? {
+        when (SettingsModel.connectionType) {
+            CONNECTION_TYPE.FIRESTORE.key,
+            CONNECTION_TYPE.LOCAL.key -> {
+                return StockHeaderInOut()
+            }
+
+            else -> {
+                var stockHeaderInOut: StockHeaderInOut? = null
+                try {
+                    val where = "hio_id='$id'"
+                    val dbResult = SQLServerWrapper.getListOf(
+                        "st_hstockinout",
+                        "TOP 1",
+                        if (SettingsModel.isSqlServerWebDb) mutableListOf("*,tt.tt_newcode") else mutableListOf(
+                            "*"
+                        ),
+                        where,
+                        "",
+                        if (SettingsModel.isSqlServerWebDb) "INNER JOIN acc_transactiontype tt on hio_tt_code = tt.tt_code" else ""
+                    )
+                    dbResult?.let {
+                        while (it.next()) {
+                            stockHeaderInOut = fillParams(it)
+                        }
+                        SQLServerWrapper.closeResultSet(it)
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+                return stockHeaderInOut
+            }
+        }
+    }
+
     private fun fillParams(
         obj: ResultSet
     ): StockHeaderInOut {
@@ -103,7 +143,8 @@ class StockHeaderInOutRepositoryImpl : StockHeaderInOutRepository {
             stockHeadInOutWaTpName = obj.getStringValue("hio_wa_tp_name").ifEmpty { null }
             stockHeadInOutDate = obj.getStringValue("hio_date")
             stockHeadInOutTtCode = obj.getStringValue("hio_tt_code")
-            stockHeadInOutTtCodeName = obj.getStringValue("tt_newcode", obj.getStringValue("hio_tt_code"))
+            stockHeadInOutTtCodeName =
+                obj.getStringValue("tt_newcode", obj.getStringValue("hio_tt_code"))
             stockHeadInOutTransNo = obj.getStringValue("hio_transno")
             stockHeadInOutDesc = obj.getStringValue("hio_desc").ifEmpty { null }
             stockHeadInOutPrjName = obj.getStringValue("hio_prj_name").ifEmpty { null }
@@ -111,21 +152,23 @@ class StockHeaderInOutRepositoryImpl : StockHeaderInOutRepository {
             stockHeadInOutNote = obj.getStringValue("hio_note").ifEmpty { null }
 
             val timeStamp = obj.getObjectValue("hio_timestamp")
-            stockHeadInOutTimeStamp = if (timeStamp is Date) timeStamp else DateHelper.getDateFromString(
-                timeStamp as String,
-                "yyyy-MM-dd hh:mm:ss.SSS"
-            )
+            stockHeadInOutTimeStamp =
+                if (timeStamp is Date) timeStamp else DateHelper.getDateFromString(
+                    timeStamp as String,
+                    "yyyy-MM-dd hh:mm:ss.SSS"
+                )
             stockHeadInOutUserStamp = obj.getStringValue("hio_userstamp")
             val valueDate = obj.getObjectValue("hio_valuedate")
-            stockHeadInOutValueDate = if (valueDate is Date) valueDate else DateHelper.getDateFromString(
-                valueDate as String,
-                "yyyy-MM-dd hh:mm:ss.SSS"
-            )
+            stockHeadInOutValueDate =
+                if (valueDate is Date) valueDate else DateHelper.getDateFromString(
+                    valueDate as String,
+                    "yyyy-MM-dd hh:mm:ss.SSS"
+                )
             stockHeadInOutHjNo = obj.getStringValue("hio_hj_no").ifEmpty { null }
         }
     }
 
-    private fun insertByProcedure(stockHeaderInOut:StockHeaderInOut): DataModel {
+    private fun insertByProcedure(stockHeaderInOut: StockHeaderInOut): DataModel {
         val parameters = if (SettingsModel.isSqlServerWebDb) {
             listOf(
                 "null_string_output",//@hio_id
@@ -182,7 +225,7 @@ class StockHeaderInOutRepositoryImpl : StockHeaderInOutRepository {
         }
     }
 
-    private fun updateByProcedure(stockHeaderInOut:StockHeaderInOut): DataModel {
+    private fun updateByProcedure(stockHeaderInOut: StockHeaderInOut): DataModel {
         val parameters = if (SettingsModel.isSqlServerWebDb) {
             listOf(
                 stockHeaderInOut.stockHeadInOutId,//@hio_id
@@ -234,7 +277,7 @@ class StockHeaderInOutRepositoryImpl : StockHeaderInOutRepository {
         }
     }
 
-    private fun deleteByProcedure(stockHeaderInOut:StockHeaderInOut): DataModel {
+    private fun deleteByProcedure(stockHeaderInOut: StockHeaderInOut): DataModel {
         val queryResult = SQLServerWrapper.executeProcedure(
             "delst_hstockinout",
             listOf(stockHeaderInOut.stockHeadInOutId)

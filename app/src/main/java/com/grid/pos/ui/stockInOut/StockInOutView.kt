@@ -9,6 +9,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -27,6 +28,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.QrCode2
+import androidx.compose.material.icons.filled.RemoveCircleOutline
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -99,6 +101,7 @@ fun StockInOutView(
 
     var popupState by remember { mutableStateOf(PopupState.BACK_PRESSED) }
     var isPopupShown by remember { mutableStateOf(false) }
+    var showDeleteButton by remember { mutableStateOf(false) }
 
     val scope = rememberCoroutineScope()
     var orientation by remember { mutableIntStateOf(Configuration.ORIENTATION_PORTRAIT) }
@@ -140,6 +143,7 @@ fun StockInOutView(
     }
 
     fun clear() {
+        showDeleteButton = false
         viewModel.resetState()
     }
 
@@ -180,6 +184,7 @@ fun StockInOutView(
 
                         PopupState.CHANGE_ITEM -> {
                             viewModel.pendingStockHeaderInOut?.let { stockHeaderInOut ->
+                                showDeleteButton = true
                                 viewModel.loadTransferDetails(stockHeaderInOut)
                                 viewModel.pendingStockHeaderInOut = null
                             }
@@ -187,7 +192,7 @@ fun StockInOutView(
                         }
 
                         PopupState.DELETE_ITEM -> {
-                            viewModel.deleteEntry()
+                            viewModel.delete()
                         }
                     }
                 }
@@ -275,6 +280,7 @@ fun StockInOutView(
                                     50
                                 )
                             )
+                            .padding(horizontal = 10.dp)
                             .border(
                                 BorderStroke(
                                     1.dp,
@@ -296,8 +302,9 @@ fun StockInOutView(
                     Text(
                         text = Utils.getItemsNumberStr(viewModel.items.size),
                         modifier = Modifier
-                            .wrapContentWidth(align = Alignment.End)
-                            .wrapContentHeight(),
+                            .fillMaxWidth()
+                            .wrapContentHeight()
+                            .padding(horizontal = 10.dp),
                         textAlign = TextAlign.End,
                         style = TextStyle(
                             fontWeight = FontWeight.Normal,
@@ -308,17 +315,42 @@ fun StockInOutView(
 
                     Spacer(modifier = Modifier.weight(1f))
 
-                    UIImageButton(
+                    Row(
                         modifier = Modifier
-                            .wrapContentWidth()
+                            .fillMaxWidth()
                             .height(100.dp)
                             .padding(10.dp),
-                        icon = R.drawable.save,
-                        text = "save",
-                        iconSize = 60.dp,
-                        isVertical = false
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceAround
                     ) {
-                        viewModel.save()
+                        UIImageButton(
+                            modifier = Modifier
+                                .wrapContentWidth()
+                                .height(100.dp)
+                                .padding(10.dp),
+                            icon = R.drawable.save,
+                            text = "save",
+                            iconSize = 60.dp,
+                            isVertical = false
+                        ) {
+                            viewModel.save()
+                        }
+
+                        if (showDeleteButton) {
+                            UIImageButton(
+                                modifier = Modifier
+                                    .wrapContentWidth()
+                                    .height(100.dp)
+                                    .padding(10.dp),
+                                icon = R.drawable.delete,
+                                text = "delete",
+                                iconSize = 60.dp,
+                                isVertical = false
+                            ) {
+                                popupState = PopupState.DELETE_ITEM
+                                isPopupShown = true
+                            }
+                        }
                     }
                 }
 
@@ -433,7 +465,7 @@ fun StockInOutView(
                             }
                         },
                         label = "To Warehouse",
-                        selectedId = stockHeaderInOut.stockHeadInOutWaTpName
+                        selectedId = stockHeaderInOut.stockHeadInOutWaTpName,
                     ) { warehouse ->
                         warehouse as WarehouseModel
                         viewModel.updateStockHeaderInOut(
@@ -450,9 +482,23 @@ fun StockInOutView(
                         start = 10.dp,
                         end = 10.dp
                     ),
-                    showSelected = false,
                     label = "Select Transfer",
-                    onLoadItems = { viewModel.fetchTransfers() }) { stockHeaderInOut ->
+                    onLoadItems = { viewModel.fetchTransfers() },
+                    selectedId = stockHeaderInOut.stockHeadInOutId,
+                    leadingIcon = { modifier ->
+                        if (stockHeaderInOut.stockHeadInOutId.isNotEmpty()) {
+                            Icon(
+                                Icons.Default.RemoveCircleOutline,
+                                contentDescription = "reset transfer",
+                                tint = Color.Black,
+                                modifier = modifier
+                            )
+                        }
+                    },
+                    onLeadingIconClick = {
+                        clear()
+                    }
+                ) { stockHeaderInOut ->
                     stockHeaderInOut as StockHeaderInOut
 
                     if (viewModel.items.isNotEmpty()) {
@@ -460,6 +506,7 @@ fun StockInOutView(
                         popupState = PopupState.CHANGE_ITEM
                         isPopupShown = true
                     } else {
+                        showDeleteButton = true
                         viewModel.loadTransferDetails(stockHeaderInOut)
                     }
                 }

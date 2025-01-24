@@ -20,4 +20,6 @@ interface StockHeaderInOutRepository {
     ): DataModel
 
     suspend fun getAllStockHeaderInOuts(): MutableList<StockHeaderInOut>
+
+    suspend fun getStockHeaderInOutById(id:String): StockHeaderInOut?
 }
