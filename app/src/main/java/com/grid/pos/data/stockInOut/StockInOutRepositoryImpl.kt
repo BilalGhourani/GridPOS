@@ -67,7 +67,7 @@ class StockInOutRepositoryImpl : StockInOutRepository {
                         "",
                         mutableListOf("*"),
                         "io_hio_id='$stockHeaderInOutId'",
-                        "ORDER BY io_order ASC"
+                       if(SettingsModel.isSqlServerWebDb) "ORDER BY io_order ASC" else "ORDER BY io_userstamp ASC"
                     )
                     dbResult?.let {
                         while (it.next()) {

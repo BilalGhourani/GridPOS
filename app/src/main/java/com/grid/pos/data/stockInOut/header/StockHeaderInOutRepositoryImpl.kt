@@ -191,7 +191,6 @@ class StockHeaderInOutRepositoryImpl : StockHeaderInOutRepository {
             )
         } else {
             listOf(
-                "null_string_output",//@hio_id
                 stockHeaderInOut.stockHeadInOutCmpId,//@hio_cmp_id
                 stockHeaderInOut.stockHeadInOutWaName,//@hio_wa_name
                 stockHeaderInOut.stockHeadInOutInOut,//@hio_inout
@@ -215,7 +214,26 @@ class StockHeaderInOutRepositoryImpl : StockHeaderInOutRepository {
             parameters
         )
         return if (queryResult.succeed) {
-            stockHeaderInOut.stockHeadInOutId = queryResult.result ?: ""
+            val id = queryResult.result ?: ""
+            if (id.isNotEmpty()) {
+                stockHeaderInOut.stockHeadInOutId = id
+            } else {
+                try {
+                    val dbResult =
+                        SQLServerWrapper.getQueryResult("select max(hio_id) as id from st_hstockinout")
+                    dbResult?.let {
+                        while (it.next()) {
+                            stockHeaderInOut.stockHeadInOutId = it.getStringValue(
+                                "id",
+                                stockHeaderInOut.stockHeadInOutId
+                            )
+                        }
+                        SQLServerWrapper.closeResultSet(it)
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
             DataModel(stockHeaderInOut)
         } else {
             DataModel(
