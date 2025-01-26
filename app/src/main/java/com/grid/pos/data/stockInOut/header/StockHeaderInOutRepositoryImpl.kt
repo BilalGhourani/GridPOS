@@ -160,10 +160,14 @@ class StockHeaderInOutRepositoryImpl : StockHeaderInOutRepository {
             stockHeadInOutUserStamp = obj.getStringValue("hio_userstamp")
             val valueDate = obj.getObjectValue("hio_valuedate")
             stockHeadInOutValueDate =
-                if (valueDate is Date) valueDate else DateHelper.getDateFromString(
-                    valueDate as String,
-                    "yyyy-MM-dd hh:mm:ss.SSS"
-                )
+                when (valueDate) {
+                    is Date -> valueDate
+                    is String -> {
+                        DateHelper.getDateFromString(valueDate as String, "yyyy-MM-dd hh:mm:ss.SSS")
+                    }
+
+                    else -> null
+                }
             stockHeadInOutHjNo = obj.getStringValue("hio_hj_no").ifEmpty { null }
         }
     }
@@ -177,7 +181,7 @@ class StockHeaderInOutRepositoryImpl : StockHeaderInOutRepository {
                 stockHeaderInOut.stockHeadInOutInOut,//@hio_inout
                 stockHeaderInOut.stockHeadInOutType,//@hio_type
                 stockHeaderInOut.stockHeadInOutWaTpName,//@hio_wa_tp_name
-                Timestamp(System.currentTimeMillis()),//@hio_date
+                stockHeaderInOut.stockHeadInOutDate,//@hio_date
                 stockHeaderInOut.stockHeadInOutTtCode,//@hio_tt_code
                 stockHeaderInOut.stockHeadInOutTransNo,//@hio_transno
                 stockHeaderInOut.stockHeadInOutDesc,//@hio_desc
@@ -187,7 +191,7 @@ class StockHeaderInOutRepositoryImpl : StockHeaderInOutRepository {
                 SettingsModel.currentUser?.userUsername,//@hio_userstamp
                 null,//@hio_sessionpointer
                 SettingsModel.currentCompany?.cmp_multibranchcode,//@branchcode
-                Timestamp(System.currentTimeMillis()),//@hio_valuedate
+                getValueDateTimestamp(stockHeaderInOut.stockHeadInOutValueDate),//@hio_valuedate
             )
         } else {
             listOf(
@@ -196,7 +200,7 @@ class StockHeaderInOutRepositoryImpl : StockHeaderInOutRepository {
                 stockHeaderInOut.stockHeadInOutInOut,//@hio_inout
                 stockHeaderInOut.stockHeadInOutType,//@hio_type
                 stockHeaderInOut.stockHeadInOutWaTpName,//@hio_wa_tp_name
-                Timestamp(System.currentTimeMillis()),//@hio_date
+                stockHeaderInOut.stockHeadInOutDate,//@hio_date
                 stockHeaderInOut.stockHeadInOutTtCode,//@hio_tt_code
                 stockHeaderInOut.stockHeadInOutTransNo,//@hio_transno
                 stockHeaderInOut.stockHeadInOutDesc,//@hio_desc
@@ -206,7 +210,7 @@ class StockHeaderInOutRepositoryImpl : StockHeaderInOutRepository {
                 SettingsModel.currentUser?.userUsername,//@hio_userstamp
                 null,//@hio_sessionpointer
                 SettingsModel.currentCompany?.cmp_multibranchcode,//@branchcode
-                Timestamp(System.currentTimeMillis()),//@hio_valuedate
+                getValueDateTimestamp(stockHeaderInOut.stockHeadInOutValueDate)//@hio_valuedate
             )
         }
         val queryResult = SQLServerWrapper.executeProcedure(
@@ -260,7 +264,7 @@ class StockHeaderInOutRepositoryImpl : StockHeaderInOutRepository {
                 stockHeaderInOut.stockHeadInOutBraName,//@hio_bra_name
                 stockHeaderInOut.stockHeadInOutNote,//@hio_note
                 SettingsModel.currentUser?.userUsername,//@hio_userstamp
-                stockHeaderInOut.stockHeadInOutValueDate,//@hio_valuedate
+                getValueDateTimestamp(stockHeaderInOut.stockHeadInOutValueDate),//@hio_valuedate
             )
         } else {
             listOf(
@@ -278,7 +282,7 @@ class StockHeaderInOutRepositoryImpl : StockHeaderInOutRepository {
                 stockHeaderInOut.stockHeadInOutBraName,//@hio_bra_name
                 stockHeaderInOut.stockHeadInOutNote,//@hio_note
                 SettingsModel.currentUser?.userUsername,//@hio_userstamp
-                stockHeaderInOut.stockHeadInOutValueDate,//@hio_valuedate
+                getValueDateTimestamp(stockHeaderInOut.stockHeadInOutValueDate),//@hio_valuedate
             )
         }
         val queryResult = SQLServerWrapper.executeProcedure(
@@ -308,6 +312,13 @@ class StockHeaderInOutRepositoryImpl : StockHeaderInOutRepository {
                 false
             )
         }
+    }
+
+    private fun getValueDateTimestamp(valueDate: Date?): Timestamp {
+        if (valueDate != null) {
+            return Timestamp(valueDate.time)
+        }
+        return Timestamp(System.currentTimeMillis())
     }
 
 }

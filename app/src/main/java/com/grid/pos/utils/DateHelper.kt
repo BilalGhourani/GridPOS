@@ -84,4 +84,14 @@ object DateHelper {
         // Convert milliseconds to days
         return TimeUnit.MILLISECONDS.toDays(differenceInMillis)
     }
+
+    fun stringToDate(dateString: String, format: String = "yyyy-MM-dd HH:mm:ss.SSS"): Date? {
+        return try {
+            val dateFormat = SimpleDateFormat(format, Locale.getDefault())
+            dateFormat.parse(dateString)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+    }
 }

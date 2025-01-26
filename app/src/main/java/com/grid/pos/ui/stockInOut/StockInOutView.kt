@@ -540,6 +540,8 @@ fun StockInOutView(
                             color = SettingsModel.backgroundColor
                         ),
                     triggerOnSave = triggerSaveCallback,
+                    state = state,
+                    viewModel = viewModel,
                     onSave = { stockHeaderInOut, stockItemModel ->
                         viewModel.items[viewModel.selectedItemIndex] = stockItemModel
                         viewModel.updateStockHeaderInOut(stockHeaderInOut)

@@ -2,9 +2,12 @@ package com.grid.pos.data.settings
 
 import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.model.CONNECTION_TYPE
+import com.grid.pos.model.DivisionModel
 import com.grid.pos.model.ReportCountry
 import com.grid.pos.model.SettingsModel
+import com.grid.pos.model.TransactionTypeModel
 import com.grid.pos.model.WarehouseModel
+import com.grid.pos.utils.Extension.getIntValue
 import com.grid.pos.utils.Extension.getStringValue
 import com.grid.pos.utils.Utils
 import java.sql.ResultSet
@@ -49,6 +52,58 @@ class SettingsRepositoryImpl : SettingsRepository {
                     e.printStackTrace()
                 }
                 return result
+            }
+        }
+    }
+
+    override suspend fun getTransactionTypes(type: String): MutableList<TransactionTypeModel> {
+        when (SettingsModel.connectionType) {
+            CONNECTION_TYPE.FIRESTORE.key -> {
+                // nothing to do
+                return mutableListOf()
+            }
+
+            CONNECTION_TYPE.LOCAL.key -> {
+                //nothing to do
+                return mutableListOf()
+            }
+
+            else -> {
+                val transactionTypes: MutableList<TransactionTypeModel> = mutableListOf()
+                try {
+                    val where: String
+                    val codeKey: String
+                    if (SettingsModel.isSqlServerWebDb) {
+                        where = "tt_type='$type' and tt_cmp_id='${SettingsModel.getCompanyID()}'"
+                        codeKey = "tt_newcode"
+                    } else {
+                        where = "tt_type='$type'"
+                        codeKey = "tt_code"
+                    }
+
+                    val dbResult = SQLServerWrapper.getListOf(
+                        "acc_transactiontype",
+                        "",
+                        mutableListOf("*"),
+                        where
+                    )
+                    dbResult?.let {
+                        while (it.next()) {
+                            transactionTypes.add(
+                                TransactionTypeModel(
+                                    transactionTypeId = it.getStringValue("tt_code"),
+                                    transactionTypeCode = it.getStringValue(codeKey),
+                                    transactionTypeDesc = it.getStringValue("tt_desc"),
+                                    transactionTypeDefault = it.getIntValue("tt_default")
+                                )
+                            )
+                        }
+                        SQLServerWrapper.closeResultSet(it)
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+                return transactionTypes
             }
         }
     }
@@ -270,6 +325,51 @@ class SettingsRepositoryImpl : SettingsRepository {
                     e.printStackTrace()
                 }
                 return warehouses
+            }
+        }
+    }
+
+    override suspend fun getAllDivisions(): MutableList<DivisionModel> {
+        when (SettingsModel.connectionType) {
+            CONNECTION_TYPE.FIRESTORE.key -> {
+                // nothing to do
+                return mutableListOf()
+            }
+
+            CONNECTION_TYPE.LOCAL.key -> {
+                //nothing to do
+                return mutableListOf()
+            }
+
+            else -> {
+                val divisions: MutableList<DivisionModel> = mutableListOf()
+                try {
+                    val nameKey = if (SettingsModel.isSqlServerWebDb) {
+                        "div_newname"
+                    } else {
+                        "div_name"
+                    }
+                    val dbResult = SQLServerWrapper.getListOf(
+                        "division",
+                        "",
+                        mutableListOf(
+                            "*"
+                        ),
+                        "div_name not IN (select div_parent from division)"
+                    )
+                    dbResult?.let {
+                        while (it.next()) {
+                            divisions.add(DivisionModel().apply {
+                                divisionId = it.getStringValue("div_name")
+                                divisionName = it.getStringValue(nameKey)
+                            })
+                        }
+                        SQLServerWrapper.closeResultSet(it)
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+                return divisions
             }
         }
     }

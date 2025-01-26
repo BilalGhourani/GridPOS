@@ -31,7 +31,6 @@ class StockInOutViewModel @Inject constructor(
     private val _state = MutableStateFlow(StockInOutState())
     val state: MutableStateFlow<StockInOutState> = _state
 
-    var stockIOTransCode: String? = null
     var selectedItemIndex: Int = 0
     var pendingStockHeaderInOut: StockHeaderInOut? = null
     private var _stockHeaderInOutState = MutableStateFlow(StockHeaderInOut())
@@ -42,7 +41,6 @@ class StockInOutViewModel @Inject constructor(
     init {
         viewModelScope.launch(Dispatchers.IO) {
             openConnectionIfNeeded()
-            stockIOTransCode = settingsRepository.getTransactionTypeId("Stock InOut")
         }
     }
 
@@ -165,6 +163,56 @@ class StockInOutViewModel @Inject constructor(
         }
     }
 
+    suspend fun fetchDivisions(withLoading: Boolean = true) {
+        if (withLoading) {
+            withContext(Dispatchers.Main) {
+                state.value = state.value.copy(
+                    isLoading = true
+                )
+            }
+        }
+        withContext(Dispatchers.IO) {
+            val listOfDivisions = settingsRepository.getAllDivisions()
+            withContext(Dispatchers.Main) {
+                if (withLoading) {
+                    state.value = state.value.copy(
+                        divisions = listOfDivisions,
+                        isLoading = false
+                    )
+                } else {
+                    state.value = state.value.copy(
+                        divisions = listOfDivisions,
+                    )
+                }
+            }
+        }
+    }
+
+    suspend fun fetchTransactionTypes(withLoading: Boolean = true) {
+        if (withLoading) {
+            withContext(Dispatchers.Main) {
+                state.value = state.value.copy(
+                    isLoading = true
+                )
+            }
+        }
+        withContext(Dispatchers.IO) {
+            val transactionTypeList  = settingsRepository.getTransactionTypes("Stock InOut")
+            withContext(Dispatchers.Main) {
+                if (withLoading) {
+                    state.value = state.value.copy(
+                        transactionTypes = transactionTypeList,
+                        isLoading = false
+                    )
+                } else {
+                    state.value = state.value.copy(
+                        transactionTypes = transactionTypeList,
+                    )
+                }
+            }
+        }
+    }
+
     fun showWarning(
         warning: String?,
         action: String? = null
@@ -192,10 +240,14 @@ class StockInOutViewModel @Inject constructor(
         )
         viewModelScope.launch(Dispatchers.IO) {
             val stockHInOut = stockHeaderInOutState.value.copy()
-            var succeed: Boolean = false
+            val succeed: Boolean
             if (stockHInOut.isNew()) {
                 stockHInOut.prepareForInsert()
-                stockHInOut.stockHeadInOutTtCode = stockIOTransCode
+                if(stockHInOut.stockHeadInOutTtCode.isNullOrEmpty()) {
+                    val transType = state.value.transactionTypes.firstOrNull { it.transactionTypeDefault == 1 }
+                    stockHInOut.stockHeadInOutTtCode = transType?.transactionTypeId
+                    stockHInOut.stockHeadInOutTtCodeName = transType?.transactionTypeCode
+                }
                 val dataModel = stockHeaderInOutRepository.insert(stockHInOut)
                 succeed = dataModel.succeed
                 if (succeed) {
