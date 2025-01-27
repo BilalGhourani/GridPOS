@@ -328,11 +328,12 @@ class StockHeaderInOutRepositoryImpl : StockHeaderInOutRepository {
 
     private fun getDateInTimestamp(TransferDate: String?): Timestamp {
         if (TransferDate != null) {
-            val date = DateHelper.stringToDate(TransferDate)?:Date()
+            val date = DateHelper.getDateFromString(TransferDate, "yyyy-MM-dd HH:mm:ss.SSS")
             return Timestamp(date.time)
         }
         return Timestamp(System.currentTimeMillis())
     }
+
     private fun getValueDateInTimestamp(valueDate: Date?): Timestamp {
         if (valueDate != null) {
             return Timestamp(valueDate.time)

@@ -119,7 +119,7 @@ fun EditStockInOutItemView(
 
         stockHeaderInOutCopy.stockHeadInOutDate = stockHeadDateState
         stockHeaderInOutCopy.stockHeadInOutValueDate =
-            DateHelper.stringToDate(stockHeadValueDateState)
+            DateHelper.getDateFromString(stockHeadValueDateState,"yyyy-MM-dd HH:mm:ss.SSS")
         stockHeaderInOutCopy.stockHeadInOutTtCode = stockHeadTtCodeState.ifEmpty { null }
         stockHeaderInOutCopy.stockHeadInOutTransNo = stockHeadTransNoState.ifEmpty { null }
         stockHeaderInOutCopy.stockHeadInOutNote = stockHeadNoteState.ifEmpty { null }

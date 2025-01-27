@@ -29,13 +29,16 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.grid.pos.model.SettingsModel
+import java.text.SimpleDateFormat
 import java.util.Calendar
+import java.util.Locale
 
 @Composable
 fun EditableDateInputField(
     modifier: Modifier,
     label: String,
     date: String,
+    dateTimeFormat: String = "yyyy-MM-dd HH:mm:ss.SSS",
     onFocusChanged: ((FocusState) -> Unit)? = null,
     focusRequester: FocusRequester = FocusRequester(),
     imeAction: ImeAction = ImeAction.Next,
@@ -51,6 +54,16 @@ fun EditableDateInputField(
     val hour = calendar.get(Calendar.HOUR_OF_DAY)
     val minute = calendar.get(Calendar.MINUTE)
 
+    // Generate regex from the format
+    val regex = dateTimeFormat
+        .replace("yyyy", "\\d{4}")
+        .replace("MM", "\\d{2}")
+        .replace("dd", "\\d{2}")
+        .replace("HH", "\\d{2}")
+        .replace("mm", "\\d{2}")
+        .replace("ss", "\\d{2}")
+        .replace("SSS", "\\d{3}")
+
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -59,8 +72,8 @@ fun EditableDateInputField(
         OutlinedTextField(
             value = date,
             onValueChange = { newDateTime ->
-                // Validate input for format "YYYY-MM-DD HH:mm:ss.SSS"
-                if (newDateTime.matches(Regex("\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}\\.\\d{3}"))) {
+                // Validate input based on the generated regex
+                if (newDateTime.matches(Regex("^$regex\$"))) {
                     onDateTimeChange(newDateTime)
                 }
             },
@@ -100,16 +113,26 @@ fun EditableDateInputField(
                                     context,
                                     { _, selectedHour, selectedMinute ->
                                         // Update seconds and milliseconds to defaults
-                                        val formattedDateTime = String.format(
-                                            "%04d-%02d-%02d %02d:%02d:%02d.%03d",
-                                            selectedYear,
-                                            selectedMonth + 1,
-                                            selectedDay,
-                                            selectedHour,
-                                            selectedMinute,
-                                            0, // Default seconds
-                                            0 // Default milliseconds
-                                        )
+                                        val formattedDateTime = try {
+                                            val simpleDateFormat = SimpleDateFormat(
+                                                dateTimeFormat,
+                                                Locale.getDefault()
+                                            )
+                                            val selectedCalendar = Calendar.getInstance().apply {
+                                                set(
+                                                    selectedYear,
+                                                    selectedMonth,
+                                                    selectedDay,
+                                                    selectedHour,
+                                                    selectedMinute,
+                                                    0
+                                                )
+                                            }
+                                            simpleDateFormat.format(selectedCalendar.time)
+                                        } catch (e: Exception) {
+                                            e.printStackTrace()
+                                            ""
+                                        }
                                         onDateTimeChange(formattedDateTime)
                                     },
                                     hour,
