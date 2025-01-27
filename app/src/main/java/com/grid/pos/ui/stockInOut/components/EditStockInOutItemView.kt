@@ -19,6 +19,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Remove
+import androidx.compose.material.icons.filled.RemoveCircleOutline
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalTextStyle
@@ -134,172 +135,180 @@ fun EditStockInOutItemView(
     BackHandler {
         backAndSave()
     }
-    Box(
+
+    Column(
         modifier = modifier
             .fillMaxSize()
+            .pointerInput(Unit) {
+                detectTapGestures(onTap = {})
+            }
             .background(color = Color.Transparent)
             .verticalScroll(rememberScrollState()),
-        contentAlignment = Alignment.TopCenter
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        Column(
-            modifier = modifier
+        OutlinedTextField(value = qtyState.toString(),
+            onValueChange = {
+                qtyState = it.toInt()
+            },
+            shape = RoundedCornerShape(15.dp),
+            modifier = Modifier
                 .fillMaxWidth()
-                .fillMaxHeight()
-                .pointerInput(Unit) {
-                    detectTapGestures(onTap = {})
-                },
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            OutlinedTextField(value = qtyState.toString(),
-                onValueChange = {
-                    qtyState = it.toInt()
-                },
-                shape = RoundedCornerShape(15.dp),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 10.dp),
-                readOnly = true,
-                label = {
-                    Box(
-                        modifier = Modifier
-                            .wrapContentWidth()
-                            .background(color = Color.Transparent)
-                            .align(Alignment.CenterHorizontally),
-                    ) {
-                        Text(
-                            text = "Qty",
-                            modifier = Modifier.wrapContentWidth(),
-                            textAlign = TextAlign.Center,
-                            color = SettingsModel.textColor
-                        )
-                    }
-                },
-                textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Center),
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Number,
-                    imeAction = ImeAction.Next
-                ),
-                keyboardActions = KeyboardActions(onNext = { stockInOutDateFocusRequester.requestFocus() }),
-                leadingIcon = {
-                    IconButton(onClick = {
-                        qtyState++
-                    }) {
-                        Icon(
-                            Icons.Default.Add,
-                            contentDescription = "Increase quantity",
-                            tint = SettingsModel.buttonColor
-                        )
-                    }
-                },
-                trailingIcon = {
-                    IconButton(onClick = {
-                        if (qtyState > 1) qtyState--
-                    }) {
-                        Icon(
-                            Icons.Default.Remove,
-                            contentDescription = "Decrease quantity",
-                            tint = SettingsModel.buttonColor
-                        )
-                    }
-                })
-
-            EditableDateInputField(modifier = Modifier.padding(horizontal = 10.dp),
-                date = stockHeadDateState,
-                label = "Transfer Date",
-                focusRequester = stockInOutDateFocusRequester,
-                onAction = {
-                    stockHeadNoteFocusRequester.requestFocus()
+                .padding(start = 10.dp, end = 10.dp, top = 10.dp),
+            readOnly = true,
+            label = {
+                Box(
+                    modifier = Modifier
+                        .wrapContentWidth()
+                        .background(color = Color.Transparent)
+                        .align(Alignment.CenterHorizontally),
+                ) {
+                    Text(
+                        text = "Qty",
+                        modifier = Modifier.wrapContentWidth(),
+                        textAlign = TextAlign.Center,
+                        color = SettingsModel.textColor
+                    )
+                }
+            },
+            textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Center),
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Number,
+                imeAction = ImeAction.Next
+            ),
+            keyboardActions = KeyboardActions(onNext = { stockInOutDateFocusRequester.requestFocus() }),
+            leadingIcon = {
+                IconButton(onClick = {
+                    qtyState++
                 }) {
-                stockHeadDateState = it
-            }
-
-            EditableDateInputField(modifier = Modifier.padding(horizontal = 10.dp),
-                date = stockHeadValueDateState,
-                label = "Transfer Value Date",
-                focusRequester = stockInOutDateFocusRequester,
-                onAction = {
-                    stockHeadNoteFocusRequester.requestFocus()
+                    Icon(
+                        Icons.Default.Add,
+                        contentDescription = "Increase quantity",
+                        tint = SettingsModel.buttonColor
+                    )
+                }
+            },
+            trailingIcon = {
+                IconButton(onClick = {
+                    if (qtyState > 1) qtyState--
                 }) {
-                stockHeadValueDateState = it
-            }
+                    Icon(
+                        Icons.Default.Remove,
+                        contentDescription = "Decrease quantity",
+                        tint = SettingsModel.buttonColor
+                    )
+                }
+            })
 
-            SearchableDropdownMenuEx(
-                items = state.transactionTypes.toMutableList(),
-                modifier = Modifier
-                    .padding(horizontal = 10.dp),
-                onLoadItems = {
-                    scope.launch(Dispatchers.IO) {
-                        viewModel.fetchTransactionTypes()
-                    }
-                },
-                label = "Transaction Type",
-                selectedId = stockHeadTtCodeState
-            ) { transType ->
-                transType as TransactionTypeModel
-                stockHeadTtCodeState = transType.transactionTypeId
-            }
+        EditableDateInputField(modifier = Modifier.padding(horizontal = 10.dp),
+            date = stockHeadDateState,
+            label = "Transfer Date",
+            focusRequester = stockInOutDateFocusRequester,
+            onAction = {
+                stockHeadNoteFocusRequester.requestFocus()
+            }) {
+            stockHeadDateState = it
+        }
 
-            UITextField(modifier = Modifier.padding(horizontal = 10.dp),
-                defaultValue = stockHeadTransNoState,
-                label = "Transaction No",
-                placeHolder = "Transaction No",
-                focusRequester = stockHeadTransNoFocusRequester,
-                onAction = {
-                    stockHeadNoteFocusRequester.requestFocus()
-                }) {
-                stockHeadTransNoState = it
-            }
+        EditableDateInputField(modifier = Modifier.padding(horizontal = 10.dp),
+            date = stockHeadValueDateState,
+            label = "Transfer Value Date",
+            focusRequester = stockInOutDateFocusRequester,
+            onAction = {
+                stockHeadNoteFocusRequester.requestFocus()
+            }) {
+            stockHeadValueDateState = it
+        }
 
-            UITextField(modifier = Modifier.padding(horizontal = 10.dp),
-                defaultValue = stockHeadNoteState,
-                label = "Transfer Note",
-                placeHolder = "Transfer Note",
-                focusRequester = stockHeadNoteFocusRequester,
-                onAction = {
-                    stockItemNoteFocusRequester.requestFocus()
-                }) {
-                stockHeadNoteState = it
-            }
+        SearchableDropdownMenuEx(
+            items = state.transactionTypes.toMutableList(),
+            modifier = Modifier
+                .padding(horizontal = 10.dp),
+            onLoadItems = {
+                scope.launch(Dispatchers.IO) {
+                    viewModel.fetchTransactionTypes()
+                }
+            },
+            label = "Transaction Type",
+            selectedId = stockHeadTtCodeState
+        ) { transType ->
+            transType as TransactionTypeModel
+            stockHeadTtCodeState = transType.transactionTypeId
+        }
 
-            UITextField(modifier = Modifier.padding(horizontal = 10.dp),
-                defaultValue = stockHeadUserState,
-                label = "User",
-                readOnly = false,
-                enabled = false,
-                focusRequester = stockHeadNoteFocusRequester,
-                onAction = {
-                    stockItemNoteFocusRequester.requestFocus()
-                }) {
-                stockHeadUserState = it
-            }
+        UITextField(modifier = Modifier.padding(horizontal = 10.dp),
+            defaultValue = stockHeadTransNoState,
+            label = "Transaction No",
+            placeHolder = "Transaction No",
+            focusRequester = stockHeadTransNoFocusRequester,
+            onAction = {
+                stockHeadNoteFocusRequester.requestFocus()
+            }) {
+            stockHeadTransNoState = it
+        }
 
-            UITextField(modifier = Modifier.padding(horizontal = 10.dp),
-                defaultValue = stockItemNoteState,
-                label = "Item Note",
-                placeHolder = "Item Note",
-                focusRequester = stockItemNoteFocusRequester,
-                onAction = {
-                    keyboardController?.hide()
-                }) {
-                stockItemNoteState = it
-            }
+        UITextField(modifier = Modifier.padding(horizontal = 10.dp),
+            defaultValue = stockHeadNoteState,
+            label = "Transfer Note",
+            placeHolder = "Transfer Note",
+            focusRequester = stockHeadNoteFocusRequester,
+            onAction = {
+                stockItemNoteFocusRequester.requestFocus()
+            }) {
+            stockHeadNoteState = it
+        }
 
-            SearchableDropdownMenuEx(
-                items = state.divisions.toMutableList(),
-                modifier = Modifier
-                    .padding(horizontal = 10.dp),
-                onLoadItems = {
-                    scope.launch(Dispatchers.IO) {
-                        viewModel.fetchDivisions()
-                    }
-                },
-                label = "Item Division",
-                selectedId = stockItemDivState
-            ) { division ->
-                division as DivisionModel
-                stockItemDivState = division.divisionId
+        UITextField(modifier = Modifier.padding(horizontal = 10.dp),
+            defaultValue = stockHeadUserState,
+            label = "User",
+            readOnly = false,
+            enabled = false,
+            focusRequester = stockHeadNoteFocusRequester,
+            onAction = {
+                stockItemNoteFocusRequester.requestFocus()
+            }) {
+            stockHeadUserState = it
+        }
+
+        UITextField(modifier = Modifier.padding(horizontal = 10.dp),
+            defaultValue = stockItemNoteState,
+            label = "Item Note",
+            placeHolder = "Item Note",
+            focusRequester = stockItemNoteFocusRequester,
+            onAction = {
+                keyboardController?.hide()
+            }) {
+            stockItemNoteState = it
+        }
+
+        SearchableDropdownMenuEx(
+            items = state.divisions.toMutableList(),
+            modifier = Modifier
+                .padding(horizontal = 10.dp),
+            onLoadItems = {
+                scope.launch(Dispatchers.IO) {
+                    viewModel.fetchDivisions()
+                }
+            },
+            label = "select item division",
+            selectedId = stockItemDivState,
+            leadingIcon = {
+                if (stockItemDivState.isNotEmpty()) {
+                    Icon(
+                        Icons.Default.RemoveCircleOutline,
+                        contentDescription = "remove division",
+                        tint = Color.Black,
+                        modifier = it
+                    )
+                }
+            },
+            onLeadingIconClick = {
+                stockItemDivState = ""
             }
+        ) { division ->
+            division as DivisionModel
+            stockItemDivState = division.divisionId
         }
     }
+
 }

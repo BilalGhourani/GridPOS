@@ -6,6 +6,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActionScope
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -49,8 +50,6 @@ fun EditableDateInputField(
     val day = calendar.get(Calendar.DAY_OF_MONTH)
     val hour = calendar.get(Calendar.HOUR_OF_DAY)
     val minute = calendar.get(Calendar.MINUTE)
-    val second = calendar.get(Calendar.SECOND)
-    val millisecond = calendar.get(Calendar.MILLISECOND)
 
     Box(
         modifier = modifier
@@ -65,6 +64,7 @@ fun EditableDateInputField(
                     onDateTimeChange(newDateTime)
                 }
             },
+            shape = RoundedCornerShape(15.dp),
             label = { Text(text = label, color = SettingsModel.textColor) },
             readOnly = true,
             enabled = false,
@@ -90,6 +90,7 @@ fun EditableDateInputField(
                 Icon(
                     imageVector = Icons.Default.DateRange,
                     contentDescription = "Select Date",
+                    tint = Color.Black,
                     modifier = Modifier.clickable {
                         DatePickerDialog(
                             context,
