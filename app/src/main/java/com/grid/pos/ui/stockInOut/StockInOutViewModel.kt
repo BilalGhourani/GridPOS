@@ -31,6 +31,7 @@ class StockInOutViewModel @Inject constructor(
     private val _state = MutableStateFlow(StockInOutState())
     val state: MutableStateFlow<StockInOutState> = _state
 
+    var stockIOTransCode: String? = null
     var selectedItemIndex: Int = 0
     var pendingStockHeaderInOut: StockHeaderInOut? = null
     private var _stockHeaderInOutState = MutableStateFlow(StockHeaderInOut())
@@ -41,6 +42,7 @@ class StockInOutViewModel @Inject constructor(
     init {
         viewModelScope.launch(Dispatchers.IO) {
             openConnectionIfNeeded()
+            stockIOTransCode = settingsRepository.getTransactionTypeId("Stock InOut")
         }
     }
 
@@ -197,7 +199,7 @@ class StockInOutViewModel @Inject constructor(
             }
         }
         withContext(Dispatchers.IO) {
-            val transactionTypeList  = settingsRepository.getTransactionTypes("Stock InOut")
+            val transactionTypeList = settingsRepository.getTransactionTypes("Stock InOut")
             withContext(Dispatchers.Main) {
                 if (withLoading) {
                     state.value = state.value.copy(
@@ -243,9 +245,11 @@ class StockInOutViewModel @Inject constructor(
             val succeed: Boolean
             if (stockHInOut.isNew()) {
                 stockHInOut.prepareForInsert()
-                if(stockHInOut.stockHeadInOutTtCode.isNullOrEmpty()) {
-                    val transType = state.value.transactionTypes.firstOrNull { it.transactionTypeDefault == 1 }
-                    stockHInOut.stockHeadInOutTtCode = transType?.transactionTypeId
+                if (stockHInOut.stockHeadInOutTtCode.isNullOrEmpty()) {
+                    val transType =
+                        state.value.transactionTypes.firstOrNull { it.transactionTypeDefault == 1 }
+                    stockHInOut.stockHeadInOutTtCode =
+                        transType?.transactionTypeId ?: stockIOTransCode
                     stockHInOut.stockHeadInOutTtCodeName = transType?.transactionTypeCode
                 }
                 val dataModel = stockHeaderInOutRepository.insert(stockHInOut)
@@ -254,7 +258,7 @@ class StockInOutViewModel @Inject constructor(
                     val addedModel = dataModel.data as StockHeaderInOut
                     val stockHInOuts = state.value.stockHeaderInOutList
                     if (stockHInOuts.isNotEmpty()) {
-                        stockHInOuts.add(0,addedModel)
+                        stockHInOuts.add(0, addedModel)
                     }
                     saveStockInOutItems(addedModel)
                 }
