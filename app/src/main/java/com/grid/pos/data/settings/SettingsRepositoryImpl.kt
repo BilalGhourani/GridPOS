@@ -29,14 +29,14 @@ class SettingsRepositoryImpl : SettingsRepository {
                 var result: String? = null
                 try {
                     val where = if (SettingsModel.isSqlServerWebDb) {
-                        "tt_type='$type' and tt_cmp_id='${SettingsModel.getCompanyID()}'"
+                        "tt_type='$type' AND tt_cmp_id='${SettingsModel.getCompanyID()}' AND tt_default = 1"
                     } else {
-                        "tt_type='$type'"
+                        "tt_type='$type' AND tt_default = 1"
                     }
 
                     val dbResult = SQLServerWrapper.getListOf(
                         "acc_transactiontype",
-                        "",
+                        "TOP 1",
                         mutableListOf(
                             "tt_code"
                         ),
