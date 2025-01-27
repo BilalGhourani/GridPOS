@@ -19,12 +19,13 @@ import kotlin.math.min
 
 @HiltViewModel
 class AdjustmentViewModel @Inject constructor(
-        private val invoiceHeaderRepository: InvoiceHeaderRepository,
-        private val invoiceRepository: InvoiceRepository,
-        private val itemRepository: ItemRepository
+    private val invoiceHeaderRepository: InvoiceHeaderRepository,
+    private val invoiceRepository: InvoiceRepository,
+    private val itemRepository: ItemRepository
 ) : BaseViewModel() {
     private val _state = MutableStateFlow(AdjustmentState())
     val state: MutableStateFlow<AdjustmentState> = _state
+    val dateFormat = "yyyy-MM-dd HH:mm"
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
@@ -49,7 +50,7 @@ class AdjustmentViewModel @Inject constructor(
     }
 
     fun adjustRemainingQuantities(
-            item: Item?
+        item: Item?
     ) {
         state.value = state.value.copy(
             isLoading = true
@@ -75,7 +76,11 @@ class AdjustmentViewModel @Inject constructor(
                             start,
                             to
                         )
-                        listOfInvoiceHeaders.addAll(invoiceHeaderRepository.getAllInvoicesByIds(idsBatch))
+                        listOfInvoiceHeaders.addAll(
+                            invoiceHeaderRepository.getAllInvoicesByIds(
+                                idsBatch
+                            )
+                        )
                         start = to + 1
                     }
 
@@ -122,10 +127,10 @@ class AdjustmentViewModel @Inject constructor(
     }
 
     fun updateItemCost(
-            item: Item,
-            cost: String,
-            from: Date,
-            to: Date,
+        item: Item,
+        cost: String,
+        from: Date,
+        to: Date,
     ) {
         val realCost = cost.toDoubleOrNull()
         if (cost.isEmpty() || realCost == null) {
@@ -164,8 +169,8 @@ class AdjustmentViewModel @Inject constructor(
     }
 
     fun showError(
-            message: String,
-            action: String? = null
+        message: String,
+        action: String? = null
     ) {
         state.value = state.value.copy(
             warning = Event(message),

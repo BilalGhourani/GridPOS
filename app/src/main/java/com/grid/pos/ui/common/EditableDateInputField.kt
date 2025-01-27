@@ -4,8 +4,10 @@ import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActionScope
 import androidx.compose.foundation.text.KeyboardActions
@@ -24,10 +26,14 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.max
+import androidx.compose.ui.unit.sp
 import com.grid.pos.model.SettingsModel
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -39,6 +45,7 @@ fun EditableDateInputField(
     label: String,
     date: String,
     dateTimeFormat: String = "yyyy-MM-dd HH:mm:ss.SSS",
+    is24Hour: Boolean = false,
     onFocusChanged: ((FocusState) -> Unit)? = null,
     focusRequester: FocusRequester = FocusRequester(),
     imeAction: ImeAction = ImeAction.Next,
@@ -47,6 +54,14 @@ fun EditableDateInputField(
 ) {
     val context = LocalContext.current
     val calendar = Calendar.getInstance()
+    try {
+        if (date.isNotBlank()) {
+            val simpleDateFormat = SimpleDateFormat(dateTimeFormat, Locale.getDefault())
+            calendar.time = simpleDateFormat.parse(date) ?: Calendar.getInstance().time
+        }
+    } catch (e: Exception) {
+        e.printStackTrace()
+    }
 
     val year = calendar.get(Calendar.YEAR)
     val month = calendar.get(Calendar.MONTH)
@@ -66,8 +81,7 @@ fun EditableDateInputField(
 
     Box(
         modifier = modifier
-            .fillMaxWidth()
-            .height(80.dp)
+            .height(80.dp),
     ) {
         OutlinedTextField(
             value = date,
@@ -82,7 +96,7 @@ fun EditableDateInputField(
             readOnly = true,
             enabled = false,
             modifier = Modifier
-                .fillMaxWidth()
+                .fillMaxSize()
                 .focusRequester(focusRequester)
                 .onFocusChanged { onFocusChanged?.invoke(it) },
             keyboardOptions = KeyboardOptions(
@@ -99,10 +113,13 @@ fun EditableDateInputField(
                     onAction.invoke(this)
                 },
             ),
+            textStyle = TextStyle( // Ensure text is vertically centered
+                textAlign = TextAlign.Start
+            ),
             trailingIcon = {
                 Icon(
                     imageVector = Icons.Default.DateRange,
-                    contentDescription = "Select Date",
+                    contentDescription = "Select Date and Time",
                     tint = Color.Black,
                     modifier = Modifier.clickable {
                         DatePickerDialog(
@@ -137,7 +154,7 @@ fun EditableDateInputField(
                                     },
                                     hour,
                                     minute,
-                                    true // 24-hour format
+                                    is24Hour
                                 ).show()
                             },
                             year,
