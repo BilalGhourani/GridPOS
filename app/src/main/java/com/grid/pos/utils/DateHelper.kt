@@ -10,8 +10,8 @@ import java.util.concurrent.TimeUnit
 object DateHelper {
 
     fun getDateInFormat(
-            date: Date = Date(),
-            format: String = "MMMM dd, yyyy 'at' hh:mm:ss a 'Z'"
+        date: Date = Date(),
+        format: String = "MMMM dd, yyyy 'at' hh:mm:ss a 'Z'"
     ): String {
         val parserFormat = SimpleDateFormat(
             format,
@@ -21,8 +21,8 @@ object DateHelper {
     }
 
     fun getDateFromString(
-            date: String,
-            format: String
+        date: String,
+        format: String
     ): Date {
         return SimpleDateFormat(
             format,
@@ -30,11 +30,20 @@ object DateHelper {
         ).parse(date)!!
     }
 
+    fun getDateStringInFormat(
+        dateStr: String,
+        fromFormat: String,
+        toFormat: String,
+    ): String {
+        val date = getDateFromString(dateStr, fromFormat)
+        return getDateInFormat(date, toFormat)
+    }
+
     fun editDate(
-            date: Date = Date(),
-            hours: Int = 23,
-            minutes: Int = 59,
-            seconds: Int = 59
+        date: Date = Date(),
+        hours: Int = 23,
+        minutes: Int = 59,
+        seconds: Int = 59
     ): Date {
         val calendar = Calendar.getInstance()
         calendar.time = date
@@ -59,8 +68,8 @@ object DateHelper {
     }
 
     fun addDays(
-            initialDate: Date = Date(),
-            days: Int
+        initialDate: Date = Date(),
+        days: Int
     ): Date {
         val cal = Calendar.getInstance()
         cal.time = initialDate
@@ -76,8 +85,8 @@ object DateHelper {
     }
 
     fun getDaysDiff(
-            date1: Date,
-            date2: Date
+        date1: Date,
+        date2: Date
     ): Long {
         // Calculate the difference in milliseconds
         val differenceInMillis = date2.time - date1.time

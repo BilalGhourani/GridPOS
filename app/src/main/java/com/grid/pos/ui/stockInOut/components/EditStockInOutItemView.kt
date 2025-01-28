@@ -6,7 +6,6 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -24,6 +23,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -92,7 +92,11 @@ fun EditStockInOutItemView(
         stockItemNoteState = stockInOutItemModel.stockInOut.stockInOutNote ?: ""
         stockItemDivState = stockInOutItemModel.stockInOut.stockInOutDivName ?: ""
 
-        stockHeadDateState = stockHeaderInOut.stockHeadInOutDate
+        stockHeadDateState = DateHelper.getDateStringInFormat(
+            stockHeaderInOut.stockHeadInOutDate,
+            "MMMM dd, yyyy 'at' hh:mm:ss a 'Z'",
+            "YYYY-MM-DD HH:mm:ss.SSS"
+        )
         stockHeadValueDateState = DateHelper.getDateInFormat(
             stockHeaderInOut.stockHeadInOutValueDate ?: Date(),
             "YYYY-MM-DD HH:mm:ss.SSS"
@@ -100,7 +104,9 @@ fun EditStockInOutItemView(
         stockHeadTtCodeState = stockHeaderInOut.stockHeadInOutTtCode ?: ""
         stockHeadTransNoState = stockHeaderInOut.stockHeadInOutTransNo ?: ""
         stockHeadNoteState = stockHeaderInOut.stockHeadInOutNote ?: ""
-        stockHeadUserState = stockHeaderInOut.stockHeadInOutUserStamp ?: ""
+        stockHeadUserState =
+            stockHeaderInOut.stockHeadInOutUserStamp ?: SettingsModel.currentUser?.userUsername
+                    ?: ""
 
         if (state.transactionTypes.isEmpty()) {
             viewModel.fetchTransactionTypes(false)
@@ -119,7 +125,7 @@ fun EditStockInOutItemView(
 
         stockHeaderInOutCopy.stockHeadInOutDate = stockHeadDateState
         stockHeaderInOutCopy.stockHeadInOutValueDate =
-            DateHelper.getDateFromString(stockHeadValueDateState,"yyyy-MM-dd HH:mm:ss.SSS")
+            DateHelper.getDateFromString(stockHeadValueDateState, "yyyy-MM-dd HH:mm:ss.SSS")
         stockHeaderInOutCopy.stockHeadInOutTtCode = stockHeadTtCodeState.ifEmpty { null }
         stockHeaderInOutCopy.stockHeadInOutTransNo = stockHeadTransNoState.ifEmpty { null }
         stockHeaderInOutCopy.stockHeadInOutNote = stockHeadNoteState.ifEmpty { null }
@@ -147,7 +153,8 @@ fun EditStockInOutItemView(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        OutlinedTextField(value = qtyState.toString(),
+        OutlinedTextField(
+            value = qtyState.toString(),
             onValueChange = {
                 qtyState = it.toInt()
             },
@@ -156,6 +163,7 @@ fun EditStockInOutItemView(
                 .fillMaxWidth()
                 .padding(start = 10.dp, end = 10.dp, top = 10.dp),
             readOnly = true,
+            enabled = false,
             label = {
                 Box(
                     modifier = Modifier
@@ -198,7 +206,17 @@ fun EditStockInOutItemView(
                         tint = SettingsModel.buttonColor
                     )
                 }
-            })
+            },
+            colors = OutlinedTextFieldDefaults.colors(
+                unfocusedBorderColor = Color.Black,
+                focusedBorderColor = SettingsModel.buttonColor,
+                focusedTextColor = Color.Black,
+                unfocusedTextColor = Color.Black,
+                cursorColor = SettingsModel.buttonColor,
+                disabledTextColor = Color.Black,
+                disabledBorderColor = SettingsModel.buttonColor,
+            )
+        )
 
         EditableDateInputField(modifier = Modifier.padding(horizontal = 10.dp),
             date = stockHeadDateState,
