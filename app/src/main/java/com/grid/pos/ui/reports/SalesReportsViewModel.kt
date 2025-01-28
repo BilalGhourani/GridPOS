@@ -44,6 +44,8 @@ class SalesReportsViewModel @Inject constructor(
     private val _reportsState = MutableStateFlow(ReportsState())
     val reportsState: MutableStateFlow<ReportsState> = _reportsState
 
+    val dateFormat = "yyyy-MM-dd HH:mm"
+
     init {
         viewModelScope.launch(Dispatchers.IO) {
             openConnectionIfNeeded()

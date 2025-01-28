@@ -101,8 +101,6 @@ fun AdjustmentView(
     var barcodeSearchState by remember { mutableStateOf("") }
     var itemState by remember { mutableStateOf("") }
     var itemCostState by remember { mutableStateOf("") }
-    var showDatePicker by remember { mutableStateOf(false) }
-    var showTimePicker by remember { mutableStateOf(false) }
     var isPopupVisible by remember { mutableStateOf(false) }
     var collapseItemListState by remember { mutableStateOf(false) }
 
@@ -142,8 +140,6 @@ fun AdjustmentView(
                 DateHelper.editDate(Date(), 23, 59, 59),
                 viewModel.dateFormat
             )
-            showDatePicker = false
-            showTimePicker = false
             isPopupVisible = false
             viewModel.resetState()
             keyboardController?.hide()
@@ -284,11 +280,21 @@ fun AdjustmentView(
                         dateTimeFormat = viewModel.dateFormat,
                         label = "From"
                     ) { dateStr ->
-                        fromDateState = dateStr
+                        val date = DateHelper.getDateFromString(dateStr, viewModel.dateFormat)
+                        if (date.after(Date())) {
+                            sharedViewModel.showPopup(
+                                true, PopupModel(
+                                    dialogText = "From date should be today or before, please select again",
+                                    negativeBtnText = null
+                                )
+                            )
+                        } else {
+                            fromDateState = dateStr
+                        }
                     }
 
                     EditableDateInputField(
-                        modifier =  Modifier.padding(10.dp),
+                        modifier = Modifier.padding(10.dp),
                         date = toDateState,
                         dateTimeFormat = viewModel.dateFormat,
                         label = "To"

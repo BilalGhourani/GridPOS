@@ -79,6 +79,48 @@ fun EditableDateInputField(
         .replace("ss", "\\d{2}")
         .replace("SSS", "\\d{3}")
 
+    fun showDateTimePicker() {
+        DatePickerDialog(
+            context,
+            { _, selectedYear, selectedMonth, selectedDay ->
+                // After date is selected, show time picker
+                TimePickerDialog(
+                    context,
+                    { _, selectedHour, selectedMinute ->
+                        // Update seconds and milliseconds to defaults
+                        val formattedDateTime = try {
+                            val simpleDateFormat = SimpleDateFormat(
+                                dateTimeFormat,
+                                Locale.getDefault()
+                            )
+                            val selectedCalendar = Calendar.getInstance().apply {
+                                set(
+                                    selectedYear,
+                                    selectedMonth,
+                                    selectedDay,
+                                    selectedHour,
+                                    selectedMinute,
+                                    0
+                                )
+                            }
+                            simpleDateFormat.format(selectedCalendar.time)
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                            ""
+                        }
+                        onDateTimeChange(formattedDateTime)
+                    },
+                    hour,
+                    minute,
+                    is24Hour
+                ).show()
+            },
+            year,
+            month,
+            day
+        ).show()
+    }
+
     Box(
         modifier = modifier
             .height(80.dp),
@@ -95,10 +137,15 @@ fun EditableDateInputField(
             label = { Text(text = label, color = SettingsModel.textColor) },
             readOnly = true,
             enabled = false,
+            singleLine = true,
+            maxLines = 1,
             modifier = Modifier
                 .fillMaxSize()
                 .focusRequester(focusRequester)
-                .onFocusChanged { onFocusChanged?.invoke(it) },
+                .onFocusChanged { onFocusChanged?.invoke(it) }
+                .clickable {
+                    showDateTimePicker()
+                },
             keyboardOptions = KeyboardOptions(
                 capitalization = KeyboardCapitalization.None,
                 autoCorrectEnabled = false,
@@ -114,7 +161,8 @@ fun EditableDateInputField(
                 },
             ),
             textStyle = TextStyle( // Ensure text is vertically centered
-                textAlign = TextAlign.Start
+                textAlign = TextAlign.Start,
+                fontSize = 16.sp
             ),
             trailingIcon = {
                 Icon(
@@ -122,45 +170,7 @@ fun EditableDateInputField(
                     contentDescription = "Select Date and Time",
                     tint = Color.Black,
                     modifier = Modifier.clickable {
-                        DatePickerDialog(
-                            context,
-                            { _, selectedYear, selectedMonth, selectedDay ->
-                                // After date is selected, show time picker
-                                TimePickerDialog(
-                                    context,
-                                    { _, selectedHour, selectedMinute ->
-                                        // Update seconds and milliseconds to defaults
-                                        val formattedDateTime = try {
-                                            val simpleDateFormat = SimpleDateFormat(
-                                                dateTimeFormat,
-                                                Locale.getDefault()
-                                            )
-                                            val selectedCalendar = Calendar.getInstance().apply {
-                                                set(
-                                                    selectedYear,
-                                                    selectedMonth,
-                                                    selectedDay,
-                                                    selectedHour,
-                                                    selectedMinute,
-                                                    0
-                                                )
-                                            }
-                                            simpleDateFormat.format(selectedCalendar.time)
-                                        } catch (e: Exception) {
-                                            e.printStackTrace()
-                                            ""
-                                        }
-                                        onDateTimeChange(formattedDateTime)
-                                    },
-                                    hour,
-                                    minute,
-                                    is24Hour
-                                ).show()
-                            },
-                            year,
-                            month,
-                            day
-                        ).show()
+                        showDateTimePicker()
                     }
                 )
             },
