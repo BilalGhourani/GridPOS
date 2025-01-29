@@ -432,6 +432,7 @@ fun ItemOpeningView(
                     onLeadingIconClick = {
                         clear()
                     },
+                    collapseOnInit = collapseItemListState,
                     searchEnteredText = barcodeSearchState,
                     searchLeadingIcon = {
                         IconButton(onClick = {

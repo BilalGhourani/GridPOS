@@ -340,7 +340,7 @@ class MainActivity : ComponentActivity() {
                                 sharedEvent.onPermissionDenied.invoke()
                             }
                         }
-                        requestStoragePermission.launch( Utils.getStoragePermissions())
+                        requestStoragePermission.launch(Utils.getStoragePermissions())
                     } else {
                         launchGalleryPicker(
                             sharedEvent.mediaType,
@@ -365,7 +365,7 @@ class MainActivity : ComponentActivity() {
                                 sharedEvent.onPermissionDenied.invoke()
                             }
                         }
-                        requestStoragePermission.launch( Utils.getStoragePermissions())
+                        requestStoragePermission.launch(Utils.getStoragePermissions())
                     } else {
                         launchFilePicker(
                             sharedEvent.intentType,
@@ -475,6 +475,7 @@ class MainActivity : ComponentActivity() {
         items: ArrayList<Item>?,
         delegate: OnBarcodeResult
     ) {
+        SettingsModel.items = items?.toMutableList()
         mOnBarcodeResult = delegate
         val intent = Intent(
             this,
@@ -484,12 +485,6 @@ class MainActivity : ComponentActivity() {
             "scanToAdd",
             scanToAdd
         )
-        items?.let {
-            intent.putExtra(
-                "items",
-                it
-            )
-        }
 
         startForResult.launch(intent)
     }

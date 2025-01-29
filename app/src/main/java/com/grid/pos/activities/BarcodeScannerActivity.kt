@@ -74,15 +74,7 @@ class BarcodeScannerActivity : ComponentActivity() {
             "scanToAdd",
             false
         )
-        val items = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            intent.getSerializableExtra(
-                "items",
-                ArrayList::class.java
-            )
-        } else {
-            intent.getSerializableExtra("items") as? ArrayList<*>
-        }
-        itemsMap = items?.associate { ((it as Item).itemBarcode ?: "-") to it }
+        itemsMap = SettingsModel.items?.associateBy { (it.itemBarcode ?: "-") } ?: mutableMapOf()
         mMediaPlayer = MediaPlayer.create(
             this,
             com.google.zxing.client.android.R.raw.zxing_beep
@@ -250,8 +242,8 @@ class BarcodeScannerActivity : ComponentActivity() {
 
     @Composable
     fun CameraPreviewView(
-            cameraExecutor: java.util.concurrent.ExecutorService,
-            onResult: (String) -> Unit
+        cameraExecutor: java.util.concurrent.ExecutorService,
+        onResult: (String) -> Unit
     ) {
         val context = LocalContext.current
         val cameraProviderFuture = remember { ProcessCameraProvider.getInstance(context) }
@@ -308,9 +300,9 @@ class BarcodeScannerActivity : ComponentActivity() {
 
     @OptIn(ExperimentalGetImage::class)
     private fun processImageProxy(
-            barcodeScanner: com.google.mlkit.vision.barcode.BarcodeScanner,
-            imageProxy: ImageProxy,
-            onResult: (String) -> Unit
+        barcodeScanner: com.google.mlkit.vision.barcode.BarcodeScanner,
+        imageProxy: ImageProxy,
+        onResult: (String) -> Unit
     ) {
         val mediaImage = imageProxy.image
         if (mediaImage != null) {

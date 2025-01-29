@@ -5,12 +5,14 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.grid.pos.data.company.Company
 import com.grid.pos.data.currency.Currency
+import com.grid.pos.data.item.Item
 import com.grid.pos.data.thirdParty.ThirdParty
 import com.grid.pos.data.user.User
 
 object SettingsModel {
     var connectionType: String = CONNECTION_TYPE.LOCAL.key
 
+    var items: MutableList<Item>? = null
     var firebaseApplicationId: String? = null
     var firebaseApiKey: String? = null
     var firebaseProjectId: String? = null
@@ -103,9 +105,11 @@ object SettingsModel {
             CONNECTION_TYPE.FIRESTORE.key -> {
                 fireStoreCompanyID
             }
+
             CONNECTION_TYPE.SQL_SERVER.key -> {
                 sqlServerCompanyId
             }
+
             else -> {
                 localCompanyID
             }
@@ -119,6 +123,7 @@ object SettingsModel {
             defaultSaleInvoice
         }
     }
+
     private fun getReturnSaleType(): String {
         return if (connectionType == CONNECTION_TYPE.SQL_SERVER.key) {
             rsTransactionType

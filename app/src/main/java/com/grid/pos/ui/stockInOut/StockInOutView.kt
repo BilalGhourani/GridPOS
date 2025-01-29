@@ -387,45 +387,51 @@ fun StockInOutView(
                                 modifier = modifier
                             )
                         }, onLeadingIconClick = {
-                            sharedViewModel.launchBarcodeScanner(false,
-                                ArrayList(state.items),
-                                object : OnBarcodeResult {
-                                    override fun OnBarcodeResult(barcodesList: List<Any>) {
-                                        if (barcodesList.isNotEmpty()) {
-                                            sharedViewModel.showLoading(true)
-                                            scope.launch {
-                                                val map: Map<Item, Int> =
-                                                    barcodesList.groupingBy { item -> item as Item }
-                                                        .eachCount()
+                            scope.launch(Dispatchers.Main) {
+                                if (state.items.isEmpty()) {
+                                    sharedViewModel.showLoading(true)
+                                    viewModel.fetchItems(true)
+                                }
+                                sharedViewModel.launchBarcodeScanner(false,
+                                    ArrayList(state.items),
+                                    object : OnBarcodeResult {
+                                        override fun OnBarcodeResult(barcodesList: List<Any>) {
+                                            if (barcodesList.isNotEmpty()) {
+                                                sharedViewModel.showLoading(true)
+                                                scope.launch {
+                                                    val map: Map<Item, Int> =
+                                                        barcodesList.groupingBy { item -> item as Item }
+                                                            .eachCount()
 
-                                                map.forEach { (item, count) ->
-                                                    if (!item.itemBarcode.isNullOrEmpty()) {
-                                                        withContext(Dispatchers.IO) {
-                                                            sharedViewModel.updateRealItemPrice(
-                                                                item
-                                                            )
+                                                    map.forEach { (item, count) ->
+                                                        if (!item.itemBarcode.isNullOrEmpty()) {
+                                                            withContext(Dispatchers.IO) {
+                                                                sharedViewModel.updateRealItemPrice(
+                                                                    item
+                                                                )
+                                                            }
+                                                            val stockInOutItem =
+                                                                StockInOutItemModel()
+                                                            stockInOutItem.setItem(item)
+                                                            stockInOutItem.stockInOut.stockInOutQty =
+                                                                count.toDouble()
+                                                            viewModel.items.add(stockInOutItem)
                                                         }
-                                                        val stockInOutItem =
-                                                            StockInOutItemModel()
-                                                        stockInOutItem.setItem(item)
-                                                        stockInOutItem.stockInOut.stockInOutQty =
-                                                            count.toDouble()
-                                                        viewModel.items.add(stockInOutItem)
                                                     }
-                                                }
-                                                withContext(Dispatchers.Main) {
-                                                    sharedViewModel.showLoading(false)
+                                                    withContext(Dispatchers.Main) {
+                                                        sharedViewModel.showLoading(false)
+                                                    }
                                                 }
                                             }
                                         }
-                                    }
-                                },
-                                onPermissionDenied = {
-                                    viewModel.showWarning(
-                                        "Permission Denied",
-                                        "Settings"
-                                    )
-                                })
+                                    },
+                                    onPermissionDenied = {
+                                        viewModel.showWarning(
+                                            "Permission Denied",
+                                            "Settings"
+                                        )
+                                    })
+                            }
                         }) { item ->
                         item as Item
                         val stockInOutItem =

@@ -529,53 +529,61 @@ fun POSView(
                         ) {
                             IconButton(modifier = Modifier.size(25.dp),
                                 onClick = {
-                                    sharedViewModel.launchBarcodeScanner(false,
-                                        ArrayList(state.items),
-                                        object : OnBarcodeResult {
-                                            override fun OnBarcodeResult(barcodesList: List<Any>) {
-                                                if (barcodesList.isNotEmpty()) {
-                                                    sharedViewModel.showLoading(true)
-                                                    scope.launch {
-                                                        val map: Map<Item, Int> =
-                                                            barcodesList.groupingBy { item -> item as Item }
-                                                                .eachCount()
+                                    scope.launch(Dispatchers.Main) {
+                                        if (state.items.isEmpty()) {
+                                            viewModel.fetchItems()
+                                        }
+                                        sharedViewModel.launchBarcodeScanner(false,
+                                            ArrayList(state.items),
+                                            object : OnBarcodeResult {
+                                                override fun OnBarcodeResult(barcodesList: List<Any>) {
+                                                    if (barcodesList.isNotEmpty()) {
+                                                        sharedViewModel.showLoading(true)
+                                                        scope.launch {
+                                                            val map: Map<Item, Int> =
+                                                                barcodesList.groupingBy { item -> item as Item }
+                                                                    .eachCount()
 
-                                                        map.forEach { (item, count) ->
-                                                            if (!item.itemBarcode.isNullOrEmpty()) {
-                                                                withContext(Dispatchers.IO) {
-                                                                    sharedViewModel.updateRealItemPrice(
-                                                                        item
+                                                            map.forEach { (item, count) ->
+                                                                if (!item.itemBarcode.isNullOrEmpty()) {
+                                                                    withContext(Dispatchers.IO) {
+                                                                        sharedViewModel.updateRealItemPrice(
+                                                                            item
+                                                                        )
+                                                                    }
+                                                                    val invoiceItemModel =
+                                                                        InvoiceItemModel()
+                                                                    invoiceItemModel.setItem(item)
+                                                                    invoiceItemModel.shouldPrint =
+                                                                        true
+                                                                    invoiceItemModel.invoice.invoiceQuantity =
+                                                                        count.toDouble()
+                                                                    invoicesState.add(
+                                                                        invoiceItemModel
                                                                     )
+                                                                    sharedViewModel.invoiceItemModels =
+                                                                        invoicesState
+                                                                    invoiceHeaderState.value =
+                                                                        POSUtils.refreshValues(
+                                                                            sharedViewModel.invoiceItemModels,
+                                                                            invoiceHeaderState.value
+                                                                        )
                                                                 }
-                                                                val invoiceItemModel =
-                                                                    InvoiceItemModel()
-                                                                invoiceItemModel.setItem(item)
-                                                                invoiceItemModel.shouldPrint = true
-                                                                invoiceItemModel.invoice.invoiceQuantity =
-                                                                    count.toDouble()
-                                                                invoicesState.add(invoiceItemModel)
-                                                                sharedViewModel.invoiceItemModels =
-                                                                    invoicesState
-                                                                invoiceHeaderState.value =
-                                                                    POSUtils.refreshValues(
-                                                                        sharedViewModel.invoiceItemModels,
-                                                                        invoiceHeaderState.value
-                                                                    )
                                                             }
-                                                        }
-                                                        withContext(Dispatchers.Main) {
-                                                            sharedViewModel.showLoading(false)
+                                                            withContext(Dispatchers.Main) {
+                                                                sharedViewModel.showLoading(false)
+                                                            }
                                                         }
                                                     }
                                                 }
-                                            }
-                                        },
-                                        onPermissionDenied = {
-                                            viewModel.showWarning(
-                                                "Permission Denied",
-                                                "Settings"
-                                            )
-                                        })
+                                            },
+                                            onPermissionDenied = {
+                                                viewModel.showWarning(
+                                                    "Permission Denied",
+                                                    "Settings"
+                                                )
+                                            })
+                                    }
                                 }) {
                                 Icon(
                                     Icons.Default.QrCode2,
