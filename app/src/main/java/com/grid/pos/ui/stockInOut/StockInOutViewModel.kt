@@ -237,6 +237,10 @@ class StockInOutViewModel @Inject constructor(
             showWarning("Please select to warehouse at first!")
             return
         }
+        if (stockHeaderInOutState.value.stockHeadInOutWaTpName == stockHeaderInOutState.value.stockHeadInOutWaName) {
+            showWarning("Please select two different warehouses!")
+            return
+        }
         state.value = state.value.copy(
             isLoading = true
         )
