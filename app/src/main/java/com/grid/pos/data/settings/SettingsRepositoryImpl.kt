@@ -295,10 +295,14 @@ class SettingsRepositoryImpl : SettingsRepository {
             else -> {
                 val warehouses: MutableList<WarehouseModel> = mutableListOf()
                 try {
-                    val where = if (SettingsModel.isSqlServerWebDb) {
-                        "wa_cmp_id='${SettingsModel.getCompanyID()}'"
+                    val where: String
+                    val nameKey: String
+                    if (SettingsModel.isSqlServerWebDb) {
+                        where = "wa_cmp_id='${SettingsModel.getCompanyID()}'"
+                        nameKey = "wa_newname"
                     } else {
-                        ""
+                        where = ""
+                        nameKey = "wa_name"
                     }
                     val dbResult = SQLServerWrapper.getListOf(
                         "st_warehouse",
@@ -309,13 +313,10 @@ class SettingsRepositoryImpl : SettingsRepository {
                         where
                     )
                     dbResult?.let {
-                        if (it.next()) {
+                        while (it.next()) {
                             warehouses.add(WarehouseModel().apply {
                                 warehouseId = it.getStringValue("wa_name")
-                                warehouseName = it.getStringValue(
-                                    "wa_newname",
-                                    it.getStringValue("wa_name")
-                                )
+                                warehouseName = it.getStringValue(nameKey)
                                 warehouseOrder = it.getStringValue("wa_order")
                             })
                         }
