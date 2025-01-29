@@ -229,6 +229,10 @@ class StockInOutViewModel @Inject constructor(
     }
 
     fun save() {
+        if (items.isEmpty()) {
+            showWarning("Please select one item at least!")
+            return
+        }
         if (stockHeaderInOutState.value.stockHeadInOutWaName.isNullOrEmpty()) {
             showWarning("Please select from warehouse at first!")
             return
