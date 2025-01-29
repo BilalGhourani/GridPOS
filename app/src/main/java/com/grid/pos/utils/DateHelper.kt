@@ -35,8 +35,13 @@ object DateHelper {
         fromFormat: String,
         toFormat: String,
     ): String {
-        val date = getDateFromString(dateStr, fromFormat)
-        return getDateInFormat(date, toFormat)
+        return try {
+            val date = getDateFromString(dateStr, fromFormat)
+            getDateInFormat(date, toFormat)
+        } catch (e: Exception) {
+            dateStr
+        }
+
     }
 
     fun editDate(
