@@ -95,15 +95,8 @@ class SharedViewModel @Inject constructor(
             settingsRepository.getTransactionTypeId("Sale Invoice") ?: "null"
         SettingsModel.rsTransactionType =
             settingsRepository.getTransactionTypeId("Return Sale") ?: "null"
-        SettingsModel.pvTransactionType = settingsRepository.getTransactionTypeId(
-            if (SettingsModel.isSqlServerWebDb) "Payment Voucher" else "Payment"
-        )
-        SettingsModel.rvTransactionType = settingsRepository.getTransactionTypeId(
-            if (SettingsModel.isSqlServerWebDb) "Receipt Voucher" else "Receipt"
-        )
         SettingsModel.defaultSqlServerBranch = settingsRepository.getDefaultBranch()
         SettingsModel.defaultSqlServerWarehouse = settingsRepository.getDefaultWarehouse()
-        SettingsModel.defaultThirdParty = thirdPartyRepository.getDefaultThirdParty()
         val currency = SettingsModel.currentCurrency ?: return
 
         SettingsModel.posReceiptAccCashId = settingsRepository.getPosReceiptAccIdBy(

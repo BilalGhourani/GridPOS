@@ -64,11 +64,8 @@ object SettingsModel {
 
     var siTransactionType: String = "null"
     var rsTransactionType: String = "null"
-    var pvTransactionType: String? = null
-    var rvTransactionType: String? = null
     var defaultSqlServerBranch: String? = null
     var defaultSqlServerWarehouse: String? = null
-    var defaultThirdParty: ThirdParty? = null
 
     var posReceiptAccCashId: String? = null
     var posReceiptAccCash1Id: String? = null

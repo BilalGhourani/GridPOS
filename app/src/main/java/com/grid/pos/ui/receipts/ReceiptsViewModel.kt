@@ -6,6 +6,7 @@ import com.grid.pos.data.EntityModel
 import com.grid.pos.data.currency.CurrencyRepository
 import com.grid.pos.data.receipt.Receipt
 import com.grid.pos.data.receipt.ReceiptRepository
+import com.grid.pos.data.settings.SettingsRepository
 import com.grid.pos.data.thirdParty.ThirdParty
 import com.grid.pos.data.thirdParty.ThirdPartyRepository
 import com.grid.pos.data.user.User
@@ -28,10 +29,11 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ReceiptsViewModel @Inject constructor(
-        private val receiptRepository: ReceiptRepository,
-        private val thirdPartyRepository: ThirdPartyRepository,
-        private val currencyRepository: CurrencyRepository,
-        private val userRepository: UserRepository
+    private val receiptRepository: ReceiptRepository,
+    private val thirdPartyRepository: ThirdPartyRepository,
+    private val currencyRepository: CurrencyRepository,
+    private val userRepository: UserRepository,
+    private val settingsRepository: SettingsRepository
 ) : BaseViewModel() {
 
     private val _receiptsState = MutableStateFlow(ReceiptsState())
@@ -45,10 +47,23 @@ class ReceiptsViewModel @Inject constructor(
         PaymentTypeModel("Debit")
     )
 
+    private var transactionType: String? = null
+
     init {
         viewModelScope.launch(Dispatchers.IO) {
             openConnectionIfNeeded()
             fetchCurrencies()
+            transactionType = getTransactionType()
+        }
+    }
+
+    private suspend fun getTransactionType(): String? {
+        return if (SettingsModel.isConnectedToSqlServer()) {
+            settingsRepository.getTransactionTypeId(
+                if (SettingsModel.isSqlServerWebDb) "Receipt Voucher" else "Receipt"
+            )
+        } else {
+            SettingsModel.defaultReceipt
         }
     }
 
@@ -130,8 +145,8 @@ class ReceiptsViewModel @Inject constructor(
     }
 
     fun saveReceipt(
-            context: Context,
-            receipt: Receipt
+        context: Context,
+        receipt: Receipt
     ) {
         if (receipt.receiptThirdParty.isNullOrEmpty()) {
             receiptsState.value = receiptsState.value.copy(
@@ -173,7 +188,7 @@ class ReceiptsViewModel @Inject constructor(
                 receipt.receiptTransNo = POSUtils.getInvoiceTransactionNo(
                     lastTransactionNo?.receiptTransNo ?: ""
                 )
-                receipt.receiptTransCode = SettingsModel.defaultReceipt
+                receipt.receiptTransCode = transactionType ?: getTransactionType()
                 val dataModel = receiptRepository.insert(receipt)
                 if (dataModel.succeed) {
                     val addedModel = dataModel.data as Receipt
@@ -206,9 +221,13 @@ class ReceiptsViewModel @Inject constructor(
                     }
                 }
             } else {
+                if (receipt.receiptTransCode.isNullOrEmpty()) {
+                    receipt.receiptTransCode = transactionType ?: getTransactionType()
+                }
                 val dataModel = receiptRepository.update(receipt)
                 if (dataModel.succeed) {
-                    val index = receiptsState.value.receipts.indexOfFirst { it.receiptId == receipt.receiptId }
+                    val index =
+                        receiptsState.value.receipts.indexOfFirst { it.receiptId == receipt.receiptId }
                     if (index >= 0) {
                         receiptsState.value.receipts.removeAt(index)
                         receiptsState.value.receipts.add(
@@ -280,8 +299,8 @@ class ReceiptsViewModel @Inject constructor(
     }
 
     private suspend fun prepareReceiptReport(
-            context: Context,
-            receipt: Receipt
+        context: Context,
+        receipt: Receipt
     ) {
         val thirdPartyId = receipt.receiptThirdParty
         val userId = receipt.receiptUserStamp
@@ -292,16 +311,17 @@ class ReceiptsViewModel @Inject constructor(
                 it.thirdPartyId == thirdPartyId
             }
         }
-        val user = if (userId.isNullOrEmpty() || SettingsModel.currentUser?.userId == userId || SettingsModel.currentUser?.userUsername == userId) {
-            SettingsModel.currentUser
-        } else {
-            if (receiptsState.value.users.isEmpty()) {
-                receiptsState.value.users = userRepository.getAllUsers()
+        val user =
+            if (userId.isNullOrEmpty() || SettingsModel.currentUser?.userId == userId || SettingsModel.currentUser?.userUsername == userId) {
+                SettingsModel.currentUser
+            } else {
+                if (receiptsState.value.users.isEmpty()) {
+                    receiptsState.value.users = userRepository.getAllUsers()
+                }
+                receiptsState.value.users.firstOrNull {
+                    it.userId == userId || it.userUsername == userId
+                } ?: SettingsModel.currentUser
             }
-            receiptsState.value.users.firstOrNull {
-                it.userId == userId || it.userUsername == userId
-            } ?: SettingsModel.currentUser
-        }
         reportResult = PrinterUtils.getReceiptHtmlContent(
             context,
             receipt,

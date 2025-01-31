@@ -6,9 +6,9 @@ import com.grid.pos.data.EntityModel
 import com.grid.pos.data.currency.CurrencyRepository
 import com.grid.pos.data.payment.Payment
 import com.grid.pos.data.payment.PaymentRepository
+import com.grid.pos.data.settings.SettingsRepository
 import com.grid.pos.data.thirdParty.ThirdParty
 import com.grid.pos.data.thirdParty.ThirdPartyRepository
-import com.grid.pos.data.user.User
 import com.grid.pos.data.user.UserRepository
 import com.grid.pos.model.Event
 import com.grid.pos.model.PaymentTypeModel
@@ -28,12 +28,12 @@ import javax.inject.Inject
 
 @HiltViewModel
 class PaymentsViewModel @Inject constructor(
-        private val paymentRepository: PaymentRepository,
-        private val thirdPartyRepository: ThirdPartyRepository,
-        private val currencyRepository: CurrencyRepository,
-        private val userRepository: UserRepository
+    private val paymentRepository: PaymentRepository,
+    private val thirdPartyRepository: ThirdPartyRepository,
+    private val currencyRepository: CurrencyRepository,
+    private val userRepository: UserRepository,
+    private val settingsRepository: SettingsRepository
 ) : BaseViewModel() {
-
     private val _paymentsState = MutableStateFlow(PaymentsState())
     val paymentsState: MutableStateFlow<PaymentsState> = _paymentsState
     var currentPayment: Payment = Payment()
@@ -45,10 +45,23 @@ class PaymentsViewModel @Inject constructor(
         PaymentTypeModel("Debit")
     )
 
+    private var transactionType: String? = null
+
     init {
         viewModelScope.launch(Dispatchers.IO) {
             openConnectionIfNeeded()
             fetchCurrencies()
+            transactionType = getTransactionType()
+        }
+    }
+
+    private suspend fun getTransactionType(): String? {
+        return if (SettingsModel.isConnectedToSqlServer()) {
+            settingsRepository.getTransactionTypeId(
+                if (SettingsModel.isSqlServerWebDb) "Payment Voucher" else "Payment"
+            )
+        }else{
+            SettingsModel.defaultPayment
         }
     }
 
@@ -130,8 +143,8 @@ class PaymentsViewModel @Inject constructor(
     }
 
     fun savePayment(
-            context: Context,
-            payment: Payment
+        context: Context,
+        payment: Payment
     ) {
         if (payment.paymentThirdParty.isNullOrEmpty()) {
             paymentsState.value = paymentsState.value.copy(
@@ -173,7 +186,7 @@ class PaymentsViewModel @Inject constructor(
                 payment.paymentTransNo = POSUtils.getInvoiceTransactionNo(
                     lastTransactionNo?.paymentTransNo ?: ""
                 )
-                payment.paymentTransCode = SettingsModel.defaultPayment
+                payment.paymentTransCode = transactionType ?: getTransactionType()
                 val dataModel = paymentRepository.insert(payment)
                 if (dataModel.succeed) {
                     val addedModel = dataModel.data as Payment
@@ -207,9 +220,13 @@ class PaymentsViewModel @Inject constructor(
                     }
                 }
             } else {
+                if (payment.paymentTransCode.isNullOrEmpty()) {
+                    payment.paymentTransCode = transactionType ?: getTransactionType()
+                }
                 val dataModel = paymentRepository.update(payment)
                 if (dataModel.succeed) {
-                    val index = paymentsState.value.payments.indexOfFirst { it.paymentId == payment.paymentId }
+                    val index =
+                        paymentsState.value.payments.indexOfFirst { it.paymentId == payment.paymentId }
                     if (index >= 0) {
                         paymentsState.value.payments.removeAt(index)
                         paymentsState.value.payments.add(
@@ -283,8 +300,8 @@ class PaymentsViewModel @Inject constructor(
     }
 
     private suspend fun preparePaymentReport(
-            context: Context,
-            payment: Payment
+        context: Context,
+        payment: Payment
     ) {
         val thirdPartyId = payment.paymentThirdParty
         val userId = payment.paymentUserStamp
@@ -295,16 +312,17 @@ class PaymentsViewModel @Inject constructor(
                 it.thirdPartyId == thirdPartyId
             }
         }
-        val user = if (userId.isNullOrEmpty() || SettingsModel.currentUser?.userId == userId || SettingsModel.currentUser?.userUsername == userId) {
-            SettingsModel.currentUser
-        } else {
-            if (paymentsState.value.users.isEmpty()) {
-                paymentsState.value.users = userRepository.getAllUsers()
+        val user =
+            if (userId.isNullOrEmpty() || SettingsModel.currentUser?.userId == userId || SettingsModel.currentUser?.userUsername == userId) {
+                SettingsModel.currentUser
+            } else {
+                if (paymentsState.value.users.isEmpty()) {
+                    paymentsState.value.users = userRepository.getAllUsers()
+                }
+                paymentsState.value.users.firstOrNull {
+                    it.userId == userId || it.userUsername == userId
+                } ?: SettingsModel.currentUser
             }
-            paymentsState.value.users.firstOrNull {
-                it.userId == userId || it.userUsername == userId
-            } ?: SettingsModel.currentUser
-        }
         reportResult = PrinterUtils.getPaymentHtmlContent(
             context,
             payment,

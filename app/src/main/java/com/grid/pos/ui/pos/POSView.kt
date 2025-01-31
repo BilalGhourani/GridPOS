@@ -620,6 +620,7 @@ fun POSView(
                             items = state.items,
                             thirdParties = state.thirdParties.toMutableList(),
                             invoiceHeaders = state.invoiceHeaders,
+                            defaultThirdParty = viewModel.defaultThirdParty,
                             modifier = Modifier
                                 .wrapContentWidth()
                                 .wrapContentHeight(),

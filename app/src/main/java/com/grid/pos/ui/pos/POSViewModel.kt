@@ -47,18 +47,21 @@ class POSViewModel @Inject constructor(
     private var clientsMap: Map<String, ThirdParty> = mutableMapOf()
     val reportResults = mutableListOf<ReportResult>()
 
+    var defaultThirdParty: ThirdParty? = null
+
     init {
         viewModelScope.launch(Dispatchers.IO) {
             openConnectionIfNeeded()
             fetchItems()
             fetchFamilies()
+            defaultThirdParty = thirdPartyRepository.getDefaultThirdParty()
         }
     }
 
     fun clearPosState() {
         posState.value = posState.value.copy(
             itemsToDelete = mutableListOf(),
-            selectedThirdParty = SettingsModel.defaultThirdParty ?: ThirdParty(),
+            selectedThirdParty = defaultThirdParty ?: ThirdParty(),
             isSaved = false,
             isDeleted = false,
             isLoading = false,
@@ -573,8 +576,8 @@ class POSViewModel @Inject constructor(
         val defaultThirdParty =
             if (invoiceHeader.invoiceHeadThirdPartyName.isNullOrEmpty() || invoiceHeader.invoiceHeadThirdPartyName == posState.value.selectedThirdParty.thirdPartyId) {
                 posState.value.selectedThirdParty
-            } else if (invoiceHeader.invoiceHeadThirdPartyName == SettingsModel.defaultThirdParty?.thirdPartyId) {
-                SettingsModel.defaultThirdParty
+            } else if (invoiceHeader.invoiceHeadThirdPartyName == defaultThirdParty?.thirdPartyId) {
+                defaultThirdParty
             } else {
                 if (posState.value.thirdParties.isEmpty()) {
                     thirdPartyRepository.getThirdPartyByID(invoiceHeader.invoiceHeadThirdPartyName!!)

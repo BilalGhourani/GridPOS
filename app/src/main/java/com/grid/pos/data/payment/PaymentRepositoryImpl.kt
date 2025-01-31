@@ -296,7 +296,7 @@ class PaymentRepositoryImpl(
                 "null_String_output",//@hpa_id
                 payment.paymentCompanyId,//@hpa_cmp_id
                 Timestamp(System.currentTimeMillis()),//@hpa_date
-                SettingsModel.pvTransactionType,//@hpa_tt_code
+                payment.paymentTransCode,//@hpa_tt_code
                 null,/*payment.paymentTransNo*///@hpa_transno
                 null,//@hpa_status
                 payment.paymentDesc,//@hpa_desc
@@ -315,7 +315,7 @@ class PaymentRepositoryImpl(
             listOf(
                 payment.paymentCompanyId,//@hpa_cmp_id
                 Timestamp(System.currentTimeMillis()),//@hpa_date
-                SettingsModel.pvTransactionType,//@hpa_tt_code
+                payment.paymentTransCode,//@hpa_tt_code
                 null,/*payment.paymentTransNo*///@hpa_transno
                 null,//@hpa_status
                 payment.paymentDesc,//@hpa_desc
@@ -522,7 +522,7 @@ class PaymentRepositoryImpl(
                 payment.paymentNo,//@hpa_no
                 payment.paymentCompanyId,//@hpa_cmp_id
                 Timestamp(System.currentTimeMillis()),//@hpa_date
-                SettingsModel.pvTransactionType,//@hpa_tt_code
+                payment.paymentTransCode,//@hpa_tt_code
                 payment.paymentTransNo,//@hpa_transno
                 null,//@hpa_status
                 payment.paymentDesc,//@hpa_desc
@@ -541,7 +541,7 @@ class PaymentRepositoryImpl(
                 payment.paymentNo,//@hpa_no
                 payment.paymentCompanyId,//@hpa_cmp_id
                 Timestamp(System.currentTimeMillis()),//@hpa_date
-                SettingsModel.pvTransactionType,//@hpa_tt_code
+                payment.paymentTransCode,//@hpa_tt_code
                 payment.paymentTransNo,//@hpa_transno
                 null,//@hpa_status
                 payment.paymentDesc,//@hpa_desc

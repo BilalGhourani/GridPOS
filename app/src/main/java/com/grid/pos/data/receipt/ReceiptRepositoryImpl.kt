@@ -296,7 +296,7 @@ class ReceiptRepositoryImpl(
                 "null_String_output",//@hr_id
                 receipt.receiptCompanyId,//@hr_cmp_id
                 Timestamp(System.currentTimeMillis()),//@hr_date
-                SettingsModel.rvTransactionType,//@hr_tt_code
+                receipt.receiptTransCode,//@hr_tt_code
                 null,/*receipt.receiptTransNo*///@hr_transno
                 null,//@hr_status
                 receipt.receiptDesc,//@hr_desc
@@ -315,7 +315,7 @@ class ReceiptRepositoryImpl(
             listOf(
                 receipt.receiptCompanyId,//@hr_cmp_id
                 Timestamp(System.currentTimeMillis()),//@hr_date
-                SettingsModel.rvTransactionType,//@hr_tt_code
+                receipt.receiptTransCode,//@hr_tt_code
                 null,/*receipt.receiptTransNo*///@hr_transno
                 null,//@hr_status
                 receipt.receiptDesc,//@hr_desc
@@ -519,7 +519,7 @@ class ReceiptRepositoryImpl(
                 receipt.receiptNo,//@hr_no
                 receipt.receiptCompanyId,//@hr_cmp_id
                 Timestamp(System.currentTimeMillis()),//@hr_date
-                SettingsModel.rvTransactionType,//@hr_tt_code
+                receipt.receiptTransCode,//@hr_tt_code
                 receipt.receiptTransNo,//@hr_transno
                 null,//@hr_status
                 receipt.receiptDesc,//@hr_desc
@@ -538,7 +538,7 @@ class ReceiptRepositoryImpl(
                 receipt.receiptNo,//@hr_no
                 receipt.receiptCompanyId,//@hr_cmp_id
                 Timestamp(System.currentTimeMillis()),//@hr_date
-                SettingsModel.rvTransactionType,//@hr_tt_code
+                receipt.receiptTransCode,//@hr_tt_code
                 receipt.receiptTransNo,//@hr_transno
                 null,//@hr_status
                 receipt.receiptDesc,//@hr_desc
