@@ -30,20 +30,6 @@ object DateHelper {
         ).parse(date)!!
     }
 
-    fun getDateStringInFormat(
-        dateStr: String,
-        fromFormat: String,
-        toFormat: String,
-    ): String {
-        return try {
-            val date = getDateFromString(dateStr, fromFormat)
-            getDateInFormat(date, toFormat)
-        } catch (e: Exception) {
-            dateStr
-        }
-
-    }
-
     fun editDate(
         date: Date = Date(),
         hours: Int = 23,

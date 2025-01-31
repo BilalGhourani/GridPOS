@@ -92,11 +92,7 @@ fun EditStockInOutItemView(
         stockItemNoteState = stockInOutItemModel.stockInOut.stockInOutNote ?: ""
         stockItemDivState = stockInOutItemModel.stockInOut.stockInOutDivName ?: ""
 
-        stockHeadDateState = DateHelper.getDateStringInFormat(
-            stockHeaderInOut.stockHeadInOutDate,
-            "MMMM dd, yyyy 'at' hh:mm:ss a 'Z'",
-            "YYYY-MM-DD HH:mm:ss.SSS"
-        )
+        stockHeadDateState = stockHeaderInOut.stockHeadInOutDate ?: DateHelper.getDateInFormat(format = "YYYY-MM-DD HH:mm:ss.SSS")
         stockHeadValueDateState = DateHelper.getDateInFormat(
             stockHeaderInOut.stockHeadInOutValueDate ?: Date(),
             "YYYY-MM-DD HH:mm:ss.SSS"

@@ -46,7 +46,7 @@ data class StockHeaderInOut(
     /*
     * hio_date
     */
-    var stockHeadInOutDate: String = DateHelper.getDateInFormat(),
+    var stockHeadInOutDate: String? = null,
 
     /*
     * hio_tt_code
