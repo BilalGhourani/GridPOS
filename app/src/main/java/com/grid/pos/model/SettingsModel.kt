@@ -62,8 +62,8 @@ object SettingsModel {
 
     var companyAccessWarning: String = "You don't have access to this company!"
 
-    var siTransactionType: String = "null"
-    var rsTransactionType: String = "null"
+    var siTransactionType: String? = null
+    var rsTransactionType: String? = null
     var defaultSqlServerBranch: String? = null
     var defaultSqlServerWarehouse: String? = null
 
@@ -113,25 +113,6 @@ object SettingsModel {
         }
     }
 
-    private fun getSaleInvoiceType(): String {
-        return if (connectionType == CONNECTION_TYPE.SQL_SERVER.key) {
-            siTransactionType
-        } else {
-            defaultSaleInvoice
-        }
-    }
-
-    private fun getReturnSaleType(): String {
-        return if (connectionType == CONNECTION_TYPE.SQL_SERVER.key) {
-            rsTransactionType
-        } else {
-            defaultReturnSale
-        }
-    }
-
-    fun getTransactionType(amount: Double): String {
-        return if (amount >= 0) getSaleInvoiceType() else getReturnSaleType()
-    }
 
     fun getItemCellWidth(): Dp {
         return if (showPriceInItemBtn) 150.dp else 120.dp

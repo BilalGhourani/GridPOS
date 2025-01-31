@@ -91,38 +91,8 @@ class SharedViewModel @Inject constructor(
     }
 
     private suspend fun fetchSettings() {
-        SettingsModel.siTransactionType =
-            settingsRepository.getTransactionTypeId("Sale Invoice") ?: "null"
-        SettingsModel.rsTransactionType =
-            settingsRepository.getTransactionTypeId("Return Sale") ?: "null"
         SettingsModel.defaultSqlServerBranch = settingsRepository.getDefaultBranch()
         SettingsModel.defaultSqlServerWarehouse = settingsRepository.getDefaultWarehouse()
-        val currency = SettingsModel.currentCurrency ?: return
-
-        SettingsModel.posReceiptAccCashId = settingsRepository.getPosReceiptAccIdBy(
-            "Cash",
-            currency.currencyId
-        )
-        SettingsModel.posReceiptAccCash1Id = settingsRepository.getPosReceiptAccIdBy(
-            "Cash",
-            currency.currencyDocumentId ?: ""
-        )
-        SettingsModel.posReceiptAccCreditId = settingsRepository.getPosReceiptAccIdBy(
-            "Credit Card",
-            currency.currencyId
-        )
-        SettingsModel.posReceiptAccCredit1Id = settingsRepository.getPosReceiptAccIdBy(
-            "Credit Card",
-            currency.currencyDocumentId ?: ""
-        )
-        SettingsModel.posReceiptAccDebitId = settingsRepository.getPosReceiptAccIdBy(
-            "Debit Card",
-            currency.currencyId
-        )
-        SettingsModel.posReceiptAccDebit1Id = settingsRepository.getPosReceiptAccIdBy(
-            "Debit Card",
-            currency.currencyDocumentId ?: ""
-        )
     }
 
     fun fetchCountries(onResult: (MutableList<ReportCountry>) -> Unit) {

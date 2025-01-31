@@ -13,6 +13,7 @@ import com.grid.pos.data.item.ItemRepository
 import com.grid.pos.data.posPrinter.PosPrinterRepository
 import com.grid.pos.data.posReceipt.PosReceipt
 import com.grid.pos.data.posReceipt.PosReceiptRepository
+import com.grid.pos.data.settings.SettingsRepository
 import com.grid.pos.data.thirdParty.ThirdParty
 import com.grid.pos.data.thirdParty.ThirdPartyRepository
 import com.grid.pos.data.user.UserRepository
@@ -39,7 +40,8 @@ class POSViewModel @Inject constructor(
     private val currencyRepository: CurrencyRepository,
     private val familyRepository: FamilyRepository,
     private val posPrinterRepository: PosPrinterRepository,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val settingsRepository: SettingsRepository
 ) : BaseViewModel() {
 
     private val _posState = MutableStateFlow(POSState())
@@ -48,13 +50,73 @@ class POSViewModel @Inject constructor(
     val reportResults = mutableListOf<ReportResult>()
 
     var defaultThirdParty: ThirdParty? = null
+    private var siTransactionType: String = "null"
+    private var rsTransactionType: String = "null"
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
             openConnectionIfNeeded()
             fetchItems()
             fetchFamilies()
-            defaultThirdParty = thirdPartyRepository.getDefaultThirdParty()
+            fetchGlobalSettings()
+        }
+    }
+
+    private suspend fun fetchGlobalSettings() {
+        defaultThirdParty = thirdPartyRepository.getDefaultThirdParty()
+        if (SettingsModel.isConnectedToSqlServer()) {
+            if (SettingsModel.siTransactionType.isNullOrEmpty()) {
+                SettingsModel.siTransactionType =
+                    settingsRepository.getTransactionTypeId("Sale Invoice")
+            }
+            if (SettingsModel.rsTransactionType.isNullOrEmpty()) {
+                SettingsModel.rsTransactionType =
+                    settingsRepository.getTransactionTypeId("Return Sale")
+            }
+            siTransactionType = SettingsModel.siTransactionType ?: "null"
+            rsTransactionType = SettingsModel.rsTransactionType ?: "null"
+
+            val currency = SettingsModel.currentCurrency ?: return
+
+            if (SettingsModel.posReceiptAccCashId.isNullOrEmpty()) {
+                SettingsModel.posReceiptAccCashId = settingsRepository.getPosReceiptAccIdBy(
+                    "Cash",
+                    currency.currencyId
+                )
+            }
+            if (SettingsModel.posReceiptAccCash1Id.isNullOrEmpty()) {
+                SettingsModel.posReceiptAccCash1Id = settingsRepository.getPosReceiptAccIdBy(
+                    "Cash",
+                    currency.currencyDocumentId ?: ""
+                )
+            }
+            if (SettingsModel.posReceiptAccCreditId.isNullOrEmpty()) {
+                SettingsModel.posReceiptAccCreditId = settingsRepository.getPosReceiptAccIdBy(
+                    "Credit Card",
+                    currency.currencyId
+                )
+            }
+            if (SettingsModel.posReceiptAccCredit1Id.isNullOrEmpty()) {
+                SettingsModel.posReceiptAccCredit1Id = settingsRepository.getPosReceiptAccIdBy(
+                    "Credit Card",
+                    currency.currencyDocumentId ?: ""
+                )
+            }
+            if (SettingsModel.posReceiptAccDebitId.isNullOrEmpty()) {
+                SettingsModel.posReceiptAccDebitId = settingsRepository.getPosReceiptAccIdBy(
+                    "Debit Card",
+                    currency.currencyId
+                )
+            }
+            if (SettingsModel.posReceiptAccDebit1Id.isNullOrEmpty()) {
+                SettingsModel.posReceiptAccDebit1Id = settingsRepository.getPosReceiptAccIdBy(
+                    "Debit Card",
+                    currency.currencyDocumentId ?: ""
+                )
+            }
+        } else {
+            siTransactionType = SettingsModel.defaultSaleInvoice
+            rsTransactionType = SettingsModel.defaultReturnSale
         }
     }
 
@@ -216,7 +278,7 @@ class POSViewModel @Inject constructor(
             if (isInserting) {
                 if (finish) {
                     val lastTransactionIvn = invoiceHeaderRepository.getLastTransactionByType(
-                        POSUtils.getInvoiceType(invoiceHeader)
+                        getInvoiceType(invoiceHeader)
                     )
                     invoiceHeader.invoiceHeadTransNo = POSUtils.getInvoiceTransactionNo(
                         lastTransactionIvn?.invoiceHeadTransNo ?: ""
@@ -237,7 +299,7 @@ class POSViewModel @Inject constructor(
                 }
                 if (invoiceHeader.invoiceHeadTtCode.isNullOrEmpty()) {
                     invoiceHeader.invoiceHeadTtCode =
-                        SettingsModel.getTransactionType(invoiceHeader.invoiceHeadGrossAmount)
+                        getTransactionType(invoiceHeader.invoiceHeadGrossAmount)
                 }
                 invoiceHeader.prepareForInsert()
                 val dataModel = invoiceHeaderRepository.insert(
@@ -276,12 +338,12 @@ class POSViewModel @Inject constructor(
                 }
                 if (invoiceHeader.invoiceHeadTtCode.isNullOrEmpty()) {
                     invoiceHeader.invoiceHeadTtCode =
-                        SettingsModel.getTransactionType(invoiceHeader.invoiceHeadGrossAmount)
+                        getTransactionType(invoiceHeader.invoiceHeadGrossAmount)
                 }
                 if (finish) {
                     if (!invoiceHeader.isFinished()) {
                         val lastTransactionIvn = invoiceHeaderRepository.getLastTransactionByType(
-                            POSUtils.getInvoiceType(invoiceHeader)
+                            getInvoiceType(invoiceHeader)
                         )
                         invoiceHeader.invoiceHeadTransNo = POSUtils.getInvoiceTransactionNo(
                             lastTransactionIvn?.invoiceHeadTransNo ?: ""
@@ -658,6 +720,18 @@ class POSViewModel @Inject constructor(
                 }
             }
         }
+    }
+
+    private fun getInvoiceType(invoiceHeader: InvoiceHeader): String {
+        return if (!invoiceHeader.invoiceHeadTtCode.isNullOrEmpty()) {
+            invoiceHeader.invoiceHeadTtCode!!
+        } else {
+            getTransactionType(invoiceHeader.invoiceHeadTotal)
+        }
+    }
+
+    private fun getTransactionType(amount: Double): String {
+        return if (amount >= 0) siTransactionType else rsTransactionType
     }
 
 }

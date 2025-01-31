@@ -105,9 +105,6 @@ object POSUtils {
         return invHeader
     }
 
-    fun getInvoiceType(invoiceHeader: InvoiceHeader): String {
-        return invoiceHeader.invoiceHeadTtCode.takeIf { !it.isNullOrEmpty() } ?: run { SettingsModel.getTransactionType(invoiceHeader.invoiceHeadTotal) }
-    }
 
     fun formatDouble(
             number: Double,
