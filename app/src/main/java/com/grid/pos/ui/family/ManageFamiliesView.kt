@@ -21,20 +21,16 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -50,59 +46,48 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import com.grid.pos.SharedViewModel
 import com.grid.pos.R
+import com.grid.pos.SharedViewModel
 import com.grid.pos.data.family.Family
 import com.grid.pos.interfaces.OnGalleryResult
 import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
+import com.grid.pos.model.ToastModel
 import com.grid.pos.ui.common.SearchableDropdownMenuEx
 import com.grid.pos.ui.common.UIImageButton
 import com.grid.pos.ui.common.UITextField
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.utils.FileUtils
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 @OptIn(
     ExperimentalMaterial3Api::class
 )
 @Composable
 fun ManageFamiliesView(
-        modifier: Modifier = Modifier,
-        navController: NavController? = null,
-        sharedViewModel: SharedViewModel,
-        viewModel: ManageFamiliesViewModel = hiltViewModel()
+    modifier: Modifier = Modifier,
+    navController: NavController? = null,
+    sharedViewModel: SharedViewModel,
+    viewModel: ManageFamiliesViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
     val state by viewModel.manageFamiliesState.collectAsStateWithLifecycle()
+    val family = viewModel.familyState.collectAsState().value
+
     val keyboardController = LocalSoftwareKeyboardController.current
     val imageFocusRequester = remember { FocusRequester() }
 
-    var nameState by remember { mutableStateOf("") }
-    var imageState by remember { mutableStateOf("") }
-    var oldImage: String? = null
-
-    val snackbarHostState = remember { SnackbarHostState() }
-    val scope = rememberCoroutineScope()
-
     LaunchedEffect(state.warning) {
         state.warning?.value?.let { message ->
-            scope.launch {
-                val snackBarResult = snackbarHostState.showSnackbar(
-                    message = message,
-                    duration = SnackbarDuration.Short,
-                    actionLabel = state.actionLabel
-                )
-                when (snackBarResult) {
-                    SnackbarResult.Dismissed -> {}
-                    SnackbarResult.ActionPerformed -> when (state.actionLabel) {
+            sharedViewModel.showToastMessage(ToastModel(
+                message = message,
+                actionButton = state.actionLabel,
+                onActionClick = {
+                    when (state.actionLabel) {
                         "Settings" -> sharedViewModel.openAppStorageSettings()
                     }
                 }
-            }
+
+            ))
         }
     }
 
@@ -111,29 +96,25 @@ fun ManageFamiliesView(
     }
 
     fun saveFamily() {
-        oldImage?.let { old ->
+        viewModel.oldImage?.let { old ->
             FileUtils.deleteFile(
                 context,
                 old
             )
         }
-        viewModel.saveFamily(state.selectedFamily)
+        viewModel.save()
     }
 
     fun clear() {
-        viewModel.currentFamily = Family()
-        state.selectedFamily = Family()
-        nameState = ""
-        imageState = ""
         viewModel.resetState()
     }
 
     var saveAndBack by remember { mutableStateOf(false) }
     fun handleBack() {
-        if(state.isLoading){
+        if (state.isLoading) {
             return
         }
-        if ( state.selectedFamily.didChanged(
+        if (family.didChanged(
                 viewModel.currentFamily
             )
         ) {
@@ -176,9 +157,6 @@ fun ManageFamiliesView(
     }
     GridPOSTheme {
         Scaffold(containerColor = SettingsModel.backgroundColor,
-            snackbarHost = {
-                SnackbarHost(hostState = snackbarHostState)
-            },
             topBar = {
                 Surface(
                     shadowElevation = 3.dp,
@@ -232,19 +210,22 @@ fun ManageFamiliesView(
                         horizontal = 10.dp,
                         vertical = 5.dp
                     ),
-                        defaultValue = nameState,
+                        defaultValue = family.familyName ?: "",
                         label = "Name",
                         placeHolder = "Enter Name",
                         onAction = { imageFocusRequester.requestFocus() }) { name ->
-                        nameState = name
-                        state.selectedFamily.familyName = name
+                        viewModel.updateFamily(
+                            family.copy(
+                                familyName = name
+                            )
+                        )
                     }
 
                     UITextField(modifier = Modifier.padding(
                         horizontal = 10.dp,
                         vertical = 5.dp
                     ),
-                        defaultValue = imageState,
+                        defaultValue = family.familyImage ?: "",
                         label = "Image",
                         placeHolder = "Image",
                         focusRequester = imageFocusRequester,
@@ -257,21 +238,18 @@ fun ManageFamiliesView(
                                         override fun onGalleryResult(uris: List<Uri>) {
                                             if (uris.isNotEmpty()) {
                                                 sharedViewModel.showLoading(true)
-                                                CoroutineScope(Dispatchers.IO).launch {
-                                                    val internalPath = FileUtils.saveToExternalStorage(context = context,
-                                                        parent = "family",
-                                                        uris[0],
-                                                        nameState.trim().replace(
-                                                            " ",
-                                                            "_"
-                                                        ).ifEmpty { "family" })
-                                                    withContext(Dispatchers.Main) {
-                                                        sharedViewModel.showLoading(false)
-                                                        if (internalPath != null) {
-                                                            oldImage = imageState
-                                                            imageState = internalPath
-                                                            state.selectedFamily.familyImage = imageState
-                                                        }
+                                                viewModel.copyToInternalStorage(
+                                                    context,
+                                                    uris[0]
+                                                ) { internalPath ->
+                                                    sharedViewModel.showLoading(false)
+                                                    if (internalPath != null) {
+                                                        viewModel.oldImage = family.familyImage
+                                                        viewModel.updateFamily(
+                                                            family.copy(
+                                                                familyImage = internalPath
+                                                            )
+                                                        )
                                                     }
                                                 }
                                             }
@@ -292,8 +270,11 @@ fun ManageFamiliesView(
                                 )
                             }
                         }) { img ->
-                        imageState = img
-                        state.selectedFamily.familyImage = img
+                        viewModel.updateFamily(
+                            family.copy(
+                                familyImage = img
+                            )
+                        )
                     }
 
                     Row(
@@ -323,19 +304,19 @@ fun ManageFamiliesView(
                             icon = R.drawable.delete,
                             text = "Delete"
                         ) {
-                            oldImage?.let { old ->
+                            viewModel.oldImage?.let { old ->
                                 FileUtils.deleteFile(
                                     context,
                                     old
                                 )
                             }
-                            if (imageState.isNotEmpty()) {
+                            if (!family.familyImage.isNullOrEmpty()) {
                                 FileUtils.deleteFile(
                                     context,
-                                    imageState
+                                    family.familyImage!!
                                 )
                             }
-                            viewModel.deleteSelectedFamily(state.selectedFamily)
+                            viewModel.delete()
                         }
 
                         UIImageButton(
@@ -353,20 +334,20 @@ fun ManageFamiliesView(
 
                 SearchableDropdownMenuEx(items = state.families.toMutableList(),
                     modifier = Modifier.padding(
-                            top = 15.dp,
-                            start = 10.dp,
-                            end = 10.dp
-                        ),
+                        top = 15.dp,
+                        start = 10.dp,
+                        end = 10.dp
+                    ),
                     label = "Select Family",
-                    selectedId = state.selectedFamily.familyId,
+                    selectedId = family.familyId,
                     onLoadItems = { viewModel.fetchFamilies() },
-                    leadingIcon = {
-                        if (state.selectedFamily.familyId.isNotEmpty()) {
+                    leadingIcon = { modifier ->
+                        if (family.familyId.isNotEmpty()) {
                             Icon(
                                 Icons.Default.RemoveCircleOutline,
                                 contentDescription = "remove family",
                                 tint = Color.Black,
-                                modifier = it
+                                modifier = modifier
                             )
                         }
                     },
@@ -375,9 +356,7 @@ fun ManageFamiliesView(
                     }) { family ->
                     family as Family
                     viewModel.currentFamily = family.copy()
-                    state.selectedFamily = family.copy()
-                    nameState = family.familyName ?: ""
-                    imageState = family.familyImage ?: ""
+                    viewModel.updateFamily(family.copy())
                 }
             }
         }

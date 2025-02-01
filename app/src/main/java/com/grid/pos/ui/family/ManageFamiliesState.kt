@@ -5,7 +5,6 @@ import com.grid.pos.model.Event
 
 data class ManageFamiliesState(
         val families: MutableList<Family> = mutableListOf(),
-        var selectedFamily: Family = Family(),
         val isLoading: Boolean = false,
         val clear: Boolean = false,
         val warning: Event<String>? = null,
