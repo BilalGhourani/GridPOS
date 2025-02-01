@@ -86,7 +86,6 @@ fun ManageFamiliesView(
                         "Settings" -> sharedViewModel.openAppStorageSettings()
                     }
                 }
-
             ))
         }
     }
