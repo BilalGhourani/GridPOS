@@ -54,7 +54,6 @@ import com.grid.pos.model.ToastModel
 import com.grid.pos.ui.common.UIImageButton
 import com.grid.pos.ui.common.UITextField
 import com.grid.pos.ui.theme.GridPOSTheme
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -150,7 +149,7 @@ fun LoginView(
     }
     LaunchedEffect(state.isLoggedIn) {
         if (state.isLoggedIn) {
-            CoroutineScope(Dispatchers.IO).launch {
+            scope.launch(Dispatchers.IO) {
                 sharedViewModel.activityState.value.isLoggedIn = true
                 sharedViewModel.activityState.value.warning = null
                 withContext(Dispatchers.Main) {
