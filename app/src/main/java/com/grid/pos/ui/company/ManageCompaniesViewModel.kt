@@ -16,22 +16,28 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
 class ManageCompaniesViewModel @Inject constructor(
-        private val companyRepository: CompanyRepository,
-        private val currencyRepository: CurrencyRepository,
-        private val posPrinterRepository: PosPrinterRepository,
-        private val familyRepository: FamilyRepository,
-        private val thirdPartyRepository: ThirdPartyRepository,
-        private val userRepository: UserRepository
+    private val companyRepository: CompanyRepository,
+    private val currencyRepository: CurrencyRepository,
+    private val posPrinterRepository: PosPrinterRepository,
+    private val familyRepository: FamilyRepository,
+    private val thirdPartyRepository: ThirdPartyRepository,
+    private val userRepository: UserRepository
 ) : BaseViewModel() {
 
     private val _manageCompaniesState = MutableStateFlow(ManageCompaniesState())
     val manageCompaniesState: MutableStateFlow<ManageCompaniesState> = _manageCompaniesState
+
+    private var _companyState = MutableStateFlow(Company())
+    var companyState = _companyState.asStateFlow()
+
+    var oldImage: String? = null
     var currentCompany: Company = Company()
 
     init {
@@ -42,6 +48,8 @@ class ManageCompaniesViewModel @Inject constructor(
     }
 
     fun resetState() {
+        currentCompany = Company()
+        updateCompany(Company())
         manageCompaniesState.value = manageCompaniesState.value.copy(
             warning = null,
             isLoading = false,
@@ -49,9 +57,13 @@ class ManageCompaniesViewModel @Inject constructor(
         )
     }
 
+    fun updateCompany(company: Company) {
+        _companyState.value = company
+    }
+
     fun showWarning(
-            warning: String?,
-            action: String? = null
+        warning: String?,
+        action: String? = null
     ) {
         viewModelScope.launch(Dispatchers.Main) {
             manageCompaniesState.value = manageCompaniesState.value.copy(
@@ -86,11 +98,10 @@ class ManageCompaniesViewModel @Inject constructor(
         }
     }
 
-    fun saveCompany(
-            company: Company,
-            isRegistering: Boolean
+    fun save(
+        isRegistering: Boolean
     ) {
-        if (company.companyName.isNullOrEmpty()) {
+        if (companyState.value.companyName.isNullOrEmpty()) {
             viewModelScope.launch(Dispatchers.Main) {
                 manageCompaniesState.value = manageCompaniesState.value.copy(
                     warning = Event("Please fill company name and Currency."),
@@ -102,11 +113,11 @@ class ManageCompaniesViewModel @Inject constructor(
         manageCompaniesState.value = manageCompaniesState.value.copy(
             isLoading = true
         )
-        val isInserting = company.isNew()
+        val isInserting = companyState.value.isNew()
         CoroutineScope(Dispatchers.IO).launch {
             if (isInserting) {
-                company.prepareForInsert()
-                val dataModel = companyRepository.insert(company)
+                companyState.value.prepareForInsert()
+                val dataModel = companyRepository.insert(companyState.value)
                 if (dataModel.succeed) {
                     val addedCompany = dataModel.data as Company
                     val companies = manageCompaniesState.value.companies
@@ -123,7 +134,6 @@ class ManageCompaniesViewModel @Inject constructor(
                         withContext(Dispatchers.Main) {
                             manageCompaniesState.value = manageCompaniesState.value.copy(
                                 companies = companies,
-                                selectedCompany = Company(),
                                 isLoading = false,
                                 warning = Event("Company saved successfully, do you want to continue?"),
                                 actionLabel = "next",
@@ -134,7 +144,6 @@ class ManageCompaniesViewModel @Inject constructor(
                         withContext(Dispatchers.Main) {
                             manageCompaniesState.value = manageCompaniesState.value.copy(
                                 companies = companies,
-                                selectedCompany = Company(),
                                 isLoading = false,
                                 warning = Event("Company saved successfully."),
                                 clear = true
@@ -151,26 +160,26 @@ class ManageCompaniesViewModel @Inject constructor(
                     }
                 }
             } else {
-                val dataModel = companyRepository.update(company)
+                val dataModel = companyRepository.update(companyState.value)
                 if (dataModel.succeed) {
-                    if (company.companyId.equals(
+                    if (companyState.value.companyId.equals(
                             SettingsModel.currentCompany?.companyId,
                             ignoreCase = true
                         )
                     ) {
-                        SettingsModel.currentCompany = company
+                        SettingsModel.currentCompany = companyState.value
                     }
-                    val index = manageCompaniesState.value.companies.indexOfFirst { it.companyId == company.companyId }
+                    val index =
+                        manageCompaniesState.value.companies.indexOfFirst { it.companyId == companyState.value.companyId }
                     if (index >= 0) {
                         manageCompaniesState.value.companies.removeAt(index)
                         manageCompaniesState.value.companies.add(
                             index,
-                            company
+                            companyState.value
                         )
                     }
                     withContext(Dispatchers.Main) {
                         manageCompaniesState.value = manageCompaniesState.value.copy(
-                            selectedCompany = company,
                             isLoading = false,
                             warning = Event("Company saved successfully."),
                             clear = true
@@ -189,8 +198,8 @@ class ManageCompaniesViewModel @Inject constructor(
         }
     }
 
-    fun deleteSelectedCompany(company: Company) {
-        if (company.companyId.isEmpty()) {
+    fun delete() {
+        if (companyState.value.companyId.isEmpty()) {
             viewModelScope.launch(Dispatchers.Main) {
                 manageCompaniesState.value = manageCompaniesState.value.copy(
                     warning = Event("Please select an company to delete"),
@@ -204,7 +213,7 @@ class ManageCompaniesViewModel @Inject constructor(
         )
 
         CoroutineScope(Dispatchers.IO).launch {
-            if (hasRelations(company.companyId)) {
+            if (hasRelations(companyState.value.companyId)) {
                 withContext(Dispatchers.Main) {
                     manageCompaniesState.value = manageCompaniesState.value.copy(
                         warning = Event("You can't delete this Company,because it has related data!"),
@@ -213,14 +222,13 @@ class ManageCompaniesViewModel @Inject constructor(
                 }
                 return@launch
             }
-            val dataModel = companyRepository.delete(company)
+            val dataModel = companyRepository.delete(companyState.value)
             if (dataModel.succeed) {
                 val companies = manageCompaniesState.value.companies
-                companies.remove(company)
+                companies.remove(companyState.value)
                 withContext(Dispatchers.Main) {
                     manageCompaniesState.value = manageCompaniesState.value.copy(
                         companies = companies,
-                        selectedCompany = Company(),
                         isLoading = false,
                         warning = Event("successfully deleted."),
                         clear = true

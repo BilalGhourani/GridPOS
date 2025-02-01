@@ -1,6 +1,8 @@
 package com.grid.pos
 
+import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.lifecycle.viewModelScope
 import com.grid.pos.data.FirebaseWrapper
@@ -29,6 +31,7 @@ import com.grid.pos.model.ReportResult
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.model.ToastModel
 import com.grid.pos.ui.common.BaseViewModel
+import com.grid.pos.utils.FileUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
@@ -328,5 +331,28 @@ class SharedViewModel @Inject constructor(
         invoiceHeaders.clear()
         printers.clear()
         closeConnectionIfNeeded()
+    }
+
+    fun copyToInternalStorage(
+        context: Context,
+        uri: Uri,
+        parent: String,
+        fileName: String,
+        callback: (String?) -> Unit
+    ) {
+        showLoading(true)
+        viewModelScope.launch(Dispatchers.IO) {
+            val internalPath =
+                FileUtils.saveToExternalStorage(
+                    context = context,
+                    parent = parent,
+                    sourceFilePath = uri,
+                    destName = fileName,
+                )
+            withContext(Dispatchers.Main) {
+                showLoading(false)
+                callback.invoke(internalPath)
+            }
+        }
     }
 }

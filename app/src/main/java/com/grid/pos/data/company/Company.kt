@@ -239,4 +239,28 @@ data class Company(
             "cmp_tax2regno" to companyTax2Regno,
         )
     }
+
+    fun getTaxString():String{
+       return if(companyTax == 0.0){
+            ""
+        }else{
+           companyTax.toString()
+       }
+    }
+
+    fun getTax1String():String{
+        return if(companyTax1 == 0.0){
+            ""
+        }else{
+            companyTax1.toString()
+        }
+    }
+
+    fun getTax2String():String{
+        return if(companyTax2 == 0.0){
+            ""
+        }else{
+            companyTax2.toString()
+        }
+    }
 }

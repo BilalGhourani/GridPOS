@@ -22,20 +22,16 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -58,28 +54,25 @@ import com.grid.pos.data.company.Company
 import com.grid.pos.interfaces.OnGalleryResult
 import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
+import com.grid.pos.model.ToastModel
 import com.grid.pos.ui.common.SearchableDropdownMenuEx
 import com.grid.pos.ui.common.UIImageButton
 import com.grid.pos.ui.common.UISwitch
 import com.grid.pos.ui.common.UITextField
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.utils.FileUtils
-import com.grid.pos.utils.Utils
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 @SuppressLint("CoroutineCreationDuringComposition")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ManageCompaniesView(
-        modifier: Modifier = Modifier,
-        navController: NavController? = null,
-        sharedViewModel: SharedViewModel,
-        viewModel: ManageCompaniesViewModel = hiltViewModel()
+    modifier: Modifier = Modifier,
+    navController: NavController? = null,
+    sharedViewModel: SharedViewModel,
+    viewModel: ManageCompaniesViewModel = hiltViewModel()
 ) {
     val state by viewModel.manageCompaniesState.collectAsStateWithLifecycle()
+    val company = viewModel.companyState.collectAsState().value
     val context = LocalContext.current
     val keyboardController = LocalSoftwareKeyboardController.current
     val phoneFocusRequester = remember { FocusRequester() }
@@ -95,60 +88,37 @@ fun ManageCompaniesView(
     val tax2FocusRequester = remember { FocusRequester() }
     val tax2RegNoFocusRequester = remember { FocusRequester() }
 
-    var nameState by remember { mutableStateOf("") }
-    var phoneState by remember { mutableStateOf("") }
-    var addressState by remember { mutableStateOf("") }
-    var countryState by remember { mutableStateOf("") }
-    var taxRegnoState by remember { mutableStateOf("") }
-    var taxState by remember { mutableStateOf("") }
-    var upWithTaxState by remember { mutableStateOf(false) }
-    //var printerState by remember { mutableStateOf("") }
-    var emailState by remember { mutableStateOf("") }
-    var webState by remember { mutableStateOf("") }
-    var logoState by remember { mutableStateOf("") }
-    var tax1State by remember { mutableStateOf("") }
-    var tax1RegnoState by remember { mutableStateOf("") }
-    var tax2State by remember { mutableStateOf("") }
-    var tax2RegnoState by remember { mutableStateOf("") }
 
-    var oldImage: String? = null
-
-    val snackbarHostState = remember { SnackbarHostState() }
-    val scope = rememberCoroutineScope()
     LaunchedEffect(state.warning) {
         state.warning?.value?.let { message ->
-            scope.launch {
-                if (state.actionLabel == "next" && sharedViewModel.isRegistering) {
-                    sharedViewModel.showPopup(
-                        true,
-                        PopupModel(
-                            onDismissRequest = {
-                                sharedViewModel.isRegistering = false
-                                navController?.navigateUp()
-                            },
-                            onConfirmation = {
-                                navController?.navigateUp()
-                                navController?.navigate("ManageUsersView")
-                            },
-                            dialogText = message,
-                            positiveBtnText = "Continue",
-                            negativeBtnText = "Close",
-                            cancelable = false
-                        )
+            if (state.actionLabel == "next" && sharedViewModel.isRegistering) {
+                sharedViewModel.showPopup(
+                    true,
+                    PopupModel(
+                        onDismissRequest = {
+                            sharedViewModel.isRegistering = false
+                            navController?.navigateUp()
+                        },
+                        onConfirmation = {
+                            navController?.navigateUp()
+                            navController?.navigate("ManageUsersView")
+                        },
+                        dialogText = message,
+                        positiveBtnText = "Continue",
+                        negativeBtnText = "Close",
+                        cancelable = false
                     )
-                } else {
-                    val snackBarResult = snackbarHostState.showSnackbar(
-                        message = message,
-                        duration = SnackbarDuration.Short,
-                        actionLabel = state.actionLabel
-                    )
-                    when (snackBarResult) {
-                        SnackbarResult.Dismissed -> {}
-                        SnackbarResult.ActionPerformed -> when (state.actionLabel) {
+                )
+            } else {
+                sharedViewModel.showToastMessage(ToastModel(
+                    message = message,
+                    actionButton = state.actionLabel,
+                    onActionClick = {
+                        when (state.actionLabel) {
                             "Settings" -> sharedViewModel.openAppStorageSettings()
                         }
                     }
-                }
+                ))
             }
         }
     }
@@ -158,38 +128,17 @@ fun ManageCompaniesView(
     }
 
     fun saveCompany() {
-        oldImage?.let { old ->
+        viewModel.oldImage?.let { old ->
             FileUtils.deleteFile(
                 context,
                 old
             )
         }
         val firstCurr = state.currencies.firstOrNull() ?: SettingsModel.currentCurrency
-        state.selectedCompany.companyCurCodeTax = firstCurr?.currencyId
-        viewModel.saveCompany(
-            state.selectedCompany,
+        viewModel.companyState.value.companyCurCodeTax = firstCurr?.currencyId
+        viewModel.save(
             sharedViewModel.isRegistering
         )
-    }
-
-    fun clear() {
-        viewModel.currentCompany = Company()
-        state.selectedCompany = Company()
-        nameState = ""
-        phoneState = ""
-        addressState = ""
-        countryState = ""
-        taxRegnoState = ""
-        taxState = ""
-        upWithTaxState = false
-        emailState = ""
-        webState = ""
-        logoState = ""
-        tax1RegnoState = ""
-        tax1State = ""
-        tax2RegnoState = ""
-        tax2State = ""
-        viewModel.resetState()
     }
 
     var saveAndBack by remember { mutableStateOf(false) }
@@ -197,14 +146,14 @@ fun ManageCompaniesView(
         if (state.isLoading) {
             return
         }
-        if (state.selectedCompany.didChanged(
+        if (company.didChanged(
                 viewModel.currentCompany
             )
         ) {
             sharedViewModel.showPopup(true,
                 PopupModel().apply {
                     onDismissRequest = {
-                        clear()
+                        viewModel.resetState()
                         handleBack()
                     }
                     onConfirmation = {
@@ -227,7 +176,7 @@ fun ManageCompaniesView(
     }
 
     fun clearAndBack() {
-        clear()
+        viewModel.resetState()
         if (saveAndBack) {
             handleBack()
         }
@@ -243,9 +192,6 @@ fun ManageCompaniesView(
 
     GridPOSTheme {
         Scaffold(containerColor = SettingsModel.backgroundColor,
-            snackbarHost = {
-                SnackbarHost(hostState = snackbarHostState)
-            },
             topBar = {
                 Surface(
                     shadowElevation = 3.dp,
@@ -300,12 +246,15 @@ fun ManageCompaniesView(
                         horizontal = 10.dp,
                         vertical = 5.dp
                     ),
-                        defaultValue = nameState,
+                        defaultValue = company.companyName ?: "",
                         label = "Name",
                         placeHolder = "Enter Name",
                         onAction = { phoneFocusRequester.requestFocus() }) { name ->
-                        nameState = name
-                        state.selectedCompany.companyName = name
+                        viewModel.updateCompany(
+                            company.copy(
+                                companyName = name
+                            )
+                        )
                     }
 
                     //phone
@@ -313,13 +262,16 @@ fun ManageCompaniesView(
                         horizontal = 10.dp,
                         vertical = 5.dp
                     ),
-                        defaultValue = phoneState,
+                        defaultValue = company.companyPhone ?: "",
                         label = "Phone",
                         focusRequester = phoneFocusRequester,
                         placeHolder = "Enter Phone",
                         onAction = { addressFocusRequester.requestFocus() }) { phone ->
-                        phoneState = phone
-                        state.selectedCompany.companyPhone = phone
+                        viewModel.updateCompany(
+                            company.copy(
+                                companyPhone = phone
+                            )
+                        )
                     }
 
                     //address
@@ -327,15 +279,18 @@ fun ManageCompaniesView(
                         horizontal = 10.dp,
                         vertical = 5.dp
                     ),
-                        defaultValue = addressState,
+                        defaultValue = company.companyAddress ?: "",
                         label = "Address",
                         focusRequester = addressFocusRequester,
                         placeHolder = "Enter address",
                         onAction = {
                             countryFocusRequester.requestFocus()
                         }) { address ->
-                        addressState = address
-                        state.selectedCompany.companyAddress = address
+                        viewModel.updateCompany(
+                            company.copy(
+                                companyAddress = address
+                            )
+                        )
                     }
 
                     //country
@@ -343,7 +298,7 @@ fun ManageCompaniesView(
                         horizontal = 10.dp,
                         vertical = 5.dp
                     ),
-                        defaultValue = countryState,
+                        defaultValue = company.companyCountry ?: "",
                         label = "Country",
                         focusRequester = countryFocusRequester,
                         placeHolder = "Enter country",
@@ -358,33 +313,28 @@ fun ManageCompaniesView(
                                 emailFocusRequester.requestFocus()
                             }
                         }) { country ->
-                        countryState = country
-                        state.selectedCompany.companyCountry = countryState
+                        viewModel.updateCompany(
+                            company.copy(
+                                companyCountry = country
+                            )
+                        )
                     }
-
-                    /*SearchableDropdownMenuEx(
-                        items = manageCompaniesState.printers.toMutableList(),
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
-                        label = "Select Printer",
-                        selectedId = printerState
-                    ) { printer ->
-                        printer as PosPrinter
-                        printerState = printer.posPrinterId
-                        manageCompaniesState.selectedCompany.companyPrinterId = printerState
-                    }*/
 
                     //email
                     UITextField(modifier = Modifier.padding(
                         horizontal = 10.dp,
                         vertical = 5.dp
                     ),
-                        defaultValue = emailState,
+                        defaultValue = company.companyEmail ?: "",
                         label = "Email Address",
                         placeHolder = "Enter Email Address",
                         focusRequester = emailFocusRequester,
                         onAction = { webFocusRequester.requestFocus() }) { email ->
-                        emailState = email
-                        state.selectedCompany.companyEmail = email
+                        viewModel.updateCompany(
+                            company.copy(
+                                companyEmail = email
+                            )
+                        )
                     }
 
                     //web
@@ -392,13 +342,16 @@ fun ManageCompaniesView(
                         horizontal = 10.dp,
                         vertical = 5.dp
                     ),
-                        defaultValue = webState,
+                        defaultValue = company.companyWeb ?: "",
                         label = "Website",
                         placeHolder = "Enter Website",
                         focusRequester = webFocusRequester,
                         onAction = { logoFocusRequester.requestFocus() }) { web ->
-                        webState = web
-                        state.selectedCompany.companyWeb = web
+                        viewModel.updateCompany(
+                            company.copy(
+                                companyWeb = web
+                            )
+                        )
                     }
 
                     //logo
@@ -406,7 +359,7 @@ fun ManageCompaniesView(
                         horizontal = 10.dp,
                         vertical = 5.dp
                     ),
-                        defaultValue = logoState,
+                        defaultValue = company.companyLogo ?: "",
                         label = "Logo",
                         placeHolder = "Enter Logo",
                         focusRequester = logoFocusRequester,
@@ -418,22 +371,23 @@ fun ManageCompaniesView(
                                     object : OnGalleryResult {
                                         override fun onGalleryResult(uris: List<Uri>) {
                                             if (uris.isNotEmpty()) {
-                                                sharedViewModel.showLoading(true)
-                                                CoroutineScope(Dispatchers.IO).launch {
-                                                    val internalPath = FileUtils.saveToExternalStorage(context = context,
-                                                        parent = "company logo",
-                                                        uris[0],
-                                                        nameState.trim().replace(
+                                                sharedViewModel.copyToInternalStorage(
+                                                    context,
+                                                    uris[0],
+                                                    "company logo",
+                                                    (company.companyName ?: "company").trim()
+                                                        .replace(
                                                             " ",
                                                             "_"
-                                                        ).ifEmpty { "item" })
-                                                    withContext(Dispatchers.Main) {
-                                                        sharedViewModel.showLoading(false)
-                                                        if (internalPath != null) {
-                                                            oldImage = logoState
-                                                            logoState = internalPath
-                                                            state.selectedCompany.companyLogo = logoState
-                                                        }
+                                                        )
+                                                ) { internalPath ->
+                                                    if (internalPath != null) {
+                                                        viewModel.oldImage = company.companyLogo
+                                                        viewModel.updateCompany(
+                                                            company.copy(
+                                                                companyLogo = internalPath
+                                                            )
+                                                        )
                                                     }
                                                 }
                                             }
@@ -453,8 +407,11 @@ fun ManageCompaniesView(
                                 )
                             }
                         }) { logo ->
-                        logoState = logo
-                        state.selectedCompany.companyLogo = logo
+                        viewModel.updateCompany(
+                            company.copy(
+                                companyLogo = logo
+                            )
+                        )
                     }
 
                     if (SettingsModel.showTax) {
@@ -463,13 +420,16 @@ fun ManageCompaniesView(
                             horizontal = 10.dp,
                             vertical = 5.dp
                         ),
-                            defaultValue = taxRegnoState,
+                            defaultValue = company.companyTaxRegno ?: "",
                             label = "Tax Reg. No",
                             focusRequester = taxRegNoFocusRequester,
                             placeHolder = "Enter Tax Reg. No",
                             onAction = { taxFocusRequester.requestFocus() }) { taxRegno ->
-                            taxRegnoState = taxRegno
-                            state.selectedCompany.companyTaxRegno = taxRegno
+                            viewModel.updateCompany(
+                                company.copy(
+                                    companyTaxRegno = taxRegno
+                                )
+                            )
                         }
 
                         //tax
@@ -477,7 +437,7 @@ fun ManageCompaniesView(
                             horizontal = 10.dp,
                             vertical = 5.dp
                         ),
-                            defaultValue = taxState,
+                            defaultValue = company.getTaxString(),
                             label = "Tax",
                             focusRequester = taxFocusRequester,
                             keyboardType = KeyboardType.Decimal,
@@ -491,11 +451,12 @@ fun ManageCompaniesView(
                                     emailFocusRequester.requestFocus()
                                 }
                             }) { tax ->
-                            taxState = Utils.getDoubleValue(
-                                tax,
-                                taxState
+                            val companyTax = tax.toDoubleOrNull() ?: company.companyTax
+                            viewModel.updateCompany(
+                                company.copy(
+                                    companyTax = companyTax
+                                )
                             )
-                            state.selectedCompany.companyTax = taxState.toDoubleOrNull() ?: 0.0
                         }
                     }
                     if (SettingsModel.showTax1) {
@@ -504,13 +465,16 @@ fun ManageCompaniesView(
                             horizontal = 10.dp,
                             vertical = 5.dp
                         ),
-                            defaultValue = tax1RegnoState,
+                            defaultValue = company.companyTax1Regno ?: "",
                             label = "Tax1 Reg. No",
                             placeHolder = "Enter Tax1 Reg. No",
                             focusRequester = tax1RegNoFocusRequester,
                             onAction = { tax1FocusRequester.requestFocus() }) { tax1Regno ->
-                            tax1RegnoState = tax1Regno
-                            state.selectedCompany.companyTax1Regno = tax1Regno
+                            viewModel.updateCompany(
+                                company.copy(
+                                    companyTax1Regno = tax1Regno
+                                )
+                            )
                         }
 
                         //tax1
@@ -518,7 +482,7 @@ fun ManageCompaniesView(
                             horizontal = 10.dp,
                             vertical = 5.dp
                         ),
-                            defaultValue = tax1State,
+                            defaultValue = company.getTax1String(),
                             label = "Tax1",
                             keyboardType = KeyboardType.Decimal,
                             placeHolder = "Enter Tax1",
@@ -530,11 +494,12 @@ fun ManageCompaniesView(
                                     emailFocusRequester.requestFocus()
                                 }
                             }) { tax1 ->
-                            tax1State = Utils.getDoubleValue(
-                                tax1,
-                                tax1State
+                            val companyTax1 = tax1.toDoubleOrNull() ?: company.companyTax1
+                            viewModel.updateCompany(
+                                company.copy(
+                                    companyTax1 = companyTax1
+                                )
                             )
-                            state.selectedCompany.companyTax1 = tax1State.toDoubleOrNull() ?: 0.0
                         }
                     }
                     if (SettingsModel.showTax2) {
@@ -543,13 +508,16 @@ fun ManageCompaniesView(
                             horizontal = 10.dp,
                             vertical = 5.dp
                         ),
-                            defaultValue = tax2RegnoState,
+                            defaultValue = company.companyTax2Regno ?: "",
                             label = "Tax2 Reg. No",
                             placeHolder = "Enter Tax2 Reg. No",
                             focusRequester = tax2RegNoFocusRequester,
                             onAction = { tax2FocusRequester.requestFocus() }) { tax2Regno ->
-                            tax2RegnoState = tax2Regno
-                            state.selectedCompany.companyTax2Regno = tax2Regno
+                            viewModel.updateCompany(
+                                company.copy(
+                                    companyTax2Regno = tax2Regno
+                                )
+                            )
                         }
 
                         //tax2
@@ -557,17 +525,18 @@ fun ManageCompaniesView(
                             horizontal = 10.dp,
                             vertical = 5.dp
                         ),
-                            defaultValue = tax2State,
+                            defaultValue = company.getTax2String(),
                             label = "Tax2",
                             keyboardType = KeyboardType.Decimal,
                             placeHolder = "Enter Tax2",
                             focusRequester = tax2FocusRequester,
                             onAction = { emailFocusRequester.requestFocus() }) { tax2 ->
-                            tax2State = Utils.getDoubleValue(
-                                tax2,
-                                tax2State
+                            val companyTax2 = tax2.toDoubleOrNull() ?: company.companyTax2
+                            viewModel.updateCompany(
+                                company.copy(
+                                    companyTax2 = companyTax2
+                                )
                             )
-                            state.selectedCompany.companyTax2 = tax2State.toDoubleOrNull() ?: 0.0
                         }
                     }
 
@@ -577,11 +546,14 @@ fun ManageCompaniesView(
                             horizontal = 10.dp,
                             vertical = 5.dp
                         ),
-                        checked = upWithTaxState,
+                        checked = company.companyUpWithTax,
                         text = "Unit price with tax",
                     ) { unitPriceWithTax ->
-                        upWithTaxState = unitPriceWithTax
-                        state.selectedCompany.companyUpWithTax = unitPriceWithTax
+                        viewModel.updateCompany(
+                            company.copy(
+                                companyUpWithTax = unitPriceWithTax
+                            )
+                        )
                     }
 
 
@@ -612,21 +584,19 @@ fun ManageCompaniesView(
                             icon = R.drawable.delete,
                             text = "Delete"
                         ) {
-                            oldImage?.let { old ->
+                            viewModel.oldImage?.let { old ->
                                 FileUtils.deleteFile(
                                     context,
                                     old
                                 )
                             }
-                            if (logoState.isNotEmpty()) {
+                            if (!company.companyLogo.isNullOrEmpty()) {
                                 FileUtils.deleteFile(
                                     context,
-                                    logoState
+                                    company.companyLogo!!
                                 )
                             }
-                            viewModel.deleteSelectedCompany(
-                                state.selectedCompany
-                            )
+                            viewModel.delete()
                         }
 
                         UIImageButton(
@@ -649,10 +619,10 @@ fun ManageCompaniesView(
                         end = 10.dp
                     ),
                     label = "Select Company",
-                    selectedId = state.selectedCompany.companyId,
+                    selectedId = company.companyId,
                     onLoadItems = { viewModel.fetchCompanies() },
                     leadingIcon = { mod ->
-                        if (state.selectedCompany.companyId.isNotEmpty()) {
+                        if (company.companyId.isNotEmpty()) {
                             Icon(
                                 Icons.Default.RemoveCircleOutline,
                                 contentDescription = "remove family",
@@ -662,26 +632,11 @@ fun ManageCompaniesView(
                         }
                     },
                     onLeadingIconClick = {
-                        clear()
+                        viewModel.resetState()
                     }) { company ->
                     company as Company
                     viewModel.currentCompany = company.copy()
-                    state.selectedCompany = company.copy()
-                    nameState = company.companyName ?: ""
-                    phoneState = company.companyPhone ?: ""
-                    addressState = company.companyAddress ?: ""
-                    countryState = company.companyCountry ?: ""
-                    taxRegnoState = company.companyTaxRegno ?: ""
-                    taxState = company.companyTax.toString()
-                    upWithTaxState = company.companyUpWithTax
-                    //printerState = company.companyPrinterId ?: ""
-                    emailState = company.companyEmail ?: ""
-                    webState = company.companyWeb ?: ""
-                    logoState = company.companyLogo ?: ""
-                    tax1RegnoState = company.companyTax1Regno ?: ""
-                    tax1State = company.companyTax1.toString()
-                    tax2RegnoState = company.companyTax2Regno ?: ""
-                    tax2State = company.companyTax2.toString()
+                    viewModel.updateCompany(company.copy())
                 }
             }
         }

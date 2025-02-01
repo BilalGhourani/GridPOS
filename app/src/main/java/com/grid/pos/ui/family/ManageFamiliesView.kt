@@ -236,12 +236,13 @@ fun ManageFamiliesView(
                                     object : OnGalleryResult {
                                         override fun onGalleryResult(uris: List<Uri>) {
                                             if (uris.isNotEmpty()) {
-                                                sharedViewModel.showLoading(true)
-                                                viewModel.copyToInternalStorage(
+                                                sharedViewModel.copyToInternalStorage(
                                                     context,
-                                                    uris[0]
+                                                    uris[0],
+                                                    parent = "family",
+                                                    fileName = (family.familyName
+                                                        ?: "family").trim().replace(" ", "_")
                                                 ) { internalPath ->
-                                                    sharedViewModel.showLoading(false)
                                                     if (internalPath != null) {
                                                         viewModel.oldImage = family.familyImage
                                                         viewModel.updateFamily(

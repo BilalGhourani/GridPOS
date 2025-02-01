@@ -196,23 +196,4 @@ class ManageFamiliesViewModel @Inject constructor(
     private suspend fun hasRelations(familyId: String): Boolean {
         return itemRepository.getOneItemByFamily(familyId) != null
     }
-
-    fun copyToInternalStorage(context: Context, uri: Uri, callback: (String?) -> Unit) {
-        viewModelScope.launch(Dispatchers.IO) {
-            val internalPath =
-                FileUtils.saveToExternalStorage(
-                    context = context,
-                    parent = "family",
-                    uri,
-                    (familyState.value.familyName ?: "family").trim()
-                        .replace(
-                            " ",
-                            "_"
-                        )
-                )
-            withContext(Dispatchers.Main) {
-                callback.invoke(internalPath)
-            }
-        }
-    }
 }
