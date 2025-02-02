@@ -11,12 +11,13 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
 class TablesViewModel @Inject constructor(
-        private val invoiceHeaderRepository: InvoiceHeaderRepository,
-        private val userRepository: UserRepository
+    private val invoiceHeaderRepository: InvoiceHeaderRepository,
+    private val userRepository: UserRepository
 ) : BaseViewModel() {
 
     private val _tablesState = MutableStateFlow(TablesState())
@@ -26,6 +27,7 @@ class TablesViewModel @Inject constructor(
     init {
         viewModelScope.launch(Dispatchers.IO) {
             openConnectionIfNeeded()
+            fetchAllTables()
         }
     }
 
@@ -45,18 +47,18 @@ class TablesViewModel @Inject constructor(
         )
     }
 
-    fun fetchAllTables() {
-        tablesState.value = tablesState.value.copy(
-            isLoadingTables = true
-        )
-        viewModelScope.launch(Dispatchers.IO) {
-            openedTables = invoiceHeaderRepository.getAllOpenedTables()
-            viewModelScope.launch(Dispatchers.Main) {
-                tablesState.value = tablesState.value.copy(
-                    tables = openedTables,
-                    isLoadingTables = false
-                )
-            }
+    suspend fun fetchAllTables() {
+        withContext(Dispatchers.Main) {
+            tablesState.value = tablesState.value.copy(
+                isLoadingTables = true
+            )
+        }
+        openedTables = invoiceHeaderRepository.getAllOpenedTables()
+        withContext(Dispatchers.Main) {
+            tablesState.value = tablesState.value.copy(
+                tables = openedTables,
+                isLoadingTables = false
+            )
         }
     }
 
@@ -131,7 +133,7 @@ class TablesViewModel @Inject constructor(
     }
 
     suspend fun lockTable(
-            tableName: String
+        tableName: String
     ) {
         val tableModel = tablesState.value.tables.firstOrNull {
             it.table_name.equals(

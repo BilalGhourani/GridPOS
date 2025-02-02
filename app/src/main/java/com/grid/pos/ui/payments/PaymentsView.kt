@@ -266,14 +266,14 @@ fun PaymentsView(
                                 paymentCurrencyCode = currModel.currencyCode
                             )
                         )
-                        viewModel.currencyIndexState.intValue = payment.getSelectedCurrencyIndex()
+                        viewModel.currencyIndexState.intValue = viewModel.paymentState.value.getSelectedCurrencyIndex()
                     }
 
                     UITextField(modifier = Modifier.padding(
                         horizontal = 10.dp,
                         vertical = 5.dp
                     ),
-                        defaultValue = payment.paymentAmount.toString(),
+                        defaultValue = payment.getFormattedAmount(),
                         label = "Amount",
                         placeHolder = "Enter Amount",
                         focusRequester = amountFocusRequester,
@@ -307,7 +307,7 @@ fun PaymentsView(
                             horizontal = 10.dp,
                             vertical = 5.dp
                         ),
-                            defaultValue = payment.paymentAmountFirst.toString(),
+                            defaultValue = payment.getFormattedAmountFirst(),
                             label = "Amount ${SettingsModel.currentCurrency?.currencyCode1 ?: ""}",
                             placeHolder = "Enter Amount",
                             focusRequester = amountFocusRequester,
@@ -329,7 +329,7 @@ fun PaymentsView(
                             horizontal = 10.dp,
                             vertical = 5.dp
                         ),
-                            defaultValue = payment.paymentAmountSecond.toString(),
+                            defaultValue = payment.getFormattedAmountSecond(),
                             label = "Amount ${SettingsModel.currentCurrency?.currencyCode2 ?: ""}",
                             placeHolder = "Enter Amount",
                             focusRequester = amountFocusRequester,

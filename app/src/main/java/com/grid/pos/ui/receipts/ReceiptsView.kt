@@ -271,14 +271,14 @@ fun ReceiptsView(
                                 receiptCurrencyCode = currModel.currencyCode
                             )
                         )
-                        viewModel.currencyIndexState.intValue = receipt.getSelectedCurrencyIndex()
+                        viewModel.currencyIndexState.intValue = viewModel.receiptState.value.getSelectedCurrencyIndex()
                     }
 
                     UITextField(modifier = Modifier.padding(
                         horizontal = 10.dp,
                         vertical = 5.dp
                     ),
-                        defaultValue = receipt.receiptAmount.toString(),
+                        defaultValue = receipt.getFormattedAmount(),
                         label = "Amount",
                         placeHolder = "Enter Amount",
                         focusRequester = amountFocusRequester,
@@ -307,7 +307,7 @@ fun ReceiptsView(
                             horizontal = 10.dp,
                             vertical = 5.dp
                         ),
-                            defaultValue = receipt.receiptAmountFirst.toString(),
+                            defaultValue = receipt.getFormattedAmountFirst(),
                             label = "Amount ${SettingsModel.currentCurrency?.currencyCode1 ?: ""}",
                             placeHolder = "Enter Amount",
                             focusRequester = amountFocusRequester,
@@ -328,7 +328,7 @@ fun ReceiptsView(
                             horizontal = 10.dp,
                             vertical = 5.dp
                         ),
-                            defaultValue = receipt.receiptAmountSecond.toString(),
+                            defaultValue = receipt.getFormattedAmountSecond(),
                             label = "Amount ${SettingsModel.currentCurrency?.currencyCode2 ?: ""}",
                             placeHolder = "Enter Amount",
                             focusRequester = amountFocusRequester,

@@ -9,6 +9,7 @@ import com.google.firebase.firestore.PropertyName
 import com.google.firebase.firestore.ServerTimestamp
 import com.grid.pos.data.EntityModel
 import com.grid.pos.model.SettingsModel
+import com.grid.pos.ui.pos.POSUtils
 import com.grid.pos.utils.Utils
 import java.util.Date
 
@@ -286,5 +287,29 @@ data class Receipt(
             return receiptTimeStamp!!
         }
         return Date(receiptDateTime)
+    }
+
+    @Exclude
+    fun getFormattedAmount():String{
+        return POSUtils.formatDouble(
+            receiptAmount,
+            SettingsModel.currentCurrency?.currencyName1Dec ?: 2
+        )
+    }
+
+    @Exclude
+    fun getFormattedAmountFirst():String{
+        return POSUtils.formatDouble(
+            receiptAmountFirst,
+            SettingsModel.currentCurrency?.currencyName1Dec ?: 2
+        )
+    }
+
+    @Exclude
+    fun getFormattedAmountSecond():String{
+        return POSUtils.formatDouble(
+            receiptAmountSecond,
+            SettingsModel.currentCurrency?.currencyName2Dec ?: 2
+        )
     }
 }

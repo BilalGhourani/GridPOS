@@ -61,6 +61,7 @@ import com.grid.pos.R
 import com.grid.pos.data.invoiceHeader.InvoiceHeader
 import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
+import com.grid.pos.model.ToastModel
 import com.grid.pos.model.UserType
 import com.grid.pos.ui.common.UIImageButton
 import com.grid.pos.ui.common.UITextField
@@ -76,10 +77,10 @@ import kotlinx.coroutines.withContext
 )
 @Composable
 fun TablesView(
-        modifier: Modifier = Modifier,
-        navController: NavController? = null,
-        sharedViewModel: SharedViewModel,
-        viewModel: TablesViewModel = hiltViewModel()
+    modifier: Modifier = Modifier,
+    navController: NavController? = null,
+    sharedViewModel: SharedViewModel,
+    viewModel: TablesViewModel = hiltViewModel()
 ) {
     val state by viewModel.tablesState.collectAsStateWithLifecycle()
 
@@ -94,12 +95,7 @@ fun TablesView(
 
     var isPopupVisible by remember { mutableStateOf(false) }
 
-    val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
-
-    LaunchedEffect(key1 = Unit) {
-        viewModel.fetchAllTables()
-    }
 
     fun moveToPos() {
         state.invoiceHeader.invoiceHeadTaName = tableNameState
@@ -144,12 +140,9 @@ fun TablesView(
     }
     LaunchedEffect(state.warning) {
         state.warning?.value?.let { message ->
-            scope.launch {
-                snackbarHostState.showSnackbar(
-                    message = message,
-                    duration = SnackbarDuration.Short,
-                )
-            }
+            sharedViewModel.showToastMessage(
+                ToastModel(message = message)
+            )
         }
     }
 
@@ -201,9 +194,6 @@ fun TablesView(
 
     GridPOSTheme {
         Scaffold(containerColor = SettingsModel.backgroundColor,
-            snackbarHost = {
-                SnackbarHost(hostState = snackbarHostState)
-            },
             topBar = {
                 Surface(
                     shadowElevation = 3.dp,
