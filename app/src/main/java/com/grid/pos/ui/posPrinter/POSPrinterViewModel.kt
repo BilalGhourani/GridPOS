@@ -10,6 +10,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -22,6 +23,10 @@ class POSPrinterViewModel @Inject constructor(
 
     private val _posPrinterState = MutableStateFlow(POSPrinterState())
     val posPrinterState: MutableStateFlow<POSPrinterState> = _posPrinterState
+
+    private var _printerState = MutableStateFlow(PosPrinter())
+    var printerState = _printerState.asStateFlow()
+
     var currentPrinter: PosPrinter = PosPrinter()
 
     init {
@@ -31,11 +36,17 @@ class POSPrinterViewModel @Inject constructor(
     }
 
     fun resetState() {
+        currentPrinter = PosPrinter()
+        updatePrinter(PosPrinter())
         posPrinterState.value = posPrinterState.value.copy(
             warning = null,
             isLoading = false,
             clear = false
         )
+    }
+
+    fun updatePrinter(posPrinter: PosPrinter) {
+        _printerState.value = posPrinter
     }
 
     fun fetchPrinters() {
@@ -67,7 +78,8 @@ class POSPrinterViewModel @Inject constructor(
         }
     }
 
-    fun savePrinter(printer: PosPrinter) {
+    fun save() {
+        val printer = printerState.value
         if (printer.posPrinterName.isNullOrEmpty()) {
             posPrinterState.value = posPrinterState.value.copy(
                 warning = Event("Please fill Printer name, host and port"),
@@ -92,7 +104,6 @@ class POSPrinterViewModel @Inject constructor(
                     withContext(Dispatchers.Main) {
                         posPrinterState.value = posPrinterState.value.copy(
                             printers = printers,
-                            selectedPrinter = PosPrinter(),
                             isLoading = false,
                             warning = Event("Printer saved successfully."),
                             clear = true,
@@ -118,7 +129,6 @@ class POSPrinterViewModel @Inject constructor(
                     }
                     withContext(Dispatchers.Main) {
                         posPrinterState.value = posPrinterState.value.copy(
-                            selectedPrinter = PosPrinter(),
                             isLoading = false,
                             warning = Event("Printer saved successfully."),
                             clear = true,
@@ -135,7 +145,8 @@ class POSPrinterViewModel @Inject constructor(
         }
     }
 
-    fun deleteSelectedPrinter(printer: PosPrinter) {
+    fun delete() {
+        val printer = printerState.value
         if (printer.posPrinterId.isEmpty()) {
             posPrinterState.value = posPrinterState.value.copy(
                 warning = Event("Please select a Printer to delete"),
@@ -165,7 +176,6 @@ class POSPrinterViewModel @Inject constructor(
                 withContext(Dispatchers.Main) {
                     posPrinterState.value = posPrinterState.value.copy(
                         printers = printers,
-                        selectedPrinter = PosPrinter(),
                         isLoading = false,
                         warning = Event("successfully deleted."),
                         clear = true

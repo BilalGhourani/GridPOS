@@ -27,6 +27,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -45,8 +46,8 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import com.grid.pos.SharedViewModel
 import com.grid.pos.R
+import com.grid.pos.SharedViewModel
 import com.grid.pos.data.posPrinter.PosPrinter
 import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
@@ -54,7 +55,6 @@ import com.grid.pos.ui.common.SearchableDropdownMenuEx
 import com.grid.pos.ui.common.UIImageButton
 import com.grid.pos.ui.common.UITextField
 import com.grid.pos.ui.theme.GridPOSTheme
-import com.grid.pos.utils.Utils
 import kotlinx.coroutines.launch
 
 @OptIn(
@@ -62,22 +62,19 @@ import kotlinx.coroutines.launch
 )
 @Composable
 fun POSPrinterView(
-        modifier: Modifier = Modifier,
-        navController: NavController? = null,
-        sharedViewModel: SharedViewModel,
-        viewModel: POSPrinterViewModel = hiltViewModel()
+    modifier: Modifier = Modifier,
+    navController: NavController? = null,
+    sharedViewModel: SharedViewModel,
+    viewModel: POSPrinterViewModel = hiltViewModel()
 ) {
     val state by viewModel.posPrinterState.collectAsStateWithLifecycle()
+    val printer = viewModel.printerState.collectAsState().value
+
     val keyboardController = LocalSoftwareKeyboardController.current
 
     val hostFocusRequester = remember { FocusRequester() }
     val portFocusRequester = remember { FocusRequester() }
     val typeFocusRequester = remember { FocusRequester() }
-
-    var nameState by remember { mutableStateOf("") }
-    var hostState by remember { mutableStateOf("") }
-    var portState by remember { mutableStateOf("") }
-    var typeState by remember { mutableStateOf("") }
 
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -98,34 +95,24 @@ fun POSPrinterView(
         sharedViewModel.showLoading(state.isLoading)
     }
 
-    fun clear() {
-        viewModel.currentPrinter = PosPrinter()
-        state.selectedPrinter = PosPrinter()
-        nameState = ""
-        hostState = ""
-        portState = ""
-        typeState = ""
-        viewModel.resetState()
-    }
-
     var saveAndBack by remember { mutableStateOf(false) }
     fun handleBack() {
-        if(state.isLoading){
+        if (state.isLoading) {
             return
         }
-        if (state.selectedPrinter.didChanged(
+        if (printer.didChanged(
                 viewModel.currentPrinter
             )
         ) {
             sharedViewModel.showPopup(true,
                 PopupModel().apply {
                     onDismissRequest = {
-                        clear()
+                        viewModel.resetState()
                         handleBack()
                     }
                     onConfirmation = {
                         saveAndBack = true
-                        viewModel.savePrinter(state.selectedPrinter)
+                        viewModel.save()
                     }
                     dialogText = "Do you want to save your changes"
                     positiveBtnText = "Save"
@@ -141,7 +128,7 @@ fun POSPrinterView(
     }
 
     fun clearAndBack() {
-        clear()
+        viewModel.resetState()
         if (saveAndBack) {
             handleBack()
         }
@@ -214,52 +201,61 @@ fun POSPrinterView(
                         horizontal = 10.dp,
                         vertical = 5.dp
                     ),
-                        defaultValue = nameState,
+                        defaultValue = printer.posPrinterName ?: "",
                         label = "Name",
                         placeHolder = "Enter Name",
                         onAction = { hostFocusRequester.requestFocus() }) { name ->
-                        nameState = name
-                        state.selectedPrinter.posPrinterName = nameState
+                        viewModel.updatePrinter(
+                            printer.copy(
+                                posPrinterName = name.trim()
+                            )
+                        )
                     }
 
                     UITextField(modifier = Modifier.padding(
                         horizontal = 10.dp,
                         vertical = 5.dp
                     ),
-                        defaultValue = hostState,
+                        defaultValue = printer.posPrinterHost,
                         label = "Host",
                         placeHolder = "ex:127.0.0.1",
                         onAction = { portFocusRequester.requestFocus() }) { host ->
-                        hostState = host
-                        state.selectedPrinter.posPrinterHost = hostState
+                        viewModel.updatePrinter(
+                            printer.copy(
+                                posPrinterHost = host.trim()
+                            )
+                        )
                     }
 
                     UITextField(modifier = Modifier.padding(
                         horizontal = 10.dp,
                         vertical = 5.dp
                     ),
-                        defaultValue = portState,
+                        defaultValue = printer.posPrinterPort.toString(),
                         label = "Port",
                         placeHolder = "ex:9100",
                         onAction = { typeFocusRequester.requestFocus() }) { port ->
-                        portState = Utils.getIntValue(
-                            port,
-                            portState
+                        viewModel.updatePrinter(
+                            printer.copy(
+                                posPrinterPort = port.toIntOrNull() ?: printer.posPrinterPort
+                            )
                         )
-                        state.selectedPrinter.posPrinterPort = portState.toIntOrNull() ?: -1
                     }
 
                     UITextField(modifier = Modifier.padding(
                         horizontal = 10.dp,
                         vertical = 5.dp
                     ),
-                        defaultValue = typeState,
+                        defaultValue = printer.posPrinterType ?: "",
                         label = "Type",
                         placeHolder = "Enter Type",
                         imeAction = ImeAction.Done,
                         onAction = { keyboardController?.hide() }) { type ->
-                        typeState = type
-                        state.selectedPrinter.posPrinterType = typeState
+                        viewModel.updatePrinter(
+                            printer.copy(
+                                posPrinterType = type.trim()
+                            )
+                        )
                     }
 
 
@@ -281,7 +277,7 @@ fun POSPrinterView(
                             icon = R.drawable.save,
                             text = "Save"
                         ) {
-                            viewModel.savePrinter(state.selectedPrinter)
+                            viewModel.save()
                         }
 
                         UIImageButton(
@@ -291,7 +287,7 @@ fun POSPrinterView(
                             icon = R.drawable.delete,
                             text = "Delete"
                         ) {
-                            viewModel.deleteSelectedPrinter(state.selectedPrinter)
+                            viewModel.delete()
                         }
 
                         UIImageButton(
@@ -314,28 +310,24 @@ fun POSPrinterView(
                         end = 10.dp
                     ),
                     label = "Select Printer",
-                    selectedId = state.selectedPrinter.posPrinterId,
+                    selectedId = printer.posPrinterId,
                     onLoadItems = { viewModel.fetchPrinters() },
-                    leadingIcon = {
-                        if (state.selectedPrinter.posPrinterId.isNotEmpty()) {
+                    leadingIcon = { modifier ->
+                        if (printer.posPrinterId.isNotEmpty()) {
                             Icon(
                                 Icons.Default.RemoveCircleOutline,
                                 contentDescription = "remove family",
                                 tint = Color.Black,
-                                modifier = it
+                                modifier = modifier
                             )
                         }
                     },
                     onLeadingIconClick = {
-                        clear()
+                        viewModel.resetState()
                     }) { printer ->
                     printer as PosPrinter
                     viewModel.currentPrinter = printer.copy()
-                    state.selectedPrinter = printer.copy()
-                    nameState = printer.posPrinterName ?: ""
-                    hostState = printer.posPrinterHost
-                    portState = printer.posPrinterPort.toString()
-                    typeState = printer.posPrinterType ?: ""
+                    viewModel.updatePrinter(printer.copy())
                 }
             }
         }
