@@ -11,6 +11,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -23,19 +24,23 @@ class ManageCurrenciesViewModel @Inject constructor(
 
     private val _manageCurrenciesState = MutableStateFlow(ManageCurrenciesState())
     val manageCurrenciesState: MutableStateFlow<ManageCurrenciesState> = _manageCurrenciesState
+
+    private var _currencyState = MutableStateFlow(Currency())
+    var currencyState = _currencyState.asStateFlow()
+
     var currentCurrency: Currency = Currency()
 
     init {
         fetchCurrencies()
     }
 
+    fun updateCurrency(currency: Currency) {
+        _currencyState.value = currency
+    }
+
     private fun fetchCurrencies() {
         SettingsModel.currentCurrency?.let {
-            manageCurrenciesState.value = manageCurrenciesState.value.copy(
-                selectedCurrency = it.copy(),
-                fillFields = true,
-                isLoading = false
-            )
+            updateCurrency(it.copy())
             viewModelScope.launch(Dispatchers.IO) {
                 openConnectionIfNeeded()
             }
@@ -50,9 +55,8 @@ class ManageCurrenciesViewModel @Inject constructor(
             val currency = if (currencies.size > 0) currencies[0] else Currency()
             SettingsModel.currentCurrency = currency.copy()
             withContext(Dispatchers.Main) {
+                updateCurrency(currency)
                 manageCurrenciesState.value = manageCurrenciesState.value.copy(
-                    selectedCurrency = currency,
-                    fillFields = true,
                     isLoading = false
                 )
             }
@@ -60,7 +64,7 @@ class ManageCurrenciesViewModel @Inject constructor(
     }
 
     fun saveCurrency() {
-        val currency = manageCurrenciesState.value.selectedCurrency
+        val currency = currencyState.value
         if (currency.currencyCode1.isNullOrEmpty() || currency.currencyName1.isNullOrEmpty() || currency.currencyCode2.isNullOrEmpty() || currency.currencyName2.isNullOrEmpty() || currency.currencyRate.isNaN()) {
             manageCurrenciesState.value = manageCurrenciesState.value.copy(
                 warning = Event(
@@ -73,6 +77,7 @@ class ManageCurrenciesViewModel @Inject constructor(
         manageCurrenciesState.value = manageCurrenciesState.value.copy(
             isLoading = true
         )
+        currentCurrency = currency
         val isInserting = currency.isNew()
         CoroutineScope(Dispatchers.IO).launch {
             if (hasRelations(currency)) {
@@ -92,7 +97,6 @@ class ManageCurrenciesViewModel @Inject constructor(
                     SettingsModel.currentCurrency = addedCurr.copy()
                     withContext(Dispatchers.Main) {
                         manageCurrenciesState.value = manageCurrenciesState.value.copy(
-                            selectedCurrency = addedCurr,
                             isLoading = false,
                             isSaved = true,
                             warning = Event("Currency saved successfully."),
@@ -112,7 +116,6 @@ class ManageCurrenciesViewModel @Inject constructor(
                     SettingsModel.currentCurrency = currency.copy()
                     withContext(Dispatchers.Main) {
                         manageCurrenciesState.value = manageCurrenciesState.value.copy(
-                            selectedCurrency = currency,
                             warning = Event("Currency saved successfully."),
                             isSaved = true,
                             isLoading = false

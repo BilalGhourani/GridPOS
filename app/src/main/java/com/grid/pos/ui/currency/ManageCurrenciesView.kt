@@ -19,19 +19,16 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -47,29 +44,29 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import com.grid.pos.SharedViewModel
 import com.grid.pos.R
+import com.grid.pos.SharedViewModel
 import com.grid.pos.data.currency.Currency
 import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
+import com.grid.pos.model.ToastModel
 import com.grid.pos.ui.common.UIImageButton
 import com.grid.pos.ui.common.UITextField
-import com.grid.pos.ui.pos.POSUtils
 import com.grid.pos.ui.theme.GridPOSTheme
-import com.grid.pos.utils.Utils
-import kotlinx.coroutines.launch
 
 @OptIn(
     ExperimentalMaterial3Api::class
 )
 @Composable
 fun ManageCurrenciesView(
-        modifier: Modifier = Modifier,
-        navController: NavController? = null,
-        sharedViewModel: SharedViewModel,
-        viewModel: ManageCurrenciesViewModel = hiltViewModel()
+    modifier: Modifier = Modifier,
+    navController: NavController? = null,
+    sharedViewModel: SharedViewModel,
+    viewModel: ManageCurrenciesViewModel = hiltViewModel()
 ) {
     val state by viewModel.manageCurrenciesState.collectAsStateWithLifecycle()
+    val currency = viewModel.currencyState.collectAsState().value
+
     val keyboardController = LocalSoftwareKeyboardController.current
     val curName1FocusRequester = remember { FocusRequester() }
     val curName1DecFocusRequester = remember { FocusRequester() }
@@ -78,32 +75,12 @@ fun ManageCurrenciesView(
     val curName2DecFocusRequester = remember { FocusRequester() }
     val rateFocusRequester = remember { FocusRequester() }
 
-    var curCode1State by remember { mutableStateOf(state.selectedCurrency.currencyCode1 ?: "") }
-    var curName1State by remember { mutableStateOf(state.selectedCurrency.currencyName1 ?: "") }
-    var curName1DecState by remember {
-        mutableStateOf(
-            state.selectedCurrency.currencyName1Dec.toString()
-        )
-    }
-    var curCode2State by remember { mutableStateOf(state.selectedCurrency.currencyCode2 ?: "") }
-    var curName2State by remember { mutableStateOf(state.selectedCurrency.currencyName2 ?: "") }
-    var curName2DecState by remember {
-        mutableStateOf(
-            state.selectedCurrency.currencyName2Dec.toString()
-        )
-    }
-    var rateState by remember {
-        mutableStateOf(
-            POSUtils.formatDouble(state.selectedCurrency.currencyRate)
-        )
-    }
-
     var saveAndBack by remember { mutableStateOf(false) }
     fun handleBack() {
-        if(state.isLoading){
+        if (state.isLoading) {
             return
         }
-        if (state.selectedCurrency.didChanged(
+        if (currency.didChanged(
                 viewModel.currentCurrency
             )
         ) {
@@ -130,16 +107,11 @@ fun ManageCurrenciesView(
         handleBack()
     }
 
-    val snackbarHostState = remember { SnackbarHostState() }
-    val scope = rememberCoroutineScope()
     LaunchedEffect(state.warning) {
         state.warning?.value?.let { message ->
-            scope.launch {
-                snackbarHostState.showSnackbar(
-                    message = message,
-                    duration = SnackbarDuration.Short,
-                )
-            }
+            sharedViewModel.showToastMessage(ToastModel(
+                message = message
+            ))
         }
     }
     LaunchedEffect(state.isLoading) {
@@ -147,15 +119,11 @@ fun ManageCurrenciesView(
     }
     LaunchedEffect(state.isSaved) {
         if (state.isSaved && saveAndBack) {
-            viewModel.currentCurrency = state.selectedCurrency
             handleBack()
         }
     }
     GridPOSTheme {
         Scaffold(containerColor = SettingsModel.backgroundColor,
-            snackbarHost = {
-                SnackbarHost(hostState = snackbarHostState)
-            },
             topBar = {
                 Surface(
                     shadowElevation = 3.dp,
@@ -222,12 +190,15 @@ fun ManageCurrenciesView(
                                 .padding(
                                     horizontal = 5.dp
                                 ),
-                                defaultValue = curCode1State,
+                                defaultValue = currency.currencyCode1 ?: "",
                                 label = "Cur1 Code",
                                 placeHolder = "Code",
                                 onAction = { curName1FocusRequester.requestFocus() }) { curCode1 ->
-                                curCode1State = curCode1
-                                state.selectedCurrency.currencyCode1 = curCode1
+                                viewModel.updateCurrency(
+                                    currency.copy(
+                                        currencyCode1 = curCode1
+                                    )
+                                )
                             }
 
                             UITextField(modifier = Modifier
@@ -236,13 +207,16 @@ fun ManageCurrenciesView(
                                 .padding(
                                     horizontal = 5.dp
                                 ),
-                                defaultValue = curName1State,
+                                defaultValue = currency.currencyName1 ?: "",
                                 label = "Cur1 Name",
                                 placeHolder = "Name",
                                 focusRequester = curName1FocusRequester,
                                 onAction = { curName1DecFocusRequester.requestFocus() }) { curName1 ->
-                                curName1State = curName1
-                                state.selectedCurrency.currencyName1 = curName1
+                                viewModel.updateCurrency(
+                                    currency.copy(
+                                        currencyName1 = curName1
+                                    )
+                                )
                             }
 
                             UITextField(modifier = Modifier
@@ -251,16 +225,17 @@ fun ManageCurrenciesView(
                                 .padding(
                                     horizontal = 5.dp
                                 ),
-                                defaultValue = curName1DecState,
+                                defaultValue = currency.currencyName1Dec.toString(),
                                 keyboardType = KeyboardType.Decimal,
                                 label = "Decimal",
                                 focusRequester = curName1DecFocusRequester,
                                 onAction = { curCode2FocusRequester.requestFocus() }) { curName1Dec ->
-                                curName1DecState = Utils.getIntValue(
-                                    curName1Dec,
-                                    curName1DecState
+                                viewModel.updateCurrency(
+                                    currency.copy(
+                                        currencyName1Dec = curName1Dec.toIntOrNull()
+                                            ?: currency.currencyName1Dec
+                                    )
                                 )
-                                state.selectedCurrency.currencyName1Dec = curName1DecState.toIntOrNull() ?: 0
                             }
                         }
 
@@ -277,13 +252,16 @@ fun ManageCurrenciesView(
                                 .padding(
                                     horizontal = 5.dp
                                 ),
-                                defaultValue = curCode2State,
+                                defaultValue = currency.currencyCode2 ?: "",
                                 label = "Cur2 Code",
                                 placeHolder = "Code",
                                 focusRequester = curCode2FocusRequester,
                                 onAction = { curName2FocusRequester.requestFocus() }) { curCode2 ->
-                                curCode2State = curCode2
-                                state.selectedCurrency.currencyCode2 = curCode2
+                                viewModel.updateCurrency(
+                                    currency.copy(
+                                        currencyCode2 = curCode2
+                                    )
+                                )
                             }
 
                             UITextField(modifier = Modifier
@@ -292,13 +270,16 @@ fun ManageCurrenciesView(
                                 .padding(
                                     horizontal = 5.dp
                                 ),
-                                defaultValue = curName2State,
+                                defaultValue = currency.currencyName2 ?: "",
                                 label = "Cur2 Name",
                                 placeHolder = "Name",
                                 focusRequester = curName2FocusRequester,
                                 onAction = { curName2DecFocusRequester.requestFocus() }) { curName2 ->
-                                curName2State = curName2
-                                state.selectedCurrency.currencyName2 = curName2
+                                viewModel.updateCurrency(
+                                    currency.copy(
+                                        currencyName2 = curName2
+                                    )
+                                )
                             }
 
                             UITextField(modifier = Modifier
@@ -307,32 +288,33 @@ fun ManageCurrenciesView(
                                 .padding(
                                     horizontal = 5.dp
                                 ),
-                                defaultValue = curName2DecState,
+                                defaultValue = currency.currencyName2Dec.toString(),
                                 keyboardType = KeyboardType.Decimal,
                                 label = "Decimal",
                                 focusRequester = curName2DecFocusRequester,
                                 onAction = { rateFocusRequester.requestFocus() }) { curName2Dec ->
-                                curName2DecState = Utils.getIntValue(
-                                    curName2Dec,
-                                    curName2DecState
+                                viewModel.updateCurrency(
+                                    currency.copy(
+                                        currencyName2Dec = curName2Dec.toIntOrNull()
+                                            ?: currency.currencyName2Dec
+                                    )
                                 )
-                                state.selectedCurrency.currencyName2Dec = curName2DecState.toIntOrNull() ?: 0
                             }
                         }
 
                         UITextField(modifier = Modifier.padding(10.dp),
-                            defaultValue = rateState,
+                            defaultValue = currency.currencyRate.toString(),
                             keyboardType = KeyboardType.Decimal,
                             label = "Rate",
                             placeHolder = "Enter Rate",
                             focusRequester = rateFocusRequester,
                             imeAction = ImeAction.Done,
                             onAction = { keyboardController?.hide() }) { rateStr ->
-                            rateState = Utils.getDoubleValue(
-                                rateStr,
-                                rateState
+                            viewModel.updateCurrency(
+                                currency.copy(
+                                    currencyRate = rateStr.toDoubleOrNull() ?: currency.currencyRate
+                                )
                             )
-                            state.selectedCurrency.currencyRate = rateState.toDoubleOrNull() ?: 0.0
                         }
 
 
@@ -350,7 +332,6 @@ fun ManageCurrenciesView(
                                 icon = R.drawable.save,
                                 text = "Save"
                             ) {
-                                viewModel.currentCurrency = state.selectedCurrency
                                 viewModel.saveCurrency()
                             }
 
@@ -367,17 +348,6 @@ fun ManageCurrenciesView(
                     }
                 }
             }
-        }
-        if (state.fillFields) {
-            viewModel.currentCurrency = state.selectedCurrency
-            curCode1State = state.selectedCurrency.currencyCode1 ?: ""
-            curName1State = state.selectedCurrency.currencyName1 ?: ""
-            curName1DecState = state.selectedCurrency.currencyName1Dec.toString()
-            curCode2State = state.selectedCurrency.currencyCode2 ?: ""
-            curName2State = state.selectedCurrency.currencyName2 ?: ""
-            curName2DecState = state.selectedCurrency.currencyName2Dec.toString()
-            rateState = POSUtils.formatDouble(state.selectedCurrency.currencyRate)
-            state.fillFields = false
         }
     }
 }
