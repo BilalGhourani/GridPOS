@@ -20,19 +20,16 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -50,71 +47,63 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import com.grid.pos.SharedViewModel
 import com.grid.pos.R
+import com.grid.pos.SharedViewModel
 import com.grid.pos.data.user.User
 import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
+import com.grid.pos.model.ToastModel
 import com.grid.pos.ui.common.SearchableDropdownMenuEx
 import com.grid.pos.ui.common.UIImageButton
 import com.grid.pos.ui.common.UISwitch
 import com.grid.pos.ui.common.UITextField
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.utils.Extension.decryptCBC
-import kotlinx.coroutines.launch
 
 @OptIn(
     ExperimentalMaterial3Api::class
 )
 @Composable
 fun ManageUsersView(
-        navController: NavController? = null,
-        modifier: Modifier = Modifier,
-        sharedViewModel: SharedViewModel,
-        viewModel: ManageUsersViewModel = hiltViewModel()
+    navController: NavController? = null,
+    modifier: Modifier = Modifier,
+    sharedViewModel: SharedViewModel,
+    viewModel: ManageUsersViewModel = hiltViewModel()
 ) {
     val state by viewModel.manageUsersState.collectAsStateWithLifecycle()
+    val user = viewModel.userState.collectAsState().value
 
     val keyboardController = LocalSoftwareKeyboardController.current
     val usernameFocusRequester = remember { FocusRequester() }
     val passwordFocusRequester = remember { FocusRequester() }
 
-    var nameState by remember { mutableStateOf("") }
-    var usernameState by remember { mutableStateOf("") }
-    var passwordState by remember { mutableStateOf("") }
-    var posModeState by remember { mutableStateOf(true) }
-    var tableModeState by remember { mutableStateOf(false) }
     var passwordVisibility by remember { mutableStateOf(false) }
 
-
-    val snackbarHostState = remember { SnackbarHostState() }
-    val scope = rememberCoroutineScope()
     LaunchedEffect(state.warning) {
         state.warning?.value?.let { message ->
-            scope.launch {
-                if (state.action == "done" && sharedViewModel.isRegistering) {
-                    sharedViewModel.isRegistering = false
-                    sharedViewModel.showPopup(
-                        true,
-                        PopupModel(
-                            onDismissRequest = {
-                                navController?.navigateUp()
-                            },
-                            onConfirmation = {
-                                navController?.navigateUp()
-                            },
-                            dialogText = message,
-                            positiveBtnText = "Login",
-                            negativeBtnText = null,
-                            cancelable = false
-                        )
+            if (state.action == "done" && sharedViewModel.isRegistering) {
+                sharedViewModel.isRegistering = false
+                sharedViewModel.showPopup(
+                    true,
+                    PopupModel(
+                        onDismissRequest = {
+                            navController?.navigateUp()
+                        },
+                        onConfirmation = {
+                            navController?.navigateUp()
+                        },
+                        dialogText = message,
+                        positiveBtnText = "Login",
+                        negativeBtnText = null,
+                        cancelable = false
                     )
-                } else {
-                    snackbarHostState.showSnackbar(
-                        message = message,
-                        duration = SnackbarDuration.Short,
+                )
+            } else {
+                sharedViewModel.showToastMessage(
+                    ToastModel(
+                        message = message
                     )
-                }
+                )
             }
         }
     }
@@ -123,43 +112,26 @@ fun ManageUsersView(
         sharedViewModel.showLoading(state.isLoading)
     }
 
-    fun saveUser() {
-        state.selectedUser.userPassword = passwordState
-        viewModel.saveUser(
-            state.selectedUser,
-            sharedViewModel.isRegistering
-        )
-    }
-
-    fun clear() {
-        viewModel.currentUser = User()
-        state.selectedUser = User()
-        nameState = ""
-        usernameState = ""
-        passwordState = ""
-        posModeState = true
-        tableModeState = false
-        viewModel.resetState()
-    }
-
     var saveAndBack by remember { mutableStateOf(false) }
     fun handleBack() {
         if (state.isLoading) {
             return
         }
-        if (state.selectedUser.didChanged(
+        if (user.didChanged(
                 viewModel.currentUser
             )
         ) {
             sharedViewModel.showPopup(true,
                 PopupModel().apply {
                     onDismissRequest = {
-                        clear()
+                        viewModel.resetState()
                         handleBack()
                     }
                     onConfirmation = {
                         saveAndBack = true
-                        saveUser()
+                        viewModel.save(
+                            sharedViewModel.isRegistering
+                        )
                     }
                     dialogText = "Do you want to save your changes"
                     positiveBtnText = "Save"
@@ -175,7 +147,7 @@ fun ManageUsersView(
     }
 
     fun clearAndBack() {
-        clear()
+        viewModel.resetState()
         if (saveAndBack) {
             handleBack()
         }
@@ -190,9 +162,6 @@ fun ManageUsersView(
     }
     GridPOSTheme {
         Scaffold(containerColor = SettingsModel.backgroundColor,
-            snackbarHost = {
-                SnackbarHost(hostState = snackbarHostState)
-            },
             topBar = {
                 Surface(
                     shadowElevation = 3.dp,
@@ -246,32 +215,38 @@ fun ManageUsersView(
                         horizontal = 10.dp,
                         vertical = 5.dp
                     ),
-                        defaultValue = nameState,
+                        defaultValue = user.userName ?: "",
                         label = "Name",
                         placeHolder = "Enter Name",
-                        onAction = { usernameFocusRequester.requestFocus() }) {
-                        nameState = it
-                        state.selectedUser.userName = it.trim()
+                        onAction = { usernameFocusRequester.requestFocus() }) { name ->
+                        viewModel.updateUser(
+                            user.copy(
+                                userName = name.trim()
+                            )
+                        )
                     }
 
                     UITextField(modifier = Modifier.padding(
                         horizontal = 10.dp,
                         vertical = 5.dp
                     ),
-                        defaultValue = usernameState,
+                        defaultValue = user.userUsername ?: "",
                         label = "Username",
                         placeHolder = "Enter Username",
                         focusRequester = usernameFocusRequester,
-                        onAction = { passwordFocusRequester.requestFocus() }) {
-                        usernameState = it
-                        state.selectedUser.userUsername = it.trim()
+                        onAction = { passwordFocusRequester.requestFocus() }) { username ->
+                        viewModel.updateUser(
+                            user.copy(
+                                userUsername = username.trim()
+                            )
+                        )
                     }
 
                     UITextField(modifier = Modifier.padding(
                         horizontal = 10.dp,
                         vertical = 5.dp
                     ),
-                        defaultValue = passwordState,
+                        defaultValue = user.userPassword ?: "",
                         label = "Password",
                         placeHolder = "Enter Password",
                         focusRequester = passwordFocusRequester,
@@ -287,31 +262,40 @@ fun ManageUsersView(
                                     tint = SettingsModel.buttonColor
                                 )
                             }
-                        }) {
-                        passwordState = it
-                        state.selectedUser.userPassword = it.trim()
+                        }) { password ->
+                        viewModel.updateUser(
+                            user.copy(
+                                userPassword = password.trim()
+                            )
+                        )
                     }
 
                     UISwitch(
                         modifier = Modifier.padding(
                             horizontal = 15.dp
                         ),
-                        checked = posModeState,
+                        checked = user.userPosMode,
                         text = "Enable POS Mode",
                     ) { isPOSMode ->
-                        posModeState = isPOSMode
-                        state.selectedUser.userPosMode = posModeState
+                        viewModel.updateUser(
+                            user.copy(
+                                userPosMode = isPOSMode
+                            )
+                        )
                     }
 
                     UISwitch(
                         modifier = Modifier.padding(
                             horizontal = 15.dp
                         ),
-                        checked = tableModeState,
+                        checked = user.userTableMode,
                         text = "Enable Table Mode",
                     ) { isTableMode ->
-                        tableModeState = isTableMode
-                        state.selectedUser.userTableMode = tableModeState
+                        viewModel.updateUser(
+                            user.copy(
+                                userTableMode = isTableMode
+                            )
+                        )
                     }
 
                     Row(
@@ -331,7 +315,9 @@ fun ManageUsersView(
                             icon = R.drawable.save,
                             text = "Save"
                         ) {
-                            saveUser()
+                            viewModel.save(
+                                sharedViewModel.isRegistering
+                            )
                         }
 
                         UIImageButton(
@@ -341,7 +327,7 @@ fun ManageUsersView(
                             icon = R.drawable.delete,
                             text = "Delete"
                         ) {
-                            viewModel.deleteSelectedUser(state.selectedUser)
+                            viewModel.delete()
                         }
 
                         UIImageButton(
@@ -363,10 +349,10 @@ fun ManageUsersView(
                         end = 10.dp
                     ),
                     label = "Select User",
-                    selectedId = state.selectedUser.userId,
+                    selectedId = user.userId,
                     onLoadItems = { viewModel.fetchUsers() },
                     leadingIcon = {
-                        if (state.selectedUser.userId.isNotEmpty()) {
+                        if (user.userId.isNotEmpty()) {
                             Icon(
                                 Icons.Default.RemoveCircleOutline,
                                 contentDescription = "remove family",
@@ -376,16 +362,15 @@ fun ManageUsersView(
                         }
                     },
                     onLeadingIconClick = {
-                        clear()
+                        viewModel.resetState()
                     }) { selectedUser ->
                     selectedUser as User
                     viewModel.currentUser = selectedUser.copy()
-                    state.selectedUser = selectedUser.copy()
-                    nameState = selectedUser.userName ?: ""
-                    usernameState = selectedUser.userUsername ?: ""
-                    passwordState = selectedUser.userPassword?.decryptCBC() ?: ""
-                    posModeState = selectedUser.userPosMode
-                    tableModeState = selectedUser.userTableMode
+                    viewModel.updateUser(
+                        selectedUser.copy(
+                            userPassword = selectedUser.userPassword?.decryptCBC() ?: ""
+                        )
+                    )
                 }
             }
         }

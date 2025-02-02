@@ -13,19 +13,24 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
 class ManageUsersViewModel @Inject constructor(
-        private val userRepository: UserRepository,
-        private val thirdPartyRepository: ThirdPartyRepository,
-        private val invoiceHeaderRepository: InvoiceHeaderRepository
+    private val userRepository: UserRepository,
+    private val thirdPartyRepository: ThirdPartyRepository,
+    private val invoiceHeaderRepository: InvoiceHeaderRepository
 ) : BaseViewModel() {
 
     private val _manageUsersState = MutableStateFlow(ManageUsersState())
     val manageUsersState: MutableStateFlow<ManageUsersState> = _manageUsersState
+
+    private var _userState = MutableStateFlow(User())
+    var userState = _userState.asStateFlow()
+
     var currentUser: User = User()
 
     init {
@@ -34,7 +39,13 @@ class ManageUsersViewModel @Inject constructor(
         }
     }
 
+    fun updateUser(user: User) {
+        _userState.value = user
+    }
+
     fun resetState() {
+        currentUser = User()
+        updateUser(User())
         manageUsersState.value = manageUsersState.value.copy(
             warning = null,
             isLoading = false,
@@ -57,10 +68,10 @@ class ManageUsersViewModel @Inject constructor(
         }
     }
 
-    fun saveUser(
-            user: User,
-            isRegistering: Boolean
+    fun save(
+        isRegistering: Boolean
     ) {
+        val user = userState.value
         if (user.userName.isNullOrEmpty() || user.userUsername.isNullOrEmpty() || user.userPassword.isNullOrEmpty()) {
             manageUsersState.value = manageUsersState.value.copy(
                 warning = Event("Please fill all inputs"),
@@ -95,7 +106,6 @@ class ManageUsersViewModel @Inject constructor(
                     withContext(Dispatchers.Main) {
                         manageUsersState.value = manageUsersState.value.copy(
                             users = users,
-                            selectedUser = addedModel,
                             isLoading = false,
                             warning = Event(msg),
                             action = "done",
@@ -113,7 +123,8 @@ class ManageUsersViewModel @Inject constructor(
             } else {
                 val dataModel = userRepository.update(user)
                 if (dataModel.succeed) {
-                    val index = manageUsersState.value.users.indexOfFirst { it.userId == user.userId }
+                    val index =
+                        manageUsersState.value.users.indexOfFirst { it.userId == user.userId }
                     if (index >= 0) {
                         manageUsersState.value.users.removeAt(index)
                         manageUsersState.value.users.add(
@@ -123,7 +134,6 @@ class ManageUsersViewModel @Inject constructor(
                     }
                     withContext(Dispatchers.Main) {
                         manageUsersState.value = manageUsersState.value.copy(
-                            selectedUser = user,
                             isLoading = false,
                             warning = Event("User saved successfully."),
                             clear = true
@@ -141,7 +151,8 @@ class ManageUsersViewModel @Inject constructor(
         }
     }
 
-    fun deleteSelectedUser(user: User) {
+    fun delete() {
+        val user = userState.value
         if (user.userId.isEmpty()) {
             manageUsersState.value = manageUsersState.value.copy(
                 warning = Event("Please select an user to delete"),
@@ -171,7 +182,6 @@ class ManageUsersViewModel @Inject constructor(
                 withContext(Dispatchers.Main) {
                     manageUsersState.value = manageUsersState.value.copy(
                         users = users,
-                        selectedUser = User(),
                         isLoading = false,
                         warning = Event("successfully deleted."),
                         clear = true
