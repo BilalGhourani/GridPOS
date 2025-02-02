@@ -38,6 +38,9 @@ class ManageCurrenciesViewModel @Inject constructor(
         _currencyState.value = currency
     }
 
+    fun isAnyChangeDone():Boolean{
+        return currencyState.value.didChanged(currentCurrency)
+    }
     private fun fetchCurrencies() {
         SettingsModel.currentCurrency?.let {
             updateCurrency(it.copy())

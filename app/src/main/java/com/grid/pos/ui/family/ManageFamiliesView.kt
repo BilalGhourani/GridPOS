@@ -113,10 +113,7 @@ fun ManageFamiliesView(
         if (state.isLoading) {
             return
         }
-        if (family.didChanged(
-                viewModel.currentFamily
-            )
-        ) {
+        if (viewModel.isAnyChangeDone()) {
             sharedViewModel.showPopup(true,
                 PopupModel().apply {
                     onDismissRequest = {

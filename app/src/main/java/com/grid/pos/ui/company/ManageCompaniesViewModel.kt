@@ -61,6 +61,10 @@ class ManageCompaniesViewModel @Inject constructor(
         _companyState.value = company
     }
 
+    fun isAnyChangeDone():Boolean{
+        return companyState.value.didChanged(currentCompany)
+    }
+
     fun showWarning(
         warning: String?,
         action: String? = null

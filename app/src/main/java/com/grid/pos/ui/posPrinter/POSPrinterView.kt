@@ -100,10 +100,7 @@ fun POSPrinterView(
         if (state.isLoading) {
             return
         }
-        if (printer.didChanged(
-                viewModel.currentPrinter
-            )
-        ) {
+        if (viewModel.isAnyChangeDone()) {
             sharedViewModel.showPopup(true,
                 PopupModel().apply {
                     onDismissRequest = {

@@ -89,10 +89,7 @@ fun ManageThirdPartiesView(
         if (state.isLoading) {
             return
         }
-        if (thirdParty.didChanged(
-                viewModel.currentThirdParty
-            )
-        ) {
+        if (viewModel.isAnyChangeDone()) {
             sharedViewModel.showPopup(true,
                 PopupModel().apply {
                     onDismissRequest = {

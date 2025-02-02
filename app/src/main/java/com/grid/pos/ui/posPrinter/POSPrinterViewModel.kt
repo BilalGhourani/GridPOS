@@ -49,6 +49,10 @@ class POSPrinterViewModel @Inject constructor(
         _printerState.value = posPrinter
     }
 
+    fun isAnyChangeDone():Boolean{
+        return printerState.value.didChanged(currentPrinter)
+    }
+
     fun fetchPrinters() {
         posPrinterState.value = posPrinterState.value.copy(
             warning = null,

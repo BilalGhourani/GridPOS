@@ -53,6 +53,10 @@ class ManageFamiliesViewModel @Inject constructor(
         _familyState.value = family
     }
 
+    fun isAnyChangeDone():Boolean{
+        return familyState.value.didChanged(currentFamily)
+    }
+
     fun fetchFamilies() {
         manageFamiliesState.value = manageFamiliesState.value.copy(
             isLoading = true

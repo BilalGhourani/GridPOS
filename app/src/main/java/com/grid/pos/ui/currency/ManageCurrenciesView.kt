@@ -80,10 +80,7 @@ fun ManageCurrenciesView(
         if (state.isLoading) {
             return
         }
-        if (currency.didChanged(
-                viewModel.currentCurrency
-            )
-        ) {
+        if (viewModel.isAnyChangeDone()) {
             sharedViewModel.showPopup(true,
                 PopupModel().apply {
                     onDismissRequest = {

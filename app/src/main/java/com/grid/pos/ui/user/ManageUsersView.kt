@@ -117,10 +117,7 @@ fun ManageUsersView(
         if (state.isLoading) {
             return
         }
-        if (user.didChanged(
-                viewModel.currentUser
-            )
-        ) {
+        if (viewModel.isAnyChangeDone()) {
             sharedViewModel.showPopup(true,
                 PopupModel().apply {
                     onDismissRequest = {
@@ -365,11 +362,11 @@ fun ManageUsersView(
                         viewModel.resetState()
                     }) { selectedUser ->
                     selectedUser as User
-                    viewModel.currentUser = selectedUser.copy()
+                    viewModel.currentUser = selectedUser.copy(
+                        userPassword = selectedUser.userPassword?.decryptCBC() ?: ""
+                    )
                     viewModel.updateUser(
-                        selectedUser.copy(
-                            userPassword = selectedUser.userPassword?.decryptCBC() ?: ""
-                        )
+                        viewModel.currentUser.copy()
                     )
                 }
             }

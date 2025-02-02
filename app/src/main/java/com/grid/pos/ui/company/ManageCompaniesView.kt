@@ -146,10 +146,7 @@ fun ManageCompaniesView(
         if (state.isLoading) {
             return
         }
-        if (company.didChanged(
-                viewModel.currentCompany
-            )
-        ) {
+        if (viewModel.isAnyChangeDone()) {
             sharedViewModel.showPopup(true,
                 PopupModel().apply {
                     onDismissRequest = {

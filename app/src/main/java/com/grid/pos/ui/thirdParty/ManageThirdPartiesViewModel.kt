@@ -59,6 +59,9 @@ class ManageThirdPartiesViewModel @Inject constructor(
         _thirdPartyState.value = thirdParty
     }
 
+    fun isAnyChangeDone():Boolean{
+        return thirdPartyState.value.didChanged(currentThirdParty)
+    }
 
     private fun fillTypes() {
         updateThirdParty(
@@ -68,7 +71,6 @@ class ManageThirdPartiesViewModel @Inject constructor(
         )
         manageThirdPartiesState.value = manageThirdPartiesState.value.copy(
             thirdPartyTypes = Utils.getThirdPartyTypeModels(),
-            isLoading = true
         )
     }
 

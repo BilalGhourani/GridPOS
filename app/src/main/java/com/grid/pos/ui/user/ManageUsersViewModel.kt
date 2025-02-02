@@ -53,6 +53,10 @@ class ManageUsersViewModel @Inject constructor(
         )
     }
 
+    fun isAnyChangeDone():Boolean{
+        return userState.value.didChanged(currentUser)
+    }
+
     fun fetchUsers() {
         manageUsersState.value = manageUsersState.value.copy(
             isLoading = true
