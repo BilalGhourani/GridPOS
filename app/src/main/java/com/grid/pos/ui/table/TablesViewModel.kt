@@ -27,7 +27,6 @@ class TablesViewModel @Inject constructor(
     init {
         viewModelScope.launch(Dispatchers.IO) {
             openConnectionIfNeeded()
-            fetchAllTables()
         }
     }
 
@@ -53,7 +52,9 @@ class TablesViewModel @Inject constructor(
                 isLoadingTables = true
             )
         }
-        openedTables = invoiceHeaderRepository.getAllOpenedTables()
+        withContext(Dispatchers.IO) {
+            openedTables = invoiceHeaderRepository.getAllOpenedTables()
+        }
         withContext(Dispatchers.Main) {
             tablesState.value = tablesState.value.copy(
                 tables = openedTables,

@@ -97,6 +97,10 @@ fun TablesView(
 
     val scope = rememberCoroutineScope()
 
+    LaunchedEffect(key1 = Unit) {
+        viewModel.fetchAllTables()
+    }
+
     fun moveToPos() {
         state.invoiceHeader.invoiceHeadTaName = tableNameState
         state.invoiceHeader.invoiceHeadClientsCount = clientsCountState.toIntOrNull() ?: 1
