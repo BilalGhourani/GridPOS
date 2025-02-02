@@ -5,23 +5,31 @@ import com.grid.pos.data.invoiceHeader.InvoiceHeaderRepository
 import com.grid.pos.data.thirdParty.ThirdParty
 import com.grid.pos.data.thirdParty.ThirdPartyRepository
 import com.grid.pos.model.Event
+import com.grid.pos.model.ThirdPartyType
 import com.grid.pos.ui.common.BaseViewModel
+import com.grid.pos.utils.Utils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
 class ManageThirdPartiesViewModel @Inject constructor(
-        private val thirdPartyRepository: ThirdPartyRepository,
-        private val invoiceHeaderRepository: InvoiceHeaderRepository
+    private val thirdPartyRepository: ThirdPartyRepository,
+    private val invoiceHeaderRepository: InvoiceHeaderRepository
 ) : BaseViewModel() {
 
     private val _manageThirdPartiesState = MutableStateFlow(ManageThirdPartiesState())
-    val manageThirdPartiesState: MutableStateFlow<ManageThirdPartiesState> = _manageThirdPartiesState
+    val manageThirdPartiesState: MutableStateFlow<ManageThirdPartiesState> =
+        _manageThirdPartiesState
+
+    private var _thirdPartyState = MutableStateFlow(ThirdParty())
+    var thirdPartyState = _thirdPartyState.asStateFlow()
+
     var currentThirdParty: ThirdParty = ThirdParty()
 
     init {
@@ -29,6 +37,7 @@ class ManageThirdPartiesViewModel @Inject constructor(
             openConnectionIfNeeded()
             val isDefaultEnabled = thirdPartyRepository.getDefaultThirdParty() == null
             withContext(Dispatchers.Main) {
+                fillTypes()
                 manageThirdPartiesState.value = manageThirdPartiesState.value.copy(
                     enableIsDefault = isDefaultEnabled
                 )
@@ -37,10 +46,29 @@ class ManageThirdPartiesViewModel @Inject constructor(
     }
 
     fun resetState() {
+        currentThirdParty = ThirdParty().copy(thirdPartyType = ThirdPartyType.RECEIVALBE.type)
+        updateThirdParty(currentThirdParty.copy())
         manageThirdPartiesState.value = manageThirdPartiesState.value.copy(
             warning = null,
             isLoading = false,
             clear = false
+        )
+    }
+
+    fun updateThirdParty(thirdParty: ThirdParty) {
+        _thirdPartyState.value = thirdParty
+    }
+
+
+    private fun fillTypes() {
+        updateThirdParty(
+            thirdPartyState.value.copy(
+                thirdPartyType = ThirdPartyType.RECEIVALBE.type
+            )
+        )
+        manageThirdPartiesState.value = manageThirdPartiesState.value.copy(
+            thirdPartyTypes = Utils.getThirdPartyTypeModels(),
+            isLoading = true
         )
     }
 
@@ -62,7 +90,8 @@ class ManageThirdPartiesViewModel @Inject constructor(
         }
     }
 
-    fun saveThirdParty(thirdParty: ThirdParty) {
+    fun save() {
+        val thirdParty = thirdPartyState.value
         if (thirdParty.thirdPartyName.isNullOrEmpty()) {
             manageThirdPartiesState.value = manageThirdPartiesState.value.copy(
                 warning = Event("Please fill ThirdParty name."),
@@ -73,6 +102,9 @@ class ManageThirdPartiesViewModel @Inject constructor(
         manageThirdPartiesState.value = manageThirdPartiesState.value.copy(
             isLoading = true
         )
+        if (thirdParty.thirdPartyType.isNullOrEmpty()) {
+            thirdParty.thirdPartyType = ThirdPartyType.RECEIVALBE.type
+        }
         val isInserting = thirdParty.isNew()
         CoroutineScope(Dispatchers.IO).launch {
             if (isInserting) {
@@ -89,7 +121,6 @@ class ManageThirdPartiesViewModel @Inject constructor(
                         manageThirdPartiesState.value = manageThirdPartiesState.value.copy(
                             thirdParties = thirdParties,
                             enableIsDefault = isDefaultEnabled,
-                            selectedThirdParty = addedModel,
                             isLoading = false,
                             warning = Event("ThirdParty saved successfully."),
                             clear = true
@@ -110,7 +141,8 @@ class ManageThirdPartiesViewModel @Inject constructor(
                     thirdParty
                 )
                 if (dataModel.succeed) {
-                    val index = manageThirdPartiesState.value.thirdParties.indexOfFirst { it.thirdPartyId == thirdParty.thirdPartyId }
+                    val index =
+                        manageThirdPartiesState.value.thirdParties.indexOfFirst { it.thirdPartyId == thirdParty.thirdPartyId }
                     if (index >= 0) {
                         manageThirdPartiesState.value.thirdParties.removeAt(index)
                         manageThirdPartiesState.value.thirdParties.add(
@@ -118,10 +150,10 @@ class ManageThirdPartiesViewModel @Inject constructor(
                             thirdParty
                         )
                     }
-                    val isDefaultEnabled = manageThirdPartiesState.value.thirdParties.none { it.thirdPartyDefault }
+                    val isDefaultEnabled =
+                        manageThirdPartiesState.value.thirdParties.none { it.thirdPartyDefault }
                     withContext(Dispatchers.Main) {
                         manageThirdPartiesState.value = manageThirdPartiesState.value.copy(
-                            selectedThirdParty = thirdParty,
                             enableIsDefault = isDefaultEnabled,
                             isLoading = false,
                             warning = Event("ThirdParty saved successfully."),
@@ -141,8 +173,8 @@ class ManageThirdPartiesViewModel @Inject constructor(
         }
     }
 
-    fun deleteSelectedThirdParty() {
-        val thirdParty = manageThirdPartiesState.value.selectedThirdParty
+    fun delete() {
+        val thirdParty = thirdPartyState.value
         if (thirdParty.thirdPartyId.isEmpty()) {
             manageThirdPartiesState.value = manageThirdPartiesState.value.copy(
                 warning = Event("Please select an ThirdParty to delete"),
@@ -173,7 +205,6 @@ class ManageThirdPartiesViewModel @Inject constructor(
                 withContext(Dispatchers.Main) {
                     manageThirdPartiesState.value = manageThirdPartiesState.value.copy(
                         thirdParties = thirdParties,
-                        selectedThirdParty = ThirdParty(),
                         enableIsDefault = isDefaultEnabled,
                         isLoading = false,
                         warning = Event("successfully deleted."),
