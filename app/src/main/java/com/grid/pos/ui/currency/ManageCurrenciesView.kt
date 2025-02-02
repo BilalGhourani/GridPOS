@@ -84,7 +84,7 @@ fun ManageCurrenciesView(
             sharedViewModel.showPopup(true,
                 PopupModel().apply {
                     onDismissRequest = {
-                        viewModel.currentCurrency = Currency()
+                        viewModel.currentCurrency = currency
                         handleBack()
                     }
                     onConfirmation = {
@@ -106,9 +106,11 @@ fun ManageCurrenciesView(
 
     LaunchedEffect(state.warning) {
         state.warning?.value?.let { message ->
-            sharedViewModel.showToastMessage(ToastModel(
-                message = message
-            ))
+            sharedViewModel.showToastMessage(
+                ToastModel(
+                    message = message
+                )
+            )
         }
     }
     LaunchedEffect(state.isLoading) {
