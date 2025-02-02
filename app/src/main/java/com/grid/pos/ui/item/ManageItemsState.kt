@@ -13,14 +13,9 @@ data class ManageItemsState(
         val printers: MutableList<PosPrinter> = mutableListOf(),
         val currencies: MutableList<CurrencyModel> = mutableListOf(),
         val groups: MutableList<ItemGroupModel> = mutableListOf(),
-        var selectedItem: Item = Item(),
         val isConnectingToSQLServer: Boolean = false,
         val isLoading: Boolean = false,
         val clear: Boolean = false,
         val warning: Event<String>? = null,
         val actionLabel: String? = null,
-) {
-    fun shouldDisableCostAndQty(): Boolean {
-        return isConnectingToSQLServer && selectedItem.itemId.isNotEmpty()
-    }
-}
+)

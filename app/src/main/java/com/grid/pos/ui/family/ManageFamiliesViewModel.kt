@@ -1,14 +1,11 @@
 package com.grid.pos.ui.family
 
-import android.content.Context
-import android.net.Uri
 import androidx.lifecycle.viewModelScope
 import com.grid.pos.data.family.Family
 import com.grid.pos.data.family.FamilyRepository
 import com.grid.pos.data.item.ItemRepository
 import com.grid.pos.model.Event
 import com.grid.pos.ui.common.BaseViewModel
-import com.grid.pos.utils.FileUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

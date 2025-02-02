@@ -15,10 +15,12 @@ import com.grid.pos.model.ReportResult
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.BaseViewModel
 import com.grid.pos.utils.PrinterUtils
+import com.grid.pos.utils.Utils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -35,7 +37,12 @@ class ManageItemsViewModel @Inject constructor(
 
     private val _manageItemsState = MutableStateFlow(ManageItemsState())
     val manageItemsState: MutableStateFlow<ManageItemsState> = _manageItemsState
+
+    private var _itemState = MutableStateFlow(Item())
+    var itemState = _itemState.asStateFlow()
+
     var currentITem: Item = Item()
+    var oldImage: String? = null
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
@@ -46,11 +53,37 @@ class ManageItemsViewModel @Inject constructor(
     }
 
     fun resetState() {
+        val firstCurrency = getFirstCurrency()
+        currentITem = Item().copy(
+            itemTax = SettingsModel.currentCompany?.companyTax ?: 0.0,
+            itemTax1 = SettingsModel.currentCompany?.companyTax1 ?: 0.0,
+            itemTax2 = SettingsModel.currentCompany?.companyTax2 ?: 0.0,
+            itemGroup = if (manageItemsState.value.groups.isNotEmpty()) {
+                manageItemsState.value.groups[0].groupName
+            } else {
+                ""
+            },
+            itemCurrencyId = firstCurrency.first,
+            itemCurrencyCode = firstCurrency.second,
+        )
+        updateItem(currentITem.copy())
         manageItemsState.value = manageItemsState.value.copy(
             warning = null,
             isLoading = false,
             clear = false
         )
+    }
+
+    fun updateItem(item: Item) {
+        _itemState.value = item
+    }
+
+    fun isAnyChangeDone(): Boolean {
+        return itemState.value.didChanged(currentITem)
+    }
+
+    fun shouldDisableCostAndQty(): Boolean {
+        return manageItemsState.value.isConnectingToSQLServer && itemState.value.itemId.isNotEmpty()
     }
 
     fun fetchItems() {
@@ -65,6 +98,26 @@ class ManageItemsViewModel @Inject constructor(
                     isLoading = false
                 )
             }
+        }
+    }
+
+    fun selectionPrerequisite(succeeded: () -> Unit) {
+        val familiesSize = manageItemsState.value.families.size
+        val printersSize = manageItemsState.value.printers.size
+        if (familiesSize == 0 || printersSize == 0) {
+            viewModelScope.launch(Dispatchers.IO) {
+                if (familiesSize == 0) {
+                    fetchFamilies(false)
+                }
+                if (printersSize == 0) {
+                    fetchPrinters(false)
+                }
+                withContext(Dispatchers.Main) {
+                    succeeded.invoke()
+                }
+            }
+        } else {
+            succeeded.invoke()
         }
     }
 
@@ -93,7 +146,14 @@ class ManageItemsViewModel @Inject constructor(
 
     private suspend fun fetchCurrencies() {
         val currencies = currencyRepository.getAllCurrencyModels()
+        val firstCurrency = getFirstCurrency()
         withContext(Dispatchers.Main) {
+            updateItem(
+                currentITem.copy(
+                    itemCurrencyId = firstCurrency.first,
+                    itemCurrencyCode = firstCurrency.second,
+                )
+            )
             manageItemsState.value = manageItemsState.value.copy(
                 currencies = currencies,
                 isLoading = false
@@ -135,6 +195,11 @@ class ManageItemsViewModel @Inject constructor(
             ItemGroupModel("Non Stock"),
         )
         withContext(Dispatchers.Main) {
+            updateItem(
+                currentITem.copy(
+                    itemGroup = groups[0].groupName
+                )
+            )
             manageItemsState.value = manageItemsState.value.copy(
                 groups = groups,
                 isConnectingToSQLServer = isConnectedToSQL
@@ -155,7 +220,8 @@ class ManageItemsViewModel @Inject constructor(
         }
     }
 
-    fun saveItem(item: Item) {
+    fun save() {
+        val item = itemState.value
         if (item.itemName.isNullOrEmpty() || item.itemFaId.isNullOrEmpty()) {
             manageItemsState.value = manageItemsState.value.copy(
                 warning = Event("Please fill item name and family"),
@@ -174,7 +240,14 @@ class ManageItemsViewModel @Inject constructor(
             isLoading = true
         )
         val isInserting = item.isNew()
-
+        item.itemUnitPrice = Utils.roundDoubleValue(
+            item.itemUnitPrice,
+            SettingsModel.currentCurrency?.currencyName1Dec
+        )
+        item.itemOpenCost = Utils.roundDoubleValue(
+            item.itemOpenCost,
+            SettingsModel.currentCurrency?.currencyName1Dec
+        )
         CoroutineScope(Dispatchers.IO).launch {
             if (isInserting) {
                 item.prepareForInsert()
@@ -188,7 +261,6 @@ class ManageItemsViewModel @Inject constructor(
                     withContext(Dispatchers.Main) {
                         manageItemsState.value = manageItemsState.value.copy(
                             items = items,
-                            selectedItem = addedModel,
                             isLoading = false,
                             warning = Event("Item saved successfully."),
                             clear = true
@@ -215,7 +287,6 @@ class ManageItemsViewModel @Inject constructor(
                     }
                     withContext(Dispatchers.Main) {
                         manageItemsState.value = manageItemsState.value.copy(
-                            selectedItem = item,
                             isLoading = false,
                             warning = Event("Item saved successfully."),
                             clear = true
@@ -232,7 +303,8 @@ class ManageItemsViewModel @Inject constructor(
         }
     }
 
-    fun deleteSelectedItem(item: Item) {
+    fun delete() {
+        val item = itemState.value
         if (item.itemId.isEmpty()) {
             manageItemsState.value = manageItemsState.value.copy(
                 warning = Event("Please select an Item to delete"),
@@ -262,7 +334,6 @@ class ManageItemsViewModel @Inject constructor(
                 withContext(Dispatchers.Main) {
                     manageItemsState.value = manageItemsState.value.copy(
                         items = items,
-                        selectedItem = Item(),
                         isLoading = false,
                         warning = Event("successfully deleted."),
                         clear = true
@@ -341,7 +412,7 @@ class ManageItemsViewModel @Inject constructor(
         return invoiceRepository.getOneInvoiceByItemID(itemId) != null
     }
 
-    fun getFirstCurrency(): Pair<String, String> {
+    private fun getFirstCurrency(): Pair<String, String> {
         return if (SettingsModel.isConnectedToSqlServer()) {
             Pair(
                 SettingsModel.currentCurrency?.currencyId ?: "",

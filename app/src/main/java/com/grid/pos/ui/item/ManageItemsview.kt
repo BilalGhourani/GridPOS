@@ -28,16 +28,13 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -70,6 +67,7 @@ import com.grid.pos.model.CurrencyModel
 import com.grid.pos.model.ItemGroupModel
 import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
+import com.grid.pos.model.ToastModel
 import com.grid.pos.ui.common.ColorPickerPopup
 import com.grid.pos.ui.common.SearchableDropdownMenuEx
 import com.grid.pos.ui.common.UIImageButton
@@ -79,8 +77,6 @@ import com.grid.pos.ui.settings.ColorPickerType
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.utils.Extension.toHexCode
 import com.grid.pos.utils.FileUtils
-import com.grid.pos.utils.Utils
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -96,6 +92,7 @@ fun ManageItemsView(
     viewModel: ManageItemsViewModel = hiltViewModel()
 ) {
     val state by viewModel.manageItemsState.collectAsStateWithLifecycle()
+    val item = viewModel.itemState.collectAsState().value
 
     val context = LocalContext.current
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -110,72 +107,26 @@ fun ManageItemsView(
     val btnTextColorFocusRequester = remember { FocusRequester() }
     val imageFocusRequester = remember { FocusRequester() }
 
-    var nameState by remember { mutableStateOf("") }
-    var unitPriceState by remember { mutableStateOf("") }
-    var taxState by remember { mutableStateOf(SettingsModel.currentCompany?.companyTax.toString()) }
-    var tax1State by remember {
-        mutableStateOf(
-            SettingsModel.currentCompany?.companyTax1.toString()
-        )
-    }
-    var tax2State by remember {
-        mutableStateOf(
-            SettingsModel.currentCompany?.companyTax2.toString()
-        )
-    }
     var collapseItemListState by remember { mutableStateOf(false) }
     var barcodeSearchState by remember { mutableStateOf("") }
-    var barcodeState by remember { mutableStateOf("") }
-    var openCostState by remember { mutableStateOf("") }
-    var openQtyState by remember { mutableStateOf("") }
-    var remQtyState by remember { mutableStateOf("") }
-    var itemGroupState by remember { mutableStateOf("") }
-    var itemCurrState by remember { mutableStateOf("") }
-    var familyIdState by remember { mutableStateOf("") }
-    var btnColorState by remember { mutableStateOf("") }
-    var btnTextColorState by remember { mutableStateOf("") }
-    var printerState by remember { mutableStateOf("") }
-    var imageState by remember { mutableStateOf("") }
-    var itemPOSState by remember { mutableStateOf(false) }
-
-    var oldImage: String? = null
-
     var colorPickerType by remember { mutableStateOf(ColorPickerType.BUTTON_COLOR) }
     var isColorPickerShown by remember { mutableStateOf(false) }
 
-    val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
     LaunchedEffect(state.warning) {
         state.warning?.value?.let { message ->
-            scope.launch {
-                val snackBarResult = snackbarHostState.showSnackbar(
+            sharedViewModel.showToastMessage(
+                ToastModel(
                     message = message,
-                    duration = SnackbarDuration.Short,
-                    actionLabel = state.actionLabel
-                )
-                when (snackBarResult) {
-                    SnackbarResult.Dismissed -> {}
-                    SnackbarResult.ActionPerformed -> when (state.actionLabel) {
-                        "Settings" -> sharedViewModel.openAppStorageSettings()
+                    actionButton = state.actionLabel,
+                    onActionClick = {
+                        when (state.actionLabel) {
+                            "Settings" -> sharedViewModel.openAppStorageSettings()
+                        }
                     }
-                }
-            }
-        }
-    }
-
-    LaunchedEffect(state.currencies) {
-        if (itemCurrState == "" && state.currencies.isNotEmpty()) {
-            val firstCurrency = viewModel.getFirstCurrency()
-            itemCurrState = firstCurrency.first
-            state.selectedItem.itemCurrencyId = itemCurrState
-            state.selectedItem.itemCurrencyCode = firstCurrency.second
-        }
-    }
-
-    LaunchedEffect(state.groups) {
-        if (itemGroupState == "" && state.groups.isNotEmpty()) {
-            itemGroupState = state.groups[0].groupName
+                )
+            )
         }
     }
 
@@ -183,155 +134,36 @@ fun ManageItemsView(
         sharedViewModel.showLoading(state.isLoading)
     }
 
-    fun fillItemInputsNow(item: Item) {
-        viewModel.currentITem = item.copy()
-        state.selectedItem = item.copy()
-        nameState = item.itemName ?: ""
-        unitPriceState = item.itemUnitPrice.toString()
-        taxState = item.itemTax.toString()
-        tax1State = item.itemTax1.toString()
-        tax2State = item.itemTax2.toString()
-        barcodeState = item.itemBarcode ?: ""
-        openCostState = item.itemOpenCost.toString()
-        openQtyState = item.itemOpenQty.toString()
-        remQtyState = item.itemRemQty.toString()
-        itemCurrState = item.itemCurrencyId ?: ""
-        familyIdState = item.itemFaId ?: ""
-        btnColorState = item.itemBtnColor ?: ""
-        btnTextColorState = item.itemBtnTextColor ?: ""
-        printerState = item.itemPrinter ?: ""
-        itemPOSState = item.itemPos
-        imageState = item.itemImage ?: ""
-    }
-
     fun fillItemInputs(item: Item) {
-        if (state.families.isEmpty() || state.printers.isEmpty()) {
-            sharedViewModel.showLoading(true)
-            scope.launch(Dispatchers.IO) {
-                if (state.families.isEmpty() && !item.itemFaId.isNullOrEmpty()) {
-                    viewModel.fetchFamilies(false)
-                }
-                if (state.families.isEmpty() && !item.itemPrinter.isNullOrEmpty()) {
-                    viewModel.fetchPrinters(false)
-                }
-                withContext(Dispatchers.Main) {
-                    fillItemInputsNow(item)
-                    sharedViewModel.showLoading(false)
-                }
-            }
-        } else {
-            fillItemInputsNow(item)
-        }
-    }
-
-    LaunchedEffect(Unit) {
-        if (state.selectedItem.itemId.isNotEmpty()) {
-            fillItemInputsNow(state.selectedItem)
+        sharedViewModel.showLoading(true)
+        viewModel.selectionPrerequisite {
+            viewModel.currentITem = item.copy()
+            viewModel.updateItem(item.copy())
+            sharedViewModel.showLoading(false)
         }
     }
 
     fun saveItem() {
-        oldImage?.let { old ->
+        viewModel.oldImage?.let { old ->
             FileUtils.deleteFile(
                 context,
                 old
             )
         }
-        if (SettingsModel.showTax && state.selectedItem.itemTax == 0.0) {
-            state.selectedItem.itemTax = taxState.toDoubleOrNull() ?: 0.0
-        }
-        if (SettingsModel.showTax1 && state.selectedItem.itemTax1 == 0.0) {
-            state.selectedItem.itemTax1 = tax1State.toDoubleOrNull() ?: 0.0
-        }
-        if (SettingsModel.showTax2 && state.selectedItem.itemTax2 == 0.0) {
-            state.selectedItem.itemTax2 = tax2State.toDoubleOrNull() ?: 0.0
-        }
-        state.selectedItem.itemUnitPrice = Utils.roundDoubleValue(
-            state.selectedItem.itemUnitPrice,
-            SettingsModel.currentCurrency?.currencyName1Dec
-        )
-        state.selectedItem.itemOpenCost = Utils.roundDoubleValue(
-            state.selectedItem.itemOpenCost,
-            SettingsModel.currentCurrency?.currencyName1Dec
-        )
-        state.selectedItem.itemPos = itemPOSState
-        state.selectedItem.itemGroup = itemGroupState
-        if (itemCurrState.isNotEmpty()) {
-            state.selectedItem.itemCurrencyId = itemCurrState
-        } else if (state.selectedItem.itemCurrencyId.isNullOrEmpty()) {
-            val firstCurrency = viewModel.getFirstCurrency()
-            state.selectedItem.itemCurrencyId = firstCurrency.first
-            state.selectedItem.itemCurrencyCode = firstCurrency.second
-        }
-
-        viewModel.saveItem(state.selectedItem)
+        viewModel.save()
     }
 
-    fun clear() {
-        viewModel.currentITem = Item()
-        state.selectedItem = Item()
-        nameState = ""
-        unitPriceState = ""
-        taxState = SettingsModel.currentCompany?.companyTax.toString()
-        tax1State = SettingsModel.currentCompany?.companyTax1.toString()
-        tax2State = SettingsModel.currentCompany?.companyTax2.toString()
-        barcodeState = ""
-        openCostState = ""
-        openQtyState = ""
-        remQtyState = ""
-        itemGroupState = if (state.groups.isNotEmpty()) {
-            state.groups[0].groupName
-        } else {
-            ""
-        }
-        val firstCurrency = viewModel.getFirstCurrency()
-        itemCurrState = firstCurrency.first
-        state.selectedItem.itemCurrencyId = itemCurrState
-        state.selectedItem.itemCurrencyCode = firstCurrency.second
-        familyIdState = ""
-        btnColorState = ""
-        btnTextColorState = ""
-        printerState = ""
-        imageState = ""
-        itemPOSState = false
-        viewModel.resetState()
-    }
-
-    /*fun fillItemInputs(item: Item) {
-        if (state.selectedItem.didChanged(
-                viewModel.currentITem
-            )
-        ) {
-            sharedViewModel.showPopup(true,
-                PopupModel().apply {
-                    onDismissRequest = {
-                        fillItemInputsNow(item)
-                    }
-                    onConfirmation = {
-                        saveItem()
-                    }
-                    dialogText = "Do you want to save your changes"
-                    positiveBtnText = "Save"
-                    negativeBtnText = "Close"
-                })
-        }else{
-            fillItemInputsNow(item)
-        }
-    }*/
 
     var saveAndBack by remember { mutableStateOf(false) }
     fun handleBack() {
         if (state.isLoading) {
             return
         }
-        if (state.selectedItem.didChanged(
-                viewModel.currentITem
-            )
-        ) {
+        if (viewModel.isAnyChangeDone()) {
             sharedViewModel.showPopup(true,
                 PopupModel().apply {
                     onDismissRequest = {
-                        clear()
+                        viewModel.resetState()
                         handleBack()
                     }
                     onConfirmation = {
@@ -351,7 +183,7 @@ fun ManageItemsView(
     }
 
     fun clearAndBack() {
-        clear()
+        viewModel.resetState()
         if (saveAndBack) {
             handleBack()
         }
@@ -366,9 +198,6 @@ fun ManageItemsView(
     }
     GridPOSTheme {
         Scaffold(containerColor = SettingsModel.backgroundColor,
-            snackbarHost = {
-                SnackbarHost(hostState = snackbarHostState)
-            },
             topBar = {
                 Surface(
                     shadowElevation = 3.dp,
@@ -424,12 +253,15 @@ fun ManageItemsView(
                         horizontal = 10.dp,
                         vertical = 5.dp
                     ),
-                        defaultValue = nameState,
+                        defaultValue = item.itemName ?: "",
                         label = "Name",
                         placeHolder = "Enter Name",
                         onAction = { unitPriceFocusRequester.requestFocus() }) { name ->
-                        nameState = name
-                        state.selectedItem.itemName = name
+                        viewModel.updateItem(
+                            item.copy(
+                                itemName = name.trim()
+                            )
+                        )
                     }
 
                     //unitPrice
@@ -437,7 +269,7 @@ fun ManageItemsView(
                         horizontal = 10.dp,
                         vertical = 5.dp
                     ),
-                        defaultValue = unitPriceState,
+                        defaultValue = item.itemUnitPrice.toString(),
                         label = "Unit Price",
                         focusRequester = unitPriceFocusRequester,
                         keyboardType = KeyboardType.Decimal,
@@ -453,11 +285,11 @@ fun ManageItemsView(
                                 barcodeFocusRequester.requestFocus()
                             }
                         }) { unitPrice ->
-                        unitPriceState = Utils.getDoubleValue(
-                            unitPrice,
-                            unitPriceState
+                        viewModel.updateItem(
+                            item.copy(
+                                itemUnitPrice = unitPrice.toDoubleOrNull() ?: item.itemUnitPrice
+                            )
                         )
-                        state.selectedItem.itemUnitPrice = unitPriceState.toDoubleOrNull() ?: 0.0
                     }
 
                     if (SettingsModel.showTax) {
@@ -466,7 +298,7 @@ fun ManageItemsView(
                             horizontal = 10.dp,
                             vertical = 5.dp
                         ),
-                            defaultValue = taxState,
+                            defaultValue = item.itemTax.toString(),
                             label = "Tax",
                             focusRequester = taxFocusRequester,
                             keyboardType = KeyboardType.Decimal,
@@ -480,11 +312,11 @@ fun ManageItemsView(
                                     barcodeFocusRequester.requestFocus()
                                 }
                             }) { tax ->
-                            taxState = Utils.getDoubleValue(
-                                tax,
-                                taxState
+                            viewModel.updateItem(
+                                item.copy(
+                                    itemTax = tax.toDoubleOrNull() ?: item.itemTax
+                                )
                             )
-                            state.selectedItem.itemTax = taxState.toDoubleOrNull() ?: 0.0
                         }
                     }
                     if (SettingsModel.showTax1) {
@@ -493,7 +325,7 @@ fun ManageItemsView(
                             horizontal = 10.dp,
                             vertical = 5.dp
                         ),
-                            defaultValue = tax1State,
+                            defaultValue = item.itemTax1.toString(),
                             label = "Tax1",
                             focusRequester = tax1FocusRequester,
                             keyboardType = KeyboardType.Decimal,
@@ -505,11 +337,11 @@ fun ManageItemsView(
                                     barcodeFocusRequester.requestFocus()
                                 }
                             }) { tax1 ->
-                            tax1State = Utils.getDoubleValue(
-                                tax1,
-                                tax1State
+                            viewModel.updateItem(
+                                item.copy(
+                                    itemTax1 = tax1.toDoubleOrNull() ?: item.itemTax1
+                                )
                             )
-                            state.selectedItem.itemTax1 = tax1State.toDoubleOrNull() ?: 0.0
                         }
                     }
                     if (SettingsModel.showTax2) {
@@ -518,17 +350,17 @@ fun ManageItemsView(
                             horizontal = 10.dp,
                             vertical = 5.dp
                         ),
-                            defaultValue = tax2State,
+                            defaultValue = item.itemTax2.toString(),
                             label = "Tax2",
                             focusRequester = tax2FocusRequester,
                             keyboardType = KeyboardType.Decimal,
                             placeHolder = "Enter Tax2",
                             onAction = { barcodeFocusRequester.requestFocus() }) { tax2 ->
-                            tax2State = Utils.getDoubleValue(
-                                tax2,
-                                tax2State
+                            viewModel.updateItem(
+                                item.copy(
+                                    itemTax2 = tax2.toDoubleOrNull() ?: item.itemTax2
+                                )
                             )
-                            state.selectedItem.itemTax2 = tax2State.toDoubleOrNull() ?: 0.0
                         }
                     }
                     //barcode
@@ -536,12 +368,12 @@ fun ManageItemsView(
                         horizontal = 10.dp,
                         vertical = 5.dp
                     ),
-                        defaultValue = barcodeState,
+                        defaultValue = item.itemBarcode ?: "",
                         label = "Barcode",
                         placeHolder = "Enter Barcode",
                         focusRequester = barcodeFocusRequester,
                         onAction = {
-                            if (state.shouldDisableCostAndQty()) {
+                            if (viewModel.shouldDisableCostAndQty()) {
                                 btnColorFocusRequester.requestFocus()
                             } else {
                                 openCostFocusRequester.requestFocus()
@@ -551,16 +383,22 @@ fun ManageItemsView(
                             IconButton(onClick = {
                                 sharedViewModel.showLoading(true)
                                 scope.launch(Dispatchers.IO) {
-                                    val barcode =
-                                        barcodeState.ifEmpty { viewModel.generateBarcode() }
-                                    if (barcode.isNotEmpty()) {
-                                        state.selectedItem.itemBarcode = barcode
+                                    val barcode = if (item.itemBarcode.isNullOrEmpty()) {
+                                        viewModel.generateBarcode()
+                                    } else {
+                                        item.itemBarcode
+                                    }
+                                    if (!barcode.isNullOrEmpty()) {
                                         withContext(Dispatchers.Main) {
-                                            barcodeState = barcode
+                                            viewModel.updateItem(
+                                                item.copy(
+                                                    itemBarcode = barcode.trim()
+                                                )
+                                            )
                                         }
                                         val reportResult = viewModel.prepareItemBarcodeReport(
                                             context,
-                                            state.selectedItem
+                                            item
                                         )
 //                                        PrinterUtils.printReport(
 //                                            context,
@@ -590,11 +428,14 @@ fun ManageItemsView(
                                     object : OnBarcodeResult {
                                         override fun OnBarcodeResult(barcodesList: List<Any>) {
                                             if (barcodesList.isNotEmpty()) {
-                                                val resp = barcodesList[0]
-                                                if (resp is String) {
-                                                    barcodeState = resp
-                                                    state.selectedItem.itemBarcode = barcodeState
-                                                    if (state.shouldDisableCostAndQty()) {
+                                                val barcode = barcodesList[0]
+                                                if (barcode is String) {
+                                                    viewModel.updateItem(
+                                                        item.copy(
+                                                            itemBarcode = barcode.trim()
+                                                        )
+                                                    )
+                                                    if (viewModel.shouldDisableCostAndQty()) {
                                                         btnColorFocusRequester.requestFocus()
                                                     } else {
                                                         openCostFocusRequester.requestFocus()
@@ -617,8 +458,11 @@ fun ManageItemsView(
                                 )
                             }
                         }) { barcode ->
-                        barcodeState = barcode
-                        state.selectedItem.itemBarcode = barcode
+                        viewModel.updateItem(
+                            item.copy(
+                                itemBarcode = barcode.trim()
+                            )
+                        )
                     }
 
                     //open cost
@@ -626,18 +470,18 @@ fun ManageItemsView(
                         horizontal = 10.dp,
                         vertical = 5.dp
                     ),
-                        defaultValue = openCostState,
+                        defaultValue = item.itemOpenCost.toString(),
                         keyboardType = KeyboardType.Decimal,
                         label = "Open cost",
                         placeHolder = "Enter Open cost",
-                        enabled = !state.shouldDisableCostAndQty(),
+                        enabled = !viewModel.shouldDisableCostAndQty(),
                         focusRequester = openCostFocusRequester,
                         onAction = { openQtyFocusRequester.requestFocus() }) { openCost ->
-                        openCostState = Utils.getDoubleValue(
-                            openCost,
-                            openCostState
+                        viewModel.updateItem(
+                            item.copy(
+                                itemOpenCost = openCost.toDoubleOrNull() ?: item.itemOpenCost
+                            )
                         )
-                        state.selectedItem.itemOpenCost = openCostState.toDoubleOrNull() ?: 0.0
                     }
 
                     //open quantity
@@ -645,18 +489,18 @@ fun ManageItemsView(
                         horizontal = 10.dp,
                         vertical = 5.dp
                     ),
-                        defaultValue = openQtyState,
+                        defaultValue = item.itemOpenQty.toString(),
                         label = "Open Qty",
-                        enabled = !state.shouldDisableCostAndQty(),
+                        enabled = !viewModel.shouldDisableCostAndQty(),
                         keyboardType = KeyboardType.Decimal,
                         placeHolder = "Enter Open Qty",
                         focusRequester = openQtyFocusRequester,
                         onAction = { btnColorFocusRequester.requestFocus() }) { openQty ->
-                        openQtyState = Utils.getDoubleValue(
-                            openQty,
-                            openQtyState
+                        viewModel.updateItem(
+                            item.copy(
+                                itemOpenQty = openQty.toDoubleOrNull() ?: item.itemOpenQty
+                            )
                         )
-                        state.selectedItem.itemOpenQty = openQtyState.toDoubleOrNull() ?: 0.0
                     }
 
                     //Rem quantity
@@ -665,17 +509,17 @@ fun ManageItemsView(
                             horizontal = 10.dp,
                             vertical = 5.dp
                         ),
-                        defaultValue = remQtyState,
+                        defaultValue = item.itemRemQty.toString(),
                         enabled = false,
                         label = "Remaining Qty",
                         keyboardType = KeyboardType.Decimal,
                         placeHolder = "Remaining Qty"
-                    ) { openQty ->
-                        remQtyState = Utils.getDoubleValue(
-                            openQty,
-                            remQtyState
+                    ) { remQty ->
+                        viewModel.updateItem(
+                            item.copy(
+                                itemRemQty = remQty.toDoubleOrNull() ?: item.itemRemQty
+                            )
                         )
-                        state.selectedItem.itemRemQty = remQtyState.toDoubleOrNull() ?: 0.0
                     }
                     if (state.isConnectingToSQLServer) {
                         SearchableDropdownMenuEx(
@@ -685,11 +529,14 @@ fun ManageItemsView(
                                 vertical = 5.dp
                             ),
                             label = "Select Group",
-                            selectedId = itemGroupState
+                            selectedId = item.itemGroup
                         ) { group ->
                             group as ItemGroupModel
-                            itemGroupState = group.getId()
-                            state.selectedItem.itemGroup = itemGroupState
+                            viewModel.updateItem(
+                                item.copy(
+                                    itemGroup = group.getId()
+                                )
+                            )
                         }
                     }
 
@@ -700,12 +547,15 @@ fun ManageItemsView(
                             vertical = 5.dp
                         ),
                         label = "Select Currency",
-                        selectedId = itemCurrState
+                        selectedId = item.itemCurrencyId
                     ) { currModel ->
                         currModel as CurrencyModel
-                        itemCurrState = currModel.getId()
-                        state.selectedItem.itemCurrencyId = itemCurrState
-                        state.selectedItem.itemCurrencyCode = currModel.currencyCode
+                        viewModel.updateItem(
+                            item.copy(
+                                itemCurrencyId = currModel.getId(),
+                                itemCurrencyCode = currModel.currencyCode
+                            )
+                        )
                     }
 
                     SearchableDropdownMenuEx(items = state.families.toMutableList(),
@@ -714,12 +564,12 @@ fun ManageItemsView(
                             vertical = 5.dp
                         ),
                         label = "Select Family",
-                        selectedId = familyIdState,
+                        selectedId = item.itemFaId,
                         onLoadItems = {
                             viewModel.fetchFamilies()
                         },
                         leadingIcon = { modifier ->
-                            if (familyIdState.isNotEmpty()) {
+                            if (!item.itemFaId.isNullOrEmpty()) {
                                 Icon(
                                     Icons.Default.RemoveCircleOutline,
                                     contentDescription = "remove family",
@@ -729,12 +579,18 @@ fun ManageItemsView(
                             }
                         },
                         onLeadingIconClick = {
-                            familyIdState = ""
-                            state.selectedItem.itemFaId = null
+                            viewModel.updateItem(
+                                item.copy(
+                                    itemFaId = null
+                                )
+                            )
                         }) { family ->
                         family as Family
-                        familyIdState = family.familyId
-                        state.selectedItem.itemFaId = familyIdState
+                        viewModel.updateItem(
+                            item.copy(
+                                itemFaId = family.familyId
+                            )
+                        )
                     }
 
                     //Button color
@@ -742,7 +598,7 @@ fun ManageItemsView(
                         horizontal = 10.dp,
                         vertical = 5.dp
                     ),
-                        defaultValue = btnColorState,
+                        defaultValue = item.itemBtnColor ?: "",
                         label = "Button color",
                         placeHolder = "Enter Button color",
                         focusRequester = btnColorFocusRequester,
@@ -759,8 +615,11 @@ fun ManageItemsView(
                                 )
                             }
                         }) { btnColor ->
-                        btnColorState = btnColor
-                        state.selectedItem.itemBtnColor = btnColor
+                        viewModel.updateItem(
+                            item.copy(
+                                itemBtnColor = btnColor.trim()
+                            )
+                        )
                     }
 
                     //Button text color
@@ -768,7 +627,7 @@ fun ManageItemsView(
                         horizontal = 10.dp,
                         vertical = 5.dp
                     ),
-                        defaultValue = btnTextColorState,
+                        defaultValue = item.itemBtnTextColor?:"",
                         label = "Button Text color",
                         placeHolder = "Enter Button Text color",
                         focusRequester = btnTextColorFocusRequester,
@@ -785,8 +644,11 @@ fun ManageItemsView(
                                 )
                             }
                         }) { btnTextColor ->
-                        btnTextColorState = btnTextColor
-                        state.selectedItem.itemBtnTextColor = btnTextColor
+                        viewModel.updateItem(
+                            item.copy(
+                                itemBtnTextColor = btnTextColor.trim()
+                            )
+                        )
                     }
 
                     SearchableDropdownMenuEx(items = state.printers.toMutableList(),
@@ -795,12 +657,12 @@ fun ManageItemsView(
                             vertical = 5.dp
                         ),
                         label = "Select Printer",
-                        selectedId = printerState,
+                        selectedId = item.itemPrinter,
                         onLoadItems = {
                             viewModel.fetchPrinters()
                         },
                         leadingIcon = { modifier ->
-                            if (printerState.isNotEmpty()) {
+                            if (!item.itemPrinter.isNullOrEmpty()) {
                                 Icon(
                                     Icons.Default.RemoveCircleOutline,
                                     contentDescription = "remove printer",
@@ -810,19 +672,25 @@ fun ManageItemsView(
                             }
                         },
                         onLeadingIconClick = {
-                            printerState = ""
-                            state.selectedItem.itemPrinter = null
+                            viewModel.updateItem(
+                                item.copy(
+                                    itemPrinter = null
+                                )
+                            )
                         }) { printer ->
                         printer as PosPrinter
-                        printerState = printer.posPrinterId
-                        state.selectedItem.itemPrinter = printerState
+                        viewModel.updateItem(
+                            item.copy(
+                                itemPrinter = printer.posPrinterId
+                            )
+                        )
                     }
 
                     UITextField(modifier = Modifier.padding(
                         horizontal = 10.dp,
                         vertical = 5.dp
                     ),
-                        defaultValue = imageState,
+                        defaultValue = item.itemImage ?: "",
                         label = "Image",
                         placeHolder = "Image",
                         focusRequester = imageFocusRequester,
@@ -834,25 +702,22 @@ fun ManageItemsView(
                                     object : OnGalleryResult {
                                         override fun onGalleryResult(uris: List<Uri>) {
                                             if (uris.isNotEmpty()) {
-                                                sharedViewModel.showLoading(true)
-                                                CoroutineScope(Dispatchers.IO).launch {
-                                                    val internalPath =
-                                                        FileUtils.saveToExternalStorage(context = context,
-                                                            parent = "item",
-                                                            uris[0],
-                                                            nameState.trim().replace(
-                                                                " ",
-                                                                "_"
-                                                            ).ifEmpty { "item" })
-                                                    withContext(Dispatchers.Main) {
-                                                        sharedViewModel.showLoading(false)
-                                                        if (internalPath != null) {
-                                                            oldImage = imageState
-                                                            imageState = internalPath
-                                                            state.selectedItem.itemImage =
-                                                                imageState
-                                                        }
-                                                    }
+                                                sharedViewModel.copyToInternalStorage(
+                                                    context = context,
+                                                    uri = uris[0],
+                                                    parent = "item",
+                                                    fileName = ((item.itemName ?: "item").trim()
+                                                        .replace(
+                                                            " ",
+                                                            "_"
+                                                        ))
+                                                ) { internalPath ->
+                                                    viewModel.oldImage = item.itemImage
+                                                    viewModel.updateItem(
+                                                        item.copy(
+                                                            itemImage = internalPath
+                                                        )
+                                                    )
                                                 }
                                             }
                                         }
@@ -871,8 +736,11 @@ fun ManageItemsView(
                                 )
                             }
                         }) { img ->
-                        imageState = img
-                        state.selectedItem.itemImage = img
+                        viewModel.updateItem(
+                            item.copy(
+                                itemImage = img.trim()
+                            )
+                        )
                     }
 
                     UISwitch(
@@ -880,11 +748,14 @@ fun ManageItemsView(
                             horizontal = 10.dp,
                             vertical = 5.dp
                         ),
-                        checked = itemPOSState,
+                        checked = item.itemPos,
                         text = "Item POS",
                     ) { isItemPOS ->
-                        itemPOSState = isItemPOS
-                        state.selectedItem.itemPos = isItemPOS
+                        viewModel.updateItem(
+                            item.copy(
+                                itemPos = isItemPOS
+                            )
+                        )
                     }
 
                     Row(
@@ -914,19 +785,19 @@ fun ManageItemsView(
                             icon = R.drawable.delete,
                             text = "Delete"
                         ) {
-                            oldImage?.let { old ->
+                            viewModel.oldImage?.let { old ->
                                 FileUtils.deleteFile(
                                     context,
                                     old
                                 )
                             }
-                            if (imageState.isNotEmpty()) {
+                            if (!item.itemImage.isNullOrEmpty()) {
                                 FileUtils.deleteFile(
                                     context,
-                                    imageState
+                                    item.itemImage!!
                                 )
                             }
-                            viewModel.deleteSelectedItem(state.selectedItem)
+                            viewModel.delete()
                         }
 
                         UIImageButton(
@@ -948,10 +819,10 @@ fun ManageItemsView(
                         end = 10.dp
                     ),
                     label = "Select Item",
-                    selectedId = state.selectedItem.itemId,
+                    selectedId = item.itemId,
                     onLoadItems = { viewModel.fetchItems() },
                     leadingIcon = { modifier ->
-                        if (state.selectedItem.itemId.isNotEmpty()) {
+                        if (item.itemId.isNotEmpty()) {
                             Icon(
                                 Icons.Default.RemoveCircleOutline,
                                 contentDescription = "remove family",
@@ -961,7 +832,7 @@ fun ManageItemsView(
                         }
                     },
                     onLeadingIconClick = {
-                        clear()
+                        viewModel.resetState()
                     },
                     collapseOnInit = collapseItemListState,
                     searchEnteredText = barcodeSearchState,
@@ -976,16 +847,16 @@ fun ManageItemsView(
                                             val resp = barcodesList[0]
                                             if (resp is String) {
                                                 scope.launch(Dispatchers.Default) {
-                                                    val item = state.items.firstOrNull {iterator->
+                                                    val barcodeItem = state.items.firstOrNull { iterator ->
                                                         iterator.itemBarcode.equals(
                                                             resp,
                                                             ignoreCase = true
                                                         )
                                                     }
                                                     withContext(Dispatchers.Main) {
-                                                        if (item != null) {
+                                                        if (barcodeItem != null) {
                                                             collapseItemListState = true
-                                                            fillItemInputs(item)
+                                                            fillItemInputs(barcodeItem)
                                                         } else {
                                                             barcodeSearchState = resp
                                                         }
@@ -1036,13 +907,19 @@ fun ManageItemsView(
                     onSubmit = {
                         when (colorPickerType) {
                             ColorPickerType.BUTTON_COLOR -> {
-                                btnColorState = it.toHexCode()
-                                state.selectedItem.itemBtnColor = btnColorState
+                                viewModel.updateItem(
+                                    item.copy(
+                                        itemBtnColor = it.toHexCode()
+                                    )
+                                )
                             }
 
                             ColorPickerType.BUTTON_TEXT_COLOR -> {
-                                btnTextColorState = it.toHexCode()
-                                state.selectedItem.itemBtnTextColor = btnTextColorState
+                                viewModel.updateItem(
+                                    item.copy(
+                                        itemBtnTextColor = it.toHexCode()
+                                    )
+                                )
                             }
 
                             else -> {}
