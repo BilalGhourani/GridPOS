@@ -11,7 +11,6 @@ data class PaymentsState(
         val thirdParties: MutableList<ThirdParty> = mutableListOf(),
         val currencies: MutableList<CurrencyModel> = mutableListOf(),
         var users: MutableList<User> = mutableListOf(),
-        var selectedPayment: Payment = Payment(),
         val isLoading: Boolean = false,
         var isSaved: Boolean = false,
         var clear: Boolean = false,

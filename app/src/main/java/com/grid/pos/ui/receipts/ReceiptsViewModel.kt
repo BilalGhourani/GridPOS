@@ -1,6 +1,7 @@
 package com.grid.pos.ui.receipts
 
 import android.content.Context
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.lifecycle.viewModelScope
 import com.grid.pos.data.EntityModel
 import com.grid.pos.data.currency.CurrencyRepository
@@ -9,7 +10,6 @@ import com.grid.pos.data.receipt.ReceiptRepository
 import com.grid.pos.data.settings.SettingsRepository
 import com.grid.pos.data.thirdParty.ThirdParty
 import com.grid.pos.data.thirdParty.ThirdPartyRepository
-import com.grid.pos.data.user.User
 import com.grid.pos.data.user.UserRepository
 import com.grid.pos.model.Event
 import com.grid.pos.model.PaymentTypeModel
@@ -23,6 +23,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -36,8 +37,13 @@ class ReceiptsViewModel @Inject constructor(
     private val settingsRepository: SettingsRepository
 ) : BaseViewModel() {
 
-    private val _receiptsState = MutableStateFlow(ReceiptsState())
-    val receiptsState: MutableStateFlow<ReceiptsState> = _receiptsState
+    private val _manageReceiptsState = MutableStateFlow(ReceiptsState())
+    val manageReceiptsState: MutableStateFlow<ReceiptsState> = _manageReceiptsState
+
+    private var _receiptState = MutableStateFlow(Receipt())
+    var receiptState = _receiptState.asStateFlow()
+    var currencyIndexState = mutableIntStateOf(0)
+
     var currentReceipt: Receipt = Receipt()
     var reportResult = ReportResult()
     private var clientsMap: Map<String, ThirdParty> = mutableMapOf()
@@ -54,6 +60,7 @@ class ReceiptsViewModel @Inject constructor(
             openConnectionIfNeeded()
             fetchCurrencies()
             transactionType = getTransactionType()
+            reportResult = ReportResult()
         }
     }
 
@@ -68,7 +75,9 @@ class ReceiptsViewModel @Inject constructor(
     }
 
     fun resetState() {
-        receiptsState.value = receiptsState.value.copy(
+        currentReceipt = Receipt()
+        updateReceipt(currentReceipt.copy())
+        manageReceiptsState.value = manageReceiptsState.value.copy(
             warning = null,
             isLoading = false,
             clear = false,
@@ -76,13 +85,22 @@ class ReceiptsViewModel @Inject constructor(
         )
     }
 
+    fun updateReceipt(receipt: Receipt) {
+        _receiptState.value = receipt
+    }
+
+    fun isAnyChangeDone():Boolean{
+        return receiptState.value.didChanged(currentReceipt)
+    }
+
+
     fun fetchReceipts() {
-        receiptsState.value = receiptsState.value.copy(
+        manageReceiptsState.value = manageReceiptsState.value.copy(
             warning = null,
             isLoading = true
         )
         viewModelScope.launch(Dispatchers.IO) {
-            if (receiptsState.value.thirdParties.isEmpty()) {
+            if (manageReceiptsState.value.thirdParties.isEmpty()) {
                 fetchThirdParties(false)
             }
             val listOfReceipts = receiptRepository.getAllReceipts()
@@ -90,7 +108,7 @@ class ReceiptsViewModel @Inject constructor(
                 it.receiptThirdPartyName = clientsMap[it.receiptThirdParty]?.thirdPartyName
             }
             withContext(Dispatchers.Main) {
-                receiptsState.value = receiptsState.value.copy(
+                manageReceiptsState.value = manageReceiptsState.value.copy(
                     receipts = listOfReceipts,
                     isLoading = false
                 )
@@ -102,7 +120,7 @@ class ReceiptsViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             val currencies = currencyRepository.getAllCurrencyModels()
             withContext(Dispatchers.Main) {
-                receiptsState.value = receiptsState.value.copy(
+                manageReceiptsState.value = manageReceiptsState.value.copy(
                     currencies = currencies
                 )
             }
@@ -111,13 +129,13 @@ class ReceiptsViewModel @Inject constructor(
 
     fun getCurrencyCode(currID: String?): String? {
         if (currID.isNullOrEmpty()) return null
-        return receiptsState.value.currencies.firstOrNull { it.currencyId == currID || it.currencyCode == currID }?.currencyCode
+        return manageReceiptsState.value.currencies.firstOrNull { it.currencyId == currID || it.currencyCode == currID }?.currencyCode
     }
 
     suspend fun fetchThirdParties(loading: Boolean = true) {
         if (loading) {
             withContext(Dispatchers.Main) {
-                receiptsState.value = receiptsState.value.copy(
+                manageReceiptsState.value = manageReceiptsState.value.copy(
                     warning = null,
                     isLoading = true
                 )
@@ -132,51 +150,49 @@ class ReceiptsViewModel @Inject constructor(
         clientsMap = listOfThirdParties.associateBy { it.thirdPartyId }
         withContext(Dispatchers.Main) {
             if (loading) {
-                receiptsState.value = receiptsState.value.copy(
+                manageReceiptsState.value = manageReceiptsState.value.copy(
                     thirdParties = listOfThirdParties,
                     isLoading = false
                 )
             } else {
-                receiptsState.value = receiptsState.value.copy(
+                manageReceiptsState.value = manageReceiptsState.value.copy(
                     thirdParties = listOfThirdParties
                 )
             }
         }
     }
 
-    fun saveReceipt(
-        context: Context,
-        receipt: Receipt
-    ) {
+    fun save(context: Context) {
+        val receipt = receiptState.value
         if (receipt.receiptThirdParty.isNullOrEmpty()) {
-            receiptsState.value = receiptsState.value.copy(
+            manageReceiptsState.value = manageReceiptsState.value.copy(
                 warning = Event("Please select a Client."),
                 isLoading = false
             )
             return
         }
         if (receipt.receiptType.isNullOrEmpty()) {
-            receiptsState.value = receiptsState.value.copy(
+            manageReceiptsState.value = manageReceiptsState.value.copy(
                 warning = Event("Please select a Type."),
                 isLoading = false
             )
             return
         }
         if (receipt.receiptCurrency.isNullOrEmpty()) {
-            receiptsState.value = receiptsState.value.copy(
+            manageReceiptsState.value = manageReceiptsState.value.copy(
                 warning = Event("Please select a Currency."),
                 isLoading = false
             )
             return
         }
         if (receipt.receiptAmount == 0.0 || receipt.receiptAmount.isNaN()) {
-            receiptsState.value = receiptsState.value.copy(
+            manageReceiptsState.value = manageReceiptsState.value.copy(
                 warning = Event("Please enter an Amount."),
                 isLoading = false
             )
             return
         }
-        receiptsState.value = receiptsState.value.copy(
+        manageReceiptsState.value = manageReceiptsState.value.copy(
             isLoading = true
         )
         val isInserting = receipt.isNew()
@@ -192,7 +208,7 @@ class ReceiptsViewModel @Inject constructor(
                 val dataModel = receiptRepository.insert(receipt)
                 if (dataModel.succeed) {
                     val addedModel = dataModel.data as Receipt
-                    val receipts = receiptsState.value.receipts
+                    val receipts = manageReceiptsState.value.receipts
                     if (receipts.isNotEmpty()) {
                         receipts.add(
                             0,
@@ -204,9 +220,8 @@ class ReceiptsViewModel @Inject constructor(
                         addedModel
                     )
                     withContext(Dispatchers.Main) {
-                        receiptsState.value = receiptsState.value.copy(
+                        manageReceiptsState.value = manageReceiptsState.value.copy(
                             receipts = receipts,
-                            selectedReceipt = addedModel,
                             isLoading = false,
                             warning = Event("successfully saved."),
                             isSaved = true,
@@ -215,7 +230,7 @@ class ReceiptsViewModel @Inject constructor(
                     }
                 } else {
                     withContext(Dispatchers.Main) {
-                        receiptsState.value = receiptsState.value.copy(
+                        manageReceiptsState.value = manageReceiptsState.value.copy(
                             isLoading = false
                         )
                     }
@@ -227,10 +242,10 @@ class ReceiptsViewModel @Inject constructor(
                 val dataModel = receiptRepository.update(receipt)
                 if (dataModel.succeed) {
                     val index =
-                        receiptsState.value.receipts.indexOfFirst { it.receiptId == receipt.receiptId }
+                        manageReceiptsState.value.receipts.indexOfFirst { it.receiptId == receipt.receiptId }
                     if (index >= 0) {
-                        receiptsState.value.receipts.removeAt(index)
-                        receiptsState.value.receipts.add(
+                        manageReceiptsState.value.receipts.removeAt(index)
+                        manageReceiptsState.value.receipts.add(
                             index,
                             receipt
                         )
@@ -240,8 +255,7 @@ class ReceiptsViewModel @Inject constructor(
                         receipt
                     )
                     withContext(Dispatchers.Main) {
-                        receiptsState.value = receiptsState.value.copy(
-                            selectedReceipt = receipt,
+                        manageReceiptsState.value = manageReceiptsState.value.copy(
                             isLoading = false,
                             warning = Event("successfully saved."),
                             isSaved = true,
@@ -250,7 +264,7 @@ class ReceiptsViewModel @Inject constructor(
                     }
                 } else {
                     withContext(Dispatchers.Main) {
-                        receiptsState.value = receiptsState.value.copy(
+                        manageReceiptsState.value = manageReceiptsState.value.copy(
                             isLoading = false
                         )
                     }
@@ -259,16 +273,16 @@ class ReceiptsViewModel @Inject constructor(
         }
     }
 
-    fun deleteSelectedReceipt() {
-        val receipt = receiptsState.value.selectedReceipt
+    fun delete() {
+        val receipt = receiptState.value
         if (receipt.receiptId.isEmpty()) {
-            receiptsState.value = receiptsState.value.copy(
+            manageReceiptsState.value = manageReceiptsState.value.copy(
                 warning = Event("Please select a Receipt to delete"),
                 isLoading = false
             )
             return
         }
-        receiptsState.value = receiptsState.value.copy(
+        manageReceiptsState.value = manageReceiptsState.value.copy(
             warning = null,
             isLoading = true
         )
@@ -276,12 +290,11 @@ class ReceiptsViewModel @Inject constructor(
         CoroutineScope(Dispatchers.IO).launch {
             val dataModel = receiptRepository.delete(receipt)
             if (dataModel.succeed) {
-                val receipts = receiptsState.value.receipts
+                val receipts = manageReceiptsState.value.receipts
                 receipts.remove(receipt)
                 withContext(Dispatchers.Main) {
-                    receiptsState.value = receiptsState.value.copy(
+                    manageReceiptsState.value = manageReceiptsState.value.copy(
                         receipts = receipts,
-                        selectedReceipt = Receipt(),
                         isLoading = false,
                         warning = Event("successfully deleted."),
                         clear = true,
@@ -290,7 +303,7 @@ class ReceiptsViewModel @Inject constructor(
                 }
             } else {
                 withContext(Dispatchers.Main) {
-                    receiptsState.value = receiptsState.value.copy(
+                    manageReceiptsState.value = manageReceiptsState.value.copy(
                         isLoading = false
                     )
                 }
@@ -305,9 +318,9 @@ class ReceiptsViewModel @Inject constructor(
         val thirdPartyId = receipt.receiptThirdParty
         val userId = receipt.receiptUserStamp
         val defaultThirdParty = if (thirdPartyId.isNullOrEmpty()) {
-            receiptsState.value.thirdParties.firstOrNull { it.thirdPartyDefault }
+            manageReceiptsState.value.thirdParties.firstOrNull { it.thirdPartyDefault }
         } else {
-            receiptsState.value.thirdParties.firstOrNull {
+            manageReceiptsState.value.thirdParties.firstOrNull {
                 it.thirdPartyId == thirdPartyId
             }
         }
@@ -315,10 +328,10 @@ class ReceiptsViewModel @Inject constructor(
             if (userId.isNullOrEmpty() || SettingsModel.currentUser?.userId == userId || SettingsModel.currentUser?.userUsername == userId) {
                 SettingsModel.currentUser
             } else {
-                if (receiptsState.value.users.isEmpty()) {
-                    receiptsState.value.users = userRepository.getAllUsers()
+                if (manageReceiptsState.value.users.isEmpty()) {
+                    manageReceiptsState.value.users = userRepository.getAllUsers()
                 }
-                receiptsState.value.users.firstOrNull {
+                manageReceiptsState.value.users.firstOrNull {
                     it.userId == userId || it.userUsername == userId
                 } ?: SettingsModel.currentUser
             }

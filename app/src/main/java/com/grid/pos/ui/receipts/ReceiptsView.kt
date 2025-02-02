@@ -18,17 +18,14 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -48,8 +45,8 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import com.grid.pos.SharedViewModel
 import com.grid.pos.R
+import com.grid.pos.SharedViewModel
 import com.grid.pos.data.receipt.Receipt
 import com.grid.pos.data.thirdParty.ThirdParty
 import com.grid.pos.model.CurrencyModel
@@ -57,12 +54,11 @@ import com.grid.pos.model.PaymentTypeModel
 import com.grid.pos.model.PopupModel
 import com.grid.pos.model.ReportResult
 import com.grid.pos.model.SettingsModel
+import com.grid.pos.model.ToastModel
 import com.grid.pos.ui.common.SearchableDropdownMenuEx
 import com.grid.pos.ui.common.UIImageButton
 import com.grid.pos.ui.common.UITextField
-import com.grid.pos.ui.pos.POSUtils
 import com.grid.pos.ui.theme.GridPOSTheme
-import com.grid.pos.utils.Utils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -71,38 +67,28 @@ import kotlinx.coroutines.launch
 )
 @Composable
 fun ReceiptsView(
-        modifier: Modifier = Modifier,
-        navController: NavController? = null,
-        sharedViewModel: SharedViewModel,
-        viewModel: ReceiptsViewModel = hiltViewModel()
+    modifier: Modifier = Modifier,
+    navController: NavController? = null,
+    sharedViewModel: SharedViewModel,
+    viewModel: ReceiptsViewModel = hiltViewModel()
 ) {
-    val state by viewModel.receiptsState.collectAsStateWithLifecycle()
+    val state by viewModel.manageReceiptsState.collectAsStateWithLifecycle()
+    val receipt = viewModel.receiptState.collectAsState().value
+
     val context = LocalContext.current
     val keyboardController = LocalSoftwareKeyboardController.current
     val amountFocusRequester = remember { FocusRequester() }
     val descFocusRequester = remember { FocusRequester() }
     val noteFocusRequester = remember { FocusRequester() }
 
-    var typeState by remember { mutableStateOf("") }
-    var thirdPartyState by remember { mutableStateOf("") }
-    var currencyState by remember { mutableStateOf("") }
-    var currencyIndexState by remember { mutableIntStateOf(0) }
-    var amountState by remember { mutableStateOf("") }
-    var amountFirstState by remember { mutableStateOf("") }
-    var amountSecondsState by remember { mutableStateOf("") }
-    var descriptionState by remember { mutableStateOf("") }
-    var noteState by remember { mutableStateOf("") }
-
-    val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     LaunchedEffect(state.warning) {
         state.warning?.value?.let { message ->
-            scope.launch {
-                snackbarHostState.showSnackbar(
-                    message = message,
-                    duration = SnackbarDuration.Short,
+            sharedViewModel.showToastMessage(
+                ToastModel(
+                    message = message
                 )
-            }
+            )
         }
     }
 
@@ -110,42 +96,21 @@ fun ReceiptsView(
         sharedViewModel.showLoading(state.isLoading)
     }
 
-    fun clear() {
-        viewModel.currentReceipt = Receipt()
-        state.selectedReceipt = Receipt()
-        thirdPartyState = ""
-        typeState = ""
-        currencyState = ""
-        currencyIndexState = 0
-        amountState = ""
-        amountFirstState = ""
-        amountSecondsState = ""
-        descriptionState = ""
-        noteState = ""
-        viewModel.resetState()
-    }
-
     var saveAndBack by remember { mutableStateOf(false) }
     fun handleBack() {
         if (state.isLoading) {
             return
         }
-        if (state.selectedReceipt.didChanged(
-                viewModel.currentReceipt
-            )
-        ) {
+        if (viewModel.isAnyChangeDone()) {
             sharedViewModel.showPopup(true,
                 PopupModel().apply {
                     onDismissRequest = {
-                        clear()
+                        viewModel.resetState()
                         handleBack()
                     }
                     onConfirmation = {
                         saveAndBack = true
-                        viewModel.saveReceipt(
-                            context,
-                            state.selectedReceipt
-                        )
+                        viewModel.save(context)
                     }
                     dialogText = "Do you want to save your changes"
                     positiveBtnText = "Save"
@@ -160,7 +125,7 @@ fun ReceiptsView(
     }
 
     fun clearAndBack() {
-        clear()
+        viewModel.resetState()
         if (saveAndBack) {
             handleBack()
         }
@@ -178,7 +143,7 @@ fun ReceiptsView(
             state.isSaved = false
             sharedViewModel.reportsToPrint.clear()
             sharedViewModel.reportsToPrint.add(viewModel.reportResult)
-            clear()
+            viewModel.resetState()
             navController?.navigate("UIWebView")
         }
         if (state.clear) {
@@ -190,9 +155,6 @@ fun ReceiptsView(
     }
     GridPOSTheme {
         Scaffold(containerColor = SettingsModel.backgroundColor,
-            snackbarHost = {
-                SnackbarHost(hostState = snackbarHostState)
-            },
             topBar = {
                 Surface(
                     shadowElevation = 3.dp,
@@ -249,9 +211,9 @@ fun ReceiptsView(
                         ),
                         enableSearch = false,
                         label = "Select Type",
-                        selectedId = typeState,
+                        selectedId = receipt.receiptType,
                         leadingIcon = { modifier ->
-                            if (typeState.isNotEmpty()) {
+                            if (!receipt.receiptType.isNullOrEmpty()) {
                                 Icon(
                                     Icons.Default.RemoveCircleOutline,
                                     contentDescription = "remove Type",
@@ -261,12 +223,18 @@ fun ReceiptsView(
                             }
                         },
                         onLeadingIconClick = {
-                            typeState = ""
-                            state.selectedReceipt.receiptType = null
+                            viewModel.updateReceipt(
+                                receipt.copy(
+                                    receiptType = null
+                                )
+                            )
                         }) { typeModel ->
                         typeModel as PaymentTypeModel
-                        typeState = typeModel.type
-                        state.selectedReceipt.receiptType = typeModel.type
+                        viewModel.updateReceipt(
+                            receipt.copy(
+                                receiptType = typeModel.type
+                            )
+                        )
                     }
 
                     SearchableDropdownMenuEx(items = state.currencies.toMutableList(),
@@ -276,9 +244,9 @@ fun ReceiptsView(
                         ),
                         enableSearch = SettingsModel.isConnectedToSqlServer(),
                         label = "Select Currency",
-                        selectedId = currencyState,
+                        selectedId = receipt.receiptCurrency,
                         leadingIcon = { modifier ->
-                            if (currencyState.isNotEmpty()) {
+                            if (!receipt.receiptCurrency.isNullOrEmpty()) {
                                 Icon(
                                     Icons.Default.RemoveCircleOutline,
                                     contentDescription = "remove Currency",
@@ -288,58 +256,58 @@ fun ReceiptsView(
                             }
                         },
                         onLeadingIconClick = {
-                            currencyState = ""
-                            state.selectedReceipt.receiptCurrency = null
-                            state.selectedReceipt.receiptCurrencyCode = null
-                            currencyIndexState = 0
+                            viewModel.updateReceipt(
+                                receipt.copy(
+                                    receiptCurrency = null,
+                                    receiptCurrencyCode = null
+                                )
+                            )
+                            viewModel.currencyIndexState.intValue = 0
                         }) { currModel ->
                         currModel as CurrencyModel
-                        currencyState = currModel.getId()
-                        state.selectedReceipt.receiptCurrency = currencyState
-                        state.selectedReceipt.receiptCurrencyCode = currModel.currencyCode
-                        currencyIndexState = state.selectedReceipt.getSelectedCurrencyIndex()
+                        viewModel.updateReceipt(
+                            receipt.copy(
+                                receiptCurrency = currModel.getId(),
+                                receiptCurrencyCode = currModel.currencyCode
+                            )
+                        )
+                        viewModel.currencyIndexState.intValue = receipt.getSelectedCurrencyIndex()
                     }
 
                     UITextField(modifier = Modifier.padding(
                         horizontal = 10.dp,
                         vertical = 5.dp
                     ),
-                        defaultValue = amountState,
+                        defaultValue = receipt.receiptAmount.toString(),
                         label = "Amount",
                         placeHolder = "Enter Amount",
                         focusRequester = amountFocusRequester,
                         onAction = {
                             descFocusRequester.requestFocus()
                         }) { amount ->
-                        amountState = Utils.getDoubleValue(
-                            amount,
-                            amountState
-                        )
-                        state.selectedReceipt.receiptAmount = amountState.toDoubleOrNull() ?: 0.0
-
-                        if (currencyIndexState == 1) {
-                            val second = state.selectedReceipt.receiptAmount.times(SettingsModel.currentCurrency?.currencyRate ?: 1.0)
-                            amountSecondsState = POSUtils.formatDouble(
-                                second,
-                                SettingsModel.currentCurrency?.currencyName2Dec ?: 2
-                            )
-                            state.selectedReceipt.receiptAmountSecond = second
-                        } else if (currencyIndexState == 2) {
-                            val first = state.selectedReceipt.receiptAmount.div(SettingsModel.currentCurrency?.currencyRate ?: 1.0)
-                            amountFirstState = POSUtils.formatDouble(
-                                first,
-                                SettingsModel.currentCurrency?.currencyName1Dec ?: 2
-                            )
-                            state.selectedReceipt.receiptAmountFirst = first
+                        val receiptAmount = amount.toDoubleOrNull() ?: receipt.receiptAmount
+                        var amountFirst = receipt.receiptAmountFirst
+                        var amountSecond = receipt.receiptAmountSecond
+                        if (viewModel.currencyIndexState.intValue == 1) {
+                            amountSecond = receiptAmount.times(SettingsModel.currentCurrency?.currencyRate ?: 1.0)
+                        } else if (viewModel.currencyIndexState.intValue == 2) {
+                            amountFirst = receiptAmount.div(SettingsModel.currentCurrency?.currencyRate ?: 1.0)
                         }
+                        viewModel.updateReceipt(
+                            receipt.copy(
+                                receiptAmount = receiptAmount,
+                                receiptAmountFirst = amountFirst,
+                                receiptAmountSecond = amountSecond
+                            )
+                        )
                     }
 
-                    if (currencyIndexState != 1) {
+                    if (viewModel.currencyIndexState.intValue != 1) {
                         UITextField(modifier = Modifier.padding(
                             horizontal = 10.dp,
                             vertical = 5.dp
                         ),
-                            defaultValue = amountFirstState,
+                            defaultValue = receipt.receiptAmountFirst.toString(),
                             label = "Amount ${SettingsModel.currentCurrency?.currencyCode1 ?: ""}",
                             placeHolder = "Enter Amount",
                             focusRequester = amountFocusRequester,
@@ -347,20 +315,20 @@ fun ReceiptsView(
                             onAction = {
                                 descFocusRequester.requestFocus()
                             }) { amount ->
-                            amountFirstState = Utils.getDoubleValue(
-                                amount,
-                                amountFirstState
+                            viewModel.updateReceipt(
+                                receipt.copy(
+                                    receiptAmountFirst = amount.toDoubleOrNull() ?: receipt.receiptAmountFirst
+                                )
                             )
-                            state.selectedReceipt.receiptAmountFirst = amountFirstState.toDoubleOrNull() ?: 0.0
                         }
                     }
 
-                    if (currencyIndexState != 2) {
+                    if (viewModel.currencyIndexState.intValue != 2) {
                         UITextField(modifier = Modifier.padding(
                             horizontal = 10.dp,
                             vertical = 5.dp
                         ),
-                            defaultValue = amountSecondsState,
+                            defaultValue = receipt.receiptAmountSecond.toString(),
                             label = "Amount ${SettingsModel.currentCurrency?.currencyCode2 ?: ""}",
                             placeHolder = "Enter Amount",
                             focusRequester = amountFocusRequester,
@@ -368,11 +336,11 @@ fun ReceiptsView(
                             onAction = {
                                 descFocusRequester.requestFocus()
                             }) { amount ->
-                            amountSecondsState = Utils.getDoubleValue(
-                                amount,
-                                amountSecondsState
+                            viewModel.updateReceipt(
+                                receipt.copy(
+                                    receiptAmountSecond = amount.toDoubleOrNull() ?: receipt.receiptAmountSecond
+                                )
                             )
-                            state.selectedReceipt.receiptAmountSecond = amountSecondsState.toDoubleOrNull() ?: 0.0
                         }
                     }
 
@@ -380,30 +348,36 @@ fun ReceiptsView(
                         horizontal = 10.dp,
                         vertical = 5.dp
                     ),
-                        defaultValue = descriptionState,
+                        defaultValue = receipt.receiptDesc?:"",
                         label = "Description",
                         placeHolder = "Enter Description",
                         focusRequester = descFocusRequester,
                         maxLines = 4,
                         imeAction = ImeAction.None,
                         onAction = { noteFocusRequester.requestFocus() }) { desc ->
-                        descriptionState = desc
-                        state.selectedReceipt.receiptDesc = desc
+                        viewModel.updateReceipt(
+                            receipt.copy(
+                                receiptDesc = desc.trim()
+                            )
+                        )
                     }
 
                     UITextField(modifier = Modifier.padding(
                         horizontal = 10.dp,
                         vertical = 5.dp
                     ),
-                        defaultValue = noteState,
+                        defaultValue = receipt.receiptNote?:"",
                         label = "Note",
                         placeHolder = "Enter Note",
                         maxLines = 4,
                         focusRequester = noteFocusRequester,
                         imeAction = ImeAction.None,
                         onAction = { keyboardController?.hide() }) { note ->
-                        noteState = note
-                        state.selectedReceipt.receiptNote = note
+                        viewModel.updateReceipt(
+                            receipt.copy(
+                                receiptNote = note.trim()
+                            )
+                        )
                     }
 
                     Row(
@@ -423,10 +397,7 @@ fun ReceiptsView(
                             icon = R.drawable.save,
                             text = "Save"
                         ) {
-                            viewModel.saveReceipt(
-                                context,
-                                state.selectedReceipt
-                            )
+                            viewModel.save(context)
                         }
 
                         UIImageButton(
@@ -436,7 +407,7 @@ fun ReceiptsView(
                             icon = R.drawable.delete,
                             text = "Delete"
                         ) {
-                            viewModel.deleteSelectedReceipt()
+                            viewModel.delete()
                         }
 
                         UIImageButton(
@@ -458,14 +429,14 @@ fun ReceiptsView(
                         end = 10.dp
                     ),
                     label = "Select ThirdParty",
-                    selectedId = thirdPartyState,
+                    selectedId = receipt.receiptThirdParty,
                     onLoadItems = {
                         scope.launch(Dispatchers.IO) {
                             viewModel.fetchThirdParties()
                         }
                     },
                     leadingIcon = { modifier ->
-                        if (thirdPartyState.isNotEmpty()) {
+                        if (!receipt.receiptThirdParty.isNullOrEmpty()) {
                             Icon(
                                 Icons.Default.RemoveCircleOutline,
                                 contentDescription = "remove ThirdParty",
@@ -475,14 +446,20 @@ fun ReceiptsView(
                         }
                     },
                     onLeadingIconClick = {
-                        thirdPartyState = ""
-                        state.selectedReceipt.receiptThirdParty = null
-                        state.selectedReceipt.receiptThirdPartyName = null
+                        viewModel.updateReceipt(
+                            receipt.copy(
+                                receiptThirdParty = null,
+                                receiptThirdPartyName = null
+                            )
+                        )
                     }) { thirdParty ->
                     thirdParty as ThirdParty
-                    thirdPartyState = thirdParty.thirdPartyId
-                    state.selectedReceipt.receiptThirdParty = thirdPartyState
-                    state.selectedReceipt.receiptThirdPartyName = thirdParty.thirdPartyName
+                    viewModel.updateReceipt(
+                        receipt.copy(
+                            receiptThirdParty = thirdParty.thirdPartyId,
+                            receiptThirdPartyName = thirdParty.thirdPartyName
+                        )
+                    )
                 }
 
                 SearchableDropdownMenuEx(items = state.receipts.toMutableList(),
@@ -492,12 +469,12 @@ fun ReceiptsView(
                         end = 10.dp
                     ),
                     label = "Select Receipt",
-                    selectedId = state.selectedReceipt.receiptId,
+                    selectedId = receipt.receiptId,
                     onLoadItems = {
                         viewModel.fetchReceipts()
                     },
                     leadingIcon = { modifier ->
-                        if (state.selectedReceipt.receiptId.isNotEmpty()) {
+                        if (receipt.receiptId.isNotEmpty()) {
                             Icon(
                                 Icons.Default.RemoveCircleOutline,
                                 contentDescription = "remove Receipt",
@@ -507,27 +484,13 @@ fun ReceiptsView(
                         }
                     },
                     onLeadingIconClick = {
-                        clear()
+                        viewModel.resetState()
                     }) { receipt ->
                     receipt as Receipt
                     receipt.receiptCurrencyCode = viewModel.getCurrencyCode(receipt.receiptCurrency)
+                    viewModel.currencyIndexState.intValue = receipt.getSelectedCurrencyIndex()
                     viewModel.currentReceipt = receipt.copy()
-                    state.selectedReceipt = receipt.copy()
-                    thirdPartyState = receipt.receiptThirdParty ?: ""
-                    typeState = receipt.receiptType ?: ""
-                    currencyState = receipt.receiptCurrency ?: ""
-                    currencyIndexState = receipt.getSelectedCurrencyIndex()
-                    amountState = receipt.receiptAmount.toString()
-                    amountFirstState = POSUtils.formatDouble(
-                        receipt.receiptAmountFirst,
-                        SettingsModel.currentCurrency?.currencyName1Dec ?: 2
-                    )
-                    amountSecondsState = POSUtils.formatDouble(
-                        receipt.receiptAmountSecond,
-                        SettingsModel.currentCurrency?.currencyName2Dec ?: 2
-                    )
-                    descriptionState = receipt.receiptDesc ?: ""
-                    noteState = receipt.receiptNote ?: ""
+                    viewModel.updateReceipt(receipt.copy())
                 }
             }
         }
