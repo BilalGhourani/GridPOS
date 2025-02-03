@@ -8,6 +8,7 @@ import com.grid.pos.data.item.Item
 import com.grid.pos.data.item.ItemRepository
 import com.grid.pos.model.Event
 import com.grid.pos.ui.common.BaseViewModel
+import com.grid.pos.utils.DateHelper
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -32,6 +33,22 @@ class AdjustmentViewModel @Inject constructor(
             openConnectionIfNeeded()
             fetchItems()
         }
+        updateState(
+            state.value.copy(
+                fromDateString = DateHelper.getDateInFormat(
+                    DateHelper.editDate(Date(), 0, 0, 0),
+                    dateFormat
+                ),
+                toDateString = DateHelper.getDateInFormat(
+                    DateHelper.editDate(Date(), 23, 59, 59),
+                    dateFormat
+                )
+            )
+        )
+    }
+
+    fun updateState(newState: AdjustmentState) {
+        state.value = newState
     }
 
     fun fetchItems() {
@@ -184,7 +201,17 @@ class AdjustmentViewModel @Inject constructor(
             selectedItem = null,
             warning = null,
             isLoading = false,
-            clear = false
+            clear = false,
+            barcodeSearchedKey = "",
+            itemCostString = "",
+            fromDateString = DateHelper.getDateInFormat(
+                DateHelper.editDate(Date(), 0, 0, 0),
+                dateFormat
+            ),
+            toDateString = DateHelper.getDateInFormat(
+                DateHelper.editDate(Date(), 23, 59, 59),
+                dateFormat
+            )
         )
     }
 

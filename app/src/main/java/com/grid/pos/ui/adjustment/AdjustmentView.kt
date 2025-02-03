@@ -55,6 +55,7 @@ import com.grid.pos.data.item.Item
 import com.grid.pos.interfaces.OnBarcodeResult
 import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
+import com.grid.pos.model.ToastModel
 import com.grid.pos.ui.common.EditableDateInputField
 import com.grid.pos.ui.common.SearchableDropdownMenuEx
 import com.grid.pos.ui.common.UIImageButton
@@ -79,32 +80,9 @@ fun AdjustmentView(
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     val keyboardController = LocalSoftwareKeyboardController.current
-
-
-    var fromDateState by remember {
-        mutableStateOf(
-            DateHelper.getDateInFormat(
-                DateHelper.editDate(Date(), 0, 0, 0),
-                viewModel.dateFormat
-            )
-        )
-    }
-    var toDateState by remember {
-        mutableStateOf(
-            DateHelper.getDateInFormat(
-                DateHelper.editDate(Date(), 23, 59, 59),
-                viewModel.dateFormat
-            )
-        )
-    }
-
-    var barcodeSearchState by remember { mutableStateOf("") }
-    var itemState by remember { mutableStateOf("") }
-    var itemCostState by remember { mutableStateOf("") }
     var isPopupVisible by remember { mutableStateOf(false) }
     var collapseItemListState by remember { mutableStateOf(false) }
 
-    val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
 
@@ -112,34 +90,22 @@ fun AdjustmentView(
         state.warning
     ) {
         state.warning?.value?.let { message ->
-            scope.launch {
-                val snackBarResult = snackbarHostState.showSnackbar(
+            sharedViewModel.showToastMessage(
+                ToastModel(
                     message = message,
-                    duration = SnackbarDuration.Short,
-                    actionLabel = state.actionLabel
-                )
-                when (snackBarResult) {
-                    SnackbarResult.Dismissed -> {}
-                    SnackbarResult.ActionPerformed -> when (state.actionLabel) {
-                        "Settings" -> sharedViewModel.openAppStorageSettings()
+                    actionButton = state.actionLabel,
+                    onActionClick = {
+                        when (state.actionLabel) {
+                            "Settings" -> sharedViewModel.openAppStorageSettings()
+                        }
                     }
-                }
-            }
+                )
+            )
         }
     }
 
     LaunchedEffect(state.clear) {
         if (state.clear) {
-            itemState = ""
-            itemCostState = ""
-            fromDateState = DateHelper.getDateInFormat(
-                DateHelper.editDate(Date(), 0, 0, 0),
-                viewModel.dateFormat
-            )
-            toDateState = DateHelper.getDateInFormat(
-                DateHelper.editDate(Date(), 23, 59, 59),
-                viewModel.dateFormat
-            )
             isPopupVisible = false
             viewModel.resetState()
             keyboardController?.hide()
@@ -188,9 +154,6 @@ fun AdjustmentView(
 
     GridPOSTheme {
         Scaffold(containerColor = SettingsModel.backgroundColor,
-            snackbarHost = {
-                SnackbarHost(hostState = snackbarHostState)
-            },
             topBar = {
                 Surface(
                     shadowElevation = 3.dp,
@@ -263,20 +226,25 @@ fun AdjustmentView(
                             horizontal = 10.dp,
                             vertical = 5.dp
                         ),
-                        defaultValue = itemCostState,
+                        defaultValue = state.itemCostString,
                         label = "Item Cost",
                         placeHolder = "Enter Cost",
                         keyboardType = KeyboardType.Decimal
                     ) { cost ->
-                        itemCostState = Utils.getDoubleValue(
+                        val costStr = Utils.getDoubleValue(
                             cost,
-                            itemCostState
+                            state.itemCostString
+                        )
+                        viewModel.updateState(
+                            state.copy(
+                                itemCostString = costStr
+                            )
                         )
                     }
 
                     EditableDateInputField(
                         modifier = Modifier.padding(10.dp),
-                        date = fromDateState,
+                        date = state.fromDateString,
                         dateTimeFormat = viewModel.dateFormat,
                         label = "From"
                     ) { dateStr ->
@@ -289,17 +257,25 @@ fun AdjustmentView(
                                 )
                             )
                         } else {
-                            fromDateState = dateStr
+                            viewModel.updateState(
+                                state.copy(
+                                    fromDateString = dateStr
+                                )
+                            )
                         }
                     }
 
                     EditableDateInputField(
                         modifier = Modifier.padding(10.dp),
-                        date = toDateState,
+                        date = state.toDateString,
                         dateTimeFormat = viewModel.dateFormat,
                         label = "To"
                     ) { dateStr ->
-                        toDateState = dateStr
+                        viewModel.updateState(
+                            state.copy(
+                                toDateString = dateStr
+                            )
+                        )
                     }
 
                     UIImageButton(
@@ -316,11 +292,13 @@ fun AdjustmentView(
                             viewModel.showError("select an Item at first!")
                             return@UIImageButton
                         }
-                        val from = DateHelper.getDateFromString(fromDateState, viewModel.dateFormat)
-                        val to = DateHelper.getDateFromString(toDateState, viewModel.dateFormat)
+                        val from =
+                            DateHelper.getDateFromString(state.fromDateString, viewModel.dateFormat)
+                        val to =
+                            DateHelper.getDateFromString(state.toDateString, viewModel.dateFormat)
                         viewModel.updateItemCost(
                             state.selectedItem!!,
-                            itemCostState,
+                            state.itemCostString,
                             from,
                             to
                         )
@@ -334,10 +312,10 @@ fun AdjustmentView(
                         end = 10.dp
                     ),
                     label = "Select Item",
-                    selectedId = itemState,
+                    selectedId = state.selectedItem?.itemId,
                     onLoadItems = { viewModel.fetchItems() },
                     leadingIcon = { mod ->
-                        if (itemState.isNotEmpty()) {
+                        if (state.selectedItem?.itemId?.isNotEmpty() == true) {
                             Icon(
                                 Icons.Default.RemoveCircleOutline,
                                 contentDescription = "remove item",
@@ -347,11 +325,14 @@ fun AdjustmentView(
                         }
                     },
                     onLeadingIconClick = {
-                        itemState = ""
-                        state.selectedItem = null
+                        viewModel.updateState(
+                            state.copy(
+                                selectedItem = null
+                            )
+                        )
                     },
                     collapseOnInit = collapseItemListState,
-                    searchEnteredText = barcodeSearchState,
+                    searchEnteredText = state.barcodeSearchedKey,
                     searchLeadingIcon = {
                         IconButton(onClick = {
                             collapseItemListState = false
@@ -372,10 +353,17 @@ fun AdjustmentView(
                                                     withContext(Dispatchers.Main) {
                                                         if (item != null) {
                                                             collapseItemListState = true
-                                                            itemState = item.itemId
-                                                            state.selectedItem = item
+                                                            viewModel.updateState(
+                                                                state.copy(
+                                                                    selectedItem = item
+                                                                )
+                                                            )
                                                         } else {
-                                                            barcodeSearchState = resp
+                                                            viewModel.updateState(
+                                                                state.copy(
+                                                                    barcodeSearchedKey = resp
+                                                                )
+                                                            )
                                                         }
                                                     }
                                                 }
@@ -398,8 +386,11 @@ fun AdjustmentView(
                         }
                     }) { item ->
                     item as Item
-                    itemState = item.itemId
-                    state.selectedItem = item
+                    viewModel.updateState(
+                        state.copy(
+                            selectedItem = item
+                        )
+                    )
                 }
             }
         }
