@@ -37,6 +37,10 @@ class ReportsListViewModel @Inject constructor() : ViewModel() {
         }
     }
 
+    fun updateState(newState: ReportsListState) {
+        state.value = newState
+    }
+
     fun showError(message: String) {
         state.value = state.value.copy(
             warning = Event(message),

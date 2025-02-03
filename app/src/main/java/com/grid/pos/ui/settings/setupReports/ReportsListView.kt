@@ -35,9 +35,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -49,7 +46,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -61,16 +57,15 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.grid.pos.SharedViewModel
 import com.grid.pos.App
-import com.grid.pos.model.FileModel
+import com.grid.pos.SharedViewModel
 import com.grid.pos.model.PopupModel
 import com.grid.pos.model.ReportTypeModel
 import com.grid.pos.model.SettingsModel
+import com.grid.pos.model.ToastModel
 import com.grid.pos.ui.common.SearchableDropdownMenuEx
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.utils.FileUtils
-import kotlinx.coroutines.launch
 import java.io.File
 
 @OptIn(
@@ -86,13 +81,9 @@ fun ReportsListView(
     val state: ReportsListState by viewModel.state.collectAsState(
         ReportsListState()
     )
-    val snackbarHostState = remember { SnackbarHostState() }
-    val scope = rememberCoroutineScope()
-
-    var deletePopupState by remember { mutableStateOf(false) }
-    val fileModelState = remember { mutableStateOf(FileModel()) }
 
     val context = LocalContext.current
+    var deletePopupState by remember { mutableStateOf(false) }
     var isOptionPopupExpanded by remember { mutableStateOf(false) }
     var previewBottomSheetState by remember { mutableStateOf(false) }
     val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -111,7 +102,7 @@ fun ReportsListView(
                     deletePopupState = false
                     viewModel.deleteFile(
                         context,
-                        fileModelState.value
+                        state.fileModel
                     )
                 }
                 dialogText = "Are you sure you want to delete this file?"
@@ -126,12 +117,9 @@ fun ReportsListView(
         state.isDone
     ) {
         state.warning?.value?.let { message ->
-            scope.launch {
-                snackbarHostState.showSnackbar(
-                    message = message,
-                    duration = SnackbarDuration.Short,
-                )
-            }
+            sharedViewModel.showToastMessage(
+                ToastModel(message = message)
+            )
         }
 
     }
@@ -153,9 +141,6 @@ fun ReportsListView(
 
     GridPOSTheme {
         Scaffold(containerColor = SettingsModel.backgroundColor,
-            snackbarHost = {
-                SnackbarHost(hostState = snackbarHostState)
-            },
             topBar = {
                 Surface(
                     shadowElevation = 3.dp,
@@ -234,7 +219,11 @@ fun ReportsListView(
                                         .padding(horizontal = 10.dp),
                                         fileModel = fileModel,
                                         onClick = {
-                                            fileModelState.value = fileModel
+                                            viewModel.updateState(
+                                                state.copy(
+                                                    fileModel = fileModel
+                                                )
+                                            )
                                             isOptionPopupExpanded = !isOptionPopupExpanded
                                         })
 
@@ -319,7 +308,7 @@ fun ReportsListView(
                             .clickable {
                                 isOptionPopupExpanded = false
                                 state.isLoading = true
-                                val file = fileModelState.value.getFile(
+                                val file = state.fileModel.getFile(
                                     File(
                                         App.getInstance().filesDir,
                                         "Reports"
@@ -327,9 +316,9 @@ fun ReportsListView(
                                 )
                                 val savedPath = FileUtils.saveToExternalStorage(
                                     context = context,
-                                    parent = "invoice reports/${fileModelState.value.getParents()}",
+                                    parent = "invoice reports/${state.fileModel.getParents()}",
                                     sourceFilePath = Uri.fromFile(file),
-                                    destName = fileModelState.value.fileName,
+                                    destName = state.fileModel.fileName,
                                     type = "html"
                                 )
                                 state.isLoading = false
@@ -411,7 +400,7 @@ fun ReportsListView(
                                 App.getInstance().filesDir,
                                 "Reports"
                             )
-                            val file = fileModelState.value.getFile(rootFile)
+                            val file = state.fileModel.getFile(rootFile)
                             webViewClient = WebViewClient()
                             loadDataWithBaseURL(
                                 null,

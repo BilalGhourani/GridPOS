@@ -17,22 +17,18 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -40,16 +36,16 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.grid.pos.SharedViewModel
 import com.grid.pos.R
+import com.grid.pos.SharedViewModel
 import com.grid.pos.interfaces.OnGalleryResult
-import com.grid.pos.model.Country
 import com.grid.pos.model.Event
-import com.grid.pos.model.Language
 import com.grid.pos.model.ReportCountry
 import com.grid.pos.model.ReportLanguage
 import com.grid.pos.model.SettingsModel
+import com.grid.pos.model.ToastModel
 import com.grid.pos.ui.common.SearchableDropdownMenuEx
 import com.grid.pos.ui.common.UIImageButton
 import com.grid.pos.ui.theme.GridPOSTheme
@@ -63,18 +59,15 @@ import kotlinx.coroutines.withContext
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SetupReportView(
-        modifier: Modifier = Modifier,
-        navController: NavController? = null,
-        sharedViewModel: SharedViewModel,
+    modifier: Modifier = Modifier,
+    navController: NavController? = null,
+    sharedViewModel: SharedViewModel,
+    viewModel: SetupReportViewModel = hiltViewModel()
 ) {
-    val context = LocalContext.current
-    var isLoading by remember { mutableStateOf(false) }
-    var warning by remember { mutableStateOf(Event("")) }
-    var action by remember { mutableStateOf("") }
-    val countries = remember { mutableStateListOf<ReportCountry>() }
+    val state: SetupReportState by viewModel.state.collectAsState(SetupReportState())
 
-    var countryState by remember { mutableStateOf(Country.DEFAULT.value) }
-    var languageState by remember { mutableStateOf(Language.DEFAULT) }
+    val context = LocalContext.current
+
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
@@ -83,55 +76,63 @@ fun SetupReportView(
             object : OnGalleryResult {
                 override fun onGalleryResult(uris: List<Uri>) {
                     if (uris.isNotEmpty()) {
-                        isLoading = true
+                        sharedViewModel.showLoading(true)
                         CoroutineScope(Dispatchers.IO).launch {
                             FileUtils.saveToInternalStorage(
                                 context,
-                                "Reports/${countryState}/${languageState.value}",
+                                "Reports/${state.country}/${state.language.value}",
                                 uris[0],
                                 "$reportType.html"
                             )
                             withContext(Dispatchers.Main) {
-                                isLoading = false
-                                warning = Event("$reportType.html has been added successfully")
-                                action = ""
+                                sharedViewModel.showLoading(false)
+                                viewModel.updateState(
+                                    state.copy(
+                                        warning = Event("$reportType.html has been added successfully"),
+                                        actionLabel = null
+                                    )
+                                )
                                 navController?.navigateUp()
                             }
                         }
                     } else {
                         CoroutineScope(Dispatchers.Main).launch {
-                            isLoading = false
-                            warning = Event("Failed to add $reportType")
-                            action = ""
+                            sharedViewModel.showLoading(false)
+                            viewModel.updateState(
+                                state.copy(
+                                    warning = Event("Failed to add $reportType"),
+                                    actionLabel = null
+                                )
+                            )
                         }
                     }
                 }
             },
             onPermissionDenied = {
-                warning = Event("Permission Denied")
-                action = "Settings"
+                viewModel.updateState(
+                    state.copy(
+                        warning = Event("Permission Denied"),
+                        actionLabel = "Settings"
+                    )
+                )
             })
     }
 
-    LaunchedEffect(warning) {
-        if (warning.value.isNotEmpty()) {
-            scope.launch {
-                val snackBarResult = snackbarHostState.showSnackbar(
-                    message = warning.value,
-                    duration = SnackbarDuration.Short,
-                    actionLabel = action
-                )
-                when (snackBarResult) {
-                    SnackbarResult.Dismissed -> {}
-                    SnackbarResult.ActionPerformed -> when (action) {
+    LaunchedEffect(state.warning) {
+        state.warning?.value?.let { msg ->
+            sharedViewModel.showToastMessage(ToastModel(
+                message = msg,
+                actionButton = state.actionLabel,
+                onActionClick = {
+                    when (state.actionLabel) {
                         "Settings" -> sharedViewModel.openAppStorageSettings()
                     }
                 }
-            }
+            ))
         }
     }
-    LaunchedEffect(isLoading) {
-        sharedViewModel.showLoading(isLoading)
+    LaunchedEffect(state.isLoading) {
+        sharedViewModel.showLoading(state.isLoading)
     }
     fun handleBack() {
         navController?.navigateUp()
@@ -204,14 +205,18 @@ fun SetupReportView(
                         end = 10.dp
                     ),
                     placeholder = "Report Language",
-                    label = languageState.value.ifEmpty { "Select Language" },
-                    selectedId = languageState.code,
+                    label = state.language.value.ifEmpty { "Select Language" },
+                    selectedId = state.language.code,
                     maxHeight = 290.dp
                 ) { reportLan ->
-                    languageState = (reportLan as ReportLanguage).language
+                    viewModel.updateState(
+                        state.copy(
+                            language = (reportLan as ReportLanguage).language
+                        )
+                    )
                 }
                 SearchableDropdownMenuEx(
-                    items = countries.toMutableList(),
+                    items = state.countries.toMutableList(),
                     modifier = Modifier.padding(
                         top = 15.dp,
                         start = 10.dp,
@@ -219,15 +224,25 @@ fun SetupReportView(
                     ),
                     onLoadItems = {
                         sharedViewModel.fetchCountries { list ->
-                            countries.addAll(list)
+                            viewModel.updateState(
+                                state.copy(
+                                    countries = list
+                                )
+                            )
                         }
                     },
                     placeholder = "Report Country",
-                    label = countryState.ifEmpty { "Select Language" },
-                    selectedId = countryState,
+                    label = state.country.ifEmpty { "Select Language" },
+                    selectedId = state.country,
                     maxHeight = 290.dp
                 ) { reportCountry ->
-                    countryState = (reportCountry as ReportCountry).value
+                    sharedViewModel.fetchCountries { list ->
+                        viewModel.updateState(
+                            state.copy(
+                                country = (reportCountry as ReportCountry).value
+                            )
+                        )
+                    }
                 }
             }
         }
