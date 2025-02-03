@@ -113,6 +113,14 @@ data class Receipt(
         var receiptAmount: Double = 0.0,
 
         /**
+         * Receipt Amount string
+         * only for ui
+         * */
+        @Ignore
+        @get:Exclude
+        var receiptAmountStr: String? = null,
+
+        /**
          * Receipt Amount first
          * */
         @ColumnInfo(name = "rec_amtf")
@@ -121,12 +129,28 @@ data class Receipt(
         var receiptAmountFirst: Double = 0.0,
 
         /**
+         * Receipt Amount first string
+         * only for ui
+         * */
+        @Ignore
+        @get:Exclude
+        var receiptAmountFirstStr: String? = null,
+
+        /**
          * Receipt Amount second
          * */
         @ColumnInfo(name = "rec_amts")
         @set:PropertyName("rec_amts")
         @get:PropertyName("rec_amts")
         var receiptAmountSecond: Double = 0.0,
+
+        /**
+         * Receipt Amount second string
+         * only for ui
+         * */
+        @Ignore
+        @get:Exclude
+        var receiptAmountSecondStr: String? = null,
 
         /**
          * Receipt Description
@@ -287,29 +311,5 @@ data class Receipt(
             return receiptTimeStamp!!
         }
         return Date(receiptDateTime)
-    }
-
-    @Exclude
-    fun getFormattedAmount():String{
-        return POSUtils.formatDouble(
-            receiptAmount,
-            SettingsModel.currentCurrency?.currencyName1Dec ?: 2
-        )
-    }
-
-    @Exclude
-    fun getFormattedAmountFirst():String{
-        return POSUtils.formatDouble(
-            receiptAmountFirst,
-            SettingsModel.currentCurrency?.currencyName1Dec ?: 2
-        )
-    }
-
-    @Exclude
-    fun getFormattedAmountSecond():String{
-        return POSUtils.formatDouble(
-            receiptAmountSecond,
-            SettingsModel.currentCurrency?.currencyName2Dec ?: 2
-        )
     }
 }

@@ -58,7 +58,9 @@ import com.grid.pos.model.ToastModel
 import com.grid.pos.ui.common.SearchableDropdownMenuEx
 import com.grid.pos.ui.common.UIImageButton
 import com.grid.pos.ui.common.UITextField
+import com.grid.pos.ui.pos.POSUtils
 import com.grid.pos.ui.theme.GridPOSTheme
+import com.grid.pos.utils.Utils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -271,33 +273,51 @@ fun ReceiptsView(
                                 receiptCurrencyCode = currModel.currencyCode
                             )
                         )
-                        viewModel.currencyIndexState.intValue = viewModel.receiptState.value.getSelectedCurrencyIndex()
+                        viewModel.currencyIndexState.intValue =
+                            viewModel.receiptState.value.getSelectedCurrencyIndex()
                     }
 
                     UITextField(modifier = Modifier.padding(
                         horizontal = 10.dp,
                         vertical = 5.dp
                     ),
-                        defaultValue = receipt.getFormattedAmount(),
+                        defaultValue = receipt.receiptAmountStr ?: "",
                         label = "Amount",
                         placeHolder = "Enter Amount",
                         focusRequester = amountFocusRequester,
                         onAction = {
                             descFocusRequester.requestFocus()
                         }) { amount ->
-                        val receiptAmount = amount.toDoubleOrNull() ?: receipt.receiptAmount
+                        val amountStr = Utils.getDoubleValue(
+                            amount,
+                            receipt.receiptAmountStr ?: ""
+                        )
+                        val receiptAmount = amountStr.toDoubleOrNull() ?: 0.0
                         var amountFirst = receipt.receiptAmountFirst
                         var amountSecond = receipt.receiptAmountSecond
                         if (viewModel.currencyIndexState.intValue == 1) {
-                            amountSecond = receiptAmount.times(SettingsModel.currentCurrency?.currencyRate ?: 1.0)
+                            amountSecond = receiptAmount.times(
+                                SettingsModel.currentCurrency?.currencyRate ?: 1.0
+                            )
                         } else if (viewModel.currencyIndexState.intValue == 2) {
-                            amountFirst = receiptAmount.div(SettingsModel.currentCurrency?.currencyRate ?: 1.0)
+                            amountFirst = receiptAmount.div(
+                                SettingsModel.currentCurrency?.currencyRate ?: 1.0
+                            )
                         }
                         viewModel.updateReceipt(
                             receipt.copy(
                                 receiptAmount = receiptAmount,
+                                receiptAmountStr = amountStr,
                                 receiptAmountFirst = amountFirst,
-                                receiptAmountSecond = amountSecond
+                                receiptAmountFirstStr = POSUtils.formatDouble(
+                                    amountFirst,
+                                    SettingsModel.currentCurrency?.currencyName1Dec ?: 2
+                                ),
+                                receiptAmountSecond = amountSecond,
+                                receiptAmountSecondStr = POSUtils.formatDouble(
+                                    amountSecond,
+                                    SettingsModel.currentCurrency?.currencyName2Dec ?: 2
+                                )
                             )
                         )
                     }
@@ -307,7 +327,7 @@ fun ReceiptsView(
                             horizontal = 10.dp,
                             vertical = 5.dp
                         ),
-                            defaultValue = receipt.getFormattedAmountFirst(),
+                            defaultValue = receipt.receiptAmountFirstStr ?: "",
                             label = "Amount ${SettingsModel.currentCurrency?.currencyCode1 ?: ""}",
                             placeHolder = "Enter Amount",
                             focusRequester = amountFocusRequester,
@@ -315,9 +335,14 @@ fun ReceiptsView(
                             onAction = {
                                 descFocusRequester.requestFocus()
                             }) { amount ->
+                            val amountFirst = amount.toDoubleOrNull() ?: receipt.receiptAmountFirst
                             viewModel.updateReceipt(
                                 receipt.copy(
-                                    receiptAmountFirst = amount.toDoubleOrNull() ?: receipt.receiptAmountFirst
+                                    receiptAmountFirst = amountFirst,
+                                    receiptAmountFirstStr = Utils.getDoubleValue(
+                                        amount,
+                                        receipt.receiptAmountFirstStr ?: ""
+                                    )
                                 )
                             )
                         }
@@ -328,7 +353,7 @@ fun ReceiptsView(
                             horizontal = 10.dp,
                             vertical = 5.dp
                         ),
-                            defaultValue = receipt.getFormattedAmountSecond(),
+                            defaultValue = receipt.receiptAmountSecondStr ?: "",
                             label = "Amount ${SettingsModel.currentCurrency?.currencyCode2 ?: ""}",
                             placeHolder = "Enter Amount",
                             focusRequester = amountFocusRequester,
@@ -336,9 +361,15 @@ fun ReceiptsView(
                             onAction = {
                                 descFocusRequester.requestFocus()
                             }) { amount ->
+                            val amountSecond =
+                                amount.toDoubleOrNull() ?: receipt.receiptAmountSecond
                             viewModel.updateReceipt(
                                 receipt.copy(
-                                    receiptAmountSecond = amount.toDoubleOrNull() ?: receipt.receiptAmountSecond
+                                    receiptAmountSecond = amountSecond,
+                                    receiptAmountSecondStr = Utils.getDoubleValue(
+                                        amount,
+                                        receipt.receiptAmountSecondStr ?: ""
+                                    )
                                 )
                             )
                         }
@@ -348,7 +379,7 @@ fun ReceiptsView(
                         horizontal = 10.dp,
                         vertical = 5.dp
                     ),
-                        defaultValue = receipt.receiptDesc?:"",
+                        defaultValue = receipt.receiptDesc ?: "",
                         label = "Description",
                         placeHolder = "Enter Description",
                         focusRequester = descFocusRequester,
@@ -366,7 +397,7 @@ fun ReceiptsView(
                         horizontal = 10.dp,
                         vertical = 5.dp
                     ),
-                        defaultValue = receipt.receiptNote?:"",
+                        defaultValue = receipt.receiptNote ?: "",
                         label = "Note",
                         placeHolder = "Enter Note",
                         maxLines = 4,
@@ -487,6 +518,18 @@ fun ReceiptsView(
                         viewModel.resetState()
                     }) { receipt ->
                     receipt as Receipt
+                    receipt.receiptAmountStr = POSUtils.formatDouble(
+                        receipt.receiptAmount,
+                        SettingsModel.currentCurrency?.currencyName1Dec ?: 2
+                    )
+                    receipt.receiptAmountFirstStr = POSUtils.formatDouble(
+                        receipt.receiptAmountFirst,
+                        SettingsModel.currentCurrency?.currencyName1Dec ?: 2
+                    )
+                    receipt.receiptAmountSecondStr = POSUtils.formatDouble(
+                        receipt.receiptAmountSecond,
+                        SettingsModel.currentCurrency?.currencyName2Dec ?: 2
+                    )
                     receipt.receiptCurrencyCode = viewModel.getCurrencyCode(receipt.receiptCurrency)
                     viewModel.currencyIndexState.intValue = receipt.getSelectedCurrencyIndex()
                     viewModel.currentReceipt = receipt.copy()

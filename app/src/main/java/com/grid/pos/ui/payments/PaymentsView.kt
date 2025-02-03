@@ -57,7 +57,9 @@ import com.grid.pos.model.ToastModel
 import com.grid.pos.ui.common.SearchableDropdownMenuEx
 import com.grid.pos.ui.common.UIImageButton
 import com.grid.pos.ui.common.UITextField
+import com.grid.pos.ui.pos.POSUtils
 import com.grid.pos.ui.theme.GridPOSTheme
+import com.grid.pos.utils.Utils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -266,14 +268,15 @@ fun PaymentsView(
                                 paymentCurrencyCode = currModel.currencyCode
                             )
                         )
-                        viewModel.currencyIndexState.intValue = viewModel.paymentState.value.getSelectedCurrencyIndex()
+                        viewModel.currencyIndexState.intValue =
+                            viewModel.paymentState.value.getSelectedCurrencyIndex()
                     }
 
                     UITextField(modifier = Modifier.padding(
                         horizontal = 10.dp,
                         vertical = 5.dp
                     ),
-                        defaultValue = payment.getFormattedAmount(),
+                        defaultValue = payment.paymentAmountStr ?: "",
                         label = "Amount",
                         placeHolder = "Enter Amount",
                         focusRequester = amountFocusRequester,
@@ -281,7 +284,11 @@ fun PaymentsView(
                         onAction = {
                             descFocusRequester.requestFocus()
                         }) { amount ->
-                        val paymentAmount = amount.toDoubleOrNull() ?: payment.paymentAmount
+                        val amountStr = Utils.getDoubleValue(
+                            amount,
+                            payment.paymentAmountStr ?: ""
+                        )
+                        val paymentAmount = amountStr.toDoubleOrNull() ?: 0.0
                         var amountFirst = payment.paymentAmountFirst
                         var amountSecond = payment.paymentAmountSecond
                         if (viewModel.currencyIndexState.intValue == 1) {
@@ -296,8 +303,17 @@ fun PaymentsView(
                         viewModel.updatePayment(
                             payment.copy(
                                 paymentAmount = paymentAmount,
+                                paymentAmountStr = amountStr,
                                 paymentAmountFirst = amountFirst,
-                                paymentAmountSecond = amountSecond
+                                paymentAmountFirstStr = POSUtils.formatDouble(
+                                    amountFirst,
+                                    SettingsModel.currentCurrency?.currencyName1Dec ?: 2
+                                ),
+                                paymentAmountSecond = amountSecond,
+                                paymentAmountSecondStr = POSUtils.formatDouble(
+                                    amountSecond,
+                                    SettingsModel.currentCurrency?.currencyName2Dec ?: 2
+                                )
                             )
                         )
                     }
@@ -307,7 +323,7 @@ fun PaymentsView(
                             horizontal = 10.dp,
                             vertical = 5.dp
                         ),
-                            defaultValue = payment.getFormattedAmountFirst(),
+                            defaultValue = payment.paymentAmountFirstStr ?: "",
                             label = "Amount ${SettingsModel.currentCurrency?.currencyCode1 ?: ""}",
                             placeHolder = "Enter Amount",
                             focusRequester = amountFocusRequester,
@@ -315,10 +331,14 @@ fun PaymentsView(
                             onAction = {
                                 descFocusRequester.requestFocus()
                             }) { amount ->
+                            val amountFirst = amount.toDoubleOrNull() ?: payment.paymentAmountFirst
                             viewModel.updatePayment(
                                 payment.copy(
-                                    paymentAmountFirst = amount.toDoubleOrNull()
-                                        ?: payment.paymentAmountFirst
+                                    paymentAmountFirst = amountFirst,
+                                    paymentAmountFirstStr = Utils.getDoubleValue(
+                                        amount,
+                                        payment.paymentAmountFirstStr ?: ""
+                                    )
                                 )
                             )
                         }
@@ -329,7 +349,7 @@ fun PaymentsView(
                             horizontal = 10.dp,
                             vertical = 5.dp
                         ),
-                            defaultValue = payment.getFormattedAmountSecond(),
+                            defaultValue = payment.paymentAmountSecondStr ?: "",
                             label = "Amount ${SettingsModel.currentCurrency?.currencyCode2 ?: ""}",
                             placeHolder = "Enter Amount",
                             focusRequester = amountFocusRequester,
@@ -337,10 +357,15 @@ fun PaymentsView(
                             onAction = {
                                 descFocusRequester.requestFocus()
                             }) { amount ->
+                            val amountSecond =
+                                amount.toDoubleOrNull() ?: payment.paymentAmountSecond
                             viewModel.updatePayment(
                                 payment.copy(
-                                    paymentAmountSecond = amount.toDoubleOrNull()
-                                        ?: payment.paymentAmountSecond
+                                    paymentAmountSecond = amountSecond,
+                                    paymentAmountSecondStr = Utils.getDoubleValue(
+                                        amount,
+                                        payment.paymentAmountSecondStr ?: ""
+                                    )
                                 )
                             )
                         }
@@ -487,6 +512,18 @@ fun PaymentsView(
                         viewModel.resetState()
                     }) { payment ->
                     payment as Payment
+                    payment.paymentAmountStr = POSUtils.formatDouble(
+                        payment.paymentAmount,
+                        SettingsModel.currentCurrency?.currencyName1Dec ?: 2
+                    )
+                    payment.paymentAmountFirstStr = POSUtils.formatDouble(
+                        payment.paymentAmountFirst,
+                        SettingsModel.currentCurrency?.currencyName1Dec ?: 2
+                    )
+                    payment.paymentAmountSecondStr = POSUtils.formatDouble(
+                        payment.paymentAmountSecond,
+                        SettingsModel.currentCurrency?.currencyName2Dec ?: 2
+                    )
                     payment.paymentCurrencyCode = viewModel.getCurrencyCode(payment.paymentCurrency)
                     viewModel.currencyIndexState.intValue = payment.getSelectedCurrencyIndex()
                     viewModel.currentPayment = payment.copy()
