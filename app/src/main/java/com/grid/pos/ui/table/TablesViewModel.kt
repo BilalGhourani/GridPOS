@@ -1,6 +1,7 @@
 package com.grid.pos.ui.table
 
 import androidx.lifecycle.viewModelScope
+import com.grid.pos.data.invoiceHeader.InvoiceHeader
 import com.grid.pos.data.invoiceHeader.InvoiceHeaderRepository
 import com.grid.pos.data.user.UserRepository
 import com.grid.pos.model.Event
@@ -30,12 +31,19 @@ class TablesViewModel @Inject constructor(
         }
     }
 
+    fun updateState(newState: TablesState) {
+        _tablesState.value = newState
+    }
+
     fun resetState() {
         tablesState.value = tablesState.value.copy(
+            invoiceHeader = InvoiceHeader(),
+            tableName = "",
+            clientCount = "",
+            step = 1,
             warning = null,
             isLoading = false,
-            clear = false,
-            step = 1
+            moveToPos = false
         )
     }
 
@@ -158,6 +166,30 @@ class TablesViewModel @Inject constructor(
             }
             tablesState.value.invoiceHeader.invoiceHeadTableId = finalTableId
             tablesState.value.invoiceHeader.invoiceHeadTableType = type
+        }
+    }
+
+    fun lockTableAndMoveToPos(callback: () -> Unit) {
+        if (SettingsModel.isConnectedToSqlServer()) {
+            tablesState.value = tablesState.value.copy(
+                warning = null,
+                isLoading = true
+            )
+            viewModelScope.launch(Dispatchers.IO) {
+                lockTable(tablesState.value.tableName)
+                withContext(Dispatchers.Main) {
+                    tablesState.value = tablesState.value.copy(
+                        isLoading = false
+                    )
+                    tablesState.value.invoiceHeader.invoiceHeadTaName = tablesState.value.tableName
+                    tablesState.value.invoiceHeader.invoiceHeadClientsCount = tablesState.value.clientCount.toIntOrNull() ?: 1
+                    callback.invoke()
+                }
+            }
+        } else {
+            tablesState.value.invoiceHeader.invoiceHeadTaName = tablesState.value.tableName
+            tablesState.value.invoiceHeader.invoiceHeadClientsCount = tablesState.value.clientCount.toIntOrNull() ?: 1
+            callback.invoke()
         }
     }
 }

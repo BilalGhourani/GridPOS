@@ -85,61 +85,37 @@ fun TablesView(
     val state by viewModel.tablesState.collectAsStateWithLifecycle()
 
     val keyboardController = LocalSoftwareKeyboardController.current
-
     val tableNameFocusRequester = remember { FocusRequester() }
     val clientsCountFocusRequester = remember { FocusRequester() }
 
-    var tableNameState by remember { mutableStateOf("") }
-    var clientsCountState by remember { mutableStateOf("") }
-    var stepState by remember { mutableIntStateOf(1) }
-
     var isPopupVisible by remember { mutableStateOf(false) }
-
-    val scope = rememberCoroutineScope()
 
     LaunchedEffect(key1 = Unit) {
         viewModel.fetchAllTables()
     }
 
-    fun moveToPos() {
-        state.invoiceHeader.invoiceHeadTaName = tableNameState
-        state.invoiceHeader.invoiceHeadClientsCount = clientsCountState.toIntOrNull() ?: 1
-        sharedViewModel.invoiceHeader = state.invoiceHeader
-        sharedViewModel.pendingInvHeadState = state.invoiceHeader
-        sharedViewModel.shouldLoadInvoice = true
-        sharedViewModel.isFromTable = true
-        viewModel.resetState()
-        stepState = 1
-        navController?.navigate("POSView")
-    }
-
     fun lockTableAndMoveToPos() {
-        if (SettingsModel.isConnectedToSqlServer()) {
-            sharedViewModel.showLoading(true)
-            scope.launch(Dispatchers.IO) {
-                viewModel.lockTable(tableNameState)
-                withContext(Dispatchers.Main) {
-                    sharedViewModel.showLoading(false)
-                    moveToPos()
-                }
-            }
-        } else {
-            moveToPos()
+        viewModel.lockTableAndMoveToPos {
+            sharedViewModel.invoiceHeader = state.invoiceHeader.copy()
+            sharedViewModel.pendingInvHeadState = state.invoiceHeader
+            sharedViewModel.shouldLoadInvoice = true
+            sharedViewModel.isFromTable = true
+            viewModel.resetState()
+            navController?.navigate("POSView")
         }
     }
 
     LaunchedEffect(
-        stepState,
+        state.step,
         state.moveToPos
     ) {
-        if (stepState == 1) {
+        if (state.step == 1) {
             tableNameFocusRequester.requestFocus()
         } else {
             clientsCountFocusRequester.requestFocus()
         }
         if (state.moveToPos) {
             lockTableAndMoveToPos()
-            state.moveToPos = false
         }
     }
     LaunchedEffect(state.warning) {
@@ -173,17 +149,16 @@ fun TablesView(
             })
     }
 
-    LaunchedEffect(state.step) {
-        stepState = state.step
-    }
-
     fun handleBack() {
         if (state.isLoading) {
             return
         }
-        if (stepState > 1) {
-            stepState = 1
-            state.step = 1
+        if (state.step > 1) {
+            viewModel.updateState(
+                state.copy(
+                    step = 1
+                )
+            )
         } else {
             if (SettingsModel.getUserType() == UserType.TABLE) {
                 isPopupVisible = true
@@ -237,31 +212,35 @@ fun TablesView(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 UITextField(modifier = Modifier.padding(10.dp),
-                    defaultValue = tableNameState,
+                    defaultValue = state.tableName,
                     label = "Table Number",
-                    enabled = stepState <= 1,
+                    enabled = state.step <= 1,
                     focusRequester = tableNameFocusRequester,
                     keyboardType = KeyboardType.Decimal,
                     placeHolder = "Enter Table Number",
                     onAction = {
-                        viewModel.fetchInvoiceByTable(tableNameState)
+                        viewModel.fetchInvoiceByTable(state.tableName)
                     },
                     trailingIcon = {
-                        IconButton(enabled = stepState <= 1,
+                        IconButton(enabled = state.step <= 1,
                             onClick = { }) {
                             Icon(
                                 imageVector = Icons.Filled.Search,
                                 contentDescription = "Search",
-                                tint = if (stepState <= 1) SettingsModel.buttonColor else Color.LightGray
+                                tint = if (state.step <= 1) SettingsModel.buttonColor else Color.LightGray
                             )
                         }
                     }) { tabNo ->
-                    tableNameState = tabNo
+                    viewModel.updateState(
+                        state.copy(
+                            tableName = tabNo
+                        )
+                    )
                     viewModel.filterTables(tabNo)
                 }
-                if (stepState > 1) {
+                if (state.step > 1) {
                     UITextField(modifier = Modifier.padding(10.dp),
-                        defaultValue = clientsCountState,
+                        defaultValue = state.clientCount,
                         onFocusChanged = { focusState ->
                             if (focusState.hasFocus) {
                                 keyboardController?.show()
@@ -275,9 +254,13 @@ fun TablesView(
                         onAction = {
                             keyboardController?.hide()
                         }) { clients ->
-                        clientsCountState = Utils.getIntValue(
-                            clients,
-                            clientsCountState
+                        viewModel.updateState(
+                            state.copy(
+                                clientCount = Utils.getIntValue(
+                                    clients,
+                                    state.clientCount
+                                )
+                            )
                         )
                     }
                 }
@@ -286,15 +269,15 @@ fun TablesView(
                         .wrapContentWidth()
                         .height(100.dp)
                         .padding(10.dp),
-                    icon = if (stepState <= 1) R.drawable.search else R.drawable.next,
-                    text = if (stepState <= 1) "Search for Table" else "Submit to POS",
+                    icon = if (state.step <= 1) R.drawable.search else R.drawable.next,
+                    text = if (state.step <= 1) "Search for Table" else "Submit to POS",
                     iconSize = 60.dp,
                     isVertical = false
                 ) {
-                    if (stepState <= 1) {
-                        viewModel.fetchInvoiceByTable(tableNameState)
+                    if (state.step <= 1) {
+                        viewModel.fetchInvoiceByTable(state.tableName)
                     } else {
-                        if (clientsCountState.toIntOrNull() == null) {
+                        if (state.clientCount.toIntOrNull() == null) {
                             viewModel.showError("Please enter client counts")
                             return@UIImageButton
                         }
@@ -356,7 +339,11 @@ fun TablesView(
                                             shape = RoundedCornerShape(15.dp)
                                         )
                                         .clickable {
-                                            tableNameState = tableModel.table_name
+                                            viewModel.updateState(
+                                                state.copy(
+                                                    tableName = tableModel.table_name
+                                                )
+                                            )
                                         },
                                     contentAlignment = Alignment.Center
                                 ) {
@@ -413,15 +400,6 @@ fun TablesView(
                     }
                 }
             }
-        }
-
-
-        if (state.clear) {
-            state.invoiceHeader = InvoiceHeader()
-            stepState = 1
-            tableNameState = ""
-            clientsCountState = ""
-            viewModel.resetState()
         }
     }
 }
