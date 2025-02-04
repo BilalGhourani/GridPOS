@@ -17,8 +17,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -27,8 +25,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -41,7 +37,6 @@ import androidx.navigation.NavController
 import com.grid.pos.R
 import com.grid.pos.SharedViewModel
 import com.grid.pos.interfaces.OnGalleryResult
-import com.grid.pos.model.Event
 import com.grid.pos.model.ReportCountry
 import com.grid.pos.model.ReportLanguage
 import com.grid.pos.model.SettingsModel
@@ -49,12 +44,7 @@ import com.grid.pos.model.ToastModel
 import com.grid.pos.ui.common.SearchableDropdownMenuEx
 import com.grid.pos.ui.common.UIImageButton
 import com.grid.pos.ui.theme.GridPOSTheme
-import com.grid.pos.utils.FileUtils
 import com.grid.pos.utils.Utils
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -68,53 +58,17 @@ fun SetupReportView(
 
     val context = LocalContext.current
 
-    val snackbarHostState = remember { SnackbarHostState() }
-    val scope = rememberCoroutineScope()
-
     fun addReport(reportType: String) {
         sharedViewModel.launchFilePicker("text/html",
             object : OnGalleryResult {
                 override fun onGalleryResult(uris: List<Uri>) {
-                    if (uris.isNotEmpty()) {
-                        sharedViewModel.showLoading(true)
-                        CoroutineScope(Dispatchers.IO).launch {
-                            FileUtils.saveToInternalStorage(
-                                context,
-                                "Reports/${state.country}/${state.language.value}",
-                                uris[0],
-                                "$reportType.html"
-                            )
-                            withContext(Dispatchers.Main) {
-                                sharedViewModel.showLoading(false)
-                                viewModel.updateState(
-                                    state.copy(
-                                        warning = Event("$reportType.html has been added successfully"),
-                                        actionLabel = null
-                                    )
-                                )
-                                navController?.navigateUp()
-                            }
-                        }
-                    } else {
-                        CoroutineScope(Dispatchers.Main).launch {
-                            sharedViewModel.showLoading(false)
-                            viewModel.updateState(
-                                state.copy(
-                                    warning = Event("Failed to add $reportType"),
-                                    actionLabel = null
-                                )
-                            )
-                        }
+                    viewModel.onGalleryResult(context, reportType, uris) {
+                        navController?.navigateUp()
                     }
                 }
             },
             onPermissionDenied = {
-                viewModel.updateState(
-                    state.copy(
-                        warning = Event("Permission Denied"),
-                        actionLabel = "Settings"
-                    )
-                )
+                viewModel.onPermissionDenied()
             })
     }
 
@@ -142,9 +96,6 @@ fun SetupReportView(
     }
     GridPOSTheme {
         Scaffold(containerColor = SettingsModel.backgroundColor,
-            snackbarHost = {
-                SnackbarHost(hostState = snackbarHostState)
-            },
             topBar = {
                 Surface(
                     shadowElevation = 3.dp,
