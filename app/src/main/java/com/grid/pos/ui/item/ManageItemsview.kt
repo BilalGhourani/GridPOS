@@ -34,7 +34,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -91,8 +90,7 @@ fun ManageItemsView(
     sharedViewModel: SharedViewModel,
     viewModel: ManageItemsViewModel = hiltViewModel()
 ) {
-    val state by viewModel.manageItemsState.collectAsStateWithLifecycle()
-    val item = viewModel.itemState.collectAsState().value
+    val state by viewModel.state.collectAsStateWithLifecycle()
 
     val context = LocalContext.current
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -253,12 +251,12 @@ fun ManageItemsView(
                         horizontal = 10.dp,
                         vertical = 5.dp
                     ),
-                        defaultValue = item.itemName ?: "",
+                        defaultValue = state.item.itemName ?: "",
                         label = "Name",
                         placeHolder = "Enter Name",
                         onAction = { unitPriceFocusRequester.requestFocus() }) { name ->
                         viewModel.updateItem(
-                            item.copy(
+                            state.item.copy(
                                 itemName = name.trim()
                             )
                         )
@@ -269,7 +267,7 @@ fun ManageItemsView(
                         horizontal = 10.dp,
                         vertical = 5.dp
                     ),
-                        defaultValue = item.itemUnitPrice.toString(),
+                        defaultValue = state.item.itemUnitPrice.toString(),
                         label = "Unit Price",
                         focusRequester = unitPriceFocusRequester,
                         keyboardType = KeyboardType.Decimal,
@@ -286,8 +284,8 @@ fun ManageItemsView(
                             }
                         }) { unitPrice ->
                         viewModel.updateItem(
-                            item.copy(
-                                itemUnitPrice = unitPrice.toDoubleOrNull() ?: item.itemUnitPrice
+                            state.item.copy(
+                                itemUnitPrice = unitPrice.toDoubleOrNull() ?: state.item.itemUnitPrice
                             )
                         )
                     }
@@ -298,7 +296,7 @@ fun ManageItemsView(
                             horizontal = 10.dp,
                             vertical = 5.dp
                         ),
-                            defaultValue = item.itemTax.toString(),
+                            defaultValue = state.item.itemTax.toString(),
                             label = "Tax",
                             focusRequester = taxFocusRequester,
                             keyboardType = KeyboardType.Decimal,
@@ -313,8 +311,8 @@ fun ManageItemsView(
                                 }
                             }) { tax ->
                             viewModel.updateItem(
-                                item.copy(
-                                    itemTax = tax.toDoubleOrNull() ?: item.itemTax
+                                state.item.copy(
+                                    itemTax = tax.toDoubleOrNull() ?: state.item.itemTax
                                 )
                             )
                         }
@@ -325,7 +323,7 @@ fun ManageItemsView(
                             horizontal = 10.dp,
                             vertical = 5.dp
                         ),
-                            defaultValue = item.itemTax1.toString(),
+                            defaultValue = state.item.itemTax1.toString(),
                             label = "Tax1",
                             focusRequester = tax1FocusRequester,
                             keyboardType = KeyboardType.Decimal,
@@ -338,8 +336,8 @@ fun ManageItemsView(
                                 }
                             }) { tax1 ->
                             viewModel.updateItem(
-                                item.copy(
-                                    itemTax1 = tax1.toDoubleOrNull() ?: item.itemTax1
+                                state.item.copy(
+                                    itemTax1 = tax1.toDoubleOrNull() ?: state.item.itemTax1
                                 )
                             )
                         }
@@ -350,15 +348,15 @@ fun ManageItemsView(
                             horizontal = 10.dp,
                             vertical = 5.dp
                         ),
-                            defaultValue = item.itemTax2.toString(),
+                            defaultValue = state.item.itemTax2.toString(),
                             label = "Tax2",
                             focusRequester = tax2FocusRequester,
                             keyboardType = KeyboardType.Decimal,
                             placeHolder = "Enter Tax2",
                             onAction = { barcodeFocusRequester.requestFocus() }) { tax2 ->
                             viewModel.updateItem(
-                                item.copy(
-                                    itemTax2 = tax2.toDoubleOrNull() ?: item.itemTax2
+                                state.item.copy(
+                                    itemTax2 = tax2.toDoubleOrNull() ?: state.item.itemTax2
                                 )
                             )
                         }
@@ -368,7 +366,7 @@ fun ManageItemsView(
                         horizontal = 10.dp,
                         vertical = 5.dp
                     ),
-                        defaultValue = item.itemBarcode ?: "",
+                        defaultValue = state.item.itemBarcode ?: "",
                         label = "Barcode",
                         placeHolder = "Enter Barcode",
                         focusRequester = barcodeFocusRequester,
@@ -383,22 +381,22 @@ fun ManageItemsView(
                             IconButton(onClick = {
                                 sharedViewModel.showLoading(true)
                                 scope.launch(Dispatchers.IO) {
-                                    val barcode = if (item.itemBarcode.isNullOrEmpty()) {
+                                    val barcode = if (state.item.itemBarcode.isNullOrEmpty()) {
                                         viewModel.generateBarcode()
                                     } else {
-                                        item.itemBarcode
+                                        state.item.itemBarcode
                                     }
                                     if (!barcode.isNullOrEmpty()) {
                                         withContext(Dispatchers.Main) {
                                             viewModel.updateItem(
-                                                item.copy(
+                                                state.item.copy(
                                                     itemBarcode = barcode.trim()
                                                 )
                                             )
                                         }
                                         val reportResult = viewModel.prepareItemBarcodeReport(
                                             context,
-                                            item
+                                            state.item
                                         )
 //                                        PrinterUtils.printReport(
 //                                            context,
@@ -431,7 +429,7 @@ fun ManageItemsView(
                                                 val barcode = barcodesList[0]
                                                 if (barcode is String) {
                                                     viewModel.updateItem(
-                                                        item.copy(
+                                                        state.item.copy(
                                                             itemBarcode = barcode.trim()
                                                         )
                                                     )
@@ -459,7 +457,7 @@ fun ManageItemsView(
                             }
                         }) { barcode ->
                         viewModel.updateItem(
-                            item.copy(
+                            state.item.copy(
                                 itemBarcode = barcode.trim()
                             )
                         )
@@ -470,7 +468,7 @@ fun ManageItemsView(
                         horizontal = 10.dp,
                         vertical = 5.dp
                     ),
-                        defaultValue = item.itemOpenCost.toString(),
+                        defaultValue = state.item.itemOpenCost.toString(),
                         keyboardType = KeyboardType.Decimal,
                         label = "Open cost",
                         placeHolder = "Enter Open cost",
@@ -478,8 +476,8 @@ fun ManageItemsView(
                         focusRequester = openCostFocusRequester,
                         onAction = { openQtyFocusRequester.requestFocus() }) { openCost ->
                         viewModel.updateItem(
-                            item.copy(
-                                itemOpenCost = openCost.toDoubleOrNull() ?: item.itemOpenCost
+                            state.item.copy(
+                                itemOpenCost = openCost.toDoubleOrNull() ?: state.item.itemOpenCost
                             )
                         )
                     }
@@ -489,7 +487,7 @@ fun ManageItemsView(
                         horizontal = 10.dp,
                         vertical = 5.dp
                     ),
-                        defaultValue = item.itemOpenQty.toString(),
+                        defaultValue = state.item.itemOpenQty.toString(),
                         label = "Open Qty",
                         enabled = !viewModel.shouldDisableCostAndQty(),
                         keyboardType = KeyboardType.Decimal,
@@ -497,8 +495,8 @@ fun ManageItemsView(
                         focusRequester = openQtyFocusRequester,
                         onAction = { btnColorFocusRequester.requestFocus() }) { openQty ->
                         viewModel.updateItem(
-                            item.copy(
-                                itemOpenQty = openQty.toDoubleOrNull() ?: item.itemOpenQty
+                            state.item.copy(
+                                itemOpenQty = openQty.toDoubleOrNull() ?: state.item.itemOpenQty
                             )
                         )
                     }
@@ -509,15 +507,15 @@ fun ManageItemsView(
                             horizontal = 10.dp,
                             vertical = 5.dp
                         ),
-                        defaultValue = item.itemRemQty.toString(),
+                        defaultValue = state.item.itemRemQty.toString(),
                         enabled = false,
                         label = "Remaining Qty",
                         keyboardType = KeyboardType.Decimal,
                         placeHolder = "Remaining Qty"
                     ) { remQty ->
                         viewModel.updateItem(
-                            item.copy(
-                                itemRemQty = remQty.toDoubleOrNull() ?: item.itemRemQty
+                            state.item.copy(
+                                itemRemQty = remQty.toDoubleOrNull() ?: state.item.itemRemQty
                             )
                         )
                     }
@@ -529,11 +527,11 @@ fun ManageItemsView(
                                 vertical = 5.dp
                             ),
                             label = "Select Group",
-                            selectedId = item.itemGroup
+                            selectedId = state.item.itemGroup
                         ) { group ->
                             group as ItemGroupModel
                             viewModel.updateItem(
-                                item.copy(
+                                state.item.copy(
                                     itemGroup = group.getId()
                                 )
                             )
@@ -547,11 +545,11 @@ fun ManageItemsView(
                             vertical = 5.dp
                         ),
                         label = "Select Currency",
-                        selectedId = item.itemCurrencyId
+                        selectedId = state.item.itemCurrencyId
                     ) { currModel ->
                         currModel as CurrencyModel
                         viewModel.updateItem(
-                            item.copy(
+                            state.item.copy(
                                 itemCurrencyId = currModel.getId(),
                                 itemCurrencyCode = currModel.currencyCode
                             )
@@ -564,12 +562,12 @@ fun ManageItemsView(
                             vertical = 5.dp
                         ),
                         label = "Select Family",
-                        selectedId = item.itemFaId,
+                        selectedId = state.item.itemFaId,
                         onLoadItems = {
                             viewModel.fetchFamilies()
                         },
                         leadingIcon = { modifier ->
-                            if (!item.itemFaId.isNullOrEmpty()) {
+                            if (!state.item.itemFaId.isNullOrEmpty()) {
                                 Icon(
                                     Icons.Default.RemoveCircleOutline,
                                     contentDescription = "remove family",
@@ -580,14 +578,14 @@ fun ManageItemsView(
                         },
                         onLeadingIconClick = {
                             viewModel.updateItem(
-                                item.copy(
+                                state.item.copy(
                                     itemFaId = null
                                 )
                             )
                         }) { family ->
                         family as Family
                         viewModel.updateItem(
-                            item.copy(
+                            state.item.copy(
                                 itemFaId = family.familyId
                             )
                         )
@@ -598,7 +596,7 @@ fun ManageItemsView(
                         horizontal = 10.dp,
                         vertical = 5.dp
                     ),
-                        defaultValue = item.itemBtnColor ?: "",
+                        defaultValue = state.item.itemBtnColor ?: "",
                         label = "Button color",
                         placeHolder = "Enter Button color",
                         focusRequester = btnColorFocusRequester,
@@ -616,7 +614,7 @@ fun ManageItemsView(
                             }
                         }) { btnColor ->
                         viewModel.updateItem(
-                            item.copy(
+                            state.item.copy(
                                 itemBtnColor = btnColor.trim()
                             )
                         )
@@ -627,7 +625,7 @@ fun ManageItemsView(
                         horizontal = 10.dp,
                         vertical = 5.dp
                     ),
-                        defaultValue = item.itemBtnTextColor?:"",
+                        defaultValue = state.item.itemBtnTextColor?:"",
                         label = "Button Text color",
                         placeHolder = "Enter Button Text color",
                         focusRequester = btnTextColorFocusRequester,
@@ -645,7 +643,7 @@ fun ManageItemsView(
                             }
                         }) { btnTextColor ->
                         viewModel.updateItem(
-                            item.copy(
+                            state.item.copy(
                                 itemBtnTextColor = btnTextColor.trim()
                             )
                         )
@@ -657,12 +655,12 @@ fun ManageItemsView(
                             vertical = 5.dp
                         ),
                         label = "Select Printer",
-                        selectedId = item.itemPrinter,
+                        selectedId = state.item.itemPrinter,
                         onLoadItems = {
                             viewModel.fetchPrinters()
                         },
                         leadingIcon = { modifier ->
-                            if (!item.itemPrinter.isNullOrEmpty()) {
+                            if (!state.item.itemPrinter.isNullOrEmpty()) {
                                 Icon(
                                     Icons.Default.RemoveCircleOutline,
                                     contentDescription = "remove printer",
@@ -673,14 +671,14 @@ fun ManageItemsView(
                         },
                         onLeadingIconClick = {
                             viewModel.updateItem(
-                                item.copy(
+                                state.item.copy(
                                     itemPrinter = null
                                 )
                             )
                         }) { printer ->
                         printer as PosPrinter
                         viewModel.updateItem(
-                            item.copy(
+                            state.item.copy(
                                 itemPrinter = printer.posPrinterId
                             )
                         )
@@ -690,7 +688,7 @@ fun ManageItemsView(
                         horizontal = 10.dp,
                         vertical = 5.dp
                     ),
-                        defaultValue = item.itemImage ?: "",
+                        defaultValue = state.item.itemImage ?: "",
                         label = "Image",
                         placeHolder = "Image",
                         focusRequester = imageFocusRequester,
@@ -706,15 +704,15 @@ fun ManageItemsView(
                                                     context = context,
                                                     uri = uris[0],
                                                     parent = "item",
-                                                    fileName = ((item.itemName ?: "item").trim()
+                                                    fileName = ((state.item.itemName ?: "item").trim()
                                                         .replace(
                                                             " ",
                                                             "_"
                                                         ))
                                                 ) { internalPath ->
-                                                    viewModel.oldImage = item.itemImage
+                                                    viewModel.oldImage = state.item.itemImage
                                                     viewModel.updateItem(
-                                                        item.copy(
+                                                        state.item.copy(
                                                             itemImage = internalPath
                                                         )
                                                     )
@@ -737,7 +735,7 @@ fun ManageItemsView(
                             }
                         }) { img ->
                         viewModel.updateItem(
-                            item.copy(
+                            state.item.copy(
                                 itemImage = img.trim()
                             )
                         )
@@ -748,11 +746,11 @@ fun ManageItemsView(
                             horizontal = 10.dp,
                             vertical = 5.dp
                         ),
-                        checked = item.itemPos,
+                        checked = state.item.itemPos,
                         text = "Item POS",
                     ) { isItemPOS ->
                         viewModel.updateItem(
-                            item.copy(
+                            state.item.copy(
                                 itemPos = isItemPOS
                             )
                         )
@@ -791,10 +789,10 @@ fun ManageItemsView(
                                     old
                                 )
                             }
-                            if (!item.itemImage.isNullOrEmpty()) {
+                            if (!state.item.itemImage.isNullOrEmpty()) {
                                 FileUtils.deleteFile(
                                     context,
-                                    item.itemImage!!
+                                    state.item.itemImage!!
                                 )
                             }
                             viewModel.delete()
@@ -819,10 +817,10 @@ fun ManageItemsView(
                         end = 10.dp
                     ),
                     label = "Select Item",
-                    selectedId = item.itemId,
+                    selectedId = state.item.itemId,
                     onLoadItems = { viewModel.fetchItems() },
                     leadingIcon = { modifier ->
-                        if (item.itemId.isNotEmpty()) {
+                        if (state.item.itemId.isNotEmpty()) {
                             Icon(
                                 Icons.Default.RemoveCircleOutline,
                                 contentDescription = "remove family",
@@ -908,7 +906,7 @@ fun ManageItemsView(
                         when (colorPickerType) {
                             ColorPickerType.BUTTON_COLOR -> {
                                 viewModel.updateItem(
-                                    item.copy(
+                                    state.item.copy(
                                         itemBtnColor = it.toHexCode()
                                     )
                                 )
@@ -916,7 +914,7 @@ fun ManageItemsView(
 
                             ColorPickerType.BUTTON_TEXT_COLOR -> {
                                 viewModel.updateItem(
-                                    item.copy(
+                                    state.item.copy(
                                         itemBtnTextColor = it.toHexCode()
                                     )
                                 )

@@ -1,7 +1,6 @@
 package com.grid.pos.ui.payments
 
 import android.content.Context
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.lifecycle.viewModelScope
 import com.grid.pos.data.EntityModel
 import com.grid.pos.data.currency.CurrencyRepository
@@ -23,7 +22,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -36,12 +34,8 @@ class PaymentsViewModel @Inject constructor(
     private val userRepository: UserRepository,
     private val settingsRepository: SettingsRepository
 ) : BaseViewModel() {
-    private val _managePaymentsState = MutableStateFlow(PaymentsState())
-    val managePaymentsState: MutableStateFlow<PaymentsState> = _managePaymentsState
-
-    private var _paymentState = MutableStateFlow(Payment())
-    var paymentState = _paymentState.asStateFlow()
-    var currencyIndexState = mutableIntStateOf(0)
+    private val _state = MutableStateFlow(PaymentsState())
+    val state: MutableStateFlow<PaymentsState> = _state
 
     var currentPayment: Payment = Payment()
     var reportResult = ReportResult()
@@ -68,15 +62,16 @@ class PaymentsViewModel @Inject constructor(
             settingsRepository.getTransactionTypeId(
                 if (SettingsModel.isSqlServerWebDb) "Payment Voucher" else "Payment"
             )
-        }else{
+        } else {
             SettingsModel.defaultPayment
         }
     }
 
     fun resetState() {
         currentPayment = Payment()
-        updatePayment(currentPayment.copy())
-        managePaymentsState.value = managePaymentsState.value.copy(
+        state.value = state.value.copy(
+            payment = currentPayment.copy(),
+            currencyIndex = 0,
             warning = null,
             isLoading = false,
             clear = false,
@@ -84,21 +79,24 @@ class PaymentsViewModel @Inject constructor(
         )
     }
 
-    fun updatePayment(payment: Payment) {
-        _paymentState.value = payment
+    fun updatePayment(payment: Payment, currIndex: Int? = null) {
+        state.value = state.value.copy(
+            payment = payment,
+            currencyIndex = currIndex ?: state.value.currencyIndex
+        )
     }
 
-    fun isAnyChangeDone():Boolean{
-        return paymentState.value.didChanged(currentPayment)
+    fun isAnyChangeDone(): Boolean {
+        return state.value.payment.didChanged(currentPayment)
     }
 
     fun fetchPayments() {
-        managePaymentsState.value = managePaymentsState.value.copy(
+        state.value = state.value.copy(
             warning = null,
             isLoading = true
         )
         viewModelScope.launch(Dispatchers.IO) {
-            if (managePaymentsState.value.thirdParties.isEmpty()) {
+            if (state.value.thirdParties.isEmpty()) {
                 fetchThirdParties(false)
             }
             val listOfPayments = paymentRepository.getAllPayments()
@@ -106,7 +104,7 @@ class PaymentsViewModel @Inject constructor(
                 it.paymentThirdPartyName = clientsMap[it.paymentThirdParty]?.thirdPartyName
             }
             withContext(Dispatchers.Main) {
-                managePaymentsState.value = managePaymentsState.value.copy(
+                state.value = state.value.copy(
                     payments = listOfPayments,
                     isLoading = false
                 )
@@ -118,7 +116,7 @@ class PaymentsViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             val currencies = currencyRepository.getAllCurrencyModels()
             withContext(Dispatchers.Main) {
-                managePaymentsState.value = managePaymentsState.value.copy(
+                state.value = state.value.copy(
                     currencies = currencies
                 )
             }
@@ -127,13 +125,13 @@ class PaymentsViewModel @Inject constructor(
 
     fun getCurrencyCode(currID: String?): String? {
         if (currID.isNullOrEmpty()) return null
-        return managePaymentsState.value.currencies.firstOrNull { it.currencyId == currID || it.currencyCode == currID }?.currencyCode
+        return state.value.currencies.firstOrNull { it.currencyId == currID || it.currencyCode == currID }?.currencyCode
     }
 
     suspend fun fetchThirdParties(loading: Boolean = true) {
         if (loading) {
             withContext(Dispatchers.Main) {
-                managePaymentsState.value = managePaymentsState.value.copy(
+                state.value = state.value.copy(
                     warning = null,
                     isLoading = true
                 )
@@ -148,12 +146,12 @@ class PaymentsViewModel @Inject constructor(
         )
         withContext(Dispatchers.Main) {
             if (loading) {
-                managePaymentsState.value = managePaymentsState.value.copy(
+                state.value = state.value.copy(
                     thirdParties = listOfThirdParties,
                     isLoading = false
                 )
             } else {
-                managePaymentsState.value = managePaymentsState.value.copy(
+                state.value = state.value.copy(
                     thirdParties = listOfThirdParties
                 )
             }
@@ -163,36 +161,36 @@ class PaymentsViewModel @Inject constructor(
     fun save(
         context: Context
     ) {
-        val payment = paymentState.value
+        val payment = state.value.payment
         if (payment.paymentThirdParty.isNullOrEmpty()) {
-            managePaymentsState.value = managePaymentsState.value.copy(
+            state.value = state.value.copy(
                 warning = Event("Please select a Client."),
                 isLoading = false
             )
             return
         }
         if (payment.paymentType.isNullOrEmpty()) {
-            managePaymentsState.value = managePaymentsState.value.copy(
+            state.value = state.value.copy(
                 warning = Event("Please select a Type."),
                 isLoading = false
             )
             return
         }
         if (payment.paymentCurrency.isNullOrEmpty()) {
-            managePaymentsState.value = managePaymentsState.value.copy(
+            state.value = state.value.copy(
                 warning = Event("Please select a Currency."),
                 isLoading = false
             )
             return
         }
         if (payment.paymentAmount == 0.0 || payment.paymentAmount.isNaN()) {
-            managePaymentsState.value = managePaymentsState.value.copy(
+            state.value = state.value.copy(
                 warning = Event("Please enter an Amount."),
                 isLoading = false
             )
             return
         }
-        managePaymentsState.value = managePaymentsState.value.copy(
+        state.value = state.value.copy(
             isLoading = true
         )
         val isInserting = payment.isNew()
@@ -208,7 +206,7 @@ class PaymentsViewModel @Inject constructor(
                 val dataModel = paymentRepository.insert(payment)
                 if (dataModel.succeed) {
                     val addedModel = dataModel.data as Payment
-                    val payments = managePaymentsState.value.payments
+                    val payments = state.value.payments
                     if (payments.isNotEmpty()) {
                         payments.add(
                             0,
@@ -220,7 +218,7 @@ class PaymentsViewModel @Inject constructor(
                         addedModel
                     )
                     withContext(Dispatchers.Main) {
-                        managePaymentsState.value = managePaymentsState.value.copy(
+                        state.value = state.value.copy(
                             payments = payments,
                             isLoading = false,
                             warning = Event("successfully saved."),
@@ -230,7 +228,7 @@ class PaymentsViewModel @Inject constructor(
                     }
                 } else {
                     withContext(Dispatchers.Main) {
-                        managePaymentsState.value = managePaymentsState.value.copy(
+                        state.value = state.value.copy(
                             isLoading = false,
                             warning = null,
                         )
@@ -243,10 +241,10 @@ class PaymentsViewModel @Inject constructor(
                 val dataModel = paymentRepository.update(payment)
                 if (dataModel.succeed) {
                     val index =
-                        managePaymentsState.value.payments.indexOfFirst { it.paymentId == payment.paymentId }
+                        state.value.payments.indexOfFirst { it.paymentId == payment.paymentId }
                     if (index >= 0) {
-                        managePaymentsState.value.payments.removeAt(index)
-                        managePaymentsState.value.payments.add(
+                        state.value.payments.removeAt(index)
+                        state.value.payments.add(
                             index,
                             payment
                         )
@@ -256,7 +254,7 @@ class PaymentsViewModel @Inject constructor(
                         payment
                     )
                     withContext(Dispatchers.Main) {
-                        managePaymentsState.value = managePaymentsState.value.copy(
+                        state.value = state.value.copy(
                             isLoading = false,
                             warning = Event("successfully saved."),
                             isSaved = true,
@@ -265,7 +263,7 @@ class PaymentsViewModel @Inject constructor(
                     }
                 } else {
                     withContext(Dispatchers.Main) {
-                        managePaymentsState.value = managePaymentsState.value.copy(
+                        state.value = state.value.copy(
                             isLoading = false,
                             warning = null,
                         )
@@ -276,15 +274,15 @@ class PaymentsViewModel @Inject constructor(
     }
 
     fun delete() {
-        val payment = paymentState.value
+        val payment = state.value.payment
         if (payment.paymentId.isEmpty()) {
-            managePaymentsState.value = managePaymentsState.value.copy(
+            state.value = state.value.copy(
                 warning = Event("Please select a Payment to delete"),
                 isLoading = false
             )
             return
         }
-        managePaymentsState.value = managePaymentsState.value.copy(
+        state.value = state.value.copy(
             warning = null,
             isLoading = true
         )
@@ -292,10 +290,10 @@ class PaymentsViewModel @Inject constructor(
         CoroutineScope(Dispatchers.IO).launch {
             val dataModel = paymentRepository.delete(payment)
             if (dataModel.succeed) {
-                val payments = managePaymentsState.value.payments
+                val payments = state.value.payments
                 payments.remove(payment)
                 withContext(Dispatchers.Main) {
-                    managePaymentsState.value = managePaymentsState.value.copy(
+                    state.value = state.value.copy(
                         payments = payments,
                         isLoading = false,
                         warning = Event("successfully deleted."),
@@ -305,7 +303,7 @@ class PaymentsViewModel @Inject constructor(
                 }
             } else {
                 withContext(Dispatchers.Main) {
-                    managePaymentsState.value = managePaymentsState.value.copy(
+                    state.value = state.value.copy(
                         isLoading = false,
                         warning = null,
                     )
@@ -321,9 +319,9 @@ class PaymentsViewModel @Inject constructor(
         val thirdPartyId = payment.paymentThirdParty
         val userId = payment.paymentUserStamp
         val defaultThirdParty = if (thirdPartyId.isNullOrEmpty()) {
-            managePaymentsState.value.thirdParties.firstOrNull { it.thirdPartyDefault }
+            state.value.thirdParties.firstOrNull { it.thirdPartyDefault }
         } else {
-            managePaymentsState.value.thirdParties.firstOrNull {
+            state.value.thirdParties.firstOrNull {
                 it.thirdPartyId == thirdPartyId
             }
         }
@@ -331,10 +329,10 @@ class PaymentsViewModel @Inject constructor(
             if (userId.isNullOrEmpty() || SettingsModel.currentUser?.userId == userId || SettingsModel.currentUser?.userUsername == userId) {
                 SettingsModel.currentUser
             } else {
-                if (managePaymentsState.value.users.isEmpty()) {
-                    managePaymentsState.value.users = userRepository.getAllUsers()
+                if (state.value.users.isEmpty()) {
+                    state.value.users = userRepository.getAllUsers()
                 }
-                managePaymentsState.value.users.firstOrNull {
+                state.value.users.firstOrNull {
                     it.userId == userId || it.userUsername == userId
                 } ?: SettingsModel.currentUser
             }

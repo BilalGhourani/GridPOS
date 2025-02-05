@@ -8,6 +8,7 @@ import com.grid.pos.model.Event
 data class ManageCompaniesState(
         val companies: MutableList<Company> = mutableListOf(),
         val currencies: MutableList<Currency> = mutableListOf(),
+        val company: Company = Company(),
         val isLoading: Boolean = false,
         val clear: Boolean = false,
         val warning: Event<String>? = null,

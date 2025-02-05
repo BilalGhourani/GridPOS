@@ -73,8 +73,7 @@ fun PaymentsView(
     sharedViewModel: SharedViewModel,
     viewModel: PaymentsViewModel = hiltViewModel()
 ) {
-    val state by viewModel.managePaymentsState.collectAsStateWithLifecycle()
-    val payment = viewModel.paymentState.collectAsState().value
+    val state by viewModel.state.collectAsStateWithLifecycle()
 
     val context = LocalContext.current
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -208,9 +207,9 @@ fun PaymentsView(
                         ),
                         enableSearch = false,
                         label = "Select Type",
-                        selectedId = payment.paymentType,
+                        selectedId = state.payment.paymentType,
                         leadingIcon = { modifier ->
-                            if (!payment.paymentType.isNullOrEmpty()) {
+                            if (!state.payment.paymentType.isNullOrEmpty()) {
                                 Icon(
                                     Icons.Default.RemoveCircleOutline,
                                     contentDescription = "remove Type",
@@ -221,14 +220,14 @@ fun PaymentsView(
                         },
                         onLeadingIconClick = {
                             viewModel.updatePayment(
-                                payment.copy(
+                                state.payment.copy(
                                     paymentType = null
                                 )
                             )
                         }) { typeModel ->
                         typeModel as PaymentTypeModel
                         viewModel.updatePayment(
-                            payment.copy(
+                            state.payment.copy(
                                 paymentType = typeModel.type
                             )
                         )
@@ -241,9 +240,9 @@ fun PaymentsView(
                         ),
                         enableSearch = SettingsModel.isConnectedToSqlServer(),
                         label = "Select Currency",
-                        selectedId = payment.paymentCurrency,
+                        selectedId = state.payment.paymentCurrency,
                         leadingIcon = { modifier ->
-                            if (!payment.paymentCurrency.isNullOrEmpty()) {
+                            if (!state.payment.paymentCurrency.isNullOrEmpty()) {
                                 Icon(
                                     Icons.Default.RemoveCircleOutline,
                                     contentDescription = "remove Currency",
@@ -254,29 +253,28 @@ fun PaymentsView(
                         },
                         onLeadingIconClick = {
                             viewModel.updatePayment(
-                                payment.copy(
+                                state.payment.copy(
                                     paymentCurrency = null,
                                     paymentCurrencyCode = null
-                                )
+                                ),
+                                currIndex = 0
                             )
-                            viewModel.currencyIndexState.intValue = 0
                         }) { currModel ->
                         currModel as CurrencyModel
                         viewModel.updatePayment(
-                            payment.copy(
+                            state.payment.copy(
                                 paymentCurrency = currModel.getId(),
                                 paymentCurrencyCode = currModel.currencyCode
-                            )
+                            ),
+                            currIndex = state.payment.getSelectedCurrencyIndex()
                         )
-                        viewModel.currencyIndexState.intValue =
-                            viewModel.paymentState.value.getSelectedCurrencyIndex()
                     }
 
                     UITextField(modifier = Modifier.padding(
                         horizontal = 10.dp,
                         vertical = 5.dp
                     ),
-                        defaultValue = payment.paymentAmountStr ?: "",
+                        defaultValue = state.payment.paymentAmountStr ?: "",
                         label = "Amount",
                         placeHolder = "Enter Amount",
                         focusRequester = amountFocusRequester,
@@ -286,22 +284,22 @@ fun PaymentsView(
                         }) { amount ->
                         val amountStr = Utils.getDoubleValue(
                             amount,
-                            payment.paymentAmountStr ?: ""
+                            state.payment.paymentAmountStr ?: ""
                         )
                         val paymentAmount = amountStr.toDoubleOrNull() ?: 0.0
-                        var amountFirst = payment.paymentAmountFirst
-                        var amountSecond = payment.paymentAmountSecond
-                        if (viewModel.currencyIndexState.intValue == 1) {
+                        var amountFirst = state.payment.paymentAmountFirst
+                        var amountSecond = state.payment.paymentAmountSecond
+                        if (state.currencyIndex == 1) {
                             amountSecond = paymentAmount.times(
                                 SettingsModel.currentCurrency?.currencyRate ?: 1.0
                             )
-                        } else if (viewModel.currencyIndexState.intValue == 2) {
+                        } else if (state.currencyIndex == 2) {
                             amountFirst = paymentAmount.div(
                                 SettingsModel.currentCurrency?.currencyRate ?: 1.0
                             )
                         }
                         viewModel.updatePayment(
-                            payment.copy(
+                            state.payment.copy(
                                 paymentAmount = paymentAmount,
                                 paymentAmountStr = amountStr,
                                 paymentAmountFirst = amountFirst,
@@ -318,12 +316,12 @@ fun PaymentsView(
                         )
                     }
 
-                    if (viewModel.currencyIndexState.intValue != 1) {
+                    if (state.currencyIndex != 1) {
                         UITextField(modifier = Modifier.padding(
                             horizontal = 10.dp,
                             vertical = 5.dp
                         ),
-                            defaultValue = payment.paymentAmountFirstStr ?: "",
+                            defaultValue = state.payment.paymentAmountFirstStr ?: "",
                             label = "Amount ${SettingsModel.currentCurrency?.currencyCode1 ?: ""}",
                             placeHolder = "Enter Amount",
                             focusRequester = amountFocusRequester,
@@ -331,25 +329,26 @@ fun PaymentsView(
                             onAction = {
                                 descFocusRequester.requestFocus()
                             }) { amount ->
-                            val amountFirst = amount.toDoubleOrNull() ?: payment.paymentAmountFirst
+                            val amountFirst =
+                                amount.toDoubleOrNull() ?: state.payment.paymentAmountFirst
                             viewModel.updatePayment(
-                                payment.copy(
+                                state.payment.copy(
                                     paymentAmountFirst = amountFirst,
                                     paymentAmountFirstStr = Utils.getDoubleValue(
                                         amount,
-                                        payment.paymentAmountFirstStr ?: ""
+                                        state.payment.paymentAmountFirstStr ?: ""
                                     )
                                 )
                             )
                         }
                     }
 
-                    if (viewModel.currencyIndexState.intValue != 2) {
+                    if (state.currencyIndex != 2) {
                         UITextField(modifier = Modifier.padding(
                             horizontal = 10.dp,
                             vertical = 5.dp
                         ),
-                            defaultValue = payment.paymentAmountSecondStr ?: "",
+                            defaultValue = state.payment.paymentAmountSecondStr ?: "",
                             label = "Amount ${SettingsModel.currentCurrency?.currencyCode2 ?: ""}",
                             placeHolder = "Enter Amount",
                             focusRequester = amountFocusRequester,
@@ -358,13 +357,13 @@ fun PaymentsView(
                                 descFocusRequester.requestFocus()
                             }) { amount ->
                             val amountSecond =
-                                amount.toDoubleOrNull() ?: payment.paymentAmountSecond
+                                amount.toDoubleOrNull() ?: state.payment.paymentAmountSecond
                             viewModel.updatePayment(
-                                payment.copy(
+                                state.payment.copy(
                                     paymentAmountSecond = amountSecond,
                                     paymentAmountSecondStr = Utils.getDoubleValue(
                                         amount,
-                                        payment.paymentAmountSecondStr ?: ""
+                                        state.payment.paymentAmountSecondStr ?: ""
                                     )
                                 )
                             )
@@ -375,7 +374,7 @@ fun PaymentsView(
                         horizontal = 10.dp,
                         vertical = 5.dp
                     ),
-                        defaultValue = payment.paymentDesc ?: "",
+                        defaultValue = state.payment.paymentDesc ?: "",
                         label = "Description",
                         placeHolder = "Enter Description",
                         focusRequester = descFocusRequester,
@@ -383,7 +382,7 @@ fun PaymentsView(
                         imeAction = ImeAction.None,
                         onAction = { noteFocusRequester.requestFocus() }) { desc ->
                         viewModel.updatePayment(
-                            payment.copy(
+                            state.payment.copy(
                                 paymentDesc = desc.trim()
                             )
                         )
@@ -393,7 +392,7 @@ fun PaymentsView(
                         horizontal = 10.dp,
                         vertical = 5.dp
                     ),
-                        defaultValue = payment.paymentNote ?: "",
+                        defaultValue = state.payment.paymentNote ?: "",
                         label = "Note",
                         placeHolder = "Enter Note",
                         maxLines = 4,
@@ -401,7 +400,7 @@ fun PaymentsView(
                         imeAction = ImeAction.None,
                         onAction = { keyboardController?.hide() }) { note ->
                         viewModel.updatePayment(
-                            payment.copy(
+                            state.payment.copy(
                                 paymentNote = note.trim()
                             )
                         )
@@ -456,14 +455,14 @@ fun PaymentsView(
                         end = 10.dp
                     ),
                     label = "Select ThirdParty",
-                    selectedId = payment.paymentThirdParty,
+                    selectedId = state.payment.paymentThirdParty,
                     onLoadItems = {
                         scope.launch(Dispatchers.IO) {
                             viewModel.fetchThirdParties()
                         }
                     },
                     leadingIcon = { modifier ->
-                        if (!payment.paymentThirdParty.isNullOrEmpty()) {
+                        if (!state.payment.paymentThirdParty.isNullOrEmpty()) {
                             Icon(
                                 Icons.Default.RemoveCircleOutline,
                                 contentDescription = "remove ThirdParty",
@@ -474,7 +473,7 @@ fun PaymentsView(
                     },
                     onLeadingIconClick = {
                         viewModel.updatePayment(
-                            payment.copy(
+                            state.payment.copy(
                                 paymentThirdParty = null,
                                 paymentThirdPartyName = null
                             )
@@ -482,7 +481,7 @@ fun PaymentsView(
                     }) { thirdParty ->
                     thirdParty as ThirdParty
                     viewModel.updatePayment(
-                        payment.copy(
+                        state.payment.copy(
                             paymentThirdParty = thirdParty.thirdPartyId,
                             paymentThirdPartyName = thirdParty.thirdPartyName
                         )
@@ -496,10 +495,10 @@ fun PaymentsView(
                         end = 10.dp
                     ),
                     label = "Select Payment",
-                    selectedId = payment.paymentId,
+                    selectedId = state.payment.paymentId,
                     onLoadItems = { viewModel.fetchPayments() },
                     leadingIcon = { modifier ->
-                        if (payment.paymentId.isNotEmpty()) {
+                        if (state.payment.paymentId.isNotEmpty()) {
                             Icon(
                                 Icons.Default.RemoveCircleOutline,
                                 contentDescription = "remove payment",
@@ -525,9 +524,8 @@ fun PaymentsView(
                         SettingsModel.currentCurrency?.currencyName2Dec ?: 2
                     )
                     payment.paymentCurrencyCode = viewModel.getCurrencyCode(payment.paymentCurrency)
-                    viewModel.currencyIndexState.intValue = payment.getSelectedCurrencyIndex()
                     viewModel.currentPayment = payment.copy()
-                    viewModel.updatePayment(payment.copy())
+                    viewModel.updatePayment(payment.copy(), payment.getSelectedCurrencyIndex())
                 }
             }
         }

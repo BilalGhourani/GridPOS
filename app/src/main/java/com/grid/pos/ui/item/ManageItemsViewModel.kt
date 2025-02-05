@@ -20,7 +20,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -35,11 +34,9 @@ class ManageItemsViewModel @Inject constructor(
     private val settingsRepository: SettingsRepository,
 ) : BaseViewModel() {
 
-    private val _manageItemsState = MutableStateFlow(ManageItemsState())
-    val manageItemsState: MutableStateFlow<ManageItemsState> = _manageItemsState
+    private val _state = MutableStateFlow(ManageItemsState())
+    val state: MutableStateFlow<ManageItemsState> = _state
 
-    private var _itemState = MutableStateFlow(Item())
-    var itemState = _itemState.asStateFlow()
 
     var currentITem: Item = Item()
     var oldImage: String? = null
@@ -58,16 +55,16 @@ class ManageItemsViewModel @Inject constructor(
             itemTax = SettingsModel.currentCompany?.companyTax ?: 0.0,
             itemTax1 = SettingsModel.currentCompany?.companyTax1 ?: 0.0,
             itemTax2 = SettingsModel.currentCompany?.companyTax2 ?: 0.0,
-            itemGroup = if (manageItemsState.value.groups.isNotEmpty()) {
-                manageItemsState.value.groups[0].groupName
+            itemGroup = if (state.value.groups.isNotEmpty()) {
+                state.value.groups[0].groupName
             } else {
                 ""
             },
             itemCurrencyId = firstCurrency.first,
             itemCurrencyCode = firstCurrency.second,
         )
-        updateItem(currentITem.copy())
-        manageItemsState.value = manageItemsState.value.copy(
+        state.value = state.value.copy(
+            item = currentITem.copy(),
             warning = null,
             isLoading = false,
             clear = false
@@ -75,25 +72,27 @@ class ManageItemsViewModel @Inject constructor(
     }
 
     fun updateItem(item: Item) {
-        _itemState.value = item
+        state.value = state.value.copy(
+            item = item
+        )
     }
 
     fun isAnyChangeDone(): Boolean {
-        return itemState.value.didChanged(currentITem)
+        return state.value.item.didChanged(currentITem)
     }
 
     fun shouldDisableCostAndQty(): Boolean {
-        return manageItemsState.value.isConnectingToSQLServer && itemState.value.itemId.isNotEmpty()
+        return state.value.isConnectingToSQLServer && state.value.item.itemId.isNotEmpty()
     }
 
     fun fetchItems() {
-        manageItemsState.value = manageItemsState.value.copy(
+        state.value = state.value.copy(
             isLoading = true
         )
         viewModelScope.launch(Dispatchers.IO) {
             val listOfItems = itemRepository.getAllItems()
             withContext(Dispatchers.Main) {
-                manageItemsState.value = manageItemsState.value.copy(
+                state.value = state.value.copy(
                     items = listOfItems,
                     isLoading = false
                 )
@@ -102,8 +101,8 @@ class ManageItemsViewModel @Inject constructor(
     }
 
     fun selectionPrerequisite(succeeded: () -> Unit) {
-        val familiesSize = manageItemsState.value.families.size
-        val printersSize = manageItemsState.value.printers.size
+        val familiesSize = state.value.families.size
+        val printersSize = state.value.printers.size
         if (familiesSize == 0 || printersSize == 0) {
             viewModelScope.launch(Dispatchers.IO) {
                 if (familiesSize == 0) {
@@ -123,20 +122,20 @@ class ManageItemsViewModel @Inject constructor(
 
     fun fetchFamilies(loading: Boolean = true) {
         if (loading) {
-            manageItemsState.value = manageItemsState.value.copy(
+            state.value = state.value.copy(
                 isLoading = true
             )
         }
         viewModelScope.launch(Dispatchers.IO) {
             val listOfFamilies = familyRepository.getAllFamilies()
             withContext(Dispatchers.Main) {
-                manageItemsState.value = if (loading) {
-                    manageItemsState.value.copy(
+                state.value = if (loading) {
+                    state.value.copy(
                         families = listOfFamilies,
                         isLoading = false
                     )
                 } else {
-                    manageItemsState.value.copy(
+                    state.value.copy(
                         families = listOfFamilies
                     )
                 }
@@ -154,7 +153,7 @@ class ManageItemsViewModel @Inject constructor(
                     itemCurrencyCode = firstCurrency.second,
                 )
             )
-            manageItemsState.value = manageItemsState.value.copy(
+            state.value = state.value.copy(
                 currencies = currencies,
                 isLoading = false
             )
@@ -163,20 +162,20 @@ class ManageItemsViewModel @Inject constructor(
 
     fun fetchPrinters(loading: Boolean = true) {
         if (loading) {
-            manageItemsState.value = manageItemsState.value.copy(
+            state.value = state.value.copy(
                 isLoading = true
             )
         }
         viewModelScope.launch(Dispatchers.IO) {
             val listOfPrinters = posPrinterRepository.getAllPosPrinters()
             withContext(Dispatchers.Main) {
-                manageItemsState.value = if (loading) {
-                    manageItemsState.value.copy(
+                state.value = if (loading) {
+                    state.value.copy(
                         printers = listOfPrinters,
                         isLoading = false
                     )
                 } else {
-                    manageItemsState.value.copy(
+                    state.value.copy(
                         printers = listOfPrinters
                     )
                 }
@@ -200,7 +199,7 @@ class ManageItemsViewModel @Inject constructor(
                     itemGroup = groups[0].groupName
                 )
             )
-            manageItemsState.value = manageItemsState.value.copy(
+            state.value = state.value.copy(
                 groups = groups,
                 isConnectingToSQLServer = isConnectedToSQL
             )
@@ -212,7 +211,7 @@ class ManageItemsViewModel @Inject constructor(
         action: String? = null
     ) {
         viewModelScope.launch(Dispatchers.Main) {
-            manageItemsState.value = manageItemsState.value.copy(
+            state.value = state.value.copy(
                 warning = Event(warning),
                 actionLabel = action,
                 isLoading = false
@@ -221,22 +220,22 @@ class ManageItemsViewModel @Inject constructor(
     }
 
     fun save() {
-        val item = itemState.value
+        val item = state.value.item
         if (item.itemName.isNullOrEmpty() || item.itemFaId.isNullOrEmpty()) {
-            manageItemsState.value = manageItemsState.value.copy(
+            state.value = state.value.copy(
                 warning = Event("Please fill item name and family"),
                 isLoading = false
             )
             return
         }
-        if (manageItemsState.value.isConnectingToSQLServer && item.itemGroup.isNullOrEmpty()) {
-            manageItemsState.value = manageItemsState.value.copy(
+        if (state.value.isConnectingToSQLServer && item.itemGroup.isNullOrEmpty()) {
+            state.value = state.value.copy(
                 warning = Event("Please select an item group"),
                 isLoading = false
             )
             return
         }
-        manageItemsState.value = manageItemsState.value.copy(
+        state.value = state.value.copy(
             isLoading = true
         )
         val isInserting = item.isNew()
@@ -254,12 +253,12 @@ class ManageItemsViewModel @Inject constructor(
                 val dataModel = itemRepository.insert(item)
                 if (dataModel.succeed) {
                     val addedModel = dataModel.data as Item
-                    val items = manageItemsState.value.items
+                    val items = state.value.items
                     if (items.isNotEmpty()) {
                         items.add(addedModel)
                     }
                     withContext(Dispatchers.Main) {
-                        manageItemsState.value = manageItemsState.value.copy(
+                        state.value = state.value.copy(
                             items = items,
                             isLoading = false,
                             warning = Event("Item saved successfully."),
@@ -268,7 +267,7 @@ class ManageItemsViewModel @Inject constructor(
                     }
                 } else {
                     withContext(Dispatchers.Main) {
-                        manageItemsState.value = manageItemsState.value.copy(
+                        state.value = state.value.copy(
                             isLoading = false
                         )
                     }
@@ -277,16 +276,16 @@ class ManageItemsViewModel @Inject constructor(
                 val dataModel = itemRepository.update(item)
                 if (dataModel.succeed) {
                     val index =
-                        manageItemsState.value.items.indexOfFirst { it.itemId == item.itemId }
+                        state.value.items.indexOfFirst { it.itemId == item.itemId }
                     if (index >= 0) {
-                        manageItemsState.value.items.removeAt(index)
-                        manageItemsState.value.items.add(
+                        state.value.items.removeAt(index)
+                        state.value.items.add(
                             index,
                             item
                         )
                     }
                     withContext(Dispatchers.Main) {
-                        manageItemsState.value = manageItemsState.value.copy(
+                        state.value = state.value.copy(
                             isLoading = false,
                             warning = Event("Item saved successfully."),
                             clear = true
@@ -294,7 +293,7 @@ class ManageItemsViewModel @Inject constructor(
                     }
                 } else {
                     withContext(Dispatchers.Main) {
-                        manageItemsState.value = manageItemsState.value.copy(
+                        state.value = state.value.copy(
                             isLoading = false
                         )
                     }
@@ -304,15 +303,15 @@ class ManageItemsViewModel @Inject constructor(
     }
 
     fun delete() {
-        val item = itemState.value
+        val item = state.value.item
         if (item.itemId.isEmpty()) {
-            manageItemsState.value = manageItemsState.value.copy(
+            state.value = state.value.copy(
                 warning = Event("Please select an Item to delete"),
                 isLoading = false
             )
             return
         }
-        manageItemsState.value = manageItemsState.value.copy(
+        state.value = state.value.copy(
             warning = null,
             isLoading = true
         )
@@ -320,7 +319,7 @@ class ManageItemsViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             if (hasRelations(item.itemId)) {
                 withContext(Dispatchers.Main) {
-                    manageItemsState.value = manageItemsState.value.copy(
+                    state.value = state.value.copy(
                         warning = Event("You can't delete this Item,because it has related data!"),
                         isLoading = false
                     )
@@ -329,10 +328,10 @@ class ManageItemsViewModel @Inject constructor(
             }
             val dataModel = itemRepository.delete(item)
             if (dataModel.succeed) {
-                val items = manageItemsState.value.items
+                val items = state.value.items
                 items.remove(item)
                 withContext(Dispatchers.Main) {
-                    manageItemsState.value = manageItemsState.value.copy(
+                    state.value = state.value.copy(
                         items = items,
                         isLoading = false,
                         warning = Event("successfully deleted."),
@@ -341,7 +340,7 @@ class ManageItemsViewModel @Inject constructor(
                 }
             } else {
                 withContext(Dispatchers.Main) {
-                    manageItemsState.value = manageItemsState.value.copy(
+                    state.value = state.value.copy(
                         isLoading = false
                     )
                 }
@@ -363,10 +362,10 @@ class ManageItemsViewModel @Inject constructor(
             item.itemCurrencyCode = firstCurr.second
         } else if (item.itemCurrencyCode.isNullOrEmpty()) {
             item.itemCurrencyCode =
-                manageItemsState.value.currencies.firstOrNull { it.currencyId == item.itemCurrencyId }?.currencyCode
+                state.value.currencies.firstOrNull { it.currencyId == item.itemCurrencyId }?.currencyCode
         }
         val family = if (!item.itemFaId.isNullOrEmpty()) {
-            manageItemsState.value.families.firstOrNull { it.familyId == item.itemFaId } ?: run {
+            state.value.families.firstOrNull { it.familyId == item.itemFaId } ?: run {
                 familyRepository.getFamilyById(item.itemFaId!!)
             }
         } else {

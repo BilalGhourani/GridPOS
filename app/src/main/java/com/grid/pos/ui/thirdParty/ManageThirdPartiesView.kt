@@ -24,7 +24,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -65,8 +64,7 @@ fun ManageThirdPartiesView(
     sharedViewModel: SharedViewModel,
     viewModel: ManageThirdPartiesViewModel = hiltViewModel()
 ) {
-    val state by viewModel.manageThirdPartiesState.collectAsStateWithLifecycle()
-    val thirdParty = viewModel.thirdPartyState.collectAsState().value
+    val state by viewModel.state.collectAsStateWithLifecycle()
 
     val keyboardController = LocalSoftwareKeyboardController.current
     val fnFocusRequester = remember { FocusRequester() }
@@ -182,14 +180,14 @@ fun ManageThirdPartiesView(
                         horizontal = 10.dp,
                         vertical = 5.dp
                     ),
-                        defaultValue = thirdParty.thirdPartyName?:"",
+                        defaultValue = state.thirdParty.thirdPartyName?:"",
                         label = "Name",
                         placeHolder = "Enter Name",
                         onAction = {
                             fnFocusRequester.requestFocus()
                         }) { name ->
                         viewModel.updateThirdParty(
-                            thirdParty.copy(
+                            state.thirdParty.copy(
                                 thirdPartyName = name.trim()
                             )
                         )
@@ -200,7 +198,7 @@ fun ManageThirdPartiesView(
                         horizontal = 10.dp,
                         vertical = 5.dp
                     ),
-                        defaultValue = thirdParty.thirdPartyFn?:"",
+                        defaultValue = state.thirdParty.thirdPartyFn?:"",
                         label = "Financial No.",
                         placeHolder = "Financial No.",
                         focusRequester = fnFocusRequester,
@@ -208,7 +206,7 @@ fun ManageThirdPartiesView(
                             phone1FocusRequester.requestFocus()
                         }) { fn ->
                         viewModel.updateThirdParty(
-                            thirdParty.copy(
+                            state.thirdParty.copy(
                                 thirdPartyFn = fn.trim()
                             )
                         )
@@ -219,13 +217,13 @@ fun ManageThirdPartiesView(
                         horizontal = 10.dp,
                         vertical = 5.dp
                     ),
-                        defaultValue = thirdParty.thirdPartyPhone1?:"",
+                        defaultValue = state.thirdParty.thirdPartyPhone1?:"",
                         label = "Phone1",
                         placeHolder = "Enter Phone1",
                         focusRequester = phone1FocusRequester,
                         onAction = { phone2FocusRequester.requestFocus() }) { phone1 ->
                         viewModel.updateThirdParty(
-                            thirdParty.copy(
+                            state.thirdParty.copy(
                                 thirdPartyPhone1 = phone1.trim()
                             )
                         )
@@ -236,13 +234,13 @@ fun ManageThirdPartiesView(
                         horizontal = 10.dp,
                         vertical = 5.dp
                     ),
-                        defaultValue = thirdParty.thirdPartyPhone2 ?: "",
+                        defaultValue = state.thirdParty.thirdPartyPhone2 ?: "",
                         label = "Phone2",
                         placeHolder = "Enter Phone2",
                         focusRequester = phone2FocusRequester,
                         onAction = { addressFocusRequester.requestFocus() }) { phone2 ->
                         viewModel.updateThirdParty(
-                            thirdParty.copy(
+                            state.thirdParty.copy(
                                 thirdPartyPhone2 = phone2.trim()
                             )
                         )
@@ -253,7 +251,7 @@ fun ManageThirdPartiesView(
                         horizontal = 10.dp,
                         vertical = 5.dp
                     ),
-                        defaultValue = thirdParty.thirdPartyAddress ?: "",
+                        defaultValue = state.thirdParty.thirdPartyAddress ?: "",
                         label = "Address",
                         maxLines = 2,
                         placeHolder = "Enter address",
@@ -261,7 +259,7 @@ fun ManageThirdPartiesView(
                         imeAction = ImeAction.Done,
                         onAction = { keyboardController?.hide() }) { address ->
                         viewModel.updateThirdParty(
-                            thirdParty.copy(
+                            state.thirdParty.copy(
                                 thirdPartyAddress = address.trim()
                             )
                         )
@@ -272,12 +270,12 @@ fun ManageThirdPartiesView(
                             horizontal = 10.dp,
                             vertical = 5.dp
                         ),
-                        checked = thirdParty.thirdPartyDefault,
+                        checked = state.thirdParty.thirdPartyDefault,
                         enabled = state.enableIsDefault,
                         text = "POS Default",
                     ) { isDefault ->
                         viewModel.updateThirdParty(
-                            thirdParty.copy(
+                            state.thirdParty.copy(
                                 thirdPartyDefault = isDefault
                             )
                         )
@@ -332,11 +330,11 @@ fun ManageThirdPartiesView(
                         start = 10.dp,
                         end = 10.dp
                     ),
-                    selectedId = thirdParty.thirdPartyType
+                    selectedId = state.thirdParty.thirdPartyType
                 ) { thirdPartyTypeModel ->
                     thirdPartyTypeModel as ThirdPartyTypeModel
                     viewModel.updateThirdParty(
-                        thirdParty.copy(
+                        state.thirdParty.copy(
                             thirdPartyType = thirdPartyTypeModel.thirdPartyType.type
                         )
                     )
@@ -349,10 +347,10 @@ fun ManageThirdPartiesView(
                         end = 10.dp
                     ),
                     label = "Select ThirdParty",
-                    selectedId = thirdParty.thirdPartyId,
+                    selectedId = state.thirdParty.thirdPartyId,
                     onLoadItems = { viewModel.fetchThirdParties() },
                     leadingIcon = {modifier->
-                        if (thirdParty.thirdPartyId.isNotEmpty()) {
+                        if (state.thirdParty.thirdPartyId.isNotEmpty()) {
                             Icon(
                                 Icons.Default.RemoveCircleOutline,
                                 contentDescription = "remove family",

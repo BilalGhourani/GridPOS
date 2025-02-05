@@ -13,6 +13,7 @@ data class ManageItemsState(
         val printers: MutableList<PosPrinter> = mutableListOf(),
         val currencies: MutableList<CurrencyModel> = mutableListOf(),
         val groups: MutableList<ItemGroupModel> = mutableListOf(),
+        val item:Item=Item(),
         val isConnectingToSQLServer: Boolean = false,
         val isLoading: Boolean = false,
         val clear: Boolean = false,

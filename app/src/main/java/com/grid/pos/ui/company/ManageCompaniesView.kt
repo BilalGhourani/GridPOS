@@ -28,7 +28,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -71,8 +70,8 @@ fun ManageCompaniesView(
     sharedViewModel: SharedViewModel,
     viewModel: ManageCompaniesViewModel = hiltViewModel()
 ) {
-    val state by viewModel.manageCompaniesState.collectAsStateWithLifecycle()
-    val company = viewModel.companyState.collectAsState().value
+    val state by viewModel.state.collectAsStateWithLifecycle()
+
     val context = LocalContext.current
     val keyboardController = LocalSoftwareKeyboardController.current
     val phoneFocusRequester = remember { FocusRequester() }
@@ -135,7 +134,7 @@ fun ManageCompaniesView(
             )
         }
         val firstCurr = state.currencies.firstOrNull() ?: SettingsModel.currentCurrency
-        viewModel.companyState.value.companyCurCodeTax = firstCurr?.currencyId
+        state.company.companyCurCodeTax = firstCurr?.currencyId
         viewModel.save(
             sharedViewModel.isRegistering
         )
@@ -243,12 +242,12 @@ fun ManageCompaniesView(
                         horizontal = 10.dp,
                         vertical = 5.dp
                     ),
-                        defaultValue = company.companyName ?: "",
+                        defaultValue = state.company.companyName ?: "",
                         label = "Name",
                         placeHolder = "Enter Name",
                         onAction = { phoneFocusRequester.requestFocus() }) { name ->
                         viewModel.updateCompany(
-                            company.copy(
+                            state.company.copy(
                                 companyName = name
                             )
                         )
@@ -259,13 +258,13 @@ fun ManageCompaniesView(
                         horizontal = 10.dp,
                         vertical = 5.dp
                     ),
-                        defaultValue = company.companyPhone ?: "",
+                        defaultValue = state.company.companyPhone ?: "",
                         label = "Phone",
                         focusRequester = phoneFocusRequester,
                         placeHolder = "Enter Phone",
                         onAction = { addressFocusRequester.requestFocus() }) { phone ->
                         viewModel.updateCompany(
-                            company.copy(
+                            state.company.copy(
                                 companyPhone = phone
                             )
                         )
@@ -276,7 +275,7 @@ fun ManageCompaniesView(
                         horizontal = 10.dp,
                         vertical = 5.dp
                     ),
-                        defaultValue = company.companyAddress ?: "",
+                        defaultValue = state.company.companyAddress ?: "",
                         label = "Address",
                         focusRequester = addressFocusRequester,
                         placeHolder = "Enter address",
@@ -284,7 +283,7 @@ fun ManageCompaniesView(
                             countryFocusRequester.requestFocus()
                         }) { address ->
                         viewModel.updateCompany(
-                            company.copy(
+                            state.company.copy(
                                 companyAddress = address
                             )
                         )
@@ -295,7 +294,7 @@ fun ManageCompaniesView(
                         horizontal = 10.dp,
                         vertical = 5.dp
                     ),
-                        defaultValue = company.companyCountry ?: "",
+                        defaultValue = state.company.companyCountry ?: "",
                         label = "Country",
                         focusRequester = countryFocusRequester,
                         placeHolder = "Enter country",
@@ -311,7 +310,7 @@ fun ManageCompaniesView(
                             }
                         }) { country ->
                         viewModel.updateCompany(
-                            company.copy(
+                            state.company.copy(
                                 companyCountry = country
                             )
                         )
@@ -322,13 +321,13 @@ fun ManageCompaniesView(
                         horizontal = 10.dp,
                         vertical = 5.dp
                     ),
-                        defaultValue = company.companyEmail ?: "",
+                        defaultValue = state.company.companyEmail ?: "",
                         label = "Email Address",
                         placeHolder = "Enter Email Address",
                         focusRequester = emailFocusRequester,
                         onAction = { webFocusRequester.requestFocus() }) { email ->
                         viewModel.updateCompany(
-                            company.copy(
+                            state.company.copy(
                                 companyEmail = email
                             )
                         )
@@ -339,13 +338,13 @@ fun ManageCompaniesView(
                         horizontal = 10.dp,
                         vertical = 5.dp
                     ),
-                        defaultValue = company.companyWeb ?: "",
+                        defaultValue = state.company.companyWeb ?: "",
                         label = "Website",
                         placeHolder = "Enter Website",
                         focusRequester = webFocusRequester,
                         onAction = { logoFocusRequester.requestFocus() }) { web ->
                         viewModel.updateCompany(
-                            company.copy(
+                            state.company.copy(
                                 companyWeb = web
                             )
                         )
@@ -356,7 +355,7 @@ fun ManageCompaniesView(
                         horizontal = 10.dp,
                         vertical = 5.dp
                     ),
-                        defaultValue = company.companyLogo ?: "",
+                        defaultValue = state.company.companyLogo ?: "",
                         label = "Logo",
                         placeHolder = "Enter Logo",
                         focusRequester = logoFocusRequester,
@@ -372,16 +371,16 @@ fun ManageCompaniesView(
                                                     context,
                                                     uris[0],
                                                     "company logo",
-                                                    (company.companyName ?: "company").trim()
+                                                    (state.company.companyName ?: "company").trim()
                                                         .replace(
                                                             " ",
                                                             "_"
                                                         )
                                                 ) { internalPath ->
                                                     if (internalPath != null) {
-                                                        viewModel.oldImage = company.companyLogo
+                                                        viewModel.oldImage = state.company.companyLogo
                                                         viewModel.updateCompany(
-                                                            company.copy(
+                                                            state.company.copy(
                                                                 companyLogo = internalPath
                                                             )
                                                         )
@@ -405,7 +404,7 @@ fun ManageCompaniesView(
                             }
                         }) { logo ->
                         viewModel.updateCompany(
-                            company.copy(
+                            state.company.copy(
                                 companyLogo = logo
                             )
                         )
@@ -417,13 +416,13 @@ fun ManageCompaniesView(
                             horizontal = 10.dp,
                             vertical = 5.dp
                         ),
-                            defaultValue = company.companyTaxRegno ?: "",
+                            defaultValue = state.company.companyTaxRegno ?: "",
                             label = "Tax Reg. No",
                             focusRequester = taxRegNoFocusRequester,
                             placeHolder = "Enter Tax Reg. No",
                             onAction = { taxFocusRequester.requestFocus() }) { taxRegno ->
                             viewModel.updateCompany(
-                                company.copy(
+                                state.company.copy(
                                     companyTaxRegno = taxRegno
                                 )
                             )
@@ -434,7 +433,7 @@ fun ManageCompaniesView(
                             horizontal = 10.dp,
                             vertical = 5.dp
                         ),
-                            defaultValue = company.getTaxString(),
+                            defaultValue = state.company.getTaxString(),
                             label = "Tax",
                             focusRequester = taxFocusRequester,
                             keyboardType = KeyboardType.Decimal,
@@ -448,9 +447,9 @@ fun ManageCompaniesView(
                                     emailFocusRequester.requestFocus()
                                 }
                             }) { tax ->
-                            val companyTax = tax.toDoubleOrNull() ?: company.companyTax
+                            val companyTax = tax.toDoubleOrNull() ?: state.company.companyTax
                             viewModel.updateCompany(
-                                company.copy(
+                                state.company.copy(
                                     companyTax = companyTax
                                 )
                             )
@@ -462,13 +461,13 @@ fun ManageCompaniesView(
                             horizontal = 10.dp,
                             vertical = 5.dp
                         ),
-                            defaultValue = company.companyTax1Regno ?: "",
+                            defaultValue = state.company.companyTax1Regno ?: "",
                             label = "Tax1 Reg. No",
                             placeHolder = "Enter Tax1 Reg. No",
                             focusRequester = tax1RegNoFocusRequester,
                             onAction = { tax1FocusRequester.requestFocus() }) { tax1Regno ->
                             viewModel.updateCompany(
-                                company.copy(
+                                state.company.copy(
                                     companyTax1Regno = tax1Regno
                                 )
                             )
@@ -479,7 +478,7 @@ fun ManageCompaniesView(
                             horizontal = 10.dp,
                             vertical = 5.dp
                         ),
-                            defaultValue = company.getTax1String(),
+                            defaultValue = state.company.getTax1String(),
                             label = "Tax1",
                             keyboardType = KeyboardType.Decimal,
                             placeHolder = "Enter Tax1",
@@ -491,9 +490,9 @@ fun ManageCompaniesView(
                                     emailFocusRequester.requestFocus()
                                 }
                             }) { tax1 ->
-                            val companyTax1 = tax1.toDoubleOrNull() ?: company.companyTax1
+                            val companyTax1 = tax1.toDoubleOrNull() ?: state.company.companyTax1
                             viewModel.updateCompany(
-                                company.copy(
+                                state.company.copy(
                                     companyTax1 = companyTax1
                                 )
                             )
@@ -505,13 +504,13 @@ fun ManageCompaniesView(
                             horizontal = 10.dp,
                             vertical = 5.dp
                         ),
-                            defaultValue = company.companyTax2Regno ?: "",
+                            defaultValue = state.company.companyTax2Regno ?: "",
                             label = "Tax2 Reg. No",
                             placeHolder = "Enter Tax2 Reg. No",
                             focusRequester = tax2RegNoFocusRequester,
                             onAction = { tax2FocusRequester.requestFocus() }) { tax2Regno ->
                             viewModel.updateCompany(
-                                company.copy(
+                                state.company.copy(
                                     companyTax2Regno = tax2Regno
                                 )
                             )
@@ -522,15 +521,15 @@ fun ManageCompaniesView(
                             horizontal = 10.dp,
                             vertical = 5.dp
                         ),
-                            defaultValue = company.getTax2String(),
+                            defaultValue = state.company.getTax2String(),
                             label = "Tax2",
                             keyboardType = KeyboardType.Decimal,
                             placeHolder = "Enter Tax2",
                             focusRequester = tax2FocusRequester,
                             onAction = { emailFocusRequester.requestFocus() }) { tax2 ->
-                            val companyTax2 = tax2.toDoubleOrNull() ?: company.companyTax2
+                            val companyTax2 = tax2.toDoubleOrNull() ?: state.company.companyTax2
                             viewModel.updateCompany(
-                                company.copy(
+                                state.company.copy(
                                     companyTax2 = companyTax2
                                 )
                             )
@@ -543,11 +542,11 @@ fun ManageCompaniesView(
                             horizontal = 10.dp,
                             vertical = 5.dp
                         ),
-                        checked = company.companyUpWithTax,
+                        checked = state.company.companyUpWithTax,
                         text = "Unit price with tax",
                     ) { unitPriceWithTax ->
                         viewModel.updateCompany(
-                            company.copy(
+                            state.company.copy(
                                 companyUpWithTax = unitPriceWithTax
                             )
                         )
@@ -587,10 +586,10 @@ fun ManageCompaniesView(
                                     old
                                 )
                             }
-                            if (!company.companyLogo.isNullOrEmpty()) {
+                            if (!state.company.companyLogo.isNullOrEmpty()) {
                                 FileUtils.deleteFile(
                                     context,
-                                    company.companyLogo!!
+                                    state.company.companyLogo!!
                                 )
                             }
                             viewModel.delete()
@@ -616,10 +615,10 @@ fun ManageCompaniesView(
                         end = 10.dp
                     ),
                     label = "Select Company",
-                    selectedId = company.companyId,
+                    selectedId = state.company.companyId,
                     onLoadItems = { viewModel.fetchCompanies() },
                     leadingIcon = { mod ->
-                        if (company.companyId.isNotEmpty()) {
+                        if (state.company.companyId.isNotEmpty()) {
                             Icon(
                                 Icons.Default.RemoveCircleOutline,
                                 contentDescription = "remove family",

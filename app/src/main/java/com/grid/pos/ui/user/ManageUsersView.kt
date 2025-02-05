@@ -26,7 +26,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -70,8 +69,7 @@ fun ManageUsersView(
     sharedViewModel: SharedViewModel,
     viewModel: ManageUsersViewModel = hiltViewModel()
 ) {
-    val state by viewModel.manageUsersState.collectAsStateWithLifecycle()
-    val user = viewModel.userState.collectAsState().value
+    val state by viewModel.state.collectAsStateWithLifecycle()
 
     val keyboardController = LocalSoftwareKeyboardController.current
     val usernameFocusRequester = remember { FocusRequester() }
@@ -212,12 +210,12 @@ fun ManageUsersView(
                         horizontal = 10.dp,
                         vertical = 5.dp
                     ),
-                        defaultValue = user.userName ?: "",
+                        defaultValue = state.user.userName ?: "",
                         label = "Name",
                         placeHolder = "Enter Name",
                         onAction = { usernameFocusRequester.requestFocus() }) { name ->
                         viewModel.updateUser(
-                            user.copy(
+                            state.user.copy(
                                 userName = name.trim()
                             )
                         )
@@ -227,13 +225,13 @@ fun ManageUsersView(
                         horizontal = 10.dp,
                         vertical = 5.dp
                     ),
-                        defaultValue = user.userUsername ?: "",
+                        defaultValue = state.user.userUsername ?: "",
                         label = "Username",
                         placeHolder = "Enter Username",
                         focusRequester = usernameFocusRequester,
                         onAction = { passwordFocusRequester.requestFocus() }) { username ->
                         viewModel.updateUser(
-                            user.copy(
+                            state.user.copy(
                                 userUsername = username.trim()
                             )
                         )
@@ -243,7 +241,7 @@ fun ManageUsersView(
                         horizontal = 10.dp,
                         vertical = 5.dp
                     ),
-                        defaultValue = user.userPassword ?: "",
+                        defaultValue = state.user.userPassword ?: "",
                         label = "Password",
                         placeHolder = "Enter Password",
                         focusRequester = passwordFocusRequester,
@@ -261,7 +259,7 @@ fun ManageUsersView(
                             }
                         }) { password ->
                         viewModel.updateUser(
-                            user.copy(
+                            state.user.copy(
                                 userPassword = password.trim()
                             )
                         )
@@ -271,11 +269,11 @@ fun ManageUsersView(
                         modifier = Modifier.padding(
                             horizontal = 15.dp
                         ),
-                        checked = user.userPosMode,
+                        checked = state.user.userPosMode,
                         text = "Enable POS Mode",
                     ) { isPOSMode ->
                         viewModel.updateUser(
-                            user.copy(
+                            state.user.copy(
                                 userPosMode = isPOSMode
                             )
                         )
@@ -285,11 +283,11 @@ fun ManageUsersView(
                         modifier = Modifier.padding(
                             horizontal = 15.dp
                         ),
-                        checked = user.userTableMode,
+                        checked = state.user.userTableMode,
                         text = "Enable Table Mode",
                     ) { isTableMode ->
                         viewModel.updateUser(
-                            user.copy(
+                            state.user.copy(
                                 userTableMode = isTableMode
                             )
                         )
@@ -346,10 +344,10 @@ fun ManageUsersView(
                         end = 10.dp
                     ),
                     label = "Select User",
-                    selectedId = user.userId,
+                    selectedId = state.user.userId,
                     onLoadItems = { viewModel.fetchUsers() },
                     leadingIcon = {
-                        if (user.userId.isNotEmpty()) {
+                        if (state.user.userId.isNotEmpty()) {
                             Icon(
                                 Icons.Default.RemoveCircleOutline,
                                 contentDescription = "remove family",

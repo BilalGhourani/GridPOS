@@ -10,7 +10,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -21,11 +20,8 @@ class ManageFamiliesViewModel @Inject constructor(
     private val itemRepository: ItemRepository
 ) : BaseViewModel() {
 
-    private val _manageFamiliesState = MutableStateFlow(ManageFamiliesState())
-    val manageFamiliesState: MutableStateFlow<ManageFamiliesState> = _manageFamiliesState
-
-    private var _familyState = MutableStateFlow(Family())
-    var familyState = _familyState.asStateFlow()
+    private val _state = MutableStateFlow(ManageFamiliesState())
+    val state: MutableStateFlow<ManageFamiliesState> = _state
 
     var currentFamily: Family = Family()
     var oldImage: String? = null
@@ -38,8 +34,8 @@ class ManageFamiliesViewModel @Inject constructor(
 
     fun resetState() {
         currentFamily = Family()
-        updateFamily(Family())
-        manageFamiliesState.value = manageFamiliesState.value.copy(
+        state.value = state.value.copy(
+            family = Family(),
             warning = null,
             isLoading = false,
             clear = false
@@ -47,21 +43,23 @@ class ManageFamiliesViewModel @Inject constructor(
     }
 
     fun updateFamily(family: Family) {
-        _familyState.value = family
+        _state.value = state.value.copy(
+            family = family
+        )
     }
 
-    fun isAnyChangeDone():Boolean{
-        return familyState.value.didChanged(currentFamily)
+    fun isAnyChangeDone(): Boolean {
+        return state.value.family.didChanged(currentFamily)
     }
 
     fun fetchFamilies() {
-        manageFamiliesState.value = manageFamiliesState.value.copy(
+        state.value = state.value.copy(
             isLoading = true
         )
         viewModelScope.launch(Dispatchers.IO) {
             val listOfFamilies = familyRepository.getAllFamilies()
             withContext(Dispatchers.Main) {
-                manageFamiliesState.value = manageFamiliesState.value.copy(
+                state.value = state.value.copy(
                     families = listOfFamilies,
                     isLoading = false
                 )
@@ -74,7 +72,7 @@ class ManageFamiliesViewModel @Inject constructor(
         action: String? = null
     ) {
         viewModelScope.launch(Dispatchers.Main) {
-            manageFamiliesState.value = manageFamiliesState.value.copy(
+            state.value = state.value.copy(
                 warning = Event(warning),
                 actionLabel = action,
                 isLoading = false
@@ -83,29 +81,30 @@ class ManageFamiliesViewModel @Inject constructor(
     }
 
     fun save() {
-        if (familyState.value.familyName.isNullOrEmpty()) {
-            manageFamiliesState.value = manageFamiliesState.value.copy(
+        val family = state.value.family
+        if (family.familyName.isNullOrEmpty()) {
+            state.value = state.value.copy(
                 warning = Event("Please fill family name."),
                 isLoading = false
             )
             return
         }
-        manageFamiliesState.value = manageFamiliesState.value.copy(
+        state.value = state.value.copy(
             isLoading = true
         )
-        val isInserting = familyState.value.isNew()
+        val isInserting = family.isNew()
         CoroutineScope(Dispatchers.IO).launch {
             if (isInserting) {
-                familyState.value.prepareForInsert()
-                val dataModel = familyRepository.insert(familyState.value)
+                family.prepareForInsert()
+                val dataModel = familyRepository.insert(family)
                 if (dataModel.succeed) {
                     val addedModel = dataModel.data as Family
-                    val families = manageFamiliesState.value.families
+                    val families = state.value.families
                     if (families.isNotEmpty()) {
                         families.add(addedModel)
                     }
                     withContext(Dispatchers.Main) {
-                        manageFamiliesState.value = manageFamiliesState.value.copy(
+                        state.value = state.value.copy(
                             families = families,
                             isLoading = false,
                             warning = Event("Family saved successfully."),
@@ -114,25 +113,25 @@ class ManageFamiliesViewModel @Inject constructor(
                     }
                 } else if (dataModel.message != null) {
                     withContext(Dispatchers.Main) {
-                        manageFamiliesState.value = manageFamiliesState.value.copy(
+                        state.value = state.value.copy(
                             isLoading = false,
                         )
                     }
                 }
             } else {
-                val dataModel = familyRepository.update(familyState.value)
+                val dataModel = familyRepository.update(family)
                 if (dataModel.succeed) {
                     val index =
-                        manageFamiliesState.value.families.indexOfFirst { it.familyId == familyState.value.familyId }
+                        state.value.families.indexOfFirst { it.familyId == family.familyId }
                     if (index >= 0) {
-                        manageFamiliesState.value.families.removeAt(index)
-                        manageFamiliesState.value.families.add(
+                        state.value.families.removeAt(index)
+                        state.value.families.add(
                             index,
-                            familyState.value
+                            family
                         )
                     }
                     withContext(Dispatchers.Main) {
-                        manageFamiliesState.value = manageFamiliesState.value.copy(
+                        state.value = state.value.copy(
                             isLoading = false,
                             warning = Event("Family saved successfully."),
                             clear = true,
@@ -140,7 +139,7 @@ class ManageFamiliesViewModel @Inject constructor(
                     }
                 } else if (dataModel.message != null) {
                     withContext(Dispatchers.Main) {
-                        manageFamiliesState.value = manageFamiliesState.value.copy(
+                        state.value = state.value.copy(
                             isLoading = false,
                         )
                     }
@@ -150,34 +149,35 @@ class ManageFamiliesViewModel @Inject constructor(
     }
 
     fun delete() {
-        if (familyState.value.familyId.isEmpty()) {
-            manageFamiliesState.value = manageFamiliesState.value.copy(
+        val family = state.value.family
+        if (family.familyId.isEmpty()) {
+            state.value = state.value.copy(
                 warning = Event("Please select an family to delete"),
                 isLoading = false
             )
             return
         }
-        manageFamiliesState.value = manageFamiliesState.value.copy(
+        state.value = state.value.copy(
             warning = null,
             isLoading = true
         )
 
         CoroutineScope(Dispatchers.IO).launch {
-            if (hasRelations(familyState.value.familyId)) {
+            if (hasRelations(family.familyId)) {
                 withContext(Dispatchers.Main) {
-                    manageFamiliesState.value = manageFamiliesState.value.copy(
+                    state.value = state.value.copy(
                         warning = Event("You can't delete this Family ,because it has related data!"),
                         isLoading = false
                     )
                 }
                 return@launch
             }
-            val dataModel = familyRepository.delete(familyState.value)
+            val dataModel = familyRepository.delete(family)
             if (dataModel.succeed) {
-                val families = manageFamiliesState.value.families
-                families.remove(familyState.value)
+                val families = state.value.families
+                families.remove(family)
                 withContext(Dispatchers.Main) {
-                    manageFamiliesState.value = manageFamiliesState.value.copy(
+                    state.value = state.value.copy(
                         families = families,
                         isLoading = false,
                         warning = Event("successfully deleted."),
@@ -186,7 +186,7 @@ class ManageFamiliesViewModel @Inject constructor(
                 }
             } else if (dataModel.message != null) {
                 withContext(Dispatchers.Main) {
-                    manageFamiliesState.value = manageFamiliesState.value.copy(
+                    state.value = state.value.copy(
                         isLoading = false,
                     )
                 }

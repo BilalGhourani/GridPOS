@@ -13,7 +13,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -25,11 +24,8 @@ class ManageUsersViewModel @Inject constructor(
     private val invoiceHeaderRepository: InvoiceHeaderRepository
 ) : BaseViewModel() {
 
-    private val _manageUsersState = MutableStateFlow(ManageUsersState())
-    val manageUsersState: MutableStateFlow<ManageUsersState> = _manageUsersState
-
-    private var _userState = MutableStateFlow(User())
-    var userState = _userState.asStateFlow()
+    private val _state = MutableStateFlow(ManageUsersState())
+    val state: MutableStateFlow<ManageUsersState> = _state
 
     var currentUser: User = User()
 
@@ -40,13 +36,15 @@ class ManageUsersViewModel @Inject constructor(
     }
 
     fun updateUser(user: User) {
-        _userState.value = user
+        state.value = state.value.copy(
+            user = user
+        )
     }
 
     fun resetState() {
         currentUser = User()
         updateUser(User())
-        manageUsersState.value = manageUsersState.value.copy(
+        state.value = state.value.copy(
             warning = null,
             isLoading = false,
             clear = false
@@ -54,17 +52,17 @@ class ManageUsersViewModel @Inject constructor(
     }
 
     fun isAnyChangeDone():Boolean{
-        return userState.value.didChanged(currentUser)
+        return state.value.user.didChanged(currentUser)
     }
 
     fun fetchUsers() {
-        manageUsersState.value = manageUsersState.value.copy(
+        state.value = state.value.copy(
             isLoading = true
         )
         viewModelScope.launch(Dispatchers.IO) {
             val listOfUsers = userRepository.getAllUsers()
             withContext(Dispatchers.Main) {
-                manageUsersState.value = manageUsersState.value.copy(
+                state.value = state.value.copy(
                     users = listOfUsers,
                     isLoading = false
                 )
@@ -75,15 +73,15 @@ class ManageUsersViewModel @Inject constructor(
     fun save(
         isRegistering: Boolean
     ) {
-        val user = userState.value
+        val user = state.value.user
         if (user.userName.isNullOrEmpty() || user.userUsername.isNullOrEmpty() || user.userPassword.isNullOrEmpty()) {
-            manageUsersState.value = manageUsersState.value.copy(
+            state.value = state.value.copy(
                 warning = Event("Please fill all inputs"),
                 isLoading = false
             )
             return
         }
-        manageUsersState.value = manageUsersState.value.copy(
+        state.value = state.value.copy(
             isLoading = true
         )
         val isInserting = user.isNew()
@@ -98,7 +96,7 @@ class ManageUsersViewModel @Inject constructor(
                 val dataModel = userRepository.insert(user)
                 if (dataModel.succeed) {
                     val addedModel = dataModel.data as User
-                    val users = manageUsersState.value.users
+                    val users = state.value.users
                     if (users.isNotEmpty()) {
                         users.add(addedModel)
                     }
@@ -108,7 +106,7 @@ class ManageUsersViewModel @Inject constructor(
                         "User saved successfully."
                     }
                     withContext(Dispatchers.Main) {
-                        manageUsersState.value = manageUsersState.value.copy(
+                        state.value = state.value.copy(
                             users = users,
                             isLoading = false,
                             warning = Event(msg),
@@ -118,7 +116,7 @@ class ManageUsersViewModel @Inject constructor(
                     }
                 } else {
                     withContext(Dispatchers.Main) {
-                        manageUsersState.value = manageUsersState.value.copy(
+                        state.value = state.value.copy(
                             isLoading = false,
                             warning = null
                         )
@@ -128,16 +126,16 @@ class ManageUsersViewModel @Inject constructor(
                 val dataModel = userRepository.update(user)
                 if (dataModel.succeed) {
                     val index =
-                        manageUsersState.value.users.indexOfFirst { it.userId == user.userId }
+                        state.value.users.indexOfFirst { it.userId == user.userId }
                     if (index >= 0) {
-                        manageUsersState.value.users.removeAt(index)
-                        manageUsersState.value.users.add(
+                        state.value.users.removeAt(index)
+                        state.value.users.add(
                             index,
                             user
                         )
                     }
                     withContext(Dispatchers.Main) {
-                        manageUsersState.value = manageUsersState.value.copy(
+                        state.value = state.value.copy(
                             isLoading = false,
                             warning = Event("User saved successfully."),
                             clear = true
@@ -145,7 +143,7 @@ class ManageUsersViewModel @Inject constructor(
                     }
                 } else {
                     withContext(Dispatchers.Main) {
-                        manageUsersState.value = manageUsersState.value.copy(
+                        state.value = state.value.copy(
                             isLoading = false,
                             warning = null
                         )
@@ -156,15 +154,15 @@ class ManageUsersViewModel @Inject constructor(
     }
 
     fun delete() {
-        val user = userState.value
+        val user = state.value.user
         if (user.userId.isEmpty()) {
-            manageUsersState.value = manageUsersState.value.copy(
+            state.value = state.value.copy(
                 warning = Event("Please select an user to delete"),
                 isLoading = false
             )
             return
         }
-        manageUsersState.value = manageUsersState.value.copy(
+        state.value = state.value.copy(
             warning = null,
             isLoading = true
         )
@@ -172,7 +170,7 @@ class ManageUsersViewModel @Inject constructor(
         CoroutineScope(Dispatchers.IO).launch {
             if (hasRelations(user.userId)) {
                 withContext(Dispatchers.Main) {
-                    manageUsersState.value = manageUsersState.value.copy(
+                    state.value = state.value.copy(
                         warning = Event("You can't delete this User,because it has related data!"),
                         isLoading = false
                     )
@@ -181,10 +179,10 @@ class ManageUsersViewModel @Inject constructor(
             }
             val dataModel = userRepository.delete(user)
             if (dataModel.succeed) {
-                val users = manageUsersState.value.users
+                val users = state.value.users
                 users.remove(user)
                 withContext(Dispatchers.Main) {
-                    manageUsersState.value = manageUsersState.value.copy(
+                    state.value = state.value.copy(
                         users = users,
                         isLoading = false,
                         warning = Event("successfully deleted."),
@@ -193,7 +191,7 @@ class ManageUsersViewModel @Inject constructor(
                 }
             } else {
                 withContext(Dispatchers.Main) {
-                    manageUsersState.value = manageUsersState.value.copy(
+                    state.value = state.value.copy(
                         isLoading = false,
                         warning = null
                     )

@@ -10,7 +10,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -21,11 +20,8 @@ class POSPrinterViewModel @Inject constructor(
         private val itemRepository: ItemRepository
 ) : BaseViewModel() {
 
-    private val _posPrinterState = MutableStateFlow(POSPrinterState())
-    val posPrinterState: MutableStateFlow<POSPrinterState> = _posPrinterState
-
-    private var _printerState = MutableStateFlow(PosPrinter())
-    var printerState = _printerState.asStateFlow()
+    private val _state = MutableStateFlow(POSPrinterState())
+    val state: MutableStateFlow<POSPrinterState> = _state
 
     var currentPrinter: PosPrinter = PosPrinter()
 
@@ -37,8 +33,8 @@ class POSPrinterViewModel @Inject constructor(
 
     fun resetState() {
         currentPrinter = PosPrinter()
-        updatePrinter(PosPrinter())
-        posPrinterState.value = posPrinterState.value.copy(
+        state.value = state.value.copy(
+            printer = currentPrinter.copy(),
             warning = null,
             isLoading = false,
             clear = false
@@ -46,22 +42,24 @@ class POSPrinterViewModel @Inject constructor(
     }
 
     fun updatePrinter(posPrinter: PosPrinter) {
-        _printerState.value = posPrinter
+        state.value = state.value.copy(
+            printer = posPrinter
+        )
     }
 
     fun isAnyChangeDone():Boolean{
-        return printerState.value.didChanged(currentPrinter)
+        return state.value.printer.didChanged(currentPrinter)
     }
 
     fun fetchPrinters() {
-        posPrinterState.value = posPrinterState.value.copy(
+        state.value = state.value.copy(
             warning = null,
             isLoading = true
         )
         viewModelScope.launch(Dispatchers.IO) {
             val listOfPrinters = posPrinterRepository.getAllPosPrinters()
             withContext(Dispatchers.Main) {
-                posPrinterState.value = posPrinterState.value.copy(
+                state.value = state.value.copy(
                     printers = listOfPrinters,
                     isLoading = false
                 )
@@ -74,7 +72,7 @@ class POSPrinterViewModel @Inject constructor(
             action: String? = null
     ) {
         viewModelScope.launch(Dispatchers.Main) {
-            posPrinterState.value = posPrinterState.value.copy(
+            state.value = state.value.copy(
                 warning = Event(warning),
                 actionLabel = action,
                 isLoading = false
@@ -83,15 +81,15 @@ class POSPrinterViewModel @Inject constructor(
     }
 
     fun save() {
-        val printer = printerState.value
+        val printer = state.value.printer
         if (printer.posPrinterName.isNullOrEmpty()) {
-            posPrinterState.value = posPrinterState.value.copy(
+            state.value = state.value.copy(
                 warning = Event("Please fill Printer name, host and port"),
                 isLoading = false
             )
             return
         }
-        posPrinterState.value = posPrinterState.value.copy(
+        state.value = state.value.copy(
             isLoading = true
         )
         val isInserting = printer.isNew()
@@ -101,12 +99,12 @@ class POSPrinterViewModel @Inject constructor(
                 val dataModel = posPrinterRepository.insert(printer)
                 if (dataModel.succeed) {
                     val addedModel = dataModel.data as PosPrinter
-                    val printers = posPrinterState.value.printers
+                    val printers = state.value.printers
                     if (printers.isNotEmpty()) {
                         printers.add(addedModel)
                     }
                     withContext(Dispatchers.Main) {
-                        posPrinterState.value = posPrinterState.value.copy(
+                        state.value = state.value.copy(
                             printers = printers,
                             isLoading = false,
                             warning = Event("Printer saved successfully."),
@@ -115,7 +113,7 @@ class POSPrinterViewModel @Inject constructor(
                     }
                 } else {
                     withContext(Dispatchers.Main) {
-                        posPrinterState.value = posPrinterState.value.copy(
+                        state.value = state.value.copy(
                             isLoading = false
                         )
                     }
@@ -123,16 +121,16 @@ class POSPrinterViewModel @Inject constructor(
             } else {
                 val dataModel = posPrinterRepository.update(printer)
                 if (dataModel.succeed) {
-                    val index = posPrinterState.value.printers.indexOfFirst { it.posPrinterId == printer.posPrinterId }
+                    val index = state.value.printers.indexOfFirst { it.posPrinterId == printer.posPrinterId }
                     if (index >= 0) {
-                        posPrinterState.value.printers.removeAt(index)
-                        posPrinterState.value.printers.add(
+                        state.value.printers.removeAt(index)
+                        state.value.printers.add(
                             index,
                             printer
                         )
                     }
                     withContext(Dispatchers.Main) {
-                        posPrinterState.value = posPrinterState.value.copy(
+                        state.value = state.value.copy(
                             isLoading = false,
                             warning = Event("Printer saved successfully."),
                             clear = true,
@@ -140,7 +138,7 @@ class POSPrinterViewModel @Inject constructor(
                     }
                 } else {
                     withContext(Dispatchers.Main) {
-                        posPrinterState.value = posPrinterState.value.copy(
+                        state.value = state.value.copy(
                             isLoading = false
                         )
                     }
@@ -150,15 +148,15 @@ class POSPrinterViewModel @Inject constructor(
     }
 
     fun delete() {
-        val printer = printerState.value
+        val printer = state.value.printer
         if (printer.posPrinterId.isEmpty()) {
-            posPrinterState.value = posPrinterState.value.copy(
+            state.value = state.value.copy(
                 warning = Event("Please select a Printer to delete"),
                 isLoading = false
             )
             return
         }
-        posPrinterState.value = posPrinterState.value.copy(
+        state.value = state.value.copy(
             warning = null,
             isLoading = true
         )
@@ -166,7 +164,7 @@ class POSPrinterViewModel @Inject constructor(
         CoroutineScope(Dispatchers.IO).launch {
             if (hasRelations(printer.posPrinterId)) {
                 withContext(Dispatchers.Main) {
-                    posPrinterState.value = posPrinterState.value.copy(
+                    state.value = state.value.copy(
                         warning = Event("You can't delete this Printer ,because it has related data!"),
                         isLoading = false
                     )
@@ -175,10 +173,10 @@ class POSPrinterViewModel @Inject constructor(
             }
             val dataModel = posPrinterRepository.delete(printer)
             if (dataModel.succeed) {
-                val printers = posPrinterState.value.printers
+                val printers = state.value.printers
                 printers.remove(printer)
                 withContext(Dispatchers.Main) {
-                    posPrinterState.value = posPrinterState.value.copy(
+                    state.value = state.value.copy(
                         printers = printers,
                         isLoading = false,
                         warning = Event("successfully deleted."),
@@ -187,7 +185,7 @@ class POSPrinterViewModel @Inject constructor(
                 }
             } else {
                 withContext(Dispatchers.Main) {
-                    posPrinterState.value = posPrinterState.value.copy(
+                    state.value = state.value.copy(
                         isLoading = false
                     )
                 }

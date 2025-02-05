@@ -25,7 +25,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -46,7 +45,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.grid.pos.R
 import com.grid.pos.SharedViewModel
-import com.grid.pos.data.currency.Currency
 import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.model.ToastModel
@@ -64,8 +62,7 @@ fun ManageCurrenciesView(
     sharedViewModel: SharedViewModel,
     viewModel: ManageCurrenciesViewModel = hiltViewModel()
 ) {
-    val state by viewModel.manageCurrenciesState.collectAsStateWithLifecycle()
-    val currency = viewModel.currencyState.collectAsState().value
+    val state by viewModel.state.collectAsStateWithLifecycle()
 
     val keyboardController = LocalSoftwareKeyboardController.current
     val curName1FocusRequester = remember { FocusRequester() }
@@ -84,7 +81,7 @@ fun ManageCurrenciesView(
             sharedViewModel.showPopup(true,
                 PopupModel().apply {
                     onDismissRequest = {
-                        viewModel.currentCurrency = currency
+                        viewModel.currentCurrency = state.currency
                         handleBack()
                     }
                     onConfirmation = {
@@ -189,12 +186,12 @@ fun ManageCurrenciesView(
                                 .padding(
                                     horizontal = 5.dp
                                 ),
-                                defaultValue = currency.currencyCode1 ?: "",
+                                defaultValue = state.currency.currencyCode1 ?: "",
                                 label = "Cur1 Code",
                                 placeHolder = "Code",
                                 onAction = { curName1FocusRequester.requestFocus() }) { curCode1 ->
                                 viewModel.updateCurrency(
-                                    currency.copy(
+                                    state.currency.copy(
                                         currencyCode1 = curCode1
                                     )
                                 )
@@ -206,13 +203,13 @@ fun ManageCurrenciesView(
                                 .padding(
                                     horizontal = 5.dp
                                 ),
-                                defaultValue = currency.currencyName1 ?: "",
+                                defaultValue = state.currency.currencyName1 ?: "",
                                 label = "Cur1 Name",
                                 placeHolder = "Name",
                                 focusRequester = curName1FocusRequester,
                                 onAction = { curName1DecFocusRequester.requestFocus() }) { curName1 ->
                                 viewModel.updateCurrency(
-                                    currency.copy(
+                                    state.currency.copy(
                                         currencyName1 = curName1
                                     )
                                 )
@@ -224,15 +221,15 @@ fun ManageCurrenciesView(
                                 .padding(
                                     horizontal = 5.dp
                                 ),
-                                defaultValue = currency.currencyName1Dec.toString(),
+                                defaultValue = state.currency.currencyName1Dec.toString(),
                                 keyboardType = KeyboardType.Decimal,
                                 label = "Decimal",
                                 focusRequester = curName1DecFocusRequester,
                                 onAction = { curCode2FocusRequester.requestFocus() }) { curName1Dec ->
                                 viewModel.updateCurrency(
-                                    currency.copy(
+                                    state.currency.copy(
                                         currencyName1Dec = curName1Dec.toIntOrNull()
-                                            ?: currency.currencyName1Dec
+                                            ?: state.currency.currencyName1Dec
                                     )
                                 )
                             }
@@ -251,13 +248,13 @@ fun ManageCurrenciesView(
                                 .padding(
                                     horizontal = 5.dp
                                 ),
-                                defaultValue = currency.currencyCode2 ?: "",
+                                defaultValue = state.currency.currencyCode2 ?: "",
                                 label = "Cur2 Code",
                                 placeHolder = "Code",
                                 focusRequester = curCode2FocusRequester,
                                 onAction = { curName2FocusRequester.requestFocus() }) { curCode2 ->
                                 viewModel.updateCurrency(
-                                    currency.copy(
+                                    state.currency.copy(
                                         currencyCode2 = curCode2
                                     )
                                 )
@@ -269,13 +266,13 @@ fun ManageCurrenciesView(
                                 .padding(
                                     horizontal = 5.dp
                                 ),
-                                defaultValue = currency.currencyName2 ?: "",
+                                defaultValue = state.currency.currencyName2 ?: "",
                                 label = "Cur2 Name",
                                 placeHolder = "Name",
                                 focusRequester = curName2FocusRequester,
                                 onAction = { curName2DecFocusRequester.requestFocus() }) { curName2 ->
                                 viewModel.updateCurrency(
-                                    currency.copy(
+                                    state.currency.copy(
                                         currencyName2 = curName2
                                     )
                                 )
@@ -287,22 +284,22 @@ fun ManageCurrenciesView(
                                 .padding(
                                     horizontal = 5.dp
                                 ),
-                                defaultValue = currency.currencyName2Dec.toString(),
+                                defaultValue = state.currency.currencyName2Dec.toString(),
                                 keyboardType = KeyboardType.Decimal,
                                 label = "Decimal",
                                 focusRequester = curName2DecFocusRequester,
                                 onAction = { rateFocusRequester.requestFocus() }) { curName2Dec ->
                                 viewModel.updateCurrency(
-                                    currency.copy(
+                                    state.currency.copy(
                                         currencyName2Dec = curName2Dec.toIntOrNull()
-                                            ?: currency.currencyName2Dec
+                                            ?: state.currency.currencyName2Dec
                                     )
                                 )
                             }
                         }
 
                         UITextField(modifier = Modifier.padding(10.dp),
-                            defaultValue = currency.currencyRate.toString(),
+                            defaultValue = state.currency.currencyRate.toString(),
                             keyboardType = KeyboardType.Decimal,
                             label = "Rate",
                             placeHolder = "Enter Rate",
@@ -310,8 +307,8 @@ fun ManageCurrenciesView(
                             imeAction = ImeAction.Done,
                             onAction = { keyboardController?.hide() }) { rateStr ->
                             viewModel.updateCurrency(
-                                currency.copy(
-                                    currencyRate = rateStr.toDoubleOrNull() ?: currency.currencyRate
+                                state.currency.copy(
+                                    currencyRate = rateStr.toDoubleOrNull() ?: state.currency.currencyRate
                                 )
                             )
                         }

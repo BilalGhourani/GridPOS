@@ -5,6 +5,7 @@ import com.grid.pos.model.Event
 
 data class ManageUsersState(
         val users: MutableList<User> = mutableListOf(),
+        val user:User = User(),
         val isLoading: Boolean = false,
         val clear: Boolean = false,
         val warning: Event<String>? = null,

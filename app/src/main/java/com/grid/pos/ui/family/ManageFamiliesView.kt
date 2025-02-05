@@ -27,7 +27,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -70,8 +69,7 @@ fun ManageFamiliesView(
     viewModel: ManageFamiliesViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
-    val state by viewModel.manageFamiliesState.collectAsStateWithLifecycle()
-    val family = viewModel.familyState.collectAsState().value
+    val state by viewModel.state.collectAsStateWithLifecycle()
 
     val keyboardController = LocalSoftwareKeyboardController.current
     val imageFocusRequester = remember { FocusRequester() }
@@ -206,12 +204,12 @@ fun ManageFamiliesView(
                         horizontal = 10.dp,
                         vertical = 5.dp
                     ),
-                        defaultValue = family.familyName ?: "",
+                        defaultValue = state.family.familyName ?: "",
                         label = "Name",
                         placeHolder = "Enter Name",
                         onAction = { imageFocusRequester.requestFocus() }) { name ->
                         viewModel.updateFamily(
-                            family.copy(
+                            state.family.copy(
                                 familyName = name
                             )
                         )
@@ -221,7 +219,7 @@ fun ManageFamiliesView(
                         horizontal = 10.dp,
                         vertical = 5.dp
                     ),
-                        defaultValue = family.familyImage ?: "",
+                        defaultValue = state.family.familyImage ?: "",
                         label = "Image",
                         placeHolder = "Image",
                         focusRequester = imageFocusRequester,
@@ -237,13 +235,13 @@ fun ManageFamiliesView(
                                                     context,
                                                     uris[0],
                                                     parent = "family",
-                                                    fileName = (family.familyName
+                                                    fileName = (state.family.familyName
                                                         ?: "family").trim().replace(" ", "_")
                                                 ) { internalPath ->
                                                     if (internalPath != null) {
-                                                        viewModel.oldImage = family.familyImage
+                                                        viewModel.oldImage = state.family.familyImage
                                                         viewModel.updateFamily(
-                                                            family.copy(
+                                                            state.family.copy(
                                                                 familyImage = internalPath
                                                             )
                                                         )
@@ -268,7 +266,7 @@ fun ManageFamiliesView(
                             }
                         }) { img ->
                         viewModel.updateFamily(
-                            family.copy(
+                            state.family.copy(
                                 familyImage = img
                             )
                         )
@@ -307,10 +305,10 @@ fun ManageFamiliesView(
                                     old
                                 )
                             }
-                            if (!family.familyImage.isNullOrEmpty()) {
+                            if (!state.family.familyImage.isNullOrEmpty()) {
                                 FileUtils.deleteFile(
                                     context,
-                                    family.familyImage!!
+                                    state.family.familyImage!!
                                 )
                             }
                             viewModel.delete()
@@ -336,10 +334,10 @@ fun ManageFamiliesView(
                         end = 10.dp
                     ),
                     label = "Select Family",
-                    selectedId = family.familyId,
+                    selectedId = state.family.familyId,
                     onLoadItems = { viewModel.fetchFamilies() },
                     leadingIcon = { modifier ->
-                        if (family.familyId.isNotEmpty()) {
+                        if (state.family.familyId.isNotEmpty()) {
                             Icon(
                                 Icons.Default.RemoveCircleOutline,
                                 contentDescription = "remove family",
