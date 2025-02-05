@@ -43,8 +43,8 @@ class ManageUsersViewModel @Inject constructor(
 
     fun resetState() {
         currentUser = User()
-        updateUser(User())
         state.value = state.value.copy(
+            user = currentUser.copy(),
             warning = null,
             isLoading = false,
             clear = false

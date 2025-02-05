@@ -42,9 +42,8 @@ class ManageThirdPartiesViewModel @Inject constructor(
 
     fun resetState() {
         currentThirdParty = ThirdParty().copy(thirdPartyType = ThirdPartyType.RECEIVALBE.type)
-        updateThirdParty(currentThirdParty.copy())
         state.value = state.value.copy(
-            thirdParty = ThirdParty(),
+            thirdParty = currentThirdParty.copy(),
             warning = null,
             isLoading = false,
             clear = false
