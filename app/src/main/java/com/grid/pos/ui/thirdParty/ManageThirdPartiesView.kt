@@ -104,9 +104,6 @@ fun ManageThirdPartiesView(
                 })
             return
         }
-        if (state.thirdParties.isNotEmpty()) {
-            sharedViewModel.thirdParties = state.thirdParties
-        }
         navController?.navigateUp()
     }
 
@@ -188,7 +185,7 @@ fun ManageThirdPartiesView(
                         }) { name ->
                         viewModel.updateThirdParty(
                             state.thirdParty.copy(
-                                thirdPartyName = name.trim()
+                                thirdPartyName = name
                             )
                         )
                     }
@@ -207,7 +204,7 @@ fun ManageThirdPartiesView(
                         }) { fn ->
                         viewModel.updateThirdParty(
                             state.thirdParty.copy(
-                                thirdPartyFn = fn.trim()
+                                thirdPartyFn = fn
                             )
                         )
                     }
@@ -224,7 +221,7 @@ fun ManageThirdPartiesView(
                         onAction = { phone2FocusRequester.requestFocus() }) { phone1 ->
                         viewModel.updateThirdParty(
                             state.thirdParty.copy(
-                                thirdPartyPhone1 = phone1.trim()
+                                thirdPartyPhone1 = phone1
                             )
                         )
                     }
@@ -241,7 +238,7 @@ fun ManageThirdPartiesView(
                         onAction = { addressFocusRequester.requestFocus() }) { phone2 ->
                         viewModel.updateThirdParty(
                             state.thirdParty.copy(
-                                thirdPartyPhone2 = phone2.trim()
+                                thirdPartyPhone2 = phone2
                             )
                         )
                     }
@@ -260,7 +257,7 @@ fun ManageThirdPartiesView(
                         onAction = { keyboardController?.hide() }) { address ->
                         viewModel.updateThirdParty(
                             state.thirdParty.copy(
-                                thirdPartyAddress = address.trim()
+                                thirdPartyAddress = address
                             )
                         )
                     }

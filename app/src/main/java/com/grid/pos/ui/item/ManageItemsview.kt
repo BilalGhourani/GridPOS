@@ -72,10 +72,12 @@ import com.grid.pos.ui.common.SearchableDropdownMenuEx
 import com.grid.pos.ui.common.UIImageButton
 import com.grid.pos.ui.common.UISwitch
 import com.grid.pos.ui.common.UITextField
+import com.grid.pos.ui.pos.POSUtils
 import com.grid.pos.ui.settings.ColorPickerType
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.utils.Extension.toHexCode
 import com.grid.pos.utils.FileUtils
+import com.grid.pos.utils.Utils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -135,8 +137,15 @@ fun ManageItemsView(
     fun fillItemInputs(item: Item) {
         sharedViewModel.showLoading(true)
         viewModel.selectionPrerequisite {
-            viewModel.currentITem = item.copy()
-            viewModel.updateItem(item.copy())
+            viewModel.currentITem = item.copy(
+                itemOpenQtyStr = item.itemOpenQty.toString(),
+                itemOpenCostStr = item.itemOpenCost.toString(),
+                itemUnitPriceStr = item.itemUnitPrice.toString(),
+                itemTaxStr = item.itemTax.toString(),
+                itemTax1Str = item.itemTax1.toString(),
+                itemTax2Str = item.itemTax2.toString(),
+            )
+            viewModel.updateItem(viewModel.currentITem.copy())
             sharedViewModel.showLoading(false)
         }
     }
@@ -173,9 +182,6 @@ fun ManageItemsView(
                     negativeBtnText = "Close"
                 })
             return
-        }
-        if (state.items.isNotEmpty()) {
-            sharedViewModel.items = state.items
         }
         navController?.navigateUp()
     }
@@ -257,7 +263,7 @@ fun ManageItemsView(
                         onAction = { unitPriceFocusRequester.requestFocus() }) { name ->
                         viewModel.updateItem(
                             state.item.copy(
-                                itemName = name.trim()
+                                itemName = name
                             )
                         )
                     }
@@ -267,7 +273,7 @@ fun ManageItemsView(
                         horizontal = 10.dp,
                         vertical = 5.dp
                     ),
-                        defaultValue = state.item.itemUnitPrice.toString(),
+                        defaultValue = state.item.itemUnitPriceStr ?: "",
                         label = "Unit Price",
                         focusRequester = unitPriceFocusRequester,
                         keyboardType = KeyboardType.Decimal,
@@ -285,7 +291,12 @@ fun ManageItemsView(
                         }) { unitPrice ->
                         viewModel.updateItem(
                             state.item.copy(
-                                itemUnitPrice = unitPrice.toDoubleOrNull() ?: state.item.itemUnitPrice
+                                itemUnitPrice = unitPrice.toDoubleOrNull()
+                                    ?: state.item.itemUnitPrice,
+                                itemUnitPriceStr = Utils.getDoubleValue(
+                                    unitPrice,
+                                    state.item.itemUnitPriceStr ?: ""
+                                )
                             )
                         )
                     }
@@ -296,7 +307,7 @@ fun ManageItemsView(
                             horizontal = 10.dp,
                             vertical = 5.dp
                         ),
-                            defaultValue = state.item.itemTax.toString(),
+                            defaultValue = state.item.itemTaxStr ?: "",
                             label = "Tax",
                             focusRequester = taxFocusRequester,
                             keyboardType = KeyboardType.Decimal,
@@ -312,7 +323,11 @@ fun ManageItemsView(
                             }) { tax ->
                             viewModel.updateItem(
                                 state.item.copy(
-                                    itemTax = tax.toDoubleOrNull() ?: state.item.itemTax
+                                    itemTax = tax.toDoubleOrNull() ?: state.item.itemTax,
+                                    itemTaxStr = Utils.getDoubleValue(
+                                        tax,
+                                        state.item.itemTaxStr ?: ""
+                                    )
                                 )
                             )
                         }
@@ -323,7 +338,7 @@ fun ManageItemsView(
                             horizontal = 10.dp,
                             vertical = 5.dp
                         ),
-                            defaultValue = state.item.itemTax1.toString(),
+                            defaultValue = state.item.itemTax1Str ?: "",
                             label = "Tax1",
                             focusRequester = tax1FocusRequester,
                             keyboardType = KeyboardType.Decimal,
@@ -337,7 +352,11 @@ fun ManageItemsView(
                             }) { tax1 ->
                             viewModel.updateItem(
                                 state.item.copy(
-                                    itemTax1 = tax1.toDoubleOrNull() ?: state.item.itemTax1
+                                    itemTax1 = tax1.toDoubleOrNull() ?: state.item.itemTax1,
+                                    itemTax1Str = Utils.getDoubleValue(
+                                        tax1,
+                                        state.item.itemTax1Str ?: ""
+                                    )
                                 )
                             )
                         }
@@ -348,7 +367,7 @@ fun ManageItemsView(
                             horizontal = 10.dp,
                             vertical = 5.dp
                         ),
-                            defaultValue = state.item.itemTax2.toString(),
+                            defaultValue = state.item.itemTax2Str ?: "",
                             label = "Tax2",
                             focusRequester = tax2FocusRequester,
                             keyboardType = KeyboardType.Decimal,
@@ -356,7 +375,11 @@ fun ManageItemsView(
                             onAction = { barcodeFocusRequester.requestFocus() }) { tax2 ->
                             viewModel.updateItem(
                                 state.item.copy(
-                                    itemTax2 = tax2.toDoubleOrNull() ?: state.item.itemTax2
+                                    itemTax2 = tax2.toDoubleOrNull() ?: state.item.itemTax2,
+                                    itemTax2Str = Utils.getDoubleValue(
+                                        tax2,
+                                        state.item.itemTax2Str ?: ""
+                                    )
                                 )
                             )
                         }
@@ -390,7 +413,7 @@ fun ManageItemsView(
                                         withContext(Dispatchers.Main) {
                                             viewModel.updateItem(
                                                 state.item.copy(
-                                                    itemBarcode = barcode.trim()
+                                                    itemBarcode = barcode
                                                 )
                                             )
                                         }
@@ -430,7 +453,7 @@ fun ManageItemsView(
                                                 if (barcode is String) {
                                                     viewModel.updateItem(
                                                         state.item.copy(
-                                                            itemBarcode = barcode.trim()
+                                                            itemBarcode = barcode
                                                         )
                                                     )
                                                     if (viewModel.shouldDisableCostAndQty()) {
@@ -458,7 +481,7 @@ fun ManageItemsView(
                         }) { barcode ->
                         viewModel.updateItem(
                             state.item.copy(
-                                itemBarcode = barcode.trim()
+                                itemBarcode = barcode
                             )
                         )
                     }
@@ -468,7 +491,7 @@ fun ManageItemsView(
                         horizontal = 10.dp,
                         vertical = 5.dp
                     ),
-                        defaultValue = state.item.itemOpenCost.toString(),
+                        defaultValue = state.item.itemOpenCostStr ?: "",
                         keyboardType = KeyboardType.Decimal,
                         label = "Open cost",
                         placeHolder = "Enter Open cost",
@@ -477,7 +500,11 @@ fun ManageItemsView(
                         onAction = { openQtyFocusRequester.requestFocus() }) { openCost ->
                         viewModel.updateItem(
                             state.item.copy(
-                                itemOpenCost = openCost.toDoubleOrNull() ?: state.item.itemOpenCost
+                                itemOpenCost = openCost.toDoubleOrNull() ?: state.item.itemOpenCost,
+                                itemOpenCostStr = Utils.getDoubleValue(
+                                    openCost,
+                                    state.item.itemOpenCostStr ?: ""
+                                )
                             )
                         )
                     }
@@ -487,7 +514,7 @@ fun ManageItemsView(
                         horizontal = 10.dp,
                         vertical = 5.dp
                     ),
-                        defaultValue = state.item.itemOpenQty.toString(),
+                        defaultValue = state.item.itemOpenQtyStr ?: "",
                         label = "Open Qty",
                         enabled = !viewModel.shouldDisableCostAndQty(),
                         keyboardType = KeyboardType.Decimal,
@@ -496,7 +523,11 @@ fun ManageItemsView(
                         onAction = { btnColorFocusRequester.requestFocus() }) { openQty ->
                         viewModel.updateItem(
                             state.item.copy(
-                                itemOpenQty = openQty.toDoubleOrNull() ?: state.item.itemOpenQty
+                                itemOpenQty = openQty.toDoubleOrNull() ?: state.item.itemOpenQty,
+                                itemOpenQtyStr = Utils.getDoubleValue(
+                                    openQty,
+                                    state.item.itemOpenQtyStr ?: ""
+                                )
                             )
                         )
                     }
@@ -615,7 +646,7 @@ fun ManageItemsView(
                         }) { btnColor ->
                         viewModel.updateItem(
                             state.item.copy(
-                                itemBtnColor = btnColor.trim()
+                                itemBtnColor = btnColor
                             )
                         )
                     }
@@ -625,7 +656,7 @@ fun ManageItemsView(
                         horizontal = 10.dp,
                         vertical = 5.dp
                     ),
-                        defaultValue = state.item.itemBtnTextColor?:"",
+                        defaultValue = state.item.itemBtnTextColor ?: "",
                         label = "Button Text color",
                         placeHolder = "Enter Button Text color",
                         focusRequester = btnTextColorFocusRequester,
@@ -644,7 +675,7 @@ fun ManageItemsView(
                         }) { btnTextColor ->
                         viewModel.updateItem(
                             state.item.copy(
-                                itemBtnTextColor = btnTextColor.trim()
+                                itemBtnTextColor = btnTextColor
                             )
                         )
                     }
@@ -704,7 +735,8 @@ fun ManageItemsView(
                                                     context = context,
                                                     uri = uris[0],
                                                     parent = "item",
-                                                    fileName = ((state.item.itemName ?: "item").trim()
+                                                    fileName = ((state.item.itemName
+                                                        ?: "item").trim()
                                                         .replace(
                                                             " ",
                                                             "_"
@@ -736,7 +768,7 @@ fun ManageItemsView(
                         }) { img ->
                         viewModel.updateItem(
                             state.item.copy(
-                                itemImage = img.trim()
+                                itemImage = img
                             )
                         )
                     }
@@ -845,12 +877,13 @@ fun ManageItemsView(
                                             val resp = barcodesList[0]
                                             if (resp is String) {
                                                 scope.launch(Dispatchers.Default) {
-                                                    val barcodeItem = state.items.firstOrNull { iterator ->
-                                                        iterator.itemBarcode.equals(
-                                                            resp,
-                                                            ignoreCase = true
-                                                        )
-                                                    }
+                                                    val barcodeItem =
+                                                        state.items.firstOrNull { iterator ->
+                                                            iterator.itemBarcode.equals(
+                                                                resp,
+                                                                ignoreCase = true
+                                                            )
+                                                        }
                                                     withContext(Dispatchers.Main) {
                                                         if (barcodeItem != null) {
                                                             collapseItemListState = true

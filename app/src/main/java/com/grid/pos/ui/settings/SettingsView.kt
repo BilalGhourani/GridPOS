@@ -179,7 +179,7 @@ fun SettingsView(
     var isColorsSectionExpanded by remember { mutableStateOf(false) }
 
     var isLoading by remember { mutableStateOf(false) }
-    val isLoggedId = sharedViewModel.isLoggedIn()
+    val isLoggedId = sharedViewModel.isLoggedIn
     val scope = rememberCoroutineScope()
 
     fun handleBack() {

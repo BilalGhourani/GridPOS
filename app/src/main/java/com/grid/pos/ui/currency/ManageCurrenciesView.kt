@@ -51,6 +51,7 @@ import com.grid.pos.model.ToastModel
 import com.grid.pos.ui.common.UIImageButton
 import com.grid.pos.ui.common.UITextField
 import com.grid.pos.ui.theme.GridPOSTheme
+import com.grid.pos.utils.Utils
 
 @OptIn(
     ExperimentalMaterial3Api::class
@@ -221,7 +222,7 @@ fun ManageCurrenciesView(
                                 .padding(
                                     horizontal = 5.dp
                                 ),
-                                defaultValue = state.currency.currencyName1Dec.toString(),
+                                defaultValue = state.currency.currencyName1DecStr?:"",
                                 keyboardType = KeyboardType.Decimal,
                                 label = "Decimal",
                                 focusRequester = curName1DecFocusRequester,
@@ -229,7 +230,11 @@ fun ManageCurrenciesView(
                                 viewModel.updateCurrency(
                                     state.currency.copy(
                                         currencyName1Dec = curName1Dec.toIntOrNull()
-                                            ?: state.currency.currencyName1Dec
+                                            ?: state.currency.currencyName1Dec,
+                                        currencyName1DecStr = Utils.getIntValue(
+                                            curName1Dec,
+                                            state.currency.currencyName1DecStr ?: ""
+                                        )
                                     )
                                 )
                             }
@@ -284,7 +289,7 @@ fun ManageCurrenciesView(
                                 .padding(
                                     horizontal = 5.dp
                                 ),
-                                defaultValue = state.currency.currencyName2Dec.toString(),
+                                defaultValue = state.currency.currencyName2DecStr?:"",
                                 keyboardType = KeyboardType.Decimal,
                                 label = "Decimal",
                                 focusRequester = curName2DecFocusRequester,
@@ -292,14 +297,18 @@ fun ManageCurrenciesView(
                                 viewModel.updateCurrency(
                                     state.currency.copy(
                                         currencyName2Dec = curName2Dec.toIntOrNull()
-                                            ?: state.currency.currencyName2Dec
+                                            ?: state.currency.currencyName2Dec,
+                                        currencyName2DecStr = Utils.getIntValue(
+                                            curName2Dec,
+                                            state.currency.currencyName2DecStr ?: ""
+                                        )
                                     )
                                 )
                             }
                         }
 
                         UITextField(modifier = Modifier.padding(10.dp),
-                            defaultValue = state.currency.currencyRate.toString(),
+                            defaultValue =  state.currency.currencyRateStr?:"",
                             keyboardType = KeyboardType.Decimal,
                             label = "Rate",
                             placeHolder = "Enter Rate",
@@ -308,7 +317,11 @@ fun ManageCurrenciesView(
                             onAction = { keyboardController?.hide() }) { rateStr ->
                             viewModel.updateCurrency(
                                 state.currency.copy(
-                                    currencyRate = rateStr.toDoubleOrNull() ?: state.currency.currencyRate
+                                    currencyRate = rateStr.toDoubleOrNull() ?: state.currency.currencyRate,
+                                    currencyRateStr = Utils.getDoubleValue(
+                                        rateStr,
+                                        state.currency.currencyRateStr ?: ""
+                                    )
                                 )
                             )
                         }

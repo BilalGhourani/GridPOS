@@ -118,9 +118,6 @@ fun PaymentsView(
                 })
             return
         }
-        if (state.thirdParties.isNotEmpty()) {
-            sharedViewModel.thirdParties = state.thirdParties
-        }
         navController?.navigateUp()
     }
 
@@ -383,7 +380,7 @@ fun PaymentsView(
                         onAction = { noteFocusRequester.requestFocus() }) { desc ->
                         viewModel.updatePayment(
                             state.payment.copy(
-                                paymentDesc = desc.trim()
+                                paymentDesc = desc
                             )
                         )
                     }
@@ -401,7 +398,7 @@ fun PaymentsView(
                         onAction = { keyboardController?.hide() }) { note ->
                         viewModel.updatePayment(
                             state.payment.copy(
-                                paymentNote = note.trim()
+                                paymentNote = note
                             )
                         )
                     }

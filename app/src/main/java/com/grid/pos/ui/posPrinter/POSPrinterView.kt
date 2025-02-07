@@ -54,6 +54,7 @@ import com.grid.pos.ui.common.SearchableDropdownMenuEx
 import com.grid.pos.ui.common.UIImageButton
 import com.grid.pos.ui.common.UITextField
 import com.grid.pos.ui.theme.GridPOSTheme
+import com.grid.pos.utils.Utils
 import kotlinx.coroutines.launch
 
 @OptIn(
@@ -114,9 +115,6 @@ fun POSPrinterView(
                     negativeBtnText = "Close"
                 })
             return
-        }
-        if (state.printers.isNotEmpty()) {
-            sharedViewModel.printers = state.printers
         }
         viewModel.closeConnectionIfNeeded()
         navController?.navigateUp()
@@ -202,7 +200,7 @@ fun POSPrinterView(
                         onAction = { hostFocusRequester.requestFocus() }) { name ->
                         viewModel.updatePrinter(
                             state.printer.copy(
-                                posPrinterName = name.trim()
+                                posPrinterName = name
                             )
                         )
                     }
@@ -217,7 +215,7 @@ fun POSPrinterView(
                         onAction = { portFocusRequester.requestFocus() }) { host ->
                         viewModel.updatePrinter(
                             state.printer.copy(
-                                posPrinterHost = host.trim()
+                                posPrinterHost = host
                             )
                         )
                     }
@@ -226,13 +224,17 @@ fun POSPrinterView(
                         horizontal = 10.dp,
                         vertical = 5.dp
                     ),
-                        defaultValue = state.printer.posPrinterPort.toString(),
+                        defaultValue = state.printer.posPrinterPortStr ?: "",
                         label = "Port",
                         placeHolder = "ex:9100",
                         onAction = { typeFocusRequester.requestFocus() }) { port ->
                         viewModel.updatePrinter(
                             state.printer.copy(
-                                posPrinterPort = port.toIntOrNull() ?: state.printer.posPrinterPort
+                                posPrinterPort = port.toIntOrNull() ?: state.printer.posPrinterPort,
+                                posPrinterPortStr = Utils.getIntValue(
+                                    port,
+                                    state.printer.posPrinterPortStr ?: ""
+                                )
                             )
                         )
                     }
@@ -248,7 +250,7 @@ fun POSPrinterView(
                         onAction = { keyboardController?.hide() }) { type ->
                         viewModel.updatePrinter(
                             state.printer.copy(
-                                posPrinterType = type.trim()
+                                posPrinterType = type
                             )
                         )
                     }
@@ -321,8 +323,10 @@ fun POSPrinterView(
                         viewModel.resetState()
                     }) { printer ->
                     printer as PosPrinter
-                    viewModel.currentPrinter = printer.copy()
-                    viewModel.updatePrinter(printer.copy())
+                    viewModel.currentPrinter = printer.copy(
+                        posPrinterPortStr = printer.posPrinterPort.toString()
+                    )
+                    viewModel.updatePrinter(viewModel.currentPrinter.copy())
                 }
             }
         }

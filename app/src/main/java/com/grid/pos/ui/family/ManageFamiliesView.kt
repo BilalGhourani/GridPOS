@@ -128,9 +128,6 @@ fun ManageFamiliesView(
                 })
             return
         }
-        if (state.families.isNotEmpty()) {
-            sharedViewModel.families = state.families
-        }
         viewModel.closeConnectionIfNeeded()
         navController?.navigateUp()
     }

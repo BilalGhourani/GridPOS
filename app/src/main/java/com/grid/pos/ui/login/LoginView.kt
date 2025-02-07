@@ -150,8 +150,8 @@ fun LoginView(
     LaunchedEffect(state.isLoggedIn) {
         if (state.isLoggedIn) {
             scope.launch(Dispatchers.IO) {
-                sharedViewModel.activityState.value.isLoggedIn = true
-                sharedViewModel.activityState.value.warning = null
+                sharedViewModel.isLoggedIn = true
+                sharedViewModel.homeWarning = null
                 withContext(Dispatchers.Main) {
                     state.isLoading = true
                 }

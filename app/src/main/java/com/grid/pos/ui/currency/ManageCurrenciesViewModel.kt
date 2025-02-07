@@ -42,8 +42,12 @@ class ManageCurrenciesViewModel @Inject constructor(
 
     private fun fetchCurrencies() {
         SettingsModel.currentCurrency?.let {
-            currentCurrency = it.copy()
-            updateCurrency(it.copy())
+            currentCurrency = it.copy(
+                currencyName1DecStr = it.currencyName1Dec.toString(),
+                currencyName2DecStr = it.currencyName2Dec.toString(),
+                currencyRateStr = it.currencyRate.toString()
+            )
+            updateCurrency(currentCurrency.copy())
             viewModelScope.launch(Dispatchers.IO) {
                 openConnectionIfNeeded()
             }
@@ -58,8 +62,12 @@ class ManageCurrenciesViewModel @Inject constructor(
             val currency = if (currencies.size > 0) currencies[0] else Currency()
             SettingsModel.currentCurrency = currency.copy()
             withContext(Dispatchers.Main) {
-                currentCurrency = currency.copy()
-                updateCurrency(currency.copy())
+                currentCurrency = currency.copy(
+                    currencyName1DecStr = currency.currencyName1Dec.toString(),
+                    currencyName2DecStr = currency.currencyName2Dec.toString(),
+                    currencyRateStr = currency.currencyRate.toString()
+                )
+                updateCurrency(currentCurrency.copy())
                 state.value = state.value.copy(
                     isLoading = false
                 )

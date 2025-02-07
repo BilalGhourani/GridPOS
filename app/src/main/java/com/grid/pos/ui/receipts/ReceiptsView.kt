@@ -118,9 +118,6 @@ fun ReceiptsView(
                 })
             return
         }
-        if (state.thirdParties.isNotEmpty()) {
-            sharedViewModel.thirdParties = state.thirdParties
-        }
         navController?.navigateUp()
     }
 
@@ -386,7 +383,7 @@ fun ReceiptsView(
                         onAction = { noteFocusRequester.requestFocus() }) { desc ->
                         viewModel.updateReceipt(
                             state.receipt.copy(
-                                receiptDesc = desc.trim()
+                                receiptDesc = desc
                             )
                         )
                     }
@@ -404,7 +401,7 @@ fun ReceiptsView(
                         onAction = { keyboardController?.hide() }) { note ->
                         viewModel.updateReceipt(
                             state.receipt.copy(
-                                receiptNote = note.trim()
+                                receiptNote = note
                             )
                         )
                     }

@@ -60,6 +60,7 @@ import com.grid.pos.ui.common.UISwitch
 import com.grid.pos.ui.common.UITextField
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.utils.FileUtils
+import com.grid.pos.utils.Utils
 
 @SuppressLint("CoroutineCreationDuringComposition")
 @OptIn(ExperimentalMaterial3Api::class)
@@ -163,9 +164,6 @@ fun ManageCompaniesView(
                     icon = null
                 })
             return
-        }
-        if (state.companies.isNotEmpty()) {
-            sharedViewModel.companies = state.companies
         }
         viewModel.closeConnectionIfNeeded()
         navController?.navigateUp()
@@ -433,7 +431,7 @@ fun ManageCompaniesView(
                             horizontal = 10.dp,
                             vertical = 5.dp
                         ),
-                            defaultValue = state.company.getTaxString(),
+                            defaultValue =  state.company.companyTaxStr?:"",
                             label = "Tax",
                             focusRequester = taxFocusRequester,
                             keyboardType = KeyboardType.Decimal,
@@ -450,7 +448,8 @@ fun ManageCompaniesView(
                             val companyTax = tax.toDoubleOrNull() ?: state.company.companyTax
                             viewModel.updateCompany(
                                 state.company.copy(
-                                    companyTax = companyTax
+                                    companyTax = companyTax,
+                                    companyTaxStr = Utils.getDoubleValue(tax,state.company.companyTaxStr?:"")
                                 )
                             )
                         }
@@ -478,7 +477,7 @@ fun ManageCompaniesView(
                             horizontal = 10.dp,
                             vertical = 5.dp
                         ),
-                            defaultValue = state.company.getTax1String(),
+                            defaultValue = state.company.companyTax1Str?:"",
                             label = "Tax1",
                             keyboardType = KeyboardType.Decimal,
                             placeHolder = "Enter Tax1",
@@ -493,7 +492,8 @@ fun ManageCompaniesView(
                             val companyTax1 = tax1.toDoubleOrNull() ?: state.company.companyTax1
                             viewModel.updateCompany(
                                 state.company.copy(
-                                    companyTax1 = companyTax1
+                                    companyTax1 = companyTax1,
+                                    companyTax1Str = Utils.getDoubleValue(tax1,state.company.companyTax1Str?:"")
                                 )
                             )
                         }
@@ -521,7 +521,7 @@ fun ManageCompaniesView(
                             horizontal = 10.dp,
                             vertical = 5.dp
                         ),
-                            defaultValue = state.company.getTax2String(),
+                            defaultValue =  state.company.companyTax2Str?:"",
                             label = "Tax2",
                             keyboardType = KeyboardType.Decimal,
                             placeHolder = "Enter Tax2",
@@ -530,7 +530,8 @@ fun ManageCompaniesView(
                             val companyTax2 = tax2.toDoubleOrNull() ?: state.company.companyTax2
                             viewModel.updateCompany(
                                 state.company.copy(
-                                    companyTax2 = companyTax2
+                                    companyTax2 = companyTax2,
+                                    companyTax2Str = Utils.getDoubleValue(tax2,state.company.companyTax2Str?:"")
                                 )
                             )
                         }
@@ -631,8 +632,12 @@ fun ManageCompaniesView(
                         viewModel.resetState()
                     }) { company ->
                     company as Company
-                    viewModel.currentCompany = company.copy()
-                    viewModel.updateCompany(company.copy())
+                    viewModel.currentCompany = company.copy(
+                        companyTaxStr = company.companyTax.toString(),
+                        companyTax1Str = company.companyTax1.toString(),
+                        companyTax2Str = company.companyTax2.toString()
+                    )
+                    viewModel.updateCompany(viewModel.currentCompany.copy())
                 }
             }
         }

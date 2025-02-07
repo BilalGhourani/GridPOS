@@ -359,6 +359,10 @@ object Utils {
         )
     }
 
+    fun getDoubleString(value: Double):String {
+        return if (value == 0.0) "" else value.toString()
+    }
+
     fun getDoubleValue(
         new: String,
         old: String

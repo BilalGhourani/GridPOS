@@ -69,6 +69,10 @@ data class Company(
         @get:PropertyName("cmp_tax")
         var companyTax: Double = 0.0,
 
+        @Ignore
+        @get:Exclude
+        var companyTaxStr: String? = null,
+
         /**
          * Company currency code tax
          * */
@@ -141,6 +145,10 @@ data class Company(
         @get:PropertyName("cmp_tax1")
         var companyTax1: Double = 0.0,
 
+        @Ignore
+        @get:Exclude
+        var companyTax1Str: String? = null,
+
         /**
          * Company Tax 1 Regno
          * */
@@ -156,6 +164,10 @@ data class Company(
         @set:PropertyName("cmp_tax2")
         @get:PropertyName("cmp_tax2")
         var companyTax2: Double = 0.0,
+
+        @Ignore
+        @get:Exclude
+        var companyTax2Str: String? = null,
 
         /**
          * Company Tax 2 Regno
@@ -238,29 +250,5 @@ data class Company(
             "cmp_tax2" to companyTax2,
             "cmp_tax2regno" to companyTax2Regno,
         )
-    }
-
-    fun getTaxString():String{
-       return if(companyTax == 0.0){
-            ""
-        }else{
-           companyTax.toString()
-       }
-    }
-
-    fun getTax1String():String{
-        return if(companyTax1 == 0.0){
-            ""
-        }else{
-            companyTax1.toString()
-        }
-    }
-
-    fun getTax2String():String{
-        return if(companyTax2 == 0.0){
-            ""
-        }else{
-            companyTax2.toString()
-        }
     }
 }

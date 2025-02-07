@@ -134,9 +134,6 @@ fun ManageUsersView(
                 })
             return
         }
-        if (state.users.isNotEmpty()) {
-            sharedViewModel.users = state.users
-        }
         viewModel.closeConnectionIfNeeded()
         navController?.navigateUp()
     }
@@ -216,7 +213,7 @@ fun ManageUsersView(
                         onAction = { usernameFocusRequester.requestFocus() }) { name ->
                         viewModel.updateUser(
                             state.user.copy(
-                                userName = name.trim()
+                                userName = name
                             )
                         )
                     }
@@ -232,7 +229,7 @@ fun ManageUsersView(
                         onAction = { passwordFocusRequester.requestFocus() }) { username ->
                         viewModel.updateUser(
                             state.user.copy(
-                                userUsername = username.trim()
+                                userUsername = username
                             )
                         )
                     }
@@ -260,7 +257,7 @@ fun ManageUsersView(
                         }) { password ->
                         viewModel.updateUser(
                             state.user.copy(
-                                userPassword = password.trim()
+                                userPassword = password
                             )
                         )
                     }

@@ -14,7 +14,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -30,10 +29,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.grid.pos.SharedViewModel
-import com.grid.pos.ActivityState
 import com.grid.pos.R
-import com.grid.pos.model.Event
+import com.grid.pos.SharedViewModel
 import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.theme.GridPOSTheme
@@ -48,9 +45,6 @@ fun HomeView(
         navController: NavController? = null,
         sharedViewModel: SharedViewModel,
 ) {
-    val activityState: ActivityState by sharedViewModel.activityState.collectAsState(
-        ActivityState()
-    )
     val context = LocalContext.current
     var isLogoutPopupShown by remember { mutableStateOf(false) }
     var columnCount by remember { mutableIntStateOf(Utils.getColumnCount(context)) }
@@ -62,17 +56,8 @@ fun HomeView(
         }
     }
 
-    LaunchedEffect(
-        true,
-        activityState.isLoggedIn,
-        activityState.warning
-    ) {
+    LaunchedEffect(Unit) {
         keyboardController?.hide()
-        activityState.warning?.value?.let {
-            if (it.isNotEmpty()) {
-                isLogoutPopupShown = true
-            }
-        }
     }
 
     fun logout() {
@@ -86,21 +71,21 @@ fun HomeView(
             if (!isLogoutPopupShown) null else PopupModel().apply {
                 onDismissRequest = {
                     isLogoutPopupShown = false
-                    activityState.warning = null
-                    if (activityState.forceLogout) logout()
+                    sharedViewModel.homeWarning = null
+                    if (sharedViewModel.forceLogout) logout()
                 }
                 onConfirmation = {
                     isLogoutPopupShown = false
-                    activityState.warning = null
+                    sharedViewModel.homeWarning = null
                     logout()
                 }
-                dialogText = activityState.warning?.value ?: SettingsModel.companyAccessWarning
+                dialogText = sharedViewModel.homeWarning?:SettingsModel.companyAccessWarning
             })
     }
     fun askToLogout() {
         if (!isLogoutPopupShown) {
-            activityState.warning = Event("Are you sure you want to logout?")
-            activityState.forceLogout = false
+            sharedViewModel.homeWarning = "Are you sure you want to logout?"
+            sharedViewModel.forceLogout = false
             isLogoutPopupShown = true
         }
     }

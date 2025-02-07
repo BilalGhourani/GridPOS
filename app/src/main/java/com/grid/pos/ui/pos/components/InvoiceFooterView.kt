@@ -21,7 +21,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.grid.pos.data.currency.Currency
 import com.grid.pos.data.invoiceHeader.InvoiceHeader
@@ -30,15 +29,13 @@ import com.grid.pos.data.thirdParty.ThirdParty
 import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.SearchableDropdownMenuEx
-import com.grid.pos.ui.theme.GridPOSTheme
+import com.grid.pos.ui.pos.POSState
+import com.grid.pos.ui.pos.POSViewModel
 
 @Composable
 fun InvoiceFooterView(
-    invoiceHeader: InvoiceHeader,
-    items: MutableList<Item> = mutableListOf(),
-    thirdParties: MutableList<ThirdParty> = mutableListOf(),
-    invoiceHeaders: MutableList<InvoiceHeader> = mutableListOf(),
-    defaultThirdParty: ThirdParty? = null,
+    state: POSState,
+    viewModel:POSViewModel,
     modifier: Modifier = Modifier,
     isFromTable: Boolean = false,
     onLoadClients: () -> Unit = {},
@@ -52,7 +49,7 @@ fun InvoiceFooterView(
 ) {
     val currency = SettingsModel.currentCurrency ?: Currency()
 
-    var clientState by remember { mutableStateOf(invoiceHeader.invoiceHeadCashName ?: "") }
+    var clientState by remember { mutableStateOf(state.invoiceHeader.invoiceHeadCashName ?: "") }
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -60,7 +57,7 @@ fun InvoiceFooterView(
     ) {
         if (!isFromTable) {
             SearchableDropdownMenuEx(
-                items = invoiceHeaders.toMutableList(),
+                items = state.invoiceHeaders.toMutableList(),
                 showSelected = false,
                 selectedId = null,
                 modifier = Modifier
@@ -91,7 +88,7 @@ fun InvoiceFooterView(
                 maxLines = 1,
                 text = String.format(
                     "%,.${currency.currencyName1Dec}f %s",
-                    invoiceHeader.invoiceHeadTotal,
+                    state.invoiceHeader.invoiceHeadTotal,
                     currency.currencyCode1 ?: ""
                 ),
                 color = SettingsModel.textColor
@@ -105,7 +102,7 @@ fun InvoiceFooterView(
                     maxLines = 1,
                     text = String.format(
                         "%,.${currency.currencyName2Dec}f %s",
-                        invoiceHeader.invoiceHeadTotal1,
+                        state.invoiceHeader.invoiceHeadTotal1,
                         currency.currencyCode2 ?: ""
                     ),
                     color = SettingsModel.textColor
@@ -133,7 +130,7 @@ fun InvoiceFooterView(
                         .wrapContentHeight()
                         .padding(horizontal = 5.dp),
                     maxLines = 1,
-                    text = invoiceHeader.invoiceHeadTaName ?: "",
+                    text = state.invoiceHeader.invoiceHeadTaName ?: "",
                     color = SettingsModel.textColor
                 )
             }
@@ -144,7 +141,7 @@ fun InvoiceFooterView(
                     .wrapContentHeight()
                     .padding(5.dp),
             ) {
-                SearchableDropdownMenuEx(items = items.toMutableList(),
+                SearchableDropdownMenuEx(items = state.items.toMutableList(),
                     showSelected = false,
                     modifier = Modifier
                         .weight(1f)
@@ -171,26 +168,26 @@ fun InvoiceFooterView(
                 }
 
                 val selectedThirdParty =
-                    if (invoiceHeader.invoiceHeadThirdPartyName.isNullOrEmpty()) {
-                        defaultThirdParty
-                            ?: thirdParties.firstOrNull { it.thirdPartyDefault }
+                    if (state.invoiceHeader.invoiceHeadThirdPartyName.isNullOrEmpty()) {
+                        viewModel.defaultThirdParty
+                            ?: state.thirdParties.firstOrNull { it.thirdPartyDefault }
                     } else {
-                        thirdParties.firstOrNull {
+                        state.thirdParties.firstOrNull {
                             it.thirdPartyId.equals(
-                                invoiceHeader.invoiceHeadThirdPartyName,
+                                state.invoiceHeader.invoiceHeadThirdPartyName,
                                 ignoreCase = true
                             )
-                        } ?: defaultThirdParty
+                        } ?: viewModel.defaultThirdParty
                     }
                 selectedThirdParty?.let {
                     clientState = it.thirdPartyName ?: ""
-                    invoiceHeader.invoiceHeadThirdPartyNewName = it.thirdPartyName
+                    state.invoiceHeader.invoiceHeadThirdPartyNewName = it.thirdPartyName
                     onThirdPartySelected.invoke(it)
                 } ?: run {
                     clientState = ""
-                    invoiceHeader.invoiceHeadThirdPartyNewName = null
+                    state.invoiceHeader.invoiceHeadThirdPartyNewName = null
                 }
-                SearchableDropdownMenuEx(items = thirdParties.toMutableList(),
+                SearchableDropdownMenuEx(items = state.thirdParties.toMutableList(),
                     selectedId = selectedThirdParty?.thirdPartyId,
                     modifier = Modifier
                         .weight(1f)
@@ -219,15 +216,5 @@ fun InvoiceFooterView(
 
         }
 
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun InvoiceFooterViewPreview() {
-    GridPOSTheme {
-        InvoiceFooterView(
-            invoiceHeader = InvoiceHeader()
-        )
     }
 }

@@ -96,7 +96,6 @@ fun TablesView(
 
     fun lockTableAndMoveToPos() {
         viewModel.lockTableAndMoveToPos {
-            sharedViewModel.invoiceHeader = state.invoiceHeader.copy()
             sharedViewModel.pendingInvHeadState = state.invoiceHeader
             sharedViewModel.shouldLoadInvoice = true
             sharedViewModel.isFromTable = true

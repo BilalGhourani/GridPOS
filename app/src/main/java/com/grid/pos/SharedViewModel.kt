@@ -7,23 +7,13 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.lifecycle.viewModelScope
 import com.grid.pos.data.FirebaseWrapper
 import com.grid.pos.data.SQLServerWrapper
-import com.grid.pos.data.company.Company
 import com.grid.pos.data.company.CompanyRepository
-import com.grid.pos.data.currency.Currency
 import com.grid.pos.data.currency.CurrencyRepository
-import com.grid.pos.data.family.Family
 import com.grid.pos.data.invoiceHeader.InvoiceHeader
 import com.grid.pos.data.item.Item
-import com.grid.pos.data.posPrinter.PosPrinter
-import com.grid.pos.data.posPrinter.PosPrinterRepository
-import com.grid.pos.data.posReceipt.PosReceipt
 import com.grid.pos.data.settings.SettingsRepository
-import com.grid.pos.data.thirdParty.ThirdParty
-import com.grid.pos.data.thirdParty.ThirdPartyRepository
-import com.grid.pos.data.user.User
 import com.grid.pos.interfaces.OnBarcodeResult
 import com.grid.pos.interfaces.OnGalleryResult
-import com.grid.pos.model.Event
 import com.grid.pos.model.InvoiceItemModel
 import com.grid.pos.model.PopupModel
 import com.grid.pos.model.ReportCountry
@@ -35,7 +25,6 @@ import com.grid.pos.utils.FileUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -46,37 +35,28 @@ class SharedViewModel @Inject constructor(
     private val settingsRepository: SettingsRepository,
     private val currencyRepository: CurrencyRepository,
     private val companyRepository: CompanyRepository,
-    private val thirdPartyRepository: ThirdPartyRepository,
-    private val posPrinterRepository: PosPrinterRepository
 ) : BaseViewModel() {
     private val _mainActivityEvent = Channel<ActivityUIEvent>()
     val mainActivityEvent = _mainActivityEvent.receiveAsFlow()
 
     var isRegistering: Boolean = false
 
-    var posReceipt: PosReceipt = PosReceipt()
-    var invoiceHeader: InvoiceHeader = InvoiceHeader()
     var pendingInvHeadState: InvoiceHeader? = null
     var reportsToPrint: MutableList<ReportResult> = mutableListOf()
-    var invoiceItemModels: MutableList<InvoiceItemModel> = mutableListOf()
     var initialInvoiceItemModels: MutableList<InvoiceItemModel> = mutableListOf()
-    var deletedInvoiceItems: MutableList<InvoiceItemModel> = mutableListOf()
     var shouldLoadInvoice: Boolean = false
     var isFromTable: Boolean = false
-    var companies: MutableList<Company> = mutableListOf()
-    var currencies: MutableList<Currency> = mutableListOf()
-    var users: MutableList<User> = mutableListOf()
-    var thirdParties: MutableList<ThirdParty> = mutableListOf()
-    var families: MutableList<Family> = mutableListOf()
-    var items: MutableList<Item> = mutableListOf()
-    var invoiceHeaders: MutableList<InvoiceHeader> = mutableListOf()
-    var printers: MutableList<PosPrinter> = mutableListOf()
+
     var reportCountries: MutableList<ReportCountry> = mutableListOf()
+
+    var fetchItemsAgain = false
+    var fetchThirdPartiesAgain = false
 
     var selectedReportType: String? = null
 
-    private val _activityState = MutableStateFlow(ActivityState())
-    val activityState: MutableStateFlow<ActivityState> = _activityState
+    var isLoggedIn: Boolean = false
+    var forceLogout: Boolean = false
+    var homeWarning: String?=null
 
     init {
         FirebaseWrapper.initialize(this)
@@ -89,7 +69,6 @@ class SharedViewModel @Inject constructor(
             fetchCompanies()
             fetchCurrencies()
             fetchSettings()
-            fetchPrinters()
         }
     }
 
@@ -115,16 +94,9 @@ class SharedViewModel @Inject constructor(
 
     private suspend fun fetchCurrencies() {
         if (SettingsModel.currentCurrency == null) {
-            currencies = currencyRepository.getAllCurrencies()
-            currencies.forEach {
-                if (it.currencyCompId.equals(
-                        SettingsModel.getCompanyID(),
-                        ignoreCase = true
-                    )
-                ) {
-                    SettingsModel.currentCurrency = it
-                }
-            }
+            val currencies = currencyRepository.getAllCurrencies()
+            if (currencies.isNotEmpty())
+                SettingsModel.currentCurrency = currencies[0]
         }
     }
 
@@ -134,18 +106,13 @@ class SharedViewModel @Inject constructor(
         if (SettingsModel.currentCompany?.companySS == true) {
             SettingsModel.currentUser = null
             withContext(Dispatchers.Main) {
-                activityState.value = activityState.value.copy(
-                    isLoggedIn = false,
-                    warning = Event(SettingsModel.companyAccessWarning),
-                    forceLogout = true
-                )
+                isLoggedIn = false
+                forceLogout = true
+                logout()
             }
         }
     }
 
-    private suspend fun fetchPrinters() {
-        printers = posPrinterRepository.getAllPosPrinters()
-    }
 
     suspend fun updateRealItemPrice(item: Item) {
         if (item.itemCurrencyId.isNullOrEmpty()) return
@@ -179,11 +146,7 @@ class SharedViewModel @Inject constructor(
     }
 
     fun clearPosValues() {
-        invoiceItemModels = mutableListOf()
         initialInvoiceItemModels = mutableListOf()
-        deletedInvoiceItems = mutableListOf()
-        invoiceHeader = InvoiceHeader()
-        posReceipt = PosReceipt()
         pendingInvHeadState = null
         shouldLoadInvoice = false
         isFromTable = false
@@ -306,30 +269,18 @@ class SharedViewModel @Inject constructor(
         }
     }
 
-    fun isLoggedIn(): Boolean {
-        return activityState.value.isLoggedIn
-    }
 
     fun logout() {
-        activityState.value.isLoggedIn = false
+        isLoggedIn = false
         SettingsModel.currentUser = null
         SettingsModel.currentCompany = null
         SettingsModel.currentCurrency = null
         SettingsModel.defaultSqlServerBranch = null
         SettingsModel.defaultSqlServerWarehouse = null
-        posReceipt = PosReceipt()
-        invoiceHeader = InvoiceHeader()
+
         pendingInvHeadState = null
-        invoiceItemModels.clear()
         shouldLoadInvoice = false
         isFromTable = false
-        companies.clear()
-        currencies.clear()
-        users.clear()
-        thirdParties.clear()
-        families.clear()
-        invoiceHeaders.clear()
-        printers.clear()
         closeConnectionIfNeeded()
     }
 
