@@ -14,7 +14,6 @@ import com.grid.pos.data.item.Item
 import com.grid.pos.data.settings.SettingsRepository
 import com.grid.pos.interfaces.OnBarcodeResult
 import com.grid.pos.interfaces.OnGalleryResult
-import com.grid.pos.model.InvoiceItemModel
 import com.grid.pos.model.PopupModel
 import com.grid.pos.model.ReportCountry
 import com.grid.pos.model.ReportResult
@@ -41,9 +40,12 @@ class SharedViewModel @Inject constructor(
 
     var isRegistering: Boolean = false
 
-    var pendingInvHeadState: InvoiceHeader? = null
+    var isLoggedIn: Boolean = false
+    var forceLogout: Boolean = false
+    var homeWarning: String?=null
+
+    var tempInvoiceHeader: InvoiceHeader? = null
     var reportsToPrint: MutableList<ReportResult> = mutableListOf()
-    var initialInvoiceItemModels: MutableList<InvoiceItemModel> = mutableListOf()
     var shouldLoadInvoice: Boolean = false
     var isFromTable: Boolean = false
 
@@ -54,10 +56,6 @@ class SharedViewModel @Inject constructor(
 
     var selectedReportType: String? = null
 
-    var isLoggedIn: Boolean = false
-    var forceLogout: Boolean = false
-    var homeWarning: String?=null
-
     init {
         FirebaseWrapper.initialize(this)
         SQLServerWrapper.initialize(this)
@@ -66,7 +64,6 @@ class SharedViewModel @Inject constructor(
     suspend fun initiateValues() {
         if (SettingsModel.currentUser != null) {
             openConnectionIfNeeded()
-            fetchCompanies()
             fetchCurrencies()
             fetchSettings()
         }
@@ -100,19 +97,6 @@ class SharedViewModel @Inject constructor(
         }
     }
 
-    private suspend fun fetchCompanies() {
-        val companyId = SettingsModel.getCompanyID() ?: return
-        SettingsModel.currentCompany = companyRepository.getCompanyById(companyId)
-        if (SettingsModel.currentCompany?.companySS == true) {
-            SettingsModel.currentUser = null
-            withContext(Dispatchers.Main) {
-                isLoggedIn = false
-                forceLogout = true
-                logout()
-            }
-        }
-    }
-
 
     suspend fun updateRealItemPrice(item: Item) {
         if (item.itemCurrencyId.isNullOrEmpty()) return
@@ -143,14 +127,6 @@ class SharedViewModel @Inject constructor(
                 }
             }
         }
-    }
-
-    fun clearPosValues() {
-        initialInvoiceItemModels = mutableListOf()
-        pendingInvHeadState = null
-        shouldLoadInvoice = false
-        isFromTable = false
-        reportsToPrint = mutableListOf()
     }
 
     fun finish() {
@@ -278,7 +254,7 @@ class SharedViewModel @Inject constructor(
         SettingsModel.defaultSqlServerBranch = null
         SettingsModel.defaultSqlServerWarehouse = null
 
-        pendingInvHeadState = null
+        tempInvoiceHeader = null
         shouldLoadInvoice = false
         isFromTable = false
         closeConnectionIfNeeded()

@@ -39,7 +39,10 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -62,6 +65,7 @@ import com.grid.pos.SharedViewModel
 import com.grid.pos.data.invoiceHeader.InvoiceHeader
 import com.grid.pos.data.item.Item
 import com.grid.pos.data.posReceipt.PosReceipt
+import com.grid.pos.data.thirdParty.ThirdParty
 import com.grid.pos.interfaces.OnBarcodeResult
 import com.grid.pos.model.InvoiceItemModel
 import com.grid.pos.model.PopupModel
@@ -97,14 +101,17 @@ fun POSView(
     val keyboardController = LocalSoftwareKeyboardController.current
     val scope = rememberCoroutineScope()
 
+    var isSavePopupVisible by remember { mutableStateOf(false) }
+
     LaunchedEffect(
         sharedViewModel.shouldLoadInvoice,
         sharedViewModel.fetchItemsAgain,
         sharedViewModel.fetchThirdPartiesAgain
     ) {
-        if (sharedViewModel.shouldLoadInvoice && sharedViewModel.pendingInvHeadState != null) {
+        if (sharedViewModel.shouldLoadInvoice && sharedViewModel.tempInvoiceHeader != null) {
             sharedViewModel.shouldLoadInvoice = false
-            viewModel.loadInvoiceDetails(sharedViewModel.pendingInvHeadState!!)
+            viewModel.loadInvoiceDetails(sharedViewModel.tempInvoiceHeader!!.copy())
+            sharedViewModel.tempInvoiceHeader = null
         }
         if (sharedViewModel.fetchItemsAgain) {
             sharedViewModel.fetchItemsAgain = false
@@ -126,9 +133,6 @@ fun POSView(
             viewModel.updateState(
                 state.copy(
                     orientation = it,
-                    /*isEditBottomSheetVisible = false,
-                    isAddItemBottomSheetVisible = false,
-                    isPayBottomSheetVisible = false*/
                 )
             )
 
@@ -155,23 +159,37 @@ fun POSView(
         }
     }
     fun clear() {
-        sharedViewModel.clearPosValues()
         viewModel.proceedToPrint = true
-        viewModel.clearPosState()
+        viewModel.itemsToDelete.clear()
+        viewModel.updateState(
+            state.copy(
+                invoiceItems = mutableListOf(),
+                invoiceHeader = InvoiceHeader(),
+                posReceipt = PosReceipt(),
+                selectedThirdParty = viewModel.defaultThirdParty ?: ThirdParty(),
+
+                isEditBottomSheetVisible = false,
+                isAddItemBottomSheetVisible = false,
+                isPayBottomSheetVisible = false,
+
+                isSaved = false,
+                isDeleted = false,
+                isLoading = false,
+                warning = null,
+                actionLabel = null
+            )
+        )
     }
 
     LaunchedEffect(
-        state.isSaved,
-        state.isDeleted
+        state.isSaved
     ) {
         if (state.isSaved) {
-            viewModel.updateState(
-                state.copy(
-                    isPayBottomSheetVisible = false
-                )
-            )
+            state.isSaved = false
             if (viewModel.proceedToPrint) {
-                sharedViewModel.reportsToPrint = viewModel.reportResults
+                clear()
+                sharedViewModel.reportsToPrint.clear()
+                sharedViewModel.reportsToPrint.addAll(viewModel.reportResults)
                 navController?.navigate("UIWebView")
             } else if (SettingsModel.autoPrintTickets) {
                 sharedViewModel.showLoading(true)
@@ -179,28 +197,29 @@ fun POSView(
                     sharedViewModel.showLoading(false)
                     clear()
                     if (sharedViewModel.isFromTable) {
+                        sharedViewModel.isFromTable = false
                         navController?.navigateUp()
                     }
                 }
             } else {
                 clear()
                 if (sharedViewModel.isFromTable) {
+                    sharedViewModel.isFromTable = false
                     navController?.navigateUp()
                 }
             }
             sharedViewModel.showLoading(false)
         }
+    }
+
+    LaunchedEffect(
+        state.isDeleted
+    ) {
         if (state.isDeleted) {
-            val invoiceHeaders = state.invoiceHeaders
-            invoiceHeaders.remove(state.invoiceHeader)
-            viewModel.updateState(
-                state.copy(
-                    invoiceHeaders = invoiceHeaders,
-                    isDeleted = false
-                )
-            )
+            state.isDeleted = false
             clear()
             if (sharedViewModel.isFromTable) {
+                sharedViewModel.isFromTable = false
                 navController?.navigateUp()
             }
         }
@@ -231,84 +250,52 @@ fun POSView(
                 )
             )
         } else if (state.invoiceItems.isNotEmpty()) {
-            viewModel.updateState(
-                state.copy(
-                    isSavePopupVisible = true,
-                    popupState = PopupState.DISCARD_CHANGES
-                )
-            )
+            isSavePopupVisible = true
+            viewModel.popupState = PopupState.DISCARD_CHANGES
         } else {
             if (!state.invoiceHeader.invoiceHeadTableId.isNullOrEmpty()) {
-                viewModel.unLockTable(
-                    state.invoiceHeader.invoiceHeadId,
-                    state.invoiceHeader.invoiceHeadTableId!!,
-                    state.invoiceHeader.invoiceHeadTableType
-                )
+                viewModel.unLockTable()
             }
-            sharedViewModel.clearPosValues()
             if (SettingsModel.getUserType() == UserType.POS) {
-                viewModel.updateState(
-                    state.copy(
-                        isSavePopupVisible = true,
-                        popupState = PopupState.BACK_PRESSED
-                    )
-                )
+                isSavePopupVisible = true
+                viewModel.popupState = PopupState.BACK_PRESSED
             } else {
                 sharedViewModel.isFromTable = false
                 navController?.navigateUp()
             }
         }
     }
-    LaunchedEffect(state.isSavePopupVisible) {
-        sharedViewModel.showPopup(state.isSavePopupVisible,
-            if (!state.isSavePopupVisible) null else PopupModel().apply {
+    LaunchedEffect(isSavePopupVisible) {
+        sharedViewModel.showPopup(isSavePopupVisible,
+            if (!isSavePopupVisible) null else PopupModel().apply {
                 onDismissRequest = {
-                    viewModel.updateState(
-                        state.copy(
-                            isSavePopupVisible = false
-                        )
-                    )
+                    viewModel.popupState = null
+                    isSavePopupVisible = false
                 }
                 onConfirmation = {
-                    viewModel.updateState(
-                        state.copy(
-                            isSavePopupVisible = false
-                        )
-                    )
-                    if (state.popupState == PopupState.DISCARD_CHANGES) {
-                        if (!state.invoiceHeader.invoiceHeadTableId.isNullOrEmpty()) {
-                            viewModel.unLockTable(
-                                state.invoiceHeader.invoiceHeadId,
-                                state.invoiceHeader.invoiceHeadTableId!!,
-                                state.invoiceHeader.invoiceHeadTableType
-                            )
-                        }
-                    }
-                    if (state.popupState != PopupState.DELETE_ITEM) {
-                        viewModel.updateState(
-                            state.copy(
-                                invoiceItems = mutableListOf(),
-                                invoiceHeader = InvoiceHeader(),
-                                posReceipt = PosReceipt(),
-                                isDeleted = false
-                            )
-                        )
-                    }
-                    when (state.popupState) {
+                    isSavePopupVisible = false
+                    when (viewModel.popupState) {
                         PopupState.BACK_PRESSED -> {
+                            clear()
                             sharedViewModel.logout()
                             navController?.clearBackStack("LoginView")
                             navController?.navigate("LoginView")
                         }
 
                         PopupState.DISCARD_CHANGES -> {
+                            if (!state.invoiceHeader.invoiceHeadTableId.isNullOrEmpty()) {
+                                viewModel.unLockTable()
+                            }
+                            state.invoiceItems.clear()
+                            state.invoiceHeader = InvoiceHeader()
                             if (SettingsModel.getUserType() != UserType.POS) {
                                 handleBack()
                             }
                         }
 
                         PopupState.CHANGE_ITEM -> {
-                            sharedViewModel.pendingInvHeadState?.let {
+                            clear()
+                            sharedViewModel.tempInvoiceHeader?.let {
                                 viewModel.loadInvoiceDetails(it)
                             }
                         }
@@ -316,14 +303,18 @@ fun POSView(
                         PopupState.DELETE_ITEM -> {
                             viewModel.deleteInvoiceHeader()
                         }
+
+                        else -> {
+                            clear()
+                        }
                     }
                 }
-                dialogText = when (state.popupState) {
+                dialogText = when (viewModel.popupState) {
                     PopupState.BACK_PRESSED -> "Are you sure you want to logout?"
                     PopupState.DELETE_ITEM -> "Are you sure you want to Delete this invoice?"
                     else -> "Are you sure you want to discard current invoice?"
                 }
-                positiveBtnText = when (state.popupState) {
+                positiveBtnText = when (viewModel.popupState) {
                     PopupState.BACK_PRESSED -> "Logout"
                     PopupState.DELETE_ITEM -> "Delete"
                     else -> "Discard"
@@ -426,12 +417,8 @@ fun POSView(
                                 )
                             },
                             onDelete = {
-                                viewModel.updateState(
-                                    state.copy(
-                                        popupState = PopupState.DELETE_ITEM,
-                                        isSavePopupVisible = true
-                                    )
-                                )
+                                viewModel.popupState = PopupState.DELETE_ITEM
+                                isSavePopupVisible = true
                             })
 
                         // Border stroke configuration
@@ -657,13 +644,9 @@ fun POSView(
                             },
                             onInvoiceSelected = { invoiceHeader ->
                                 if (state.invoiceItems.isNotEmpty()) {
-                                    sharedViewModel.pendingInvHeadState = invoiceHeader
-                                    viewModel.updateState(
-                                        state.copy(
-                                            popupState = PopupState.CHANGE_ITEM,
-                                            isSavePopupVisible = true
-                                        )
-                                    )
+                                    sharedViewModel.tempInvoiceHeader = invoiceHeader
+                                    viewModel.popupState = PopupState.CHANGE_ITEM
+                                    isSavePopupVisible = true
                                 } else {
                                     viewModel.loadInvoiceDetails(invoiceHeader)
                                 }
@@ -724,9 +707,9 @@ fun POSView(
                         ),
                     onSave = { invHeader, itemModel ->
                         val isChanged =
-                            !itemModel.invoice.isNew() && sharedViewModel.initialInvoiceItemModels[viewModel.selectedItemIndex].invoice.didChanged(
+                            !itemModel.invoice.isNew() && viewModel.invoiceItemModels[viewModel.selectedItemIndex].invoice.didChanged(
                                 itemModel.invoice
-                            ) || sharedViewModel.pendingInvHeadState?.didChanged(invHeader) == true
+                            ) || sharedViewModel.tempInvoiceHeader?.didChanged(invHeader) == true
                         viewModel.isInvoiceEdited = viewModel.isInvoiceEdited || isChanged
                         val invoiceItems = state.invoiceItems.toMutableList()
                         invoiceItems[viewModel.selectedItemIndex] = itemModel

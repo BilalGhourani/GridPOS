@@ -17,7 +17,7 @@ import com.grid.pos.model.InvoiceItemModel
 import com.grid.pos.model.PopupState
 
 data class POSState(
-    val invoiceHeader: InvoiceHeader = InvoiceHeader(),
+    var invoiceHeader: InvoiceHeader = InvoiceHeader(),
     val invoiceItems: MutableList<InvoiceItemModel> = mutableListOf(),
     var posReceipt: PosReceipt = PosReceipt(),
     var families: MutableList<Family> = mutableListOf(),
@@ -31,8 +31,6 @@ data class POSState(
     val isEditBottomSheetVisible: Boolean = false,
     val isAddItemBottomSheetVisible: Boolean = false,
     val isPayBottomSheetVisible: Boolean = false,
-    val isSavePopupVisible: Boolean = false,
-    val popupState: PopupState = PopupState.BACK_PRESSED,
 
     val orientation: Int = Configuration.ORIENTATION_PORTRAIT,
 

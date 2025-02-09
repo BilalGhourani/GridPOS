@@ -40,9 +40,9 @@ import kotlinx.coroutines.withContext
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UIWebView(
-        modifier: Modifier = Modifier,
-        navController: NavController? = null,
-        sharedViewModel: SharedViewModel
+    modifier: Modifier = Modifier,
+    navController: NavController? = null,
+    sharedViewModel: SharedViewModel
 ) {
     val context = LocalContext.current
     val reportResultState = remember {
@@ -73,13 +73,11 @@ fun UIWebView(
 
     fun handleBack() {
         if (sharedViewModel.isFromTable) {
-            sharedViewModel.clearPosValues()
             navController?.popBackStack(
                 "TablesView",
                 false
             )
         } else {
-            sharedViewModel.clearPosValues()
             navController?.navigateUp()
         }
     }
@@ -131,10 +129,10 @@ fun UIWebView(
                     ) {
                         sharedViewModel.showLoading(true)
                         CoroutineScope(Dispatchers.Default).launch {
-                            sharedViewModel.reportsToPrint.forEach {
+                            sharedViewModel.reportsToPrint.forEach { report ->
                                 PrinterUtils.printReport(
                                     context,
-                                    it
+                                    report
                                 )
                             }
                             withContext(Dispatchers.Main) {

@@ -1,7 +1,6 @@
 package com.grid.pos.data.currency
 
 import com.google.firebase.firestore.Filter
-import com.google.firebase.firestore.FirebaseFirestore
 import com.grid.pos.data.FirebaseWrapper
 import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.model.CONNECTION_TYPE
@@ -12,8 +11,6 @@ import com.grid.pos.utils.DateHelper
 import com.grid.pos.utils.Extension.getDoubleValue
 import com.grid.pos.utils.Extension.getIntValue
 import com.grid.pos.utils.Extension.getStringValue
-import kotlinx.coroutines.tasks.await
-import java.sql.ResultSet
 import java.sql.Timestamp
 import java.util.Date
 

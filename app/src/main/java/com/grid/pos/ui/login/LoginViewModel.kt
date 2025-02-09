@@ -66,17 +66,24 @@ class LoginViewModel @Inject constructor(private val checkLicenseUseCase: CheckL
     }
 
     private fun loginNow(username: String, password: String) {
-        if (SettingsModel.currentCompany?.companySS == true) {
-            viewModelScope.launch(Dispatchers.Main) {
-                usersState.value = usersState.value.copy(
-                    warning = Event(SettingsModel.companyAccessWarning), isLoading = false,
-                    needRegistration = false, warningAction = null)
-            }
+        val companyId = SettingsModel.getCompanyID()
+        if(companyId.isNullOrEmpty()){
+            usersState.value = usersState.value.copy(warning = Event("your device is not connected to any company."),
+                isLoading = false, warningAction = "Settings")
             return
         }
         usersState.value = usersState.value.copy(isLoading = true, needRegistration = false,
             warning = null, warningAction = null)
         viewModelScope.launch(Dispatchers.IO) {
+            SettingsModel.currentCompany = companyRepository.getCompanyById(companyId)
+            if (SettingsModel.currentCompany?.companySS == true) {
+                withContext(Dispatchers.Main) {
+                    usersState.value = usersState.value.copy(
+                        warning = Event(SettingsModel.companyAccessWarning), isLoading = false,
+                        needRegistration = false, warningAction = null)
+                }
+                return@launch
+            }
             val loginResponse: LoginResponse = repository.getUserByCredentials(username, password)
             loginResponse.user?.let {
                 SettingsModel.currentUser = it

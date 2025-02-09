@@ -11,7 +11,6 @@ import com.grid.pos.utils.CryptoUtils
 import com.grid.pos.utils.DateHelper
 import com.grid.pos.utils.FileUtils
 import com.grid.pos.utils.Utils
-import java.io.File
 import java.util.Date
 
 class CheckLicenseUseCase(

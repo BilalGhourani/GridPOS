@@ -1,7 +1,6 @@
 package com.grid.pos.ui.pos
 
 import android.content.Context
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.lifecycle.viewModelScope
 import com.grid.pos.App
 import com.grid.pos.data.currency.Currency
@@ -21,6 +20,7 @@ import com.grid.pos.data.thirdParty.ThirdPartyRepository
 import com.grid.pos.data.user.UserRepository
 import com.grid.pos.model.Event
 import com.grid.pos.model.InvoiceItemModel
+import com.grid.pos.model.PopupState
 import com.grid.pos.model.ReportResult
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.BaseViewModel
@@ -50,12 +50,15 @@ class POSViewModel @Inject constructor(
     private val _posState = MutableStateFlow(POSState())
     val posState: MutableStateFlow<POSState> = _posState
 
+    var invoiceItemModels: MutableList<InvoiceItemModel> = mutableListOf()
     val itemsToDelete: MutableList<InvoiceItemModel> = mutableListOf()
     var selectedItemIndex: Int = -1
     var proceedToPrint: Boolean = true
     val isDeviceLargerThan7Inches = Utils.isDeviceLargerThan7Inches(App.getInstance())
     var isTablet = false
     var isInvoiceEdited = false
+
+    var popupState: PopupState? = null
 
     private var clientsMap: Map<String, ThirdParty> = mutableMapOf()
     val reportResults = mutableListOf<ReportResult>()
@@ -133,21 +136,6 @@ class POSViewModel @Inject constructor(
             siTransactionType = SettingsModel.defaultSaleInvoice
             rsTransactionType = SettingsModel.defaultReturnSale
         }
-    }
-
-    fun clearPosState() {
-        itemsToDelete.clear()
-        posState.value = posState.value.copy(
-            invoiceItems = mutableListOf(),
-            invoiceHeader = InvoiceHeader(),
-            posReceipt = PosReceipt(),
-            selectedThirdParty = defaultThirdParty ?: ThirdParty(),
-            isSaved = false,
-            isDeleted = false,
-            isLoading = false,
-            warning = null,
-            actionLabel = null
-        )
     }
 
     fun loadFamiliesAndItems() {
@@ -548,6 +536,7 @@ class POSViewModel @Inject constructor(
 
             val posReceipt =
                 posReceiptRepository.getPosReceiptByInvoice(invoiceHeader.invoiceHeadId)
+            invoiceItemModels = invoices.toMutableList()
             viewModelScope.launch(Dispatchers.Main) {
                 posState.value = posState.value.copy(
                     isLoading = false,
@@ -583,8 +572,15 @@ class POSViewModel @Inject constructor(
                     invoiceItem.invoiceItem.itemRemQty += invoiceItem.invoice.invoiceQuantity
                     itemRepository.update(invoiceItem.invoiceItem)
                 }
+                val invoiceHeaders = posState.value.invoiceHeaders.toMutableList()
+                val index =
+                    invoiceHeaders.indexOfFirst { it.invoiceHeadId == invoiceHeader.invoiceHeadId }
+                if (index >= 0) {
+                    invoiceHeaders.removeAt(index)
+                }
                 withContext(Dispatchers.Main) {
                     posState.value = posState.value.copy(
+                        invoiceHeaders = invoiceHeaders,
                         isLoading = false,
                         warning = Event("successfully deleted."),
                         isDeleted = true
@@ -600,16 +596,12 @@ class POSViewModel @Inject constructor(
         }
     }
 
-    fun unLockTable(
-        invoiceId: String,
-        tableId: String,
-        tableType: String?
-    ) {
+    fun unLockTable() {
         viewModelScope.launch(Dispatchers.IO) {
             invoiceHeaderRepository.unLockTable(
-                invoiceId,
-                tableId,
-                tableType
+                posState.value.invoiceHeader.invoiceHeadId,
+                posState.value.invoiceHeader.invoiceHeadTableId!!,
+                posState.value.invoiceHeader.invoiceHeadTableType
             )
         }
     }
