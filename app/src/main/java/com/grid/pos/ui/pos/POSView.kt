@@ -39,10 +39,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -65,7 +62,6 @@ import com.grid.pos.SharedViewModel
 import com.grid.pos.data.invoiceHeader.InvoiceHeader
 import com.grid.pos.data.item.Item
 import com.grid.pos.data.posReceipt.PosReceipt
-import com.grid.pos.data.thirdParty.ThirdParty
 import com.grid.pos.interfaces.OnBarcodeResult
 import com.grid.pos.model.InvoiceItemModel
 import com.grid.pos.model.PopupModel
@@ -100,8 +96,6 @@ fun POSView(
     val configuration = LocalConfiguration.current
     val keyboardController = LocalSoftwareKeyboardController.current
     val scope = rememberCoroutineScope()
-
-    var isSavePopupVisible by remember { mutableStateOf(false) }
 
     LaunchedEffect(
         sharedViewModel.shouldLoadInvoice,
@@ -158,36 +152,17 @@ fun POSView(
             )
         }
     }
-    fun clear() {
-        viewModel.proceedToPrint = true
-        viewModel.itemsToDelete.clear()
-        viewModel.updateState(
-            state.copy(
-                invoiceItems = mutableListOf(),
-                invoiceHeader = InvoiceHeader(),
-                posReceipt = PosReceipt(),
-                selectedThirdParty = viewModel.defaultThirdParty ?: ThirdParty(),
-
-                isEditBottomSheetVisible = false,
-                isAddItemBottomSheetVisible = false,
-                isPayBottomSheetVisible = false,
-
-                isSaved = false,
-                isDeleted = false,
-                isLoading = false,
-                warning = null,
-                actionLabel = null
-            )
-        )
-    }
 
     LaunchedEffect(
         state.isSaved
     ) {
         if (state.isSaved) {
             state.isSaved = false
+            viewModel.isPayBottomSheetVisible.value = false
             if (viewModel.proceedToPrint) {
-                clear()
+                state.invoiceItems.clear()
+                state.invoiceHeader = InvoiceHeader()
+                state.posReceipt = PosReceipt()
                 sharedViewModel.reportsToPrint.clear()
                 sharedViewModel.reportsToPrint.addAll(viewModel.reportResults)
                 navController?.navigate("UIWebView")
@@ -195,14 +170,14 @@ fun POSView(
                 sharedViewModel.showLoading(true)
                 viewModel.prepareAutoPrint(context) {
                     sharedViewModel.showLoading(false)
-                    clear()
+                    viewModel.resetState()
                     if (sharedViewModel.isFromTable) {
                         sharedViewModel.isFromTable = false
                         navController?.navigateUp()
                     }
                 }
             } else {
-                clear()
+                viewModel.resetState()
                 if (sharedViewModel.isFromTable) {
                     sharedViewModel.isFromTable = false
                     navController?.navigateUp()
@@ -216,8 +191,7 @@ fun POSView(
         state.isDeleted
     ) {
         if (state.isDeleted) {
-            state.isDeleted = false
-            clear()
+            viewModel.resetState()
             if (sharedViewModel.isFromTable) {
                 sharedViewModel.isFromTable = false
                 navController?.navigateUp()
@@ -231,33 +205,21 @@ fun POSView(
         }
         if (isImeVisible) {
             keyboardController?.hide()
-        } else if (state.isAddItemBottomSheetVisible) {
-            viewModel.updateState(
-                state.copy(
-                    isAddItemBottomSheetVisible = false
-                )
-            )
-        } else if (state.isEditBottomSheetVisible) {
-            viewModel.updateState(
-                state.copy(
-                    isEditBottomSheetVisible = false
-                )
-            )
-        } else if (state.isPayBottomSheetVisible) {
-            viewModel.updateState(
-                state.copy(
-                    isPayBottomSheetVisible = false
-                )
-            )
+        } else if (viewModel.isAddItemBottomSheetVisible.value) {
+            viewModel.isAddItemBottomSheetVisible.value = false
+        } else if (viewModel.isEditBottomSheetVisible.value) {
+            viewModel.isEditBottomSheetVisible.value = false
+        } else if (viewModel.isPayBottomSheetVisible.value) {
+            viewModel.isPayBottomSheetVisible.value = false
         } else if (state.invoiceItems.isNotEmpty()) {
-            isSavePopupVisible = true
+            viewModel.isSavePopupVisible.value = true
             viewModel.popupState = PopupState.DISCARD_CHANGES
         } else {
             if (!state.invoiceHeader.invoiceHeadTableId.isNullOrEmpty()) {
                 viewModel.unLockTable()
             }
             if (SettingsModel.getUserType() == UserType.POS) {
-                isSavePopupVisible = true
+                viewModel.isSavePopupVisible.value = true
                 viewModel.popupState = PopupState.BACK_PRESSED
             } else {
                 sharedViewModel.isFromTable = false
@@ -265,18 +227,18 @@ fun POSView(
             }
         }
     }
-    LaunchedEffect(isSavePopupVisible) {
-        sharedViewModel.showPopup(isSavePopupVisible,
-            if (!isSavePopupVisible) null else PopupModel().apply {
+    LaunchedEffect(viewModel.isSavePopupVisible.value) {
+        sharedViewModel.showPopup(viewModel.isSavePopupVisible.value,
+            if (!viewModel.isSavePopupVisible.value) null else PopupModel().apply {
                 onDismissRequest = {
                     viewModel.popupState = null
-                    isSavePopupVisible = false
+                    viewModel.isSavePopupVisible.value = false
                 }
                 onConfirmation = {
-                    isSavePopupVisible = false
+                    viewModel.isSavePopupVisible.value = false
                     when (viewModel.popupState) {
                         PopupState.BACK_PRESSED -> {
-                            clear()
+                            viewModel.resetState()
                             sharedViewModel.logout()
                             navController?.clearBackStack("LoginView")
                             navController?.navigate("LoginView")
@@ -294,7 +256,7 @@ fun POSView(
                         }
 
                         PopupState.CHANGE_ITEM -> {
-                            clear()
+                            //viewModel.resetState()
                             sharedViewModel.tempInvoiceHeader?.let {
                                 viewModel.loadInvoiceDetails(it)
                             }
@@ -305,7 +267,7 @@ fun POSView(
                         }
 
                         else -> {
-                            clear()
+                            viewModel.resetState()
                         }
                     }
                 }
@@ -336,28 +298,30 @@ fun POSView(
                         containerColor = SettingsModel.topBarColor
                     ),
                         navigationIcon = {
-                            if (!state.isAnyPopupShown) {
-                                IconButton(onClick = {
+                            IconButton(onClick = {
+                                if (viewModel.isAddItemBottomSheetVisible.value || viewModel.isEditBottomSheetVisible.value) {
+                                    viewModel.triggerSaveCallback.value = true
+                                } else {
                                     handleBack()
-                                }) {
-                                    Icon(
-                                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                        contentDescription = "Back",
-                                        tint = SettingsModel.buttonColor
-                                    )
                                 }
+                            }) {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                    contentDescription = "Back",
+                                    tint = SettingsModel.buttonColor
+                                )
                             }
                         },
                         title = {
                             Text(
-                                text = if (state.isEditBottomSheetVisible) "Edit Item" else if (state.isAddItemBottomSheetVisible) "Add Items" else if (state.isPayBottomSheetVisible) "Pay" else "POS",
+                                text = if (viewModel.isEditBottomSheetVisible.value) "Edit Item" else if (viewModel.isAddItemBottomSheetVisible.value) "Add Items" else if (viewModel.isPayBottomSheetVisible.value) "Pay" else "POS",
                                 color = SettingsModel.textColor,
                                 fontSize = 16.sp,
                                 textAlign = TextAlign.Center
                             )
                         },
                         actions = {
-                            if (!state.isAnyPopupShown) {
+                            if (!viewModel.isAnyPopupShown()) {
                                 IconButton(onClick = {
                                     navController?.navigate("SettingsView")
                                 }) {
@@ -403,22 +367,14 @@ fun POSView(
                                 if (state.items.isEmpty()) {
                                     viewModel.loadFamiliesAndItems()
                                 }
-                                viewModel.updateState(
-                                    state.copy(
-                                        isAddItemBottomSheetVisible = true
-                                    )
-                                )
+                                viewModel.isAddItemBottomSheetVisible.value = true
                             },
                             onPay = {
-                                viewModel.updateState(
-                                    state.copy(
-                                        isPayBottomSheetVisible = true
-                                    )
-                                )
+                                viewModel.isPayBottomSheetVisible.value = true
                             },
                             onDelete = {
                                 viewModel.popupState = PopupState.DELETE_ITEM
-                                isSavePopupVisible = true
+                                viewModel.isSavePopupVisible.value = true
                             })
 
                         // Border stroke configuration
@@ -440,11 +396,7 @@ fun POSView(
                             isLandscape = viewModel.isTablet || viewModel.isDeviceLargerThan7Inches || state.isLandscape,
                             onEdit = { index ->
                                 viewModel.selectedItemIndex = index
-                                viewModel.updateState(
-                                    state.copy(
-                                        isEditBottomSheetVisible = true
-                                    )
-                                )
+                                viewModel.isEditBottomSheetVisible.value = true
                             },
                             onRemove = { index ->
                                 val invItems = state.invoiceItems.toMutableList()
@@ -622,11 +574,10 @@ fun POSView(
                                                 invoiceHeader = POSUtils.refreshValues(
                                                     invoiceItems,
                                                     state.invoiceHeader
-                                                ),
-                                                isAddItemBottomSheetVisible = false
+                                                )
                                             )
                                         )
-
+                                        viewModel.isAddItemBottomSheetVisible.value = false
                                     }
                                 }
                             },
@@ -646,7 +597,7 @@ fun POSView(
                                 if (state.invoiceItems.isNotEmpty()) {
                                     sharedViewModel.tempInvoiceHeader = invoiceHeader
                                     viewModel.popupState = PopupState.CHANGE_ITEM
-                                    isSavePopupVisible = true
+                                    viewModel.isSavePopupVisible.value = true
                                 } else {
                                     viewModel.loadInvoiceDetails(invoiceHeader)
                                 }
@@ -666,7 +617,7 @@ fun POSView(
                                 .fillMaxHeight()
                         ) { itemList ->
                             viewModel.isInvoiceEdited = true
-                            val invoices = mutableListOf<InvoiceItemModel>()
+                            val invoices = state.invoiceItems.toMutableList()
                             itemList.forEach { item ->
                                 val invoiceItemModel = InvoiceItemModel()
                                 invoiceItemModel.setItem(item)
@@ -679,16 +630,16 @@ fun POSView(
                                     invoiceHeader = POSUtils.refreshValues(
                                         invoices,
                                         state.invoiceHeader
-                                    ),
-                                    isAddItemBottomSheetVisible = false
+                                    )
                                 )
                             )
+                            viewModel.isAddItemBottomSheetVisible.value = false
                         }
                     }
                 }
             }
             AnimatedVisibility(
-                visible = state.isEditBottomSheetVisible,
+                visible = viewModel.isEditBottomSheetVisible.value,
                 enter = fadeIn(
                     initialAlpha = 0.4f
                 ),
@@ -705,6 +656,7 @@ fun POSView(
                         .background(
                             color = SettingsModel.backgroundColor
                         ),
+                    triggerOnSave = viewModel.triggerSaveCallback.value,
                     onSave = { invHeader, itemModel ->
                         val isChanged =
                             !itemModel.invoice.isNew() && viewModel.invoiceItemModels[viewModel.selectedItemIndex].invoice.didChanged(
@@ -716,15 +668,16 @@ fun POSView(
                         viewModel.updateState(
                             state.copy(
                                 invoiceItems = invoiceItems,
-                                invoiceHeader = invHeader,
-                                isEditBottomSheetVisible = false
+                                invoiceHeader = invHeader
                             )
                         )
+                        viewModel.isEditBottomSheetVisible.value = false
+                        viewModel.triggerSaveCallback.value = false
                     })
             }
 
             AnimatedVisibility(
-                state.isAddItemBottomSheetVisible,
+                viewModel.isAddItemBottomSheetVisible.value,
                 enter = fadeIn(
                     initialAlpha = 0.4f
                 ),
@@ -735,6 +688,7 @@ fun POSView(
                 AddInvoiceItemView(sharedViewModel = sharedViewModel,
                     categories = state.families,
                     items = state.items,
+                    triggerOnSave = viewModel.triggerSaveCallback.value,
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(it)
@@ -745,7 +699,7 @@ fun POSView(
                             detectTapGestures(onTap = {})
                         }) { itemList ->
                     viewModel.isInvoiceEdited = true
-                    val invoices = mutableListOf<InvoiceItemModel>()
+                    val invoices = state.invoiceItems.toMutableList()
                     itemList.forEach { item ->
                         val invoiceItemModel = InvoiceItemModel()
                         invoiceItemModel.setItem(item)
@@ -758,15 +712,16 @@ fun POSView(
                             invoiceHeader = POSUtils.refreshValues(
                                 invoices,
                                 state.invoiceHeader
-                            ),
-                            isAddItemBottomSheetVisible = false
+                            )
                         )
                     )
+                    viewModel.isAddItemBottomSheetVisible.value = false
+                    viewModel.triggerSaveCallback.value = false
                 }
             }
 
             AnimatedVisibility(
-                visible = state.isPayBottomSheetVisible,
+                visible = viewModel.isPayBottomSheetVisible.value,
                 enter = fadeIn(
                     initialAlpha = 0.4f
                 ),

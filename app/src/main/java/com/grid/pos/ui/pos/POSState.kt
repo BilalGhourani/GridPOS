@@ -1,10 +1,6 @@
 package com.grid.pos.ui.pos
 
 import android.content.res.Configuration
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import com.grid.pos.data.family.Family
 import com.grid.pos.data.invoiceHeader.InvoiceHeader
 import com.grid.pos.data.item.Item
@@ -14,7 +10,6 @@ import com.grid.pos.data.thirdParty.ThirdParty
 import com.grid.pos.data.user.User
 import com.grid.pos.model.Event
 import com.grid.pos.model.InvoiceItemModel
-import com.grid.pos.model.PopupState
 
 data class POSState(
     var invoiceHeader: InvoiceHeader = InvoiceHeader(),
@@ -28,10 +23,6 @@ data class POSState(
     var printers: MutableList<PosPrinter> = mutableListOf(),
     var selectedThirdParty: ThirdParty = ThirdParty(),
 
-    val isEditBottomSheetVisible: Boolean = false,
-    val isAddItemBottomSheetVisible: Boolean = false,
-    val isPayBottomSheetVisible: Boolean = false,
-
     val orientation: Int = Configuration.ORIENTATION_PORTRAIT,
 
     var isSaved: Boolean = false,
@@ -40,10 +31,6 @@ data class POSState(
     val warning: Event<String>? = null,
     val actionLabel: String? = null,
 ) {
-    val isAnyPopupShown: Boolean
-        get() {
-            return isEditBottomSheetVisible || isAddItemBottomSheetVisible || isPayBottomSheetVisible
-        }
 
     val isLandscape: Boolean
         get() {

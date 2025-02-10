@@ -63,6 +63,7 @@ fun EditInvoiceItemView(
         invoices: MutableList<InvoiceItemModel>,
         invHeader: InvoiceHeader,
         invoiceIndex: Int = 0,
+        triggerOnSave:Boolean = false,
         onSave: (InvoiceHeader, InvoiceItemModel) -> Unit = { _, _ -> }
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -219,6 +220,12 @@ fun EditInvoiceItemView(
 
     BackHandler {
         backAndSave()
+    }
+
+    LaunchedEffect(key1 = triggerOnSave) {
+        if (triggerOnSave) {
+            backAndSave()
+        }
     }
 
     Column(

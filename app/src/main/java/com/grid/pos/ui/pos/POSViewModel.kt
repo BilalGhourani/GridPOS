@@ -1,6 +1,7 @@
 package com.grid.pos.ui.pos
 
 import android.content.Context
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.viewModelScope
 import com.grid.pos.App
 import com.grid.pos.data.currency.Currency
@@ -50,6 +51,12 @@ class POSViewModel @Inject constructor(
     private val _posState = MutableStateFlow(POSState())
     val posState: MutableStateFlow<POSState> = _posState
 
+    var isSavePopupVisible = mutableStateOf(false)
+    var triggerSaveCallback = mutableStateOf(false)
+    var isEditBottomSheetVisible = mutableStateOf(false)
+    var isAddItemBottomSheetVisible = mutableStateOf(false)
+    var isPayBottomSheetVisible = mutableStateOf(false)
+
     var invoiceItemModels: MutableList<InvoiceItemModel> = mutableListOf()
     val itemsToDelete: MutableList<InvoiceItemModel> = mutableListOf()
     var selectedItemIndex: Int = -1
@@ -74,6 +81,27 @@ class POSViewModel @Inject constructor(
             fetchFamilies()
             fetchGlobalSettings()
         }
+    }
+
+    fun isAnyPopupShown(): Boolean {
+        return isEditBottomSheetVisible.value || isAddItemBottomSheetVisible.value || isPayBottomSheetVisible.value
+    }
+
+    fun resetState() {
+        proceedToPrint = true
+        itemsToDelete.clear()
+        _posState.value = posState.value.copy(
+            invoiceItems = mutableListOf(),
+            invoiceHeader = InvoiceHeader(),
+            posReceipt = PosReceipt(),
+            selectedThirdParty = defaultThirdParty ?: ThirdParty(),
+
+            isSaved = false,
+            isDeleted = false,
+            isLoading = false,
+            warning = null,
+            actionLabel = null
+        )
     }
 
     fun updateState(newState: POSState) {

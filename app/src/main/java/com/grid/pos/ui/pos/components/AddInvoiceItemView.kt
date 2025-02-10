@@ -48,11 +48,13 @@ fun AddInvoiceItemView(
         items: MutableList<Item> = mutableListOf(),
         modifier: Modifier = Modifier,
         notifyDirectly: Boolean = false,
+        triggerOnSave:Boolean = false,
         onSelect: (List<Item>) -> Unit = {},
 ) {
     val itemsState = remember { mutableStateListOf<Item>() }
     var familyState by remember { mutableStateOf("") }
     val scope = rememberCoroutineScope()
+
     fun saveAndBack() {
         scope.launch(Dispatchers.IO) {
             itemsState.forEach { item ->
@@ -61,8 +63,15 @@ fun AddInvoiceItemView(
         }
         onSelect.invoke(itemsState.toMutableList())
     }
+
     if (!notifyDirectly) {
         BackHandler {
+            saveAndBack()
+        }
+    }
+
+    LaunchedEffect(key1 = triggerOnSave) {
+        if (triggerOnSave) {
             saveAndBack()
         }
     }
