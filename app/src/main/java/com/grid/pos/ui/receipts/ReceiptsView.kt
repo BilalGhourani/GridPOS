@@ -220,17 +220,23 @@ fun ReceiptsView(
                             }
                         },
                         onLeadingIconClick = {
-                            viewModel.updateReceipt(
-                                state.receipt.copy(
-                                    receiptType = null
+                            viewModel.updateState(
+                                state.copy(
+                                    receipt = state.receipt.copy(
+                                        receiptType = null
+                                    )
                                 )
+
                             )
                         }) { typeModel ->
                         typeModel as PaymentTypeModel
-                        viewModel.updateReceipt(
-                            state.receipt.copy(
-                                receiptType = typeModel.type
+                        viewModel.updateState(
+                            state.copy(
+                                receipt = state.receipt.copy(
+                                    receiptType = typeModel.type
+                                )
                             )
+
                         )
                     }
 
@@ -253,21 +259,27 @@ fun ReceiptsView(
                             }
                         },
                         onLeadingIconClick = {
-                            viewModel.updateReceipt(
-                                state.receipt.copy(
-                                    receiptCurrency = null,
-                                    receiptCurrencyCode = null
-                                ),
-                                currIndex = 0
+                            viewModel.updateState(
+                                state.copy(
+                                    receipt = state.receipt.copy(
+                                        receiptCurrency = null,
+                                        receiptCurrencyCode = null
+                                    ),
+                                    currencyIndex = 0
+                                )
+
                             )
                         }) { currModel ->
                         currModel as CurrencyModel
-                        viewModel.updateReceipt(
-                            state.receipt.copy(
-                                receiptCurrency = currModel.getId(),
-                                receiptCurrencyCode = currModel.currencyCode
-                            ),
-                            currIndex = state.receipt.getSelectedCurrencyIndex()
+                        viewModel.updateState(
+                            state.copy(
+                                receipt = state.receipt.copy(
+                                    receiptCurrency = currModel.getId(),
+                                    receiptCurrencyCode = currModel.currencyCode
+                                ),
+                                currencyIndex = state.receipt.getSelectedCurrencyIndex()
+                            )
+
                         )
                     }
 
@@ -275,7 +287,7 @@ fun ReceiptsView(
                         horizontal = 10.dp,
                         vertical = 5.dp
                     ),
-                        defaultValue = state.receipt.receiptAmountStr ?: "",
+                        defaultValue = state.receiptAmountStr,
                         label = "Amount",
                         placeHolder = "Enter Amount",
                         focusRequester = amountFocusRequester,
@@ -284,7 +296,7 @@ fun ReceiptsView(
                         }) { amount ->
                         val amountStr = Utils.getDoubleValue(
                             amount,
-                            state.receipt.receiptAmountStr ?: ""
+                            state.receiptAmountStr
                         )
                         val receiptAmount = amountStr.toDoubleOrNull() ?: 0.0
                         var amountFirst = state.receipt.receiptAmountFirst
@@ -298,21 +310,24 @@ fun ReceiptsView(
                                 SettingsModel.currentCurrency?.currencyRate ?: 1.0
                             )
                         }
-                        viewModel.updateReceipt(
-                            state.receipt.copy(
-                                receiptAmount = receiptAmount,
+                        viewModel.updateState(
+                            state.copy(
+                                receipt = state.receipt.copy(
+                                    receiptAmount = receiptAmount,
+                                    receiptAmountFirst = amountFirst,
+                                    receiptAmountSecond = amountSecond,
+                                ),
                                 receiptAmountStr = amountStr,
-                                receiptAmountFirst = amountFirst,
                                 receiptAmountFirstStr = POSUtils.formatDouble(
                                     amountFirst,
                                     SettingsModel.currentCurrency?.currencyName1Dec ?: 2
                                 ),
-                                receiptAmountSecond = amountSecond,
                                 receiptAmountSecondStr = POSUtils.formatDouble(
                                     amountSecond,
                                     SettingsModel.currentCurrency?.currencyName2Dec ?: 2
                                 )
                             )
+
                         )
                     }
 
@@ -321,7 +336,7 @@ fun ReceiptsView(
                             horizontal = 10.dp,
                             vertical = 5.dp
                         ),
-                            defaultValue = state.receipt.receiptAmountFirstStr ?: "",
+                            defaultValue = state.receiptAmountFirstStr,
                             label = "Amount ${SettingsModel.currentCurrency?.currencyCode1 ?: ""}",
                             placeHolder = "Enter Amount",
                             focusRequester = amountFocusRequester,
@@ -331,14 +346,17 @@ fun ReceiptsView(
                             }) { amount ->
                             val amountFirst =
                                 amount.toDoubleOrNull() ?: state.receipt.receiptAmountFirst
-                            viewModel.updateReceipt(
-                                state.receipt.copy(
-                                    receiptAmountFirst = amountFirst,
+                            viewModel.updateState(
+                                state.copy(
+                                    receipt = state.receipt.copy(
+                                        receiptAmountFirst = amountFirst
+                                    ),
                                     receiptAmountFirstStr = Utils.getDoubleValue(
                                         amount,
-                                        state.receipt.receiptAmountFirstStr ?: ""
+                                        state.receiptAmountFirstStr
                                     )
                                 )
+
                             )
                         }
                     }
@@ -348,7 +366,7 @@ fun ReceiptsView(
                             horizontal = 10.dp,
                             vertical = 5.dp
                         ),
-                            defaultValue = state.receipt.receiptAmountSecondStr ?: "",
+                            defaultValue = state.receiptAmountSecondStr,
                             label = "Amount ${SettingsModel.currentCurrency?.currencyCode2 ?: ""}",
                             placeHolder = "Enter Amount",
                             focusRequester = amountFocusRequester,
@@ -358,14 +376,17 @@ fun ReceiptsView(
                             }) { amount ->
                             val amountSecond =
                                 amount.toDoubleOrNull() ?: state.receipt.receiptAmountSecond
-                            viewModel.updateReceipt(
-                                state.receipt.copy(
-                                    receiptAmountSecond = amountSecond,
+                            viewModel.updateState(
+                                state.copy(
+                                    receipt = state.receipt.copy(
+                                        receiptAmountSecond = amountSecond
+                                    ),
                                     receiptAmountSecondStr = Utils.getDoubleValue(
                                         amount,
-                                        state.receipt.receiptAmountSecondStr ?: ""
+                                        state.receiptAmountSecondStr
                                     )
                                 )
+
                             )
                         }
                     }
@@ -381,10 +402,13 @@ fun ReceiptsView(
                         maxLines = 4,
                         imeAction = ImeAction.None,
                         onAction = { noteFocusRequester.requestFocus() }) { desc ->
-                        viewModel.updateReceipt(
-                            state.receipt.copy(
-                                receiptDesc = desc
+                        viewModel.updateState(
+                            state.copy(
+                                receipt = state.receipt.copy(
+                                    receiptDesc = desc
+                                )
                             )
+
                         )
                     }
 
@@ -399,10 +423,13 @@ fun ReceiptsView(
                         focusRequester = noteFocusRequester,
                         imeAction = ImeAction.None,
                         onAction = { keyboardController?.hide() }) { note ->
-                        viewModel.updateReceipt(
-                            state.receipt.copy(
-                                receiptNote = note
+                        viewModel.updateState(
+                            state.copy(
+                                receipt = state.receipt.copy(
+                                    receiptNote = note
+                                )
                             )
+
                         )
                     }
 
@@ -472,18 +499,22 @@ fun ReceiptsView(
                         }
                     },
                     onLeadingIconClick = {
-                        viewModel.updateReceipt(
-                            state.receipt.copy(
-                                receiptThirdParty = null,
-                                receiptThirdPartyName = null
+                        viewModel.updateState(
+                            state.copy(
+                                receipt = state.receipt.copy(
+                                    receiptThirdParty = null,
+                                    receiptThirdPartyName = null
+                                )
                             )
                         )
                     }) { thirdParty ->
                     thirdParty as ThirdParty
-                    viewModel.updateReceipt(
-                        state.receipt.copy(
-                            receiptThirdParty = thirdParty.thirdPartyId,
-                            receiptThirdPartyName = thirdParty.thirdPartyName
+                    viewModel.updateState(
+                        state.copy(
+                            receipt = state.receipt.copy(
+                                receiptThirdParty = thirdParty.thirdPartyId,
+                                receiptThirdPartyName = thirdParty.thirdPartyName
+                            )
                         )
                     )
                 }
@@ -513,21 +544,26 @@ fun ReceiptsView(
                         viewModel.resetState()
                     }) { receipt ->
                     receipt as Receipt
-                    receipt.receiptAmountStr = POSUtils.formatDouble(
-                        receipt.receiptAmount,
-                        SettingsModel.currentCurrency?.currencyName1Dec ?: 2
-                    )
-                    receipt.receiptAmountFirstStr = POSUtils.formatDouble(
-                        receipt.receiptAmountFirst,
-                        SettingsModel.currentCurrency?.currencyName1Dec ?: 2
-                    )
-                    receipt.receiptAmountSecondStr = POSUtils.formatDouble(
-                        receipt.receiptAmountSecond,
-                        SettingsModel.currentCurrency?.currencyName2Dec ?: 2
-                    )
                     receipt.receiptCurrencyCode = viewModel.getCurrencyCode(receipt.receiptCurrency)
                     viewModel.currentReceipt = receipt.copy()
-                    viewModel.updateReceipt(receipt.copy(), receipt.getSelectedCurrencyIndex())
+                    viewModel.updateState(
+                        state.copy(
+                            receipt = receipt.copy(),
+                            currencyIndex = receipt.getSelectedCurrencyIndex(),
+                            receiptAmountStr = POSUtils.formatDouble(
+                                receipt.receiptAmount,
+                                SettingsModel.currentCurrency?.currencyName1Dec ?: 2
+                            ),
+                            receiptAmountFirstStr = POSUtils.formatDouble(
+                                receipt.receiptAmountFirst,
+                                SettingsModel.currentCurrency?.currencyName1Dec ?: 2
+                            ),
+                            receiptAmountSecondStr = POSUtils.formatDouble(
+                                receipt.receiptAmountSecond,
+                                SettingsModel.currentCurrency?.currencyName2Dec ?: 2
+                            )
+                        )
+                    )
                 }
             }
         }

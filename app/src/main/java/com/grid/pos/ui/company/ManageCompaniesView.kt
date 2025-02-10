@@ -244,9 +244,11 @@ fun ManageCompaniesView(
                         label = "Name",
                         placeHolder = "Enter Name",
                         onAction = { phoneFocusRequester.requestFocus() }) { name ->
-                        viewModel.updateCompany(
-                            state.company.copy(
-                                companyName = name
+                        viewModel.updateState(
+                            newState = state.copy(
+                                company = state.company.copy(
+                                    companyName = name
+                                )
                             )
                         )
                     }
@@ -261,9 +263,11 @@ fun ManageCompaniesView(
                         focusRequester = phoneFocusRequester,
                         placeHolder = "Enter Phone",
                         onAction = { addressFocusRequester.requestFocus() }) { phone ->
-                        viewModel.updateCompany(
-                            state.company.copy(
-                                companyPhone = phone
+                        viewModel.updateState(
+                            state.copy(
+                                company = state.company.copy(
+                                    companyPhone = phone
+                                )
                             )
                         )
                     }
@@ -280,9 +284,11 @@ fun ManageCompaniesView(
                         onAction = {
                             countryFocusRequester.requestFocus()
                         }) { address ->
-                        viewModel.updateCompany(
-                            state.company.copy(
-                                companyAddress = address
+                        viewModel.updateState(
+                            state.copy(
+                                company = state.company.copy(
+                                    companyAddress = address
+                                )
                             )
                         )
                     }
@@ -307,9 +313,11 @@ fun ManageCompaniesView(
                                 emailFocusRequester.requestFocus()
                             }
                         }) { country ->
-                        viewModel.updateCompany(
-                            state.company.copy(
-                                companyCountry = country
+                        viewModel.updateState(
+                            state.copy(
+                                company = state.company.copy(
+                                    companyCountry = country
+                                )
                             )
                         )
                     }
@@ -324,9 +332,11 @@ fun ManageCompaniesView(
                         placeHolder = "Enter Email Address",
                         focusRequester = emailFocusRequester,
                         onAction = { webFocusRequester.requestFocus() }) { email ->
-                        viewModel.updateCompany(
-                            state.company.copy(
-                                companyEmail = email
+                        viewModel.updateState(
+                            state.copy(
+                                company = state.company.copy(
+                                    companyEmail = email
+                                )
                             )
                         )
                     }
@@ -341,9 +351,11 @@ fun ManageCompaniesView(
                         placeHolder = "Enter Website",
                         focusRequester = webFocusRequester,
                         onAction = { logoFocusRequester.requestFocus() }) { web ->
-                        viewModel.updateCompany(
-                            state.company.copy(
-                                companyWeb = web
+                        viewModel.updateState(
+                            state.copy(
+                                company = state.company.copy(
+                                    companyWeb = web
+                                )
                             )
                         )
                     }
@@ -376,10 +388,13 @@ fun ManageCompaniesView(
                                                         )
                                                 ) { internalPath ->
                                                     if (internalPath != null) {
-                                                        viewModel.oldImage = state.company.companyLogo
-                                                        viewModel.updateCompany(
-                                                            state.company.copy(
-                                                                companyLogo = internalPath
+                                                        viewModel.oldImage =
+                                                            state.company.companyLogo
+                                                        viewModel.updateState(
+                                                            state.copy(
+                                                                company = state.company.copy(
+                                                                    companyLogo = internalPath
+                                                                )
                                                             )
                                                         )
                                                     }
@@ -401,9 +416,11 @@ fun ManageCompaniesView(
                                 )
                             }
                         }) { logo ->
-                        viewModel.updateCompany(
-                            state.company.copy(
-                                companyLogo = logo
+                        viewModel.updateState(
+                            state.copy(
+                                company = state.company.copy(
+                                    companyLogo = logo
+                                )
                             )
                         )
                     }
@@ -419,9 +436,11 @@ fun ManageCompaniesView(
                             focusRequester = taxRegNoFocusRequester,
                             placeHolder = "Enter Tax Reg. No",
                             onAction = { taxFocusRequester.requestFocus() }) { taxRegno ->
-                            viewModel.updateCompany(
-                                state.company.copy(
-                                    companyTaxRegno = taxRegno
+                            viewModel.updateState(
+                                state.copy(
+                                    company = state.company.copy(
+                                        companyTaxRegno = taxRegno
+                                    )
                                 )
                             )
                         }
@@ -431,7 +450,7 @@ fun ManageCompaniesView(
                             horizontal = 10.dp,
                             vertical = 5.dp
                         ),
-                            defaultValue =  state.company.companyTaxStr?:"",
+                            defaultValue = state.companyTaxStr,
                             label = "Tax",
                             focusRequester = taxFocusRequester,
                             keyboardType = KeyboardType.Decimal,
@@ -446,10 +465,15 @@ fun ManageCompaniesView(
                                 }
                             }) { tax ->
                             val companyTax = tax.toDoubleOrNull() ?: state.company.companyTax
-                            viewModel.updateCompany(
-                                state.company.copy(
-                                    companyTax = companyTax,
-                                    companyTaxStr = Utils.getDoubleValue(tax,state.company.companyTaxStr?:"")
+                            viewModel.updateState(
+                                state.copy(
+                                    company = state.company.copy(
+                                        companyTax = companyTax,
+                                    ),
+                                    companyTaxStr = Utils.getDoubleValue(
+                                        tax,
+                                        state.companyTaxStr
+                                    )
                                 )
                             )
                         }
@@ -465,9 +489,11 @@ fun ManageCompaniesView(
                             placeHolder = "Enter Tax1 Reg. No",
                             focusRequester = tax1RegNoFocusRequester,
                             onAction = { tax1FocusRequester.requestFocus() }) { tax1Regno ->
-                            viewModel.updateCompany(
-                                state.company.copy(
-                                    companyTax1Regno = tax1Regno
+                            viewModel.updateState(
+                                state.copy(
+                                    company = state.company.copy(
+                                        companyTax1Regno = tax1Regno
+                                    )
                                 )
                             )
                         }
@@ -477,7 +503,7 @@ fun ManageCompaniesView(
                             horizontal = 10.dp,
                             vertical = 5.dp
                         ),
-                            defaultValue = state.company.companyTax1Str?:"",
+                            defaultValue = state.companyTax1Str,
                             label = "Tax1",
                             keyboardType = KeyboardType.Decimal,
                             placeHolder = "Enter Tax1",
@@ -490,10 +516,15 @@ fun ManageCompaniesView(
                                 }
                             }) { tax1 ->
                             val companyTax1 = tax1.toDoubleOrNull() ?: state.company.companyTax1
-                            viewModel.updateCompany(
-                                state.company.copy(
-                                    companyTax1 = companyTax1,
-                                    companyTax1Str = Utils.getDoubleValue(tax1,state.company.companyTax1Str?:"")
+                            viewModel.updateState(
+                                state.copy(
+                                    company = state.company.copy(
+                                        companyTax1 = companyTax1,
+                                    ),
+                                    companyTax1Str = Utils.getDoubleValue(
+                                        tax1,
+                                        state.companyTax1Str
+                                    )
                                 )
                             )
                         }
@@ -509,9 +540,11 @@ fun ManageCompaniesView(
                             placeHolder = "Enter Tax2 Reg. No",
                             focusRequester = tax2RegNoFocusRequester,
                             onAction = { tax2FocusRequester.requestFocus() }) { tax2Regno ->
-                            viewModel.updateCompany(
-                                state.company.copy(
-                                    companyTax2Regno = tax2Regno
+                            viewModel.updateState(
+                                state.copy(
+                                    company = state.company.copy(
+                                        companyTax2Regno = tax2Regno
+                                    )
                                 )
                             )
                         }
@@ -521,17 +554,22 @@ fun ManageCompaniesView(
                             horizontal = 10.dp,
                             vertical = 5.dp
                         ),
-                            defaultValue =  state.company.companyTax2Str?:"",
+                            defaultValue = state.companyTax2Str,
                             label = "Tax2",
                             keyboardType = KeyboardType.Decimal,
                             placeHolder = "Enter Tax2",
                             focusRequester = tax2FocusRequester,
                             onAction = { emailFocusRequester.requestFocus() }) { tax2 ->
                             val companyTax2 = tax2.toDoubleOrNull() ?: state.company.companyTax2
-                            viewModel.updateCompany(
-                                state.company.copy(
-                                    companyTax2 = companyTax2,
-                                    companyTax2Str = Utils.getDoubleValue(tax2,state.company.companyTax2Str?:"")
+                            viewModel.updateState(
+                                state.copy(
+                                    company = state.company.copy(
+                                        companyTax2 = companyTax2,
+                                    ),
+                                    companyTax2Str = Utils.getDoubleValue(
+                                        tax2,
+                                        state.companyTax2Str
+                                    )
                                 )
                             )
                         }
@@ -546,9 +584,11 @@ fun ManageCompaniesView(
                         checked = state.company.companyUpWithTax,
                         text = "Unit price with tax",
                     ) { unitPriceWithTax ->
-                        viewModel.updateCompany(
-                            state.company.copy(
-                                companyUpWithTax = unitPriceWithTax
+                        viewModel.updateState(
+                            state.copy(
+                                company = state.company.copy(
+                                    companyUpWithTax = unitPriceWithTax
+                                )
                             )
                         )
                     }
@@ -632,12 +672,15 @@ fun ManageCompaniesView(
                         viewModel.resetState()
                     }) { company ->
                     company as Company
-                    viewModel.currentCompany = company.copy(
-                        companyTaxStr = company.companyTax.toString(),
-                        companyTax1Str = company.companyTax1.toString(),
-                        companyTax2Str = company.companyTax2.toString()
+                    viewModel.currentCompany = company.copy()
+                    viewModel.updateState(
+                        state.copy(
+                            company = viewModel.currentCompany.copy(),
+                            companyTaxStr = company.companyTax.toString(),
+                            companyTax1Str = company.companyTax1.toString(),
+                            companyTax2Str = company.companyTax2.toString()
+                        )
                     )
-                    viewModel.updateCompany(viewModel.currentCompany.copy())
                 }
             }
         }

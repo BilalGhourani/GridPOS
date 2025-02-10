@@ -11,7 +11,12 @@ data class ReceiptsState(
     val thirdParties: MutableList<ThirdParty> = mutableListOf(),
     val currencies: MutableList<CurrencyModel> = mutableListOf(),
     var users: MutableList<User> = mutableListOf(),
+
     val receipt: Receipt = Receipt(),
+    val receiptAmountStr:String="",
+    val receiptAmountFirstStr:String="",
+    val receiptAmountSecondStr:String="",
+
     val currencyIndex: Int = 0,
     val isLoading: Boolean = false,
     var isSaved: Boolean = false,

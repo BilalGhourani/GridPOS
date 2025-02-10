@@ -112,13 +112,6 @@ data class Receipt(
         @get:PropertyName("rec_amt")
         var receiptAmount: Double = 0.0,
 
-        /**
-         * Receipt Amount string
-         * only for ui
-         * */
-        @Ignore
-        @get:Exclude
-        var receiptAmountStr: String? = null,
 
         /**
          * Receipt Amount first
@@ -129,28 +122,12 @@ data class Receipt(
         var receiptAmountFirst: Double = 0.0,
 
         /**
-         * Receipt Amount first string
-         * only for ui
-         * */
-        @Ignore
-        @get:Exclude
-        var receiptAmountFirstStr: String? = null,
-
-        /**
          * Receipt Amount second
          * */
         @ColumnInfo(name = "rec_amts")
         @set:PropertyName("rec_amts")
         @get:PropertyName("rec_amts")
         var receiptAmountSecond: Double = 0.0,
-
-        /**
-         * Receipt Amount second string
-         * only for ui
-         * */
-        @Ignore
-        @get:Exclude
-        var receiptAmountSecondStr: String? = null,
 
         /**
          * Receipt Description

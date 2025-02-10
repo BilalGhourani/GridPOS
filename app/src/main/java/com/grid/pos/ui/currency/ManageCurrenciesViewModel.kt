@@ -30,10 +30,8 @@ class ManageCurrenciesViewModel @Inject constructor(
         fetchCurrencies()
     }
 
-    fun updateCurrency(currency: Currency) {
-        state.value = state.value.copy(
-            currency = currency
-        )
+    fun updateState(newState: ManageCurrenciesState) {
+        state.value = newState
     }
 
     fun isAnyChangeDone(): Boolean {
@@ -42,12 +40,15 @@ class ManageCurrenciesViewModel @Inject constructor(
 
     private fun fetchCurrencies() {
         SettingsModel.currentCurrency?.let {
-            currentCurrency = it.copy(
-                currencyName1DecStr = it.currencyName1Dec.toString(),
-                currencyName2DecStr = it.currencyName2Dec.toString(),
-                currencyRateStr = it.currencyRate.toString()
+            currentCurrency = it.copy()
+            updateState(
+                state.value.copy(
+                    currency = currentCurrency.copy(),
+                    currencyName1DecStr = it.currencyName1Dec.toString(),
+                    currencyName2DecStr = it.currencyName2Dec.toString(),
+                    currencyRateStr = it.currencyRate.toString()
+                )
             )
-            updateCurrency(currentCurrency.copy())
             viewModelScope.launch(Dispatchers.IO) {
                 openConnectionIfNeeded()
             }
@@ -62,12 +63,15 @@ class ManageCurrenciesViewModel @Inject constructor(
             val currency = if (currencies.size > 0) currencies[0] else Currency()
             SettingsModel.currentCurrency = currency.copy()
             withContext(Dispatchers.Main) {
-                currentCurrency = currency.copy(
-                    currencyName1DecStr = currency.currencyName1Dec.toString(),
-                    currencyName2DecStr = currency.currencyName2Dec.toString(),
-                    currencyRateStr = currency.currencyRate.toString()
+                currentCurrency = currency.copy()
+                updateState(
+                    state.value.copy(
+                        currency = currentCurrency.copy(),
+                        currencyName1DecStr = currency.currencyName1Dec.toString(),
+                        currencyName2DecStr = currency.currencyName2Dec.toString(),
+                        currencyRateStr = currency.currencyRate.toString()
+                    )
                 )
-                updateCurrency(currentCurrency.copy())
                 state.value = state.value.copy(
                     isLoading = false
                 )

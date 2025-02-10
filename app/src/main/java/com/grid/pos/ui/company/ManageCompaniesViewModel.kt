@@ -53,10 +53,8 @@ class ManageCompaniesViewModel @Inject constructor(
         )
     }
 
-    fun updateCompany(company: Company) {
-        _state.value = state.value.copy(
-            company = company
-        )
+    fun updateState(newState: ManageCompaniesState) {
+        _state.value = newState
     }
 
     fun isAnyChangeDone(): Boolean {

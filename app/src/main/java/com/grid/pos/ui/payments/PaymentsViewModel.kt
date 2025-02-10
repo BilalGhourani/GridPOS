@@ -79,11 +79,8 @@ class PaymentsViewModel @Inject constructor(
         )
     }
 
-    fun updatePayment(payment: Payment, currIndex: Int? = null) {
-        state.value = state.value.copy(
-            payment = payment,
-            currencyIndex = currIndex ?: state.value.currencyIndex
-        )
+    fun updateState(newState: PaymentsState) {
+        state.value = newState
     }
 
     fun isAnyChangeDone(): Boolean {

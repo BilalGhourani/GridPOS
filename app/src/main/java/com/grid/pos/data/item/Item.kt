@@ -118,10 +118,6 @@ data class Item(
 
     @Ignore
     @get:Exclude
-    var itemUnitPriceStr: String? = null,
-
-    @Ignore
-    @get:Exclude
     var itemRealUnitPrice: Double = 0.0,
 
     @Ignore
@@ -148,10 +144,6 @@ data class Item(
     @get:PropertyName("it_tax")
     var itemTax: Double = 0.0,
 
-    @Ignore
-    @get:Exclude
-    var itemTaxStr: String? = null,
-
     /**
      * Item tax 1
      * */
@@ -160,10 +152,6 @@ data class Item(
     @get:PropertyName("it_tax1")
     var itemTax1: Double = 0.0,
 
-    @Ignore
-    @get:Exclude
-    var itemTax1Str: String? = null,
-
     /**
      * Item tax 2
      * */
@@ -171,10 +159,6 @@ data class Item(
     @set:PropertyName("it_tax2")
     @get:PropertyName("it_tax2")
     var itemTax2: Double = 0.0,
-
-    @Ignore
-    @get:Exclude
-    var itemTax2Str: String? = null,
 
     /**
      * related Item pos printer id
@@ -192,10 +176,6 @@ data class Item(
     @get:PropertyName("it_openqty")
     var itemOpenQty: Double = 0.0,
 
-    @Ignore
-    @get:Exclude
-    var itemOpenQtyStr: String? = null,
-
     /**
      * Item rem quantity
      * */
@@ -211,10 +191,6 @@ data class Item(
     @set:PropertyName("it_opencost")
     @get:PropertyName("it_opencost")
     var itemOpenCost: Double = 0.0,
-
-    @Ignore
-    @get:Exclude
-    var itemOpenCostStr: String? = null,
 
     @Ignore
     @get:Exclude

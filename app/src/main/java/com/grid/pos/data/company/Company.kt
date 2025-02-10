@@ -69,10 +69,6 @@ data class Company(
         @get:PropertyName("cmp_tax")
         var companyTax: Double = 0.0,
 
-        @Ignore
-        @get:Exclude
-        var companyTaxStr: String? = null,
-
         /**
          * Company currency code tax
          * */
@@ -145,10 +141,6 @@ data class Company(
         @get:PropertyName("cmp_tax1")
         var companyTax1: Double = 0.0,
 
-        @Ignore
-        @get:Exclude
-        var companyTax1Str: String? = null,
-
         /**
          * Company Tax 1 Regno
          * */
@@ -164,10 +156,6 @@ data class Company(
         @set:PropertyName("cmp_tax2")
         @get:PropertyName("cmp_tax2")
         var companyTax2: Double = 0.0,
-
-        @Ignore
-        @get:Exclude
-        var companyTax2Str: String? = null,
 
         /**
          * Company Tax 2 Regno

@@ -24,7 +24,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -216,17 +215,23 @@ fun PaymentsView(
                             }
                         },
                         onLeadingIconClick = {
-                            viewModel.updatePayment(
-                                state.payment.copy(
-                                    paymentType = null
+                            viewModel.updateState(
+                                state.copy(
+                                    payment = state.payment.copy(
+                                        paymentType = null
+                                    )
                                 )
+
                             )
                         }) { typeModel ->
                         typeModel as PaymentTypeModel
-                        viewModel.updatePayment(
-                            state.payment.copy(
-                                paymentType = typeModel.type
+                        viewModel.updateState(
+                            state.copy(
+                                payment = state.payment.copy(
+                                    paymentType = typeModel.type
+                                )
                             )
+
                         )
                     }
 
@@ -249,21 +254,25 @@ fun PaymentsView(
                             }
                         },
                         onLeadingIconClick = {
-                            viewModel.updatePayment(
-                                state.payment.copy(
-                                    paymentCurrency = null,
-                                    paymentCurrencyCode = null
-                                ),
-                                currIndex = 0
+                            viewModel.updateState(
+                                state.copy(
+                                    payment = state.payment.copy(
+                                        paymentCurrency = null,
+                                        paymentCurrencyCode = null
+                                    ),
+                                    currencyIndex = 0
+                                )
                             )
                         }) { currModel ->
                         currModel as CurrencyModel
-                        viewModel.updatePayment(
-                            state.payment.copy(
-                                paymentCurrency = currModel.getId(),
-                                paymentCurrencyCode = currModel.currencyCode
-                            ),
-                            currIndex = state.payment.getSelectedCurrencyIndex()
+                        viewModel.updateState(
+                            state.copy(
+                                payment = state.payment.copy(
+                                    paymentCurrency = currModel.getId(),
+                                    paymentCurrencyCode = currModel.currencyCode
+                                ),
+                                currencyIndex = state.payment.getSelectedCurrencyIndex()
+                            )
                         )
                     }
 
@@ -271,7 +280,7 @@ fun PaymentsView(
                         horizontal = 10.dp,
                         vertical = 5.dp
                     ),
-                        defaultValue = state.payment.paymentAmountStr ?: "",
+                        defaultValue = state.paymentAmountStr,
                         label = "Amount",
                         placeHolder = "Enter Amount",
                         focusRequester = amountFocusRequester,
@@ -281,7 +290,7 @@ fun PaymentsView(
                         }) { amount ->
                         val amountStr = Utils.getDoubleValue(
                             amount,
-                            state.payment.paymentAmountStr ?: ""
+                            state.paymentAmountStr
                         )
                         val paymentAmount = amountStr.toDoubleOrNull() ?: 0.0
                         var amountFirst = state.payment.paymentAmountFirst
@@ -295,21 +304,24 @@ fun PaymentsView(
                                 SettingsModel.currentCurrency?.currencyRate ?: 1.0
                             )
                         }
-                        viewModel.updatePayment(
-                            state.payment.copy(
-                                paymentAmount = paymentAmount,
+                        viewModel.updateState(
+                            state.copy(
+                                payment = state.payment.copy(
+                                    paymentAmount = paymentAmount,
+                                    paymentAmountFirst = amountFirst,
+                                    paymentAmountSecond = amountSecond
+                                ),
                                 paymentAmountStr = amountStr,
-                                paymentAmountFirst = amountFirst,
                                 paymentAmountFirstStr = POSUtils.formatDouble(
                                     amountFirst,
                                     SettingsModel.currentCurrency?.currencyName1Dec ?: 2
                                 ),
-                                paymentAmountSecond = amountSecond,
                                 paymentAmountSecondStr = POSUtils.formatDouble(
                                     amountSecond,
                                     SettingsModel.currentCurrency?.currencyName2Dec ?: 2
                                 )
                             )
+
                         )
                     }
 
@@ -318,7 +330,7 @@ fun PaymentsView(
                             horizontal = 10.dp,
                             vertical = 5.dp
                         ),
-                            defaultValue = state.payment.paymentAmountFirstStr ?: "",
+                            defaultValue = state.paymentAmountFirstStr,
                             label = "Amount ${SettingsModel.currentCurrency?.currencyCode1 ?: ""}",
                             placeHolder = "Enter Amount",
                             focusRequester = amountFocusRequester,
@@ -328,12 +340,14 @@ fun PaymentsView(
                             }) { amount ->
                             val amountFirst =
                                 amount.toDoubleOrNull() ?: state.payment.paymentAmountFirst
-                            viewModel.updatePayment(
-                                state.payment.copy(
-                                    paymentAmountFirst = amountFirst,
+                            viewModel.updateState(
+                                state.copy(
+                                    payment = state.payment.copy(
+                                        paymentAmountFirst = amountFirst
+                                    ),
                                     paymentAmountFirstStr = Utils.getDoubleValue(
                                         amount,
-                                        state.payment.paymentAmountFirstStr ?: ""
+                                        state.paymentAmountFirstStr
                                     )
                                 )
                             )
@@ -345,7 +359,7 @@ fun PaymentsView(
                             horizontal = 10.dp,
                             vertical = 5.dp
                         ),
-                            defaultValue = state.payment.paymentAmountSecondStr ?: "",
+                            defaultValue = state.paymentAmountSecondStr,
                             label = "Amount ${SettingsModel.currentCurrency?.currencyCode2 ?: ""}",
                             placeHolder = "Enter Amount",
                             focusRequester = amountFocusRequester,
@@ -355,14 +369,17 @@ fun PaymentsView(
                             }) { amount ->
                             val amountSecond =
                                 amount.toDoubleOrNull() ?: state.payment.paymentAmountSecond
-                            viewModel.updatePayment(
-                                state.payment.copy(
-                                    paymentAmountSecond = amountSecond,
+                            viewModel.updateState(
+                                state.copy(
+                                    payment = state.payment.copy(
+                                        paymentAmountSecond = amountSecond
+                                    ),
                                     paymentAmountSecondStr = Utils.getDoubleValue(
                                         amount,
-                                        state.payment.paymentAmountSecondStr ?: ""
+                                        state.paymentAmountSecondStr
                                     )
                                 )
+
                             )
                         }
                     }
@@ -378,10 +395,13 @@ fun PaymentsView(
                         maxLines = 4,
                         imeAction = ImeAction.None,
                         onAction = { noteFocusRequester.requestFocus() }) { desc ->
-                        viewModel.updatePayment(
-                            state.payment.copy(
-                                paymentDesc = desc
+                        viewModel.updateState(
+                            state.copy(
+                                payment = state.payment.copy(
+                                    paymentDesc = desc
+                                )
                             )
+
                         )
                     }
 
@@ -396,10 +416,13 @@ fun PaymentsView(
                         focusRequester = noteFocusRequester,
                         imeAction = ImeAction.None,
                         onAction = { keyboardController?.hide() }) { note ->
-                        viewModel.updatePayment(
-                            state.payment.copy(
-                                paymentNote = note
+                        viewModel.updateState(
+                            state.copy(
+                                payment = state.payment.copy(
+                                    paymentNote = note
+                                )
                             )
+
                         )
                     }
 
@@ -469,19 +492,25 @@ fun PaymentsView(
                         }
                     },
                     onLeadingIconClick = {
-                        viewModel.updatePayment(
-                            state.payment.copy(
-                                paymentThirdParty = null,
-                                paymentThirdPartyName = null
+                        viewModel.updateState(
+                            state.copy(
+                                payment = state.payment.copy(
+                                    paymentThirdParty = null,
+                                    paymentThirdPartyName = null
+                                )
                             )
+
                         )
                     }) { thirdParty ->
                     thirdParty as ThirdParty
-                    viewModel.updatePayment(
-                        state.payment.copy(
-                            paymentThirdParty = thirdParty.thirdPartyId,
-                            paymentThirdPartyName = thirdParty.thirdPartyName
+                    viewModel.updateState(
+                        state.copy(
+                            payment = state.payment.copy(
+                                paymentThirdParty = thirdParty.thirdPartyId,
+                                paymentThirdPartyName = thirdParty.thirdPartyName
+                            )
                         )
+
                     )
                 }
 
@@ -508,21 +537,26 @@ fun PaymentsView(
                         viewModel.resetState()
                     }) { payment ->
                     payment as Payment
-                    payment.paymentAmountStr = POSUtils.formatDouble(
-                        payment.paymentAmount,
-                        SettingsModel.currentCurrency?.currencyName1Dec ?: 2
-                    )
-                    payment.paymentAmountFirstStr = POSUtils.formatDouble(
-                        payment.paymentAmountFirst,
-                        SettingsModel.currentCurrency?.currencyName1Dec ?: 2
-                    )
-                    payment.paymentAmountSecondStr = POSUtils.formatDouble(
-                        payment.paymentAmountSecond,
-                        SettingsModel.currentCurrency?.currencyName2Dec ?: 2
-                    )
                     payment.paymentCurrencyCode = viewModel.getCurrencyCode(payment.paymentCurrency)
                     viewModel.currentPayment = payment.copy()
-                    viewModel.updatePayment(payment.copy(), payment.getSelectedCurrencyIndex())
+                    viewModel.updateState(
+                        state.copy(
+                            payment = payment.copy(),
+                            currencyIndex = payment.getSelectedCurrencyIndex(),
+                            paymentAmountStr = POSUtils.formatDouble(
+                                payment.paymentAmount,
+                                SettingsModel.currentCurrency?.currencyName1Dec ?: 2
+                            ),
+                            paymentAmountFirstStr = POSUtils.formatDouble(
+                                payment.paymentAmountFirst,
+                                SettingsModel.currentCurrency?.currencyName1Dec ?: 2
+                            ),
+                            paymentAmountSecondStr = POSUtils.formatDouble(
+                                payment.paymentAmountSecond,
+                                SettingsModel.currentCurrency?.currencyName2Dec ?: 2
+                            )
+                        )
+                    )
                 }
             }
         }

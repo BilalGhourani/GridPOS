@@ -113,14 +113,6 @@ data class Payment(
         var paymentAmount: Double = 0.0,
 
         /**
-         * Payment Amount string
-         * only for ui
-         * */
-        @Ignore
-        @get:Exclude
-        var paymentAmountStr: String? = null,
-
-        /**
          * Payment Amount first
          * */
         @ColumnInfo(name = "pay_amtf")
@@ -129,28 +121,12 @@ data class Payment(
         var paymentAmountFirst: Double = 0.0,
 
         /**
-         * Payment Amount first string
-         * only for ui
-         * */
-        @Ignore
-        @get:Exclude
-        var paymentAmountFirstStr: String? = null,
-
-        /**
          * Payment Amount second
          * */
         @ColumnInfo(name = "pay_amts")
         @set:PropertyName("pay_amts")
         @get:PropertyName("pay_amts")
         var paymentAmountSecond: Double = 0.0,
-
-        /**
-         * Payment Amount second string
-         * only for ui
-         * */
-        @Ignore
-        @get:Exclude
-        var paymentAmountSecondStr: String? = null,
 
         /**
          * Payment Description

@@ -74,10 +74,6 @@ data class Currency(
         @get:PropertyName("cur_name1decimal")
         var currencyName1Dec: Int = 2,
 
-        @Ignore
-        @get:Exclude
-        var currencyName1DecStr: String? = null,
-
         /**
          * Currency Name 2 Decimal
          * */
@@ -86,9 +82,6 @@ data class Currency(
         @get:PropertyName("cur_name2decimal")
         var currencyName2Dec: Int = 2,
 
-        @Ignore
-        @get:Exclude
-        var currencyName2DecStr: String? = null,
 
         /**
          * Currency Rate
@@ -98,9 +91,6 @@ data class Currency(
         @get:PropertyName("cur_rate")
         var currencyRate: Double = 1.0,
 
-        @Ignore
-        @get:Exclude
-        var currencyRateStr: String? = null,
 ) : EntityModel() {
     constructor() : this("")
 

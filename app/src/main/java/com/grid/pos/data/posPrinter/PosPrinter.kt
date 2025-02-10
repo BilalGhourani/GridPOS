@@ -57,10 +57,6 @@ data class PosPrinter(
         @get:PropertyName("pp_port")
         var posPrinterPort: Int = -1,
 
-        @Ignore
-        @get:Exclude
-        var posPrinterPortStr: String? = null,
-
         /**
          *  POS Printer type
          * */

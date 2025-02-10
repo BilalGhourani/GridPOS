@@ -41,10 +41,8 @@ class POSPrinterViewModel @Inject constructor(
         )
     }
 
-    fun updatePrinter(posPrinter: PosPrinter) {
-        state.value = state.value.copy(
-            printer = posPrinter
-        )
+    fun updateState(newState: POSPrinterState) {
+        state.value = newState
     }
 
     fun isAnyChangeDone():Boolean{

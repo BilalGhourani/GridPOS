@@ -191,9 +191,11 @@ fun ManageCurrenciesView(
                                 label = "Cur1 Code",
                                 placeHolder = "Code",
                                 onAction = { curName1FocusRequester.requestFocus() }) { curCode1 ->
-                                viewModel.updateCurrency(
-                                    state.currency.copy(
-                                        currencyCode1 = curCode1
+                                viewModel.updateState(
+                                    state.copy(
+                                        currency = state.currency.copy(
+                                            currencyCode1 = curCode1
+                                        )
                                     )
                                 )
                             }
@@ -209,9 +211,12 @@ fun ManageCurrenciesView(
                                 placeHolder = "Name",
                                 focusRequester = curName1FocusRequester,
                                 onAction = { curName1DecFocusRequester.requestFocus() }) { curName1 ->
-                                viewModel.updateCurrency(
-                                    state.currency.copy(
-                                        currencyName1 = curName1
+                                viewModel.updateState(
+                                    state.copy(
+                                        currency =
+                                        state.currency.copy(
+                                            currencyName1 = curName1
+                                        )
                                     )
                                 )
                             }
@@ -222,18 +227,20 @@ fun ManageCurrenciesView(
                                 .padding(
                                     horizontal = 5.dp
                                 ),
-                                defaultValue = state.currency.currencyName1DecStr?:"",
+                                defaultValue = state.currencyName1DecStr,
                                 keyboardType = KeyboardType.Decimal,
                                 label = "Decimal",
                                 focusRequester = curName1DecFocusRequester,
                                 onAction = { curCode2FocusRequester.requestFocus() }) { curName1Dec ->
-                                viewModel.updateCurrency(
-                                    state.currency.copy(
-                                        currencyName1Dec = curName1Dec.toIntOrNull()
-                                            ?: state.currency.currencyName1Dec,
+                                viewModel.updateState(
+                                    state.copy(
+                                        currency = state.currency.copy(
+                                            currencyName1Dec = curName1Dec.toIntOrNull()
+                                                ?: state.currency.currencyName1Dec
+                                        ),
                                         currencyName1DecStr = Utils.getIntValue(
                                             curName1Dec,
-                                            state.currency.currencyName1DecStr ?: ""
+                                            state.currencyName1DecStr
                                         )
                                     )
                                 )
@@ -258,9 +265,11 @@ fun ManageCurrenciesView(
                                 placeHolder = "Code",
                                 focusRequester = curCode2FocusRequester,
                                 onAction = { curName2FocusRequester.requestFocus() }) { curCode2 ->
-                                viewModel.updateCurrency(
-                                    state.currency.copy(
-                                        currencyCode2 = curCode2
+                                viewModel.updateState(
+                                    state.copy(
+                                        currency = state.currency.copy(
+                                            currencyCode2 = curCode2
+                                        )
                                     )
                                 )
                             }
@@ -276,9 +285,11 @@ fun ManageCurrenciesView(
                                 placeHolder = "Name",
                                 focusRequester = curName2FocusRequester,
                                 onAction = { curName2DecFocusRequester.requestFocus() }) { curName2 ->
-                                viewModel.updateCurrency(
-                                    state.currency.copy(
-                                        currencyName2 = curName2
+                                viewModel.updateState(
+                                    state.copy(
+                                        currency = state.currency.copy(
+                                            currencyName2 = curName2
+                                        )
                                     )
                                 )
                             }
@@ -289,18 +300,20 @@ fun ManageCurrenciesView(
                                 .padding(
                                     horizontal = 5.dp
                                 ),
-                                defaultValue = state.currency.currencyName2DecStr?:"",
+                                defaultValue = state.currencyName2DecStr,
                                 keyboardType = KeyboardType.Decimal,
                                 label = "Decimal",
                                 focusRequester = curName2DecFocusRequester,
                                 onAction = { rateFocusRequester.requestFocus() }) { curName2Dec ->
-                                viewModel.updateCurrency(
-                                    state.currency.copy(
-                                        currencyName2Dec = curName2Dec.toIntOrNull()
-                                            ?: state.currency.currencyName2Dec,
+                                viewModel.updateState(
+                                    state.copy(
+                                        currency = state.currency.copy(
+                                            currencyName2Dec = curName2Dec.toIntOrNull()
+                                                ?: state.currency.currencyName2Dec,
+                                        ),
                                         currencyName2DecStr = Utils.getIntValue(
                                             curName2Dec,
-                                            state.currency.currencyName2DecStr ?: ""
+                                            state.currencyName2DecStr
                                         )
                                     )
                                 )
@@ -308,21 +321,25 @@ fun ManageCurrenciesView(
                         }
 
                         UITextField(modifier = Modifier.padding(10.dp),
-                            defaultValue =  state.currency.currencyRateStr?:"",
+                            defaultValue = state.currencyRateStr,
                             keyboardType = KeyboardType.Decimal,
                             label = "Rate",
                             placeHolder = "Enter Rate",
                             focusRequester = rateFocusRequester,
                             imeAction = ImeAction.Done,
                             onAction = { keyboardController?.hide() }) { rateStr ->
-                            viewModel.updateCurrency(
-                                state.currency.copy(
-                                    currencyRate = rateStr.toDoubleOrNull() ?: state.currency.currencyRate,
+                            viewModel.updateState(
+                                state.copy(
+                                    currency = state.currency.copy(
+                                        currencyRate = rateStr.toDoubleOrNull()
+                                            ?: state.currency.currencyRate
+                                    ),
                                     currencyRateStr = Utils.getDoubleValue(
                                         rateStr,
-                                        state.currency.currencyRateStr ?: ""
+                                        state.currencyRateStr
                                     )
                                 )
+
                             )
                         }
 

@@ -198,10 +198,13 @@ fun POSPrinterView(
                         label = "Name",
                         placeHolder = "Enter Name",
                         onAction = { hostFocusRequester.requestFocus() }) { name ->
-                        viewModel.updatePrinter(
-                            state.printer.copy(
-                                posPrinterName = name
+                        viewModel.updateState(
+                            state.copy(
+                                printer = state.printer.copy(
+                                    posPrinterName = name
+                                )
                             )
+
                         )
                     }
 
@@ -213,10 +216,13 @@ fun POSPrinterView(
                         label = "Host",
                         placeHolder = "ex:127.0.0.1",
                         onAction = { portFocusRequester.requestFocus() }) { host ->
-                        viewModel.updatePrinter(
-                            state.printer.copy(
-                                posPrinterHost = host
+                        viewModel.updateState(
+                            state.copy(
+                                printer = state.printer.copy(
+                                    posPrinterHost = host
+                                )
                             )
+
                         )
                     }
 
@@ -224,18 +230,22 @@ fun POSPrinterView(
                         horizontal = 10.dp,
                         vertical = 5.dp
                     ),
-                        defaultValue = state.printer.posPrinterPortStr ?: "",
+                        defaultValue = state.posPrinterPortStr,
                         label = "Port",
                         placeHolder = "ex:9100",
                         onAction = { typeFocusRequester.requestFocus() }) { port ->
-                        viewModel.updatePrinter(
-                            state.printer.copy(
-                                posPrinterPort = port.toIntOrNull() ?: state.printer.posPrinterPort,
+                        viewModel.updateState(
+                            state.copy(
+                                printer = state.printer.copy(
+                                    posPrinterPort = port.toIntOrNull()
+                                        ?: state.printer.posPrinterPort
+                                ),
                                 posPrinterPortStr = Utils.getIntValue(
                                     port,
-                                    state.printer.posPrinterPortStr ?: ""
+                                    state.posPrinterPortStr
                                 )
                             )
+
                         )
                     }
 
@@ -248,10 +258,13 @@ fun POSPrinterView(
                         placeHolder = "Enter Type",
                         imeAction = ImeAction.Done,
                         onAction = { keyboardController?.hide() }) { type ->
-                        viewModel.updatePrinter(
-                            state.printer.copy(
-                                posPrinterType = type
+                        viewModel.updateState(
+                            state.copy(
+                                printer = state.printer.copy(
+                                    posPrinterType = type
+                                )
                             )
+
                         )
                     }
 
@@ -323,10 +336,13 @@ fun POSPrinterView(
                         viewModel.resetState()
                     }) { printer ->
                     printer as PosPrinter
-                    viewModel.currentPrinter = printer.copy(
-                        posPrinterPortStr = printer.posPrinterPort.toString()
+                    viewModel.currentPrinter = printer.copy()
+                    viewModel.updateState(
+                        state.copy(
+                            printer = viewModel.currentPrinter.copy(),
+                            posPrinterPortStr = printer.posPrinterPort.toString()
+                        )
                     )
-                    viewModel.updatePrinter(viewModel.currentPrinter.copy())
                 }
             }
         }

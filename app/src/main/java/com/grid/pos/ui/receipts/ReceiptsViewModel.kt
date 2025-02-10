@@ -80,11 +80,8 @@ class ReceiptsViewModel @Inject constructor(
         )
     }
 
-    fun updateReceipt(receipt: Receipt, currIndex: Int? = null) {
-        _state.value = state.value.copy(
-            receipt = receipt,
-            currencyIndex = currIndex ?: state.value.currencyIndex
-        )
+    fun updateState(newState: ReceiptsState) {
+        _state.value = newState
     }
 
     fun isAnyChangeDone(): Boolean {

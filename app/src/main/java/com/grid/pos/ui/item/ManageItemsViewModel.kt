@@ -71,10 +71,8 @@ class ManageItemsViewModel @Inject constructor(
         )
     }
 
-    fun updateItem(item: Item) {
-        state.value = state.value.copy(
-            item = item
-        )
+    fun updateState(newState: ManageItemsState) {
+        state.value = newState
     }
 
     fun isAnyChangeDone(): Boolean {
@@ -147,14 +145,12 @@ class ManageItemsViewModel @Inject constructor(
         val currencies = currencyRepository.getAllCurrencyModels()
         val firstCurrency = getFirstCurrency()
         withContext(Dispatchers.Main) {
-            updateItem(
-                currentITem.copy(
-                    itemCurrencyId = firstCurrency.first,
-                    itemCurrencyCode = firstCurrency.second,
-                )
-            )
             state.value = state.value.copy(
                 currencies = currencies,
+                item = currentITem.copy(
+                    itemCurrencyId = firstCurrency.first,
+                    itemCurrencyCode = firstCurrency.second,
+                ),
                 isLoading = false
             )
         }
@@ -194,13 +190,11 @@ class ManageItemsViewModel @Inject constructor(
             ItemGroupModel("Non Stock"),
         )
         withContext(Dispatchers.Main) {
-            updateItem(
-                currentITem.copy(
-                    itemGroup = groups[0].groupName
-                )
-            )
             state.value = state.value.copy(
                 groups = groups,
+                item = currentITem.copy(
+                    itemGroup = groups[0].groupName
+                ),
                 isConnectingToSQLServer = isConnectedToSQL
             )
         }
