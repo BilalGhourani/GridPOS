@@ -681,6 +681,12 @@ class ItemRepositoryImpl(
             "addst_item",
             parameters
         )
+        if (dbResult.succeed) {
+            SQLServerWrapper.executeProcedure(
+                "showitemonpos",
+                listOf(item.itemId, item.itemPos)
+            )
+        }
         return DataModel(
             item,
             dbResult.succeed
@@ -732,6 +738,12 @@ class ItemRepositoryImpl(
             ),
             "it_id = '${item.itemId}'"
         )
+        if (succeed) {
+            SQLServerWrapper.executeProcedure(
+                "showitemonpos",
+                listOf(item.itemId, item.itemPos)
+            )
+        }
         return DataModel(
             item,
             succeed
