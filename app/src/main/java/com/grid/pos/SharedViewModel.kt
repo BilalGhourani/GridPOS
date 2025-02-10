@@ -51,6 +51,7 @@ class SharedViewModel @Inject constructor(
 
     var reportCountries: MutableList<ReportCountry> = mutableListOf()
 
+    var needAddedData = false
     var fetchItemsAgain = false
     var fetchThirdPartiesAgain = false
 

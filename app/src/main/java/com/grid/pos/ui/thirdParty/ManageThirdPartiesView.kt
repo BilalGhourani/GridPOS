@@ -82,6 +82,14 @@ fun ManageThirdPartiesView(
         sharedViewModel.showLoading(state.isLoading)
     }
 
+    fun save() {
+        viewModel.save()
+        if (sharedViewModel.needAddedData) {
+            sharedViewModel.needAddedData = false
+            sharedViewModel.fetchThirdPartiesAgain = true
+        }
+    }
+
     var saveAndBack by remember { mutableStateOf(false) }
     fun handleBack() {
         if (state.isLoading) {
@@ -96,7 +104,7 @@ fun ManageThirdPartiesView(
                     }
                     onConfirmation = {
                         saveAndBack = true
-                        viewModel.save()
+                        save()
                     }
                     dialogText = "Do you want to save your changes"
                     positiveBtnText = "Save"
@@ -177,7 +185,7 @@ fun ManageThirdPartiesView(
                         horizontal = 10.dp,
                         vertical = 5.dp
                     ),
-                        defaultValue = state.thirdParty.thirdPartyName?:"",
+                        defaultValue = state.thirdParty.thirdPartyName ?: "",
                         label = "Name",
                         placeHolder = "Enter Name",
                         onAction = {
@@ -195,7 +203,7 @@ fun ManageThirdPartiesView(
                         horizontal = 10.dp,
                         vertical = 5.dp
                     ),
-                        defaultValue = state.thirdParty.thirdPartyFn?:"",
+                        defaultValue = state.thirdParty.thirdPartyFn ?: "",
                         label = "Financial No.",
                         placeHolder = "Financial No.",
                         focusRequester = fnFocusRequester,
@@ -214,7 +222,7 @@ fun ManageThirdPartiesView(
                         horizontal = 10.dp,
                         vertical = 5.dp
                     ),
-                        defaultValue = state.thirdParty.thirdPartyPhone1?:"",
+                        defaultValue = state.thirdParty.thirdPartyPhone1 ?: "",
                         label = "Phone1",
                         placeHolder = "Enter Phone1",
                         focusRequester = phone1FocusRequester,
@@ -295,7 +303,7 @@ fun ManageThirdPartiesView(
                             icon = R.drawable.save,
                             text = "Save"
                         ) {
-                            viewModel.save()
+                            save()
                         }
 
                         UIImageButton(
@@ -346,7 +354,7 @@ fun ManageThirdPartiesView(
                     label = "Select ThirdParty",
                     selectedId = state.thirdParty.thirdPartyId,
                     onLoadItems = { viewModel.fetchThirdParties() },
-                    leadingIcon = {modifier->
+                    leadingIcon = { modifier ->
                         if (state.thirdParty.thirdPartyId.isNotEmpty()) {
                             Icon(
                                 Icons.Default.RemoveCircleOutline,

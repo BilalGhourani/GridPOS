@@ -156,6 +156,10 @@ fun ManageItemsView(
             )
         }
         viewModel.save()
+        if (sharedViewModel.needAddedData) {
+            sharedViewModel.needAddedData = false
+            sharedViewModel.fetchItemsAgain = true
+        }
     }
 
 

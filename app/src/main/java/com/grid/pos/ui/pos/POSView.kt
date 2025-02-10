@@ -531,16 +531,16 @@ fun POSView(
                                 viewModel.loadFamiliesAndItems()
                             },
                             onAddItem = {
+                                sharedViewModel.needAddedData = true
                                 navController?.navigate(
                                     "ManageItemsView"
                                 )
-                                sharedViewModel.fetchItemsAgain = true
                             },
                             onAddThirdParty = {
+                                sharedViewModel.needAddedData = true
                                 navController?.navigate(
                                     "ManageThirdPartiesView"
                                 )
-                                sharedViewModel.fetchThirdPartiesAgain = true
                             },
                             onItemSelected = { item ->
                                 scope.launch {
