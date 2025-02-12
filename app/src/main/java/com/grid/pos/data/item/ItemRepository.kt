@@ -9,13 +9,13 @@ interface ItemRepository {
     suspend fun insert(item: Item): DataModel
 
     // Delete an Item
-    suspend fun delete(item: Item):DataModel
+    suspend fun delete(item: Item): DataModel
 
     // Update an Item
-    suspend fun update(item: Item):DataModel
+    suspend fun update(item: Item, updateShowInPOS: Boolean = false): DataModel
 
     // Update list of Items
-    suspend fun update(items: List<Item>):DataModel
+    suspend fun update(items: List<Item>): DataModel
 
     // Get all Items logs as stream.
     suspend fun getAllItems(): MutableList<Item>
@@ -26,7 +26,7 @@ interface ItemRepository {
     suspend fun generateBarcode(): String
 
     suspend fun getOneItemByFamily(familyId: String): Item?
-    suspend fun updateWarehouseData(item: Item):DataModel
-    suspend fun updateOpening(item: Item):DataModel
+    suspend fun updateWarehouseData(item: Item): DataModel
+    suspend fun updateOpening(item: Item): DataModel
 
 }

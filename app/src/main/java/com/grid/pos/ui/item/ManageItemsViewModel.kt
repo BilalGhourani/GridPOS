@@ -267,7 +267,8 @@ class ManageItemsViewModel @Inject constructor(
                     }
                 }
             } else {
-                val dataModel = itemRepository.update(item)
+                val updateShowInPOS = currentITem.itemPos != item.itemPos
+                val dataModel = itemRepository.update(item, updateShowInPOS)
                 if (dataModel.succeed) {
                     val index =
                         state.value.items.indexOfFirst { it.itemId == item.itemId }

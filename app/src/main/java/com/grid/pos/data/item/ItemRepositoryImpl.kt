@@ -59,7 +59,7 @@ class ItemRepositoryImpl(
         }
     }
 
-    override suspend fun update(item: Item): DataModel {
+    override suspend fun update(item: Item, updateShowInPOS: Boolean): DataModel {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
                 return FirebaseWrapper.update(
@@ -74,7 +74,7 @@ class ItemRepositoryImpl(
             }
 
             else -> {
-                return updateItem(item)
+                return updateItem(item, updateShowInPOS)
             }
         }
     }
@@ -694,7 +694,8 @@ class ItemRepositoryImpl(
     }
 
     private fun updateItem(
-        item: Item
+        item: Item,
+        updateShowInPOS: Boolean = false
     ): DataModel {
         val succeed = SQLServerWrapper.update(
             "st_item",
@@ -738,7 +739,7 @@ class ItemRepositoryImpl(
             ),
             "it_id = '${item.itemId}'"
         )
-        if (succeed) {
+        if (succeed && updateShowInPOS) {
             SQLServerWrapper.executeProcedure(
                 "showitemonpos",
                 listOf(item.itemId, item.itemPos)
