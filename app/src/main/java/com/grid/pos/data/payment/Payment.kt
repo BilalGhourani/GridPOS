@@ -15,159 +15,159 @@ import java.util.Date
 
 @Entity(tableName = "payment")
 data class Payment(
-        /**
-         * Payment id
-         * */
-        @PrimaryKey
-        @ColumnInfo(name = "pay_id")
-        @set:PropertyName("pay_id")
-        @get:PropertyName("pay_id")
-        var paymentId: String,
+    /**
+     * Payment id
+     * */
+    @PrimaryKey
+    @ColumnInfo(name = "pay_id")
+    @set:PropertyName("pay_id")
+    @get:PropertyName("pay_id")
+    var paymentId: String,
 
-        @Ignore
-        @get:Exclude
-        var paymentDocumentId: String? = null,
+    @Ignore
+    @get:Exclude
+    var paymentDocumentId: String? = null,
 
-        @Ignore
-        @get:Exclude
-        var paymentInId: String? = null,
+    @Ignore
+    @get:Exclude
+    var paymentInId: String? = null,
 
-        @Ignore
-        @get:Exclude
-        var unAllocatedPaymentId: String? = null,
+    @Ignore
+    @get:Exclude
+    var unAllocatedPaymentId: String? = null,
 
-        @Ignore
-        @get:Exclude
-        var paymentNo: String? = null,
+    @Ignore
+    @get:Exclude
+    var paymentNo: String? = null,
 
-        /**
-         * Payment name
-         * */
-        @ColumnInfo(name = "pay_cmp_id")
-        @set:PropertyName("pay_cmp_id")
-        @get:PropertyName("pay_cmp_id")
-        var paymentCompanyId: String? = null,
+    /**
+     * Payment name
+     * */
+    @ColumnInfo(name = "pay_cmp_id")
+    @set:PropertyName("pay_cmp_id")
+    @get:PropertyName("pay_cmp_id")
+    var paymentCompanyId: String? = null,
 
-        /**
-         * Payment Type
-         * */
-        @ColumnInfo(name = "pay_type")
-        @set:PropertyName("pay_type")
-        @get:PropertyName("pay_type")
-        var paymentType: String? = null,
+    /**
+     * Payment Type
+     * */
+    @ColumnInfo(name = "pay_type")
+    @set:PropertyName("pay_type")
+    @get:PropertyName("pay_type")
+    var paymentType: String? = null,
 
-        /**
-         * Payment TransactionCode
-         * */
-        @ColumnInfo(name = "pay_tt_code")
-        @set:PropertyName("pay_tt_code")
-        @get:PropertyName("pay_tt_code")
-        var paymentTransCode: String? = null,
+    /**
+     * Payment TransactionCode
+     * */
+    @ColumnInfo(name = "pay_tt_code")
+    @set:PropertyName("pay_tt_code")
+    @get:PropertyName("pay_tt_code")
+    var paymentTransCode: String? = null,
 
-        /**
-         * Payment Address
-         * */
-        @ColumnInfo(name = "pay_transno")
-        @set:PropertyName("pay_transno")
-        @get:PropertyName("pay_transno")
-        var paymentTransNo: String? = null,
+    /**
+     * Payment Address
+     * */
+    @ColumnInfo(name = "pay_transno")
+    @set:PropertyName("pay_transno")
+    @get:PropertyName("pay_transno")
+    var paymentTransNo: String? = null,
 
-        /**
-         * Payment ThirdParty
-         * */
-        @ColumnInfo(name = "pay_tp_name")
-        @set:PropertyName("pay_tp_name")
-        @get:PropertyName("pay_tp_name")
-        var paymentThirdParty: String? = null,
+    /**
+     * Payment ThirdParty
+     * */
+    @ColumnInfo(name = "pay_tp_name")
+    @set:PropertyName("pay_tp_name")
+    @get:PropertyName("pay_tp_name")
+    var paymentThirdParty: String? = null,
 
-        /**
-         * payment ThirdParty name
-         * */
-        @Ignore
-        @get:Exclude
-        @set:Exclude
-        var paymentThirdPartyName: String? = null,
+    /**
+     * payment ThirdParty name
+     * */
+    @Ignore
+    @get:Exclude
+    @set:Exclude
+    var paymentThirdPartyName: String? = null,
 
-        /**
-         * Payment Currency
-         * */
-        @ColumnInfo(name = "pay_cur_code")
-        @set:PropertyName("pay_cur_code")
-        @get:PropertyName("pay_cur_code")
-        var paymentCurrency: String? = null,
+    /**
+     * Payment Currency
+     * */
+    @ColumnInfo(name = "pay_cur_code")
+    @set:PropertyName("pay_cur_code")
+    @get:PropertyName("pay_cur_code")
+    var paymentCurrency: String? = null,
 
-        /**
-         * Payment Currency Code
-         * */
-        @Ignore
-        @get:Exclude
-        @set:Exclude
-        var paymentCurrencyCode: String? = null,
+    /**
+     * Payment Currency Code
+     * */
+    @Ignore
+    @get:Exclude
+    @set:Exclude
+    var paymentCurrencyCode: String? = null,
 
-        /**
-         * Payment Amount
-         * */
-        @ColumnInfo(name = "pay_amt")
-        @set:PropertyName("pay_amt")
-        @get:PropertyName("pay_amt")
-        var paymentAmount: Double = 0.0,
+    /**
+     * Payment Amount
+     * */
+    @ColumnInfo(name = "pay_amt")
+    @set:PropertyName("pay_amt")
+    @get:PropertyName("pay_amt")
+    var paymentAmount: Double = 0.0,
 
-        /**
-         * Payment Amount first
-         * */
-        @ColumnInfo(name = "pay_amtf")
-        @set:PropertyName("pay_amtf")
-        @get:PropertyName("pay_amtf")
-        var paymentAmountFirst: Double = 0.0,
+    /**
+     * Payment Amount first
+     * */
+    @ColumnInfo(name = "pay_amtf")
+    @set:PropertyName("pay_amtf")
+    @get:PropertyName("pay_amtf")
+    var paymentAmountFirst: Double = 0.0,
 
-        /**
-         * Payment Amount second
-         * */
-        @ColumnInfo(name = "pay_amts")
-        @set:PropertyName("pay_amts")
-        @get:PropertyName("pay_amts")
-        var paymentAmountSecond: Double = 0.0,
+    /**
+     * Payment Amount second
+     * */
+    @ColumnInfo(name = "pay_amts")
+    @set:PropertyName("pay_amts")
+    @get:PropertyName("pay_amts")
+    var paymentAmountSecond: Double = 0.0,
 
-        /**
-         * Payment Description
-         * */
-        @ColumnInfo(name = "pay_desc")
-        @set:PropertyName("pay_desc")
-        @get:PropertyName("pay_desc")
-        var paymentDesc: String? = null,
+    /**
+     * Payment Description
+     * */
+    @ColumnInfo(name = "pay_desc")
+    @set:PropertyName("pay_desc")
+    @get:PropertyName("pay_desc")
+    var paymentDesc: String? = null,
 
-        /**
-         * Payment Note
-         * */
-        @ColumnInfo(name = "pay_note")
-        @set:PropertyName("pay_note")
-        @get:PropertyName("pay_note")
-        var paymentNote: String? = null,
+    /**
+     * Payment Note
+     * */
+    @ColumnInfo(name = "pay_note")
+    @set:PropertyName("pay_note")
+    @get:PropertyName("pay_note")
+    var paymentNote: String? = null,
 
-        /**
-         * Payment timestamp
-         * */
-        @Ignore
-        @set:PropertyName("pay_timestamp")
-        @get:PropertyName("pay_timestamp")
-        @ServerTimestamp
-        var paymentTimeStamp: Date? = null,
+    /**
+     * Payment timestamp
+     * */
+    @Ignore
+    @set:PropertyName("pay_timestamp")
+    @get:PropertyName("pay_timestamp")
+    @ServerTimestamp
+    var paymentTimeStamp: Date? = null,
 
-        /**
-         * Payment timestamp
-         * */
-        @ColumnInfo(name = "pay_datetime")
-        @set:PropertyName("pay_datetime")
-        @get:PropertyName("pay_datetime")
-        var paymentDateTime: Long = System.currentTimeMillis(),
+    /**
+     * Payment timestamp
+     * */
+    @ColumnInfo(name = "pay_datetime")
+    @set:PropertyName("pay_datetime")
+    @get:PropertyName("pay_datetime")
+    var paymentDateTime: Long = System.currentTimeMillis(),
 
-        /**
-         * Payment user stamp
-         * */
-        @ColumnInfo(name = "pay_userstamp")
-        @set:PropertyName("pay_userstamp")
-        @get:PropertyName("pay_userstamp")
-        var paymentUserStamp: String? = null
+    /**
+     * Payment user stamp
+     * */
+    @ColumnInfo(name = "pay_userstamp")
+    @set:PropertyName("pay_userstamp")
+    @get:PropertyName("pay_userstamp")
+    var paymentUserStamp: String? = null
 ) : EntityModel() {
     constructor() : this("")
 
@@ -216,12 +216,16 @@ data class Payment(
 
     @Exclude
     fun didChanged(payment: Payment): Boolean {
-        return !payment.paymentDesc.equals(paymentDesc) || !payment.paymentNote.equals(paymentNote) || !payment.paymentThirdParty.equals(paymentThirdParty) || !payment.paymentCurrency.equals(paymentCurrency) || !payment.paymentType.equals(paymentType) || !payment.paymentAmount.equals(paymentAmount)
+        return !payment.paymentDesc.equals(paymentDesc) || !payment.paymentNote.equals(paymentNote) || !payment.paymentThirdParty.equals(
+            paymentThirdParty
+        ) || !payment.paymentCurrency.equals(paymentCurrency) || !payment.paymentType.equals(
+            paymentType
+        ) || !payment.paymentAmount.equals(paymentAmount)
     }
 
     @Exclude
-    fun getSelectedCurrencyIndex(): Int {
-        return when (paymentCurrency) {
+    fun getSelectedCurrencyIndex(currencyId: String? = paymentCurrency): Int {
+        return when (currencyId) {
             SettingsModel.currentCurrency?.currencyId, SettingsModel.currentCurrency?.currencyCode1 -> {
                 1
             }

@@ -271,7 +271,7 @@ fun PaymentsView(
                                     paymentCurrency = currModel.getId(),
                                     paymentCurrencyCode = currModel.currencyCode
                                 ),
-                                currencyIndex = state.payment.getSelectedCurrencyIndex()
+                                currencyIndex = state.payment.getSelectedCurrencyIndex(currModel.getId())
                             )
                         )
                     }
@@ -304,6 +304,15 @@ fun PaymentsView(
                                 SettingsModel.currentCurrency?.currencyRate ?: 1.0
                             )
                         }
+                        val amountFirstStr = if (amountFirst == 0.0) "" else POSUtils.formatDouble(
+                            amountFirst,
+                            SettingsModel.currentCurrency?.currencyName1Dec ?: 2
+                        )
+                        val amountSecondStr =
+                            if (amountSecond == 0.0) "" else POSUtils.formatDouble(
+                                amountSecond,
+                                SettingsModel.currentCurrency?.currencyName2Dec ?: 2
+                            )
                         viewModel.updateState(
                             state.copy(
                                 payment = state.payment.copy(
@@ -312,14 +321,8 @@ fun PaymentsView(
                                     paymentAmountSecond = amountSecond
                                 ),
                                 paymentAmountStr = amountStr,
-                                paymentAmountFirstStr = POSUtils.formatDouble(
-                                    amountFirst,
-                                    SettingsModel.currentCurrency?.currencyName1Dec ?: 2
-                                ),
-                                paymentAmountSecondStr = POSUtils.formatDouble(
-                                    amountSecond,
-                                    SettingsModel.currentCurrency?.currencyName2Dec ?: 2
-                                )
+                                paymentAmountFirstStr = amountFirstStr,
+                                paymentAmountSecondStr = amountSecondStr
                             )
 
                         )

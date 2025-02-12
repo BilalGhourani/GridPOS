@@ -277,7 +277,7 @@ fun ReceiptsView(
                                     receiptCurrency = currModel.getId(),
                                     receiptCurrencyCode = currModel.currencyCode
                                 ),
-                                currencyIndex = state.receipt.getSelectedCurrencyIndex()
+                                currencyIndex = state.receipt.getSelectedCurrencyIndex(currModel.getId())
                             )
 
                         )
@@ -310,6 +310,15 @@ fun ReceiptsView(
                                 SettingsModel.currentCurrency?.currencyRate ?: 1.0
                             )
                         }
+                        val amountFirstStr = if (amountFirst == 0.0) "" else POSUtils.formatDouble(
+                            amountFirst,
+                            SettingsModel.currentCurrency?.currencyName1Dec ?: 2
+                        )
+                        val amountSecondStr =
+                            if (amountSecond == 0.0) "" else POSUtils.formatDouble(
+                                amountSecond,
+                                SettingsModel.currentCurrency?.currencyName2Dec ?: 2
+                            )
                         viewModel.updateState(
                             state.copy(
                                 receipt = state.receipt.copy(
@@ -318,14 +327,8 @@ fun ReceiptsView(
                                     receiptAmountSecond = amountSecond,
                                 ),
                                 receiptAmountStr = amountStr,
-                                receiptAmountFirstStr = POSUtils.formatDouble(
-                                    amountFirst,
-                                    SettingsModel.currentCurrency?.currencyName1Dec ?: 2
-                                ),
-                                receiptAmountSecondStr = POSUtils.formatDouble(
-                                    amountSecond,
-                                    SettingsModel.currentCurrency?.currencyName2Dec ?: 2
-                                )
+                                receiptAmountFirstStr = amountFirstStr,
+                                receiptAmountSecondStr = amountSecondStr
                             )
 
                         )

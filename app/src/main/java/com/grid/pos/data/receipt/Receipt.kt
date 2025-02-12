@@ -15,160 +15,160 @@ import java.util.Date
 
 @Entity(tableName = "receipt")
 data class Receipt(
-        /**
-         * Receipt id
-         * */
-        @PrimaryKey
-        @ColumnInfo(name = "rec_id")
-        @set:PropertyName("rec_id")
-        @get:PropertyName("rec_id")
-        var receiptId: String,
+    /**
+     * Receipt id
+     * */
+    @PrimaryKey
+    @ColumnInfo(name = "rec_id")
+    @set:PropertyName("rec_id")
+    @get:PropertyName("rec_id")
+    var receiptId: String,
 
-        @Ignore
-        @get:Exclude
-        var receiptDocumentId: String? = null,
+    @Ignore
+    @get:Exclude
+    var receiptDocumentId: String? = null,
 
-        @Ignore
-        @get:Exclude
-        var receiptInId: String? = null,
+    @Ignore
+    @get:Exclude
+    var receiptInId: String? = null,
 
-        @Ignore
-        @get:Exclude
-        var unAllocatedReceiptId: String? = null,
+    @Ignore
+    @get:Exclude
+    var unAllocatedReceiptId: String? = null,
 
-        @Ignore
-        @get:Exclude
-        var receiptNo: String? = null,
+    @Ignore
+    @get:Exclude
+    var receiptNo: String? = null,
 
-        /**
-         * Receipt name
-         * */
-        @ColumnInfo(name = "rec_cmp_id")
-        @set:PropertyName("rec_cmp_id")
-        @get:PropertyName("rec_cmp_id")
-        var receiptCompanyId: String? = null,
+    /**
+     * Receipt name
+     * */
+    @ColumnInfo(name = "rec_cmp_id")
+    @set:PropertyName("rec_cmp_id")
+    @get:PropertyName("rec_cmp_id")
+    var receiptCompanyId: String? = null,
 
-        /**
-         * Receipt Type
-         * */
-        @ColumnInfo(name = "rec_type")
-        @set:PropertyName("rec_type")
-        @get:PropertyName("rec_type")
-        var receiptType: String? = null,
+    /**
+     * Receipt Type
+     * */
+    @ColumnInfo(name = "rec_type")
+    @set:PropertyName("rec_type")
+    @get:PropertyName("rec_type")
+    var receiptType: String? = null,
 
-        /**
-         * Receipt TransactionCode
-         * */
-        @ColumnInfo(name = "rec_tt_code")
-        @set:PropertyName("rec_tt_code")
-        @get:PropertyName("rec_tt_code")
-        var receiptTransCode: String? = null,
+    /**
+     * Receipt TransactionCode
+     * */
+    @ColumnInfo(name = "rec_tt_code")
+    @set:PropertyName("rec_tt_code")
+    @get:PropertyName("rec_tt_code")
+    var receiptTransCode: String? = null,
 
-        /**
-         * Receipt Address
-         * */
-        @ColumnInfo(name = "rec_transno")
-        @set:PropertyName("rec_transno")
-        @get:PropertyName("rec_transno")
-        var receiptTransNo: String? = null,
+    /**
+     * Receipt Address
+     * */
+    @ColumnInfo(name = "rec_transno")
+    @set:PropertyName("rec_transno")
+    @get:PropertyName("rec_transno")
+    var receiptTransNo: String? = null,
 
-        /**
-         * Receipt ThirdParty
-         * */
-        @ColumnInfo(name = "rec_tp_name")
-        @set:PropertyName("rec_tp_name")
-        @get:PropertyName("rec_tp_name")
-        var receiptThirdParty: String? = null,
+    /**
+     * Receipt ThirdParty
+     * */
+    @ColumnInfo(name = "rec_tp_name")
+    @set:PropertyName("rec_tp_name")
+    @get:PropertyName("rec_tp_name")
+    var receiptThirdParty: String? = null,
 
-        /**
-         * Receipt ThirdParty name
-         * */
-        @Ignore
-        @get:Exclude
-        @set:Exclude
-        var receiptThirdPartyName: String? = null,
+    /**
+     * Receipt ThirdParty name
+     * */
+    @Ignore
+    @get:Exclude
+    @set:Exclude
+    var receiptThirdPartyName: String? = null,
 
-        /**
-         * Receipt Currency
-         * */
-        @ColumnInfo(name = "rec_cur_code")
-        @set:PropertyName("rec_cur_code")
-        @get:PropertyName("rec_cur_code")
-        var receiptCurrency: String? = null,
+    /**
+     * Receipt Currency
+     * */
+    @ColumnInfo(name = "rec_cur_code")
+    @set:PropertyName("rec_cur_code")
+    @get:PropertyName("rec_cur_code")
+    var receiptCurrency: String? = null,
 
-        /**
-         * Receipt Currency Code
-         * */
-        @Ignore
-        @get:Exclude
-        @set:Exclude
-        var receiptCurrencyCode: String? = null,
+    /**
+     * Receipt Currency Code
+     * */
+    @Ignore
+    @get:Exclude
+    @set:Exclude
+    var receiptCurrencyCode: String? = null,
 
-        /**
-         * Receipt Amount
-         * */
-        @ColumnInfo(name = "rec_amt")
-        @set:PropertyName("rec_amt")
-        @get:PropertyName("rec_amt")
-        var receiptAmount: Double = 0.0,
+    /**
+     * Receipt Amount
+     * */
+    @ColumnInfo(name = "rec_amt")
+    @set:PropertyName("rec_amt")
+    @get:PropertyName("rec_amt")
+    var receiptAmount: Double = 0.0,
 
 
-        /**
-         * Receipt Amount first
-         * */
-        @ColumnInfo(name = "rec_amtf")
-        @set:PropertyName("rec_amtf")
-        @get:PropertyName("rec_amtf")
-        var receiptAmountFirst: Double = 0.0,
+    /**
+     * Receipt Amount first
+     * */
+    @ColumnInfo(name = "rec_amtf")
+    @set:PropertyName("rec_amtf")
+    @get:PropertyName("rec_amtf")
+    var receiptAmountFirst: Double = 0.0,
 
-        /**
-         * Receipt Amount second
-         * */
-        @ColumnInfo(name = "rec_amts")
-        @set:PropertyName("rec_amts")
-        @get:PropertyName("rec_amts")
-        var receiptAmountSecond: Double = 0.0,
+    /**
+     * Receipt Amount second
+     * */
+    @ColumnInfo(name = "rec_amts")
+    @set:PropertyName("rec_amts")
+    @get:PropertyName("rec_amts")
+    var receiptAmountSecond: Double = 0.0,
 
-        /**
-         * Receipt Description
-         * */
-        @ColumnInfo(name = "rec_desc")
-        @set:PropertyName("rec_desc")
-        @get:PropertyName("rec_desc")
-        var receiptDesc: String? = null,
+    /**
+     * Receipt Description
+     * */
+    @ColumnInfo(name = "rec_desc")
+    @set:PropertyName("rec_desc")
+    @get:PropertyName("rec_desc")
+    var receiptDesc: String? = null,
 
-        /**
-         * Receipt Note
-         * */
-        @ColumnInfo(name = "rec_note")
-        @set:PropertyName("rec_note")
-        @get:PropertyName("rec_note")
-        var receiptNote: String? = null,
+    /**
+     * Receipt Note
+     * */
+    @ColumnInfo(name = "rec_note")
+    @set:PropertyName("rec_note")
+    @get:PropertyName("rec_note")
+    var receiptNote: String? = null,
 
-        /**
-         * Receipt timestamp
-         * */
-        @Ignore
-        @set:PropertyName("rec_timestamp")
-        @get:PropertyName("rec_timestamp")
-        @ServerTimestamp
-        var receiptTimeStamp: Date? = null,
+    /**
+     * Receipt timestamp
+     * */
+    @Ignore
+    @set:PropertyName("rec_timestamp")
+    @get:PropertyName("rec_timestamp")
+    @ServerTimestamp
+    var receiptTimeStamp: Date? = null,
 
-        /**
-         * Receipt timestamp
-         * */
-        @ColumnInfo(name = "rec_datetime")
-        @set:PropertyName("rec_datetime")
-        @get:PropertyName("rec_datetime")
-        var receiptDateTime: Long = System.currentTimeMillis(),
+    /**
+     * Receipt timestamp
+     * */
+    @ColumnInfo(name = "rec_datetime")
+    @set:PropertyName("rec_datetime")
+    @get:PropertyName("rec_datetime")
+    var receiptDateTime: Long = System.currentTimeMillis(),
 
-        /**
-         * Receipt user stamp
-         * */
-        @ColumnInfo(name = "rec_userstamp")
-        @set:PropertyName("rec_userstamp")
-        @get:PropertyName("rec_userstamp")
-        var receiptUserStamp: String? = null
+    /**
+     * Receipt user stamp
+     * */
+    @ColumnInfo(name = "rec_userstamp")
+    @set:PropertyName("rec_userstamp")
+    @get:PropertyName("rec_userstamp")
+    var receiptUserStamp: String? = null
 ) : EntityModel() {
     constructor() : this("")
 
@@ -217,12 +217,16 @@ data class Receipt(
 
     @Exclude
     fun didChanged(receipt: Receipt): Boolean {
-        return !receipt.receiptDesc.equals(receiptDesc) || !receipt.receiptNote.equals(receiptNote) || !receipt.receiptThirdParty.equals(receiptThirdParty) || !receipt.receiptCurrency.equals(receiptCurrency) || !receipt.receiptType.equals(receiptType) || !receipt.receiptAmount.equals(receiptAmount)
+        return !receipt.receiptDesc.equals(receiptDesc) || !receipt.receiptNote.equals(receiptNote) || !receipt.receiptThirdParty.equals(
+            receiptThirdParty
+        ) || !receipt.receiptCurrency.equals(receiptCurrency) || !receipt.receiptType.equals(
+            receiptType
+        ) || !receipt.receiptAmount.equals(receiptAmount)
     }
 
     @Exclude
-    fun getSelectedCurrencyIndex(): Int {
-        return when (receiptCurrency) {
+    fun getSelectedCurrencyIndex(currencyId: String? = receiptCurrency): Int {
+        return when (currencyId) {
             SettingsModel.currentCurrency?.currencyId, SettingsModel.currentCurrency?.currencyCode1 -> {
                 1
             }
