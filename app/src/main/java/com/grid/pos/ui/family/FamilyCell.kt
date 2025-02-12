@@ -12,6 +12,10 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -34,11 +38,14 @@ import com.grid.pos.ui.theme.GridPOSTheme
 @OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 fun CategoryCell(
-        family: Family,
-        selected: Boolean,
-        modifier: Modifier = Modifier,
-        onClick: () -> Unit = {},
+    family: Family,
+    selected: Boolean,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit = {},
 ) {
+
+    var selectedColor by remember { mutableStateOf(Color.Blue) }
+    var unSelectedColor by remember { mutableStateOf(Grey) }
     Surface(
         modifier = modifier
             .width(120.dp)
@@ -49,13 +56,15 @@ fun CategoryCell(
         shadowElevation = 10.dp
     ) {
         val image = family.getFullFamilyImage()
-        var selectedColor = Color.Blue
-        var unSelectedColor = Grey
-        if (!image.isEmpty()) {
-            selectedColor = Color.White.copy(alpha = .5f)
-            unSelectedColor = Color.DarkGray.copy(alpha = .6f)
+        if (image.isNotEmpty()) {
             AsyncImage(
-                model = ImageRequest.Builder(LocalContext.current).data(image).build(),
+                model = ImageRequest.Builder(LocalContext.current).data(image)
+                    .listener(
+                        onSuccess = { request, result ->
+                            selectedColor = Color.White.copy(alpha = .5f)
+                            unSelectedColor = Color.DarkGray.copy(alpha = .6f)
+                        }
+                    ).build(),
                 contentScale = ContentScale.FillBounds, contentDescription = "Item image",
                 modifier = Modifier.fillMaxSize()
             )
