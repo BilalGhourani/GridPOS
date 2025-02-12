@@ -206,7 +206,7 @@ class POSViewModel @Inject constructor(
     }
 
     private suspend fun fetchFamilies(stopLoading: Boolean = false) {
-        val listOfFamilies = familyRepository.getAllFamilies()
+        val listOfFamilies = familyRepository.getFamiliesForPOS()
         withContext(Dispatchers.Main) {
             posState.value = if (stopLoading) {
                 posState.value.copy(

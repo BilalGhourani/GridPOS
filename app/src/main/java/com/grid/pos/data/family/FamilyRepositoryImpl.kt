@@ -132,6 +132,81 @@ class FamilyRepositoryImpl(
         }
     }
 
+    override suspend fun getFamiliesForPOS(): MutableList<Family> {
+        return when (SettingsModel.connectionType) {
+            CONNECTION_TYPE.FIRESTORE.key -> {
+                val querySnapshot = FirebaseWrapper.getQuerySnapshot(
+                    collection = "st_family",
+                    filters = mutableListOf(
+                        Filter.equalTo(
+                            "fa_cmp_id",
+                            SettingsModel.getCompanyID()
+                        )
+                    )
+                )
+                val size = querySnapshot?.size() ?: 0
+                val families = mutableListOf<Family>()
+                if (size > 0) {
+                    for (document in querySnapshot!!) {
+                        val obj = document.toObject(Family::class.java)
+                        if (obj.familyId.isNotEmpty()) {
+                            obj.familyDocumentId = document.id
+                            families.add(obj)
+                        }
+                    }
+                }
+                families
+            }
+
+            CONNECTION_TYPE.LOCAL.key -> {
+                familyDao.getAllFamilies(SettingsModel.getCompanyID() ?: "")
+            }
+
+            else -> {
+                val families: MutableList<Family> = mutableListOf()
+                try {
+                    val companyId = SettingsModel.getCompanyID()
+                    val query = if (SettingsModel.isSqlServerWebDb){
+                        val userGroupDesc = SettingsModel.currentUser?.userGrpDesc?:""
+                        "if (select count(*) from pos_users_groupbutton where pug_cmp_id='$companyId')>0\n" +
+                                "  select distinct(gb_fa_name),gb_id,gb_name,gb_btncolor,gb_txtcolor,gb_txtfontsize,gb_txtfontstyle,gb_image,gb_cmp_id\n" +
+                                "\n" +
+                                "  from pos_groupbutton,pos_users_groupbutton where pug_gb_id=gb_id and pug_grp_desc='$userGroupDesc' \n" +
+                                "else\n" +
+                                "  select distinct(gb_fa_name),gb_id,gb_name,gb_btncolor,gb_txtcolor,gb_txtfontsize,gb_txtfontstyle,gb_image,gb_cmp_id\n" +
+                                "\n" +
+                                "  from pos_groupbutton where gb_cmp_id='$companyId' `;"
+                    } else{
+                        "if (select host_name()) in (SELECT sta_name from pos_station where sta_name = (select host_name()))\n" +
+                                "\n" +
+                                "SELECT * from pos_station_groupbutton,pos_groupbutton,pos_station where psg_gb_id=gb_id and psg_sta_name=sta_name and sta_name=(select host_name()) order by psg_order\n" +
+                                "\n" +
+                                "else SELECT * from pos_station_groupbutton,pos_groupbutton,pos_station where psg_gb_id=gb_id and psg_sta_name=sta_name and sta_name='.' order by psg_order"
+                    }
+                    val dbResult = SQLServerWrapper.getQueryResult(query)
+                    dbResult?.let {
+                        while (it.next()) {
+                            families.add(Family().apply {
+                                familyId = if (SettingsModel.isSqlServerWebDb) it.getStringValue("gb_id") else it.getStringValue(
+                                    "gb_name"
+                                )
+                                familyName = if (SettingsModel.isSqlServerWebDb) it.getStringValue("fa_newname") else it.getStringValue(
+                                    "gb_name"
+                                )
+                                //familyImage = obj.optString("fa_name")
+                                familyCompanyId = if (SettingsModel.isSqlServerWebDb) it.getStringValue("fa_cmp_id") else companyId
+                            })
+                        }
+                        SQLServerWrapper.closeResultSet(it)
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+                families
+            }
+        }
+    }
+
     override suspend fun getOneFamily(companyId: String): Family? {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {

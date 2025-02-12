@@ -17,6 +17,8 @@ interface FamilyRepository {
     // Get all Families as stream.
     suspend fun getAllFamilies(): MutableList<Family>
 
+    suspend fun getFamiliesForPOS(): MutableList<Family>
+
     // Get all Families as stream.
     suspend fun getOneFamily(companyId:String): Family?
     suspend fun getFamilyById(familyId:String): Family?
