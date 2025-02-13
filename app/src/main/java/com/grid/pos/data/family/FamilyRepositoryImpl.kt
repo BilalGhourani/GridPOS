@@ -188,7 +188,7 @@ class FamilyRepositoryImpl(
                         while (it.next()) {
                             families.add(Family().apply {
                                 familyId = if (SettingsModel.isSqlServerWebDb) it.getStringValue("gb_id") else it.getStringValue(
-                                    "gb_name"
+                                    "gb_id"
                                 )
                                 familyName = if (SettingsModel.isSqlServerWebDb) it.getStringValue("fa_newname") else it.getStringValue(
                                     "gb_name"

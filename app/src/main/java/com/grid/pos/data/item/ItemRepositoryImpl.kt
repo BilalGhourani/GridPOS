@@ -228,7 +228,7 @@ class ItemRepositoryImpl(
                         )
                     } else {
                         SQLServerWrapper.getQueryResult(
-                            "select st_item.*,1 it_pos from st_item,pos_itembutton,pos_groupbutton,pos_station_groupbutton  where it_id=ib_it_id and ib_gb_id=gb_id and gb_id=psg_gb_id and psg_sta_name='.'  union select *,0 it_pos from st_item where it_id not in (select ib_it_id from pos_itembutton,pos_groupbutton,pos_station_groupbutton where ib_gb_id=gb_id and gb_id=psg_gb_id and psg_sta_name='.')"
+                            "select st_item.*,1 it_pos,ib_gb_id from st_item,pos_itembutton,pos_groupbutton,pos_station_groupbutton  where it_id=ib_it_id and ib_gb_id=gb_id and gb_id=psg_gb_id and psg_sta_name='.'  union select st_item.*,0 it_pos,ib_gb_id from st_item,pos_itembutton where it_id not in (select ib_it_id from pos_itembutton,pos_groupbutton,pos_station_groupbutton where ib_gb_id=gb_id and gb_id=psg_gb_id and psg_sta_name='.')"
                         )
                     }
                     dbResult?.let {
@@ -531,6 +531,7 @@ class ItemRepositoryImpl(
             itemColor = row.getStringValue("it_color")
             itemCode = row.getStringValue("it_code")
             itemBranchName = row.getStringValue("it_bra_name")
+            itemGroupButtonId = row.getStringValue("ib_gb_id")
 
 
             itemTax = row.getDoubleValue("it_vat")

@@ -102,7 +102,7 @@ fun AddInvoiceItemView(
             )
             Spacer(modifier = Modifier.height(3.dp))
             val familyItems = items.filter {
-                it.itemPos && it.itemFaId.equals(
+                it.itemPos && it.itemGroupButtonId.equals(
                     familyState,
                     ignoreCase = true
                 )

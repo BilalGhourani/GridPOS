@@ -78,6 +78,10 @@ data class Item(
 
     @Ignore
     @get:Exclude
+    var itemGroupButtonId: String? = null,
+
+    @Ignore
+    @get:Exclude
     var itemCode: String? = null,
 
     @Ignore
