@@ -220,11 +220,12 @@ class ItemRepositoryImpl(
                             mutableListOf(
                                 "st_item.*",
                                 "st_item_warehouse.*",
+                                "ib_gb_id",
                                 "currency.cur_newcode"
                             ),
                             "it_cmp_id='${SettingsModel.getCompanyID()}'",
                             "",
-                            " INNER JOIN currency on it_cur_code = cur_code LEFT OUTER JOIN st_item_warehouse on it_id = uw_it_id"
+                            " INNER JOIN pos_itembutton on it_id = ib_it_id INNER JOIN currency on it_cur_code = cur_code LEFT OUTER JOIN st_item_warehouse on it_id = uw_it_id"
                         )
                     } else {
                         SQLServerWrapper.getQueryResult(

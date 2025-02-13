@@ -175,7 +175,7 @@ class FamilyRepositoryImpl(
                                 "else\n" +
                                 "  select distinct(gb_fa_name),gb_id,gb_name,gb_btncolor,gb_txtcolor,gb_txtfontsize,gb_txtfontstyle,gb_image,gb_cmp_id\n" +
                                 "\n" +
-                                "  from pos_groupbutton where gb_cmp_id='$companyId' `;"
+                                "  from pos_groupbutton where gb_cmp_id='$companyId'"
                     } else{
                         "if (select host_name()) in (SELECT sta_name from pos_station where sta_name = (select host_name()))\n" +
                                 "\n" +
@@ -190,11 +190,10 @@ class FamilyRepositoryImpl(
                                 familyId = if (SettingsModel.isSqlServerWebDb) it.getStringValue("gb_id") else it.getStringValue(
                                     "gb_id"
                                 )
-                                familyName = if (SettingsModel.isSqlServerWebDb) it.getStringValue("fa_newname") else it.getStringValue(
+                                familyName = if (SettingsModel.isSqlServerWebDb) it.getStringValue("gb_name") else it.getStringValue(
                                     "gb_name"
                                 )
-                                //familyImage = obj.optString("fa_name")
-                                familyCompanyId = if (SettingsModel.isSqlServerWebDb) it.getStringValue("fa_cmp_id") else companyId
+                                familyCompanyId = if (SettingsModel.isSqlServerWebDb) it.getStringValue("gb_cmp_id") else companyId
                             })
                         }
                         SQLServerWrapper.closeResultSet(it)
