@@ -206,7 +206,7 @@ fun TablesView(
                     label = "Table Number",
                     enabled = state.step <= 1,
                     focusRequester = tableNameFocusRequester,
-                    keyboardType = KeyboardType.Decimal,
+                    keyboardType = KeyboardType.Text,
                     placeHolder = "Enter Table Number",
                     onAction = {
                         viewModel.fetchInvoiceByTable(state.tableName)
