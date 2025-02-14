@@ -23,8 +23,5 @@ data class ManageItemsState(
     val itemOpenCostStr: String = "",
 
     val isConnectingToSQLServer: Boolean = false,
-    val isLoading: Boolean = false,
     val clear: Boolean = false,
-    val warning: Event<String>? = null,
-    val actionLabel: String? = null,
 )

@@ -32,8 +32,7 @@ import javax.inject.Inject
 @HiltViewModel
 class SharedViewModel @Inject constructor(
     private val settingsRepository: SettingsRepository,
-    private val currencyRepository: CurrencyRepository,
-    private val companyRepository: CompanyRepository,
+    private val currencyRepository: CurrencyRepository
 ) : BaseViewModel() {
     private val _mainActivityEvent = Channel<ActivityUIEvent>()
     val mainActivityEvent = _mainActivityEvent.receiveAsFlow()
@@ -42,12 +41,14 @@ class SharedViewModel @Inject constructor(
 
     var isLoggedIn: Boolean = false
     var forceLogout: Boolean = false
-    var homeWarning: String?=null
+    var homeWarning: String? = null
 
     var tempInvoiceHeader: InvoiceHeader? = null
     var reportsToPrint: MutableList<ReportResult> = mutableListOf()
     var shouldLoadInvoice: Boolean = false
     var isFromTable: Boolean = false
+
+    var isLoading: Boolean = false
 
     var reportCountries: MutableList<ReportCountry> = mutableListOf()
 
@@ -140,6 +141,7 @@ class SharedViewModel @Inject constructor(
         show: Boolean,
         timeout: Long = 30000
     ) {
+        isLoading = show
         viewModelScope.launch {
             _mainActivityEvent.send(
                 ActivityUIEvent.ShowLoading(

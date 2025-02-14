@@ -1,7 +1,10 @@
 package com.grid.pos.ui.item
 
 import android.content.Context
+import android.net.Uri
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.lifecycle.viewModelScope
+import com.grid.pos.SharedViewModel
 import com.grid.pos.data.currency.CurrencyRepository
 import com.grid.pos.data.family.FamilyRepository
 import com.grid.pos.data.invoice.InvoiceRepository
@@ -9,10 +12,13 @@ import com.grid.pos.data.item.Item
 import com.grid.pos.data.item.ItemRepository
 import com.grid.pos.data.posPrinter.PosPrinterRepository
 import com.grid.pos.data.settings.SettingsRepository
-import com.grid.pos.model.Event
+import com.grid.pos.interfaces.OnBarcodeResult
+import com.grid.pos.interfaces.OnGalleryResult
 import com.grid.pos.model.ItemGroupModel
+import com.grid.pos.model.PopupModel
 import com.grid.pos.model.ReportResult
 import com.grid.pos.model.SettingsModel
+import com.grid.pos.model.ToastModel
 import com.grid.pos.ui.common.BaseViewModel
 import com.grid.pos.utils.PrinterUtils
 import com.grid.pos.utils.Utils
@@ -32,6 +38,7 @@ class ManageItemsViewModel @Inject constructor(
     private val currencyRepository: CurrencyRepository,
     private val invoiceRepository: InvoiceRepository,
     private val settingsRepository: SettingsRepository,
+    private val sharedViewModel: SharedViewModel
 ) : BaseViewModel() {
 
     private val _state = MutableStateFlow(ManageItemsState())
@@ -65,8 +72,6 @@ class ManageItemsViewModel @Inject constructor(
         )
         state.value = state.value.copy(
             item = currentITem.copy(),
-            warning = null,
-            isLoading = false,
             clear = false
         )
     }
@@ -84,16 +89,14 @@ class ManageItemsViewModel @Inject constructor(
     }
 
     fun fetchItems() {
-        state.value = state.value.copy(
-            isLoading = true
-        )
+        showLoading(true)
         viewModelScope.launch(Dispatchers.IO) {
             val listOfItems = itemRepository.getAllItems()
             withContext(Dispatchers.Main) {
                 state.value = state.value.copy(
-                    items = listOfItems,
-                    isLoading = false
+                    items = listOfItems
                 )
+                showLoading(false)
             }
         }
     }
@@ -120,22 +123,16 @@ class ManageItemsViewModel @Inject constructor(
 
     fun fetchFamilies(loading: Boolean = true) {
         if (loading) {
-            state.value = state.value.copy(
-                isLoading = true
-            )
+            sharedViewModel.showLoading(true)
         }
         viewModelScope.launch(Dispatchers.IO) {
             val listOfFamilies = familyRepository.getAllFamilies()
             withContext(Dispatchers.Main) {
-                state.value = if (loading) {
-                    state.value.copy(
-                        families = listOfFamilies,
-                        isLoading = false
-                    )
-                } else {
-                    state.value.copy(
-                        families = listOfFamilies
-                    )
+                state.value = state.value.copy(
+                    families = listOfFamilies
+                )
+                if (loading) {
+                    sharedViewModel.showLoading(false)
                 }
             }
         }
@@ -150,30 +147,25 @@ class ManageItemsViewModel @Inject constructor(
                 item = currentITem.copy(
                     itemCurrencyId = firstCurrency.first,
                     itemCurrencyCode = firstCurrency.second,
-                ),
-                isLoading = false
+                )
             )
         }
     }
 
     fun fetchPrinters(loading: Boolean = true) {
         if (loading) {
-            state.value = state.value.copy(
-                isLoading = true
-            )
+            sharedViewModel.showLoading(true)
         }
         viewModelScope.launch(Dispatchers.IO) {
             val listOfPrinters = posPrinterRepository.getAllPosPrinters()
             withContext(Dispatchers.Main) {
-                state.value = if (loading) {
-                    state.value.copy(
-                        printers = listOfPrinters,
-                        isLoading = false
-                    )
-                } else {
+                updateState(
                     state.value.copy(
                         printers = listOfPrinters
                     )
+                )
+                if (loading) {
+                    sharedViewModel.showLoading(false)
                 }
             }
         }
@@ -200,38 +192,44 @@ class ManageItemsViewModel @Inject constructor(
         }
     }
 
+    fun isLoading(): Boolean {
+        return sharedViewModel.isLoading
+    }
+
+    fun showPopup(popupModel: PopupModel) {
+        sharedViewModel.showPopup(true, popupModel)
+    }
+
+    fun showLoading(boolean: Boolean) {
+        sharedViewModel.showLoading(boolean)
+    }
+
+    fun addReportResult(reportResults: List<ReportResult>){
+        sharedViewModel.reportsToPrint.clear()
+        sharedViewModel.reportsToPrint.addAll(reportResults)
+    }
+
     fun showWarning(
         warning: String,
-        action: String? = null
+        action: String? = null,
+        onActionClicked: () -> Unit = {}
     ) {
-        viewModelScope.launch(Dispatchers.Main) {
-            state.value = state.value.copy(
-                warning = Event(warning),
-                actionLabel = action,
-                isLoading = false
-            )
-        }
+        sharedViewModel.showToastMessage(
+            ToastModel(message = warning, actionButton = action, onActionClick = onActionClicked)
+        )
     }
 
     fun save() {
         val item = state.value.item
         if (item.itemName.isNullOrEmpty() || item.itemFaId.isNullOrEmpty()) {
-            state.value = state.value.copy(
-                warning = Event("Please fill item name and family"),
-                isLoading = false
-            )
+            showWarning("Please fill item name and family")
             return
         }
         if (state.value.isConnectingToSQLServer && item.itemGroup.isNullOrEmpty()) {
-            state.value = state.value.copy(
-                warning = Event("Please select an item group"),
-                isLoading = false
-            )
+            showWarning("Please select an item group")
             return
         }
-        state.value = state.value.copy(
-            isLoading = true
-        )
+        showLoading(true)
         val isInserting = item.isNew()
         item.itemUnitPrice = Utils.roundDoubleValue(
             item.itemUnitPrice,
@@ -251,46 +249,51 @@ class ManageItemsViewModel @Inject constructor(
                     if (items.isNotEmpty()) {
                         items.add(addedModel)
                     }
+                    if (sharedViewModel.needAddedData) {
+                        sharedViewModel.needAddedData = false
+                        sharedViewModel.fetchItemsAgain = true
+                    }
                     withContext(Dispatchers.Main) {
                         state.value = state.value.copy(
                             items = items,
-                            isLoading = false,
-                            warning = Event("Item saved successfully."),
                             clear = true
                         )
                     }
+                    showLoading(false)
+                    showWarning("Item saved successfully.")
                 } else {
                     withContext(Dispatchers.Main) {
-                        state.value = state.value.copy(
-                            isLoading = false
-                        )
+                        showLoading(false)
                     }
                 }
             } else {
                 val updateShowInPOS = currentITem.itemPos != item.itemPos
                 val dataModel = itemRepository.update(item, updateShowInPOS)
                 if (dataModel.succeed) {
-                    val index =
-                        state.value.items.indexOfFirst { it.itemId == item.itemId }
+                    val items = state.value.items.toMutableList()
+                    val index = items.indexOfFirst { it.itemId == item.itemId }
                     if (index >= 0) {
-                        state.value.items.removeAt(index)
-                        state.value.items.add(
+                        items.removeAt(index)
+                        items.add(
                             index,
                             item
                         )
                     }
+                    if (sharedViewModel.needAddedData) {
+                        sharedViewModel.needAddedData = false
+                        sharedViewModel.fetchItemsAgain = true
+                    }
                     withContext(Dispatchers.Main) {
                         state.value = state.value.copy(
-                            isLoading = false,
-                            warning = Event("Item saved successfully."),
+                            items = items,
                             clear = true
                         )
+                        showLoading(false)
+                        showWarning("Item saved successfully.")
                     }
                 } else {
                     withContext(Dispatchers.Main) {
-                        state.value = state.value.copy(
-                            isLoading = false
-                        )
+                        showLoading(false)
                     }
                 }
             }
@@ -300,25 +303,14 @@ class ManageItemsViewModel @Inject constructor(
     fun delete() {
         val item = state.value.item
         if (item.itemId.isEmpty()) {
-            state.value = state.value.copy(
-                warning = Event("Please select an Item to delete"),
-                isLoading = false
-            )
+            showWarning("Please select an Item to delete")
             return
         }
-        state.value = state.value.copy(
-            warning = null,
-            isLoading = true
-        )
-
+        showLoading(true)
         viewModelScope.launch(Dispatchers.IO) {
             if (hasRelations(item.itemId)) {
-                withContext(Dispatchers.Main) {
-                    state.value = state.value.copy(
-                        warning = Event("You can't delete this Item,because it has related data!"),
-                        isLoading = false
-                    )
-                }
+                showLoading(false)
+                showWarning("You can't delete this Item,because it has related data!")
                 return@launch
             }
             val dataModel = itemRepository.delete(item)
@@ -328,16 +320,14 @@ class ManageItemsViewModel @Inject constructor(
                 withContext(Dispatchers.Main) {
                     state.value = state.value.copy(
                         items = items,
-                        isLoading = false,
-                        warning = Event("successfully deleted."),
                         clear = true
                     )
+                    showLoading(false)
+                    showWarning("successfully deleted.")
                 }
             } else {
                 withContext(Dispatchers.Main) {
-                    state.value = state.value.copy(
-                        isLoading = false
-                    )
+                    showLoading(false)
                 }
             }
         }
@@ -418,5 +408,58 @@ class ManageItemsViewModel @Inject constructor(
                 SettingsModel.currentCurrency?.currencyCode1 ?: ""
             )
         }
+    }
+
+    fun launchBarcodeScanner(callback:(List<Any>)->Unit){
+        sharedViewModel.launchBarcodeScanner(true,
+            ArrayList(state.value.items),
+            object : OnBarcodeResult {
+                override fun OnBarcodeResult(barcodesList: List<Any>) {
+                    callback.invoke(barcodesList)
+                }
+            },
+            onPermissionDenied = {
+                showWarning(
+                    "Permission Denied", "Settings"
+                ) {
+                    sharedViewModel.openAppStorageSettings()
+                }
+            })
+    }
+
+    fun launchGalleryPicker(context:Context){
+        sharedViewModel.launchGalleryPicker(mediaType = ActivityResultContracts.PickVisualMedia.ImageOnly,
+            object : OnGalleryResult {
+                override fun onGalleryResult(uris: List<Uri>) {
+                    if (uris.isNotEmpty()) {
+                        sharedViewModel.copyToInternalStorage(
+                            context = context,
+                            uri = uris[0],
+                            parent = "item",
+                            fileName = ((state.value.item.itemName
+                                ?: "item").trim().replace(
+                                " ", "_"
+                            ))
+                        ) { internalPath ->
+                            oldImage = state.value.item.itemImage
+                            updateState(
+                                state.value.copy(
+                                    item = state.value.item.copy(
+                                        itemImage = internalPath
+                                    )
+                                )
+
+                            )
+                        }
+                    }
+                }
+            },
+            onPermissionDenied = {
+                showWarning(
+                    "Permission Denied", "Settings"
+                ) {
+                    sharedViewModel.openAppStorageSettings()
+                }
+            })
     }
 }

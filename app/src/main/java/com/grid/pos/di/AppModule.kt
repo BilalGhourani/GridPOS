@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
+import com.grid.pos.SharedViewModel
 import com.grid.pos.data.AppDatabase
 import com.grid.pos.data.company.CompanyRepository
 import com.grid.pos.data.company.CompanyRepositoryImpl
@@ -50,6 +51,7 @@ import com.grid.pos.utils.Constants
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.scopes.ViewModelScoped
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
@@ -180,6 +182,15 @@ object AppModule {
             companyRepository,
             invoiceHeaderRepository
         )
+    }
+
+    @Provides
+    @Singleton
+    fun provideSharedViewModel(
+        settingsRepository: SettingsRepository,
+        currencyRepository: CurrencyRepository
+    ): SharedViewModel {
+        return SharedViewModel(settingsRepository, currencyRepository)
     }
 
 

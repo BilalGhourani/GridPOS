@@ -158,6 +158,7 @@ class MainActivity : ComponentActivity() {
     private var mLoaderHandler: Handler? = null
     private val mLoaderRunnable: Runnable = Runnable {
         loadingState.value = false
+        sharedViewModel.isLoading = false
         popupModel = PopupModel(
             dialogText = "Timeout exceeded!",
             positiveBtnText = "Close",

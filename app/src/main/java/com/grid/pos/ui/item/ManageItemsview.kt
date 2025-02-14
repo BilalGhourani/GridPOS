@@ -1,8 +1,6 @@
 package com.grid.pos.ui.item
 
-import android.net.Uri
 import androidx.activity.compose.BackHandler
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -56,17 +54,13 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.grid.pos.R
-import com.grid.pos.SharedViewModel
 import com.grid.pos.data.family.Family
 import com.grid.pos.data.item.Item
 import com.grid.pos.data.posPrinter.PosPrinter
-import com.grid.pos.interfaces.OnBarcodeResult
-import com.grid.pos.interfaces.OnGalleryResult
 import com.grid.pos.model.CurrencyModel
 import com.grid.pos.model.ItemGroupModel
 import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
-import com.grid.pos.model.ToastModel
 import com.grid.pos.ui.common.ColorPickerPopup
 import com.grid.pos.ui.common.SearchableDropdownMenuEx
 import com.grid.pos.ui.common.UIImageButton
@@ -88,7 +82,6 @@ import kotlinx.coroutines.withContext
 fun ManageItemsView(
     modifier: Modifier = Modifier,
     navController: NavController? = null,
-    sharedViewModel: SharedViewModel,
     viewModel: ManageItemsViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -113,26 +106,8 @@ fun ManageItemsView(
 
     val scope = rememberCoroutineScope()
 
-    LaunchedEffect(state.warning) {
-        state.warning?.value?.let { message ->
-            sharedViewModel.showToastMessage(
-                ToastModel(message = message,
-                    actionButton = state.actionLabel,
-                    onActionClick = {
-                        when (state.actionLabel) {
-                            "Settings" -> sharedViewModel.openAppStorageSettings()
-                        }
-                    })
-            )
-        }
-    }
-
-    LaunchedEffect(state.isLoading) {
-        sharedViewModel.showLoading(state.isLoading)
-    }
-
     fun fillItemInputs(item: Item) {
-        sharedViewModel.showLoading(true)
+        viewModel.showLoading(true)
         viewModel.selectionPrerequisite {
             viewModel.currentITem = item.copy()
             viewModel.updateState(
@@ -145,7 +120,7 @@ fun ManageItemsView(
                     itemTax2Str = item.itemTax2.toString(),
                 )
             )
-            sharedViewModel.showLoading(false)
+            viewModel.showLoading(false)
         }
     }
 
@@ -156,20 +131,16 @@ fun ManageItemsView(
             )
         }
         viewModel.save()
-        if (sharedViewModel.needAddedData) {
-            sharedViewModel.needAddedData = false
-            sharedViewModel.fetchItemsAgain = true
-        }
     }
 
 
     var saveAndBack by remember { mutableStateOf(false) }
     fun handleBack() {
-        if (state.isLoading) {
+        if (viewModel.isLoading()) {
             return
         }
         if (viewModel.isAnyChangeDone()) {
-            sharedViewModel.showPopup(true, PopupModel().apply {
+            viewModel.showPopup(PopupModel().apply {
                 onDismissRequest = {
                     viewModel.resetState()
                     handleBack()
@@ -398,7 +369,7 @@ fun ManageItemsView(
                         },
                         leadingIcon = {
                             IconButton(onClick = {
-                                sharedViewModel.showLoading(true)
+                                viewModel.showLoading(true)
                                 scope.launch(Dispatchers.IO) {
                                     val barcode = if (state.item.itemBarcode.isNullOrEmpty()) {
                                         viewModel.generateBarcode()
@@ -424,9 +395,8 @@ fun ManageItemsView(
 //                                            reportResult
 //                                        )
                                         withContext(Dispatchers.Main) {
-                                            sharedViewModel.showLoading(false)
-                                            sharedViewModel.reportsToPrint.clear()
-                                            sharedViewModel.reportsToPrint.add(reportResult)
+                                            viewModel.showLoading(false)
+                                            viewModel.addReportResult(listOf(reportResult))
                                             navController?.navigate("UIWebView")
                                         }
                                     }
@@ -442,35 +412,25 @@ fun ManageItemsView(
                         },
                         trailingIcon = {
                             IconButton(onClick = {
-                                sharedViewModel.launchBarcodeScanner(true,
-                                    ArrayList(state.items),
-                                    object : OnBarcodeResult {
-                                        override fun OnBarcodeResult(barcodesList: List<Any>) {
-                                            if (barcodesList.isNotEmpty()) {
-                                                val barcode = barcodesList[0]
-                                                if (barcode is String) {
-                                                    viewModel.updateState(
-                                                        state.copy(
-                                                            item = state.item.copy(
-                                                                itemBarcode = barcode
-                                                            )
-                                                        )
-
+                                viewModel.launchBarcodeScanner { barcodesList ->
+                                    if (barcodesList.isNotEmpty()) {
+                                        val barcode = barcodesList[0]
+                                        if (barcode is String) {
+                                            viewModel.updateState(
+                                                state.copy(
+                                                    item = state.item.copy(
+                                                        itemBarcode = barcode
                                                     )
-                                                    if (viewModel.shouldDisableCostAndQty()) {
-                                                        btnColorFocusRequester.requestFocus()
-                                                    } else {
-                                                        openCostFocusRequester.requestFocus()
-                                                    }
-                                                }
+                                                )
+                                            )
+                                            if (viewModel.shouldDisableCostAndQty()) {
+                                                btnColorFocusRequester.requestFocus()
+                                            } else {
+                                                openCostFocusRequester.requestFocus()
                                             }
                                         }
-                                    },
-                                    onPermissionDenied = {
-                                        viewModel.showWarning(
-                                            "Permission Denied", "Settings"
-                                        )
-                                    })
+                                    }
+                                }
                             }) {
                                 Icon(
                                     Icons.Default.QrCode2,
@@ -746,37 +706,7 @@ fun ManageItemsView(
                         onAction = { keyboardController?.hide() },
                         trailingIcon = {
                             IconButton(onClick = {
-                                sharedViewModel.launchGalleryPicker(mediaType = ActivityResultContracts.PickVisualMedia.ImageOnly,
-                                    object : OnGalleryResult {
-                                        override fun onGalleryResult(uris: List<Uri>) {
-                                            if (uris.isNotEmpty()) {
-                                                sharedViewModel.copyToInternalStorage(
-                                                    context = context,
-                                                    uri = uris[0],
-                                                    parent = "item",
-                                                    fileName = ((state.item.itemName
-                                                        ?: "item").trim().replace(
-                                                        " ", "_"
-                                                    ))
-                                                ) { internalPath ->
-                                                    viewModel.oldImage = state.item.itemImage
-                                                    viewModel.updateState(
-                                                        state.copy(
-                                                            item = state.item.copy(
-                                                                itemImage = internalPath
-                                                            )
-                                                        )
-
-                                                    )
-                                                }
-                                            }
-                                        }
-                                    },
-                                    onPermissionDenied = {
-                                        viewModel.showWarning(
-                                            "Permission Denied", "Settings"
-                                        )
-                                    })
+                                viewModel.launchGalleryPicker(context)
                             }) {
                                 Icon(
                                     Icons.Default.Image,
@@ -887,38 +817,29 @@ fun ManageItemsView(
                     searchLeadingIcon = {
                         IconButton(onClick = {
                             collapseItemListState = false
-                            sharedViewModel.launchBarcodeScanner(true,
-                                null,
-                                object : OnBarcodeResult {
-                                    override fun OnBarcodeResult(barcodesList: List<Any>) {
-                                        if (barcodesList.isNotEmpty()) {
-                                            val resp = barcodesList[0]
-                                            if (resp is String) {
-                                                scope.launch(Dispatchers.Default) {
-                                                    val barcodeItem =
-                                                        state.items.firstOrNull { iterator ->
-                                                            iterator.itemBarcode.equals(
-                                                                resp, ignoreCase = true
-                                                            )
-                                                        }
-                                                    withContext(Dispatchers.Main) {
-                                                        if (barcodeItem != null) {
-                                                            collapseItemListState = true
-                                                            fillItemInputs(barcodeItem)
-                                                        } else {
-                                                            barcodeSearchState = resp
-                                                        }
-                                                    }
+                            viewModel.launchBarcodeScanner { barcodesList ->
+                                if (barcodesList.isNotEmpty()) {
+                                    val resp = barcodesList[0]
+                                    if (resp is String) {
+                                        scope.launch(Dispatchers.Default) {
+                                            val barcodeItem =
+                                                state.items.firstOrNull { iterator ->
+                                                    iterator.itemBarcode.equals(
+                                                        resp, ignoreCase = true
+                                                    )
+                                                }
+                                            withContext(Dispatchers.Main) {
+                                                if (barcodeItem != null) {
+                                                    collapseItemListState = true
+                                                    fillItemInputs(barcodeItem)
+                                                } else {
+                                                    barcodeSearchState = resp
                                                 }
                                             }
                                         }
                                     }
-                                },
-                                onPermissionDenied = {
-                                    viewModel.showWarning(
-                                        "Permission Denied", "Settings"
-                                    )
-                                })
+                                }
+                            }
                         }) {
                             Icon(
                                 Icons.Default.QrCode2,
