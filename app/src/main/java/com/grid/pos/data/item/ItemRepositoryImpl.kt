@@ -220,7 +220,7 @@ class ItemRepositoryImpl(
                             mutableListOf(
                                 "st_item.*",
                                 "st_item_warehouse.*",
-                                "ib_gb_id",
+                                "ib_gb_id,ib_btncolor,ib_txtcolor",
                                 "currency.cur_newcode"
                             ),
                             "it_cmp_id='${SettingsModel.getCompanyID()}'",
@@ -229,7 +229,7 @@ class ItemRepositoryImpl(
                         )
                     } else {
                         SQLServerWrapper.getQueryResult(
-                            "select st_item.*,1 it_pos,ib_gb_id from st_item,pos_itembutton,pos_groupbutton,pos_station_groupbutton  where it_id=ib_it_id and ib_gb_id=gb_id and gb_id=psg_gb_id and psg_sta_name='.'  union select st_item.*,0 it_pos,ib_gb_id from st_item,pos_itembutton where it_id not in (select ib_it_id from pos_itembutton,pos_groupbutton,pos_station_groupbutton where ib_gb_id=gb_id and gb_id=psg_gb_id and psg_sta_name='.')"
+                            "select st_item.*,1 it_pos,ib_gb_id,ib_btncolor,ib_txtcolor from st_item,pos_itembutton,pos_groupbutton,pos_station_groupbutton  where it_id=ib_it_id and ib_gb_id=gb_id and gb_id=psg_gb_id and psg_sta_name='.'  union select st_item.*,0 it_pos,ib_gb_id,ib_btncolor,ib_txtcolor from st_item,pos_itembutton where it_id not in (select ib_it_id from pos_itembutton,pos_groupbutton,pos_station_groupbutton where ib_gb_id=gb_id and gb_id=psg_gb_id and psg_sta_name='.')"
                         )
                     }
                     dbResult?.let {
@@ -550,8 +550,9 @@ class ItemRepositoryImpl(
                 "it_pos",
                 1
             ) == 1
-            itemBtnColor = row.getStringValue("it_color").ifEmpty { null }
-            itemBtnTextColor = "#000000"
+
+            itemBtnColor = row.getStringValue("ib_btncolor").ifEmpty { null }
+            itemBtnTextColor = row.getStringValue("ib_txtcolor").ifEmpty { null }
             val timeStamp = row.getObjectValue("it_timestamp")
             itemTimeStamp = when (timeStamp) {
                 is Date -> timeStamp

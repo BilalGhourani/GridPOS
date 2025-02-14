@@ -37,7 +37,6 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.graphics.toColorInt
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.grid.pos.data.item.Item
@@ -47,25 +46,20 @@ import com.grid.pos.ui.theme.homeLightBlue
 import com.grid.pos.ui.theme.homeLightGreen
 import com.grid.pos.ui.theme.homeLightPurple
 import com.grid.pos.ui.theme.itemCheckIconColor
+import com.grid.pos.utils.Utils
 
 @Composable
 fun ItemCell(
-        item: Item,
-        modifier: Modifier = Modifier,
-        notifyDirectly: Boolean = false,
-        onClick: () -> Unit = {}
+    item: Item,
+    modifier: Modifier = Modifier,
+    notifyDirectly: Boolean = false,
+    onClick: () -> Unit = {}
 ) {
 
     var itemSelected by remember { mutableStateOf(false) }
+    var isImageLoaded by remember { mutableStateOf(false) }
     itemSelected = item.selected
     val image = item.getFullItemImage()
-    var itemColor = if (image.isNotEmpty()) Color.White.copy(alpha = .8f)
-    else if (item.itemBtnColor.isNullOrEmpty()) Color.Transparent
-    else Color(item.itemBtnColor!!.toColorInt()).copy(alpha = .8f)
-
-    val itemTextColor = if (item.itemBtnTextColor.isNullOrEmpty()) Color.Black else {
-        Color(item.itemBtnTextColor!!.toColorInt())
-    }
     Box(
         modifier = modifier
             .width(SettingsModel.getItemCellWidth())
@@ -74,15 +68,20 @@ fun ItemCell(
             .background(color = Color.Transparent)
             .clip(RoundedCornerShape(15.dp))
     ) {
+        isImageLoaded = false
         if (image.isNotEmpty()) {
-            itemColor = itemColor.copy(alpha = .5f)
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current).data(image).build(),
                 contentScale = ContentScale.FillBounds,
                 contentDescription = "Item image",
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier.fillMaxSize(),
+                onSuccess = {isImageLoaded = true}
             )
         }
+        val itemColor = if (isImageLoaded) Color.White.copy(alpha = .8f)
+        else Utils.parseColor(item.itemBtnColor,Color.Transparent,.8f)
+
+        val itemTextColor = Utils.parseColor(item.itemBtnTextColor,Color.Black)
         OutlinedButton(modifier = modifier.fillMaxSize(),
             colors = ButtonDefaults.buttonColors(
                 containerColor = itemColor,

@@ -64,17 +64,6 @@ object Utils {
         }
     }
 
-    private fun randomColor(): Color {
-        val red = kotlin.random.Random.nextFloat()
-        val green = kotlin.random.Random.nextFloat()
-        val blue = kotlin.random.Random.nextFloat()
-        return Color(
-            red,
-            green,
-            blue
-        )
-    }
-
     fun getHomeList(): List<HomeCategoryModel> {
         if (!Constants.SHOW_ALL_SCREENS_FOR_SQL_SERVER && SettingsModel.isConnectedToSqlServer()) {
             return listOf(
@@ -359,7 +348,19 @@ object Utils {
         )
     }
 
-    fun getDoubleString(value: Double):String {
+    fun parseColor(colorString: String?, fallbackColor: Color, alpha: Float? = null): Color {
+        if (colorString.isNullOrEmpty()) return fallbackColor
+
+        return try {
+            val color =
+                Color(android.graphics.Color.parseColor(colorString)) // Works for both hex and named colors
+            if (alpha == null) color else color.copy(alpha = alpha)
+        } catch (e: IllegalArgumentException) {
+            fallbackColor // Return Unspecified if parsing fails
+        }
+    }
+
+    fun getDoubleString(value: Double): String {
         return if (value == 0.0) "" else value.toString()
     }
 
