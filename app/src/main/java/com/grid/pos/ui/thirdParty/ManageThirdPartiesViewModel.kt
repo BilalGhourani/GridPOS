@@ -1,10 +1,11 @@
 package com.grid.pos.ui.thirdParty
 
 import androidx.lifecycle.viewModelScope
+import com.grid.pos.SharedViewModel
 import com.grid.pos.data.invoiceHeader.InvoiceHeaderRepository
 import com.grid.pos.data.thirdParty.ThirdParty
 import com.grid.pos.data.thirdParty.ThirdPartyRepository
-import com.grid.pos.model.Event
+import com.grid.pos.model.PopupModel
 import com.grid.pos.model.ThirdPartyType
 import com.grid.pos.ui.common.BaseViewModel
 import com.grid.pos.utils.Utils
@@ -19,8 +20,9 @@ import javax.inject.Inject
 @HiltViewModel
 class ManageThirdPartiesViewModel @Inject constructor(
     private val thirdPartyRepository: ThirdPartyRepository,
-    private val invoiceHeaderRepository: InvoiceHeaderRepository
-) : BaseViewModel() {
+    private val invoiceHeaderRepository: InvoiceHeaderRepository,
+    private val sharedViewModel: SharedViewModel
+) : BaseViewModel(sharedViewModel) {
 
     private val _state = MutableStateFlow(ManageThirdPartiesState())
     val state: MutableStateFlow<ManageThirdPartiesState> = _state
@@ -43,10 +45,7 @@ class ManageThirdPartiesViewModel @Inject constructor(
     fun resetState() {
         currentThirdParty = ThirdParty().copy(thirdPartyType = ThirdPartyType.RECEIVALBE.type)
         state.value = state.value.copy(
-            thirdParty = currentThirdParty.copy(),
-            warning = null,
-            isLoading = false,
-            clear = false
+            thirdParty = currentThirdParty.copy()
         )
     }
 
@@ -56,8 +55,29 @@ class ManageThirdPartiesViewModel @Inject constructor(
         )
     }
 
-    fun isAnyChangeDone(): Boolean {
-        return state.value.thirdParty.didChanged(currentThirdParty)
+    fun checkChanges(callback: () -> Unit) {
+        if (isLoading()) {
+            return
+        }
+        if (state.value.thirdParty.didChanged(currentThirdParty)) {
+            sharedViewModel.showPopup(true,
+                PopupModel().apply {
+                    onDismissRequest = {
+                        resetState()
+                        callback.invoke()
+                    }
+                    onConfirmation = {
+                        save {
+                            checkChanges(callback)
+                        }
+                    }
+                    dialogText = "Do you want to save your changes"
+                    positiveBtnText = "Save"
+                    negativeBtnText = "Close"
+                })
+        } else {
+            callback.invoke()
+        }
     }
 
     private fun fillTypes() {
@@ -72,35 +92,27 @@ class ManageThirdPartiesViewModel @Inject constructor(
     }
 
     fun fetchThirdParties() {
-        state.value = state.value.copy(
-            warning = null,
-            isLoading = true
-        )
+        showLoading(true)
         viewModelScope.launch(Dispatchers.IO) {
             val listOfThirdParties = thirdPartyRepository.getAllThirdParties()
             val isDefaultEnabled = listOfThirdParties.none { it.thirdPartyDefault }
             withContext(Dispatchers.Main) {
                 state.value = state.value.copy(
                     thirdParties = listOfThirdParties,
-                    enableIsDefault = isDefaultEnabled,
-                    isLoading = false
+                    enableIsDefault = isDefaultEnabled
                 )
+                showLoading(false)
             }
         }
     }
 
-    fun save() {
+    fun save(callback: () -> Unit = {}) {
         val thirdParty = state.value.thirdParty
         if (thirdParty.thirdPartyName.isNullOrEmpty()) {
-            state.value = state.value.copy(
-                warning = Event("Please fill ThirdParty name."),
-                isLoading = false
-            )
+            showWarning("Please fill ThirdParty name.")
             return
         }
-        state.value = state.value.copy(
-            isLoading = true
-        )
+        showLoading(true)
         if (thirdParty.thirdPartyType.isNullOrEmpty()) {
             thirdParty.thirdPartyType = ThirdPartyType.RECEIVALBE.type
         }
@@ -116,22 +128,23 @@ class ManageThirdPartiesViewModel @Inject constructor(
                         thirdParties.add(addedModel)
                     }
                     val isDefaultEnabled = thirdParties.none { it.thirdPartyDefault }
+                    if (sharedViewModel.needAddedData) {
+                        sharedViewModel.needAddedData = false
+                        sharedViewModel.fetchThirdPartiesAgain = true
+                    }
                     withContext(Dispatchers.Main) {
                         state.value = state.value.copy(
                             thirdParties = thirdParties,
-                            enableIsDefault = isDefaultEnabled,
-                            isLoading = false,
-                            warning = Event("ThirdParty saved successfully."),
-                            clear = true
+                            enableIsDefault = isDefaultEnabled
                         )
+                        resetState()
+                        showLoading(false)
+                        showWarning("ThirdParty saved successfully.")
+                        callback.invoke()
                     }
                 } else {
                     withContext(Dispatchers.Main) {
-                        state.value = state.value.copy(
-                            isLoading = false,
-                            warning = null
-
-                        )
+                        showLoading(false)
                     }
                 }
             } else {
@@ -140,32 +153,31 @@ class ManageThirdPartiesViewModel @Inject constructor(
                     thirdParty
                 )
                 if (dataModel.succeed) {
+                    val thirdParties = state.value.thirdParties.toMutableList()
                     val index =
-                        state.value.thirdParties.indexOfFirst { it.thirdPartyId == thirdParty.thirdPartyId }
+                        thirdParties.indexOfFirst { it.thirdPartyId == thirdParty.thirdPartyId }
                     if (index >= 0) {
-                        state.value.thirdParties.removeAt(index)
-                        state.value.thirdParties.add(
-                            index,
-                            thirdParty
-                        )
+                        thirdParties.removeAt(index)
+                        thirdParties.add(index, thirdParty)
                     }
-                    val isDefaultEnabled =
-                        state.value.thirdParties.none { it.thirdPartyDefault }
+                    val isDefaultEnabled = thirdParties.none { it.thirdPartyDefault }
+                    if (sharedViewModel.needAddedData) {
+                        sharedViewModel.needAddedData = false
+                        sharedViewModel.fetchThirdPartiesAgain = true
+                    }
                     withContext(Dispatchers.Main) {
                         state.value = state.value.copy(
+                            thirdParties = thirdParties,
                             enableIsDefault = isDefaultEnabled,
-                            isLoading = false,
-                            warning = Event("ThirdParty saved successfully."),
-                            clear = true
                         )
+                        resetState()
+                        showLoading(false)
+                        showWarning("ThirdParty saved successfully.")
+                        callback.invoke()
                     }
                 } else {
                     withContext(Dispatchers.Main) {
-                        state.value = state.value.copy(
-                            isLoading = false,
-                            warning = null
-
-                        )
+                        showLoading(false)
                     }
                 }
             }
@@ -175,24 +187,15 @@ class ManageThirdPartiesViewModel @Inject constructor(
     fun delete() {
         val thirdParty = state.value.thirdParty
         if (thirdParty.thirdPartyId.isEmpty()) {
-            state.value = state.value.copy(
-                warning = Event("Please select an ThirdParty to delete"),
-                isLoading = false
-            )
+            showWarning("Please select an ThirdParty to delete")
             return
         }
-        state.value = state.value.copy(
-            warning = null,
-            isLoading = true
-        )
-
+        showLoading(true)
         CoroutineScope(Dispatchers.IO).launch {
             if (hasRelations(thirdParty.thirdPartyId)) {
                 withContext(Dispatchers.Main) {
-                    state.value = state.value.copy(
-                        warning = Event("You can't delete this ThirdParty,because it has related data!"),
-                        isLoading = false
-                    )
+                    showLoading(false)
+                    showWarning("You can't delete this ThirdParty,because it has related data!")
                 }
                 return@launch
             }
@@ -204,18 +207,15 @@ class ManageThirdPartiesViewModel @Inject constructor(
                 withContext(Dispatchers.Main) {
                     state.value = state.value.copy(
                         thirdParties = thirdParties,
-                        enableIsDefault = isDefaultEnabled,
-                        isLoading = false,
-                        warning = Event("successfully deleted."),
-                        clear = true
+                        enableIsDefault = isDefaultEnabled
                     )
+                    resetState()
+                    showLoading(false)
+                    showWarning("successfully deleted.")
                 }
             } else {
                 withContext(Dispatchers.Main) {
-                    state.value = state.value.copy(
-                        isLoading = false,
-                        warning = null
-                    )
+                    showLoading(false)
                 }
             }
         }

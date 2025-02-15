@@ -1,12 +1,14 @@
 package com.grid.pos.ui.settings.setupReports
 
 import android.content.Context
-import androidx.lifecycle.ViewModel
+import android.net.Uri
 import androidx.lifecycle.viewModelScope
 import com.grid.pos.App
-import com.grid.pos.model.Event
+import com.grid.pos.SharedViewModel
 import com.grid.pos.model.FileModel
+import com.grid.pos.model.PopupModel
 import com.grid.pos.model.ReportTypeModel
+import com.grid.pos.ui.common.BaseViewModel
 import com.grid.pos.utils.FileUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -18,7 +20,9 @@ import java.io.File
 import javax.inject.Inject
 
 @HiltViewModel
-class ReportsListViewModel @Inject constructor() : ViewModel() {
+class ReportsListViewModel @Inject constructor(
+    private val sharedViewModel: SharedViewModel
+) : BaseViewModel(sharedViewModel) {
 
     private val _state = MutableStateFlow(ReportsListState())
     val state: MutableStateFlow<ReportsListState> = _state
@@ -41,19 +45,13 @@ class ReportsListViewModel @Inject constructor() : ViewModel() {
         state.value = newState
     }
 
-    fun showError(message: String) {
-        state.value = state.value.copy(
-            warning = Event(message),
-            isLoading = false
-        )
-    }
-
     fun setReportType(reportType: String) {
         state.value = state.value.copy(
             selectedType = reportType
         )
         filteredReports = state.value.allReports.filter { it.reportType == reportType }
             .toMutableList()
+        sharedViewModel.selectedReportType = reportType
     }
 
     private suspend fun fetchReportList(context: Context) {
@@ -66,7 +64,8 @@ class ReportsListViewModel @Inject constructor() : ViewModel() {
         val allReports = filesListResult.filesList
         for ((key, value) in findSelected) {
             if (!value) {
-                var selected = allReports.firstOrNull { it.reportType == key && it.isLangSelected() }
+                var selected =
+                    allReports.firstOrNull { it.reportType == key && it.isLangSelected() }
                 if (selected == null) {
                     selected = allReports.firstOrNull { it.reportType == key && it.isBothDefault() }
                 }
@@ -81,16 +80,27 @@ class ReportsListViewModel @Inject constructor() : ViewModel() {
         }
     }
 
-    fun deleteFile(
-            context: Context,
-            fileModel: FileModel
-    ) {
-        state.value = state.value.copy(
-            warning = null,
-            isLoading = true
-        )
+    fun askAndDelete(context: Context) {
+        showPopup(
+            PopupModel().apply {
+                onDismissRequest = {
+                    //nothing
+                }
+                onConfirmation = {
+                    deleteFile(context)
+                }
+                dialogText = "Are you sure you want to delete this file?"
+                positiveBtnText = "Delete"
+                negativeBtnText = "Close"
+            })
+    }
 
+    private fun deleteFile(
+        context: Context
+    ) {
+        showLoading(true)
         CoroutineScope(Dispatchers.IO).launch {
+            val fileModel = state.value.fileModel
             val rootFile = File(
                 App.getInstance().filesDir,
                 "Reports"
@@ -110,18 +120,47 @@ class ReportsListViewModel @Inject constructor() : ViewModel() {
             }
             withContext(Dispatchers.Main) {
                 state.value = state.value.copy(
-                    allReports = fileModels,
-                    isLoading = false,
-                    clear = true,
-                    warning = Event(message)
+                    allReports = fileModels
                 )
+                showLoading(false)
+                showWarning(message)
             }
         }
+    }
+
+    fun downloadReport(context: Context) {
+        showLoading(true)
+        viewModelScope.launch(Dispatchers.IO) {
+            val fileModel = state.value.fileModel
+            val file = fileModel.getFile(
+                File(
+                    App.getInstance().filesDir,
+                    "Reports"
+                )
+            )
+            val savedPath = FileUtils.saveToExternalStorage(
+                context = context,
+                parent = "invoice reports/${fileModel.getParents()}",
+                sourceFilePath = Uri.fromFile(file),
+                destName = fileModel.fileName,
+                type = "html"
+            )
+            withContext(Dispatchers.Main) {
+                showLoading(false)
+                if (!savedPath.isNullOrEmpty()) {
+                    showWarning("Report Saved successfully.")
+                }
+            }
+        }
+
     }
 }
 
 enum class ReportTypeEnum(
-        val key: String
+    val key: String
 ) {
-    PAY_SLIP("Pay-Slip"), PAY_TICKET("Pay-Ticket"), PAYMENT_VOUCHER("Payment-Voucher"), RECEIPT_VOUCHER("Receipt-Voucher"), ITEM_BARCODE("Item-Barcode")
+    PAY_SLIP("Pay-Slip"), PAY_TICKET("Pay-Ticket"), PAYMENT_VOUCHER("Payment-Voucher"), RECEIPT_VOUCHER(
+        "Receipt-Voucher"
+    ),
+    ITEM_BARCODE("Item-Barcode")
 }

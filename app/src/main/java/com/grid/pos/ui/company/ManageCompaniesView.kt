@@ -1,9 +1,7 @@
 package com.grid.pos.ui.company
 
 import android.annotation.SuppressLint
-import android.net.Uri
 import androidx.activity.compose.BackHandler
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,11 +25,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -48,12 +43,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.grid.pos.R
-import com.grid.pos.SharedViewModel
 import com.grid.pos.data.company.Company
-import com.grid.pos.interfaces.OnGalleryResult
 import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
-import com.grid.pos.model.ToastModel
 import com.grid.pos.ui.common.SearchableDropdownMenuEx
 import com.grid.pos.ui.common.UIImageButton
 import com.grid.pos.ui.common.UISwitch
@@ -68,7 +60,6 @@ import com.grid.pos.utils.Utils
 fun ManageCompaniesView(
     modifier: Modifier = Modifier,
     navController: NavController? = null,
-    sharedViewModel: SharedViewModel,
     viewModel: ManageCompaniesViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -88,98 +79,43 @@ fun ManageCompaniesView(
     val tax2FocusRequester = remember { FocusRequester() }
     val tax2RegNoFocusRequester = remember { FocusRequester() }
 
+    fun askForRegistering() {
+        viewModel.showPopup(
+            PopupModel(
+                onDismissRequest = {
+                    viewModel.setIsRegistering(false)
+                    navController?.navigateUp()
+                },
+                onConfirmation = {
+                    navController?.navigateUp()
+                    navController?.navigate("ManageUsersView")
+                },
+                dialogText = "Company saved successfully, do you want to continue?",
+                positiveBtnText = "Continue",
+                negativeBtnText = "Close",
+                cancelable = false
+            )
+        )
+    }
 
-    LaunchedEffect(state.warning) {
-        state.warning?.value?.let { message ->
-            if (state.actionLabel == "next" && sharedViewModel.isRegistering) {
-                sharedViewModel.showPopup(
-                    true,
-                    PopupModel(
-                        onDismissRequest = {
-                            sharedViewModel.isRegistering = false
-                            navController?.navigateUp()
-                        },
-                        onConfirmation = {
-                            navController?.navigateUp()
-                            navController?.navigate("ManageUsersView")
-                        },
-                        dialogText = message,
-                        positiveBtnText = "Continue",
-                        negativeBtnText = "Close",
-                        cancelable = false
-                    )
-                )
-            } else {
-                sharedViewModel.showToastMessage(ToastModel(
-                    message = message,
-                    actionButton = state.actionLabel,
-                    onActionClick = {
-                        when (state.actionLabel) {
-                            "Settings" -> sharedViewModel.openAppStorageSettings()
-                        }
-                    }
-                ))
+    fun saveCompany() {
+        viewModel.save(context) { isRegistering ->
+            if (isRegistering) {
+                askForRegistering()
             }
         }
     }
 
-    LaunchedEffect(state.isLoading) {
-        sharedViewModel.showLoading(state.isLoading)
-    }
-
-    fun saveCompany() {
-        viewModel.oldImage?.let { old ->
-            FileUtils.deleteFile(
-                context,
-                old
-            )
-        }
-        val firstCurr = state.currencies.firstOrNull() ?: SettingsModel.currentCurrency
-        state.company.companyCurCodeTax = firstCurr?.currencyId
-        viewModel.save(
-            sharedViewModel.isRegistering
-        )
-    }
-
-    var saveAndBack by remember { mutableStateOf(false) }
     fun handleBack() {
-        if (state.isLoading) {
-            return
+        viewModel.checkChanges(context) { saved, isRegistering ->
+            if (saved && isRegistering) {
+                askForRegistering()
+            } else {
+                navController?.navigateUp()
+            }
         }
-        if (viewModel.isAnyChangeDone()) {
-            sharedViewModel.showPopup(true,
-                PopupModel().apply {
-                    onDismissRequest = {
-                        viewModel.resetState()
-                        handleBack()
-                    }
-                    onConfirmation = {
-                        saveAndBack = true
-                        saveCompany()
-                    }
-                    dialogTitle = null
-                    dialogText = "Do you want to save your changes"
-                    positiveBtnText = "Save"
-                    negativeBtnText = "Close"
-                    icon = null
-                })
-            return
-        }
-        viewModel.closeConnectionIfNeeded()
-        navController?.navigateUp()
     }
 
-    fun clearAndBack() {
-        viewModel.resetState()
-        if (saveAndBack) {
-            handleBack()
-        }
-    }
-    LaunchedEffect(state.clear) {
-        if (state.clear) {
-            clearAndBack()
-        }
-    }
     BackHandler {
         handleBack()
     }
@@ -373,41 +309,7 @@ fun ManageCompaniesView(
                         onAction = { keyboardController?.hide() },
                         trailingIcon = {
                             IconButton(onClick = {
-                                sharedViewModel.launchGalleryPicker(mediaType = ActivityResultContracts.PickVisualMedia.ImageOnly,
-                                    object : OnGalleryResult {
-                                        override fun onGalleryResult(uris: List<Uri>) {
-                                            if (uris.isNotEmpty()) {
-                                                sharedViewModel.copyToInternalStorage(
-                                                    context,
-                                                    uris[0],
-                                                    "company logo",
-                                                    (state.company.companyName ?: "company").trim()
-                                                        .replace(
-                                                            " ",
-                                                            "_"
-                                                        )
-                                                ) { internalPath ->
-                                                    if (internalPath != null) {
-                                                        viewModel.oldImage =
-                                                            state.company.companyLogo
-                                                        viewModel.updateState(
-                                                            state.copy(
-                                                                company = state.company.copy(
-                                                                    companyLogo = internalPath
-                                                                )
-                                                            )
-                                                        )
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    },
-                                    onPermissionDenied = {
-                                        viewModel.showWarning(
-                                            "Permission Denied",
-                                            "Settings"
-                                        )
-                                    })
+                                viewModel.launchGalleryPicker(context)
                             }) {
                                 Icon(
                                     Icons.Default.Image,

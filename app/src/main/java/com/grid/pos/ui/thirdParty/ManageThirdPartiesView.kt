@@ -23,11 +23,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -42,12 +39,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.grid.pos.R
-import com.grid.pos.SharedViewModel
 import com.grid.pos.data.thirdParty.ThirdParty
-import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.model.ThirdPartyTypeModel
-import com.grid.pos.model.ToastModel
 import com.grid.pos.ui.common.SearchableDropdownMenuEx
 import com.grid.pos.ui.common.UIImageButton
 import com.grid.pos.ui.common.UISwitch
@@ -61,7 +55,6 @@ import com.grid.pos.ui.theme.GridPOSTheme
 fun ManageThirdPartiesView(
     modifier: Modifier = Modifier,
     navController: NavController? = null,
-    sharedViewModel: SharedViewModel,
     viewModel: ManageThirdPartiesViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -72,60 +65,12 @@ fun ManageThirdPartiesView(
     val phone2FocusRequester = remember { FocusRequester() }
     val addressFocusRequester = remember { FocusRequester() }
 
-    LaunchedEffect(state.warning) {
-        state.warning?.value?.let { message ->
-            sharedViewModel.showToastMessage(ToastModel(message = message))
-        }
-    }
-
-    LaunchedEffect(state.isLoading) {
-        sharedViewModel.showLoading(state.isLoading)
-    }
-
-    fun save() {
-        viewModel.save()
-        if (sharedViewModel.needAddedData) {
-            sharedViewModel.needAddedData = false
-            sharedViewModel.fetchThirdPartiesAgain = true
-        }
-    }
-
-    var saveAndBack by remember { mutableStateOf(false) }
     fun handleBack() {
-        if (state.isLoading) {
-            return
-        }
-        if (viewModel.isAnyChangeDone()) {
-            sharedViewModel.showPopup(true,
-                PopupModel().apply {
-                    onDismissRequest = {
-                        viewModel.resetState()
-                        handleBack()
-                    }
-                    onConfirmation = {
-                        saveAndBack = true
-                        save()
-                    }
-                    dialogText = "Do you want to save your changes"
-                    positiveBtnText = "Save"
-                    negativeBtnText = "Close"
-                })
-            return
-        }
-        navController?.navigateUp()
+       viewModel.checkChanges{
+           navController?.navigateUp()
+       }
     }
 
-    fun clearAndBack() {
-        viewModel.resetState()
-        if (saveAndBack) {
-            handleBack()
-        }
-    }
-    LaunchedEffect(state.clear) {
-        if (state.clear) {
-            clearAndBack()
-        }
-    }
     BackHandler {
         handleBack()
     }
@@ -303,7 +248,7 @@ fun ManageThirdPartiesView(
                             icon = R.drawable.save,
                             text = "Save"
                         ) {
-                            save()
+                            viewModel.save()
                         }
 
                         UIImageButton(

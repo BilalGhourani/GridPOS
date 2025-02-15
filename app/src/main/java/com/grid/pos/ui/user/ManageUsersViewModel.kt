@@ -1,11 +1,12 @@
 package com.grid.pos.ui.user
 
 import androidx.lifecycle.viewModelScope
+import com.grid.pos.SharedViewModel
 import com.grid.pos.data.invoiceHeader.InvoiceHeaderRepository
 import com.grid.pos.data.thirdParty.ThirdPartyRepository
 import com.grid.pos.data.user.User
 import com.grid.pos.data.user.UserRepository
-import com.grid.pos.model.Event
+import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.BaseViewModel
 import com.grid.pos.utils.Extension.encryptCBC
@@ -21,8 +22,9 @@ import javax.inject.Inject
 class ManageUsersViewModel @Inject constructor(
     private val userRepository: UserRepository,
     private val thirdPartyRepository: ThirdPartyRepository,
-    private val invoiceHeaderRepository: InvoiceHeaderRepository
-) : BaseViewModel() {
+    private val invoiceHeaderRepository: InvoiceHeaderRepository,
+    private val sharedViewModel: SharedViewModel
+) : BaseViewModel(sharedViewModel) {
 
     private val _state = MutableStateFlow(ManageUsersState())
     val state: MutableStateFlow<ManageUsersState> = _state
@@ -44,52 +46,62 @@ class ManageUsersViewModel @Inject constructor(
     fun resetState() {
         currentUser = User()
         state.value = state.value.copy(
-            user = currentUser.copy(),
-            warning = null,
-            isLoading = false,
-            clear = false
+            user = currentUser.copy()
         )
     }
 
-    fun isAnyChangeDone():Boolean{
-        return state.value.user.didChanged(currentUser)
+    fun checkChanges(callback: () -> Unit) {
+        if (isLoading()) {
+            return
+        }
+        if (state.value.user.didChanged(currentUser)) {
+            sharedViewModel.showPopup(true,
+                PopupModel().apply {
+                    onDismissRequest = {
+                        resetState()
+                        callback.invoke()
+                    }
+                    onConfirmation = {
+                        save {
+                            callback.invoke()
+                        }
+                    }
+                    dialogText = "Do you want to save your changes"
+                    positiveBtnText = "Save"
+                    negativeBtnText = "Close"
+                })
+        } else {
+            callback.invoke()
+        }
     }
 
     fun fetchUsers() {
-        state.value = state.value.copy(
-            isLoading = true
-        )
+        showLoading(true)
         viewModelScope.launch(Dispatchers.IO) {
             val listOfUsers = userRepository.getAllUsers()
             withContext(Dispatchers.Main) {
                 state.value = state.value.copy(
-                    users = listOfUsers,
-                    isLoading = false
+                    users = listOfUsers
                 )
+                showLoading(false)
             }
         }
     }
 
-    fun save(
-        isRegistering: Boolean
-    ) {
+    fun save(callback: (Boolean) -> Unit = {}) {
         val user = state.value.user
         if (user.userName.isNullOrEmpty() || user.userUsername.isNullOrEmpty() || user.userPassword.isNullOrEmpty()) {
-            state.value = state.value.copy(
-                warning = Event("Please fill all inputs"),
-                isLoading = false
-            )
+            showLoading(false)
+            showWarning("Please fill all inputs")
             return
         }
-        state.value = state.value.copy(
-            isLoading = true
-        )
+        showLoading(true)
         val isInserting = user.isNew()
         CoroutineScope(Dispatchers.IO).launch {
             user.userPassword = user.userPassword!!.encryptCBC()
             if (isInserting) {
                 user.prepareForInsert()
-                if (isRegistering) {
+                if (sharedViewModel.isRegistering) {
                     user.userPosMode = true
                     user.userTableMode = true
                 }
@@ -100,53 +112,61 @@ class ManageUsersViewModel @Inject constructor(
                     if (users.isNotEmpty()) {
                         users.add(addedModel)
                     }
-                    val msg = if (isRegistering) {
-                        "User saved successfully and Registration is done."
-                    } else {
-                        "User saved successfully."
-                    }
                     withContext(Dispatchers.Main) {
                         state.value = state.value.copy(
-                            users = users,
-                            isLoading = false,
-                            warning = Event(msg),
-                            action = "done",
-                            clear = true
+                            users = users
                         )
+                        resetState()
+                        showLoading(false)
+                        if (sharedViewModel.isRegistering) {
+                            showPopup(
+                                PopupModel(
+                                    onDismissRequest = {
+                                        callback.invoke(true)
+                                    },
+                                    onConfirmation = {
+                                        callback.invoke(true)
+                                    },
+                                    dialogText = "User saved successfully and Registration is done.",
+                                    positiveBtnText = "Login",
+                                    negativeBtnText = null,
+                                    cancelable = false
+                                )
+                            )
+                        } else {
+                            showWarning("User saved successfully.")
+                            callback.invoke(false)
+                        }
                     }
                 } else {
                     withContext(Dispatchers.Main) {
-                        state.value = state.value.copy(
-                            isLoading = false,
-                            warning = null
-                        )
+                        showLoading(false)
                     }
                 }
             } else {
                 val dataModel = userRepository.update(user)
                 if (dataModel.succeed) {
-                    val index =
-                        state.value.users.indexOfFirst { it.userId == user.userId }
+                    val users = state.value.users.toMutableList()
+                    val index = users.indexOfFirst { it.userId == user.userId }
                     if (index >= 0) {
-                        state.value.users.removeAt(index)
-                        state.value.users.add(
+                        users.removeAt(index)
+                        users.add(
                             index,
                             user
                         )
                     }
                     withContext(Dispatchers.Main) {
                         state.value = state.value.copy(
-                            isLoading = false,
-                            warning = Event("User saved successfully."),
-                            clear = true
+                            users = users,
                         )
+                        resetState()
+                        showLoading(false)
+                        showWarning("User saved successfully.")
+                        callback.invoke(false)
                     }
                 } else {
                     withContext(Dispatchers.Main) {
-                        state.value = state.value.copy(
-                            isLoading = false,
-                            warning = null
-                        )
+                        showLoading(false)
                     }
                 }
             }
@@ -156,24 +176,15 @@ class ManageUsersViewModel @Inject constructor(
     fun delete() {
         val user = state.value.user
         if (user.userId.isEmpty()) {
-            state.value = state.value.copy(
-                warning = Event("Please select an user to delete"),
-                isLoading = false
-            )
+            showWarning("Please select an user to delete")
             return
         }
-        state.value = state.value.copy(
-            warning = null,
-            isLoading = true
-        )
-
+        showLoading(true)
         CoroutineScope(Dispatchers.IO).launch {
             if (hasRelations(user.userId)) {
                 withContext(Dispatchers.Main) {
-                    state.value = state.value.copy(
-                        warning = Event("You can't delete this User,because it has related data!"),
-                        isLoading = false
-                    )
+                    showLoading(false)
+                    showWarning("You can't delete this User,because it has related data!")
                 }
                 return@launch
             }
@@ -183,18 +194,15 @@ class ManageUsersViewModel @Inject constructor(
                 users.remove(user)
                 withContext(Dispatchers.Main) {
                     state.value = state.value.copy(
-                        users = users,
-                        isLoading = false,
-                        warning = Event("successfully deleted."),
-                        clear = true
+                        users = users
                     )
+                    resetState()
+                    showLoading(false)
+                    showWarning("successfully deleted.")
                 }
             } else {
                 withContext(Dispatchers.Main) {
-                    state.value = state.value.copy(
-                        isLoading = false,
-                        warning = null
-                    )
+                    showLoading(false)
                 }
             }
         }

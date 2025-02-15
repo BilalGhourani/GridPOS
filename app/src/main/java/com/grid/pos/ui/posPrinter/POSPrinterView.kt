@@ -18,20 +18,13 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -46,16 +39,13 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.grid.pos.R
-import com.grid.pos.SharedViewModel
 import com.grid.pos.data.posPrinter.PosPrinter
-import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.SearchableDropdownMenuEx
 import com.grid.pos.ui.common.UIImageButton
 import com.grid.pos.ui.common.UITextField
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.utils.Utils
-import kotlinx.coroutines.launch
 
 @OptIn(
     ExperimentalMaterial3Api::class
@@ -64,7 +54,6 @@ import kotlinx.coroutines.launch
 fun POSPrinterView(
     modifier: Modifier = Modifier,
     navController: NavController? = null,
-    sharedViewModel: SharedViewModel,
     viewModel: POSPrinterViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -75,61 +64,11 @@ fun POSPrinterView(
     val portFocusRequester = remember { FocusRequester() }
     val typeFocusRequester = remember { FocusRequester() }
 
-    val snackbarHostState = remember { SnackbarHostState() }
-    val scope = rememberCoroutineScope()
-
-    LaunchedEffect(state.warning) {
-        state.warning?.value?.let { message ->
-            scope.launch {
-                snackbarHostState.showSnackbar(
-                    message = message,
-                    duration = SnackbarDuration.Short,
-                    actionLabel = state.actionLabel
-                )
-            }
-        }
-    }
-
-    LaunchedEffect(state.isLoading) {
-        sharedViewModel.showLoading(state.isLoading)
-    }
-
-    var saveAndBack by remember { mutableStateOf(false) }
     fun handleBack() {
-        if (state.isLoading) {
-            return
+        viewModel.checkChanges{
+            navController?.navigateUp()
         }
-        if (viewModel.isAnyChangeDone()) {
-            sharedViewModel.showPopup(true,
-                PopupModel().apply {
-                    onDismissRequest = {
-                        viewModel.resetState()
-                        handleBack()
-                    }
-                    onConfirmation = {
-                        saveAndBack = true
-                        viewModel.save()
-                    }
-                    dialogText = "Do you want to save your changes"
-                    positiveBtnText = "Save"
-                    negativeBtnText = "Close"
-                })
-            return
-        }
-        viewModel.closeConnectionIfNeeded()
-        navController?.navigateUp()
-    }
 
-    fun clearAndBack() {
-        viewModel.resetState()
-        if (saveAndBack) {
-            handleBack()
-        }
-    }
-    LaunchedEffect(state.clear) {
-        if (state.clear) {
-            clearAndBack()
-        }
     }
 
     BackHandler {
@@ -137,9 +76,6 @@ fun POSPrinterView(
     }
     GridPOSTheme {
         Scaffold(containerColor = SettingsModel.backgroundColor,
-            snackbarHost = {
-                SnackbarHost(hostState = snackbarHostState)
-            },
             topBar = {
                 Surface(
                     shadowElevation = 3.dp,

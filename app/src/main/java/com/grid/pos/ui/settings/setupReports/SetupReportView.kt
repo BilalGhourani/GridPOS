@@ -1,6 +1,5 @@
 package com.grid.pos.ui.settings.setupReports
 
-import android.net.Uri
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -22,7 +21,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -35,12 +33,9 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.grid.pos.R
-import com.grid.pos.SharedViewModel
-import com.grid.pos.interfaces.OnGalleryResult
 import com.grid.pos.model.ReportCountry
 import com.grid.pos.model.ReportLanguage
 import com.grid.pos.model.SettingsModel
-import com.grid.pos.model.ToastModel
 import com.grid.pos.ui.common.SearchableDropdownMenuEx
 import com.grid.pos.ui.common.UIImageButton
 import com.grid.pos.ui.theme.GridPOSTheme
@@ -51,43 +46,11 @@ import com.grid.pos.utils.Utils
 fun SetupReportView(
     modifier: Modifier = Modifier,
     navController: NavController? = null,
-    sharedViewModel: SharedViewModel,
     viewModel: SetupReportViewModel = hiltViewModel()
 ) {
     val state: SetupReportState by viewModel.state.collectAsState(SetupReportState())
 
     val context = LocalContext.current
-
-    fun addReport(reportType: String) {
-        sharedViewModel.launchFilePicker("text/html",
-            object : OnGalleryResult {
-                override fun onGalleryResult(uris: List<Uri>) {
-                    viewModel.onGalleryResult(context, reportType, uris) {
-                        navController?.navigateUp()
-                    }
-                }
-            },
-            onPermissionDenied = {
-                viewModel.onPermissionDenied()
-            })
-    }
-
-    LaunchedEffect(state.warning) {
-        state.warning?.value?.let { msg ->
-            sharedViewModel.showToastMessage(ToastModel(
-                message = msg,
-                actionButton = state.actionLabel,
-                onActionClick = {
-                    when (state.actionLabel) {
-                        "Settings" -> sharedViewModel.openAppStorageSettings()
-                    }
-                }
-            ))
-        }
-    }
-    LaunchedEffect(state.isLoading) {
-        sharedViewModel.showLoading(state.isLoading)
-    }
     fun handleBack() {
         navController?.navigateUp()
     }
@@ -140,11 +103,13 @@ fun SetupReportView(
                             .height(100.dp)
                             .padding(10.dp),
                         icon = R.drawable.add,
-                        text = "Add ${sharedViewModel.selectedReportType!!}",
+                        text = "Add ${viewModel.getReportType() ?: ""}",
                         iconSize = 60.dp,
                         isVertical = false
                     ) {
-                        addReport(sharedViewModel.selectedReportType!!)
+                        viewModel.addReport(context) {
+                            navController?.navigateUp()
+                        }
                     }
                 }
 
@@ -174,26 +139,18 @@ fun SetupReportView(
                         end = 10.dp
                     ),
                     onLoadItems = {
-                        sharedViewModel.fetchCountries { list ->
-                            viewModel.updateState(
-                                state.copy(
-                                    countries = list
-                                )
-                            )
-                        }
+                        viewModel.fetchCountries()
                     },
                     placeholder = "Report Country",
                     label = state.country.ifEmpty { "Select Language" },
                     selectedId = state.country,
                     maxHeight = 290.dp
                 ) { reportCountry ->
-                    sharedViewModel.fetchCountries { list ->
-                        viewModel.updateState(
-                            state.copy(
-                                country = (reportCountry as ReportCountry).value
-                            )
+                    viewModel.updateState(
+                        state.copy(
+                            country = (reportCountry as ReportCountry).value
                         )
-                    }
+                    )
                 }
             }
         }

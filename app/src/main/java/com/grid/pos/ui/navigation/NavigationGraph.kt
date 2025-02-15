@@ -65,20 +65,17 @@ fun AuthNavGraph(
         }
         composable(route = "ManageCurrenciesView") {
             ManageCurrenciesView(
-                navController = navController,
-                sharedViewModel = sharedViewModel
+                navController = navController
             )
         }
         composable(route = "ManageCompaniesView") {
             ManageCompaniesView(
-                navController = navController,
-                sharedViewModel = sharedViewModel
+                navController = navController
             )
         }
         composable(route = "ManageUsersView") {
             ManageUsersView(
-                navController = navController,
-                sharedViewModel = sharedViewModel
+                navController = navController
             )
         }
         composable(route = "ManageFamiliesView") {
@@ -89,8 +86,7 @@ fun AuthNavGraph(
         }
         composable(route = "ManageThirdPartiesView") {
             ManageThirdPartiesView(
-                navController = navController,
-                sharedViewModel = sharedViewModel
+                navController = navController
             )
         }
         composable(route = "ManageItemsView") {
@@ -118,8 +114,7 @@ fun AuthNavGraph(
         }
         composable(route = "POSPrinterView") {
             POSPrinterView(
-                navController = navController,
-                sharedViewModel = sharedViewModel
+                navController = navController
             )
         }
         composable(route = "ReportsView") {
@@ -137,15 +132,13 @@ fun AuthNavGraph(
 
         composable(route = "ReportsListView") {
             ReportsListView(
-                navController = navController,
-                sharedViewModel = sharedViewModel
+                navController = navController
             )
         }
 
         composable(route = "SetupReportView") {
             SetupReportView(
-                navController = navController,
-                sharedViewModel = sharedViewModel
+                navController = navController
             )
         }
 

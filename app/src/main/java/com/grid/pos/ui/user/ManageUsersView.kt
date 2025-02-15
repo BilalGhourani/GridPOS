@@ -25,7 +25,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -47,11 +46,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.grid.pos.R
-import com.grid.pos.SharedViewModel
 import com.grid.pos.data.user.User
-import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
-import com.grid.pos.model.ToastModel
 import com.grid.pos.ui.common.SearchableDropdownMenuEx
 import com.grid.pos.ui.common.UIImageButton
 import com.grid.pos.ui.common.UISwitch
@@ -66,7 +62,6 @@ import com.grid.pos.utils.Extension.decryptCBC
 fun ManageUsersView(
     navController: NavController? = null,
     modifier: Modifier = Modifier,
-    sharedViewModel: SharedViewModel,
     viewModel: ManageUsersViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -77,78 +72,12 @@ fun ManageUsersView(
 
     var passwordVisibility by remember { mutableStateOf(false) }
 
-    LaunchedEffect(state.warning) {
-        state.warning?.value?.let { message ->
-            if (state.action == "done" && sharedViewModel.isRegistering) {
-                sharedViewModel.isRegistering = false
-                sharedViewModel.showPopup(
-                    true,
-                    PopupModel(
-                        onDismissRequest = {
-                            navController?.navigateUp()
-                        },
-                        onConfirmation = {
-                            navController?.navigateUp()
-                        },
-                        dialogText = message,
-                        positiveBtnText = "Login",
-                        negativeBtnText = null,
-                        cancelable = false
-                    )
-                )
-            } else {
-                sharedViewModel.showToastMessage(
-                    ToastModel(
-                        message = message
-                    )
-                )
-            }
-        }
-    }
-
-    LaunchedEffect(state.isLoading) {
-        sharedViewModel.showLoading(state.isLoading)
-    }
-
-    var saveAndBack by remember { mutableStateOf(false) }
     fun handleBack() {
-        if (state.isLoading) {
-            return
+        viewModel.checkChanges {
+            navController?.navigateUp()
         }
-        if (viewModel.isAnyChangeDone()) {
-            sharedViewModel.showPopup(true,
-                PopupModel().apply {
-                    onDismissRequest = {
-                        viewModel.resetState()
-                        handleBack()
-                    }
-                    onConfirmation = {
-                        saveAndBack = true
-                        viewModel.save(
-                            sharedViewModel.isRegistering
-                        )
-                    }
-                    dialogText = "Do you want to save your changes"
-                    positiveBtnText = "Save"
-                    negativeBtnText = "Close"
-                })
-            return
-        }
-        viewModel.closeConnectionIfNeeded()
-        navController?.navigateUp()
     }
 
-    fun clearAndBack() {
-        viewModel.resetState()
-        if (saveAndBack) {
-            handleBack()
-        }
-    }
-    LaunchedEffect(state.clear) {
-        if (state.clear) {
-            clearAndBack()
-        }
-    }
     BackHandler {
         handleBack()
     }
@@ -307,9 +236,7 @@ fun ManageUsersView(
                             icon = R.drawable.save,
                             text = "Save"
                         ) {
-                            viewModel.save(
-                                sharedViewModel.isRegistering
-                            )
+                            viewModel.save()
                         }
 
                         UIImageButton(

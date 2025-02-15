@@ -10,9 +10,5 @@ data class ManageCompaniesState(
         val company: Company = Company(),
         val companyTaxStr:String="",
         val companyTax1Str:String="",
-        val companyTax2Str:String="",
-        val isLoading: Boolean = false,
-        val clear: Boolean = false,
-        val warning: Event<String>? = null,
-        val actionLabel: String? = null,
+        val companyTax2Str:String=""
 )

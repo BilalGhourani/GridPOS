@@ -58,11 +58,8 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.grid.pos.App
-import com.grid.pos.SharedViewModel
-import com.grid.pos.model.PopupModel
 import com.grid.pos.model.ReportTypeModel
 import com.grid.pos.model.SettingsModel
-import com.grid.pos.model.ToastModel
 import com.grid.pos.ui.common.SearchableDropdownMenuEx
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.utils.FileUtils
@@ -75,7 +72,6 @@ import java.io.File
 fun ReportsListView(
         modifier: Modifier = Modifier,
         navController: NavController? = null,
-        sharedViewModel: SharedViewModel,
         viewModel: ReportsListViewModel = hiltViewModel()
 ) {
     val state: ReportsListState by viewModel.state.collectAsState(
@@ -83,7 +79,6 @@ fun ReportsListView(
     )
 
     val context = LocalContext.current
-    var deletePopupState by remember { mutableStateOf(false) }
     var isOptionPopupExpanded by remember { mutableStateOf(false) }
     var previewBottomSheetState by remember { mutableStateOf(false) }
     val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -92,45 +87,9 @@ fun ReportsListView(
         viewModel.loadData()
     }
 
-    LaunchedEffect(deletePopupState) {
-        sharedViewModel.showPopup(deletePopupState,
-            PopupModel().apply {
-                onDismissRequest = {
-                    deletePopupState = false
-                }
-                onConfirmation = {
-                    deletePopupState = false
-                    viewModel.deleteFile(
-                        context,
-                        state.fileModel
-                    )
-                }
-                dialogText = "Are you sure you want to delete this file?"
-                positiveBtnText = "Delete"
-                negativeBtnText = "Close"
-            })
-    }
-
-
-    LaunchedEffect(
-        state.warning,
-        state.isDone
-    ) {
-        state.warning?.value?.let { message ->
-            sharedViewModel.showToastMessage(
-                ToastModel(message = message)
-            )
-        }
-
-    }
-
     fun handleBack() {
         if (isOptionPopupExpanded) {
             isOptionPopupExpanded = false
-            return
-        }
-        if (deletePopupState) {
-            deletePopupState = false
             return
         }
         navController?.navigateUp()
@@ -166,7 +125,6 @@ fun ReportsListView(
                         },
                         actions = {
                             IconButton(onClick = {
-                                sharedViewModel.selectedReportType = state.selectedType
                                 navController?.navigate("SetupReportView")
                             }) {
                                 Icon(
@@ -307,24 +265,7 @@ fun ReportsListView(
                             .padding(horizontal = 5.dp)
                             .clickable {
                                 isOptionPopupExpanded = false
-                                state.isLoading = true
-                                val file = state.fileModel.getFile(
-                                    File(
-                                        App.getInstance().filesDir,
-                                        "Reports"
-                                    )
-                                )
-                                val savedPath = FileUtils.saveToExternalStorage(
-                                    context = context,
-                                    parent = "invoice reports/${state.fileModel.getParents()}",
-                                    sourceFilePath = Uri.fromFile(file),
-                                    destName = state.fileModel.fileName,
-                                    type = "html"
-                                )
-                                state.isLoading = false
-                                if (!savedPath.isNullOrEmpty()) {
-                                    viewModel.showError("Report Saved successfully.")
-                                }
+                                viewModel.downloadReport(context)
                             },
                         horizontalArrangement = Arrangement.Start,
                         verticalAlignment = Alignment.CenterVertically
@@ -355,7 +296,7 @@ fun ReportsListView(
                             .padding(horizontal = 5.dp)
                             .clickable {
                                 isOptionPopupExpanded = false
-                                deletePopupState = true
+                                viewModel.askAndDelete(context)
                             },
                         horizontalArrangement = Arrangement.Start,
                         verticalAlignment = Alignment.CenterVertically
