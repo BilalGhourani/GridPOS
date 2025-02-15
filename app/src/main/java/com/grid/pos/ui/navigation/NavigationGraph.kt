@@ -95,8 +95,7 @@ fun AuthNavGraph(
         }
         composable(route = "ManageItemsView") {
             ManageItemsView(
-                navController = navController,
-                sharedViewModel = sharedViewModel
+                navController = navController
             )
         }
         composable(route = "POSView") {
