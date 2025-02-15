@@ -93,8 +93,7 @@ fun AuthNavGraph(
         }
         composable(route = "POSView") {
             POSView(
-                navController = navController,
-                sharedViewModel = sharedViewModel
+                navController = navController
             )
         }
         composable(route = "TablesView") {
@@ -152,15 +151,13 @@ fun AuthNavGraph(
 
         composable(route = "PaymentsView") {
             PaymentsView(
-                navController = navController,
-                sharedViewModel = sharedViewModel
+                navController = navController
             )
         }
 
         composable(route = "ReceiptsView") {
             ReceiptsView(
-                navController = navController,
-                sharedViewModel = sharedViewModel
+                navController = navController
             )
         }
 

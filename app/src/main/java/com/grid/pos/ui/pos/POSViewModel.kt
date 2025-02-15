@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.viewModelScope
 import com.grid.pos.App
+import com.grid.pos.SharedViewModel
 import com.grid.pos.data.currency.Currency
 import com.grid.pos.data.currency.CurrencyRepository
 import com.grid.pos.data.family.FamilyRepository
@@ -19,11 +20,12 @@ import com.grid.pos.data.settings.SettingsRepository
 import com.grid.pos.data.thirdParty.ThirdParty
 import com.grid.pos.data.thirdParty.ThirdPartyRepository
 import com.grid.pos.data.user.UserRepository
-import com.grid.pos.model.Event
+import com.grid.pos.interfaces.OnBarcodeResult
 import com.grid.pos.model.InvoiceItemModel
 import com.grid.pos.model.PopupState
 import com.grid.pos.model.ReportResult
 import com.grid.pos.model.SettingsModel
+import com.grid.pos.model.UserType
 import com.grid.pos.ui.common.BaseViewModel
 import com.grid.pos.utils.PrinterUtils
 import com.grid.pos.utils.Utils
@@ -45,8 +47,9 @@ class POSViewModel @Inject constructor(
     private val familyRepository: FamilyRepository,
     private val posPrinterRepository: PosPrinterRepository,
     private val userRepository: UserRepository,
-    private val settingsRepository: SettingsRepository
-) : BaseViewModel() {
+    private val settingsRepository: SettingsRepository,
+    private val sharedViewModel: SharedViewModel
+) : BaseViewModel(sharedViewModel) {
 
     private val _posState = MutableStateFlow(POSState())
     val posState: MutableStateFlow<POSState> = _posState
@@ -60,15 +63,15 @@ class POSViewModel @Inject constructor(
     var invoiceItemModels: MutableList<InvoiceItemModel> = mutableListOf()
     val itemsToDelete: MutableList<InvoiceItemModel> = mutableListOf()
     var selectedItemIndex: Int = -1
-    var proceedToPrint: Boolean = true
     val isDeviceLargerThan7Inches = Utils.isDeviceLargerThan7Inches(App.getInstance())
     var isTablet = false
     var isInvoiceEdited = false
 
+    var currentInvoice: InvoiceHeader? = null
     var popupState: PopupState? = null
 
     private var clientsMap: Map<String, ThirdParty> = mutableMapOf()
-    val reportResults = mutableListOf<ReportResult>()
+    private val reportResults = mutableListOf<ReportResult>()
 
     var defaultThirdParty: ThirdParty? = null
     private var siTransactionType: String = "null"
@@ -87,20 +90,37 @@ class POSViewModel @Inject constructor(
         return isEditBottomSheetVisible.value || isAddItemBottomSheetVisible.value || isPayBottomSheetVisible.value
     }
 
+    fun handleBack(callback: (String, Boolean) -> Unit) {
+        if (isAddItemBottomSheetVisible.value) {
+            isAddItemBottomSheetVisible.value = false
+        } else if (isEditBottomSheetVisible.value) {
+            isEditBottomSheetVisible.value = false
+        } else if (isPayBottomSheetVisible.value) {
+            isPayBottomSheetVisible.value = false
+        } else if (posState.value.invoiceItems.isNotEmpty()) {
+            callback.invoke("discard", true)
+        } else {
+            if (!posState.value.invoiceHeader.invoiceHeadTableId.isNullOrEmpty()) {
+                unLockTable()
+            }
+            if (SettingsModel.getUserType() == UserType.POS) {
+                callback.invoke("back", true)
+                isSavePopupVisible.value = true
+                popupState = PopupState.BACK_PRESSED
+            } else {
+                sharedViewModel.isFromTable = false
+                callback.invoke("", false)
+            }
+        }
+    }
+
     fun resetState() {
-        proceedToPrint = true
         itemsToDelete.clear()
         _posState.value = posState.value.copy(
             invoiceItems = mutableListOf(),
             invoiceHeader = InvoiceHeader(),
             posReceipt = PosReceipt(),
             selectedThirdParty = defaultThirdParty ?: ThirdParty(),
-
-            isSaved = false,
-            isDeleted = false,
-            isLoading = false,
-            warning = null,
-            actionLabel = null
         )
     }
 
@@ -170,9 +190,7 @@ class POSViewModel @Inject constructor(
         val loadItems = posState.value.items.isEmpty()
         val loadFamilies = posState.value.families.isEmpty()
         if (loadItems || loadFamilies) {
-            posState.value = posState.value.copy(
-                isLoading = true
-            )
+            showLoading(true)
         }
         viewModelScope.launch(Dispatchers.IO) {
             if (loadItems) {
@@ -185,6 +203,7 @@ class POSViewModel @Inject constructor(
     }
 
     suspend fun fetchItems(stopLoading: Boolean = false) {
+        sharedViewModel.fetchItemsAgain = false
         if (SettingsModel.currentCurrency == null && SettingsModel.isConnectedToSqlServer()) {
             val currencies = currencyRepository.getAllCurrencies()
             val currency = if (currencies.size > 0) currencies[0] else Currency()
@@ -192,15 +211,11 @@ class POSViewModel @Inject constructor(
         }
         val listOfItems = itemRepository.getItemsForPOS()
         withContext(Dispatchers.Main) {
-            posState.value = if (stopLoading) {
-                posState.value.copy(
-                    items = listOfItems,
-                    isLoading = false
-                )
-            } else {
-                posState.value.copy(
-                    items = listOfItems
-                )
+            posState.value = posState.value.copy(
+                items = listOfItems
+            )
+            if (stopLoading) {
+                showLoading(false)
             }
         }
     }
@@ -208,24 +223,19 @@ class POSViewModel @Inject constructor(
     private suspend fun fetchFamilies(stopLoading: Boolean = false) {
         val listOfFamilies = familyRepository.getFamiliesForPOS()
         withContext(Dispatchers.Main) {
-            posState.value = if (stopLoading) {
-                posState.value.copy(
-                    families = listOfFamilies,
-                    isLoading = false
-                )
-            } else {
-                posState.value.copy(
-                    families = listOfFamilies
-                )
+            posState.value = posState.value.copy(
+                families = listOfFamilies
+            )
+            if (stopLoading) {
+                showLoading(false)
             }
         }
     }
 
     fun fetchThirdParties(withLoading: Boolean = true) {
+        sharedViewModel.fetchThirdPartiesAgain = false
         if (withLoading) {
-            posState.value = posState.value.copy(
-                isLoading = true
-            )
+            showLoading(true)
         }
         viewModelScope.launch(Dispatchers.IO) {
             val listOfThirdParties = thirdPartyRepository.getAllThirdParties()
@@ -242,24 +252,18 @@ class POSViewModel @Inject constructor(
             }
             clientsMap = listOfThirdParties.associateBy { it.thirdPartyId }
             withContext(Dispatchers.Main) {
-                posState.value = if (withLoading) {
-                    posState.value.copy(
-                        thirdParties = listOfThirdParties,
-                        isLoading = false
-                    )
-                } else {
-                    posState.value.copy(
-                        thirdParties = listOfThirdParties
-                    )
+                posState.value = posState.value.copy(
+                    thirdParties = listOfThirdParties
+                )
+                if (withLoading) {
+                    showLoading(false)
                 }
             }
         }
     }
 
     fun fetchInvoices() {
-        posState.value = posState.value.copy(
-            isLoading = true
-        )
+        showLoading(true)
         viewModelScope.launch(Dispatchers.IO) {
             val listOfInvoices = invoiceHeaderRepository.getAllInvoiceHeaders()
             listOfInvoices.map {
@@ -268,23 +272,10 @@ class POSViewModel @Inject constructor(
             }
             withContext(Dispatchers.Main) {
                 posState.value = posState.value.copy(
-                    invoiceHeaders = listOfInvoices,
-                    isLoading = false
+                    invoiceHeaders = listOfInvoices
                 )
+                showLoading(false)
             }
-        }
-    }
-
-    fun showWarning(
-        warning: String,
-        action: String? = null
-    ) {
-        viewModelScope.launch(Dispatchers.Main) {
-            posState.value = posState.value.copy(
-                warning = Event(warning),
-                actionLabel = action,
-                isLoading = false
-            )
         }
     }
 
@@ -292,18 +283,15 @@ class POSViewModel @Inject constructor(
         context: Context,
         print: Boolean = false,
         finish: Boolean = false,
+        proceedToPrint: Boolean = false,
+        callback: () -> Unit
     ) {
         val invoiceHeader = posState.value.invoiceHeader
         if (posState.value.invoiceItems.isEmpty()) {
-            posState.value = posState.value.copy(
-                warning = Event("invoice doesn't contains any item!"),
-                isLoading = false,
-            )
+            showWarning("invoice doesn't contains any item!")
             return
         }
-        posState.value = posState.value.copy(
-            isLoading = true
-        )
+        showLoading(true)
         val isInserting = invoiceHeader.isNew()
 
         viewModelScope.launch(Dispatchers.IO) {
@@ -350,13 +338,13 @@ class POSViewModel @Inject constructor(
                     savePOSReceipt(
                         context,
                         addedInv,
-                        print
+                        print,
+                        proceedToPrint,
+                        callback
                     )
                 } else {
                     withContext(Dispatchers.Main) {
-                        posState.value = posState.value.copy(
-                            isLoading = false
-                        )
+                        showLoading(false)
                     }
                 }
             } else {
@@ -403,13 +391,13 @@ class POSViewModel @Inject constructor(
                     savePOSReceipt(
                         context,
                         invoiceHeader,
-                        print
+                        print,
+                        proceedToPrint,
+                        callback
                     )
                 } else {
                     withContext(Dispatchers.Main) {
-                        posState.value = posState.value.copy(
-                            isLoading = false
-                        )
+                        showLoading(false)
                     }
                 }
             }
@@ -419,7 +407,9 @@ class POSViewModel @Inject constructor(
     private suspend fun savePOSReceipt(
         context: Context,
         invoiceHeader: InvoiceHeader,
-        print: Boolean
+        print: Boolean,
+        proceedToPrint: Boolean,
+        callback: () -> Unit
     ) {
         val posReceipt = posState.value.posReceipt
         val isInserting = posReceipt.isNew()
@@ -432,13 +422,17 @@ class POSViewModel @Inject constructor(
         }
         saveInvoiceItems(
             context,
-            print
+            print,
+            proceedToPrint,
+            callback
         )
     }
 
     private suspend fun saveInvoiceItems(
         context: Context,
-        print: Boolean
+        print: Boolean,
+        proceedToPrint: Boolean,
+        callback: () -> Unit
     ) {
         val itemsToInsert = posState.value.invoiceItems.filter { it.invoice.isNew() }
         val itemsToUpdate = posState.value.invoiceItems.filter { !it.invoice.isNew() }
@@ -471,11 +465,29 @@ class POSViewModel @Inject constructor(
             reportResults.clear()
         }
         withContext(Dispatchers.Main) {
-            posState.value = posState.value.copy(
-                isLoading = false,
-                isSaved = true,
-                warning = Event("Invoice saved successfully."),
-            )
+            isPayBottomSheetVisible.value = false
+            showWarning("Invoice saved successfully.")
+            if (proceedToPrint) {
+                resetState()
+                addReportResult(reportResults)
+                callback.invoke()
+            } else if (SettingsModel.autoPrintTickets) {
+                prepareAutoPrint(context) {
+                    showLoading(false)
+                    resetState()
+                    if (sharedViewModel.isFromTable) {
+                        sharedViewModel.isFromTable = false
+                        callback.invoke()
+                    }
+                }
+            } else {
+                showLoading(false)
+                resetState()
+                if (sharedViewModel.isFromTable) {
+                    sharedViewModel.isFromTable = false
+                    callback.invoke()
+                }
+            }
         }
     }
 
@@ -506,39 +518,58 @@ class POSViewModel @Inject constructor(
     }
 
     fun savePrintedNumber(
-        context: Context
+        context: Context,
+        callback: () -> Unit
     ) {
-        posState.value = posState.value.copy(
-            isLoading = true
-        )
+        if (isInvoiceEdited) {
+            showWarning("Save your changes at first!")
+            return
+        } else if (posState.value.invoiceHeader.isNew()) {
+            showWarning("Save invoice at first!")
+            return
+        }
+        showLoading(true)
         viewModelScope.launch(Dispatchers.IO) {
+            posState.value.invoiceItems.forEach { invoiceItemModel ->
+                invoiceItemModel.shouldPrint = true
+            }
+            posState.value.invoiceHeader.invoiceHeadPrinted += 1
             invoiceHeaderRepository.updateInvoiceHeader(
                 posState.value.invoiceHeader
             )
             prepareInvoiceReports(context)
             withContext(Dispatchers.Main) {
-                posState.value = posState.value.copy(
-                    isLoading = false,
-                    isSaved = true,
-                    warning = null
+                isPayBottomSheetVisible.value = false
+                updateState(
+                    posState.value.copy(
+                        invoiceItems = mutableListOf(),
+                        invoiceHeader = InvoiceHeader(),
+                        posReceipt = PosReceipt()
+                    )
                 )
+                addReportResult(reportResults)
+                showLoading(false)
+                callback.invoke()
             }
         }
 
+    }
+
+    fun loadInvoiceFromTable() {
+        sharedViewModel.tempInvoiceHeader?.let { invoiceHeader ->
+            sharedViewModel.tempInvoiceHeader = null
+            sharedViewModel.shouldLoadInvoice = false
+            loadInvoiceDetails(invoiceHeader)
+        }
     }
 
     fun loadInvoiceDetails(
         invoiceHeader: InvoiceHeader
     ) {
         if (invoiceHeader.invoiceHeadId.isEmpty()) {
-            posState.value = posState.value.copy(
-                isLoading = false
-            )
             return
         }
-        posState.value = posState.value.copy(
-            isLoading = true
-        )
+        showLoading(true)
         viewModelScope.launch(Dispatchers.IO) {
             if (posState.value.items.isEmpty()) {
                 fetchItems(false)
@@ -565,9 +596,9 @@ class POSViewModel @Inject constructor(
             val posReceipt =
                 posReceiptRepository.getPosReceiptByInvoice(invoiceHeader.invoiceHeadId)
             invoiceItemModels = invoices.toMutableList()
+            currentInvoice = invoiceHeader.copy()
             viewModelScope.launch(Dispatchers.Main) {
                 posState.value = posState.value.copy(
-                    isLoading = false,
                     invoiceItems = invoices,
                     invoiceHeader = POSUtils.refreshValues(
                         invoices,
@@ -575,22 +606,22 @@ class POSViewModel @Inject constructor(
                     ),
                     posReceipt = posReceipt ?: PosReceipt()
                 )
+                showLoading(false)
             }
         }
     }
 
-    fun deleteInvoiceHeader() {
+    fun deleteInvoiceHeader(callback: () -> Unit) {
         val invoiceHeader = posState.value.invoiceHeader
         if (invoiceHeader.isNew()) {
-            posState.value = posState.value.copy(
-                isDeleted = true,
-                isLoading = false,
-            )
+            resetState()
+            if (sharedViewModel.isFromTable) {
+                sharedViewModel.isFromTable = false
+                callback.invoke()
+            }
             return
         }
-        posState.value = posState.value.copy(
-            isLoading = true
-        )
+        showLoading(true)
         viewModelScope.launch(Dispatchers.IO) {
             val dataModel = invoiceHeaderRepository.delete(invoiceHeader)
             if (dataModel.succeed) {
@@ -608,17 +639,19 @@ class POSViewModel @Inject constructor(
                 }
                 withContext(Dispatchers.Main) {
                     posState.value = posState.value.copy(
-                        invoiceHeaders = invoiceHeaders,
-                        isLoading = false,
-                        warning = Event("successfully deleted."),
-                        isDeleted = true
+                        invoiceHeaders = invoiceHeaders
                     )
+                    resetState()
+                    showLoading(false)
+                    showWarning("successfully deleted.")
+                    if (sharedViewModel.isFromTable) {
+                        sharedViewModel.isFromTable = false
+                        callback.invoke()
+                    }
                 }
             } else {
                 withContext(Dispatchers.Main) {
-                    posState.value = posState.value.copy(
-                        isLoading = false
-                    )
+                    showLoading(false)
                 }
             }
         }
@@ -690,7 +723,7 @@ class POSViewModel @Inject constructor(
         prepareItemsReports(context)
     }
 
-    fun prepareAutoPrint(context: Context, callback: () -> Unit) {
+    private fun prepareAutoPrint(context: Context, callback: () -> Unit) {
         viewModelScope.launch(Dispatchers.Default) {
             val invoices =
                 posState.value.invoiceItems.filter { it.invoice.isNew() || it.shouldPrint }
@@ -755,4 +788,94 @@ class POSViewModel @Inject constructor(
         return if (amount >= 0) siTransactionType else rsTransactionType
     }
 
+    fun shouldLoadInvoice(): Boolean {
+        return sharedViewModel.shouldLoadInvoice
+    }
+
+    fun fetchItemsAgain(): Boolean {
+        return sharedViewModel.fetchItemsAgain
+    }
+
+    fun fetchThirdPartiesAgain(): Boolean {
+        return sharedViewModel.fetchThirdPartiesAgain
+    }
+
+    fun isFromTable(): Boolean {
+        return sharedViewModel.isFromTable
+    }
+
+    fun needAddedData(boolean: Boolean) {
+        sharedViewModel.needAddedData = boolean
+    }
+
+    suspend fun updateRealItemPrice(item: Item) {
+        sharedViewModel.updateRealItemPrice(item)
+    }
+
+    fun logout() {
+        sharedViewModel.logout()
+    }
+
+    fun launchBarcodeScanner() {
+        viewModelScope.launch(Dispatchers.Main) {
+            if (posState.value.items.isEmpty()) {
+                showLoading(true)
+                fetchItems()
+            }
+            sharedViewModel.launchBarcodeScanner(false,
+                ArrayList(posState.value.items),
+                object : OnBarcodeResult {
+                    override fun OnBarcodeResult(barcodesList: List<Any>) {
+                        if (barcodesList.isNotEmpty()) {
+                            showLoading(true)
+                            viewModelScope.launch {
+                                val map: Map<Item, Int> =
+                                    barcodesList.groupingBy { item -> item as Item }
+                                        .eachCount()
+                                val invoiceItems =
+                                    posState.value.invoiceItems.toMutableList()
+                                map.forEach { (item, count) ->
+                                    if (!item.itemBarcode.isNullOrEmpty()) {
+                                        withContext(Dispatchers.IO) {
+                                            sharedViewModel.updateRealItemPrice(
+                                                item
+                                            )
+                                        }
+                                        val invoiceItemModel =
+                                            InvoiceItemModel()
+                                        invoiceItemModel.setItem(item)
+                                        invoiceItemModel.shouldPrint =
+                                            true
+                                        invoiceItemModel.invoice.invoiceQuantity =
+                                            count.toDouble()
+                                        invoiceItems.add(
+                                            invoiceItemModel
+                                        )
+                                    }
+                                }
+                                withContext(Dispatchers.Main) {
+                                    updateState(
+                                        posState.value.copy(
+                                            invoiceItems = invoiceItems,
+                                            invoiceHeader = POSUtils.refreshValues(
+                                                invoiceItems,
+                                                posState.value.invoiceHeader
+                                            )
+                                        )
+                                    )
+                                    showLoading(false)
+                                }
+                            }
+                        }
+                    }
+                },
+                onPermissionDenied = {
+                    showWarning(
+                        "Permission Denied", "Settings"
+                    ) {
+                        sharedViewModel.openAppStorageSettings()
+                    }
+                })
+        }
+    }
 }

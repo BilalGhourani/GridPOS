@@ -37,7 +37,6 @@ fun InvoiceFooterView(
     state: POSState,
     viewModel:POSViewModel,
     modifier: Modifier = Modifier,
-    isFromTable: Boolean = false,
     onLoadClients: () -> Unit = {},
     onLoadInvoices: () -> Unit = {},
     onLoadItems: () -> Unit = {},
@@ -55,7 +54,7 @@ fun InvoiceFooterView(
             .fillMaxWidth()
             .fillMaxHeight()
     ) {
-        if (!isFromTable) {
+        if (!viewModel.isFromTable()) {
             SearchableDropdownMenuEx(
                 items = state.invoiceHeaders.toMutableList(),
                 showSelected = false,
@@ -195,7 +194,7 @@ fun InvoiceFooterView(
                     label = "Customers",
                     onLoadItems = { onLoadClients.invoke() },
                     leadingIcon = {
-                        if (!isFromTable) {
+                        if (!viewModel.isFromTable()) {
                             Icon(
                                 Icons.Default.PersonAdd,
                                 contentDescription = "Add Customer",

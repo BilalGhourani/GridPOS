@@ -8,7 +8,6 @@ import com.grid.pos.data.posPrinter.PosPrinter
 import com.grid.pos.data.posReceipt.PosReceipt
 import com.grid.pos.data.thirdParty.ThirdParty
 import com.grid.pos.data.user.User
-import com.grid.pos.model.Event
 import com.grid.pos.model.InvoiceItemModel
 
 data class POSState(
@@ -24,12 +23,6 @@ data class POSState(
     var selectedThirdParty: ThirdParty = ThirdParty(),
 
     val orientation: Int = Configuration.ORIENTATION_PORTRAIT,
-
-    var isSaved: Boolean = false,
-    var isDeleted: Boolean = false,
-    var isLoading: Boolean = false,
-    val warning: Event<String>? = null,
-    val actionLabel: String? = null,
 ) {
 
     val isLandscape: Boolean

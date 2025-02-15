@@ -30,20 +30,20 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.grid.pos.SharedViewModel
 import com.grid.pos.data.family.Family
 import com.grid.pos.data.item.Item
 import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.family.CategoryListCell
 import com.grid.pos.ui.item.ItemListCell
+import com.grid.pos.ui.pos.POSViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 @Composable
 fun AddInvoiceItemView(
-    sharedViewModel: SharedViewModel,
+    viewModel: POSViewModel,
     categories: MutableList<Family> = mutableListOf(),
     items: MutableList<Item> = mutableListOf(),
     modifier: Modifier = Modifier,
@@ -125,8 +125,7 @@ fun AddInvoiceItemView(
                         if (item.itemRemQty <= 0) {
                             proceed = SettingsModel.allowOutOfStockSale
                             if (item.selected && SettingsModel.showItemQtyAlert) {
-                                sharedViewModel.showPopup(
-                                    true,
+                                viewModel.showPopup(
                                     PopupModel(
                                         dialogText = "Not enough stock available for ${item.itemName}. Please adjust the quantity.",
                                         positiveBtnText = "Close",
@@ -137,7 +136,7 @@ fun AddInvoiceItemView(
                         }
                         if (proceed) {
                             withContext(Dispatchers.IO) {
-                                sharedViewModel.updateRealItemPrice(item)
+                                viewModel.updateRealItemPrice(item)
                             }
                             if (notifyDirectly) {
                                 onSelect.invoke(listOf(item))
