@@ -18,8 +18,4 @@ data class ReceiptsState(
     val receiptAmountSecondStr:String="",
 
     val currencyIndex: Int = 0,
-    val isLoading: Boolean = false,
-    var isSaved: Boolean = false,
-    var clear: Boolean = false,
-    val warning: Event<String>? = null,
 )

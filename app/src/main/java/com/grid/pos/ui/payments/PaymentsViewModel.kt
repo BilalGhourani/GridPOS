@@ -2,6 +2,7 @@ package com.grid.pos.ui.payments
 
 import android.content.Context
 import androidx.lifecycle.viewModelScope
+import com.grid.pos.SharedViewModel
 import com.grid.pos.data.EntityModel
 import com.grid.pos.data.currency.CurrencyRepository
 import com.grid.pos.data.payment.Payment
@@ -10,7 +11,6 @@ import com.grid.pos.data.settings.SettingsRepository
 import com.grid.pos.data.thirdParty.ThirdParty
 import com.grid.pos.data.thirdParty.ThirdPartyRepository
 import com.grid.pos.data.user.UserRepository
-import com.grid.pos.model.Event
 import com.grid.pos.model.PaymentTypeModel
 import com.grid.pos.model.ReportResult
 import com.grid.pos.model.SettingsModel
@@ -32,13 +32,14 @@ class PaymentsViewModel @Inject constructor(
     private val thirdPartyRepository: ThirdPartyRepository,
     private val currencyRepository: CurrencyRepository,
     private val userRepository: UserRepository,
-    private val settingsRepository: SettingsRepository
-) : BaseViewModel() {
+    private val settingsRepository: SettingsRepository,
+    private val sharedViewModel: SharedViewModel
+) : BaseViewModel(sharedViewModel) {
     private val _state = MutableStateFlow(PaymentsState())
     val state: MutableStateFlow<PaymentsState> = _state
 
     var currentPayment: Payment = Payment()
-    var reportResult = ReportResult()
+    private var reportResult = ReportResult()
     private var clientsMap: Map<String, ThirdParty> = mutableMapOf()
     val paymentTypes: MutableList<EntityModel> = mutableListOf(
         PaymentTypeModel("Cash"),
@@ -72,10 +73,6 @@ class PaymentsViewModel @Inject constructor(
         state.value = state.value.copy(
             payment = currentPayment.copy(),
             currencyIndex = 0,
-            warning = null,
-            isLoading = false,
-            clear = false,
-            isSaved = false,
         )
     }
 
@@ -88,10 +85,7 @@ class PaymentsViewModel @Inject constructor(
     }
 
     fun fetchPayments() {
-        state.value = state.value.copy(
-            warning = null,
-            isLoading = true
-        )
+        showLoading(true)
         viewModelScope.launch(Dispatchers.IO) {
             if (state.value.thirdParties.isEmpty()) {
                 fetchThirdParties(false)
@@ -102,9 +96,9 @@ class PaymentsViewModel @Inject constructor(
             }
             withContext(Dispatchers.Main) {
                 state.value = state.value.copy(
-                    payments = listOfPayments,
-                    isLoading = false
+                    payments = listOfPayments
                 )
+                showLoading(false)
             }
         }
     }
@@ -128,10 +122,7 @@ class PaymentsViewModel @Inject constructor(
     suspend fun fetchThirdParties(loading: Boolean = true) {
         if (loading) {
             withContext(Dispatchers.Main) {
-                state.value = state.value.copy(
-                    warning = null,
-                    isLoading = true
-                )
+                showLoading(true)
             }
         }
 
@@ -142,16 +133,10 @@ class PaymentsViewModel @Inject constructor(
             )
         )
         withContext(Dispatchers.Main) {
-            if (loading) {
-                state.value = state.value.copy(
-                    thirdParties = listOfThirdParties,
-                    isLoading = false
-                )
-            } else {
-                state.value = state.value.copy(
-                    thirdParties = listOfThirdParties
-                )
-            }
+            if (loading) { showLoading(false)}
+            state.value = state.value.copy(
+                thirdParties = listOfThirdParties
+            )
         }
     }
 
@@ -160,36 +145,22 @@ class PaymentsViewModel @Inject constructor(
     ) {
         val payment = state.value.payment
         if (payment.paymentThirdParty.isNullOrEmpty()) {
-            state.value = state.value.copy(
-                warning = Event("Please select a Client."),
-                isLoading = false
-            )
+            showWarning("Please select a Client.")
             return
         }
         if (payment.paymentType.isNullOrEmpty()) {
-            state.value = state.value.copy(
-                warning = Event("Please select a Type."),
-                isLoading = false
-            )
+            showWarning("Please select a Type.")
             return
         }
         if (payment.paymentCurrency.isNullOrEmpty()) {
-            state.value = state.value.copy(
-                warning = Event("Please select a Currency."),
-                isLoading = false
-            )
+            showWarning("Please select a Currency.")
             return
         }
         if (payment.paymentAmount == 0.0 || payment.paymentAmount.isNaN()) {
-            state.value = state.value.copy(
-                warning = Event("Please enter an Amount."),
-                isLoading = false
-            )
+            showWarning("Please enter an Amount.")
             return
         }
-        state.value = state.value.copy(
-            isLoading = true
-        )
+        showLoading(true)
         val isInserting = payment.isNew()
         CoroutineScope(Dispatchers.IO).launch {
             payment.calculateAmountsIfNeeded()
@@ -216,19 +187,19 @@ class PaymentsViewModel @Inject constructor(
                     )
                     withContext(Dispatchers.Main) {
                         state.value = state.value.copy(
-                            payments = payments,
-                            isLoading = false,
-                            warning = Event("successfully saved."),
-                            isSaved = true,
-                            clear = false
+                            payments = payments
                         )
+                        resetState()
+                        showLoading(false)
+                        showWarning("successfully saved.")
+                        sharedViewModel.reportsToPrint.clear()
+                        sharedViewModel.reportsToPrint.add(reportResult)
+                        resetState()
+                        navigateTo("UIWebView")
                     }
                 } else {
                     withContext(Dispatchers.Main) {
-                        state.value = state.value.copy(
-                            isLoading = false,
-                            warning = null,
-                        )
+                        showLoading(false)
                     }
                 }
             } else {
@@ -237,14 +208,11 @@ class PaymentsViewModel @Inject constructor(
                 }
                 val dataModel = paymentRepository.update(payment)
                 if (dataModel.succeed) {
-                    val index =
-                        state.value.payments.indexOfFirst { it.paymentId == payment.paymentId }
+                    val payments = state.value.payments.toMutableList()
+                    val index =payments.indexOfFirst { it.paymentId == payment.paymentId }
                     if (index >= 0) {
-                        state.value.payments.removeAt(index)
-                        state.value.payments.add(
-                            index,
-                            payment
-                        )
+                        payments.removeAt(index)
+                        payments.add(index, payment)
                     }
                     preparePaymentReport(
                         context,
@@ -252,18 +220,19 @@ class PaymentsViewModel @Inject constructor(
                     )
                     withContext(Dispatchers.Main) {
                         state.value = state.value.copy(
-                            isLoading = false,
-                            warning = Event("successfully saved."),
-                            isSaved = true,
-                            clear = false
+                            payments = payments
                         )
+                        resetState()
+                        showLoading(false)
+                        showWarning("successfully saved.")
+                        sharedViewModel.reportsToPrint.clear()
+                        sharedViewModel.reportsToPrint.add(reportResult)
+                        resetState()
+                        navigateTo("UIWebView")
                     }
                 } else {
                     withContext(Dispatchers.Main) {
-                        state.value = state.value.copy(
-                            isLoading = false,
-                            warning = null,
-                        )
+                        showLoading(false)
                     }
                 }
             }
@@ -273,17 +242,10 @@ class PaymentsViewModel @Inject constructor(
     fun delete() {
         val payment = state.value.payment
         if (payment.paymentId.isEmpty()) {
-            state.value = state.value.copy(
-                warning = Event("Please select a Payment to delete"),
-                isLoading = false
-            )
+            showWarning("Please select a Payment to delete")
             return
         }
-        state.value = state.value.copy(
-            warning = null,
-            isLoading = true
-        )
-
+      showLoading(true)
         CoroutineScope(Dispatchers.IO).launch {
             val dataModel = paymentRepository.delete(payment)
             if (dataModel.succeed) {
@@ -292,18 +254,14 @@ class PaymentsViewModel @Inject constructor(
                 withContext(Dispatchers.Main) {
                     state.value = state.value.copy(
                         payments = payments,
-                        isLoading = false,
-                        warning = Event("successfully deleted."),
-                        clear = true,
-                        isSaved = false
                     )
+                    resetState()
+                    showLoading(false)
+                    showWarning("successfully deleted.")
                 }
             } else {
                 withContext(Dispatchers.Main) {
-                    state.value = state.value.copy(
-                        isLoading = false,
-                        warning = null,
-                    )
+                    showLoading(false)
                 }
             }
         }

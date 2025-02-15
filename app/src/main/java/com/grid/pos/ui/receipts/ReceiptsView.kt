@@ -25,10 +25,8 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -45,7 +43,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.grid.pos.R
-import com.grid.pos.SharedViewModel
 import com.grid.pos.data.receipt.Receipt
 import com.grid.pos.data.thirdParty.ThirdParty
 import com.grid.pos.model.CurrencyModel
@@ -53,7 +50,6 @@ import com.grid.pos.model.PaymentTypeModel
 import com.grid.pos.model.PopupModel
 import com.grid.pos.model.ReportResult
 import com.grid.pos.model.SettingsModel
-import com.grid.pos.model.ToastModel
 import com.grid.pos.ui.common.SearchableDropdownMenuEx
 import com.grid.pos.ui.common.UIImageButton
 import com.grid.pos.ui.common.UITextField
@@ -70,7 +66,6 @@ import kotlinx.coroutines.launch
 fun ReceiptsView(
     modifier: Modifier = Modifier,
     navController: NavController? = null,
-    sharedViewModel: SharedViewModel,
     viewModel: ReceiptsViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -82,34 +77,18 @@ fun ReceiptsView(
     val noteFocusRequester = remember { FocusRequester() }
 
     val scope = rememberCoroutineScope()
-    LaunchedEffect(state.warning) {
-        state.warning?.value?.let { message ->
-            sharedViewModel.showToastMessage(
-                ToastModel(
-                    message = message
-                )
-            )
-        }
-    }
-
-    LaunchedEffect(state.isLoading) {
-        sharedViewModel.showLoading(state.isLoading)
-    }
-
-    var saveAndBack by remember { mutableStateOf(false) }
     fun handleBack() {
-        if (state.isLoading) {
+        if (viewModel.isLoading()) {
             return
         }
         if (viewModel.isAnyChangeDone()) {
-            sharedViewModel.showPopup(true,
+            viewModel.showPopup(
                 PopupModel().apply {
                     onDismissRequest = {
                         viewModel.resetState()
                         handleBack()
                     }
                     onConfirmation = {
-                        saveAndBack = true
                         viewModel.save(context)
                     }
                     dialogText = "Do you want to save your changes"
@@ -121,32 +100,10 @@ fun ReceiptsView(
         navController?.navigateUp()
     }
 
-    fun clearAndBack() {
-        viewModel.resetState()
-        if (saveAndBack) {
-            handleBack()
-        }
-    }
-
     LaunchedEffect(Unit) {
         viewModel.reportResult = ReportResult()
     }
 
-    LaunchedEffect(
-        state.clear,
-        state.isSaved
-    ) {
-        if (state.isSaved) {
-            state.isSaved = false
-            sharedViewModel.reportsToPrint.clear()
-            sharedViewModel.reportsToPrint.add(viewModel.reportResult)
-            viewModel.resetState()
-            navController?.navigate("UIWebView")
-        }
-        if (state.clear) {
-            clearAndBack()
-        }
-    }
     BackHandler {
         handleBack()
     }
