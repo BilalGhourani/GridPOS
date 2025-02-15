@@ -20,21 +20,14 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -51,9 +44,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.grid.pos.R
-import com.grid.pos.SharedViewModel
 import com.grid.pos.data.item.Item
-import com.grid.pos.interfaces.OnBarcodeResult
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.model.WarehouseModel
 import com.grid.pos.ui.common.SearchableDropdownMenuEx
@@ -62,9 +53,6 @@ import com.grid.pos.ui.common.UITextField
 import com.grid.pos.ui.pos.POSUtils
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.utils.Utils
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 @OptIn(
     ExperimentalMaterial3Api::class
@@ -73,7 +61,6 @@ import kotlinx.coroutines.withContext
 fun ItemOpeningView(
     modifier: Modifier = Modifier,
     navController: NavController? = null,
-    sharedViewModel: SharedViewModel,
     viewModel: ItemOpeningViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -86,119 +73,18 @@ fun ItemOpeningView(
     val costSecondFocusRequester = remember { FocusRequester() }
 
     var collapseItemListState by remember { mutableStateOf(false) }
-    var barcodeSearchState by remember { mutableStateOf("") }
-
-    var warehouseState by remember { mutableStateOf("") }
-    var locationState by remember { mutableStateOf("") }
-    var openQtyState by remember { mutableStateOf("") }
-
-    var currencyIndexState by remember { mutableIntStateOf(0) }
-    var costState by remember { mutableStateOf("") }
-    var costFirstState by remember { mutableStateOf("") }
-    var costSecondState by remember { mutableStateOf("") }
-
-    val snackBarHostState = remember { SnackbarHostState() }
-    val scope = rememberCoroutineScope()
-
-    LaunchedEffect(state.warning) {
-        state.warning?.value?.let { message ->
-            scope.launch {
-                val snackBarResult = snackBarHostState.showSnackbar(
-                    message = message,
-                    duration = SnackbarDuration.Short,
-                    actionLabel = state.actionLabel
-                )
-                when (snackBarResult) {
-                    SnackbarResult.Dismissed -> {}
-                    SnackbarResult.ActionPerformed -> when (state.actionLabel) {
-                        "Settings" -> sharedViewModel.openAppStorageSettings()
-                    }
-                }
-            }
-        }
-    }
-
-    LaunchedEffect(state.isLoading) {
-        sharedViewModel.showLoading(state.isLoading)
-    }
-
-    fun fillItemInputsNow(item: Item) {
-        state.selectedItem = item
-        warehouseState = item.itemWarehouse ?: ""
-        locationState = item.itemLocation ?: ""
-        openQtyState = (item.itemOpenQty.takeIf { it > 0.0 } ?: "").toString()
-
-        currencyIndexState = viewModel.getSelectedCurrencyIndex(item.itemCurrencyId)
-        costState = (item.itemOpenCost.takeIf { it > 0.0 } ?: "").toString()
-        costFirstState = item.itemCostFirst?.toString() ?: ""
-        costSecondState = item.itemCostSecond?.toString() ?: ""
-    }
-
-    fun fillItemInputs(item: Item) {
-        if (state.warehouses.isEmpty()) {
-            scope.launch(Dispatchers.IO) {
-                viewModel.fetchWarehouses()
-                withContext(Dispatchers.Main) {
-                    fillItemInputsNow(item)
-                }
-            }
-        } else {
-            fillItemInputsNow(item)
-        }
-    }
-
-    fun clear() {
-        state.selectedItem = null
-        warehouseState = ""
-        locationState = ""
-        openQtyState = ""
-
-        currencyIndexState = 0
-        costState = ""
-        costFirstState = ""
-        costSecondState = ""
-        viewModel.resetState()
-    }
 
     fun handleBack() {
-        if (state.isLoading) {
+        if (viewModel.isLoading()) {
             return
         }
         navController?.navigateUp()
     }
-
-    /*LaunchedEffect(
-        state.clearCosts,
-        state.clearWarehouseDetails
-    ) {
-        if (state.clearCosts) {
-            if (warehouseState.isEmpty()) {
-                clear()
-            } else {
-                costState = ""
-                costFirstState = ""
-                costSecondState = ""
-            }
-        }
-
-        if (state.clearWarehouseDetails) {
-            if (costState.isEmpty()) {
-                clear()
-            } else {
-                warehouseState = ""
-                locationState = ""
-                openQtyState = ""
-            }
-        }
-    }*/
     BackHandler {
         handleBack()
     }
     GridPOSTheme {
         Scaffold(containerColor = SettingsModel.backgroundColor,
-            snackbarHost = {
-                SnackbarHost(hostState = snackBarHostState)
-            },
             topBar = {
                 Surface(
                     shadowElevation = 3.dp,
@@ -254,11 +140,15 @@ fun ItemOpeningView(
                         horizontal = 10.dp,
                         vertical = 5.dp
                     ),
-                        defaultValue = locationState,
+                        defaultValue = state.locationState,
                         label = "Location",
                         placeHolder = "Enter Location",
                         onAction = { openQtyFocusRequester.requestFocus() }) { location ->
-                        locationState = location
+                        viewModel.updateState(
+                            state.copy(
+                                locationState = location
+                            )
+                        )
                     }
 
                     //open quantity
@@ -266,7 +156,7 @@ fun ItemOpeningView(
                         horizontal = 10.dp,
                         vertical = 5.dp
                     ),
-                        defaultValue = openQtyState,
+                        defaultValue = state.openQtyState,
                         label = "Open Quantity",
                         focusRequester = openQtyFocusRequester,
                         keyboardType = KeyboardType.Decimal,
@@ -274,9 +164,13 @@ fun ItemOpeningView(
                         onAction = {
                             costFocusRequester.requestFocus()
                         }) { quantity ->
-                        openQtyState = Utils.getDoubleValue(
-                            quantity,
-                            openQtyState
+                        viewModel.updateState(
+                            state.copy(
+                                openQtyState = Utils.getDoubleValue(
+                                    quantity,
+                                    state.openQtyState
+                                )
+                            )
                         )
                     }
 
@@ -290,12 +184,7 @@ fun ItemOpeningView(
                         iconSize = 60.dp,
                         isVertical = false
                     ) {
-                        viewModel.saveItemWarehouse(
-                            state.selectedItem,
-                            warehouseState,
-                            locationState,
-                            openQtyState
-                        )
+                        viewModel.saveItemWarehouse()
                     }
 
                     //cost
@@ -303,19 +192,20 @@ fun ItemOpeningView(
                         horizontal = 10.dp,
                         vertical = 5.dp
                     ),
-                        defaultValue = costState,
+                        defaultValue = state.costState,
                         keyboardType = KeyboardType.Decimal,
                         label = "cost ${state.selectedItem?.itemCurrencyCode ?: ""}",
                         placeHolder = "Enter cost ${state.selectedItem?.itemCurrencyCode ?: ""}",
                         focusRequester = costFocusRequester,
                         onAction = { costFirstFocusRequester.requestFocus() }) { cost ->
-                        costState = Utils.getDoubleValue(
+                        val costState = Utils.getDoubleValue(
                             cost,
-                            costState
+                            state.costState
                         )
-
+                        var costFirstState = state.costFirstState
+                        var costSecondState = state.costSecondState
                         val costDouble = costState.toDoubleOrNull() ?: 0.0
-                        if (currencyIndexState == 1) {
+                        if (state.currencyIndexState == 1) {
                             val second =
                                 costDouble.times(SettingsModel.currentCurrency?.currencyRate ?: 1.0)
                             costSecondState = POSUtils.formatDouble(
@@ -323,7 +213,7 @@ fun ItemOpeningView(
                                 SettingsModel.currentCurrency?.currencyName2Dec ?: 2
                             )
                             costFirstState = costState
-                        } else if (currencyIndexState == 2) {
+                        } else if (state.currencyIndexState == 2) {
                             val first =
                                 costDouble.div(SettingsModel.currentCurrency?.currencyRate ?: 1.0)
                             costFirstState = POSUtils.formatDouble(
@@ -332,34 +222,45 @@ fun ItemOpeningView(
                             )
                             costSecondState = costState
                         }
+                        viewModel.updateState(
+                            state.copy(
+                                costState = costState,
+                                costFirstState = costFirstState,
+                                costSecondState = costSecondState
+                            )
+                        )
                     }
 
                     //cost first
-                    if (currencyIndexState != 1) {
+                    if (state.currencyIndexState != 1) {
                         UITextField(modifier = Modifier.padding(
                             horizontal = 10.dp,
                             vertical = 5.dp
                         ),
-                            defaultValue = costFirstState,
+                            defaultValue = state.costFirstState,
                             label = "cost ${SettingsModel.currentCurrency?.currencyCode1 ?: ""}",
                             keyboardType = KeyboardType.Decimal,
                             placeHolder = "Enter cost ${SettingsModel.currentCurrency?.currencyCode1 ?: ""}",
                             focusRequester = costFirstFocusRequester,
                             onAction = { costSecondFocusRequester.requestFocus() }) { cost ->
-                            costFirstState = Utils.getDoubleValue(
-                                cost,
-                                costFirstState
+                            viewModel.updateState(
+                                state.copy(
+                                    costFirstState = Utils.getDoubleValue(
+                                        cost,
+                                        state.costFirstState
+                                    )
+                                )
                             )
                         }
                     }
 
                     //cost second
-                    if (currencyIndexState != 2) {
+                    if (state.currencyIndexState != 2) {
                         UITextField(modifier = Modifier.padding(
                             horizontal = 10.dp,
                             vertical = 5.dp
                         ),
-                            defaultValue = costSecondState,
+                            defaultValue = state.costSecondState,
                             label = "cost ${SettingsModel.currentCurrency?.currencyCode2 ?: ""}",
                             focusRequester = costSecondFocusRequester,
                             keyboardType = KeyboardType.Decimal,
@@ -368,10 +269,15 @@ fun ItemOpeningView(
                             onAction = {
                                 keyboardController?.hide()
                             }) { openQty ->
-                            costSecondState = Utils.getDoubleValue(
-                                openQty,
-                                costSecondState
+                            viewModel.updateState(
+                                state.copy(
+                                    costSecondState = Utils.getDoubleValue(
+                                        openQty,
+                                        state.costSecondState
+                                    )
+                                )
                             )
+
                         }
                     }
 
@@ -386,12 +292,7 @@ fun ItemOpeningView(
                         iconSize = 60.dp,
                         isVertical = false
                     ) {
-                        viewModel.saveItemCosts(
-                            state.selectedItem,
-                            costState,
-                            costFirstState,
-                            costSecondState
-                        )
+                        viewModel.saveItemCosts()
                     }
                 }
 
@@ -404,10 +305,14 @@ fun ItemOpeningView(
                     ),
                     onLoadItems = { viewModel.fetchWarehouses() },
                     label = "Select Warehouse",
-                    selectedId = warehouseState
+                    selectedId = state.warehouseState
                 ) { warehouse ->
                     warehouse as WarehouseModel
-                    warehouseState = warehouse.getId()
+                    viewModel.updateState(
+                        state.copy(
+                            warehouseState = warehouse.getId()
+                        )
+                    )
                 }
 
                 SearchableDropdownMenuEx(items = state.items.toMutableList(),
@@ -430,46 +335,16 @@ fun ItemOpeningView(
                         }
                     },
                     onLeadingIconClick = {
-                        clear()
+                        viewModel.resetState()
                     },
                     collapseOnInit = collapseItemListState,
-                    searchEnteredText = barcodeSearchState,
+                    searchEnteredText = state.barcodeSearchState,
                     searchLeadingIcon = {
                         IconButton(onClick = {
                             collapseItemListState = false
-                            sharedViewModel.launchBarcodeScanner(true,
-                                null,
-                                object : OnBarcodeResult {
-                                    override fun OnBarcodeResult(barcodesList: List<Any>) {
-                                        if (barcodesList.isNotEmpty()) {
-                                            val resp = barcodesList[0]
-                                            if (resp is String) {
-                                                scope.launch(Dispatchers.Default) {
-                                                    val item = state.items.firstOrNull { iterator ->
-                                                        iterator.itemBarcode.equals(
-                                                            resp,
-                                                            ignoreCase = true
-                                                        )
-                                                    }
-                                                    withContext(Dispatchers.Main) {
-                                                        if (item != null) {
-                                                            collapseItemListState = true
-                                                            fillItemInputs(item)
-                                                        } else {
-                                                            barcodeSearchState = resp
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                },
-                                onPermissionDenied = {
-                                    viewModel.showWarning(
-                                        "Permission Denied",
-                                        "Settings"
-                                    )
-                                })
+                            viewModel.launchBarcodeScanner {
+                                collapseItemListState = true
+                            }
                         }) {
                             Icon(
                                 Icons.Default.QrCode2,
@@ -479,7 +354,7 @@ fun ItemOpeningView(
                         }
                     }) { item ->
                     item as Item
-                    fillItemInputs(item)
+                    viewModel.selectItem(item)
                 }
             }
         }

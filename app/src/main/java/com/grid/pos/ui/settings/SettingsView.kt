@@ -63,12 +63,11 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.grid.pos.SharedViewModel
 import com.grid.pos.App
 import com.grid.pos.BuildConfig
 import com.grid.pos.R
-import com.grid.pos.data.company.Company
 import com.grid.pos.data.SQLServerWrapper
+import com.grid.pos.data.company.Company
 import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.PopupModel
 import com.grid.pos.model.ReportCountry
@@ -94,7 +93,6 @@ import kotlinx.coroutines.withContext
 fun SettingsView(
     modifier: Modifier = Modifier,
     navController: NavController? = null,
-    sharedViewModel: SharedViewModel,
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     var firebaseApplicationId by remember {
@@ -178,8 +176,6 @@ fun SettingsView(
     var isPOSSettingsSectionExpanded by remember { mutableStateOf(false) }
     var isColorsSectionExpanded by remember { mutableStateOf(false) }
 
-    var isLoading by remember { mutableStateOf(false) }
-    val isLoggedId = sharedViewModel.isLoggedIn
     val scope = rememberCoroutineScope()
 
     fun handleBack() {
@@ -197,9 +193,6 @@ fun SettingsView(
                 localCompanyName = selected?.companyName ?: ""
             }
         }
-    }
-    LaunchedEffect(isLoading) {
-        sharedViewModel.showLoading(isLoading)
     }
 
     GridPOSTheme {
@@ -237,7 +230,7 @@ fun SettingsView(
                     .padding(it)
                     .verticalScroll(rememberScrollState()),
             ) {
-                if (!isLoggedId) {
+                if (!viewModel.isLoggedId) {
                     Card(
                         modifier = Modifier
                             .padding(10.dp)
@@ -306,7 +299,7 @@ fun SettingsView(
                                     }
                                 },
                                 onLeadingIconClick = {
-                                    isLoading = true
+                                    viewModel.showLoading(true)
                                     scope.launch(Dispatchers.IO) {
                                         val message = SQLServerWrapper.isConnectionSucceeded(
                                             sqlServerPath,
@@ -316,8 +309,8 @@ fun SettingsView(
                                             sqlServerDbPassword
                                         )
                                         withContext(Dispatchers.Main) {
-                                            isLoading = false
-                                            sharedViewModel.showPopup(true,
+                                            viewModel.showLoading(false)
+                                            viewModel.showPopup(
                                                 PopupModel().apply {
                                                     positiveBtnText = "Close"
                                                     negativeBtnText = null
@@ -486,13 +479,13 @@ fun SettingsView(
                                     ),
                                 text = "Save"
                             ) {
-                                isLoading = true
+                                viewModel.showLoading(true)
                                 keyboardController?.hide()
                                 scope.launch(Dispatchers.IO) {
                                     if (SettingsModel.connectionType == CONNECTION_TYPE.SQL_SERVER.key) {
                                         SQLServerWrapper.closeConnection()
                                         countries.clear()
-                                        sharedViewModel.reportCountries.clear()
+                                        viewModel.clearReportCountries()
                                     }
                                     SettingsModel.connectionType = connectionTypeState
                                     DataStoreManager.putString(
@@ -509,25 +502,29 @@ fun SettingsView(
                                             )
 
 
-                                            SettingsModel.firebaseApiKey = firebaseApiKey.trim().ifEmpty { null }
+                                            SettingsModel.firebaseApiKey =
+                                                firebaseApiKey.trim().ifEmpty { null }
                                             DataStoreManager.putString(
                                                 DataStoreManager.DataStoreKeys.FIREBASE_API_KEY.key,
                                                 SettingsModel.firebaseApiKey
                                             )
 
-                                            SettingsModel.firebaseProjectId = firebaseProjectId.trim().ifEmpty { null }
+                                            SettingsModel.firebaseProjectId =
+                                                firebaseProjectId.trim().ifEmpty { null }
                                             DataStoreManager.putString(
                                                 DataStoreManager.DataStoreKeys.FIREBASE_PROJECT_ID.key,
                                                 SettingsModel.firebaseProjectId
                                             )
 
-                                            SettingsModel.firebaseDbPath = firebaseDbPath.trim().ifEmpty { null }
+                                            SettingsModel.firebaseDbPath =
+                                                firebaseDbPath.trim().ifEmpty { null }
                                             DataStoreManager.putString(
                                                 DataStoreManager.DataStoreKeys.FIREBASE_DB_PATH.key,
                                                 SettingsModel.firebaseDbPath
                                             )
 
-                                            SettingsModel.fireStoreCompanyID = fireStoreCompanyID.trim().ifEmpty { null }
+                                            SettingsModel.fireStoreCompanyID =
+                                                fireStoreCompanyID.trim().ifEmpty { null }
                                             DataStoreManager.putString(
                                                 DataStoreManager.DataStoreKeys.FIRESTORE_COMPANY_ID.key,
                                                 SettingsModel.fireStoreCompanyID
@@ -539,25 +536,29 @@ fun SettingsView(
                                         }
 
                                         CONNECTION_TYPE.SQL_SERVER.key -> {
-                                            SettingsModel.sqlServerPath = sqlServerPath.trim().ifEmpty { null }
+                                            SettingsModel.sqlServerPath =
+                                                sqlServerPath.trim().ifEmpty { null }
                                             DataStoreManager.putString(
                                                 DataStoreManager.DataStoreKeys.SQL_SERVER_PATH.key,
                                                 SettingsModel.sqlServerPath
                                             )
 
-                                            SettingsModel.sqlServerName = sqlServerName.trim().ifEmpty { null }
+                                            SettingsModel.sqlServerName =
+                                                sqlServerName.trim().ifEmpty { null }
                                             DataStoreManager.putString(
                                                 DataStoreManager.DataStoreKeys.SQL_SERVER_NAME.key,
                                                 SettingsModel.sqlServerName
                                             )
 
-                                            SettingsModel.sqlServerDbName = sqlServerDbName.trim().ifEmpty { null }
+                                            SettingsModel.sqlServerDbName =
+                                                sqlServerDbName.trim().ifEmpty { null }
                                             DataStoreManager.putString(
                                                 DataStoreManager.DataStoreKeys.SQL_SERVER_DB_NAME.key,
                                                 SettingsModel.sqlServerDbName
                                             )
 
-                                            SettingsModel.sqlServerDbUser = sqlServerDbUser.trim().ifEmpty { null }
+                                            SettingsModel.sqlServerDbUser =
+                                                sqlServerDbUser.trim().ifEmpty { null }
                                             DataStoreManager.putString(
                                                 DataStoreManager.DataStoreKeys.SQL_SERVER_DB_USER.key,
                                                 SettingsModel.sqlServerDbUser
@@ -598,7 +599,7 @@ fun SettingsView(
                                     }
                                     delay(1000L)
                                     withContext(Dispatchers.Main) {
-                                        isLoading = false
+                                        viewModel.showLoading(false)
                                     }
                                 }
                             }
@@ -673,7 +674,7 @@ fun SettingsView(
                             placeholder = "Report Country",
                             label = defaultReportCountry,
                             onLoadItems = {
-                                sharedViewModel.fetchCountries { list ->
+                                viewModel.fetchCountries { list ->
                                     countries.addAll(list)
                                 }
                             }) { country ->
@@ -764,7 +765,7 @@ fun SettingsView(
                                 ),
                             text = "Save"
                         ) {
-                            isLoading = true
+                            viewModel.showLoading(true)
                             keyboardController?.hide()
                             scope.launch(Dispatchers.IO) {
                                 SettingsModel.orientationType = orientationType
@@ -772,7 +773,7 @@ fun SettingsView(
                                     DataStoreManager.DataStoreKeys.ORIENTATION_TYPE.key,
                                     orientationType
                                 )
-                                sharedViewModel.changeAppOrientation(orientationType)
+                                viewModel.changeAppOrientation(orientationType)
 
                                 SettingsModel.defaultReportCountry = defaultReportCountry
                                 DataStoreManager.putString(
@@ -822,7 +823,7 @@ fun SettingsView(
 
                                 delay(1000L)
                                 withContext(Dispatchers.Main) {
-                                    isLoading = false
+                                    viewModel.showLoading(false)
                                 }
                             }
                         }
@@ -1035,7 +1036,7 @@ fun SettingsView(
                                 ),
                             text = "Save"
                         ) {
-                            isLoading = true
+                            viewModel.showLoading(true)
                             keyboardController?.hide()
                             scope.launch(Dispatchers.IO) {
                                 SettingsModel.cashPrinter = cashPrinterState.trim().ifEmpty { null }
@@ -1117,7 +1118,7 @@ fun SettingsView(
 
                                 delay(1000L)
                                 withContext(Dispatchers.Main) {
-                                    isLoading = false
+                                    viewModel.showLoading(false)
                                 }
                             }
                         }
