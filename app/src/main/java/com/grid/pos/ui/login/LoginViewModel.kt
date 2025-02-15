@@ -1,11 +1,12 @@
 package com.grid.pos.ui.login
 
 import android.content.Context
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.viewModelScope
 import com.grid.pos.App
+import com.grid.pos.SharedViewModel
 import com.grid.pos.data.company.CompanyRepository
 import com.grid.pos.data.user.UserRepository
-import com.grid.pos.model.Event
 import com.grid.pos.model.LoginResponse
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.BaseViewModel
@@ -13,18 +14,20 @@ import com.grid.pos.ui.license.CheckLicenseUseCase
 import com.grid.pos.utils.Constants
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
-class LoginViewModel @Inject constructor(private val checkLicenseUseCase: CheckLicenseUseCase,
-        private val repository: UserRepository, private val companyRepository: CompanyRepository) :
-    BaseViewModel() {
+class LoginViewModel @Inject constructor(
+    private val checkLicenseUseCase: CheckLicenseUseCase,
+    private val repository: UserRepository,
+    private val companyRepository: CompanyRepository,
+    private val sharedViewModel: SharedViewModel
+) : BaseViewModel(sharedViewModel) {
 
-    private val _usersState = MutableStateFlow(LoginState())
-    val usersState: MutableStateFlow<LoginState> = _usersState
+    var usernameState = mutableStateOf("")
+    var passwordState = mutableStateOf("")
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
@@ -32,19 +35,20 @@ class LoginViewModel @Inject constructor(private val checkLicenseUseCase: CheckL
         }
     }
 
-    fun login(context: Context, username: String, password: String) {
+    fun login(context: Context) {
+        val username = usernameState.value.trim()
+        val password = passwordState.value.trim()
         if (username.isEmpty() || password.isEmpty()) {
-            usersState.value = usersState.value.copy(warning = Event("Please fill all inputs"),
-                isLoading = false, needRegistration = false, warningAction = null)
+            showWarning("Please fill all inputs")
             return
         }
         if (App.getInstance().isMissingFirebaseConnection()) {
-            usersState.value = usersState.value.copy(warning = Event("unable to connect to server"),
-                isLoading = false, warningAction = "Settings")
+            showWarning("unable to connect to server", "Settings") {
+                navigateTo("SettingsView")
+            }
             return
         }
-        usersState.value = usersState.value.copy(isLoading = true, needRegistration = false,
-            warning = null, warningAction = null)
+        showLoading(true)
 
         viewModelScope.launch(Dispatchers.IO) {
             //CryptoUtils.test(App.getInstance().getConfigValue("key_for_license"))
@@ -56,8 +60,8 @@ class LoginViewModel @Inject constructor(private val checkLicenseUseCase: CheckL
                         }
 
                         else -> {
-                            usersState.value = usersState.value.copy(needLicense = true,
-                                isLoading = false, warning = Event(message), warningAction = null)
+                            showWarning(message)
+                            navigateTo("LicenseView")
                         }
                     }
                 }
@@ -65,75 +69,105 @@ class LoginViewModel @Inject constructor(private val checkLicenseUseCase: CheckL
         }
     }
 
-    private fun loginNow(username: String, password: String) {
+    private suspend fun loginNow(username: String, password: String) {
         val companyId = SettingsModel.getCompanyID()
-        if(companyId.isNullOrEmpty()){
-            usersState.value = usersState.value.copy(warning = Event("your device is not connected to any company."),
-                isLoading = false, warningAction = "Settings")
+        if (companyId.isNullOrEmpty()) {
+            showLoading(false)
+            showWarning("your device is not connected to any company.", "Settings") {
+                navigateTo("SettingsView")
+            }
             return
         }
-        usersState.value = usersState.value.copy(isLoading = true, needRegistration = false,
-            warning = null, warningAction = null)
-        viewModelScope.launch(Dispatchers.IO) {
+        withContext(Dispatchers.IO) {
             SettingsModel.currentCompany = companyRepository.getCompanyById(companyId)
             if (SettingsModel.currentCompany?.companySS == true) {
                 withContext(Dispatchers.Main) {
-                    usersState.value = usersState.value.copy(
-                        warning = Event(SettingsModel.companyAccessWarning), isLoading = false,
-                        needRegistration = false, warningAction = null)
+                    showLoading(false)
+                    showWarning(SettingsModel.companyAccessWarning)
                 }
-                return@launch
+                return@withContext
             }
             val loginResponse: LoginResponse = repository.getUserByCredentials(username, password)
             loginResponse.user?.let {
                 SettingsModel.currentUser = it
                 viewModelScope.launch(Dispatchers.Main) {
-                    usersState.value = usersState.value.copy(selectedUser = it,
-                        needRegistration = false, isLoggedIn = true)
+                    showLoading(true)
+                    proceedWithLogin()
                 }
             } ?: run {
                 if (!loginResponse.error.isNullOrEmpty()) {
                     withContext(Dispatchers.Main) {
-                        usersState.value = usersState.value.copy(
-                            warning = Event(loginResponse.error), isLoading = false,
-                            needRegistration = false, warningAction = "Settings")
+                        showLoading(false)
+                        showWarning(loginResponse.error, "Settings") {
+                            navigateTo("SettingsView")
+                        }
                     }
                 } else if (loginResponse.allUsersSize == 0) {
                     if (SettingsModel.isConnectedToSqlite() || SettingsModel.isConnectedToFireStore()) {
                         val companies = companyRepository.getAllCompanies()
                         withContext(Dispatchers.Main) {
+                            sharedViewModel.isRegistering = true
+                            showLoading(false)
                             if (companies.isEmpty()) {
-                                usersState.value = usersState.value.copy(warning = Event(
-                                    "No companies found!, do you want to register?"),
-                                    isLoading = false, needRegistration = true,
-                                    warningAction = "Register")
+                                showWarning(
+                                    "No companies found!, do you want to register?",
+                                    "Register"
+                                ) {
+                                    navigateTo("ManageCompaniesView")
+                                }
                             } else if (SettingsModel.localCompanyID.isNullOrEmpty()) {
-                                usersState.value = usersState.value.copy(
-                                    warning = Event("select your current company to proceed!"),
-                                    isLoading = false, needRegistration = true,
-                                    warningAction = "Settings")
+                                showWarning("select your current company to proceed!", "Settings") {
+                                    navigateTo("SettingsView")
+                                }
                             } else {
-                                usersState.value = usersState.value.copy(isLoading = false,
-                                    needRegistration = true, warning = Event(
-                                        "No users found!, do you want to create a user?"),
-                                    warningAction = "Create")
+                                showWarning(
+                                    "No users found!, do you want to create a user?",
+                                    "Create"
+                                ) {
+                                    navigateTo("ManageUsersView")
+                                }
                             }
                         }
                     } else {
                         viewModelScope.launch(Dispatchers.Main) {
-                            usersState.value = usersState.value.copy(isLoading = false,
-                                warning = Event("No users found!"), warningAction = null)
+                            showLoading(false)
+                            showWarning("No users found!")
                         }
                     }
                 } else {
                     viewModelScope.launch(Dispatchers.Main) {
-                        usersState.value = usersState.value.copy(isLoading = false,
-                            warning = Event("Username or Password are incorrect!"),
-                            warningAction = null)
+                        showLoading(false)
+                        showWarning("Username or Password are incorrect!")
                     }
                 }
             }
 
+        }
+    }
+
+    fun backPressed() {
+        sharedViewModel.finish()
+    }
+
+    private suspend fun proceedWithLogin() {
+        sharedViewModel.isLoggedIn = true
+        sharedViewModel.homeWarning = null
+        sharedViewModel.initiateValues()
+        withContext(Dispatchers.Main) {
+            usernameState.value = ""
+            passwordState.value = ""
+            showLoading(false)
+            SettingsModel.currentUser?.let {
+                if (it.userPosMode && it.userTableMode) {
+                    navigateTo("HomeView")
+                } else if (it.userPosMode) {
+                    navigateTo("POSView")
+                } else if (it.userTableMode) {
+                    navigateTo("TablesView")
+                } else {
+                    navigateTo("HomeView")
+                }
+            }
         }
     }
 }

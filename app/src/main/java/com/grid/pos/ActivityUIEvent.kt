@@ -25,6 +25,10 @@ sealed class ActivityUIEvent {
             var popupModel: PopupModel?
     ) : ActivityUIEvent()
 
+    class NavigateTo(
+            var destination: String
+    ) : ActivityUIEvent()
+
     data object OpenAppSettings : ActivityUIEvent()
     class LaunchGalleryPicker(
             var mediaType: ActivityResultContracts.PickVisualMedia.VisualMediaType,

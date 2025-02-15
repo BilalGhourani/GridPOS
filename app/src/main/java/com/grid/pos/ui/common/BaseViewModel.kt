@@ -14,7 +14,7 @@ import kotlinx.coroutines.withContext
 
 open class BaseViewModel(
     private val sharedViewModel: SharedViewModel
-): ViewModel() {
+) : ViewModel() {
 
     suspend fun openConnectionIfNeeded() {
         withContext(Dispatchers.IO) {
@@ -44,9 +44,17 @@ open class BaseViewModel(
         sharedViewModel.showLoading(boolean)
     }
 
-    fun addReportResult(reportResults: List<ReportResult>){
+    fun setIsRegistering(boolean: Boolean) {
+        sharedViewModel.isRegistering = boolean
+    }
+
+    fun addReportResult(reportResults: List<ReportResult>) {
         sharedViewModel.reportsToPrint.clear()
         sharedViewModel.reportsToPrint.addAll(reportResults)
+    }
+
+    fun navigateTo(destination: String) {
+        sharedViewModel.navigateTo(destination)
     }
 
     fun showWarning(
