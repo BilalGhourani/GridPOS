@@ -43,13 +43,13 @@ import kotlinx.coroutines.withContext
 
 @Composable
 fun AddInvoiceItemView(
-        sharedViewModel: SharedViewModel,
-        categories: MutableList<Family> = mutableListOf(),
-        items: MutableList<Item> = mutableListOf(),
-        modifier: Modifier = Modifier,
-        notifyDirectly: Boolean = false,
-        triggerOnSave:Boolean = false,
-        onSelect: (List<Item>) -> Unit = {},
+    sharedViewModel: SharedViewModel,
+    categories: MutableList<Family> = mutableListOf(),
+    items: MutableList<Item> = mutableListOf(),
+    modifier: Modifier = Modifier,
+    notifyDirectly: Boolean = false,
+    triggerOnSave: Boolean = false,
+    onSelect: (List<Item>) -> Unit = {},
 ) {
     val itemsState = remember { mutableStateListOf<Item>() }
     var familyState by remember { mutableStateOf("") }
@@ -101,11 +101,20 @@ fun AddInvoiceItemView(
                     .background(color = Color.LightGray)
             )
             Spacer(modifier = Modifier.height(3.dp))
-            val familyItems = items.filter {
-                it.itemPos && it.itemGroupButtonId.equals(
-                    familyState,
-                    ignoreCase = true
-                )
+            val familyItems = if (SettingsModel.isConnectedToSqlServer()) {
+                items.filter {
+                    it.itemPos && it.itemGroupButtonId.equals(
+                        familyState,
+                        ignoreCase = true
+                    )
+                }
+            } else {
+                items.filter {
+                    it.itemPos && it.itemFaId.equals(
+                        familyState,
+                        ignoreCase = true
+                    )
+                }
             }
 
             ItemListCell(items = familyItems.toMutableList(),
