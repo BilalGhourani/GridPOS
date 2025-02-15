@@ -1,8 +1,6 @@
 package com.grid.pos.ui.family
 
-import android.net.Uri
 import androidx.activity.compose.BackHandler
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,11 +24,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -46,12 +41,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.grid.pos.R
-import com.grid.pos.SharedViewModel
 import com.grid.pos.data.family.Family
-import com.grid.pos.interfaces.OnGalleryResult
-import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
-import com.grid.pos.model.ToastModel
 import com.grid.pos.ui.common.SearchableDropdownMenuEx
 import com.grid.pos.ui.common.UIImageButton
 import com.grid.pos.ui.common.UITextField
@@ -65,82 +56,17 @@ import com.grid.pos.utils.FileUtils
 fun ManageFamiliesView(
     modifier: Modifier = Modifier,
     navController: NavController? = null,
-    sharedViewModel: SharedViewModel,
     viewModel: ManageFamiliesViewModel = hiltViewModel()
 ) {
-    val context = LocalContext.current
     val state by viewModel.state.collectAsStateWithLifecycle()
 
+    val context = LocalContext.current
     val keyboardController = LocalSoftwareKeyboardController.current
     val imageFocusRequester = remember { FocusRequester() }
 
-    LaunchedEffect(state.warning) {
-        state.warning?.value?.let { message ->
-            sharedViewModel.showToastMessage(ToastModel(
-                message = message,
-                actionButton = state.actionLabel,
-                onActionClick = {
-                    when (state.actionLabel) {
-                        "Settings" -> sharedViewModel.openAppStorageSettings()
-                    }
-                }
-            ))
-        }
-    }
-
-    LaunchedEffect(state.isLoading) {
-        sharedViewModel.showLoading(state.isLoading)
-    }
-
-    fun saveFamily() {
-        viewModel.oldImage?.let { old ->
-            FileUtils.deleteFile(
-                context,
-                old
-            )
-        }
-        viewModel.save()
-    }
-
-    fun clear() {
-        viewModel.resetState()
-    }
-
-    var saveAndBack by remember { mutableStateOf(false) }
     fun handleBack() {
-        if (state.isLoading) {
-            return
-        }
-        if (viewModel.isAnyChangeDone()) {
-            sharedViewModel.showPopup(true,
-                PopupModel().apply {
-                    onDismissRequest = {
-                        clear()
-                        handleBack()
-                    }
-                    onConfirmation = {
-                        saveAndBack = true
-                        saveFamily()
-                    }
-                    dialogText = "Do you want to save your changes"
-                    positiveBtnText = "Save"
-                    negativeBtnText = "Close"
-                })
-            return
-        }
-        viewModel.closeConnectionIfNeeded()
-        navController?.navigateUp()
-    }
-
-    fun clearAndBack() {
-        clear()
-        if (saveAndBack) {
-            handleBack()
-        }
-    }
-    LaunchedEffect(state.clear) {
-        if (state.clear) {
-            clearAndBack()
+        viewModel.checkChanges(context) {
+            navController?.navigateUp()
         }
     }
     BackHandler {
@@ -224,36 +150,7 @@ fun ManageFamiliesView(
                         onAction = { keyboardController?.hide() },
                         trailingIcon = {
                             IconButton(onClick = {
-                                sharedViewModel.launchGalleryPicker(mediaType = ActivityResultContracts.PickVisualMedia.ImageOnly,
-                                    object : OnGalleryResult {
-                                        override fun onGalleryResult(uris: List<Uri>) {
-                                            if (uris.isNotEmpty()) {
-                                                sharedViewModel.copyToInternalStorage(
-                                                    context,
-                                                    uris[0],
-                                                    parent = "family",
-                                                    fileName = (state.family.familyName
-                                                        ?: "family").trim().replace(" ", "_")
-                                                ) { internalPath ->
-                                                    if (internalPath != null) {
-                                                        viewModel.oldImage = state.family.familyImage
-                                                        viewModel.updateFamily(
-                                                            state.family.copy(
-                                                                familyImage = internalPath
-                                                            )
-                                                        )
-                                                    }
-                                                }
-                                            }
-                                        }
-
-                                    },
-                                    onPermissionDenied = {
-                                        viewModel.showWarning(
-                                            "Permission Denied",
-                                            "Settings"
-                                        )
-                                    })
+                                viewModel.launchGalleryPicker(context)
                             }) {
                                 Icon(
                                     Icons.Default.Image,
@@ -286,7 +183,7 @@ fun ManageFamiliesView(
                             icon = R.drawable.save,
                             text = "Save"
                         ) {
-                            saveFamily()
+                            viewModel.save(context)
                         }
 
                         UIImageButton(
@@ -344,7 +241,7 @@ fun ManageFamiliesView(
                         }
                     },
                     onLeadingIconClick = {
-                        clear()
+                        viewModel.resetState()
                     }) { family ->
                     family as Family
                     viewModel.currentFamily = family.copy()

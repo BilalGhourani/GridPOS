@@ -20,20 +20,14 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -47,15 +41,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import com.grid.pos.R
-import com.grid.pos.SharedViewModel
 import com.grid.pos.data.item.Item
-import com.grid.pos.interfaces.OnBarcodeResult
 import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
-import com.grid.pos.model.ToastModel
 import com.grid.pos.ui.common.EditableDateInputField
 import com.grid.pos.ui.common.SearchableDropdownMenuEx
 import com.grid.pos.ui.common.UIImageButton
@@ -63,10 +53,6 @@ import com.grid.pos.ui.common.UITextField
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.utils.DateHelper
 import com.grid.pos.utils.Utils
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.util.Date
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -74,78 +60,22 @@ import java.util.Date
 fun AdjustmentView(
     modifier: Modifier = Modifier,
     navController: NavController? = null,
-    sharedViewModel: SharedViewModel,
     viewModel: AdjustmentViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     val keyboardController = LocalSoftwareKeyboardController.current
-    var isPopupVisible by remember { mutableStateOf(false) }
     var collapseItemListState by remember { mutableStateOf(false) }
 
-    val scope = rememberCoroutineScope()
-
-
-    LaunchedEffect(
-        state.warning
-    ) {
-        state.warning?.value?.let { message ->
-            sharedViewModel.showToastMessage(
-                ToastModel(
-                    message = message,
-                    actionButton = state.actionLabel,
-                    onActionClick = {
-                        when (state.actionLabel) {
-                            "Settings" -> sharedViewModel.openAppStorageSettings()
-                        }
-                    }
-                )
-            )
-        }
-    }
-
-    LaunchedEffect(state.clear) {
-        if (state.clear) {
-            isPopupVisible = false
-            viewModel.resetState()
-            keyboardController?.hide()
-        }
-    }
-
-    LaunchedEffect(state.isLoading) {
-        sharedViewModel.showLoading(
-            state.isLoading,
-            -1
-        )
-    }
     val isImeVisible = WindowInsets.ime.getBottom(LocalDensity.current) > 0
     fun handleBack() {
-        if (state.isLoading) {
-            isPopupVisible = true
-        } else if (isImeVisible) {
-            keyboardController?.hide()
-        } else {
-            viewModel.closeConnectionIfNeeded()
-            viewModel.viewModelScope.cancel()
-            navController?.navigateUp()
+        viewModel.checkAndBack(isImeVisible) {
+            if (isImeVisible) {
+                keyboardController?.hide()
+            } else {
+                navController?.navigateUp()
+            }
         }
-    }
-
-    LaunchedEffect(isPopupVisible) {
-        sharedViewModel.showPopup(isPopupVisible,
-            if (!isPopupVisible) null else PopupModel().apply {
-                onDismissRequest = {
-                    isPopupVisible = false
-                }
-                onConfirmation = {
-                    state.isLoading = false
-                    isPopupVisible = false
-                    handleBack()
-                }
-                dialogText = "Are you sure you want to close?"
-                positiveBtnText = "Cancel"
-                negativeBtnText = "Close"
-            })
     }
 
     BackHandler {
@@ -212,13 +142,8 @@ fun AdjustmentView(
                         iconSize = 60.dp,
                         isVertical = false
                     ) {
-                        if (state.selectedItem == null) {
-                            viewModel.showError("select an Item at first!")
-                            return@UIImageButton
-                        }
-                        viewModel.adjustRemainingQuantities(
-                            state.selectedItem
-                        )
+                        keyboardController?.hide()
+                        viewModel.adjustRemainingQuantities()
                     }
 
                     UITextField(
@@ -250,8 +175,8 @@ fun AdjustmentView(
                     ) { dateStr ->
                         val date = DateHelper.getDateFromString(dateStr, viewModel.dateFormat)
                         if (date.after(Date())) {
-                            sharedViewModel.showPopup(
-                                true, PopupModel(
+                            viewModel.showPopup(
+                                PopupModel(
                                     dialogText = "From date should be today or before, please select again",
                                     negativeBtnText = null
                                 )
@@ -288,20 +213,7 @@ fun AdjustmentView(
                         iconSize = 60.dp,
                         isVertical = false
                     ) {
-                        if (state.selectedItem == null) {
-                            viewModel.showError("select an Item at first!")
-                            return@UIImageButton
-                        }
-                        val from =
-                            DateHelper.getDateFromString(state.fromDateString, viewModel.dateFormat)
-                        val to =
-                            DateHelper.getDateFromString(state.toDateString, viewModel.dateFormat)
-                        viewModel.updateItemCost(
-                            state.selectedItem!!,
-                            state.itemCostString,
-                            from,
-                            to
-                        )
+                        viewModel.updateItemCost()
                     }
                 }
 
@@ -336,47 +248,9 @@ fun AdjustmentView(
                     searchLeadingIcon = {
                         IconButton(onClick = {
                             collapseItemListState = false
-                            sharedViewModel.launchBarcodeScanner(true,
-                                null,
-                                object : OnBarcodeResult {
-                                    override fun OnBarcodeResult(barcodesList: List<Any>) {
-                                        if (barcodesList.isNotEmpty()) {
-                                            val resp = barcodesList[0]
-                                            if (resp is String) {
-                                                scope.launch(Dispatchers.Default) {
-                                                    val item = state.items.firstOrNull { iterator ->
-                                                        iterator.itemBarcode.equals(
-                                                            resp,
-                                                            ignoreCase = true
-                                                        )
-                                                    }
-                                                    withContext(Dispatchers.Main) {
-                                                        if (item != null) {
-                                                            collapseItemListState = true
-                                                            viewModel.updateState(
-                                                                state.copy(
-                                                                    selectedItem = item
-                                                                )
-                                                            )
-                                                        } else {
-                                                            viewModel.updateState(
-                                                                state.copy(
-                                                                    barcodeSearchedKey = resp
-                                                                )
-                                                            )
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                },
-                                onPermissionDenied = {
-                                    viewModel.showError(
-                                        "Permission Denied",
-                                        "Settings"
-                                    )
-                                })
+                            viewModel.launchBarcodeScanner {
+                                collapseItemListState = true
+                            }
                         }) {
                             Icon(
                                 Icons.Default.QrCode2,

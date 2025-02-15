@@ -1,11 +1,17 @@
 package com.grid.pos.ui.family
 
+import android.content.Context
+import android.net.Uri
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.lifecycle.viewModelScope
+import com.grid.pos.SharedViewModel
 import com.grid.pos.data.family.Family
 import com.grid.pos.data.family.FamilyRepository
 import com.grid.pos.data.item.ItemRepository
-import com.grid.pos.model.Event
+import com.grid.pos.interfaces.OnGalleryResult
+import com.grid.pos.model.PopupModel
 import com.grid.pos.ui.common.BaseViewModel
+import com.grid.pos.utils.FileUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -17,8 +23,9 @@ import javax.inject.Inject
 @HiltViewModel
 class ManageFamiliesViewModel @Inject constructor(
     private val familyRepository: FamilyRepository,
-    private val itemRepository: ItemRepository
-) : BaseViewModel() {
+    private val itemRepository: ItemRepository,
+    private val sharedViewModel: SharedViewModel
+) : BaseViewModel(sharedViewModel) {
 
     private val _state = MutableStateFlow(ManageFamiliesState())
     val state: MutableStateFlow<ManageFamiliesState> = _state
@@ -35,10 +42,7 @@ class ManageFamiliesViewModel @Inject constructor(
     fun resetState() {
         currentFamily = Family()
         state.value = state.value.copy(
-            family = Family(),
-            warning = null,
-            isLoading = false,
-            clear = false
+            family = Family()
         )
     }
 
@@ -48,52 +52,59 @@ class ManageFamiliesViewModel @Inject constructor(
         )
     }
 
-    fun isAnyChangeDone(): Boolean {
-        return state.value.family.didChanged(currentFamily)
+    fun checkChanges(context: Context, callback: () -> Unit) {
+        if (isLoading()) {
+            return
+        }
+        if (state.value.family.didChanged(currentFamily)) {
+            sharedViewModel.showPopup(true,
+                PopupModel().apply {
+                    onDismissRequest = {
+                        resetState()
+                        callback.invoke()
+                    }
+                    onConfirmation = {
+                        save(context) {
+                            checkChanges(context, callback)
+                        }
+                    }
+                    dialogText = "Do you want to save your changes"
+                    positiveBtnText = "Save"
+                    negativeBtnText = "Close"
+                })
+        } else {
+            callback.invoke()
+        }
     }
 
     fun fetchFamilies() {
-        state.value = state.value.copy(
-            isLoading = true
-        )
+        showLoading(true)
         viewModelScope.launch(Dispatchers.IO) {
             val listOfFamilies = familyRepository.getAllFamilies()
             withContext(Dispatchers.Main) {
                 state.value = state.value.copy(
-                    families = listOfFamilies,
-                    isLoading = false
+                    families = listOfFamilies
                 )
+                showLoading(false)
             }
         }
     }
 
-    fun showWarning(
-        warning: String,
-        action: String? = null
-    ) {
-        viewModelScope.launch(Dispatchers.Main) {
-            state.value = state.value.copy(
-                warning = Event(warning),
-                actionLabel = action,
-                isLoading = false
-            )
-        }
-    }
-
-    fun save() {
+    fun save(context: Context, callback: () -> Unit = {}) {
         val family = state.value.family
         if (family.familyName.isNullOrEmpty()) {
-            state.value = state.value.copy(
-                warning = Event("Please fill family name."),
-                isLoading = false
-            )
+            showWarning("Please fill family name.")
             return
         }
-        state.value = state.value.copy(
-            isLoading = true
-        )
+        showLoading(true)
         val isInserting = family.isNew()
         CoroutineScope(Dispatchers.IO).launch {
+            oldImage?.let { old ->
+                FileUtils.deleteFile(
+                    context,
+                    old
+                )
+            }
             if (isInserting) {
                 family.prepareForInsert()
                 val dataModel = familyRepository.insert(family)
@@ -105,43 +116,39 @@ class ManageFamiliesViewModel @Inject constructor(
                     }
                     withContext(Dispatchers.Main) {
                         state.value = state.value.copy(
-                            families = families,
-                            isLoading = false,
-                            warning = Event("Family saved successfully."),
-                            clear = true,
+                            families = families
                         )
+                        resetState()
+                        showLoading(false)
+                        showWarning("Family saved successfully.")
+                        callback.invoke()
                     }
                 } else if (dataModel.message != null) {
                     withContext(Dispatchers.Main) {
-                        state.value = state.value.copy(
-                            isLoading = false,
-                        )
+                        showLoading(false)
                     }
                 }
             } else {
                 val dataModel = familyRepository.update(family)
                 if (dataModel.succeed) {
-                    val index =
-                        state.value.families.indexOfFirst { it.familyId == family.familyId }
+                    val families = state.value.families.toMutableList()
+                    val index = families.indexOfFirst { it.familyId == family.familyId }
                     if (index >= 0) {
-                        state.value.families.removeAt(index)
-                        state.value.families.add(
-                            index,
-                            family
-                        )
+                        families.removeAt(index)
+                        families.add(index, family)
                     }
                     withContext(Dispatchers.Main) {
                         state.value = state.value.copy(
-                            isLoading = false,
-                            warning = Event("Family saved successfully."),
-                            clear = true,
+                            families = families
                         )
+                        resetState()
+                        showLoading(false)
+                        showWarning("Family saved successfully.")
+                        callback.invoke()
                     }
                 } else if (dataModel.message != null) {
                     withContext(Dispatchers.Main) {
-                        state.value = state.value.copy(
-                            isLoading = false,
-                        )
+                        showLoading(false)
                     }
                 }
             }
@@ -151,24 +158,15 @@ class ManageFamiliesViewModel @Inject constructor(
     fun delete() {
         val family = state.value.family
         if (family.familyId.isEmpty()) {
-            state.value = state.value.copy(
-                warning = Event("Please select an family to delete"),
-                isLoading = false
-            )
+            showWarning("Please select an family to delete")
             return
         }
-        state.value = state.value.copy(
-            warning = null,
-            isLoading = true
-        )
-
+        showLoading(true)
         CoroutineScope(Dispatchers.IO).launch {
             if (hasRelations(family.familyId)) {
                 withContext(Dispatchers.Main) {
-                    state.value = state.value.copy(
-                        warning = Event("You can't delete this Family ,because it has related data!"),
-                        isLoading = false
-                    )
+                    showLoading(false)
+                    showWarning("You can't delete this Family ,because it has related data!")
                 }
                 return@launch
             }
@@ -178,17 +176,15 @@ class ManageFamiliesViewModel @Inject constructor(
                 families.remove(family)
                 withContext(Dispatchers.Main) {
                     state.value = state.value.copy(
-                        families = families,
-                        isLoading = false,
-                        warning = Event("successfully deleted."),
-                        clear = true
+                        families = families
                     )
+                    resetState()
+                    showLoading(false)
+                    showWarning("successfully deleted.")
                 }
             } else if (dataModel.message != null) {
                 withContext(Dispatchers.Main) {
-                    state.value = state.value.copy(
-                        isLoading = false,
-                    )
+                    showLoading(false)
                 }
             }
         }
@@ -196,5 +192,41 @@ class ManageFamiliesViewModel @Inject constructor(
 
     private suspend fun hasRelations(familyId: String): Boolean {
         return itemRepository.getOneItemByFamily(familyId) != null
+    }
+
+    fun launchGalleryPicker(context: Context) {
+        sharedViewModel.launchGalleryPicker(mediaType = ActivityResultContracts.PickVisualMedia.ImageOnly,
+            object : OnGalleryResult {
+                override fun onGalleryResult(uris: List<Uri>) {
+                    if (uris.isNotEmpty()) {
+                        sharedViewModel.copyToInternalStorage(
+                            context,
+                            uris[0],
+                            parent = "family",
+                            fileName = (state.value.family.familyName
+                                ?: "family").trim().replace(" ", "_")
+                        ) { internalPath ->
+                            if (internalPath != null) {
+                                oldImage =
+                                    state.value.family.familyImage
+                                updateFamily(
+                                    state.value.family.copy(
+                                        familyImage = internalPath
+                                    )
+                                )
+                            }
+                        }
+                    }
+                }
+
+            },
+            onPermissionDenied = {
+                showWarning(
+                    "Permission Denied",
+                    "Settings"
+                ) {
+                    sharedViewModel.openAppStorageSettings()
+                }
+            })
     }
 }

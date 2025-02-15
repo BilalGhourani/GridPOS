@@ -1,16 +1,19 @@
 package com.grid.pos.ui.adjustment
 
 import androidx.lifecycle.viewModelScope
+import com.grid.pos.SharedViewModel
 import com.grid.pos.data.invoice.InvoiceRepository
 import com.grid.pos.data.invoiceHeader.InvoiceHeader
 import com.grid.pos.data.invoiceHeader.InvoiceHeaderRepository
 import com.grid.pos.data.item.Item
 import com.grid.pos.data.item.ItemRepository
-import com.grid.pos.model.Event
+import com.grid.pos.interfaces.OnBarcodeResult
+import com.grid.pos.model.PopupModel
 import com.grid.pos.ui.common.BaseViewModel
 import com.grid.pos.utils.DateHelper
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -22,8 +25,9 @@ import kotlin.math.min
 class AdjustmentViewModel @Inject constructor(
     private val invoiceHeaderRepository: InvoiceHeaderRepository,
     private val invoiceRepository: InvoiceRepository,
-    private val itemRepository: ItemRepository
-) : BaseViewModel() {
+    private val itemRepository: ItemRepository,
+    private val sharedViewModel: SharedViewModel
+) : BaseViewModel(sharedViewModel) {
     private val _state = MutableStateFlow(AdjustmentState())
     val state: MutableStateFlow<AdjustmentState> = _state
     val dateFormat = "yyyy-MM-dd HH:mm"
@@ -51,27 +55,50 @@ class AdjustmentViewModel @Inject constructor(
         state.value = newState
     }
 
+    fun checkAndBack(isImeVisible: Boolean, callback: () -> Unit) {
+        if (isLoading()) {
+            showPopup(PopupModel().apply {
+                onDismissRequest = {
+
+                }
+                onConfirmation = {
+                    if (isImeVisible) {
+                        callback.invoke()
+                    } else {
+                        showLoading(false)
+                        viewModelScope.cancel()
+                        callback.invoke()
+                    }
+                }
+                dialogText = "Are you sure you want to close?"
+                positiveBtnText = "Cancel"
+                negativeBtnText = "Close"
+            })
+        } else {
+            callback.invoke()
+        }
+    }
+
     fun fetchItems() {
-        state.value = state.value.copy(
-            isLoading = true
-        )
+        showLoading(true)
         viewModelScope.launch(Dispatchers.IO) {
             val listOfItems = itemRepository.getAllItems()
             withContext(Dispatchers.Main) {
                 state.value = state.value.copy(
-                    items = listOfItems,
-                    isLoading = false
+                    items = listOfItems
                 )
+                showLoading(false)
             }
         }
     }
 
-    fun adjustRemainingQuantities(
-        item: Item?
-    ) {
-        state.value = state.value.copy(
-            isLoading = true
-        )
+    fun adjustRemainingQuantities() {
+        if (state.value.selectedItem == null) {
+            showWarning("select an Item at first!")
+            return
+        }
+        val item = state.value.selectedItem
+        showLoading(true)
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 viewModelScope.launch(Dispatchers.IO) {
@@ -125,38 +152,39 @@ class AdjustmentViewModel @Inject constructor(
                         }
                     }
                     itemRepository.update(itemsToUpdate)
-                    state.value = state.value.copy(
-                        warning = Event("Quantity is updated successfully."),
-                        isLoading = false,
-                        clear = true
-                    )
+                    withContext(Dispatchers.Main) {
+                        resetState()
+                        showLoading(false)
+                        showWarning("Quantity is updated successfully.")
+                    }
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
                 withContext(Dispatchers.Main) {
-                    state.value = state.value.copy(
-                        warning = Event("an error has occurred!"),
-                        isLoading = false
-                    )
+                    showLoading(false)
+                    showWarning("an error has occurred!")
                 }
             }
         }
     }
 
-    fun updateItemCost(
-        item: Item,
-        cost: String,
-        from: Date,
-        to: Date,
-    ) {
-        val realCost = cost.toDoubleOrNull()
-        if (cost.isEmpty() || realCost == null) {
-            showError("Enter a valid cost!")
+    fun updateItemCost() {
+        if (state.value.selectedItem == null) {
+            showWarning("select an Item at first!")
             return
         }
-        state.value = state.value.copy(
-            isLoading = true
-        )
+        val cost = state.value.itemCostString
+        val item = state.value.selectedItem!!
+        val from =
+            DateHelper.getDateFromString(state.value.fromDateString, dateFormat)
+        val to =
+            DateHelper.getDateFromString(state.value.toDateString, dateFormat)
+        val realCost = cost.toDoubleOrNull()
+        if (cost.isEmpty() || realCost == null) {
+            showWarning("Enter a valid cost!")
+            return
+        }
+        showLoading(true)
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val listOfInvoices = invoiceRepository.getAllInvoicesForAdjustment(
@@ -168,40 +196,24 @@ class AdjustmentViewModel @Inject constructor(
                     it.invoiceCost = realCost
                 }
                 invoiceRepository.update(listOfInvoices)
-                state.value = state.value.copy(
-                    warning = Event("Item cost is updated successfully."),
-                    isLoading = false,
-                    clear = true
-                )
+                withContext(Dispatchers.Main) {
+                    resetState()
+                    showLoading(false)
+                    showWarning("Item cost is updated successfully.")
+                }
             } catch (e: Exception) {
                 e.printStackTrace()
                 withContext(Dispatchers.Main) {
-                    state.value = state.value.copy(
-                        warning = Event("an error has occurred!"),
-                        isLoading = false
-                    )
+                    showLoading(false)
+                    showWarning("an error has occurred!")
                 }
             }
         }
     }
 
-    fun showError(
-        message: String,
-        action: String? = null
-    ) {
-        state.value = state.value.copy(
-            warning = Event(message),
-            actionLabel = action,
-            isLoading = false
-        )
-    }
-
     fun resetState() {
         state.value = state.value.copy(
             selectedItem = null,
-            warning = null,
-            isLoading = false,
-            clear = false,
             barcodeSearchedKey = "",
             itemCostString = "",
             fromDateString = DateHelper.getDateInFormat(
@@ -213,6 +225,51 @@ class AdjustmentViewModel @Inject constructor(
                 dateFormat
             )
         )
+    }
+
+    fun launchBarcodeScanner(callback: () -> Unit) {
+        sharedViewModel.launchBarcodeScanner(true,
+            null,
+            object : OnBarcodeResult {
+                override fun OnBarcodeResult(barcodesList: List<Any>) {
+                    if (barcodesList.isNotEmpty()) {
+                        val resp = barcodesList[0]
+                        if (resp is String) {
+                            viewModelScope.launch(Dispatchers.Default) {
+                                val item = state.value.items.firstOrNull { iterator ->
+                                    iterator.itemBarcode.equals(
+                                        resp,
+                                        ignoreCase = true
+                                    )
+                                }
+                                withContext(Dispatchers.Main) {
+                                    if (item != null) {
+                                        callback.invoke()
+                                        updateState(
+                                            state.value.copy(
+                                                selectedItem = item
+                                            )
+                                        )
+                                    } else {
+                                        updateState(
+                                            state.value.copy(
+                                                barcodeSearchedKey = resp
+                                            )
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            onPermissionDenied = {
+                showWarning(
+                    "Permission Denied", "Settings"
+                ) {
+                    sharedViewModel.openAppStorageSettings()
+                }
+            })
     }
 
 }

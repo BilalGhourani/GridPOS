@@ -19,9 +19,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -29,11 +26,9 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -49,14 +44,9 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
-import com.grid.pos.BuildConfig
 import com.grid.pos.R
-import com.grid.pos.SharedViewModel
 import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.EditableDateInputField
@@ -65,8 +55,6 @@ import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.ui.theme.LightBlue
 import com.grid.pos.ui.theme.LightGreen
 import com.grid.pos.utils.DateHelper
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.launch
 import java.util.Date
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -74,36 +62,9 @@ import java.util.Date
 fun SalesReportsView(
     modifier: Modifier = Modifier,
     navController: NavController? = null,
-    sharedViewModel: SharedViewModel,
     viewModel: SalesReportsViewModel = hiltViewModel()
 ) {
-    val state by viewModel.reportsState.collectAsStateWithLifecycle()
     val context = LocalContext.current
-
-
-    fun shareExcelSheet(action: String) {
-        viewModel.reportFile?.let { file ->
-            val shareIntent = Intent()
-            shareIntent.setAction(action)
-            val attachment = FileProvider.getUriForFile(
-                context,
-                BuildConfig.APPLICATION_ID,
-                file
-            )
-            shareIntent.putExtra(
-                Intent.EXTRA_STREAM,
-                attachment
-            )
-            shareIntent.setType("application/vnd.ms-excel")
-
-            sharedViewModel.startChooserActivity(
-                Intent.createChooser(
-                    shareIntent,
-                    "send"
-                )
-            )
-        }
-    }
 
     var fromDateState by remember {
         mutableStateOf(
@@ -122,64 +83,16 @@ fun SalesReportsView(
         )
     }
 
-    var isPopupVisible by remember { mutableStateOf(false) }
     var isBottomSheetVisible by remember { mutableStateOf(false) }
     val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-    val snackbarHostState = remember { SnackbarHostState() }
-    val scope = rememberCoroutineScope()
-
-
-    LaunchedEffect(
-        state.warning,
-        state.isDone
-    ) {
-        state.warning?.value?.let { message ->
-            scope.launch {
-                snackbarHostState.showSnackbar(
-                    message = message,
-                    duration = SnackbarDuration.Short,
-                )
-            }
-        }
-
-        if (state.isDone) {
-            isBottomSheetVisible = true
-            state.isDone = false
-        }
-    }
-
-    LaunchedEffect(state.isLoading) {
-        sharedViewModel.showLoading(state.isLoading)
-    }
-
     fun handleBack() {
-        if (state.isLoading) {
-            isPopupVisible = true
-        } else {
-            viewModel.closeConnectionIfNeeded()
-            viewModel.viewModelScope.cancel()
+        viewModel.checkAndBack {
             navController?.navigateUp()
         }
     }
 
-    LaunchedEffect(isPopupVisible) {
-        sharedViewModel.showPopup(
-            isPopupVisible,
-            if (!isPopupVisible) null else PopupModel().apply {
-                onDismissRequest = {
-                    isPopupVisible = false
-                }
-                onConfirmation = {
-                    state.isLoading = false
-                    isPopupVisible = false
-                    handleBack()
-                }
-                dialogText = "Are you sure you want to cancel the reports?"
-                positiveBtnText = "Cancel"
-                negativeBtnText = "Close"
-            })
-    }
+
 
     BackHandler {
         handleBack()
@@ -187,9 +100,6 @@ fun SalesReportsView(
 
     GridPOSTheme {
         Scaffold(containerColor = SettingsModel.backgroundColor,
-            snackbarHost = {
-                SnackbarHost(hostState = snackbarHostState)
-            },
             topBar = {
                 Surface(
                     shadowElevation = 3.dp,
@@ -238,8 +148,8 @@ fun SalesReportsView(
                 ) { dateStr ->
                     val date = DateHelper.getDateFromString(dateStr, viewModel.dateFormat)
                     if (date.after(Date())) {
-                        sharedViewModel.showPopup(
-                            true, PopupModel(
+                        viewModel.showPopup(
+                            PopupModel(
                                 dialogText = "From date should be today or before, please select again",
                                 negativeBtnText = null
                             )
@@ -271,10 +181,9 @@ fun SalesReportsView(
                 ) {
                     val from = DateHelper.getDateFromString(fromDateState, viewModel.dateFormat)
                     val to = DateHelper.getDateFromString(toDateState, viewModel.dateFormat)
-                    viewModel.fetchInvoices(
-                        from,
-                        to
-                    )
+                    viewModel.fetchInvoices(from, to) {
+                        isBottomSheetVisible = true
+                    }
                 }
             }
         }
@@ -332,7 +241,7 @@ fun SalesReportsView(
 
                     TextButton(
                         onClick = {
-                            shareExcelSheet(Intent.ACTION_VIEW)
+                            viewModel.shareExcelSheet(context, Intent.ACTION_VIEW)
                         },
                         modifier = Modifier.wrapContentWidth(),
                         contentPadding = PaddingValues(0.dp),
@@ -353,7 +262,7 @@ fun SalesReportsView(
 
                     TextButton(
                         onClick = {
-                            shareExcelSheet(Intent.ACTION_SEND)
+                            viewModel.shareExcelSheet(context, Intent.ACTION_SEND)
                         },
                         modifier = Modifier.wrapContentWidth(),
                         contentPadding = PaddingValues(0.dp),

@@ -1,8 +1,13 @@
 package com.grid.pos.ui.reports
 
+import android.content.Context
+import android.content.Intent
 import android.net.Uri
+import androidx.core.content.FileProvider
 import androidx.lifecycle.viewModelScope
 import com.grid.pos.App
+import com.grid.pos.BuildConfig
+import com.grid.pos.SharedViewModel
 import com.grid.pos.data.currency.Currency
 import com.grid.pos.data.currency.CurrencyRepository
 import com.grid.pos.data.invoice.Invoice
@@ -11,13 +16,13 @@ import com.grid.pos.data.invoiceHeader.InvoiceHeader
 import com.grid.pos.data.invoiceHeader.InvoiceHeaderRepository
 import com.grid.pos.data.item.Item
 import com.grid.pos.data.item.ItemRepository
-import com.grid.pos.model.Event
+import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.BaseViewModel
 import com.grid.pos.utils.FileUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
@@ -29,20 +34,18 @@ import kotlin.math.min
 
 @HiltViewModel
 class SalesReportsViewModel @Inject constructor(
-        private val invoiceHeaderRepository: InvoiceHeaderRepository,
-        private val invoiceRepository: InvoiceRepository,
-        private val currencyRepository: CurrencyRepository,
-        private val itemRepository: ItemRepository
-) : BaseViewModel() {
+    private val invoiceHeaderRepository: InvoiceHeaderRepository,
+    private val invoiceRepository: InvoiceRepository,
+    private val currencyRepository: CurrencyRepository,
+    private val itemRepository: ItemRepository,
+    private val sharedViewModel: SharedViewModel
+) : BaseViewModel(sharedViewModel) {
 
     private var itemMap: Map<String, Item> = mutableMapOf()
     private var invoicesMap: Map<String, InvoiceHeader> = mutableMapOf()
     private var invoiceItemMap: Map<String, List<Invoice>> = mutableMapOf()
     private var filteredInvoiceItemMap: Map<String, List<Invoice>> = mutableMapOf()
-    private var currency = SettingsModel.currentCurrency ?: Currency()
     var reportFile: File? = null
-    private val _reportsState = MutableStateFlow(ReportsState())
-    val reportsState: MutableStateFlow<ReportsState> = _reportsState
 
     val dateFormat = "yyyy-MM-dd HH:mm"
 
@@ -50,6 +53,26 @@ class SalesReportsViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             openConnectionIfNeeded()
             fetchItems()
+        }
+    }
+
+    fun checkAndBack(callback: () -> Unit) {
+        if (isLoading()) {
+            showPopup(PopupModel().apply {
+                onDismissRequest = {
+
+                }
+                onConfirmation = {
+                    showLoading(false)
+                    viewModelScope.cancel()
+                    callback.invoke()
+                }
+                dialogText = "Are you sure you want to cancel the reports?"
+                positiveBtnText = "Cancel"
+                negativeBtnText = "Close"
+            })
+        } else {
+            callback.invoke()
         }
     }
 
@@ -64,12 +87,11 @@ class SalesReportsViewModel @Inject constructor(
     }
 
     fun fetchInvoices(
-            from: Date,
-            to: Date
+        from: Date,
+        to: Date,
+        callback: () -> Unit
     ) {
-        reportsState.value = reportsState.value.copy(
-            isLoading = true
-        )
+        showLoading(true)
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val listOfInvoices = invoiceHeaderRepository.getInvoicesBetween(
@@ -81,32 +103,30 @@ class SalesReportsViewModel @Inject constructor(
                     fetchInvoiceItems(
                         from,
                         to,
-                        invoicesMap.keys.toMutableList()
+                        invoicesMap.keys.toMutableList(),
+                        callback
                     )
                 } else {
                     withContext(Dispatchers.Main) {
-                        reportsState.value = reportsState.value.copy(
-                            warning = Event("no data found in the date range!"),
-                            isLoading = false
-                        )
+                        showLoading(false)
+                        showWarning("no data found in the date range!")
                     }
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
                 withContext(Dispatchers.Main) {
-                    reportsState.value = reportsState.value.copy(
-                        warning = Event("an error has occurred!"),
-                        isLoading = false
-                    )
+                    showLoading(false)
+                    showWarning("an error has occurred!")
                 }
             }
         }
     }
 
     private fun fetchInvoiceItems(
-            from: Date,
-            end: Date,
-            ids: List<String>
+        from: Date,
+        end: Date,
+        ids: List<String>,
+        callback: () -> Unit
     ) {
         viewModelScope.launch(Dispatchers.IO) {
             val listOfInvoices = mutableListOf<Invoice>()
@@ -134,18 +154,11 @@ class SalesReportsViewModel @Inject constructor(
                 listOfInvoices.filter { it.invoiceDateTime in (startTime + 1)..<endTime }
             }
             filteredInvoiceItemMap = filteredInvoiceItems.groupBy { it.invoiceItemId ?: "" }
-            generateReportsExcel()
+            generateReportsExcel(callback)
         }
     }
 
-    fun showError(message: String) {
-        reportsState.value = reportsState.value.copy(
-            warning = Event(message),
-            isLoading = false
-        )
-    }
-
-    private fun generateReportsExcel() {
+    private fun generateReportsExcel(callback: () -> Unit) {
         viewModelScope.launch(Dispatchers.IO) {
             val workbook = XSSFWorkbook(XSSFWorkbookType.XLSX)
 
@@ -167,10 +180,8 @@ class SalesReportsViewModel @Inject constructor(
                 Uri.parse(path)
             )
             withContext(Dispatchers.Main) {
-                reportsState.value = reportsState.value.copy(
-                    isDone = true,
-                    isLoading = false
-                )
+                showLoading(false)
+                callback.invoke()
             }
         }
     }
@@ -189,7 +200,7 @@ class SalesReportsViewModel @Inject constructor(
         firstRow.createCell(6).setCellValue("Rem.Qty")
         firstRow.createCell(7).setCellValue("Profit")
 
-        val currency = SettingsModel.currentCurrency?: Currency()
+        val currency = SettingsModel.currentCurrency ?: Currency()
         val priceWithTax = SettingsModel.currentCompany?.companyUpWithTax ?: false
         itemMap.values.forEachIndexed { index, item ->
             val itemInvoices = invoiceItemMap[item.itemId]
@@ -199,7 +210,7 @@ class SalesReportsViewModel @Inject constructor(
             var totalSale = 0.0
             itemInvoices?.map {
                 var invoiceCost = it.invoiceCost
-                if(item.itemCurrencyId == currency.currencyCode2 || item.itemCurrencyId == currency.currencyDocumentId){
+                if (item.itemCurrencyId == currency.currencyCode2 || item.itemCurrencyId == currency.currencyDocumentId) {
                     invoiceCost = invoiceCost.div(currency.currencyRate)
                 }
                 totalCost += it.invoiceQuantity.times(invoiceCost)
@@ -269,6 +280,30 @@ class SalesReportsViewModel @Inject constructor(
             row.createCell(0).setCellValue(item?.itemName ?: "N/A")
             row.createCell(1).setCellValue(quantitiesSold)
             row.createCell(2).setCellValue(totalSale)
+        }
+    }
+
+    fun shareExcelSheet(context: Context, action: String) {
+        reportFile?.let { file ->
+            val shareIntent = Intent()
+            shareIntent.setAction(action)
+            val attachment = FileProvider.getUriForFile(
+                context,
+                BuildConfig.APPLICATION_ID,
+                file
+            )
+            shareIntent.putExtra(
+                Intent.EXTRA_STREAM,
+                attachment
+            )
+            shareIntent.setType("application/vnd.ms-excel")
+
+            sharedViewModel.startChooserActivity(
+                Intent.createChooser(
+                    shareIntent,
+                    "send"
+                )
+            )
         }
     }
 

@@ -78,15 +78,11 @@ class ManageItemsViewModel @Inject constructor(
         state.value = newState
     }
 
-    fun isAnyChangeDone(): Boolean {
-        return state.value.item.didChanged(currentITem)
-    }
-
     fun checkChanges(context: Context, callback: () -> Unit) {
         if (isLoading()) {
             return
         }
-        if (isAnyChangeDone()) {
+        if (state.value.item.didChanged(currentITem)) {
             showPopup(PopupModel().apply {
                 onDismissRequest = {
                     resetState()
