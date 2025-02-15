@@ -30,9 +30,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -51,11 +49,9 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import com.grid.pos.SharedViewModel
 import com.grid.pos.R
 import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
-import com.grid.pos.model.ToastModel
 import com.grid.pos.model.UserType
 import com.grid.pos.ui.common.UIImageButton
 import com.grid.pos.ui.common.UITextField
@@ -70,7 +66,6 @@ import com.grid.pos.utils.Utils
 fun TablesView(
     modifier: Modifier = Modifier,
     navController: NavController? = null,
-    sharedViewModel: SharedViewModel,
     viewModel: TablesViewModel = hiltViewModel()
 ) {
     val state by viewModel.tablesState.collectAsStateWithLifecycle()
@@ -79,68 +74,13 @@ fun TablesView(
     val tableNameFocusRequester = remember { FocusRequester() }
     val clientsCountFocusRequester = remember { FocusRequester() }
 
-    var isPopupVisible by remember { mutableStateOf(false) }
-
     LaunchedEffect(key1 = Unit) {
         viewModel.fetchAllTables()
     }
 
-    fun lockTableAndMoveToPos() {
-        viewModel.lockTableAndMoveToPos {
-            sharedViewModel.tempInvoiceHeader = state.invoiceHeader
-            sharedViewModel.shouldLoadInvoice = true
-            sharedViewModel.isFromTable = true
-            viewModel.resetState()
-            navController?.navigate("POSView")
-        }
-    }
-
-    LaunchedEffect(
-        state.step,
-        state.moveToPos
-    ) {
-        if (state.step == 1) {
-            tableNameFocusRequester.requestFocus()
-        } else {
-            clientsCountFocusRequester.requestFocus()
-        }
-        if (state.moveToPos) {
-            lockTableAndMoveToPos()
-        }
-    }
-    LaunchedEffect(state.warning) {
-        state.warning?.value?.let { message ->
-            sharedViewModel.showToastMessage(
-                ToastModel(message = message)
-            )
-        }
-    }
-
-    LaunchedEffect(state.isLoading) {
-        sharedViewModel.showLoading(state.isLoading)
-    }
-
-    LaunchedEffect(isPopupVisible) {
-        sharedViewModel.showPopup(isPopupVisible,
-            if (!isPopupVisible) null else PopupModel().apply {
-                onDismissRequest = {
-                    isPopupVisible = false
-                }
-                onConfirmation = {
-                    isPopupVisible = false
-
-                    sharedViewModel.logout()
-                    navController?.clearBackStack("LoginView")
-                    navController?.navigate("LoginView")
-                }
-                dialogText = "Are you sure you want to logout?"
-                positiveBtnText = "Logout"
-                negativeBtnText = "Cancel"
-            })
-    }
 
     fun handleBack() {
-        if (state.isLoading) {
+        if (viewModel.isLoading()) {
             return
         }
         if (state.step > 1) {
@@ -151,7 +91,17 @@ fun TablesView(
             )
         } else {
             if (SettingsModel.getUserType() == UserType.TABLE) {
-                isPopupVisible = true
+                viewModel.showPopup(
+                    PopupModel().apply {
+                        onConfirmation = {
+                            viewModel.logout()
+                            navController?.clearBackStack("LoginView")
+                            navController?.navigate("LoginView")
+                        }
+                        dialogText = "Are you sure you want to logout?"
+                        positiveBtnText = "Logout"
+                        negativeBtnText = "Cancel"
+                    })
             } else {
                 navController?.navigateUp()
             }
@@ -229,6 +179,7 @@ fun TablesView(
                     viewModel.filterTables(tabNo)
                 }
                 if (state.step > 1) {
+                    clientsCountFocusRequester.requestFocus()
                     UITextField(modifier = Modifier.padding(10.dp),
                         defaultValue = state.clientCount,
                         onFocusChanged = { focusState ->
@@ -253,6 +204,8 @@ fun TablesView(
                             )
                         )
                     }
+                } else {
+                    tableNameFocusRequester.requestFocus()
                 }
                 UIImageButton(
                     modifier = Modifier
@@ -268,10 +221,10 @@ fun TablesView(
                         viewModel.fetchInvoiceByTable(state.tableName)
                     } else {
                         if (state.clientCount.toIntOrNull() == null) {
-                            viewModel.showError("Please enter client counts")
+                            viewModel.showWarning("Please enter client counts")
                             return@UIImageButton
                         }
-                        lockTableAndMoveToPos()
+                        viewModel.lockTableAndMoveToPos()
                     }
                 }
 

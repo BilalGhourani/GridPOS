@@ -1,6 +1,7 @@
 package com.grid.pos.ui.table
 
 import androidx.lifecycle.viewModelScope
+import com.grid.pos.SharedViewModel
 import com.grid.pos.data.invoiceHeader.InvoiceHeader
 import com.grid.pos.data.invoiceHeader.InvoiceHeaderRepository
 import com.grid.pos.data.user.UserRepository
@@ -18,8 +19,9 @@ import javax.inject.Inject
 @HiltViewModel
 class TablesViewModel @Inject constructor(
     private val invoiceHeaderRepository: InvoiceHeaderRepository,
-    private val userRepository: UserRepository
-) : BaseViewModel() {
+    private val userRepository: UserRepository,
+    private val sharedViewModel: SharedViewModel
+) : BaseViewModel(sharedViewModel) {
 
     private val _tablesState = MutableStateFlow(TablesState())
     val tablesState: MutableStateFlow<TablesState> = _tablesState
@@ -40,19 +42,10 @@ class TablesViewModel @Inject constructor(
             invoiceHeader = InvoiceHeader(),
             tableName = "",
             clientCount = "",
-            step = 1,
-            warning = null,
-            isLoading = false,
-            moveToPos = false
+            step = 1
         )
     }
 
-    fun showError(message: String) {
-        tablesState.value = tablesState.value.copy(
-            warning = Event(message),
-            isLoading = false
-        )
-    }
 
     suspend fun fetchAllTables() {
         withContext(Dispatchers.Main) {
@@ -79,25 +72,19 @@ class TablesViewModel @Inject constructor(
             }.toMutableList()
             viewModelScope.launch(Dispatchers.Main) {
                 tablesState.value = tablesState.value.copy(
-                    tables = filteredTables,
-                    isLoading = false
+                    tables = filteredTables
                 )
+                showLoading(false)
             }
         }
     }
 
     fun fetchInvoiceByTable(tableNo: String) {
         if (tableNo.isEmpty()) {
-            tablesState.value = tablesState.value.copy(
-                warning = Event("Please enter table number!"),
-                isLoading = false
-            )
+            showWarning("Please enter table number!")
             return
         }
-        tablesState.value = tablesState.value.copy(
-            warning = null,
-            isLoading = true
-        )
+        showLoading(true)
         val tableModel = tablesState.value.tables.firstOrNull {
             it.table_name.equals(
                 tableNo,
@@ -113,28 +100,24 @@ class TablesViewModel @Inject constructor(
                     name = user.userName ?: "someone"
                 }
                 viewModelScope.launch(Dispatchers.Main) {
-                    tablesState.value = tablesState.value.copy(
-                        warning = Event("This table is locked by $name"),
-                        moveToPos = false,
-                        isLoading = false
-                    )
+                    showLoading(false)
+                    showWarning("This table is locked by $name")
                 }
             } else {
                 val invoiceHeader = tableInvoiceModel.invoiceHeader!!
                 viewModelScope.launch(Dispatchers.Main) {
                     if (!invoiceHeader.isNew()) {
                         tablesState.value = tablesState.value.copy(
-                            invoiceHeader = invoiceHeader,
-                            moveToPos = true,
-                            isLoading = false
+                            invoiceHeader = invoiceHeader
                         )
+                        showLoading(false)
+                        lockTableAndMoveToPos()
                     } else {
                         tablesState.value = tablesState.value.copy(
                             invoiceHeader = invoiceHeader,
-                            step = 2,
-                            moveToPos = false,
-                            isLoading = false
+                            step = 2
                         )
+                        showLoading(false)
                     }
                 }
             }
@@ -169,27 +152,39 @@ class TablesViewModel @Inject constructor(
         }
     }
 
-    fun lockTableAndMoveToPos(callback: () -> Unit) {
+    fun lockTableAndMoveToPos() {
         if (SettingsModel.isConnectedToSqlServer()) {
-            tablesState.value = tablesState.value.copy(
-                warning = null,
-                isLoading = true
-            )
+            showLoading(true)
             viewModelScope.launch(Dispatchers.IO) {
                 lockTable(tablesState.value.tableName)
                 withContext(Dispatchers.Main) {
-                    tablesState.value = tablesState.value.copy(
-                        isLoading = false
-                    )
+                    showLoading(false)
                     tablesState.value.invoiceHeader.invoiceHeadTaName = tablesState.value.tableName
-                    tablesState.value.invoiceHeader.invoiceHeadClientsCount = tablesState.value.clientCount.toIntOrNull() ?: 1
-                    callback.invoke()
+                    tablesState.value.invoiceHeader.invoiceHeadClientsCount =
+                        tablesState.value.clientCount.toIntOrNull() ?: 1
+
+                    sharedViewModel.tempInvoiceHeader = tablesState.value.invoiceHeader
+                    sharedViewModel.shouldLoadInvoice = true
+                    sharedViewModel.isFromTable = true
+                    resetState()
+                    navigateTo("POSView")
                 }
             }
         } else {
             tablesState.value.invoiceHeader.invoiceHeadTaName = tablesState.value.tableName
-            tablesState.value.invoiceHeader.invoiceHeadClientsCount = tablesState.value.clientCount.toIntOrNull() ?: 1
-            callback.invoke()
+            tablesState.value.invoiceHeader.invoiceHeadClientsCount =
+                tablesState.value.clientCount.toIntOrNull() ?: 1
+
+            sharedViewModel.tempInvoiceHeader = tablesState.value.invoiceHeader
+            sharedViewModel.shouldLoadInvoice = true
+            sharedViewModel.isFromTable = true
+            resetState()
+            navigateTo("POSView")
         }
     }
+
+    fun logout() {
+        sharedViewModel.logout()
+    }
+
 }

@@ -53,14 +53,12 @@ fun AuthNavGraph(
         }
         composable(route = "LoginView") {
             LoginView(
-                navController = navController,
-                sharedViewModel = sharedViewModel
+                navController = navController
             )
         }
         composable(route = "SettingsView") {
             SettingsView(
-                navController = navController,
-                sharedViewModel = sharedViewModel
+                navController = navController
             )
         }
         composable(route = "ManageCurrenciesView") {
@@ -80,8 +78,7 @@ fun AuthNavGraph(
         }
         composable(route = "ManageFamiliesView") {
             ManageFamiliesView(
-                navController = navController,
-                sharedViewModel = sharedViewModel,
+                navController = navController
             )
         }
         composable(route = "ManageThirdPartiesView") {
@@ -102,8 +99,7 @@ fun AuthNavGraph(
         }
         composable(route = "TablesView") {
             TablesView(
-                navController = navController,
-                sharedViewModel = sharedViewModel
+                navController = navController
             )
         }
         composable(route = "UIWebView") {
@@ -119,8 +115,7 @@ fun AuthNavGraph(
         }
         composable(route = "ReportsView") {
             SalesReportsView(
-                navController = navController,
-                sharedViewModel = sharedViewModel
+                navController = navController
             )
         }
         composable(route = "BackupView") {
@@ -144,8 +139,7 @@ fun AuthNavGraph(
 
         composable(route = "AdjustmentView") {
             AdjustmentView(
-                navController = navController,
-                sharedViewModel = sharedViewModel
+                navController = navController
             )
         }
 
@@ -172,15 +166,13 @@ fun AuthNavGraph(
 
         composable(route = "ItemOpeningView") {
             ItemOpeningView(
-                navController = navController,
-                sharedViewModel = sharedViewModel
+                navController = navController
             )
         }
 
         composable(route = "StockInOutView") {
             StockInOutView(
-                navController = navController,
-                sharedViewModel = sharedViewModel
+                navController = navController
             )
         }
     }

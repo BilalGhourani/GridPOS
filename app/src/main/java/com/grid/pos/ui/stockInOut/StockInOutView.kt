@@ -64,15 +64,11 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.grid.pos.R
-import com.grid.pos.SharedViewModel
 import com.grid.pos.data.item.Item
 import com.grid.pos.data.stockHeadInOut.header.StockHeaderInOut
-import com.grid.pos.interfaces.OnBarcodeResult
 import com.grid.pos.model.PopupModel
-import com.grid.pos.model.PopupState
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.model.StockInOutItemModel
-import com.grid.pos.model.ToastModel
 import com.grid.pos.model.WarehouseModel
 import com.grid.pos.ui.common.SearchableDropdownMenuEx
 import com.grid.pos.ui.common.UIImageButton
@@ -82,7 +78,6 @@ import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.utils.Utils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 @OptIn(
     ExperimentalMaterial3Api::class
@@ -91,7 +86,6 @@ import kotlinx.coroutines.withContext
 fun StockInOutView(
     modifier: Modifier = Modifier,
     navController: NavController? = null,
-    sharedViewModel: SharedViewModel,
     viewModel: StockInOutViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -100,8 +94,6 @@ fun StockInOutView(
     var triggerSaveCallback by remember { mutableStateOf(false) }
     var isEditBottomSheetVisible by remember { mutableStateOf(false) }
 
-    var popupState by remember { mutableStateOf(PopupState.BACK_PRESSED) }
-    var isPopupShown by remember { mutableStateOf(false) }
     var showDeleteButton by remember { mutableStateOf(false) }
 
     val scope = rememberCoroutineScope()
@@ -113,34 +105,12 @@ fun StockInOutView(
     var isLandscape by remember { mutableStateOf(orientation == Configuration.ORIENTATION_LANDSCAPE) }
     val keyboardController = LocalSoftwareKeyboardController.current
 
-    LaunchedEffect(state.warning) {
-        state.warning?.value?.let { message ->
-            scope.launch {
-                sharedViewModel.showToastMessage(ToastModel(
-                    message = message,
-                    onActionClick = {
-                        when (state.actionLabel) {
-                            "Settings" -> sharedViewModel.openAppStorageSettings()
-                        }
-                    },
-                    onDismiss = {
-                        viewModel.showWarning(null, null)
-                    }
-                ))
-            }
-        }
-    }
-
     LaunchedEffect(configuration) {
         snapshotFlow { configuration.orientation }.collect {
             isLandscape = it == Configuration.ORIENTATION_LANDSCAPE
             orientation = it
             isEditBottomSheetVisible = false
         }
-    }
-
-    LaunchedEffect(state.isLoading) {
-        sharedViewModel.showLoading(state.isLoading)
     }
 
     fun clear() {
@@ -150,7 +120,7 @@ fun StockInOutView(
 
     val isImeVisible = WindowInsets.ime.getBottom(LocalDensity.current) > 0
     fun handleBack() {
-        if (state.isLoading) {
+        if (viewModel.isLoading()) {
             return
         }
         if (isImeVisible) {
@@ -158,64 +128,21 @@ fun StockInOutView(
         } else if (isEditBottomSheetVisible) {
             isEditBottomSheetVisible = false
         } else if (viewModel.items.isNotEmpty()) {
-            popupState = PopupState.DISCARD_CHANGES
-            isPopupShown = true
+            viewModel.showPopup(
+                PopupModel().apply {
+                    onConfirmation = {
+                        viewModel.resetState()
+                        handleBack()
+                    }
+                    dialogText = "Are you sure you want to discard current transfer?"
+                    positiveBtnText = "Discard"
+                    negativeBtnText = "Cancel"
+                })
         } else {
             navController?.navigateUp()
         }
     }
 
-    LaunchedEffect(isPopupShown) {
-        sharedViewModel.showPopup(isPopupShown,
-            if (!isPopupShown) null else PopupModel().apply {
-                onDismissRequest = {
-                    isPopupShown = false
-                }
-                onConfirmation = {
-                    isPopupShown = false
-                    if (popupState != PopupState.DELETE_ITEM) {
-                        viewModel.resetState()
-                    }
-                    when (popupState) {
-                        PopupState.BACK_PRESSED -> {}
-
-                        PopupState.DISCARD_CHANGES -> {
-                            handleBack()
-                        }
-
-                        PopupState.CHANGE_ITEM -> {
-                            viewModel.pendingStockHeaderInOut?.let { stockHeaderInOut ->
-                                showDeleteButton = true
-                                viewModel.loadTransferDetails(stockHeaderInOut)
-                                viewModel.pendingStockHeaderInOut = null
-                            }
-
-                        }
-
-                        PopupState.DELETE_ITEM -> {
-                            viewModel.delete()
-                        }
-                    }
-                }
-                dialogText = when (popupState) {
-                    PopupState.DELETE_ITEM -> "Are you sure you want to Delete this transfer?"
-                    else -> "Are you sure you want to discard current transfer?"
-                }
-                positiveBtnText = when (popupState) {
-                    PopupState.DELETE_ITEM -> "Delete"
-                    else -> "Discard"
-                }
-                negativeBtnText = "Cancel"
-            })
-    }
-
-    LaunchedEffect(
-        state.clear
-    ) {
-        if (state.clear) {
-            clear()
-        }
-    }
     BackHandler {
         handleBack()
     }
@@ -356,8 +283,16 @@ fun StockInOutView(
                                 iconSize = 60.dp,
                                 isVertical = false
                             ) {
-                                popupState = PopupState.DELETE_ITEM
-                                isPopupShown = true
+                                viewModel.showPopup(
+                                    PopupModel().apply {
+                                        onConfirmation = {
+                                            viewModel.delete()
+                                        }
+                                        dialogText =
+                                            "Are you sure you want to Delete this transfer?"
+                                        positiveBtnText = "Delete"
+                                        negativeBtnText = "Cancel"
+                                    })
                             }
                         }
                     }
@@ -387,51 +322,7 @@ fun StockInOutView(
                                 modifier = modifier
                             )
                         }, onLeadingIconClick = {
-                            scope.launch(Dispatchers.Main) {
-                                if (state.items.isEmpty()) {
-                                    sharedViewModel.showLoading(true)
-                                    viewModel.fetchItems(true)
-                                }
-                                sharedViewModel.launchBarcodeScanner(false,
-                                    ArrayList(state.items),
-                                    object : OnBarcodeResult {
-                                        override fun OnBarcodeResult(barcodesList: List<Any>) {
-                                            if (barcodesList.isNotEmpty()) {
-                                                sharedViewModel.showLoading(true)
-                                                scope.launch {
-                                                    val map: Map<Item, Int> =
-                                                        barcodesList.groupingBy { item -> item as Item }
-                                                            .eachCount()
-
-                                                    map.forEach { (item, count) ->
-                                                        if (!item.itemBarcode.isNullOrEmpty()) {
-                                                            withContext(Dispatchers.IO) {
-                                                                sharedViewModel.updateRealItemPrice(
-                                                                    item
-                                                                )
-                                                            }
-                                                            val stockInOutItem =
-                                                                StockInOutItemModel()
-                                                            stockInOutItem.setItem(item)
-                                                            stockInOutItem.stockInOut.stockInOutQty =
-                                                                count.toDouble()
-                                                            viewModel.items.add(stockInOutItem)
-                                                        }
-                                                    }
-                                                    withContext(Dispatchers.Main) {
-                                                        sharedViewModel.showLoading(false)
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    },
-                                    onPermissionDenied = {
-                                        viewModel.showWarning(
-                                            "Permission Denied",
-                                            "Settings"
-                                        )
-                                    })
-                            }
+                            viewModel.launchBarcodeScanner()
                         }) { item ->
                         item as Item
                         val stockInOutItem =
@@ -515,11 +406,18 @@ fun StockInOutView(
                     }
                 ) { stockHeaderInOut ->
                     stockHeaderInOut as StockHeaderInOut
-
                     if (viewModel.items.isNotEmpty()) {
-                        viewModel.pendingStockHeaderInOut = stockHeaderInOut
-                        popupState = PopupState.CHANGE_ITEM
-                        isPopupShown = true
+                        viewModel.showPopup(
+                            PopupModel().apply {
+                                onConfirmation = {
+                                    viewModel.resetState()
+                                    showDeleteButton = true
+                                    viewModel.loadTransferDetails(stockHeaderInOut)
+                                }
+                                dialogText = "Are you sure you want to discard current transfer?"
+                                positiveBtnText = "Discard"
+                                negativeBtnText = "Cancel"
+                            })
                     } else {
                         showDeleteButton = true
                         viewModel.loadTransferDetails(stockHeaderInOut)

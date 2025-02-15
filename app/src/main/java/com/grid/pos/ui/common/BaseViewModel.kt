@@ -57,6 +57,10 @@ open class BaseViewModel(
         sharedViewModel.navigateTo(destination)
     }
 
+    fun changeAppOrientation(orientationType: String) {
+        sharedViewModel.changeAppOrientation(orientationType)
+    }
+
     fun showWarning(
         warning: String,
         action: String? = null,

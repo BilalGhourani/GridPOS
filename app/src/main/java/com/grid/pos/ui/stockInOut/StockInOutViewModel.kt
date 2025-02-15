@@ -2,20 +2,20 @@ package com.grid.pos.ui.stockInOut
 
 import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.viewModelScope
+import com.grid.pos.SharedViewModel
 import com.grid.pos.data.item.Item
 import com.grid.pos.data.item.ItemRepository
 import com.grid.pos.data.settings.SettingsRepository
 import com.grid.pos.data.stockHeadInOut.header.StockHeaderInOut
 import com.grid.pos.data.stockInOut.StockInOutRepository
 import com.grid.pos.data.stockInOut.header.StockHeaderInOutRepository
-import com.grid.pos.model.Event
+import com.grid.pos.interfaces.OnBarcodeResult
 import com.grid.pos.model.StockInOutItemModel
 import com.grid.pos.ui.common.BaseViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -25,15 +25,16 @@ class StockInOutViewModel @Inject constructor(
     private val itemRepository: ItemRepository,
     private val stockHeaderInOutRepository: StockHeaderInOutRepository,
     private val stockInOutRepository: StockInOutRepository,
-    private val settingsRepository: SettingsRepository
-) : BaseViewModel() {
+    private val settingsRepository: SettingsRepository,
+    private val sharedViewModel: SharedViewModel
+) : BaseViewModel(sharedViewModel) {
 
     private val _state = MutableStateFlow(StockInOutState())
     val state: MutableStateFlow<StockInOutState> = _state
 
-    var stockIOTransCode: String? = null
+    private var stockIOTransCode: String? = null
     var selectedItemIndex: Int = 0
-    var pendingStockHeaderInOut: StockHeaderInOut? = null
+
     private var _stockHeaderInOutState = MutableStateFlow(StockHeaderInOut())
     var stockHeaderInOutState = _stockHeaderInOutState.asStateFlow()
     val items = mutableStateListOf<StockInOutItemModel>()
@@ -51,29 +52,24 @@ class StockInOutViewModel @Inject constructor(
     }
 
     fun resetState() {
-        state.update {
-            it.copy(
-                warning = null,
-                isLoading = false,
-                clear = false
-            )
-        }
         items.clear()
         deletedItems.clear()
         updateStockHeaderInOut(StockHeaderInOut())
     }
 
+    suspend fun updateRealItemPrice(item: Item) {
+        sharedViewModel.updateRealItemPrice(item)
+    }
+
     fun fetchTransfers() {
-        state.value = state.value.copy(
-            isLoading = true
-        )
+        showLoading(true)
         viewModelScope.launch(Dispatchers.IO) {
             val listOfTransfer = stockHeaderInOutRepository.getAllStockHeaderInOuts()
             withContext(Dispatchers.Main) {
                 state.value = state.value.copy(
-                    stockHeaderInOutList = listOfTransfer,
-                    isLoading = false
+                    stockHeaderInOutList = listOfTransfer
                 )
+                showLoading(false)
             }
         }
     }
@@ -81,9 +77,7 @@ class StockInOutViewModel @Inject constructor(
     fun loadTransferDetails(
         stockHeaderInOut: StockHeaderInOut
     ) {
-        state.value = state.value.copy(
-            isLoading = true
-        )
+        showLoading(true)
         updateStockHeaderInOut(stockHeaderInOut)
         viewModelScope.launch(Dispatchers.IO) {
             if (state.value.items.isEmpty()) {
@@ -108,9 +102,7 @@ class StockInOutViewModel @Inject constructor(
             withContext(Dispatchers.Main) {
                 items.clear()
                 items.addAll(stockInOutItemModel)
-                state.value = state.value.copy(
-                    isLoading = false
-                )
+                showLoading(false)
             }
         }
     }
@@ -118,23 +110,17 @@ class StockInOutViewModel @Inject constructor(
     suspend fun fetchItems(withLoading: Boolean = true) {
         if (withLoading) {
             withContext(Dispatchers.Main) {
-                state.value = state.value.copy(
-                    isLoading = true
-                )
+                showLoading(true)
             }
         }
         withContext(Dispatchers.IO) {
             val listOfItems = itemRepository.getAllItems()
             withContext(Dispatchers.Main) {
+                state.value = state.value.copy(
+                    items = listOfItems
+                )
                 if (withLoading) {
-                    state.value = state.value.copy(
-                        items = listOfItems,
-                        isLoading = false
-                    )
-                } else {
-                    state.value = state.value.copy(
-                        items = listOfItems
-                    )
+                    showLoading(false)
                 }
             }
         }
@@ -143,24 +129,18 @@ class StockInOutViewModel @Inject constructor(
     suspend fun fetchWarehouses(withLoading: Boolean = true) {
         if (withLoading) {
             withContext(Dispatchers.Main) {
-                state.value = state.value.copy(
-                    isLoading = true
-                )
+                showLoading(true)
             }
         }
         withContext(Dispatchers.IO) {
             val listOfWarehouses = settingsRepository.getAllWarehouses()
             withContext(Dispatchers.Main) {
                 if (withLoading) {
-                    state.value = state.value.copy(
-                        warehouses = listOfWarehouses,
-                        isLoading = false
-                    )
-                } else {
-                    state.value = state.value.copy(
-                        warehouses = listOfWarehouses,
-                    )
+                    showLoading(false)
                 }
+                state.value = state.value.copy(
+                    warehouses = listOfWarehouses,
+                )
             }
         }
     }
@@ -168,24 +148,18 @@ class StockInOutViewModel @Inject constructor(
     suspend fun fetchDivisions(withLoading: Boolean = true) {
         if (withLoading) {
             withContext(Dispatchers.Main) {
-                state.value = state.value.copy(
-                    isLoading = true
-                )
+                showLoading(true)
             }
         }
         withContext(Dispatchers.IO) {
             val listOfDivisions = settingsRepository.getAllDivisions()
             withContext(Dispatchers.Main) {
                 if (withLoading) {
-                    state.value = state.value.copy(
-                        divisions = listOfDivisions,
-                        isLoading = false
-                    )
-                } else {
-                    state.value = state.value.copy(
-                        divisions = listOfDivisions,
-                    )
+                    showLoading(false)
                 }
+                state.value = state.value.copy(
+                    divisions = listOfDivisions,
+                )
             }
         }
     }
@@ -193,38 +167,19 @@ class StockInOutViewModel @Inject constructor(
     suspend fun fetchTransactionTypes(withLoading: Boolean = true) {
         if (withLoading) {
             withContext(Dispatchers.Main) {
-                state.value = state.value.copy(
-                    isLoading = true
-                )
+                showLoading(true)
             }
         }
         withContext(Dispatchers.IO) {
             val transactionTypeList = settingsRepository.getTransactionTypes("Stock InOut")
             withContext(Dispatchers.Main) {
                 if (withLoading) {
-                    state.value = state.value.copy(
-                        transactionTypes = transactionTypeList,
-                        isLoading = false
-                    )
-                } else {
-                    state.value = state.value.copy(
-                        transactionTypes = transactionTypeList,
-                    )
+                    showLoading(false)
                 }
+                state.value = state.value.copy(
+                    transactionTypes = transactionTypeList,
+                )
             }
-        }
-    }
-
-    fun showWarning(
-        warning: String?,
-        action: String? = null
-    ) {
-        viewModelScope.launch(Dispatchers.Main) {
-            state.value = state.value.copy(
-                warning = if (warning.isNullOrEmpty()) null else Event(warning),
-                actionLabel = action,
-                isLoading = false
-            )
         }
     }
 
@@ -245,9 +200,7 @@ class StockInOutViewModel @Inject constructor(
             showWarning("Please select two different warehouses!")
             return
         }
-        state.value = state.value.copy(
-            isLoading = true
-        )
+        showLoading(true)
         viewModelScope.launch(Dispatchers.IO) {
             val stockHInOut = stockHeaderInOutState.value.copy()
             val succeed: Boolean
@@ -290,17 +243,13 @@ class StockInOutViewModel @Inject constructor(
             }
             if (succeed) {
                 withContext(Dispatchers.Main) {
-                    state.value = state.value.copy(
-                        isLoading = false,
-                        warning = Event("data saved successfully."),
-                        clear = true
-                    )
+                    resetState()
+                    showLoading(false)
+                    showWarning("data saved successfully.")
                 }
             } else {
                 withContext(Dispatchers.Main) {
-                    state.value = state.value.copy(
-                        isLoading = false
-                    )
+                    showLoading(false)
                 }
             }
         }
@@ -326,9 +275,7 @@ class StockInOutViewModel @Inject constructor(
     }
 
     fun delete() {
-        state.value = state.value.copy(
-            isLoading = true
-        )
+        showLoading(true)
         viewModelScope.launch(Dispatchers.IO) {
             val stockHInOut = stockHeaderInOutState.value.copy()
             val dataModel = stockHeaderInOutRepository.delete(stockHInOut)
@@ -344,19 +291,61 @@ class StockInOutViewModel @Inject constructor(
                     stockInOutRepository.delete(it.stockInOut)
                 }
                 withContext(Dispatchers.Main) {
-                    state.value = state.value.copy(
-                        isLoading = false,
-                        warning = Event("data deleted successfully."),
-                        clear = true
-                    )
+                    resetState()
+                    showLoading(false)
+                    showWarning("data deleted successfully.")
                 }
             } else {
                 withContext(Dispatchers.Main) {
-                    state.value = state.value.copy(
-                        isLoading = false
-                    )
+                    showLoading(false)
                 }
             }
+        }
+    }
+
+    fun launchBarcodeScanner() {
+        viewModelScope.launch(Dispatchers.Main) {
+            if (state.value.items.isEmpty()) {
+                showLoading(true)
+                fetchItems(true)
+            }
+            sharedViewModel.launchBarcodeScanner(false,
+                ArrayList(state.value.items),
+                object : OnBarcodeResult {
+                    override fun OnBarcodeResult(barcodesList: List<Any>) {
+                        if (barcodesList.isNotEmpty()) {
+                            showLoading(true)
+                            viewModelScope.launch(Dispatchers.IO) {
+                                val map: Map<Item, Int> =
+                                    barcodesList.groupingBy { item -> item as Item }
+                                        .eachCount()
+                                val itemsToAdd = mutableListOf<StockInOutItemModel>()
+                                map.forEach { (item, count) ->
+                                    if (!item.itemBarcode.isNullOrEmpty()) {
+                                        updateRealItemPrice(item)
+                                        val stockInOutItem = StockInOutItemModel()
+                                        stockInOutItem.setItem(item)
+                                        stockInOutItem.stockInOut.stockInOutQty =
+                                            count.toDouble()
+                                        itemsToAdd.add(stockInOutItem)
+                                    }
+                                }
+                                withContext(Dispatchers.Main) {
+                                    items.addAll(itemsToAdd)
+                                    showLoading(false)
+                                }
+                            }
+                        }
+                    }
+                },
+                onPermissionDenied = {
+                    showWarning(
+                        "Permission Denied", "Settings"
+                    ) {
+                        sharedViewModel.openAppStorageSettings()
+
+                    }
+                })
         }
     }
 
