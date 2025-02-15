@@ -33,6 +33,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.grid.pos.ActivityUIEvent
 import com.grid.pos.R
@@ -167,12 +168,14 @@ class MainActivity : ComponentActivity() {
         popupState.value = true
     }
 
+    private lateinit var mNavController: NavHostController
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         connectivityManager = getSystemService(ConnectivityManager::class.java)
         window.setBackgroundDrawableResource(R.drawable.white_background)
         setContent {
-            val navController = rememberNavController()
+            mNavController = rememberNavController()
             GridPOSTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
@@ -182,7 +185,7 @@ class MainActivity : ComponentActivity() {
                         modifier = Modifier
                             .background(color = White)
                             .padding(0.dp),
-                        navController = navController,
+                        navController = mNavController,
                         sharedViewModel = sharedViewModel,
                         startDestination = "LoginView"
                     )
@@ -318,6 +321,12 @@ class MainActivity : ComponentActivity() {
                     if (popupState.value != sharedEvent.show) {
                         popupModel = sharedEvent.popupModel
                         popupState.value = sharedEvent.show
+                    }
+                }
+
+                is ActivityUIEvent.NavigateTo -> {
+                    if (::mNavController.isInitialized) {
+                        mNavController.navigate(sharedEvent.destination)
                     }
                 }
 
