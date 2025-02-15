@@ -18,8 +18,8 @@ import com.grid.pos.model.ItemGroupModel
 import com.grid.pos.model.PopupModel
 import com.grid.pos.model.ReportResult
 import com.grid.pos.model.SettingsModel
-import com.grid.pos.model.ToastModel
 import com.grid.pos.ui.common.BaseViewModel
+import com.grid.pos.utils.FileUtils
 import com.grid.pos.utils.PrinterUtils
 import com.grid.pos.utils.Utils
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -39,14 +39,13 @@ class ManageItemsViewModel @Inject constructor(
     private val invoiceRepository: InvoiceRepository,
     private val settingsRepository: SettingsRepository,
     private val sharedViewModel: SharedViewModel
-) : BaseViewModel() {
+) : BaseViewModel(sharedViewModel) {
 
     private val _state = MutableStateFlow(ManageItemsState())
     val state: MutableStateFlow<ManageItemsState> = _state
 
-
-    var currentITem: Item = Item()
-    var oldImage: String? = null
+    private var currentITem: Item = Item()
+    private var oldImage: String? = null
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
@@ -71,8 +70,7 @@ class ManageItemsViewModel @Inject constructor(
             itemCurrencyCode = firstCurrency.second,
         )
         state.value = state.value.copy(
-            item = currentITem.copy(),
-            clear = false
+            item = currentITem.copy()
         )
     }
 
@@ -82,6 +80,30 @@ class ManageItemsViewModel @Inject constructor(
 
     fun isAnyChangeDone(): Boolean {
         return state.value.item.didChanged(currentITem)
+    }
+
+    fun checkChanges(context: Context, callback: () -> Unit) {
+        if (isLoading()) {
+            return
+        }
+        if (isAnyChangeDone()) {
+            showPopup(PopupModel().apply {
+                onDismissRequest = {
+                    resetState()
+                    callback.invoke()
+                }
+                onConfirmation = {
+                    save(context) {
+                        checkChanges(context, callback)
+                    }
+                }
+                dialogText = "Do you want to save your changes"
+                positiveBtnText = "Save"
+                negativeBtnText = "Close"
+            })
+        } else {
+            callback.invoke()
+        }
     }
 
     fun shouldDisableCostAndQty(): Boolean {
@@ -101,7 +123,25 @@ class ManageItemsViewModel @Inject constructor(
         }
     }
 
-    fun selectionPrerequisite(succeeded: () -> Unit) {
+    fun selectItem(item: Item) {
+        showLoading(true)
+        selectionPrerequisite {
+            currentITem = item.copy()
+            updateState(
+                state.value.copy(
+                    item = item.copy(), itemOpenQtyStr = item.itemOpenQty.toString(),
+                    itemOpenCostStr = item.itemOpenCost.toString(),
+                    itemUnitPriceStr = item.itemUnitPrice.toString(),
+                    itemTaxStr = item.itemTax.toString(),
+                    itemTax1Str = item.itemTax1.toString(),
+                    itemTax2Str = item.itemTax2.toString(),
+                )
+            )
+            showLoading(false)
+        }
+    }
+
+    private fun selectionPrerequisite(succeeded: () -> Unit) {
         val familiesSize = state.value.families.size
         val printersSize = state.value.printers.size
         if (familiesSize == 0 || printersSize == 0) {
@@ -192,34 +232,7 @@ class ManageItemsViewModel @Inject constructor(
         }
     }
 
-    fun isLoading(): Boolean {
-        return sharedViewModel.isLoading
-    }
-
-    fun showPopup(popupModel: PopupModel) {
-        sharedViewModel.showPopup(true, popupModel)
-    }
-
-    fun showLoading(boolean: Boolean) {
-        sharedViewModel.showLoading(boolean)
-    }
-
-    fun addReportResult(reportResults: List<ReportResult>){
-        sharedViewModel.reportsToPrint.clear()
-        sharedViewModel.reportsToPrint.addAll(reportResults)
-    }
-
-    fun showWarning(
-        warning: String,
-        action: String? = null,
-        onActionClicked: () -> Unit = {}
-    ) {
-        sharedViewModel.showToastMessage(
-            ToastModel(message = warning, actionButton = action, onActionClick = onActionClicked)
-        )
-    }
-
-    fun save() {
+    fun save(context: Context, callback: (() -> Unit)? = null) {
         val item = state.value.item
         if (item.itemName.isNullOrEmpty() || item.itemFaId.isNullOrEmpty()) {
             showWarning("Please fill item name and family")
@@ -230,6 +243,11 @@ class ManageItemsViewModel @Inject constructor(
             return
         }
         showLoading(true)
+        oldImage?.let { old ->
+            FileUtils.deleteFile(
+                context, old
+            )
+        }
         val isInserting = item.isNew()
         item.itemUnitPrice = Utils.roundDoubleValue(
             item.itemUnitPrice,
@@ -255,12 +273,13 @@ class ManageItemsViewModel @Inject constructor(
                     }
                     withContext(Dispatchers.Main) {
                         state.value = state.value.copy(
-                            items = items,
-                            clear = true
+                            items = items
                         )
+                        resetState()
+                        showLoading(false)
+                        showWarning("Item saved successfully.")
+                        callback?.invoke()
                     }
-                    showLoading(false)
-                    showWarning("Item saved successfully.")
                 } else {
                     withContext(Dispatchers.Main) {
                         showLoading(false)
@@ -285,11 +304,12 @@ class ManageItemsViewModel @Inject constructor(
                     }
                     withContext(Dispatchers.Main) {
                         state.value = state.value.copy(
-                            items = items,
-                            clear = true
+                            items = items
                         )
+                        resetState()
                         showLoading(false)
                         showWarning("Item saved successfully.")
+                        callback?.invoke()
                     }
                 } else {
                     withContext(Dispatchers.Main) {
@@ -300,7 +320,7 @@ class ManageItemsViewModel @Inject constructor(
         }
     }
 
-    fun delete() {
+    fun delete(context: Context) {
         val item = state.value.item
         if (item.itemId.isEmpty()) {
             showWarning("Please select an Item to delete")
@@ -313,15 +333,25 @@ class ManageItemsViewModel @Inject constructor(
                 showWarning("You can't delete this Item,because it has related data!")
                 return@launch
             }
+            oldImage?.let { old ->
+                FileUtils.deleteFile(
+                    context, old
+                )
+            }
+            if (!state.value.item.itemImage.isNullOrEmpty()) {
+                FileUtils.deleteFile(
+                    context, state.value.item.itemImage!!
+                )
+            }
             val dataModel = itemRepository.delete(item)
             if (dataModel.succeed) {
                 val items = state.value.items
                 items.remove(item)
                 withContext(Dispatchers.Main) {
                     state.value = state.value.copy(
-                        items = items,
-                        clear = true
+                        items = items
                     )
+                    resetState()
                     showLoading(false)
                     showWarning("successfully deleted.")
                 }
@@ -333,11 +363,42 @@ class ManageItemsViewModel @Inject constructor(
         }
     }
 
-    suspend fun generateBarcode(): String {
-        return itemRepository.generateBarcode()
+    fun checkAndGenerateBarcode(context: Context, callback: () -> Unit) {
+        showLoading(true)
+        viewModelScope.launch(Dispatchers.IO) {
+            val barcode = if (state.value.item.itemBarcode.isNullOrEmpty()) {
+                itemRepository.generateBarcode()
+            } else {
+                state.value.item.itemBarcode
+            }
+            if (!barcode.isNullOrEmpty()) {
+                withContext(Dispatchers.Main) {
+                    updateState(
+                        state.value.copy(
+                            item = state.value.item.copy(
+                                itemBarcode = barcode
+                            )
+                        )
+
+                    )
+                }
+                val reportResult = prepareItemBarcodeReport(
+                    context, state.value.item
+                )
+//                                        PrinterUtils.printReport(
+//                                            context,
+//                                            reportResult
+//                                        )
+                withContext(Dispatchers.Main) {
+                    showLoading(false)
+                    addReportResult(listOf(reportResult))
+                    callback.invoke()
+                }
+            }
+        }
     }
 
-    suspend fun prepareItemBarcodeReport(
+    private suspend fun prepareItemBarcodeReport(
         context: Context,
         item: Item
     ): ReportResult {
@@ -410,7 +471,7 @@ class ManageItemsViewModel @Inject constructor(
         }
     }
 
-    fun launchBarcodeScanner(callback:(List<Any>)->Unit){
+    fun launchBarcodeScanner(callback: (List<Any>) -> Unit) {
         sharedViewModel.launchBarcodeScanner(true,
             ArrayList(state.value.items),
             object : OnBarcodeResult {
@@ -427,7 +488,7 @@ class ManageItemsViewModel @Inject constructor(
             })
     }
 
-    fun launchGalleryPicker(context:Context){
+    fun launchGalleryPicker(context: Context) {
         sharedViewModel.launchGalleryPicker(mediaType = ActivityResultContracts.PickVisualMedia.ImageOnly,
             object : OnGalleryResult {
                 override fun onGalleryResult(uris: List<Uri>) {

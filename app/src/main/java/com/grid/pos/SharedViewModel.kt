@@ -4,10 +4,10 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.grid.pos.data.FirebaseWrapper
 import com.grid.pos.data.SQLServerWrapper
-import com.grid.pos.data.company.CompanyRepository
 import com.grid.pos.data.currency.CurrencyRepository
 import com.grid.pos.data.invoiceHeader.InvoiceHeader
 import com.grid.pos.data.item.Item
@@ -19,7 +19,6 @@ import com.grid.pos.model.ReportCountry
 import com.grid.pos.model.ReportResult
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.model.ToastModel
-import com.grid.pos.ui.common.BaseViewModel
 import com.grid.pos.utils.FileUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -33,7 +32,7 @@ import javax.inject.Inject
 class SharedViewModel @Inject constructor(
     private val settingsRepository: SettingsRepository,
     private val currencyRepository: CurrencyRepository
-) : BaseViewModel() {
+) : ViewModel() {
     private val _mainActivityEvent = Channel<ActivityUIEvent>()
     val mainActivityEvent = _mainActivityEvent.receiveAsFlow()
 
@@ -65,7 +64,9 @@ class SharedViewModel @Inject constructor(
 
     suspend fun initiateValues() {
         if (SettingsModel.currentUser != null) {
-            openConnectionIfNeeded()
+            if (SettingsModel.isConnectedToSqlServer()) {
+                SQLServerWrapper.openConnection()
+            }
             fetchCurrencies()
             fetchSettings()
         }
@@ -260,7 +261,11 @@ class SharedViewModel @Inject constructor(
         tempInvoiceHeader = null
         shouldLoadInvoice = false
         isFromTable = false
-        closeConnectionIfNeeded()
+        viewModelScope.launch(Dispatchers.IO) {
+            if (SettingsModel.isConnectedToSqlServer()) {
+                SQLServerWrapper.closeConnection()
+            }
+        }
     }
 
     fun copyToInternalStorage(

@@ -1,10 +1,11 @@
 package com.grid.pos.ui.currency
 
 import androidx.lifecycle.viewModelScope
+import com.grid.pos.SharedViewModel
 import com.grid.pos.data.currency.Currency
 import com.grid.pos.data.currency.CurrencyRepository
 import com.grid.pos.data.invoiceHeader.InvoiceHeaderRepository
-import com.grid.pos.model.Event
+import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.BaseViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -18,8 +19,9 @@ import javax.inject.Inject
 @HiltViewModel
 class ManageCurrenciesViewModel @Inject constructor(
     private val currencyRepository: CurrencyRepository,
-    private val invoiceHeaderRepository: InvoiceHeaderRepository
-) : BaseViewModel() {
+    private val invoiceHeaderRepository: InvoiceHeaderRepository,
+    private val sharedViewModel: SharedViewModel
+) : BaseViewModel(sharedViewModel) {
 
     private val _state = MutableStateFlow(ManageCurrenciesState())
     val state: MutableStateFlow<ManageCurrenciesState> = _state
@@ -38,6 +40,31 @@ class ManageCurrenciesViewModel @Inject constructor(
         return state.value.currency.didChanged(currentCurrency)
     }
 
+    fun checkChanges(callback: () -> Unit) {
+        if (sharedViewModel.isLoading) {
+            return
+        }
+        if (isAnyChangeDone()) {
+            sharedViewModel.showPopup(true,
+                PopupModel().apply {
+                    onDismissRequest = {
+                        currentCurrency = state.value.currency
+                        callback.invoke()
+                    }
+                    onConfirmation = {
+                        saveCurrency {
+                            checkChanges(callback)
+                        }
+                    }
+                    dialogText = "Do you want to save your changes"
+                    positiveBtnText = "Save"
+                    negativeBtnText = "Close"
+                })
+        } else {
+            callback.invoke()
+        }
+    }
+
     private fun fetchCurrencies() {
         SettingsModel.currentCurrency?.let {
             currentCurrency = it.copy()
@@ -54,9 +81,7 @@ class ManageCurrenciesViewModel @Inject constructor(
             }
             return
         }
-        state.value = state.value.copy(
-            isLoading = true
-        )
+        showLoading(true)
         viewModelScope.launch(Dispatchers.IO) {
             openConnectionIfNeeded()
             val currencies = currencyRepository.getAllCurrencies()
@@ -72,39 +97,30 @@ class ManageCurrenciesViewModel @Inject constructor(
                         currencyRateStr = currency.currencyRate.toString()
                     )
                 )
-                state.value = state.value.copy(
-                    isLoading = false
-                )
+                showLoading(false)
             }
         }
     }
 
-    fun saveCurrency() {
+    fun saveCurrency(callback: (() -> Unit)?=null) {
         val currency = state.value.currency
         if (currency.currencyCode1.isNullOrEmpty() || currency.currencyName1.isNullOrEmpty() || currency.currencyCode2.isNullOrEmpty() || currency.currencyName2.isNullOrEmpty() || currency.currencyRate.isNaN()) {
-            state.value = state.value.copy(
-                warning = Event(
-                    "Please fill all inputs"
-                ),
-                isLoading = false
-            )
+            showLoading(false)
+            showWarning("Please fill all inputs")
             return
         }
-        state.value = state.value.copy(
-            isLoading = true
-        )
-        currentCurrency = currency
-        val isInserting = currency.isNew()
         CoroutineScope(Dispatchers.IO).launch {
             if (hasRelations(currency)) {
                 withContext(Dispatchers.Main) {
-                    state.value = state.value.copy(
-                        warning = Event("You can't update the Currency code!"),
-                        isLoading = false
-                    )
+                    showWarning("You can't update the Currency code!")
                 }
                 return@launch
             }
+            withContext(Dispatchers.Main) {
+                showLoading(true)
+            }
+            currentCurrency = currency
+            val isInserting = currency.isNew()
             if (isInserting) {
                 currency.prepareForInsert()
                 val dataModel = currencyRepository.insert(currency)
@@ -112,18 +128,13 @@ class ManageCurrenciesViewModel @Inject constructor(
                     val addedCurr = dataModel.data as Currency
                     SettingsModel.currentCurrency = addedCurr.copy()
                     withContext(Dispatchers.Main) {
-                        state.value = state.value.copy(
-                            isLoading = false,
-                            isSaved = true,
-                            warning = Event("Currency saved successfully."),
-                        )
+                        showLoading(false)
+                        showWarning("Currency saved successfully.")
+                        callback?.invoke()
                     }
                 } else {
                     withContext(Dispatchers.Main) {
-                        state.value = state.value.copy(
-                            isLoading = false,
-                            warning = null,
-                        )
+                        showLoading(false)
                     }
                 }
             } else {
@@ -131,18 +142,13 @@ class ManageCurrenciesViewModel @Inject constructor(
                 if (dataModel.succeed) {
                     SettingsModel.currentCurrency = currency.copy()
                     withContext(Dispatchers.Main) {
-                        state.value = state.value.copy(
-                            warning = Event("Currency saved successfully."),
-                            isSaved = true,
-                            isLoading = false
-                        )
+                        showLoading(false)
+                        showWarning("Currency saved successfully.")
+                        callback?.invoke()
                     }
                 } else {
                     withContext(Dispatchers.Main) {
-                        state.value = state.value.copy(
-                            isLoading = false,
-                            warning = null,
-                        )
+                        showLoading(false)
                     }
                 }
             }

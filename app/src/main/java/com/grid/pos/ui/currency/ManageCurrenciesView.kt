@@ -24,11 +24,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -44,10 +41,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.grid.pos.R
-import com.grid.pos.SharedViewModel
-import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
-import com.grid.pos.model.ToastModel
 import com.grid.pos.ui.common.UIImageButton
 import com.grid.pos.ui.common.UITextField
 import com.grid.pos.ui.theme.GridPOSTheme
@@ -60,7 +54,6 @@ import com.grid.pos.utils.Utils
 fun ManageCurrenciesView(
     modifier: Modifier = Modifier,
     navController: NavController? = null,
-    sharedViewModel: SharedViewModel,
     viewModel: ManageCurrenciesViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -73,52 +66,15 @@ fun ManageCurrenciesView(
     val curName2DecFocusRequester = remember { FocusRequester() }
     val rateFocusRequester = remember { FocusRequester() }
 
-    var saveAndBack by remember { mutableStateOf(false) }
     fun handleBack() {
-        if (state.isLoading) {
-            return
+        viewModel.checkChanges {
+            navController?.navigateUp()
         }
-        if (viewModel.isAnyChangeDone()) {
-            sharedViewModel.showPopup(true,
-                PopupModel().apply {
-                    onDismissRequest = {
-                        viewModel.currentCurrency = state.currency
-                        handleBack()
-                    }
-                    onConfirmation = {
-                        saveAndBack = true
-                        viewModel.saveCurrency()
-                    }
-                    dialogText = "Do you want to save your changes"
-                    positiveBtnText = "Save"
-                    negativeBtnText = "Close"
-                })
-            return
-        }
-        viewModel.closeConnectionIfNeeded()
-        navController?.navigateUp()
     }
     BackHandler {
         handleBack()
     }
 
-    LaunchedEffect(state.warning) {
-        state.warning?.value?.let { message ->
-            sharedViewModel.showToastMessage(
-                ToastModel(
-                    message = message
-                )
-            )
-        }
-    }
-    LaunchedEffect(state.isLoading) {
-        sharedViewModel.showLoading(state.isLoading)
-    }
-    LaunchedEffect(state.isSaved) {
-        if (state.isSaved && saveAndBack) {
-            handleBack()
-        }
-    }
     GridPOSTheme {
         Scaffold(containerColor = SettingsModel.backgroundColor,
             topBar = {

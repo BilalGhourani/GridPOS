@@ -22,6 +22,5 @@ data class ManageItemsState(
     val itemOpenQtyStr: String = "",
     val itemOpenCostStr: String = "",
 
-    val isConnectingToSQLServer: Boolean = false,
-    val clear: Boolean = false,
+    val isConnectingToSQLServer: Boolean = false
 )

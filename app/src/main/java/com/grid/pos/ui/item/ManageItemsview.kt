@@ -31,7 +31,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -59,7 +58,6 @@ import com.grid.pos.data.item.Item
 import com.grid.pos.data.posPrinter.PosPrinter
 import com.grid.pos.model.CurrencyModel
 import com.grid.pos.model.ItemGroupModel
-import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.ColorPickerPopup
 import com.grid.pos.ui.common.SearchableDropdownMenuEx
@@ -69,7 +67,6 @@ import com.grid.pos.ui.common.UITextField
 import com.grid.pos.ui.settings.ColorPickerType
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.utils.Extension.toHexCode
-import com.grid.pos.utils.FileUtils
 import com.grid.pos.utils.Utils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -106,69 +103,12 @@ fun ManageItemsView(
 
     val scope = rememberCoroutineScope()
 
-    fun fillItemInputs(item: Item) {
-        viewModel.showLoading(true)
-        viewModel.selectionPrerequisite {
-            viewModel.currentITem = item.copy()
-            viewModel.updateState(
-                state.copy(
-                    item = item.copy(), itemOpenQtyStr = item.itemOpenQty.toString(),
-                    itemOpenCostStr = item.itemOpenCost.toString(),
-                    itemUnitPriceStr = item.itemUnitPrice.toString(),
-                    itemTaxStr = item.itemTax.toString(),
-                    itemTax1Str = item.itemTax1.toString(),
-                    itemTax2Str = item.itemTax2.toString(),
-                )
-            )
-            viewModel.showLoading(false)
-        }
-    }
-
-    fun saveItem() {
-        viewModel.oldImage?.let { old ->
-            FileUtils.deleteFile(
-                context, old
-            )
-        }
-        viewModel.save()
-    }
-
-
-    var saveAndBack by remember { mutableStateOf(false) }
     fun handleBack() {
-        if (viewModel.isLoading()) {
-            return
+        viewModel.checkChanges(context) {
+            navController?.navigateUp()
         }
-        if (viewModel.isAnyChangeDone()) {
-            viewModel.showPopup(PopupModel().apply {
-                onDismissRequest = {
-                    viewModel.resetState()
-                    handleBack()
-                }
-                onConfirmation = {
-                    saveAndBack = true
-                    saveItem()
-                }
-                dialogText = "Do you want to save your changes"
-                positiveBtnText = "Save"
-                negativeBtnText = "Close"
-            })
-            return
-        }
-        navController?.navigateUp()
     }
 
-    fun clearAndBack() {
-        viewModel.resetState()
-        if (saveAndBack) {
-            handleBack()
-        }
-    }
-    LaunchedEffect(state.clear) {
-        if (state.clear) {
-            clearAndBack()
-        }
-    }
     BackHandler {
         handleBack()
     }
@@ -369,37 +309,8 @@ fun ManageItemsView(
                         },
                         leadingIcon = {
                             IconButton(onClick = {
-                                viewModel.showLoading(true)
-                                scope.launch(Dispatchers.IO) {
-                                    val barcode = if (state.item.itemBarcode.isNullOrEmpty()) {
-                                        viewModel.generateBarcode()
-                                    } else {
-                                        state.item.itemBarcode
-                                    }
-                                    if (!barcode.isNullOrEmpty()) {
-                                        withContext(Dispatchers.Main) {
-                                            viewModel.updateState(
-                                                state.copy(
-                                                    item = state.item.copy(
-                                                        itemBarcode = barcode
-                                                    )
-                                                )
-
-                                            )
-                                        }
-                                        val reportResult = viewModel.prepareItemBarcodeReport(
-                                            context, state.item
-                                        )
-//                                        PrinterUtils.printReport(
-//                                            context,
-//                                            reportResult
-//                                        )
-                                        withContext(Dispatchers.Main) {
-                                            viewModel.showLoading(false)
-                                            viewModel.addReportResult(listOf(reportResult))
-                                            navController?.navigate("UIWebView")
-                                        }
-                                    }
+                                viewModel.checkAndGenerateBarcode(context) {
+                                    navController?.navigate("UIWebView")
                                 }
 
                             }) {
@@ -757,7 +668,7 @@ fun ManageItemsView(
                             icon = R.drawable.save,
                             text = "Save"
                         ) {
-                            saveItem()
+                            viewModel.save(context)
                         }
 
                         UIImageButton(
@@ -767,17 +678,7 @@ fun ManageItemsView(
                             icon = R.drawable.delete,
                             text = "Delete"
                         ) {
-                            viewModel.oldImage?.let { old ->
-                                FileUtils.deleteFile(
-                                    context, old
-                                )
-                            }
-                            if (!state.item.itemImage.isNullOrEmpty()) {
-                                FileUtils.deleteFile(
-                                    context, state.item.itemImage!!
-                                )
-                            }
-                            viewModel.delete()
+                            viewModel.delete(context)
                         }
 
                         UIImageButton(
@@ -831,7 +732,7 @@ fun ManageItemsView(
                                             withContext(Dispatchers.Main) {
                                                 if (barcodeItem != null) {
                                                     collapseItemListState = true
-                                                    fillItemInputs(barcodeItem)
+                                                    viewModel.selectItem(barcodeItem)
                                                 } else {
                                                     barcodeSearchState = resp
                                                 }
@@ -849,7 +750,7 @@ fun ManageItemsView(
                         }
                     }) { item ->
                     item as Item
-                    fillItemInputs(item)
+                    viewModel.selectItem(item)
                 }
             }
         }
