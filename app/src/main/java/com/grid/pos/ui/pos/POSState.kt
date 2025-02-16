@@ -21,12 +21,4 @@ data class POSState(
     var users: MutableList<User> = mutableListOf(),
     var printers: MutableList<PosPrinter> = mutableListOf(),
     var selectedThirdParty: ThirdParty = ThirdParty(),
-
-    val orientation: Int = Configuration.ORIENTATION_PORTRAIT,
-) {
-
-    val isLandscape: Boolean
-        get() {
-            return orientation == Configuration.ORIENTATION_LANDSCAPE
-        }
-}
+)
