@@ -78,6 +78,15 @@ fun TablesView(
         viewModel.fetchAllTables()
     }
 
+    LaunchedEffect(
+        state.step
+    ) {
+        if (state.step == 1) {
+            tableNameFocusRequester.requestFocus()
+        } else {
+            clientsCountFocusRequester.requestFocus()
+        }
+    }
 
     fun handleBack() {
         if (viewModel.isLoading()) {
@@ -179,7 +188,6 @@ fun TablesView(
                     viewModel.filterTables(tabNo)
                 }
                 if (state.step > 1) {
-                    clientsCountFocusRequester.requestFocus()
                     UITextField(modifier = Modifier.padding(10.dp),
                         defaultValue = state.clientCount,
                         onFocusChanged = { focusState ->
@@ -204,8 +212,6 @@ fun TablesView(
                             )
                         )
                     }
-                } else {
-                    tableNameFocusRequester.requestFocus()
                 }
                 UIImageButton(
                     modifier = Modifier
