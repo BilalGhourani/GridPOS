@@ -70,30 +70,22 @@ class LoginViewModel @Inject constructor(
     }
 
     private suspend fun loginNow(username: String, password: String) {
-        val companyId = SettingsModel.getCompanyID()
-        if (companyId.isNullOrEmpty()) {
-            showLoading(false)
-            showWarning("your device is not connected to any company.", "Settings") {
-                navigateTo("SettingsView")
-            }
-            return
-        }
         withContext(Dispatchers.IO) {
-            SettingsModel.currentCompany = companyRepository.getCompanyById(companyId)
-            if (SettingsModel.currentCompany?.companySS == true) {
-                withContext(Dispatchers.Main) {
-                    showLoading(false)
-                    showWarning(SettingsModel.companyAccessWarning)
+            val companyId = SettingsModel.getCompanyID()
+            if (!companyId.isNullOrEmpty()) {
+                SettingsModel.currentCompany = companyRepository.getCompanyById(companyId ?: "")
+                if (SettingsModel.currentCompany?.companySS == true) {
+                    withContext(Dispatchers.Main) {
+                        showLoading(false)
+                        showWarning(SettingsModel.companyAccessWarning)
+                    }
+                    return@withContext
                 }
-                return@withContext
             }
             val loginResponse: LoginResponse = repository.getUserByCredentials(username, password)
             loginResponse.user?.let {
                 SettingsModel.currentUser = it
-                viewModelScope.launch(Dispatchers.Main) {
-                    showLoading(true)
-                    proceedWithLogin()
-                }
+                proceedWithLogin()
             } ?: run {
                 if (!loginResponse.error.isNullOrEmpty()) {
                     withContext(Dispatchers.Main) {
@@ -115,7 +107,7 @@ class LoginViewModel @Inject constructor(
                                 ) {
                                     navigateTo("ManageCompaniesView")
                                 }
-                            } else if (SettingsModel.localCompanyID.isNullOrEmpty()) {
+                            } else if (SettingsModel.getCompanyID().isNullOrEmpty()) {
                                 showWarning("select your current company to proceed!", "Settings") {
                                     navigateTo("SettingsView")
                                 }

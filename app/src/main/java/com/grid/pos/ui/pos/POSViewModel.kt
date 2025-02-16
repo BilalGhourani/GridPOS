@@ -470,19 +470,20 @@ class POSViewModel @Inject constructor(
             if (proceedToPrint) {
                 resetState()
                 addReportResult(reportResults)
+                showLoading(false)
                 callback.invoke()
             } else if (SettingsModel.autoPrintTickets) {
                 prepareAutoPrint(context) {
-                    showLoading(false)
                     resetState()
+                    showLoading(false)
                     if (sharedViewModel.isFromTable) {
                         sharedViewModel.isFromTable = false
                         callback.invoke()
                     }
                 }
             } else {
-                showLoading(false)
                 resetState()
+                showLoading(false)
                 if (sharedViewModel.isFromTable) {
                     sharedViewModel.isFromTable = false
                     callback.invoke()
@@ -548,6 +549,7 @@ class POSViewModel @Inject constructor(
                     )
                 )
                 addReportResult(reportResults)
+                resetState()
                 showLoading(false)
                 callback.invoke()
             }
