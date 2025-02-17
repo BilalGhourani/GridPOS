@@ -175,14 +175,6 @@ class SharedViewModel @Inject constructor(
         }
     }
 
-    fun navigateTo(destination: String) {
-        viewModelScope.launch {
-            _mainActivityEvent.send(
-                ActivityUIEvent.NavigateTo(destination)
-            )
-        }
-    }
-
     fun openAppStorageSettings() {
         viewModelScope.launch {
             _mainActivityEvent.send(ActivityUIEvent.OpenAppSettings)

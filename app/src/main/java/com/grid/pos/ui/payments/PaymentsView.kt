@@ -88,7 +88,9 @@ fun PaymentsView(
                         handleBack()
                     }
                     onConfirmation = {
-                        viewModel.save(context)
+                        viewModel.save(context){ destination ->
+                            navController?.navigate(destination)
+                        }
                     }
                     dialogText = "Do you want to save your changes"
                     positiveBtnText = "Save"
@@ -403,7 +405,9 @@ fun PaymentsView(
                             icon = R.drawable.save,
                             text = "Save"
                         ) {
-                            viewModel.save(context)
+                            viewModel.save(context){ destination ->
+                                navController?.navigate(destination)
+                            }
                         }
 
                         UIImageButton(

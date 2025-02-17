@@ -141,7 +141,8 @@ class PaymentsViewModel @Inject constructor(
     }
 
     fun save(
-        context: Context
+        context: Context,
+        callback: (String) -> Unit
     ) {
         val payment = state.value.payment
         if (payment.paymentThirdParty.isNullOrEmpty()) {
@@ -195,7 +196,7 @@ class PaymentsViewModel @Inject constructor(
                         sharedViewModel.reportsToPrint.clear()
                         sharedViewModel.reportsToPrint.add(reportResult)
                         resetState()
-                        navigateTo("UIWebView")
+                        callback.invoke("UIWebView")
                     }
                 } else {
                     withContext(Dispatchers.Main) {
@@ -228,7 +229,7 @@ class PaymentsViewModel @Inject constructor(
                         sharedViewModel.reportsToPrint.clear()
                         sharedViewModel.reportsToPrint.add(reportResult)
                         resetState()
-                        navigateTo("UIWebView")
+                        callback.invoke("UIWebView")
                     }
                 } else {
                     withContext(Dispatchers.Main) {

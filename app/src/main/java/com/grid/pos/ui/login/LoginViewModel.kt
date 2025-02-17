@@ -35,7 +35,7 @@ class LoginViewModel @Inject constructor(
         }
     }
 
-    fun login(context: Context) {
+    fun login(context: Context, callback: (String) -> Unit) {
         val username = usernameState.value.trim()
         val password = passwordState.value.trim()
         if (username.isEmpty() || password.isEmpty()) {
@@ -44,7 +44,7 @@ class LoginViewModel @Inject constructor(
         }
         if (App.getInstance().isMissingFirebaseConnection()) {
             showWarning("unable to connect to server", "Settings") {
-                navigateTo("SettingsView")
+                callback.invoke("SettingsView")
             }
             return
         }
@@ -56,12 +56,12 @@ class LoginViewModel @Inject constructor(
                 viewModelScope.launch(Dispatchers.Main) {
                     when (result) {
                         Constants.SUCCEEDED -> {
-                            loginNow(username, password)
+                            loginNow(username, password, callback)
                         }
 
                         else -> {
                             showWarning(message)
-                            navigateTo("LicenseView")
+                            callback.invoke("LicenseView")
                         }
                     }
                 }
@@ -69,7 +69,7 @@ class LoginViewModel @Inject constructor(
         }
     }
 
-    private suspend fun loginNow(username: String, password: String) {
+    private suspend fun loginNow(username: String, password: String, callback: (String) -> Unit) {
         withContext(Dispatchers.IO) {
             val companyId = SettingsModel.getCompanyID()
             if (!companyId.isNullOrEmpty()) {
@@ -85,13 +85,13 @@ class LoginViewModel @Inject constructor(
             val loginResponse: LoginResponse = repository.getUserByCredentials(username, password)
             loginResponse.user?.let {
                 SettingsModel.currentUser = it
-                proceedWithLogin()
+                proceedWithLogin(callback)
             } ?: run {
                 if (!loginResponse.error.isNullOrEmpty()) {
                     withContext(Dispatchers.Main) {
                         showLoading(false)
                         showWarning(loginResponse.error, "Settings") {
-                            navigateTo("SettingsView")
+                            callback.invoke("SettingsView")
                         }
                     }
                 } else if (loginResponse.allUsersSize == 0) {
@@ -105,18 +105,18 @@ class LoginViewModel @Inject constructor(
                                     "No companies found!, do you want to register?",
                                     "Register"
                                 ) {
-                                    navigateTo("ManageCompaniesView")
+                                    callback.invoke("ManageCompaniesView")
                                 }
                             } else if (SettingsModel.getCompanyID().isNullOrEmpty()) {
                                 showWarning("select your current company to proceed!", "Settings") {
-                                    navigateTo("SettingsView")
+                                    callback.invoke("SettingsView")
                                 }
                             } else {
                                 showWarning(
                                     "No users found!, do you want to create a user?",
                                     "Create"
                                 ) {
-                                    navigateTo("ManageUsersView")
+                                    callback.invoke("ManageUsersView")
                                 }
                             }
                         }
@@ -141,7 +141,7 @@ class LoginViewModel @Inject constructor(
         sharedViewModel.finish()
     }
 
-    private suspend fun proceedWithLogin() {
+    private suspend fun proceedWithLogin(callback: (String) -> Unit) {
         sharedViewModel.isLoggedIn = true
         sharedViewModel.homeWarning = null
         sharedViewModel.initiateValues()
@@ -151,13 +151,13 @@ class LoginViewModel @Inject constructor(
             showLoading(false)
             SettingsModel.currentUser?.let {
                 if (it.userPosMode && it.userTableMode) {
-                    navigateTo("HomeView")
+                    callback.invoke("HomeView")
                 } else if (it.userPosMode) {
-                    navigateTo("POSView")
+                    callback.invoke("POSView")
                 } else if (it.userTableMode) {
-                    navigateTo("TablesView")
+                    callback.invoke("TablesView")
                 } else {
-                    navigateTo("HomeView")
+                    callback.invoke("HomeView")
                 }
             }
         }

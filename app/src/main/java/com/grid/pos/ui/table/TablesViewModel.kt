@@ -79,7 +79,7 @@ class TablesViewModel @Inject constructor(
         }
     }
 
-    fun fetchInvoiceByTable(tableNo: String) {
+    fun fetchInvoiceByTable(tableNo: String,callback: (String) -> Unit) {
         if (tableNo.isEmpty()) {
             showWarning("Please enter table number!")
             return
@@ -111,7 +111,7 @@ class TablesViewModel @Inject constructor(
                             invoiceHeader = invoiceHeader
                         )
                         showLoading(false)
-                        lockTableAndMoveToPos()
+                        lockTableAndMoveToPos(callback)
                     } else {
                         tablesState.value = tablesState.value.copy(
                             invoiceHeader = invoiceHeader,
@@ -152,7 +152,7 @@ class TablesViewModel @Inject constructor(
         }
     }
 
-    fun lockTableAndMoveToPos() {
+    fun lockTableAndMoveToPos(callback: (String) -> Unit) {
         if (SettingsModel.isConnectedToSqlServer()) {
             showLoading(true)
             viewModelScope.launch(Dispatchers.IO) {
@@ -167,7 +167,7 @@ class TablesViewModel @Inject constructor(
                     sharedViewModel.shouldLoadInvoice = true
                     sharedViewModel.isFromTable = true
                     resetState()
-                    navigateTo("POSView")
+                    callback.invoke("POSView")
                 }
             }
         } else {
@@ -179,7 +179,7 @@ class TablesViewModel @Inject constructor(
             sharedViewModel.shouldLoadInvoice = true
             sharedViewModel.isFromTable = true
             resetState()
-            navigateTo("POSView")
+            callback.invoke("POSView")
         }
     }
 

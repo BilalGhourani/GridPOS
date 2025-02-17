@@ -168,7 +168,9 @@ fun TablesView(
                     keyboardType = KeyboardType.Text,
                     placeHolder = "Enter Table Number",
                     onAction = {
-                        viewModel.fetchInvoiceByTable(state.tableName)
+                        viewModel.fetchInvoiceByTable(state.tableName){ destination ->
+                            navController?.navigate(destination)
+                        }
                     },
                     trailingIcon = {
                         IconButton(enabled = state.step <= 1,
@@ -224,13 +226,17 @@ fun TablesView(
                     isVertical = false
                 ) {
                     if (state.step <= 1) {
-                        viewModel.fetchInvoiceByTable(state.tableName)
+                        viewModel.fetchInvoiceByTable(state.tableName){ destination ->
+                            navController?.navigate(destination)
+                        }
                     } else {
                         if (state.clientCount.toIntOrNull() == null) {
                             viewModel.showWarning("Please enter client counts")
                             return@UIImageButton
                         }
-                        viewModel.lockTableAndMoveToPos()
+                        viewModel.lockTableAndMoveToPos{ destination ->
+                            navController?.navigate(destination)
+                        }
                     }
                 }
 

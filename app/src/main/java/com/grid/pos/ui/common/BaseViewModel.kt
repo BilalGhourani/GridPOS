@@ -53,10 +53,6 @@ open class BaseViewModel(
         sharedViewModel.reportsToPrint.addAll(reportResults)
     }
 
-    fun navigateTo(destination: String) {
-        sharedViewModel.navigateTo(destination)
-    }
-
     fun changeAppOrientation(orientationType: String) {
         sharedViewModel.changeAppOrientation(orientationType)
     }

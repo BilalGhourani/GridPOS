@@ -128,7 +128,9 @@ fun LoginView(
                         visualTransformation = if (passwordVisibility) VisualTransformation.None else PasswordVisualTransformation(),
                         onAction = {
                             keyboardController?.hide()
-                            viewModel.login(context)
+                            viewModel.login(context) { destination ->
+                                navController?.navigate(destination)
+                            }
                         },
                         trailingIcon = {
                             IconButton(onClick = { passwordVisibility = !passwordVisibility }) {
@@ -152,7 +154,9 @@ fun LoginView(
                         isVertical = false
                     ) {
                         keyboardController?.hide()
-                        viewModel.login(context)
+                        viewModel.login(context){ destination ->
+                            navController?.navigate(destination)
+                        }
                     }
                 }
             }

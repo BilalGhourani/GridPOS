@@ -168,14 +168,12 @@ class MainActivity : ComponentActivity() {
         popupState.value = true
     }
 
-    private lateinit var mNavController: NavHostController
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         connectivityManager = getSystemService(ConnectivityManager::class.java)
         window.setBackgroundDrawableResource(R.drawable.white_background)
         setContent {
-            mNavController = rememberNavController()
+            val navController = rememberNavController()
             GridPOSTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
@@ -185,7 +183,7 @@ class MainActivity : ComponentActivity() {
                         modifier = Modifier
                             .background(color = White)
                             .padding(0.dp),
-                        navController = mNavController,
+                        navController = navController,
                         sharedViewModel = sharedViewModel,
                         startDestination = "LoginView"
                     )
@@ -321,12 +319,6 @@ class MainActivity : ComponentActivity() {
                     if (popupState.value != sharedEvent.show) {
                         popupModel = sharedEvent.popupModel
                         popupState.value = sharedEvent.show
-                    }
-                }
-
-                is ActivityUIEvent.NavigateTo -> {
-                    if (::mNavController.isInitialized) {
-                        mNavController.navigate(sharedEvent.destination)
                     }
                 }
 

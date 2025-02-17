@@ -89,7 +89,9 @@ fun ReceiptsView(
                         handleBack()
                     }
                     onConfirmation = {
-                        viewModel.save(context)
+                        viewModel.save(context){ destination ->
+                            navController?.navigate(destination)
+                        }
                     }
                     dialogText = "Do you want to save your changes"
                     positiveBtnText = "Save"
@@ -410,7 +412,9 @@ fun ReceiptsView(
                             icon = R.drawable.save,
                             text = "Save"
                         ) {
-                            viewModel.save(context)
+                            viewModel.save(context){ destination ->
+                                navController?.navigate(destination)
+                            }
                         }
 
                         UIImageButton(
