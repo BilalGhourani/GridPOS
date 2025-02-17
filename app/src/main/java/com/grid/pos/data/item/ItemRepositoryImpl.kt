@@ -167,7 +167,7 @@ class ItemRepositoryImpl(
                     }
                     dbResult?.let {
                         while (it.next()) {
-                            items.add(getItemFromRow(it))
+                            items.add(getItemFromRow(it,true))
                         }
                         SQLServerWrapper.closeResultSet(it)
                     }
@@ -234,7 +234,7 @@ class ItemRepositoryImpl(
                     }
                     dbResult?.let {
                         while (it.next()) {
-                            items.add(getItemFromRow(it))
+                            items.add(getItemFromRow(it,false))
                         }
                         SQLServerWrapper.closeResultSet(it)
                     }
@@ -395,7 +395,7 @@ class ItemRepositoryImpl(
                     }
                     dbResult?.let {
                         while (it.next()) {
-                            item = getItemFromRow(it)
+                            item = getItemFromRow(it,false)
                         }
                         SQLServerWrapper.closeResultSet(it)
                     }
@@ -514,7 +514,7 @@ class ItemRepositoryImpl(
         }
     }
 
-    private fun getItemFromRow(row: ResultSet): Item {
+    private fun getItemFromRow(row: ResultSet, includingExtras: Boolean): Item {
         return Item().apply {
             itemId = row.getStringValue("it_id")
             itemCompId = row.getStringValue("it_cmp_id")
@@ -540,11 +540,19 @@ class ItemRepositoryImpl(
             itemTax2 = row.getDoubleValue("it_tax2")
             itemPrinter = row.getStringValue("it_di_name").ifEmpty { null }
 
-            itemOpeningId = row.getStringValue("op_id").ifEmpty { null }
-            itemWarehouseRowId = row.getStringValue("uw_id").ifEmpty { null }
-            itemWarehouse = row.getStringValue("uw_wa_name").ifEmpty { null }
-            itemLocation = row.getStringValue("uw_location").ifEmpty { null }
-            itemOpenQty = row.getDoubleValue("uw_openqty")
+            if (includingExtras) {
+                itemOpeningId = row.getStringValue("op_id").ifEmpty { null }
+                itemWarehouseRowId = row.getStringValue("uw_id").ifEmpty { null }
+                itemWarehouse = row.getStringValue("uw_wa_name").ifEmpty { null }
+                itemLocation = row.getStringValue("uw_location").ifEmpty { null }
+                itemOpenQty = row.getDoubleValue("uw_openqty")
+                itemOpenCost = row.getDoubleValue(
+                    "op_unitcost",
+                    row.getDoubleValue("it_cost")
+                )
+                itemCostFirst = row.getDoubleValue("op_unitcostf")
+                itemCostSecond = row.getDoubleValue("op_unitcosts")
+            }
             itemRemQty = row.getDoubleValue("it_remqty")
             itemPos = row.getIntValue(
                 "it_pos",
@@ -570,12 +578,6 @@ class ItemRepositoryImpl(
             itemCurrencyCode = if (SettingsModel.isSqlServerWebDb) row.getStringValue("cur_newcode")
             else row.getStringValue("it_cur_code")
             itemUnitPrice = row.getDoubleValue("it_unitprice")
-            itemOpenCost = row.getDoubleValue(
-                "op_unitcost",
-                row.getDoubleValue("it_cost")
-            )
-            itemCostFirst = row.getDoubleValue("op_unitcostf")
-            itemCostSecond = row.getDoubleValue("op_unitcosts")
             itemRealUnitPrice = 0.0
         }
     }

@@ -101,7 +101,7 @@ class SharedViewModel @Inject constructor(
     }
 
 
-    suspend fun updateRealItemPrice(item: Item) {
+    suspend fun updateRealItemPrice(item: Item, withLoading: Boolean) {
         if (item.itemCurrencyId.isNullOrEmpty()) return
         val currency = SettingsModel.currentCurrency ?: return
         when (item.itemCurrencyId) {
@@ -116,8 +116,10 @@ class SharedViewModel @Inject constructor(
             }
 
             else -> {
-                withContext(Dispatchers.Main) {
-                    showLoading(true)
+                if (withLoading) {
+                    withContext(Dispatchers.Main) {
+                        showLoading(true)
+                    }
                 }
                 val rate = currencyRepository.getRate(
                     currency.currencyId,
@@ -125,8 +127,10 @@ class SharedViewModel @Inject constructor(
                 )
                 item.itemRealUnitPrice = item.itemUnitPrice.div(rate)
                 item.itemRealOpenCost = item.itemOpenCost.div(rate)
-                withContext(Dispatchers.Main) {
-                    showLoading(false)
+                if (withLoading) {
+                    withContext(Dispatchers.Main) {
+                        showLoading(false)
+                    }
                 }
             }
         }

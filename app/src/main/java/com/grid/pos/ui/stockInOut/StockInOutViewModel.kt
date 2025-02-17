@@ -57,8 +57,8 @@ class StockInOutViewModel @Inject constructor(
         updateStockHeaderInOut(StockHeaderInOut())
     }
 
-    suspend fun updateRealItemPrice(item: Item) {
-        sharedViewModel.updateRealItemPrice(item)
+    suspend fun updateRealItemPrice(item: Item, withLoading: Boolean = true) {
+        sharedViewModel.updateRealItemPrice(item, withLoading)
     }
 
     fun fetchTransfers() {
@@ -322,7 +322,7 @@ class StockInOutViewModel @Inject constructor(
                                 val itemsToAdd = mutableListOf<StockInOutItemModel>()
                                 map.forEach { (item, count) ->
                                     if (!item.itemBarcode.isNullOrEmpty()) {
-                                        updateRealItemPrice(item)
+                                        updateRealItemPrice(item, false)
                                         val stockInOutItem = StockInOutItemModel()
                                         stockInOutItem.setItem(item)
                                         stockInOutItem.stockInOut.stockInOutQty =

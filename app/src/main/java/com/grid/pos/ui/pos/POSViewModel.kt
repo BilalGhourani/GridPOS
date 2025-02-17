@@ -757,7 +757,7 @@ class POSViewModel @Inject constructor(
     }
 
     private fun prepareAutoPrint(context: Context, callback: () -> Unit) {
-        viewModelScope.launch(Dispatchers.Default) {
+        viewModelScope.launch(Dispatchers.IO) {
             val invoices =
                 state.value.invoiceItems.filter { it.invoice.isNew() || it.shouldPrint }
                     .toMutableList()
@@ -841,8 +841,8 @@ class POSViewModel @Inject constructor(
         sharedViewModel.needAddedData = boolean
     }
 
-    suspend fun updateRealItemPrice(item: Item) {
-        sharedViewModel.updateRealItemPrice(item)
+    suspend fun updateRealItemPrice(item: Item, withLoading: Boolean = true) {
+        sharedViewModel.updateRealItemPrice(item, withLoading)
     }
 
     fun logout() {
@@ -853,7 +853,9 @@ class POSViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.Main) {
             if (state.value.items.isEmpty()) {
                 showLoading(true)
-                fetchItems()
+                withContext(Dispatchers.IO) {
+                    fetchItems(true)
+                }
             }
             sharedViewModel.launchBarcodeScanner(false,
                 ArrayList(state.value.items),
@@ -861,7 +863,7 @@ class POSViewModel @Inject constructor(
                     override fun OnBarcodeResult(barcodesList: List<Any>) {
                         if (barcodesList.isNotEmpty()) {
                             showLoading(true)
-                            viewModelScope.launch {
+                            viewModelScope.launch(Dispatchers.IO) {
                                 val map: Map<Item, Int> =
                                     barcodesList.groupingBy { item -> item as Item }
                                         .eachCount()
@@ -869,11 +871,7 @@ class POSViewModel @Inject constructor(
                                     state.value.invoiceItems.toMutableList()
                                 map.forEach { (item, count) ->
                                     if (!item.itemBarcode.isNullOrEmpty()) {
-                                        withContext(Dispatchers.IO) {
-                                            sharedViewModel.updateRealItemPrice(
-                                                item
-                                            )
-                                        }
+                                        updateRealItemPrice(item, false)
                                         val invoiceItemModel =
                                             InvoiceItemModel()
                                         invoiceItemModel.setItem(item)

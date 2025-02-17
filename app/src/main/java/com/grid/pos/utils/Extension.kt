@@ -122,7 +122,7 @@ object Extension {
         return try {
             getString(value).takeIf { !it.isNullOrEmptyOrNullStr() } ?: fallback
         } catch (e: Exception) {
-            e.printStackTrace()
+            //e.printStackTrace()
             fallback
         }
     }
@@ -134,7 +134,7 @@ object Extension {
         return try {
             getDouble(value).takeIf { !it.isNaN() } ?: fallback
         } catch (e: Exception) {
-            e.printStackTrace()
+           //e.printStackTrace()
             fallback
         }
     }
@@ -146,7 +146,7 @@ object Extension {
         return try {
             getLong(value)
         } catch (e: Exception) {
-            e.printStackTrace()
+            //e.printStackTrace()
             fallback
         }
     }
@@ -158,7 +158,7 @@ object Extension {
         return try {
             getInt(value)
         } catch (e: Exception) {
-            e.printStackTrace()
+            //e.printStackTrace()
             fallback
         }
     }
@@ -170,7 +170,7 @@ object Extension {
         return try {
             getBoolean(value)
         } catch (e: Exception) {
-            e.printStackTrace()
+            //e.printStackTrace()
             fallback
         }
     }
@@ -182,7 +182,7 @@ object Extension {
         return try {
             getObject(value)
         } catch (e: Exception) {
-            e.printStackTrace()
+            //e.printStackTrace()
             fallback
         }
     }
