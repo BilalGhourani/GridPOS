@@ -1028,7 +1028,7 @@ class InvoiceHeaderRepositoryImpl(
                 0,//mincharge
                 null,//hi_employee
                 if (invoiceHeader.invoiceHeadTransNo.isNullOrEmpty()) null else 1,//delivered
-                invoiceHeader.invoiceHeadUserStamp,//hi_userstamp
+                SettingsModel.currentUser?.userUsername,//hi_userstamp
                 SettingsModel.currentCompany?.cmp_multibranchcode,//branchcode
                 invoiceHeader.invoiceHeadChange,
                 Timestamp(System.currentTimeMillis()),//hi_valuedate
