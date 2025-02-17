@@ -54,7 +54,7 @@ class POSViewModel @Inject constructor(
 ) : BaseViewModel(sharedViewModel) {
     val state: MutableState<POSState> = mutableStateOf(POSState())
 
-    var isLandscape :Boolean = false
+    var isLandscape: Boolean = false
     var triggerSaveCallback = mutableStateOf(false)
     var isEditBottomSheetVisible = mutableStateOf(false)
     var isAddItemBottomSheetVisible = mutableStateOf(false)
@@ -577,6 +577,13 @@ class POSViewModel @Inject constructor(
         invoiceHeader: InvoiceHeader
     ) {
         if (invoiceHeader.invoiceHeadId.isEmpty()) {
+            updateState(
+                state.value.copy(
+                    invoiceItems = mutableListOf(),
+                    invoiceHeader = invoiceHeader,
+                    posReceipt = PosReceipt()
+                )
+            )
             return
         }
         showLoading(true)
@@ -607,7 +614,7 @@ class POSViewModel @Inject constructor(
                 posReceiptRepository.getPosReceiptByInvoice(invoiceHeader.invoiceHeadId)
             invoiceItemModels = invoices.toMutableList()
             currentInvoice = invoiceHeader.copy()
-            viewModelScope.launch(Dispatchers.Main) {
+            withContext(Dispatchers.Main) {
                 updateState(
                     state.value.copy(
                         invoiceItems = invoices,
