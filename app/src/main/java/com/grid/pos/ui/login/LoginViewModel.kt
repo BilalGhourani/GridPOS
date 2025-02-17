@@ -73,7 +73,7 @@ class LoginViewModel @Inject constructor(
         withContext(Dispatchers.IO) {
             val companyId = SettingsModel.getCompanyID()
             if (!companyId.isNullOrEmpty()) {
-                SettingsModel.currentCompany = companyRepository.getCompanyById(companyId ?: "")
+                SettingsModel.currentCompany = companyRepository.getCompanyById(companyId)
                 if (SettingsModel.currentCompany?.companySS == true) {
                     withContext(Dispatchers.Main) {
                         showLoading(false)

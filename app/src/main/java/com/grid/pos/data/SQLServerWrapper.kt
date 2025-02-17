@@ -26,11 +26,11 @@ object SQLServerWrapper {
     }
 
     private fun getDatabaseConnection(
-            serverPath: String? = SettingsModel.sqlServerPath,
-            dbName: String? = SettingsModel.sqlServerDbName,
-            serverName: String? = SettingsModel.sqlServerName,
-            username: String? = SettingsModel.sqlServerDbUser,
-            password: String? = SettingsModel.sqlServerDbPassword
+        serverPath: String? = SettingsModel.sqlServerPath,
+        dbName: String? = SettingsModel.sqlServerDbName,
+        serverName: String? = SettingsModel.sqlServerName,
+        username: String? = SettingsModel.sqlServerDbUser,
+        password: String? = SettingsModel.sqlServerDbPassword
     ): Connection {
         try {
             Class.forName("net.sourceforge.jtds.jdbc.Driver")
@@ -68,6 +68,7 @@ object SQLServerWrapper {
     fun closeConnection() {
         try {
             mConnection?.close()
+            mConnection = null
         } catch (e: Exception) {
             e.printStackTrace()
             if (::sharedViewModel.isInitialized) {
@@ -96,11 +97,11 @@ object SQLServerWrapper {
     }
 
     fun isConnectionSucceeded(
-            serverPath: String? = SettingsModel.sqlServerPath,
-            dbName: String? = SettingsModel.sqlServerDbName,
-            serverName: String? = SettingsModel.sqlServerName,
-            username: String? = SettingsModel.sqlServerDbUser,
-            passwrod: String? = SettingsModel.sqlServerDbPassword
+        serverPath: String? = SettingsModel.sqlServerPath,
+        dbName: String? = SettingsModel.sqlServerDbName,
+        serverName: String? = SettingsModel.sqlServerName,
+        username: String? = SettingsModel.sqlServerDbUser,
+        passwrod: String? = SettingsModel.sqlServerDbPassword
     ): String {
         return try {
             val connection = getDatabaseConnection(
@@ -122,15 +123,15 @@ object SQLServerWrapper {
     }
 
     fun getListOf(
-            tableName: String,
-            colPrefix: String = "",
-            columns: MutableList<String>,
-            where: String,
-            orderBy: String = "",
-            joinSubQuery: String = "",
+        tableName: String,
+        colPrefix: String = "",
+        columns: MutableList<String>,
+        where: String,
+        orderBy: String = "",
+        joinSubQuery: String = "",
     ): ResultSet? {
         try {
-            val connection = getConnection()
+            val connection = getConnection()?: return null
             val cols = columns.joinToString(", ")
             val whereQuery = if (where.isNotEmpty()) "WHERE $where " else ""
             val query = "SELECT $colPrefix $cols FROM $tableName $joinSubQuery $whereQuery $orderBy"
@@ -148,10 +149,10 @@ object SQLServerWrapper {
     }
 
     fun getQueryResult(
-            query: String
+        query: String
     ): ResultSet? {
         try {
-            val connection = getConnection()
+            val connection = getConnection()?: return null
             val statement = connection.prepareStatement(query)
             return statement.executeQuery()
         } catch (e: Exception) {
@@ -166,14 +167,15 @@ object SQLServerWrapper {
     }
 
     fun selectFromProcedure(
-            procedureName: String,
-            params: List<Any>,
+        procedureName: String,
+        params: List<Any>,
     ): ResultSet? {
         try {
-            val connection = getConnection()
+            val connection = getConnection() ?: return null
             val parameters = params.joinToString(", ")
             // Prepare the stored procedure call
-            val query = "select dbo.$procedureName($parameters) as $procedureName" // Modify with your procedure and parameters
+            val query =
+                "select dbo.$procedureName($parameters) as $procedureName" // Modify with your procedure and parameters
             val statement = connection.prepareStatement(query)
             return statement.executeQuery()
         } catch (e: Exception) {
@@ -188,9 +190,9 @@ object SQLServerWrapper {
     }
 
     fun insert(
-            tableName: String,
-            columns: List<String>,
-            values: List<Any?>
+        tableName: String,
+        columns: List<String>,
+        values: List<Any?>
     ): Boolean {
         if (columns.size != values.size) {
             if (::sharedViewModel.isInitialized) {
@@ -216,10 +218,10 @@ object SQLServerWrapper {
     }
 
     fun update(
-            tableName: String,
-            columns: List<String>,
-            values: List<Any?>,
-            where: String
+        tableName: String,
+        columns: List<String>,
+        values: List<Any?>,
+        where: String
     ): Boolean {
         if (columns.size != values.size) {
             if (::sharedViewModel.isInitialized) {
@@ -247,17 +249,17 @@ object SQLServerWrapper {
     }
 
     fun delete(
-            tableName: String,
-            where: String,
-            innerJoin: String = ""
+        tableName: String,
+        where: String,
+        innerJoin: String = ""
     ): Boolean {
         val whereQuery = if (where.isNotEmpty()) "WHERE $where " else ""
         return runDbQuery("DELETE FROM $tableName $innerJoin $whereQuery")
     }
 
     fun executeProcedure(
-            procedureName: String,
-            values: List<Any?>
+        procedureName: String,
+        values: List<Any?>
     ): QueryResult {
         val queryResult = QueryResult()
         var connection: Connection? = null
@@ -283,13 +285,13 @@ object SQLServerWrapper {
                     "$it"
                 }
             }*/
-            connection = getConnection()
+            connection = getConnection() ?: return queryResult
             val query = "{call $procedureName($params)}"
             callableStatement = connection.prepareCall(query)
 
             values.forEachIndexed { index, any ->
                 if (any == null) {
-                    callableStatement.setNull(
+                    callableStatement?.setNull(
                         index + 1,
                         Types.NULL
                     )
@@ -399,14 +401,14 @@ object SQLServerWrapper {
     }
 
     private fun runDbQuery(
-            query: String,
-            params: List<Any?>? = null
+        query: String,
+        params: List<Any?>? = null
     ): Boolean {
         var succeed: Boolean
         var connection: Connection? = null
         var statement: PreparedStatement? = null
         try {
-            connection = getConnection()
+            connection = getConnection() ?: return false
             statement = connection.prepareStatement(query)
 
             params?.forEachIndexed { index, param ->
@@ -416,7 +418,7 @@ object SQLServerWrapper {
                 )
             }
             val executeVal = statement.executeUpdate()
-            succeed =  executeVal > 0
+            succeed = executeVal > 0
         } catch (e: Exception) {
             e.printStackTrace()
             if (::sharedViewModel.isInitialized) {
@@ -434,10 +436,10 @@ object SQLServerWrapper {
         return succeed
     }
 
-    private fun getConnection(): Connection {
-        if (mConnection != null && !mConnection!!.isClosed) {
-            return mConnection!!
+    private fun getConnection(): Connection? {
+        if (mConnection == null || mConnection!!.isClosed) {
+            mConnection = getDatabaseConnection()
         }
-        return getDatabaseConnection()
+        return mConnection
     }
 }

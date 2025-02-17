@@ -1,7 +1,6 @@
 package com.grid.pos.ui.pos
 
 import android.content.Context
-import android.content.res.Configuration
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.viewModelScope
@@ -32,9 +31,9 @@ import com.grid.pos.utils.PrinterUtils
 import com.grid.pos.utils.Utils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
@@ -76,22 +75,28 @@ class POSViewModel @Inject constructor(
     var defaultThirdParty: ThirdParty? = null
     private var siTransactionType: String = "null"
     private var rsTransactionType: String = "null"
+    private val mutex = Mutex()  // Create a Mutex object
+    private var isInitiating: Boolean = false
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
-            openConnectionIfNeeded()
-            fetchItems()
-            fetchFamilies()
-            fetchGlobalSettings()
-            if (SettingsModel.isConnectedToSqlServer()) {
-                SettingsModel.currentCurrency?.let { currency ->
-                    if (currency.currencyId.isNotEmpty() && !currency.currencyDocumentId.isNullOrEmpty()) {
-                        taxRate = currencyRepository.getRate(
-                            currency.currencyId,
-                            currency.currencyDocumentId!!
-                        )
+            mutex.withLock {
+                isInitiating = true
+                openConnectionIfNeeded()
+                fetchItems()
+                fetchFamilies()
+                fetchGlobalSettings()
+                if (SettingsModel.isConnectedToSqlServer()) {
+                    SettingsModel.currentCurrency?.let { currency ->
+                        if (currency.currencyId.isNotEmpty() && !currency.currencyDocumentId.isNullOrEmpty()) {
+                            taxRate = currencyRepository.getRate(
+                                currency.currencyId,
+                                currency.currencyDocumentId!!
+                            )
+                        }
                     }
                 }
+                isInitiating = false
             }
         }
     }
@@ -198,6 +203,9 @@ class POSViewModel @Inject constructor(
     }
 
     fun loadFamiliesAndItems() {
+        if(isInitiating){
+            return
+        }
         val loadItems = state.value.items.isEmpty()
         val loadFamilies = state.value.families.isEmpty()
         if (loadItems || loadFamilies) {
@@ -852,6 +860,10 @@ class POSViewModel @Inject constructor(
     fun launchBarcodeScanner() {
         viewModelScope.launch(Dispatchers.Main) {
             if (state.value.items.isEmpty()) {
+                if (isInitiating) {
+                    showWarning("Loading your items, try again later.")
+                    return@launch
+                }
                 showLoading(true)
                 withContext(Dispatchers.IO) {
                     fetchItems(true)
