@@ -22,12 +22,12 @@ import java.sql.Timestamp
 import java.util.Date
 
 class InvoiceHeaderRepositoryImpl(
-        private val invoiceHeaderDao: InvoiceHeaderDao
+    private val invoiceHeaderDao: InvoiceHeaderDao
 ) : InvoiceHeaderRepository {
     override suspend fun insert(
-            invoiceHeader: InvoiceHeader,
-            willPrint: Boolean,
-            isFinished: Boolean
+        invoiceHeader: InvoiceHeader,
+        willPrint: Boolean,
+        isFinished: Boolean
     ): DataModel {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
@@ -71,7 +71,7 @@ class InvoiceHeaderRepositoryImpl(
     }
 
     override suspend fun delete(
-            invoiceHeader: InvoiceHeader
+        invoiceHeader: InvoiceHeader
     ): DataModel {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
@@ -107,7 +107,7 @@ class InvoiceHeaderRepositoryImpl(
     }
 
     override suspend fun updateInvoiceHeader(
-            invoiceHeader: InvoiceHeader
+        invoiceHeader: InvoiceHeader
     ): DataModel {
         return when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
@@ -129,9 +129,9 @@ class InvoiceHeaderRepositoryImpl(
     }
 
     override suspend fun update(
-            invoiceHeader: InvoiceHeader,
-            willPrint: Boolean,
-            isFinished: Boolean
+        invoiceHeader: InvoiceHeader,
+        willPrint: Boolean,
+        isFinished: Boolean
     ): DataModel {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
@@ -257,11 +257,14 @@ class InvoiceHeaderRepositoryImpl(
             else -> {
                 val invoiceHeaders: MutableList<InvoiceHeader> = mutableListOf()
                 try {
-                    val where = "hi_cmp_id='${SettingsModel.getCompanyID()}' AND ((hi_transno IS NOT NULL AND hi_transno <> '' AND hi_transno <> '0') OR ((hi_transno IS NULL OR hi_transno = '' OR hi_transno = '0') AND (hi_ta_name IS NULL OR hi_ta_name = '')))"
+                    val where =
+                        "hi_cmp_id='${SettingsModel.getCompanyID()}' AND ((hi_transno IS NOT NULL AND hi_transno <> '' AND hi_transno <> '0') OR ((hi_transno IS NULL OR hi_transno = '' OR hi_transno = '0') AND (hi_ta_name IS NULL OR hi_ta_name = '')))"
                     val dbResult = SQLServerWrapper.getListOf(
                         "in_hinvoice",
                         "TOP $limit",
-                        if (SettingsModel.isSqlServerWebDb) mutableListOf("*,tt.tt_newcode") else mutableListOf("*"),
+                        if (SettingsModel.isSqlServerWebDb) mutableListOf("*,tt.tt_newcode") else mutableListOf(
+                            "*"
+                        ),
                         where,
                         "ORDER BY hi_date DESC",
                         if (SettingsModel.isSqlServerWebDb) "INNER JOIN acc_transactiontype tt on hi_tt_code = tt.tt_code" else ""
@@ -362,7 +365,8 @@ class InvoiceHeaderRepositoryImpl(
             else -> {
                 val invoiceHeaders: MutableList<InvoiceHeader> = mutableListOf()
                 try {
-                    val where = "hi_cmp_id='${SettingsModel.getCompanyID()}' AND hi_orderno <> '' AND hi_orderno IS NOT NULL"
+                    val where =
+                        "hi_cmp_id='${SettingsModel.getCompanyID()}' AND hi_orderno <> '' AND hi_orderno IS NOT NULL"
                     val dbResult = SQLServerWrapper.getListOf(
                         "in_hinvoice",
                         "TOP 1",
@@ -385,7 +389,7 @@ class InvoiceHeaderRepositoryImpl(
     }
 
     override suspend fun getLastTransactionByType(
-            type: String
+        type: String
     ): InvoiceHeader? {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
@@ -426,7 +430,8 @@ class InvoiceHeaderRepositoryImpl(
             else -> {
                 val invoiceHeaders: MutableList<InvoiceHeader> = mutableListOf()
                 try {
-                    val where = "hi_cmp_id='${SettingsModel.getCompanyID()}' AND hi_tt_code = '$type' AND hi_transno IS NOT NULL AND hi_transno <> '' AND hi_transno <> '0'"
+                    val where =
+                        "hi_cmp_id='${SettingsModel.getCompanyID()}' AND hi_tt_code = '$type' AND hi_transno IS NOT NULL AND hi_transno <> '' AND hi_transno <> '0'"
                     val dbResult = SQLServerWrapper.getListOf(
                         "in_hinvoice",
                         "TOP 1",
@@ -564,7 +569,8 @@ class InvoiceHeaderRepositoryImpl(
                 val tables: MutableList<TableModel> = mutableListOf()
                 if (SettingsModel.isSqlServerWebDb) {
                     try {
-                        val where = "ta_cmp_id='${SettingsModel.getCompanyID()}' AND ta_hiid IS NOT NULL"
+                        val where =
+                            "ta_cmp_id='${SettingsModel.getCompanyID()}' AND ta_hiid IS NOT NULL"
                         val dbResult = SQLServerWrapper.getListOf(
                             "pos_table",
                             "",
@@ -624,8 +630,8 @@ class InvoiceHeaderRepositoryImpl(
     }
 
     override suspend fun lockTable(
-            tableId: String?,
-            tableName: String
+        tableId: String?,
+        tableName: String
     ): String? {
         if (SettingsModel.isConnectedToSqlServer()) {
             if (!tableId.isNullOrEmpty()) {
@@ -665,9 +671,9 @@ class InvoiceHeaderRepositoryImpl(
     }
 
     override suspend fun unLockTable(
-            invoiceId: String,
-            tableId: String,
-            tableType: String?
+        invoiceId: String,
+        tableId: String,
+        tableType: String?
     ) {
         if (SettingsModel.isConnectedToSqlServer()) {
             if (tableId.isNotEmpty()) {
@@ -693,7 +699,7 @@ class InvoiceHeaderRepositoryImpl(
     }
 
     override suspend fun getInvoiceByTable(
-            tableModel: TableModel,
+        tableModel: TableModel,
     ): TableInvoiceModel {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
@@ -763,7 +769,8 @@ class InvoiceHeaderRepositoryImpl(
                     } else {
                         "hi_ta_name = '${finalTableModel.table_name}'"
                     }
-                    val where = "hi_cmp_id='${SettingsModel.getCompanyID()}' AND $subQuery AND (hi_transno IS NULL OR hi_transno = '')"
+                    val where =
+                        "hi_cmp_id='${SettingsModel.getCompanyID()}' AND $subQuery AND (hi_transno IS NULL OR hi_transno = '')"
                     val dbResult = SQLServerWrapper.getListOf(
                         "in_hinvoice",
                         "TOP 1",
@@ -799,8 +806,8 @@ class InvoiceHeaderRepositoryImpl(
     }
 
     override suspend fun getInvoicesBetween(
-            from: Date,
-            to: Date
+        from: Date,
+        to: Date
     ): MutableList<InvoiceHeader> {
         if (SettingsModel.isConnectedToFireStore()) {
             val querySnapshot = FirebaseWrapper.getQuerySnapshot(
@@ -902,8 +909,8 @@ class InvoiceHeaderRepositoryImpl(
     }
 
     private fun fillParams(
-            obj: ResultSet,
-            ttCodeKey: String = "hi_tt_code"
+        obj: ResultSet,
+        ttCodeKey: String = "hi_tt_code"
     ): InvoiceHeader {
         return InvoiceHeader().apply {
             invoiceHeadId = obj.getStringValue("hi_id")
@@ -941,10 +948,11 @@ class InvoiceHeaderRepositoryImpl(
             invoiceHeadChange = obj.getDoubleValue("hi_change")
             invoiceHeadPrinted = obj.getIntValue("hi_printed")
             val timeStamp = obj.getObjectValue("hi_timestamp")
-            invoiceHeadTimeStamp = if (timeStamp is Date) timeStamp else DateHelper.getDateFromString(
-                timeStamp as String,
-                "yyyy-MM-dd hh:mm:ss.SSS"
-            )
+            invoiceHeadTimeStamp =
+                if (timeStamp is Date) timeStamp else DateHelper.getDateFromString(
+                    timeStamp as String,
+                    "yyyy-MM-dd hh:mm:ss.SSS"
+                )
             invoiceHeadDateTime = invoiceHeadTimeStamp!!.time
             invoiceHeadUserStamp = obj.getStringValue("hi_userstamp")
         }
@@ -952,8 +960,9 @@ class InvoiceHeaderRepositoryImpl(
 
     private fun getTableIdByNumber(tableNo: String): TableModel? {
         try {
-            val where = if (SettingsModel.isSqlServerWebDb) "ta_cmp_id='${SettingsModel.getCompanyID()}' AND ta_newname = '$tableNo'"
-            else " ta_name = '$tableNo'"
+            val where =
+                if (SettingsModel.isSqlServerWebDb) "ta_cmp_id='${SettingsModel.getCompanyID()}' AND ta_newname = '$tableNo'"
+                else " ta_name = '$tableNo'"
             val dbResult = SQLServerWrapper.getListOf(
                 "pos_table",
                 "TOP 1",
@@ -1021,7 +1030,7 @@ class InvoiceHeaderRepositoryImpl(
                 invoiceHeader.invoiceHeadTotal1,
                 1,//rate first
                 invoiceHeader.invoiceHeadRate,//rate seconds
-                getRateTax(),//rate tax
+                getRateTax(invoiceHeader),//rate tax
                 0,//tips
                 invoiceHeader.invoiceHeadTableId ?: invoiceHeader.invoiceHeadTaName,
                 invoiceHeader.invoiceHeadClientsCount,
@@ -1082,7 +1091,7 @@ class InvoiceHeaderRepositoryImpl(
                 invoiceHeader.invoiceHeadTotal1,
                 1,//rate first
                 invoiceHeader.invoiceHeadRate,//rate seconds
-                getRateTax(),//rate tax
+                getRateTax(invoiceHeader),//rate tax
                 0,//tips
                 invoiceHeader.invoiceHeadTableId ?: invoiceHeader.invoiceHeadTaName,
                 invoiceHeader.invoiceHeadClientsCount,
@@ -1163,7 +1172,7 @@ class InvoiceHeaderRepositoryImpl(
                 invoiceHeader.invoiceHeadTotal1,
                 1,//rate first
                 invoiceHeader.invoiceHeadRate,//rate seconds
-                getRateTax(),//rate tax
+                getRateTax(invoiceHeader),//rate tax
                 0,//tips
                 invoiceHeader.invoiceHeadTableId ?: invoiceHeader.invoiceHeadTaName,
                 invoiceHeader.invoiceHeadClientsCount,
@@ -1225,7 +1234,7 @@ class InvoiceHeaderRepositoryImpl(
                 invoiceHeader.invoiceHeadTotal1,
                 1,//rate first
                 invoiceHeader.invoiceHeadRate,//rate seconds
-                getRateTax(),//rate tax
+                getRateTax(invoiceHeader),//rate tax
                 0,//tips
                 invoiceHeader.invoiceHeadTableId ?: invoiceHeader.invoiceHeadTaName,
                 invoiceHeader.invoiceHeadClientsCount,
@@ -1268,7 +1277,10 @@ class InvoiceHeaderRepositoryImpl(
         }
     }
 
-    private fun getRateTax(): Double {
+    private fun getRateTax(invoiceHeader: InvoiceHeader): Double {
+        if (invoiceHeader.invoiceHeadTaxRate != null) {
+            return invoiceHeader.invoiceHeadTaxRate!!
+        }
         val fallback = 1.0
         val taxCurrency = SettingsModel.currentCompany?.companyCurCodeTax ?: return fallback
         val secondCurrency = SettingsModel.currentCurrency?.currencyDocumentId ?: return fallback
@@ -1279,10 +1291,10 @@ class InvoiceHeaderRepositoryImpl(
     }
 
     private fun insertTable(
-            invoiceHeaderId: String?,
-            tableName: String,
-            tableStatus: String?,
-            locked: Int,
+        invoiceHeaderId: String?,
+        tableName: String,
+        tableStatus: String?,
+        locked: Int,
     ): String {
         var fallback = ""
         val parameters = if (SettingsModel.isSqlServerWebDb) {
@@ -1333,10 +1345,10 @@ class InvoiceHeaderRepositoryImpl(
     }
 
     private fun updateTable(
-            invoiceHeaderId: String?,
-            tableId: String,
-            tableStatus: String?,
-            locked: Int,
+        invoiceHeaderId: String?,
+        tableId: String,
+        tableStatus: String?,
+        locked: Int,
     ) {
         if (SettingsModel.isSqlServerWebDb) {
             SQLServerWrapper.update(
@@ -1420,9 +1432,9 @@ class InvoiceHeaderRepositoryImpl(
     }
 
     private fun updateTableLock(
-            tableId: String,
-            tableStatus: String?,
-            locked: Int,
+        tableId: String,
+        tableStatus: String?,
+        locked: Int,
     ) {
         if (SettingsModel.isSqlServerWebDb) {
             SQLServerWrapper.update(
@@ -1464,7 +1476,7 @@ class InvoiceHeaderRepositoryImpl(
     }
 
     private fun deleteTable(
-            tableName: String
+        tableName: String
     ) {
         SQLServerWrapper.executeProcedure(
             "delpos_table",

@@ -54,6 +54,7 @@ class POSViewModel @Inject constructor(
 ) : BaseViewModel(sharedViewModel) {
     val state: MutableState<POSState> = mutableStateOf(POSState())
 
+    var taxRate: Double? = null
     var isLandscape: Boolean = false
     var triggerSaveCallback = mutableStateOf(false)
     var isEditBottomSheetVisible = mutableStateOf(false)
@@ -82,6 +83,16 @@ class POSViewModel @Inject constructor(
             fetchItems()
             fetchFamilies()
             fetchGlobalSettings()
+            if (SettingsModel.isConnectedToSqlServer()) {
+                SettingsModel.currentCurrency?.let { currency ->
+                    if (currency.currencyId.isNotEmpty() && !currency.currencyDocumentId.isNullOrEmpty()) {
+                        taxRate = currencyRepository.getRate(
+                            currency.currencyId,
+                            currency.currencyDocumentId!!
+                        )
+                    }
+                }
+            }
         }
     }
 
@@ -304,6 +315,7 @@ class POSViewModel @Inject constructor(
 
         viewModelScope.launch(Dispatchers.IO) {
             if (isInserting) {
+                invoiceHeader.invoiceHeadTaxRate = taxRate
                 if (finish) {
                     val lastTransactionIvn = invoiceHeaderRepository.getLastTransactionByType(
                         getInvoiceType(invoiceHeader)

@@ -201,6 +201,13 @@ data class InvoiceHeader(
         var invoiceHeadRate: Double = 0.0,
 
         /**
+         * Invoice header tax Rate
+         * */
+        @Ignore
+        @get:Exclude
+        var invoiceHeadTaxRate: Double? = null,
+
+        /**
          * Invoice header Ta name
          * */
         @ColumnInfo(name = "hi_ta_name")
