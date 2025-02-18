@@ -331,37 +331,21 @@ class POSViewModel @Inject constructor(
                     invoiceHeader.invoiceHeadTransNo = POSUtils.getInvoiceTransactionNo(
                         lastTransactionIvn?.invoiceHeadTransNo ?: ""
                     )
-                    if (invoiceHeader.invoiceHeadOrderNo.isNullOrEmpty()) {
-                        val lastOrderInv = invoiceHeaderRepository.getLastOrderByType()
-                        invoiceHeader.invoiceHeadOrderNo = POSUtils.getInvoiceNo(
-                            lastOrderInv?.invoiceHeadOrderNo ?: ""
-                        )
-                    }
-                    invoiceHeader.invoiceHeadStatus = null
                 } else {
                     val lastOrderInv = invoiceHeaderRepository.getLastOrderByType()
                     invoiceHeader.invoiceHeadOrderNo = POSUtils.getInvoiceNo(
                         lastOrderInv?.invoiceHeadOrderNo ?: ""
                     )
-                    invoiceHeader.invoiceHeadTransNo = null
                 }
                 if (invoiceHeader.invoiceHeadTtCode.isNullOrEmpty()) {
-                    invoiceHeader.invoiceHeadTtCode =
-                        getTransactionType(invoiceHeader.invoiceHeadGrossAmount)
+                    invoiceHeader.invoiceHeadTtCode = getTransactionType(invoiceHeader.invoiceHeadGrossAmount)
                 }
                 invoiceHeader.prepareForInsert()
-                val dataModel = invoiceHeaderRepository.insert(
-                    invoiceHeader,
-                    print,
-                    finish
-                )
+                val dataModel = invoiceHeaderRepository.insert(invoiceHeader, print, finish)
                 if (dataModel.succeed) {
                     val addedInv = dataModel.data as InvoiceHeader
                     if ((finish || invoiceHeader.invoiceHeadTaName.isNullOrEmpty()) && state.value.invoiceHeaders.isNotEmpty()) {
-                        state.value.invoiceHeaders.add(
-                            0,
-                            addedInv
-                        )
+                        state.value.invoiceHeaders.add(0, addedInv)
                     }
                     savePOSReceipt(
                         context,
@@ -376,12 +360,6 @@ class POSViewModel @Inject constructor(
                     }
                 }
             } else {
-                if (invoiceHeader.invoiceHeadOrderNo.isNullOrEmpty()) {
-                    val lastOrderInv = invoiceHeaderRepository.getLastOrderByType()
-                    invoiceHeader.invoiceHeadOrderNo = POSUtils.getInvoiceNo(
-                        lastOrderInv?.invoiceHeadOrderNo ?: ""
-                    )
-                }
                 if (invoiceHeader.invoiceHeadTtCode.isNullOrEmpty()) {
                     invoiceHeader.invoiceHeadTtCode =
                         getTransactionType(invoiceHeader.invoiceHeadGrossAmount)
@@ -395,15 +373,15 @@ class POSViewModel @Inject constructor(
                             lastTransactionIvn?.invoiceHeadTransNo ?: ""
                         )
                     }
+                }else if (invoiceHeader.invoiceHeadOrderNo.isNullOrEmpty()) {
+                    val lastOrderInv = invoiceHeaderRepository.getLastOrderByType()
+                    invoiceHeader.invoiceHeadOrderNo = POSUtils.getInvoiceNo(
+                        lastOrderInv?.invoiceHeadOrderNo ?: ""
+                    )
                 }
-                val dataModel = invoiceHeaderRepository.update(
-                    invoiceHeader,
-                    print,
-                    finish
-                )
+                val dataModel = invoiceHeaderRepository.update(invoiceHeader, print, finish)
                 if (dataModel.succeed) {
-                    val index =
-                        state.value.invoiceHeaders.indexOfFirst { it.invoiceHeadId == invoiceHeader.invoiceHeadId }
+                    val index = state.value.invoiceHeaders.indexOfFirst { it.invoiceHeadId == invoiceHeader.invoiceHeadId }
                     if (index >= 0) {
                         state.value.invoiceHeaders.removeAt(index)
                         state.value.invoiceHeaders.add(
