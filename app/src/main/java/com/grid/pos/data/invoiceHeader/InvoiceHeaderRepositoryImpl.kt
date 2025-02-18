@@ -947,6 +947,14 @@ class InvoiceHeaderRepositoryImpl(
             invoiceHeadClientsCount = obj.getIntValue("hi_clientscount")
             invoiceHeadChange = obj.getDoubleValue("hi_change")
             invoiceHeadPrinted = obj.getIntValue("hi_printed")
+
+            val dueDate = obj.getObjectValue("hi_duedate")
+            invoiceHeadDueDate =
+                if (dueDate is Date) dueDate else DateHelper.getDateFromString(
+                    dueDate as String,
+                    "yyyy-MM-dd hh:mm:ss.SSS"
+                )
+
             val timeStamp = obj.getObjectValue("hi_timestamp")
             invoiceHeadTimeStamp =
                 if (timeStamp is Date) timeStamp else DateHelper.getDateFromString(
@@ -1006,7 +1014,7 @@ class InvoiceHeaderRepositoryImpl(
                 invoiceHeader.invoiceHeadCompId,
                 if (invoiceHeader.invoiceHeadTransNo.isNullOrEmpty()) "Proforma Invoice" else "Sale Invoice",
                 Timestamp(System.currentTimeMillis()),
-                Timestamp(System.currentTimeMillis()),
+                null,//@hi_duedate
                 if (!invoiceHeader.invoiceHeadTaName.isNullOrEmpty()) "In" else "Carry",
                 invoiceHeader.invoiceHeadOrderNo,
                 invoiceHeader.invoiceHeadTtCode,
@@ -1067,7 +1075,7 @@ class InvoiceHeaderRepositoryImpl(
                 invoiceHeader.invoiceHeadCompId,
                 if (invoiceHeader.invoiceHeadTransNo.isNullOrEmpty()) "Proforma Invoice" else "Sale Invoice",
                 Timestamp(System.currentTimeMillis()),
-                Timestamp(System.currentTimeMillis()),
+                null,//@hi_duedate
                 if (!invoiceHeader.invoiceHeadTaName.isNullOrEmpty()) "In" else "Carry",
                 invoiceHeader.invoiceHeadOrderNo,
                 invoiceHeader.invoiceHeadTtCode,
@@ -1148,7 +1156,7 @@ class InvoiceHeaderRepositoryImpl(
                 invoiceHeader.invoiceHeadCompId,
                 if (invoiceHeader.invoiceHeadTransNo.isNullOrEmpty()) "Proforma Invoice" else "Sale Invoice",
                 Timestamp(System.currentTimeMillis()),
-                Timestamp(System.currentTimeMillis()),
+                getDateInTimestamp(invoiceHeader.invoiceHeadDueDate),
                 if (!invoiceHeader.invoiceHeadTaName.isNullOrEmpty()) "In" else "Carry",
                 invoiceHeader.invoiceHeadOrderNo,
                 invoiceHeader.invoiceHeadTtCode,
@@ -1210,7 +1218,7 @@ class InvoiceHeaderRepositoryImpl(
                 invoiceHeader.invoiceHeadCompId,
                 if (invoiceHeader.invoiceHeadTransNo.isNullOrEmpty()) "Proforma Invoice" else "Sale Invoice",
                 Timestamp(System.currentTimeMillis()),
-                Timestamp(System.currentTimeMillis()),
+                getDateInTimestamp(invoiceHeader.invoiceHeadDueDate),
                 if (!invoiceHeader.invoiceHeadTaName.isNullOrEmpty()) "In" else "Carry",
                 invoiceHeader.invoiceHeadOrderNo,
                 invoiceHeader.invoiceHeadTtCode,
@@ -1484,5 +1492,12 @@ class InvoiceHeaderRepositoryImpl(
                 tableName,//ta_name
             )
         )
+    }
+
+    private fun getDateInTimestamp(date: Date?): Timestamp {
+        if (date != null) {
+            return Timestamp(date.time)
+        }
+        return Timestamp(System.currentTimeMillis())
     }
 }

@@ -49,6 +49,10 @@ data class InvoiceHeader(
         @get:PropertyName("hi_date")
         var invoiceHeadDate: String = DateHelper.getDateInFormat(),
 
+        @Ignore
+        @get:Exclude
+        var invoiceHeadDueDate: Date? = null,
+
         /**
          * Invoice Header Order Number
          * */
