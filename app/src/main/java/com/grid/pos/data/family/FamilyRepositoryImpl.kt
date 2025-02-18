@@ -9,7 +9,7 @@ import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.Extension.getStringValue
 
 class FamilyRepositoryImpl(
-        private val familyDao: FamilyDao
+    private val familyDao: FamilyDao
 ) : FamilyRepository {
     override suspend fun insert(family: Family): DataModel {
         return when (SettingsModel.connectionType) {
@@ -34,7 +34,7 @@ class FamilyRepositoryImpl(
     override suspend fun delete(family: Family): DataModel {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
-               return FirebaseWrapper.delete(
+                return FirebaseWrapper.delete(
                     "st_family",
                     family
                 )
@@ -104,7 +104,8 @@ class FamilyRepositoryImpl(
             else -> {
                 val families: MutableList<Family> = mutableListOf()
                 try {
-                    val where = if (SettingsModel.isSqlServerWebDb) "fa_cmp_id='${SettingsModel.getCompanyID()}'" else ""
+                    val where =
+                        if (SettingsModel.isSqlServerWebDb) "fa_cmp_id='${SettingsModel.getCompanyID()}'" else ""
                     val dbResult = SQLServerWrapper.getListOf(
                         "st_family",
                         "",
@@ -115,11 +116,13 @@ class FamilyRepositoryImpl(
                         while (it.next()) {
                             families.add(Family().apply {
                                 familyId = it.getStringValue("fa_name")
-                                familyName = if (SettingsModel.isSqlServerWebDb) it.getStringValue("fa_newname") else it.getStringValue(
-                                    "fa_name"
-                                )
+                                familyName =
+                                    if (SettingsModel.isSqlServerWebDb) it.getStringValue("fa_newname") else it.getStringValue(
+                                        "fa_name"
+                                    )
                                 //familyImage = obj.optString("fa_name")
-                                familyCompanyId = if (SettingsModel.isSqlServerWebDb) it.getStringValue("fa_cmp_id") else SettingsModel.getCompanyID()
+                                familyCompanyId =
+                                    if (SettingsModel.isSqlServerWebDb) it.getStringValue("fa_cmp_id") else SettingsModel.getCompanyID()
                             })
                         }
                         SQLServerWrapper.closeResultSet(it)
@@ -132,7 +135,7 @@ class FamilyRepositoryImpl(
         }
     }
 
-    override suspend fun getFamiliesForPOS(): MutableList<Family> {
+    override suspend fun getFamiliesForPOS(deviceID: String): MutableList<Family> {
         return when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
                 val querySnapshot = FirebaseWrapper.getQuerySnapshot(
@@ -166,34 +169,38 @@ class FamilyRepositoryImpl(
                 val families: MutableList<Family> = mutableListOf()
                 try {
                     val companyId = SettingsModel.getCompanyID()
-                    val query = if (SettingsModel.isSqlServerWebDb){
-                        val userGroupDesc = SettingsModel.currentUser?.userGrpDesc?:""
-                        "if (select count(*) from pos_users_groupbutton where pug_cmp_id='$companyId')>0\n" +
-                                "  select distinct(gb_fa_name),gb_id,gb_name,gb_btncolor,gb_txtcolor,gb_txtfontsize,gb_txtfontstyle,gb_image,gb_cmp_id\n" +
-                                "\n" +
-                                "  from pos_groupbutton,pos_users_groupbutton where pug_gb_id=gb_id and pug_grp_desc='$userGroupDesc' \n" +
-                                "else\n" +
-                                "  select distinct(gb_fa_name),gb_id,gb_name,gb_btncolor,gb_txtcolor,gb_txtfontsize,gb_txtfontstyle,gb_image,gb_cmp_id\n" +
-                                "\n" +
-                                "  from pos_groupbutton where gb_cmp_id='$companyId'"
-                    } else{
-                        "if (select host_name()) in (SELECT sta_name from pos_station where sta_name = (select host_name()))\n" +
-                                "\n" +
-                                "SELECT * from pos_station_groupbutton,pos_groupbutton,pos_station where psg_gb_id=gb_id and psg_sta_name=sta_name and sta_name=(select host_name()) order by psg_order\n" +
-                                "\n" +
-                                "else SELECT * from pos_station_groupbutton,pos_groupbutton,pos_station where psg_gb_id=gb_id and psg_sta_name=sta_name and sta_name='.' order by psg_order"
+                    val query = if (SettingsModel.isSqlServerWebDb) {
+                        val userGroupDesc = SettingsModel.currentUser?.userGrpDesc ?: ""
+                        """
+                        if (select count(*) from pos_users_groupbutton where pug_cmp_id='$companyId')>0
+                            select distinct(gb_fa_name),gb_id,gb_name,gb_btncolor,gb_txtcolor,gb_txtfontsize,gb_txtfontstyle,gb_image,gb_cmp_id
+                            from pos_groupbutton,pos_users_groupbutton where pug_gb_id=gb_id and pug_grp_desc='$userGroupDesc'
+                        else
+                            select distinct(gb_fa_name),gb_id,gb_name,gb_btncolor,gb_txtcolor,gb_txtfontsize,gb_txtfontstyle,gb_image,gb_cmp_id
+                            from pos_groupbutton where gb_cmp_id='$companyId'
+                        """
+                    } else {
+                        """
+                        if ('$deviceID') in (SELECT sta_name from pos_station)
+                            SELECT * from pos_station_groupbutton,pos_groupbutton,pos_station where psg_gb_id=gb_id and psg_sta_name=sta_name and sta_name='$deviceID' order by psg_order
+                        else 
+                            SELECT * from pos_station_groupbutton,pos_groupbutton,pos_station where psg_gb_id=gb_id and psg_sta_name=sta_name and sta_name='.' order by psg_order
+                        """
                     }
                     val dbResult = SQLServerWrapper.getQueryResult(query)
                     dbResult?.let {
                         while (it.next()) {
                             families.add(Family().apply {
-                                familyId = if (SettingsModel.isSqlServerWebDb) it.getStringValue("gb_id") else it.getStringValue(
-                                    "gb_id"
-                                )
-                                familyName = if (SettingsModel.isSqlServerWebDb) it.getStringValue("gb_name") else it.getStringValue(
-                                    "gb_name"
-                                )
-                                familyCompanyId = if (SettingsModel.isSqlServerWebDb) it.getStringValue("gb_cmp_id") else companyId
+                                familyId =
+                                    if (SettingsModel.isSqlServerWebDb) it.getStringValue("gb_id") else it.getStringValue(
+                                        "gb_id"
+                                    )
+                                familyName =
+                                    if (SettingsModel.isSqlServerWebDb) it.getStringValue("gb_name") else it.getStringValue(
+                                        "gb_name"
+                                    )
+                                familyCompanyId =
+                                    if (SettingsModel.isSqlServerWebDb) it.getStringValue("gb_cmp_id") else companyId
                             })
                         }
                         SQLServerWrapper.closeResultSet(it)
@@ -250,11 +257,13 @@ class FamilyRepositoryImpl(
                         if (it.next()) {
                             family = Family().apply {
                                 familyId = it.getStringValue("fa_name")
-                                familyName = if (SettingsModel.isSqlServerWebDb) it.getStringValue("fa_newname") else it.getStringValue(
-                                    "fa_name"
-                                )
+                                familyName =
+                                    if (SettingsModel.isSqlServerWebDb) it.getStringValue("fa_newname") else it.getStringValue(
+                                        "fa_name"
+                                    )
                                 //familyImage = obj.optString("fa_name")
-                                familyCompanyId = if (SettingsModel.isSqlServerWebDb) it.getStringValue("fa_cmp_id") else SettingsModel.getCompanyID()
+                                familyCompanyId =
+                                    if (SettingsModel.isSqlServerWebDb) it.getStringValue("fa_cmp_id") else SettingsModel.getCompanyID()
                             }
                         }
                         SQLServerWrapper.closeResultSet(it)
@@ -267,7 +276,7 @@ class FamilyRepositoryImpl(
         }
     }
 
-    override suspend fun getFamilyById(familyId:String): Family? {
+    override suspend fun getFamilyById(familyId: String): Family? {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
                 val querySnapshot = FirebaseWrapper.getQuerySnapshot(
@@ -310,11 +319,13 @@ class FamilyRepositoryImpl(
                         if (it.next()) {
                             family = Family().apply {
                                 this.familyId = it.getStringValue("fa_name")
-                                this.familyName = if (SettingsModel.isSqlServerWebDb) it.getStringValue("fa_newname") else it.getStringValue(
-                                    "fa_name"
-                                )
+                                this.familyName =
+                                    if (SettingsModel.isSqlServerWebDb) it.getStringValue("fa_newname") else it.getStringValue(
+                                        "fa_name"
+                                    )
                                 //familyImage = obj.optString("fa_name")
-                                this.familyCompanyId = if (SettingsModel.isSqlServerWebDb) it.getStringValue("fa_cmp_id") else SettingsModel.getCompanyID()
+                                this.familyCompanyId =
+                                    if (SettingsModel.isSqlServerWebDb) it.getStringValue("fa_cmp_id") else SettingsModel.getCompanyID()
                             }
                         }
                         SQLServerWrapper.closeResultSet(it)
@@ -368,7 +379,8 @@ class FamilyRepositoryImpl(
             val id = queryResult.result
             if (id.isNullOrEmpty() && SettingsModel.isSqlServerWebDb) {
                 try {
-                    val dbResult = SQLServerWrapper.getQueryResult("select max(fa_name) as id from st_item")
+                    val dbResult =
+                        SQLServerWrapper.getQueryResult("select max(fa_name) as id from st_item")
                     dbResult?.let {
                         while (it.next()) {
                             family.familyId = it.getStringValue(
@@ -394,7 +406,7 @@ class FamilyRepositoryImpl(
     }
 
     private fun updateFamily(
-            family: Family
+        family: Family
     ): DataModel {
         val columnName = if (SettingsModel.isSqlServerWebDb) "fa_newname" else "fa_name"
         val succeed = SQLServerWrapper.update(

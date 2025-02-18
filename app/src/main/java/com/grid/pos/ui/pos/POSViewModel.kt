@@ -203,7 +203,7 @@ class POSViewModel @Inject constructor(
     }
 
     fun loadFamiliesAndItems() {
-        if(isInitiating){
+        if (isInitiating) {
             return
         }
         val loadItems = state.value.items.isEmpty()
@@ -242,7 +242,7 @@ class POSViewModel @Inject constructor(
     }
 
     private suspend fun fetchFamilies(stopLoading: Boolean = false) {
-        val listOfFamilies = familyRepository.getFamiliesForPOS()
+        val listOfFamilies = familyRepository.getFamiliesForPOS(Utils.getDeviceID(App.getInstance()))
         withContext(Dispatchers.Main) {
             updateState(
                 state.value.copy(

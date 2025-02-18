@@ -228,8 +228,40 @@ class ItemRepositoryImpl(
                             " INNER JOIN pos_itembutton on it_id = ib_it_id INNER JOIN currency on it_cur_code = cur_code LEFT OUTER JOIN st_item_warehouse on it_id = uw_it_id"
                         )
                     } else {
+                        /*SQLServerWrapper.getQueryResult(
+                            "select st_item.*,1 it_pos,ib_gb_id,ib_btncolor,ib_txtcolor from st_item,pos_itembutton,pos_groupbutton,pos_station_groupbutton where it_id=ib_it_id and ib_gb_id=gb_id and gb_id=psg_gb_id and psg_sta_name='.'  union select st_item.*,0 it_pos,ib_gb_id,ib_btncolor,ib_txtcolor from st_item,pos_itembutton where it_id not in (select ib_it_id from pos_itembutton,pos_groupbutton,pos_station_groupbutton where ib_gb_id=gb_id and gb_id=psg_gb_id and psg_sta_name='.')"
+                        )*/
                         SQLServerWrapper.getQueryResult(
-                            "select st_item.*,1 it_pos,ib_gb_id,ib_btncolor,ib_txtcolor from st_item,pos_itembutton,pos_groupbutton,pos_station_groupbutton  where it_id=ib_it_id and ib_gb_id=gb_id and gb_id=psg_gb_id and psg_sta_name='.'  union select st_item.*,0 it_pos,ib_gb_id,ib_btncolor,ib_txtcolor from st_item,pos_itembutton where it_id not in (select ib_it_id from pos_itembutton,pos_groupbutton,pos_station_groupbutton where ib_gb_id=gb_id and gb_id=psg_gb_id and psg_sta_name='.')"
+                            """
+                                SELECT st_item.*, 
+                                       1 AS it_pos, 
+                                       pos_itembutton.ib_gb_id, 
+                                       pos_itembutton.ib_btncolor, 
+                                       pos_itembutton.ib_txtcolor
+                                FROM st_item
+                                JOIN pos_itembutton ON st_item.it_id = pos_itembutton.ib_it_id
+                                JOIN pos_groupbutton ON pos_itembutton.ib_gb_id = pos_groupbutton.gb_id
+                                JOIN pos_station_groupbutton ON pos_groupbutton.gb_id = pos_station_groupbutton.psg_gb_id
+                                WHERE psg_sta_name = '.'
+                                UNION
+                                SELECT st_item.*, 
+                                       0 AS it_pos, 
+                                       pos_itembutton.ib_gb_id, 
+                                       pos_itembutton.ib_btncolor, 
+                                       pos_itembutton.ib_txtcolor
+                                FROM st_item
+                                LEFT JOIN pos_itembutton ON st_item.it_id = pos_itembutton.ib_it_id
+                                LEFT JOIN pos_groupbutton ON pos_itembutton.ib_gb_id = pos_groupbutton.gb_id
+                                LEFT JOIN pos_station_groupbutton ON pos_groupbutton.gb_id = pos_station_groupbutton.psg_gb_id
+                                WHERE (pos_itembutton.ib_it_id IS NULL OR psg_sta_name <> '.')
+                                  AND st_item.it_id NOT IN (
+                                    SELECT ib_it_id 
+                                    FROM pos_itembutton 
+                                    JOIN pos_groupbutton ON pos_itembutton.ib_gb_id = pos_groupbutton.gb_id
+                                    JOIN pos_station_groupbutton ON pos_groupbutton.gb_id = pos_station_groupbutton.psg_gb_id
+                                    WHERE psg_sta_name = '.'
+                                )
+                            """.trimIndent()
                         )
                     }
                     dbResult?.let {
