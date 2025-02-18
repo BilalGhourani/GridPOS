@@ -87,14 +87,10 @@ class POSViewModel @Inject constructor(
                 fetchFamilies()
                 fetchGlobalSettings()
                 if (SettingsModel.isConnectedToSqlServer()) {
-                    SettingsModel.currentCurrency?.let { currency ->
-                        if (currency.currencyId.isNotEmpty() && !currency.currencyDocumentId.isNullOrEmpty()) {
-                            taxRate = currencyRepository.getRate(
-                                currency.currencyId,
-                                currency.currencyDocumentId!!
-                            )
-                        }
-                    }
+                    taxRate = currencyRepository.getRate(
+                        SettingsModel.currentCurrency?.currencyId,
+                        SettingsModel.currentCompany?.companyCurCodeTax
+                    )
                 }
                 isInitiating = false
             }
@@ -242,7 +238,8 @@ class POSViewModel @Inject constructor(
     }
 
     private suspend fun fetchFamilies(stopLoading: Boolean = false) {
-        val listOfFamilies = familyRepository.getFamiliesForPOS(Utils.getDeviceID(App.getInstance()))
+        val listOfFamilies =
+            familyRepository.getFamiliesForPOS(Utils.getDeviceID(App.getInstance()))
         withContext(Dispatchers.Main) {
             updateState(
                 state.value.copy(
@@ -338,7 +335,8 @@ class POSViewModel @Inject constructor(
                     )
                 }
                 if (invoiceHeader.invoiceHeadTtCode.isNullOrEmpty()) {
-                    invoiceHeader.invoiceHeadTtCode = getTransactionType(invoiceHeader.invoiceHeadGrossAmount)
+                    invoiceHeader.invoiceHeadTtCode =
+                        getTransactionType(invoiceHeader.invoiceHeadGrossAmount)
                 }
                 invoiceHeader.prepareForInsert()
                 val dataModel = invoiceHeaderRepository.insert(invoiceHeader, print, finish)
@@ -373,7 +371,7 @@ class POSViewModel @Inject constructor(
                             lastTransactionIvn?.invoiceHeadTransNo ?: ""
                         )
                     }
-                }else if (invoiceHeader.invoiceHeadOrderNo.isNullOrEmpty()) {
+                } else if (invoiceHeader.invoiceHeadOrderNo.isNullOrEmpty()) {
                     val lastOrderInv = invoiceHeaderRepository.getLastOrderByType()
                     invoiceHeader.invoiceHeadOrderNo = POSUtils.getInvoiceNo(
                         lastOrderInv?.invoiceHeadOrderNo ?: ""
@@ -381,7 +379,8 @@ class POSViewModel @Inject constructor(
                 }
                 val dataModel = invoiceHeaderRepository.update(invoiceHeader, print, finish)
                 if (dataModel.succeed) {
-                    val index = state.value.invoiceHeaders.indexOfFirst { it.invoiceHeadId == invoiceHeader.invoiceHeadId }
+                    val index =
+                        state.value.invoiceHeaders.indexOfFirst { it.invoiceHeadId == invoiceHeader.invoiceHeadId }
                     if (index >= 0) {
                         state.value.invoiceHeaders.removeAt(index)
                         state.value.invoiceHeaders.add(

@@ -17,7 +17,7 @@ interface CurrencyRepository {
 
     // Get all Currencies as stream.
     suspend fun getAllCurrencies(): MutableList<Currency>
-    suspend fun getRate(firstCurr: String, secondCurr: String): Double
+    suspend fun getRate(firstCurr: String?, secondCurr: String?): Double
 
     // Get all Currencies as stream.
     suspend fun getAllCurrencyModels(): MutableList<CurrencyModel>

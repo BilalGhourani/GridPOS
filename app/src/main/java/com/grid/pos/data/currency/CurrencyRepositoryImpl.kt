@@ -15,7 +15,7 @@ import java.sql.Timestamp
 import java.util.Date
 
 class CurrencyRepositoryImpl(
-        private val currencyDao: CurrencyDao
+    private val currencyDao: CurrencyDao
 ) : CurrencyRepository {
     override suspend fun insert(currency: Currency): DataModel {
         return if (SettingsModel.isConnectedToFireStore()) {
@@ -30,7 +30,7 @@ class CurrencyRepositoryImpl(
     }
 
     override suspend fun delete(
-            currency: Currency
+        currency: Currency
     ): DataModel {
         return if (SettingsModel.isConnectedToFireStore()) {
             FirebaseWrapper.delete(
@@ -44,7 +44,7 @@ class CurrencyRepositoryImpl(
     }
 
     override suspend fun update(
-            currency: Currency
+        currency: Currency
     ): DataModel {
         return if (SettingsModel.isConnectedToFireStore()) {
             FirebaseWrapper.update(
@@ -109,12 +109,18 @@ class CurrencyRepositoryImpl(
                         while (it.next()) {
                             if (it.getIntValue("cur_order") == 1) {
                                 currency.currencyId = it.getStringValue("cur_code")
-                                currency.currencyCode1 = if (SettingsModel.isSqlServerWebDb) it.getStringValue("cur_newcode") else it.getStringValue("cur_code")
+                                currency.currencyCode1 =
+                                    if (SettingsModel.isSqlServerWebDb) it.getStringValue("cur_newcode") else it.getStringValue(
+                                        "cur_code"
+                                    )
                                 currency.currencyName1 = it.getStringValue("cur_name")
                                 currency.currencyName1Dec = it.getIntValue("cur_decimal")
                             } else {
                                 currency.currencyDocumentId = it.getStringValue("cur_code")
-                                currency.currencyCode2 = if (SettingsModel.isSqlServerWebDb) it.getStringValue("cur_newcode") else it.getStringValue("cur_code")
+                                currency.currencyCode2 =
+                                    if (SettingsModel.isSqlServerWebDb) it.getStringValue("cur_newcode") else it.getStringValue(
+                                        "cur_code"
+                                    )
                                 currency.currencyName2 = it.getStringValue("cur_name")
                                 currency.currencyName2Dec = it.getIntValue("cur_decimal")
                             }
@@ -128,7 +134,7 @@ class CurrencyRepositoryImpl(
                 if (currency.currencyId.isNotEmpty() && !currency.currencyDocumentId.isNullOrEmpty()) {
                     currency.currencyRate = getRate(
                         currency.currencyId,
-                        currency.currencyDocumentId!!
+                        currency.currencyDocumentId
                     )
                 }
 
@@ -138,10 +144,10 @@ class CurrencyRepositoryImpl(
     }
 
     override suspend fun getRate(
-            firstCurr: String,
-            secondCurr: String
+        firstCurr: String?,
+        secondCurr: String?
     ): Double {
-        return when (SettingsModel.connectionType) {
+        when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
                 return SettingsModel.currentCurrency?.currencyRate ?: 1.0
             }
@@ -152,6 +158,9 @@ class CurrencyRepositoryImpl(
 
             else -> {
                 var result = 1.0
+                if (firstCurr.isNullOrEmpty() || secondCurr.isNullOrEmpty()) {
+                    return result
+                }
                 val timestamp = Timestamp.valueOf(
                     DateHelper.getDateInFormat(
                         Date(),
@@ -176,7 +185,7 @@ class CurrencyRepositoryImpl(
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
-                result
+                return result
             }
         }
     }
@@ -228,7 +237,9 @@ class CurrencyRepositoryImpl(
                             currencyModels.add(
                                 CurrencyModel(
                                     currencyId = it.getStringValue("cur_code"),
-                                    currencyCode = if (SettingsModel.isSqlServerWebDb) it.getStringValue("cur_newcode") else it.getStringValue("cur_code"),
+                                    currencyCode = if (SettingsModel.isSqlServerWebDb) it.getStringValue(
+                                        "cur_newcode"
+                                    ) else it.getStringValue("cur_code"),
                                     currencyName = it.getStringValue("cur_name")
                                 )
                             )

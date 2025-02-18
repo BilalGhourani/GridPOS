@@ -123,7 +123,7 @@ class SharedViewModel @Inject constructor(
                 }
                 val rate = currencyRepository.getRate(
                     currency.currencyId,
-                    item.itemCurrencyId!!
+                    item.itemCurrencyId
                 )
                 item.itemRealUnitPrice = item.itemUnitPrice.div(rate)
                 item.itemRealOpenCost = item.itemOpenCost.div(rate)
