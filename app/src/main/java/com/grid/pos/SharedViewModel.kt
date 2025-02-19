@@ -36,6 +36,7 @@ class SharedViewModel @Inject constructor(
     private val _mainActivityEvent = Channel<ActivityUIEvent>()
     val mainActivityEvent = _mainActivityEvent.receiveAsFlow()
 
+    private var userPermissions: Map<String, String>? = null
     var isRegistering: Boolean = false
 
     var isLoggedIn: Boolean = false
@@ -75,6 +76,8 @@ class SharedViewModel @Inject constructor(
     private suspend fun fetchSettings() {
         SettingsModel.defaultSqlServerBranch = settingsRepository.getDefaultBranch()
         SettingsModel.defaultSqlServerWarehouse = settingsRepository.getDefaultWarehouse()
+        userPermissions =
+            settingsRepository.getUserPermissions(SettingsModel.currentUser?.userUsername ?: "")
     }
 
     fun fetchCountries(onResult: (MutableList<ReportCountry>) -> Unit) {
@@ -253,6 +256,14 @@ class SharedViewModel @Inject constructor(
         }
     }
 
+    fun checkPermission(permission: String): Boolean {
+        if (SettingsModel.isConnectedToSqlServer()) {
+            val value = userPermissions?.getValue(permission)
+            return value.equals("yes", ignoreCase = true)
+        }
+        return true
+    }
+
 
     fun logout() {
         isLoggedIn = false
@@ -262,6 +273,7 @@ class SharedViewModel @Inject constructor(
         SettingsModel.defaultSqlServerBranch = null
         SettingsModel.defaultSqlServerWarehouse = null
 
+        userPermissions = null
         tempInvoiceHeader = null
         shouldLoadInvoice = false
         isFromTable = false

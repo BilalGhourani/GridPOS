@@ -240,6 +240,7 @@ fun POSView(
                             .fillMaxWidth()
                             .height(70.dp),
                             isPayEnabled = viewModel.state.value.invoiceItems.isNotEmpty(),
+                            isDeleteVisible = viewModel.allowDeleteInvoice,
                             isDeleteEnabled = !viewModel.state.value.invoiceHeader.isNew(),
                             onAddItem = {
                                 if (viewModel.state.value.items.isEmpty()) {
@@ -287,6 +288,11 @@ fun POSView(
                             },
                             onRemove = { index ->
                                 val invItems = viewModel.state.value.invoiceItems.toMutableList()
+                                val invoiceItem = invItems[index]
+                                if (!invoiceItem.invoice.isNew() && !viewModel.allowVoidItem) {
+                                    viewModel.showWarning("not allowed to void item!")
+                                    return@InvoiceBodyDetails
+                                }
                                 val deletedRow = invItems.removeAt(index)
                                 viewModel.updateState(
                                     viewModel.state.value.copy(
@@ -393,7 +399,8 @@ fun POSView(
                                         val invoiceItemModel = InvoiceItemModel()
                                         invoiceItemModel.setItem(item)
                                         invoiceItemModel.shouldPrint = true
-                                        val invoiceItems = viewModel.state.value.invoiceItems.toMutableList()
+                                        val invoiceItems =
+                                            viewModel.state.value.invoiceItems.toMutableList()
                                         invoiceItems.add(invoiceItemModel)
                                         viewModel.updateState(
                                             viewModel.state.value.copy(

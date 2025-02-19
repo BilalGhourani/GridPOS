@@ -486,4 +486,46 @@ class SettingsRepositoryImpl : SettingsRepository {
         }
     }
 
+    override suspend fun getUserPermissions(username: String): Map<String, String> {
+        when (SettingsModel.connectionType) {
+            CONNECTION_TYPE.FIRESTORE.key,
+            CONNECTION_TYPE.LOCAL.key -> {
+                // nothing to do
+                return mutableMapOf()
+            }
+
+            else -> {
+                val result = mutableMapOf<String, String>()
+                if(username.isEmpty()){
+                    return result
+                }
+                try {
+                    if (SettingsModel.isSqlServerWebDb) {
+                        val query =
+                            "select * from set_groupsettings,set_users where gs_grp_desc=usr_grp_desc and usr_username='$username'"
+                        SQLServerWrapper.getQueryResult(query)?.let {
+                            while (it.next()) {
+                                result[it.getStringValue("gs_lscode")] =
+                                    it.getStringValue("gs_value")
+                            }
+                            SQLServerWrapper.closeResultSet(it)
+                        }
+                    } else {
+                        val query =
+                            "select * from pay_groupssecurity,pay_employees where gs_grp_desc=emp_grp_desc and emp_username='$username'"
+                        SQLServerWrapper.getQueryResult(query)?.let {
+                            while (it.next()) {
+                                result[it.getStringValue("gs_allow")] = "Yes"
+                            }
+                            SQLServerWrapper.closeResultSet(it)
+                        }
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+                return result
+            }
+        }
+    }
+
 }

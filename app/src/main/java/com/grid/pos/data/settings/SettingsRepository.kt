@@ -20,4 +20,5 @@ interface SettingsRepository {
     suspend fun getColorById(colorId: String): String?
 
     suspend fun getBranchById(branchId: String): String?
+    suspend fun getUserPermissions(username: String): Map<String,String>
 }

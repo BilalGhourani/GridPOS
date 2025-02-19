@@ -67,6 +67,9 @@ class POSViewModel @Inject constructor(
     var isTablet = false
     var isInvoiceEdited = false
 
+    var allowDeleteInvoice = false
+    var allowVoidItem = false
+
     var currentInvoice: InvoiceHeader? = null
 
     private var clientsMap: Map<String, ThirdParty> = mutableMapOf()
@@ -92,6 +95,8 @@ class POSViewModel @Inject constructor(
                         SettingsModel.currentCompany?.companyCurCodeTax
                     )
                 }
+                allowDeleteInvoice = sharedViewModel.checkPermission("Delete Invoice")
+                allowVoidItem = sharedViewModel.checkPermission("Void After Save")
                 isInitiating = false
             }
         }
