@@ -918,7 +918,8 @@ class InvoiceHeaderRepositoryImpl(
             invoiceHeadCompId = obj.getStringValue("hi_cmp_id")
             invoiceHeadDate = obj.getStringValue("hi_date")
             invoiceHeadOrderNo = obj.getStringValue("hi_orderno")
-            invoiceHeadTtCode = obj.getStringValue(ttCodeKey)
+            invoiceHeadTtCode = obj.getStringValue("hi_tt_code")
+            invoiceHeadTtCodeName = obj.getStringValue(ttCodeKey)
             invoiceHeadTransNo = obj.getStringValue("hi_transno")
             invoiceHeadStatus = obj.getStringValue("hi_status")
             invoiceHeadNote = obj.getStringValue("hi_note")
@@ -950,10 +951,14 @@ class InvoiceHeaderRepositoryImpl(
 
             val dueDate = obj.getObjectValue("hi_duedate")
             invoiceHeadDueDate =
-                if (dueDate is Date) dueDate else DateHelper.getDateFromString(
-                    dueDate as String,
-                    "yyyy-MM-dd hh:mm:ss.SSS"
-                )
+                when (dueDate) {
+                    null -> null
+                    is Date -> dueDate
+                    else -> DateHelper.getDateFromString(
+                        dueDate as String,
+                        "yyyy-MM-dd hh:mm:ss.SSS"
+                    )
+                }
 
             val timeStamp = obj.getObjectValue("hi_timestamp")
             invoiceHeadTimeStamp =
@@ -1188,10 +1193,8 @@ class InvoiceHeaderRepositoryImpl(
                 null,//hi_employee
                 if (invoiceHeader.invoiceHeadTransNo.isNullOrEmpty()) null else 1,//delivered
                 SettingsModel.currentUser?.userUsername,//hi_userstamp
-                SettingsModel.currentCompany?.cmp_multibranchcode,//branchcode
                 invoiceHeader.invoiceHeadChange,
                 Timestamp(System.currentTimeMillis()),//hi_valuedate
-                invoiceHeader.invoiceHeadPrinted,//hi_printed
                 0,//hi_smssent
                 null,//hi_pathtodoc
                 null,//hi_cashback

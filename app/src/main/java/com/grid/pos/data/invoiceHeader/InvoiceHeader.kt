@@ -70,6 +70,14 @@ data class InvoiceHeader(
         var invoiceHeadTtCode: String? = null,
 
         /**
+         * Invoice Header tt code name
+         * */
+        @Ignore
+        @get:Exclude
+        @set:Exclude
+        var invoiceHeadTtCodeName: String? = null,
+
+        /**
          * Invoice Header Trans number
          * */
         @ColumnInfo(name = "hi_transno")
@@ -288,7 +296,7 @@ data class InvoiceHeader(
     @Exclude
     override fun getName(): String {
         val table = if (invoiceHeadTaName.isNullOrEmpty()) "" else " $invoiceHeadTaName"
-        val transNo = if (invoiceHeadTransNo.isNullOrEmpty()) "$invoiceHeadOrderNo" else if (invoiceHeadTtCode.isNullOrEmpty()) "$invoiceHeadTransNo" else " $invoiceHeadTtCode$invoiceHeadTransNo"
+        val transNo = if (invoiceHeadTransNo.isNullOrEmpty()) "$invoiceHeadOrderNo" else if (invoiceHeadTtCodeName.isNullOrEmpty()) "$invoiceHeadTransNo" else " $invoiceHeadTtCodeName$invoiceHeadTransNo"
         val total = String.format(
             "%,.${SettingsModel.currentCurrency?.currencyName1Dec ?: 2}f",
             invoiceHeadTotal

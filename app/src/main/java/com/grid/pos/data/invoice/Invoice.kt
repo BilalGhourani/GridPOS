@@ -36,6 +36,10 @@ data class Invoice(
         @get:Exclude
         var in_cashback: Double = 0.0,
 
+        @Ignore
+        @get:Exclude
+        var  invoiceLineNo: Int = 0,
+
         /**
          * related Invoice header id
          * */

@@ -16,7 +16,6 @@ import com.grid.pos.ui.common.UIButton
 fun InvoiceHeaderDetails(
         modifier: Modifier = Modifier,
         isPayEnabled: Boolean = false,
-        isDeleteVisible: Boolean = false,
         isDeleteEnabled: Boolean = false,
         onAddItem: () -> Unit = {},
         onPay: () -> Unit = {},

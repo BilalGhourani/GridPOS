@@ -53,7 +53,7 @@ class POSViewModel @Inject constructor(
 ) : BaseViewModel(sharedViewModel) {
     val state: MutableState<POSState> = mutableStateOf(POSState())
 
-    var taxRate: Double? = null
+    private var taxRate: Double? = null
     var isLandscape: Boolean = false
     var triggerSaveCallback = mutableStateOf(false)
     var isEditBottomSheetVisible = mutableStateOf(false)
@@ -67,8 +67,8 @@ class POSViewModel @Inject constructor(
     var isTablet = false
     var isInvoiceEdited = false
 
-    var allowDeleteInvoice = false
-    var allowVoidItem = false
+    private var allowDeleteInvoice = false
+    private var allowVoidItem = false
 
     var currentInvoice: InvoiceHeader? = null
 
@@ -100,6 +100,14 @@ class POSViewModel @Inject constructor(
                 isInitiating = false
             }
         }
+    }
+
+    fun isAllowingToDelete(): Boolean {
+        return  allowDeleteInvoice && !state.value.invoiceHeader.isNew()
+    }
+
+    fun isAllowingToVoidItem(): Boolean {
+        return  allowVoidItem
     }
 
     fun isAnyPopupShown(): Boolean {
@@ -867,12 +875,12 @@ class POSViewModel @Inject constructor(
                                     if (!item.itemBarcode.isNullOrEmpty()) {
                                         updateRealItemPrice(item, false)
                                         val invoiceItemModel =
-                                            InvoiceItemModel()
+                                            InvoiceItemModel(
+                                                shouldPrint = true
+                                            )
                                         invoiceItemModel.setItem(item)
-                                        invoiceItemModel.shouldPrint =
-                                            true
-                                        invoiceItemModel.invoice.invoiceQuantity =
-                                            count.toDouble()
+                                        invoiceItemModel.invoice.invoiceQuantity = count.toDouble()
+                                        invoiceItemModel.invoice.invoiceLineNo = invoiceItems.size
                                         invoiceItems.add(
                                             invoiceItemModel
                                         )

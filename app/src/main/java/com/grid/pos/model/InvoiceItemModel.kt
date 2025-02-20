@@ -5,24 +5,26 @@ import com.grid.pos.data.item.Item
 import com.grid.pos.utils.Extension.isNullOrEmptyOrNullStr
 
 data class InvoiceItemModel(
-        val invoice: Invoice = Invoice(),
-        var invoiceItem: Item = Item(),
-        var initialQty: Double = 0.0,
-        var isDeleted: Boolean = false,
-        var shouldPrint: Boolean = false
+    val invoice: Invoice = Invoice(),
+    var invoiceItem: Item = Item(),
+    var initialQty: Double = 0.0,
+    var isDeleted: Boolean = false,
+    var shouldPrint: Boolean = false,
 ) {
 
     fun setItem(item: Item) {
         invoiceItem = item
         invoice.invoiceItemId = item.itemId
         invoice.invoiceQuantity = 1.0
-        invoice.invoicePrice = if (item.itemRealUnitPrice == 0.0) item.itemUnitPrice else item.itemRealUnitPrice
+        invoice.invoicePrice =
+            if (item.itemRealUnitPrice == 0.0) item.itemUnitPrice else item.itemRealUnitPrice
         invoice.invoiceDiscount = 0.0
         invoice.invoiceDiscamt = 0.0
         invoice.invoiceTax = item.itemTax
         invoice.invoiceTax1 = item.itemTax1
         invoice.invoiceTax2 = item.itemTax2
-        invoice.invoiceCost = if (item.itemRealOpenCost == 0.0) item.itemOpenCost else item.itemRealOpenCost
+        invoice.invoiceCost =
+            if (item.itemRealOpenCost == 0.0) item.itemOpenCost else item.itemRealOpenCost
         invoice.invoiceRemQty = item.itemRemQty
         invoice.in_it_div_name = item.it_div_name
         invoice.in_cashback = item.itemCashback

@@ -240,8 +240,7 @@ fun POSView(
                             .fillMaxWidth()
                             .height(70.dp),
                             isPayEnabled = viewModel.state.value.invoiceItems.isNotEmpty(),
-                            isDeleteVisible = viewModel.allowDeleteInvoice,
-                            isDeleteEnabled = !viewModel.state.value.invoiceHeader.isNew(),
+                            isDeleteEnabled = viewModel.isAllowingToDelete(),
                             onAddItem = {
                                 if (viewModel.state.value.items.isEmpty()) {
                                     viewModel.loadFamiliesAndItems()
@@ -289,8 +288,8 @@ fun POSView(
                             onRemove = { index ->
                                 val invItems = viewModel.state.value.invoiceItems.toMutableList()
                                 val invoiceItem = invItems[index]
-                                if (!invoiceItem.invoice.isNew() && !viewModel.allowVoidItem) {
-                                    viewModel.showWarning("not allowed to void item!")
+                                if (!invoiceItem.invoice.isNew() && !viewModel.isAllowingToVoidItem()) {
+                                    viewModel.showWarning("You are not allowed to void saved items.")
                                     return@InvoiceBodyDetails
                                 }
                                 val deletedRow = invItems.removeAt(index)
@@ -396,11 +395,13 @@ fun POSView(
                                         withContext(Dispatchers.IO) {
                                             viewModel.updateRealItemPrice(item)
                                         }
-                                        val invoiceItemModel = InvoiceItemModel()
-                                        invoiceItemModel.setItem(item)
-                                        invoiceItemModel.shouldPrint = true
                                         val invoiceItems =
                                             viewModel.state.value.invoiceItems.toMutableList()
+                                        val invoiceItemModel = InvoiceItemModel(
+                                            shouldPrint = true
+                                        )
+                                        invoiceItemModel.setItem(item)
+                                        invoiceItemModel.invoice.invoiceLineNo = invoiceItems.size
                                         invoiceItems.add(invoiceItemModel)
                                         viewModel.updateState(
                                             viewModel.state.value.copy(
@@ -460,9 +461,11 @@ fun POSView(
                             viewModel.isInvoiceEdited = true
                             val invoices = viewModel.state.value.invoiceItems.toMutableList()
                             itemList.forEach { item ->
-                                val invoiceItemModel = InvoiceItemModel()
+                                val invoiceItemModel = InvoiceItemModel(
+                                    shouldPrint = true
+                                )
                                 invoiceItemModel.setItem(item)
-                                invoiceItemModel.shouldPrint = true
+                                invoiceItemModel.invoice.invoiceLineNo = invoices.size
                                 invoices.add(invoiceItemModel)
                             }
                             viewModel.updateState(
@@ -542,9 +545,11 @@ fun POSView(
                     viewModel.isInvoiceEdited = true
                     val invoices = viewModel.state.value.invoiceItems.toMutableList()
                     itemList.forEach { item ->
-                        val invoiceItemModel = InvoiceItemModel()
+                        val invoiceItemModel = InvoiceItemModel(
+                            shouldPrint = true
+                        )
                         invoiceItemModel.setItem(item)
-                        invoiceItemModel.shouldPrint = true
+                        invoiceItemModel.invoice.invoiceLineNo = invoices.size
                         invoices.add(invoiceItemModel)
                     }
                     viewModel.updateState(

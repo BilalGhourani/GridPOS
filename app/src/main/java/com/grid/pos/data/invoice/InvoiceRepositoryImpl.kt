@@ -6,14 +6,15 @@ import com.grid.pos.data.SQLServerWrapper
 import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.DateHelper
+import com.grid.pos.utils.Extension.getIntValue
 import java.sql.ResultSet
 import java.util.Date
 
 class InvoiceRepositoryImpl(
-        private val invoiceDao: InvoiceDao
+    private val invoiceDao: InvoiceDao
 ) : InvoiceRepository {
     override suspend fun insert(
-            invoice: Invoice
+        invoice: Invoice
     ): Invoice {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
@@ -36,7 +37,7 @@ class InvoiceRepositoryImpl(
     }
 
     override suspend fun delete(
-            invoice: Invoice
+        invoice: Invoice
     ) {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
@@ -63,7 +64,7 @@ class InvoiceRepositoryImpl(
     }
 
     override suspend fun update(
-            invoice: Invoice
+        invoice: Invoice
     ) {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
@@ -105,7 +106,7 @@ class InvoiceRepositoryImpl(
     }
 
     override suspend fun getAllInvoices(
-            invoiceHeaderId: String
+        invoiceHeaderId: String
     ): MutableList<Invoice> {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
@@ -144,7 +145,8 @@ class InvoiceRepositoryImpl(
                         "in_invoice",
                         "",
                         mutableListOf("*"),
-                        where
+                        where,
+                        if (SettingsModel.isSqlServerWebDb) "order by in_lineno ASC" else ""
                     )
                     dbResult?.let {
                         while (it.next()) {
@@ -161,8 +163,8 @@ class InvoiceRepositoryImpl(
     }
 
     override suspend fun getInvoicesByIds(
-            ids: List<String>,
-            itemId: String?
+        ids: List<String>,
+        itemId: String?
     ): MutableList<Invoice> {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
@@ -212,8 +214,9 @@ class InvoiceRepositoryImpl(
             else -> {
                 val invoices: MutableList<Invoice> = mutableListOf()
                 try {
-                    val where = if (itemId.isNullOrEmpty()) "in_hi_id IN (${ids.joinToString(", ")})"
-                    else "in_it_id = '$itemId' AND in_hi_id IN (${ids.joinToString(", ")})"
+                    val where =
+                        if (itemId.isNullOrEmpty()) "in_hi_id IN (${ids.joinToString(", ")})"
+                        else "in_it_id = '$itemId' AND in_hi_id IN (${ids.joinToString(", ")})"
                     val dbResult = SQLServerWrapper.getListOf(
                         "in_invoice",
                         "",
@@ -235,9 +238,9 @@ class InvoiceRepositoryImpl(
     }
 
     override suspend fun getAllInvoicesForAdjustment(
-            itemId: String?,
-            from: Date?,
-            to: Date?
+        itemId: String?,
+        from: Date?,
+        to: Date?
     ): MutableList<Invoice> {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
@@ -319,8 +322,10 @@ class InvoiceRepositoryImpl(
                     collection = "in_invoice",
                     limit = 1,
                     filters = mutableListOf(
-                        Filter.equalTo("in_it_id",
-                            itemId)
+                        Filter.equalTo(
+                            "in_it_id",
+                            itemId
+                        )
                     )
                 )
                 val size = querySnapshot?.size() ?: 0
@@ -374,6 +379,7 @@ class InvoiceRepositoryImpl(
             }
             invoiceDateTime = invoiceTimeStamp!!.time
             invoiceUserStamp = obj.getString("in_userstamp")
+            invoiceLineNo = obj.getIntValue("in_lineno")
         }
     }
 
@@ -407,6 +413,9 @@ class InvoiceRepositoryImpl(
             invoice.getTax1(),
             invoice.getTax2()
         )
+        if(SettingsModel.isSqlServerWebDb){
+            parameters.add(invoice.invoiceLineNo)
+        }
         val queryResult = SQLServerWrapper.executeProcedure(
             "addin_invoice",
             parameters
@@ -445,7 +454,8 @@ class InvoiceRepositoryImpl(
                 null,//in_disc3
                 null,//in_order
                 invoice.getTax1(),
-                invoice.getTax2()
+                invoice.getTax2(),
+                invoice.invoiceLineNo
             )
         } else {
             mutableListOf(
