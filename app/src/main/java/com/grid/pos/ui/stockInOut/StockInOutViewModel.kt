@@ -320,6 +320,7 @@ class StockInOutViewModel @Inject constructor(
                                     barcodesList.groupingBy { item -> item as Item }
                                         .eachCount()
                                 val itemsToAdd = mutableListOf<StockInOutItemModel>()
+                                var index =  items.size
                                 map.forEach { (item, count) ->
                                     if (!item.itemBarcode.isNullOrEmpty()) {
                                         updateRealItemPrice(item, false)
@@ -327,6 +328,7 @@ class StockInOutViewModel @Inject constructor(
                                         stockInOutItem.setItem(item)
                                         stockInOutItem.stockInOut.stockInOutQty =
                                             count.toDouble()
+                                        stockInOutItem.stockInOut.stockInOutLineNo = index++
                                         itemsToAdd.add(stockInOutItem)
                                     }
                                 }

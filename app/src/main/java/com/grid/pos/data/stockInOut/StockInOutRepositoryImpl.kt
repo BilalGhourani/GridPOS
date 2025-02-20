@@ -113,6 +113,7 @@ class StockInOutRepositoryImpl : StockInOutRepository {
             stockInOutCurRateF = obj.getDoubleValue("io_mcurratef")
             stockInOutCurRateS = obj.getDoubleValue("io_mcurrates")
             stockInOutOrder = obj.getIntValue("io_order")
+            stockInOutLineNo = obj.getIntValue("io_lineno")
         }
     }
 

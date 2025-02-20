@@ -328,6 +328,7 @@ fun StockInOutView(
                         val stockInOutItem =
                             StockInOutItemModel()
                         stockInOutItem.setItem(item)
+                        stockInOutItem.stockInOut.stockInOutLineNo = viewModel.items.size
                         viewModel.items.add(stockInOutItem)
                     }
                 }

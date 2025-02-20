@@ -97,6 +97,11 @@ data class StockInOut(
      * */
     var stockInOutOrder: Int? = null,
 
+    /**
+     * io_order
+     * */
+    var stockInOutLineNo: Int? = null,
+
     ) : EntityModel() {
     constructor() : this("")
 
