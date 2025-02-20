@@ -258,8 +258,11 @@ class SharedViewModel @Inject constructor(
 
     fun checkPermission(permission: String): Boolean {
         if (SettingsModel.isConnectedToSqlServer()) {
-            val value = userPermissions?.getValue(permission)
-            return value.equals("yes", ignoreCase = true)
+            if (userPermissions?.containsKey(permission) == true) {
+                val value = userPermissions?.getValue(permission)
+                return value.equals("yes", ignoreCase = true)
+            }
+            return false
         }
         return true
     }
