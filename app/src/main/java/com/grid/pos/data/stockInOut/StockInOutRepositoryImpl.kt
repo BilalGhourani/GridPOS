@@ -130,6 +130,7 @@ class StockInOutRepositoryImpl : StockInOutRepository {
                 SettingsModel.currentUser?.userUsername,//@io_userstamp
                 SettingsModel.currentCompany?.cmp_multibranchcode,//@branchcode
                 stockInOut.stockInOutDivName,//@sa_div_name
+                stockInOut.stockInOutLineNo,//@io_lineno
             )
         } else {
             listOf(
@@ -172,6 +173,7 @@ class StockInOutRepositoryImpl : StockInOutRepository {
                 stockInOut.stockInOutNote,//@io_note
                 SettingsModel.currentUser?.userUsername,//@io_userstamp
                 stockInOut.stockInOutDivName,//@sa_div_name
+                stockInOut.stockInOutLineNo,//@io_lineno
             )
         } else {
             listOf(
