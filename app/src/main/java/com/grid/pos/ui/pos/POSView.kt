@@ -353,16 +353,6 @@ fun POSView(
                             modifier = Modifier
                                 .wrapContentWidth()
                                 .wrapContentHeight(),
-                            onLoadClients = { viewModel.fetchThirdParties() },
-                            onLoadInvoices = {
-                                if (viewModel.state.value.thirdParties.isEmpty()) {
-                                    viewModel.fetchThirdParties()
-                                }
-                                viewModel.fetchInvoices()
-                            },
-                            onLoadItems = {
-                                viewModel.loadFamiliesAndItems()
-                            },
                             onAddItem = {
                                 viewModel.needAddedData(true)
                                 navController?.navigate(
@@ -376,45 +366,7 @@ fun POSView(
                                 )
                             },
                             onItemSelected = { item ->
-                                scope.launch {
-                                    viewModel.isInvoiceEdited = true
-                                    var proceed = true
-                                    if (item.itemRemQty <= 0) {
-                                        proceed = SettingsModel.allowOutOfStockSale
-                                        if (SettingsModel.showItemQtyAlert) {
-                                            viewModel.showPopup(
-                                                PopupModel(
-                                                    dialogText = "Not enough stock available for ${item.itemName}. Please adjust the quantity.",
-                                                    positiveBtnText = "Close",
-                                                    negativeBtnText = null
-                                                )
-                                            )
-                                        }
-                                    }
-                                    if (proceed) {
-                                        withContext(Dispatchers.IO) {
-                                            viewModel.updateRealItemPrice(item)
-                                        }
-                                        val invoiceItems =
-                                            viewModel.state.value.invoiceItems.toMutableList()
-                                        val invoiceItemModel = InvoiceItemModel(
-                                            shouldPrint = true
-                                        )
-                                        invoiceItemModel.setItem(item)
-                                        invoiceItemModel.invoice.invoiceLineNo = invoiceItems.size
-                                        invoiceItems.add(invoiceItemModel)
-                                        viewModel.updateState(
-                                            viewModel.state.value.copy(
-                                                invoiceItems = invoiceItems,
-                                                invoiceHeader = POSUtils.refreshValues(
-                                                    invoiceItems,
-                                                    viewModel.state.value.invoiceHeader
-                                                )
-                                            )
-                                        )
-                                        viewModel.isAddItemBottomSheetVisible.value = false
-                                    }
-                                }
+                              viewModel.onItemSelected(item)
                             },
                             onThirdPartySelected = { thirdParty ->
                                 viewModel.isInvoiceEdited =

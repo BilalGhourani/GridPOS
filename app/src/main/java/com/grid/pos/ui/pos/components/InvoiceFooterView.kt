@@ -35,11 +35,8 @@ import com.grid.pos.ui.pos.POSViewModel
 @Composable
 fun InvoiceFooterView(
     state: POSState,
-    viewModel:POSViewModel,
+    viewModel: POSViewModel,
     modifier: Modifier = Modifier,
-    onLoadClients: () -> Unit = {},
-    onLoadInvoices: () -> Unit = {},
-    onLoadItems: () -> Unit = {},
     onAddItem: () -> Unit = {},
     onAddThirdParty: () -> Unit = {},
     onItemSelected: (Item) -> Unit = {},
@@ -68,7 +65,15 @@ fun InvoiceFooterView(
                         5.dp
                     ),
                 label = "Invoices",
-                onLoadItems = { onLoadInvoices.invoke() },
+                onLoadItems = {
+                    if (viewModel.state.value.thirdParties.isEmpty()) {
+                        viewModel.fetchThirdParties()
+                    }
+                    viewModel.fetchInvoices()
+                },
+                onNoSearchResultsFound = {
+//
+                },
             ) { invoiceHeader ->
                 onInvoiceSelected.invoke(invoiceHeader as InvoiceHeader)
             }
@@ -148,7 +153,7 @@ fun InvoiceFooterView(
                         .padding(end = 5.dp),
                     label = "Items",
                     onLoadItems = {
-                        onLoadItems.invoke()
+                        viewModel.loadFamiliesAndItems()
                     },
                     leadingIcon = {
                         if (SettingsModel.connectionType != CONNECTION_TYPE.SQL_SERVER.key) {
@@ -192,7 +197,7 @@ fun InvoiceFooterView(
                         .weight(1f)
                         .wrapContentHeight(),
                     label = "Customers",
-                    onLoadItems = { onLoadClients.invoke() },
+                    onLoadItems = { viewModel.fetchThirdParties() },
                     leadingIcon = {
                         if (!viewModel.isFromTable()) {
                             Icon(

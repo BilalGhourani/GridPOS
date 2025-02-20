@@ -23,6 +23,7 @@ import com.grid.pos.data.thirdParty.ThirdPartyRepository
 import com.grid.pos.data.user.UserRepository
 import com.grid.pos.interfaces.OnBarcodeResult
 import com.grid.pos.model.InvoiceItemModel
+import com.grid.pos.model.PopupModel
 import com.grid.pos.model.ReportResult
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.model.UserType
@@ -103,11 +104,11 @@ class POSViewModel @Inject constructor(
     }
 
     fun isAllowingToDelete(): Boolean {
-        return  allowDeleteInvoice && !state.value.invoiceHeader.isNew()
+        return allowDeleteInvoice && !state.value.invoiceHeader.isNew()
     }
 
     fun isAllowingToVoidItem(): Boolean {
-        return  allowVoidItem
+        return allowVoidItem
     }
 
     fun isAnyPopupShown(): Boolean {
@@ -909,6 +910,47 @@ class POSViewModel @Inject constructor(
                         sharedViewModel.openAppStorageSettings()
                     }
                 })
+        }
+    }
+
+    fun onItemSelected(item: Item) {
+        viewModelScope.launch(Dispatchers.Main) {
+            isInvoiceEdited = true
+            var proceed = true
+            if (item.itemRemQty <= 0) {
+                proceed = SettingsModel.allowOutOfStockSale
+                if (SettingsModel.showItemQtyAlert) {
+                    showPopup(
+                        PopupModel(
+                            dialogText = "Not enough stock available for ${item.itemName}. Please adjust the quantity.",
+                            positiveBtnText = "Close",
+                            negativeBtnText = null
+                        )
+                    )
+                }
+            }
+            if (proceed) {
+                withContext(Dispatchers.IO) {
+                    updateRealItemPrice(item)
+                }
+                val invoiceItems = state.value.invoiceItems.toMutableList()
+                val invoiceItemModel = InvoiceItemModel(
+                    shouldPrint = true
+                )
+                invoiceItemModel.setItem(item)
+                invoiceItemModel.invoice.invoiceLineNo = invoiceItems.size
+                invoiceItems.add(invoiceItemModel)
+                updateState(
+                    state.value.copy(
+                        invoiceItems = invoiceItems,
+                        invoiceHeader = POSUtils.refreshValues(
+                            invoiceItems,
+                            state.value.invoiceHeader
+                        )
+                    )
+                )
+                isAddItemBottomSheetVisible.value = false
+            }
         }
     }
 }
