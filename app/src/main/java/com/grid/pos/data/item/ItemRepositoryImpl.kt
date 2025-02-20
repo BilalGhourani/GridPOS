@@ -666,6 +666,7 @@ class ItemRepositoryImpl(
                 null,//@it_type
                 null,//@it_online
                 null,//@it_digitalmenu
+                null,//@it_lineno
             )
         } else {
             listOf(

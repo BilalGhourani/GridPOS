@@ -398,7 +398,8 @@ class ReceiptRepositoryImpl(
                 null,//@rec_div_name
                 false,//@rec_tax
                 0.0,//@rec_denomination
-                0.0//@rec_count
+                0.0,//@rec_count
+                null//@rec_lineno
             )
         } else {
             listOf(
@@ -473,6 +474,7 @@ class ReceiptRepositoryImpl(
                 SettingsModel.defaultSqlServerBranch,//@ur_bra_name
                 null,//@ur_prj_name
                 null,//@ur_div_name
+                null,//@ur_lineno
             )
         } else {
             listOf(
@@ -601,7 +603,8 @@ class ReceiptRepositoryImpl(
                 null,//@rec_div_name
                 false,//@rec_tax
                 null,//@rec_denomination
-                null//@rec_count
+                null,//@rec_count
+                null//@rec_lineno
             )
         } else {
             listOf(
@@ -675,6 +678,7 @@ class ReceiptRepositoryImpl(
                 SettingsModel.defaultSqlServerBranch,//@ur_bra_name
                 null,//@ur_prj_name
                 null,//@ur_div_name
+                null,//@ur_lineno
             )
         } else {
             listOf(
