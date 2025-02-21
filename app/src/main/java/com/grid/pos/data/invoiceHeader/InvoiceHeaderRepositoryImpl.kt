@@ -288,6 +288,124 @@ class InvoiceHeaderRepositoryImpl(
         }
     }
 
+    override suspend fun getInvoiceHeadersWith(key:String): MutableList<InvoiceHeader>{
+        val limit = 100
+        when (SettingsModel.connectionType) {
+            CONNECTION_TYPE.FIRESTORE.key -> {
+                val querySnapshot = FirebaseWrapper.getQuerySnapshot(
+                    collection = "in_hinvoice",
+                    limit = limit.toLong(),
+                    filters = mutableListOf(
+                        Filter.equalTo(
+                            "hi_cmp_id",
+                            SettingsModel.getCompanyID()
+                        ),
+                        Filter.greaterThanOrEqualTo(
+                            "hi_transno",
+                            key
+                        ),
+                        Filter.lessThan(
+                            "hi_transno",
+                            key+ '\uf8ff'
+                        )
+                    ),
+                    orderBy = mutableListOf(
+                        "hi_transno" to Query.Direction.DESCENDING
+                    )
+                )
+                val size = querySnapshot?.size() ?: 0
+                val invoices = mutableListOf<InvoiceHeader>()
+                val firstBatch = mutableListOf<InvoiceHeader>()
+                if (size > 0) {
+                    for (document in querySnapshot!!) {
+                        val obj = document.toObject(InvoiceHeader::class.java)
+                        if (obj.invoiceHeadId.isNotEmpty()) {
+                            obj.invoiceHeadDocumentId = document.id
+                            firstBatch.add(obj)
+                        }
+                    }
+                }
+                invoices.addAll(firstBatch.sortedByDescending { it.invoiceHeadTransNo }
+                    .toMutableList())
+
+                val tablesQuerySnapshot = FirebaseWrapper.getQuerySnapshot(
+                    collection = "in_hinvoice",
+                    limit = limit.toLong(),
+                    filters = mutableListOf(
+                        Filter.equalTo(
+                            "hi_cmp_id",
+                            SettingsModel.getCompanyID()
+                        ),
+                        Filter.greaterThanOrEqualTo(
+                            "hi_orderno",
+                            key
+                        ),
+                        Filter.lessThan(
+                            "hi_orderno",
+                            key+ '\uf8ff'
+                        )
+                    )
+                )
+                val tableSize = tablesQuerySnapshot?.size() ?: 0
+                val secondBatch = mutableListOf<InvoiceHeader>()
+                if (tableSize > 0) {
+                    for (document in tablesQuerySnapshot!!) {
+                        val obj = document.toObject(InvoiceHeader::class.java)
+                        if (obj.invoiceHeadId.isNotEmpty()) {
+                            obj.invoiceHeadDocumentId = document.id
+                            secondBatch.add(obj)
+                        }
+                    }
+                }
+                invoices.addAll(
+                    0,
+                    secondBatch.sortedByDescending { it.invoiceHeadOrderNo }.toMutableList()
+                )
+                return invoices
+            }
+
+            CONNECTION_TYPE.LOCAL.key -> {
+                return invoiceHeaderDao.getInvoiceHeadersWith(
+                    key,
+                    limit,
+                    SettingsModel.getCompanyID() ?: ""
+                )
+            }
+
+            else -> {
+                val invoiceHeaders: MutableList<InvoiceHeader> = mutableListOf()
+                try {
+                    val where =
+                        "hi_cmp_id='${SettingsModel.getCompanyID()}' AND (hi_transno LIKE '%$key%' OR hi_orderno LIKE '%$key%')))"
+                    val dbResult = SQLServerWrapper.getListOf(
+                        "in_hinvoice",
+                        "TOP $limit",
+                        if (SettingsModel.isSqlServerWebDb) mutableListOf("*,tt.tt_newcode") else mutableListOf(
+                            "*"
+                        ),
+                        where,
+                        "ORDER BY hi_date DESC",
+                        if (SettingsModel.isSqlServerWebDb) "INNER JOIN acc_transactiontype tt on hi_tt_code = tt.tt_code" else ""
+                    )
+                    dbResult?.let {
+                        while (it.next()) {
+                            invoiceHeaders.add(
+                                fillParams(
+                                    it,
+                                    "tt_newcode"
+                                )
+                            )
+                        }
+                        SQLServerWrapper.closeResultSet(it)
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+                return invoiceHeaders
+            }
+        }
+    }
+
     override suspend fun getAllInvoicesByIds(ids: List<String>): MutableList<InvoiceHeader> {
         return when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {

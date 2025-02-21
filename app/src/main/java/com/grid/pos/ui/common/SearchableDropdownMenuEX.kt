@@ -68,7 +68,7 @@ fun SearchableDropdownMenuEx(
         maxHeight: Dp = 170.dp,// 4 rows as maximum
         onLeadingIconClick: () -> Unit = {},
         onLoadItems: () -> Unit = {},
-        onNoSearchResultsFound: () -> Unit = {}, // New callback for no search results
+        onNoSearchResultsFound: (String) -> Unit = {}, // New callback for no search results
         onSelectionChange: (EntityModel) -> Unit = {},
 ) {
     var isLoaded by remember { mutableStateOf(false) }
@@ -192,7 +192,7 @@ fun SearchableDropdownMenuEx(
             }
             LaunchedEffect(filteredItems) {
                 if (searchText.isNotEmpty() && filteredItems.isEmpty()) {
-                    onNoSearchResultsFound.invoke() // Call callback when no results are found
+                    onNoSearchResultsFound.invoke(searchText) // Call callback when no results are found
                 }
             }
             Surface(

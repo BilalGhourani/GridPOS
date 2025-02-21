@@ -32,6 +32,8 @@ import com.grid.pos.utils.PrinterUtils
 import com.grid.pos.utils.Utils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -54,6 +56,7 @@ class POSViewModel @Inject constructor(
 ) : BaseViewModel(sharedViewModel) {
     val state: MutableState<POSState> = mutableStateOf(POSState())
 
+    private var searchJob: Job? = null
     private var taxRate: Double? = null
     var isLandscape: Boolean = false
     var triggerSaveCallback = mutableStateOf(false)
@@ -314,6 +317,29 @@ class POSViewModel @Inject constructor(
                 )
                 showLoading(false)
             }
+        }
+    }
+
+    fun searchForInvoices(key: String) {
+        searchJob?.cancel()
+        searchJob = viewModelScope.launch(Dispatchers.Main) {
+            delay(1000)//waiting the user to stop typing
+            showLoading(true)
+            val invoices = state.value.invoiceHeaders.toMutableList()
+            withContext(Dispatchers.IO) {
+                val listOfInvoices = invoiceHeaderRepository.getInvoiceHeadersWith(key)
+                listOfInvoices.map {
+                    it.invoiceHeadThirdPartyNewName =
+                        clientsMap[it.invoiceHeadThirdPartyName]?.thirdPartyName
+                }
+                invoices.addAll(listOfInvoices)
+            }
+            updateState(
+                state.value.copy(
+                    invoiceHeaders = invoices
+                )
+            )
+            showLoading(false)
         }
     }
 

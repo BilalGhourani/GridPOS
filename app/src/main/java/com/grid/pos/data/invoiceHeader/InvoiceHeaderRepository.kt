@@ -28,6 +28,7 @@ interface InvoiceHeaderRepository {
 
     // Get all Invoice Headers logs as stream.
     suspend fun getAllInvoiceHeaders(): MutableList<InvoiceHeader>
+    suspend fun getInvoiceHeadersWith(key:String): MutableList<InvoiceHeader>
 
     //without any limit
     suspend fun getAllInvoicesByIds(ids: List<String>): MutableList<InvoiceHeader>

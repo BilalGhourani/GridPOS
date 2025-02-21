@@ -71,8 +71,8 @@ fun InvoiceFooterView(
                     }
                     viewModel.fetchInvoices()
                 },
-                onNoSearchResultsFound = {
-//
+                onNoSearchResultsFound = { key ->
+                    viewModel.searchForInvoices(key)
                 },
             ) { invoiceHeader ->
                 onInvoiceSelected.invoke(invoiceHeader as InvoiceHeader)
