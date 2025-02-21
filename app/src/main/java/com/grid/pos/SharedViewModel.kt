@@ -256,7 +256,7 @@ class SharedViewModel @Inject constructor(
         }
     }
 
-    fun checkPermission(permission: String): Boolean {
+    fun checkPermission(permission: String,fallback:Boolean = true): Boolean {
         if (SettingsModel.isConnectedToSqlServer()) {
             if (userPermissions?.containsKey(permission) == true) {
                 val value = userPermissions?.getValue(permission)
@@ -264,7 +264,7 @@ class SharedViewModel @Inject constructor(
             }
             return false
         }
-        return true
+        return fallback
     }
 
 

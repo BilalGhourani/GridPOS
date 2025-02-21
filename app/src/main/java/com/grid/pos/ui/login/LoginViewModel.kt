@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.viewModelScope
 import com.grid.pos.App
 import com.grid.pos.SharedViewModel
+import com.grid.pos.data.company.Company
 import com.grid.pos.data.company.CompanyRepository
 import com.grid.pos.data.user.UserRepository
 import com.grid.pos.model.LoginResponse
@@ -28,6 +29,7 @@ class LoginViewModel @Inject constructor(
 
     var usernameState = mutableStateOf("")
     var passwordState = mutableStateOf("")
+    var companies = mutableListOf<Company>()
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
@@ -96,7 +98,9 @@ class LoginViewModel @Inject constructor(
                     }
                 } else if (loginResponse.allUsersSize == 0) {
                     if (SettingsModel.isConnectedToSqlite() || SettingsModel.isConnectedToFireStore()) {
-                        val companies = companyRepository.getAllCompanies()
+                        if (companies.isEmpty()) {
+                            companies = companyRepository.getAllCompanies()
+                        }
                         withContext(Dispatchers.Main) {
                             sharedViewModel.isRegistering = true
                             showLoading(false)
@@ -150,7 +154,9 @@ class LoginViewModel @Inject constructor(
             passwordState.value = ""
             showLoading(false)
             SettingsModel.currentUser?.let {
-                if (it.userPosMode && it.userTableMode) {
+                if (sharedViewModel.checkPermission("Run In POS Mode", false)) {
+                    callback.invoke("TablesView")
+                } else if (it.userPosMode && it.userTableMode) {
                     callback.invoke("HomeView")
                 } else if (it.userPosMode) {
                     callback.invoke("POSView")
