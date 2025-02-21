@@ -155,6 +155,8 @@ class LoginViewModel @Inject constructor(
             showLoading(false)
             SettingsModel.currentUser?.let {
                 if (sharedViewModel.checkPermission("Run In POS Mode", false)) {
+                    SettingsModel.currentUser?.userPosMode = false
+                    SettingsModel.currentUser?.userTableMode = true
                     callback.invoke("TablesView")
                 } else if (it.userPosMode && it.userTableMode) {
                     callback.invoke("HomeView")
