@@ -240,42 +240,36 @@ fun TablesView(
                     }
                 }
 
+                Text(
+                    modifier = Modifier.fillMaxWidth()
+                        .height(50.dp)
+                        .padding(
+                            horizontal = 10.dp,
+                            vertical = 5.dp
+                        ),
+                    text = "Opened Tables",
+                    maxLines = 1,
+                    style = TextStyle(
+                        textDecoration = TextDecoration.None,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 20.sp
+                    ),
+                    textAlign = TextAlign.Center,
+                    color = SettingsModel.textColor,
+                    overflow = TextOverflow.Ellipsis
+                )
+
                 LazyColumn(
-                    modifier = modifier
+                    modifier = Modifier
                         .fillMaxWidth()
                         .weight(1f),
                     contentPadding = PaddingValues(0.dp)
                 ) {
-                    stickyHeader {
-                        Box(
-                            modifier = modifier
-                                .fillMaxWidth()
-                                .wrapContentHeight()
-                                .padding(
-                                    horizontal = 10.dp,
-                                    vertical = 5.dp
-                                ),
-                            contentAlignment = Alignment.CenterStart
-                        ) {
-                            Text(
-                                text = "Opened Tables",
-                                maxLines = 1,
-                                style = TextStyle(
-                                    textDecoration = TextDecoration.None,
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 20.sp
-                                ),
-                                textAlign = TextAlign.Start,
-                                color = SettingsModel.textColor,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                        }
-                    }
                     if (state.tables.isNotEmpty()) {
                         state.tables.forEach { tableModel ->
                             item {
                                 Box(
-                                    modifier = modifier
+                                    modifier = Modifier
                                         .fillMaxWidth()
                                         .height(50.dp)
                                         .padding(
@@ -296,7 +290,9 @@ fun TablesView(
                                         .clickable {
                                             viewModel.updateState(
                                                 state.copy(
-                                                    tableName = tableModel.table_name
+                                                    tableName = tableModel.table_name,
+                                                    clientCount = "",
+                                                    step = 1
                                                 )
                                             )
                                         },
@@ -316,7 +312,7 @@ fun TablesView(
                     } else if (state.isLoadingTables) {
                         item {
                             Box(
-                                modifier = modifier
+                                modifier = Modifier
                                     .fillMaxWidth()
                                     .height(80.dp)
                                     .padding(10.dp),
@@ -336,7 +332,7 @@ fun TablesView(
                     } else {
                         item {
                             Box(
-                                modifier = modifier
+                                modifier = Modifier
                                     .fillMaxWidth()
                                     .height(80.dp)
                                     .padding(10.dp),

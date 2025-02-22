@@ -79,7 +79,14 @@ class TablesViewModel @Inject constructor(
         }
     }
 
-    fun fetchInvoiceByTable(tableNo: String,callback: (String) -> Unit) {
+    fun resetTablesFilter() {
+        val tables = openedTables.toMutableList()
+        tablesState.value = tablesState.value.copy(
+            tables = tables
+        )
+    }
+
+    fun fetchInvoiceByTable(tableNo: String, callback: (String) -> Unit) {
         if (tableNo.isEmpty()) {
             showWarning("Please enter table number!")
             return
@@ -106,6 +113,7 @@ class TablesViewModel @Inject constructor(
             } else {
                 val invoiceHeader = tableInvoiceModel.invoiceHeader!!
                 viewModelScope.launch(Dispatchers.Main) {
+                    resetTablesFilter()
                     if (!invoiceHeader.isNew()) {
                         tablesState.value = tablesState.value.copy(
                             invoiceHeader = invoiceHeader
