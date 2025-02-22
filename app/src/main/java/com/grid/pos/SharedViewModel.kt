@@ -21,6 +21,7 @@ import com.grid.pos.model.SettingsModel
 import com.grid.pos.model.ToastModel
 import com.grid.pos.utils.FileUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -140,7 +141,7 @@ class SharedViewModel @Inject constructor(
     }
 
     fun finish() {
-        viewModelScope.launch {
+        CoroutineScope(Dispatchers.Main).launch {
             _mainActivityEvent.send(ActivityUIEvent.Finish)
         }
     }
@@ -150,7 +151,7 @@ class SharedViewModel @Inject constructor(
         timeout: Long = 30000
     ) {
         isLoading = show
-        viewModelScope.launch {
+        CoroutineScope(Dispatchers.Main).launch {
             _mainActivityEvent.send(
                 ActivityUIEvent.ShowLoading(
                     show,
@@ -161,7 +162,7 @@ class SharedViewModel @Inject constructor(
     }
 
     fun showToastMessage(toastModel: ToastModel) {
-        viewModelScope.launch {
+        CoroutineScope(Dispatchers.Main).launch {
             _mainActivityEvent.send(
                 ActivityUIEvent.ShowToastMessage(toastModel)
             )
@@ -172,7 +173,7 @@ class SharedViewModel @Inject constructor(
         show: Boolean,
         popupModel: PopupModel?
     ) {
-        viewModelScope.launch {
+        CoroutineScope(Dispatchers.Main).launch {
             _mainActivityEvent.send(
                 ActivityUIEvent.ShowPopup(
                     show,
@@ -183,7 +184,7 @@ class SharedViewModel @Inject constructor(
     }
 
     fun openAppStorageSettings() {
-        viewModelScope.launch {
+        CoroutineScope(Dispatchers.Main).launch {
             _mainActivityEvent.send(ActivityUIEvent.OpenAppSettings)
         }
     }
@@ -193,7 +194,7 @@ class SharedViewModel @Inject constructor(
         delegate: OnGalleryResult,
         onPermissionDenied: () -> Unit
     ) {
-        viewModelScope.launch {
+        CoroutineScope(Dispatchers.Main).launch {
             _mainActivityEvent.send(
                 ActivityUIEvent.LaunchGalleryPicker(
                     mediaType,
@@ -209,7 +210,7 @@ class SharedViewModel @Inject constructor(
         delegate: OnGalleryResult,
         onPermissionDenied: () -> Unit
     ) {
-        viewModelScope.launch {
+        CoroutineScope(Dispatchers.Main).launch {
             _mainActivityEvent.send(
                 ActivityUIEvent.LaunchFilePicker(
                     intentType,
@@ -223,7 +224,7 @@ class SharedViewModel @Inject constructor(
     fun startChooserActivity(
         intent: Intent
     ) {
-        viewModelScope.launch {
+        CoroutineScope(Dispatchers.Main).launch {
             _mainActivityEvent.send(ActivityUIEvent.StartChooserActivity(intent))
         }
     }
@@ -234,7 +235,7 @@ class SharedViewModel @Inject constructor(
         delegate: OnBarcodeResult,
         onPermissionDenied: () -> Unit
     ) {
-        viewModelScope.launch {
+        CoroutineScope(Dispatchers.Main).launch {
             _mainActivityEvent.send(
                 ActivityUIEvent.LaunchBarcodeScanner(
                     scanToAdd,
@@ -247,7 +248,7 @@ class SharedViewModel @Inject constructor(
     }
 
     fun changeAppOrientation(orientationType: String) {
-        viewModelScope.launch {
+        CoroutineScope(Dispatchers.Main).launch {
             _mainActivityEvent.send(
                 ActivityUIEvent.ChangeAppOrientation(
                     orientationType
