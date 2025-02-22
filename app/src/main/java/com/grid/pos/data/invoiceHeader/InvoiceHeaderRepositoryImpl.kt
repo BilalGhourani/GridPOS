@@ -376,7 +376,7 @@ class InvoiceHeaderRepositoryImpl(
                 val invoiceHeaders: MutableList<InvoiceHeader> = mutableListOf()
                 try {
                     val where =
-                        "hi_cmp_id='${SettingsModel.getCompanyID()}' AND (hi_transno LIKE '%$key%' OR hi_orderno LIKE '%$key%')))"
+                        "hi_cmp_id='${SettingsModel.getCompanyID()}' AND (hi_transno LIKE '%$key%' OR hi_orderno LIKE '%$key%')"
                     val dbResult = SQLServerWrapper.getListOf(
                         "in_hinvoice",
                         "TOP $limit",
