@@ -18,9 +18,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
@@ -39,6 +42,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
@@ -50,26 +56,26 @@ import com.grid.pos.model.SettingsModel
 
 @Composable
 fun SearchableDropdownMenuEx(
-        modifier: Modifier = Modifier,
-        items: MutableList<EntityModel> = mutableListOf(),
-        placeholder: String? = null,
-        label: String = "",
-        searchEnteredText: String? = null,
-        selectedId: String? = null,
-        showSelected: Boolean = true,
-        enableSearch: Boolean = true,
-        collapseOnInit: Boolean = false,
-        color: Color = SettingsModel.backgroundColor,
-        leadingIcon: @Composable ((Modifier) -> Unit)? = null,
-        searchLeadingIcon: @Composable (() -> Unit)? = null,
-        cornerRadius: Dp = 15.dp,
-        height: Dp = 70.dp,
-        minHeight: Dp = 50.dp,// 1 row as minimum
-        maxHeight: Dp = 170.dp,// 4 rows as maximum
-        onLeadingIconClick: () -> Unit = {},
-        onLoadItems: () -> Unit = {},
-        onNoSearchResultsFound: (String) -> Unit = {}, // New callback for no search results
-        onSelectionChange: (EntityModel) -> Unit = {},
+    modifier: Modifier = Modifier,
+    items: MutableList<EntityModel> = mutableListOf(),
+    placeholder: String? = null,
+    label: String = "",
+    searchEnteredText: String? = null,
+    selectedId: String? = null,
+    showSelected: Boolean = true,
+    enableSearch: Boolean = true,
+    collapseOnInit: Boolean = false,
+    color: Color = SettingsModel.backgroundColor,
+    leadingIcon: @Composable ((Modifier) -> Unit)? = null,
+    searchLeadingIcon: @Composable (() -> Unit)? = null,
+    cornerRadius: Dp = 15.dp,
+    height: Dp = 70.dp,
+    minHeight: Dp = 50.dp,// 1 row as minimum
+    maxHeight: Dp = 170.dp,// 4 rows as maximum
+    onLeadingIconClick: () -> Unit = {},
+    onLoadItems: () -> Unit = {},
+    onNoSearchResultsFound: ((String) -> Unit)? = null,
+    onSelectionChange: (EntityModel) -> Unit = {},
 ) {
     var isLoaded by remember { mutableStateOf(false) }
     var isExpanded by remember { mutableStateOf(false) }
@@ -190,11 +196,6 @@ fun SearchableDropdownMenuEx(
             val filteredItems = if (searchText.isEmpty()) items else items.filter {
                 it.search(searchText)
             }
-            LaunchedEffect(filteredItems) {
-                if (searchText.isNotEmpty() && filteredItems.isEmpty()) {
-                    onNoSearchResultsFound.invoke(searchText) // Call callback when no results are found
-                }
-            }
             Surface(
                 modifier = Modifier.padding(top = 2.dp),
                 tonalElevation = 5.dp,
@@ -226,6 +227,20 @@ fun SearchableDropdownMenuEx(
                                     color = SettingsModel.textColor
                                 )
                             },
+                            keyboardOptions = KeyboardOptions(
+                                capitalization = KeyboardCapitalization.None,
+                                autoCorrectEnabled = true,
+                                keyboardType = KeyboardType.Text,
+                                imeAction = ImeAction.Search
+                            ),
+                            keyboardActions = KeyboardActions(
+                                onSearch = {
+                                    if (searchText.isNotEmpty() && filteredItems.isEmpty()) {
+                                        onNoSearchResultsFound?.invoke(searchText)
+                                    }
+
+                                }
+                            ),
                             leadingIcon =  searchLeadingIcon,
                             trailingIcon = {
                                 IconButton(onClick = {
@@ -260,7 +275,8 @@ fun SearchableDropdownMenuEx(
                                             .height(40.dp)
                                             .clickable {
                                                 onSelectionChange(dataObj)
-                                                if (showSelected) selectedItemState = dataObj.getName()
+                                                if (showSelected) selectedItemState =
+                                                    dataObj.getName()
                                                 isExpanded = false
                                             },
                                         text = dataObj.getName(),

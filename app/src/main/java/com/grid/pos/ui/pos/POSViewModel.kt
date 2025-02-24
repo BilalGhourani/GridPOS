@@ -321,10 +321,9 @@ class POSViewModel @Inject constructor(
     }
 
     fun searchForInvoices(key: String) {
+        showLoading(true)
         searchJob?.cancel()
         searchJob = viewModelScope.launch(Dispatchers.Main) {
-            delay(1000)//waiting the user to stop typing
-            showLoading(true)
             val invoices = state.value.invoiceHeaders.toMutableList()
             withContext(Dispatchers.IO) {
                 val listOfInvoices = invoiceHeaderRepository.getInvoiceHeadersWith(key)
