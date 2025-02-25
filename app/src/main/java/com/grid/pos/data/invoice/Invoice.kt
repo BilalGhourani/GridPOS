@@ -10,7 +10,9 @@ import com.google.firebase.firestore.PropertyName
 import com.google.firebase.firestore.ServerTimestamp
 import com.grid.pos.data.EntityModel
 import com.grid.pos.model.SettingsModel
+import com.grid.pos.utils.DateHelper
 import com.grid.pos.utils.Utils
+import java.sql.Timestamp
 import java.util.Date
 
 @Entity(tableName = "in_invoice")
@@ -143,7 +145,7 @@ data class Invoice(
         @set:PropertyName("in_timestamp")
         @get:PropertyName("in_timestamp")
         @ServerTimestamp
-        var invoiceTimeStamp: Date? = null,
+        var invoiceTimeStamp: Date = Date(),
 
         /**
          * Invoice timestamp
@@ -225,7 +227,11 @@ data class Invoice(
             "in_note" to invoiceNote,
             "in_cost" to invoiceCost,
             "in_remqty" to invoiceRemQty,
-            "in_timestamp" to FieldValue.serverTimestamp(),
+            "in_timestamp" to Timestamp.valueOf(
+                DateHelper.getDateInFormat(
+                    invoiceTimeStamp,
+                    "yyyy-MM-dd HH:mm:ss"
+                )),
             "in_datetime" to invoiceDateTime,
             "in_userstamp" to invoiceUserStamp,
             "in_extraname" to invoiceExtraName,

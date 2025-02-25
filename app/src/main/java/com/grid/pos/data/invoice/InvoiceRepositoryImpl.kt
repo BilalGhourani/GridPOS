@@ -375,9 +375,9 @@ class InvoiceRepositoryImpl(
                     "yyyy-MM-dd hh:mm:ss.SSS"
                 )
 
-                else -> null
+                else -> Date()
             }
-            invoiceDateTime = invoiceTimeStamp!!.time
+            invoiceDateTime = invoiceTimeStamp.time
             invoiceUserStamp = obj.getString("in_userstamp")
             invoiceLineNo = obj.getIntValue("in_lineno")
         }

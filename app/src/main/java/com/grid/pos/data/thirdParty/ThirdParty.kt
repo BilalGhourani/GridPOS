@@ -5,12 +5,13 @@ import androidx.room.Entity
 import androidx.room.Ignore
 import androidx.room.PrimaryKey
 import com.google.firebase.firestore.Exclude
-import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.PropertyName
 import com.google.firebase.firestore.ServerTimestamp
 import com.grid.pos.data.EntityModel
 import com.grid.pos.model.SettingsModel
+import com.grid.pos.utils.DateHelper
 import com.grid.pos.utils.Utils
+import java.sql.Timestamp
 import java.util.Date
 
 @Entity(tableName = "thirdparty")
@@ -99,7 +100,7 @@ data class ThirdParty(
         @set:PropertyName("tp_timestamp")
         @get:PropertyName("tp_timestamp")
         @ServerTimestamp
-        var thirdPartyTimeStamp: Date? = null,
+        var thirdPartyTimeStamp: Date? = Date(),
 
         /**
          * ThirdParty time stamp
@@ -187,7 +188,11 @@ data class ThirdParty(
             "tp_phone2" to thirdPartyPhone2,
             "tp_address" to thirdPartyAddress,
             "tp_default" to thirdPartyDefault,
-            "tp_timestamp" to FieldValue.serverTimestamp(),
+            "tp_timestamp" to Timestamp.valueOf(
+                DateHelper.getDateInFormat(
+                    thirdPartyTimeStamp?:Date(),
+                    "yyyy-MM-dd HH:mm:ss"
+                )),
             "tp_userstamp" to thirdPartyUserStamp,
             "tp_datetime" to thirdPartyDateTime,
         )

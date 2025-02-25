@@ -601,7 +601,7 @@ class ItemRepositoryImpl(
                     "yyyy-MM-dd hh:mm:ss.SSS"
                 )
 
-                else -> null
+                else -> Date()
             }
             itemDateTime = itemTimeStamp!!.time
             itemUserStamp = row.getStringValue("it_userstamp")

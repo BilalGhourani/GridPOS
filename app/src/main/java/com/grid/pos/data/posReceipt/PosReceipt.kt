@@ -10,7 +10,9 @@ import com.google.firebase.firestore.PropertyName
 import com.google.firebase.firestore.ServerTimestamp
 import com.grid.pos.data.EntityModel
 import com.grid.pos.model.SettingsModel
+import com.grid.pos.utils.DateHelper
 import com.grid.pos.utils.Utils
+import java.sql.Timestamp
 import java.util.Date
 
 @Entity(tableName = "pos_receipt")
@@ -140,7 +142,7 @@ data class PosReceipt(
         @set:PropertyName("pr_timestamp")
         @get:PropertyName("pr_timestamp")
         @ServerTimestamp
-        var posReceiptTimeStamp: Date? = null,
+        var posReceiptTimeStamp: Date? = Date(),
 
         /**
          *  POS Receipt Date
@@ -208,7 +210,11 @@ data class PosReceipt(
             "pr_debits" to posReceiptDebits,
             "pr_credit" to posReceiptCredit,
             "pr_credits" to posReceiptCredits,
-            "pr_timestamp" to FieldValue.serverTimestamp(),
+            "pr_timestamp" to Timestamp.valueOf(
+                DateHelper.getDateInFormat(
+                    posReceiptTimeStamp?:Date(),
+                    "yyyy-MM-dd HH:mm:ss"
+                )),
             "pr_userstamp" to posReceiptUserStamp,
             "pr_datetime" to posReceiptDateTime
         )

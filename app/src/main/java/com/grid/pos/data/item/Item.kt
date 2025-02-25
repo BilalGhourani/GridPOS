@@ -5,12 +5,13 @@ import androidx.room.Entity
 import androidx.room.Ignore
 import androidx.room.PrimaryKey
 import com.google.firebase.firestore.Exclude
-import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.PropertyName
 import com.google.firebase.firestore.ServerTimestamp
 import com.grid.pos.data.EntityModel
 import com.grid.pos.model.SettingsModel
+import com.grid.pos.utils.DateHelper
 import com.grid.pos.utils.Utils
+import java.sql.Timestamp
 import java.util.Date
 
 @Entity(tableName = "st_item")
@@ -251,7 +252,7 @@ data class Item(
     @set:PropertyName("it_timestamp")
     @get:PropertyName("it_timestamp")
     @ServerTimestamp
-    var itemTimeStamp: Date? = null,
+    var itemTimeStamp: Date? = Date(),
 
     /**
      * Item timestamp
@@ -364,7 +365,12 @@ data class Item(
             "it_btncolor" to itemBtnColor,
             "it_btntextcolor" to itemBtnTextColor,
             "it_userstamp" to itemUserStamp,
-            "it_timestamp" to FieldValue.serverTimestamp(),
+            "it_timestamp" to Timestamp.valueOf(
+                DateHelper.getDateInFormat(
+                    itemTimeStamp ?: Date(),
+                    "yyyy-MM-dd HH:mm:ss"
+                )
+            ),
             "it_datetime" to itemDateTime,
         )
     }

@@ -186,79 +186,48 @@ class InvoiceHeaderRepositoryImpl(
                         Filter.equalTo(
                             "hi_cmp_id",
                             SettingsModel.getCompanyID()
-                        ),
-                        Filter.notEqualTo(
-                            "hi_transno",
-                            null
                         )
-                    ),
-                    orderBy = mutableListOf(
-                        "hi_transno" to Query.Direction.DESCENDING
+                    ), orderBy = mutableListOf(
+                        "hi_timestamp" to Query.Direction.DESCENDING
                     )
                 )
                 val size = querySnapshot?.size() ?: 0
                 val invoices = mutableListOf<InvoiceHeader>()
-                val firstBatch = mutableListOf<InvoiceHeader>()
                 if (size > 0) {
                     for (document in querySnapshot!!) {
                         val obj = document.toObject(InvoiceHeader::class.java)
                         if (obj.invoiceHeadId.isNotEmpty()) {
                             obj.invoiceHeadDocumentId = document.id
-                            firstBatch.add(obj)
+                            invoices.add(obj)
                         }
                     }
                 }
-                invoices.addAll(firstBatch.sortedByDescending { it.invoiceHeadTransNo }
-                    .toMutableList())
-
-                val tablesQuerySnapshot = FirebaseWrapper.getQuerySnapshot(
-                    collection = "in_hinvoice",
-                    limit = limit.toLong(),
-                    filters = mutableListOf(
-                        Filter.equalTo(
-                            "hi_cmp_id",
-                            SettingsModel.getCompanyID()
-                        ),
-                        Filter.equalTo(
-                            "hi_transno",
-                            null
-                        ),
-                        Filter.equalTo(
-                            "hi_ta_name",
-                            null
-                        )
-                    )
-                )
-                val tableSize = tablesQuerySnapshot?.size() ?: 0
-                val secondBatch = mutableListOf<InvoiceHeader>()
-                if (tableSize > 0) {
-                    for (document in tablesQuerySnapshot!!) {
-                        val obj = document.toObject(InvoiceHeader::class.java)
-                        if (obj.invoiceHeadId.isNotEmpty()) {
-                            obj.invoiceHeadDocumentId = document.id
-                            secondBatch.add(obj)
-                        }
-                    }
-                }
-                invoices.addAll(
-                    0,
-                    secondBatch.sortedByDescending { it.invoiceHeadOrderNo }.toMutableList()
-                )
-                return invoices
+                val firstBatch = invoices.filter { it.invoiceHeadTransNo.isNullOrEmpty() }
+                val secondBatch = invoices.filter { !it.invoiceHeadTransNo.isNullOrEmpty() }
+                val result = mutableListOf<InvoiceHeader>()
+                result.addAll(firstBatch)
+                result.addAll(secondBatch)
+                return result
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
-                return invoiceHeaderDao.getAllInvoiceHeaders(
+                val invoices = invoiceHeaderDao.getAllInvoiceHeaders(
                     limit,
                     SettingsModel.getCompanyID() ?: ""
                 )
+                val firstBatch = invoices.filter { it.invoiceHeadTransNo.isNullOrEmpty() }
+                val secondBatch = invoices.filter { !it.invoiceHeadTransNo.isNullOrEmpty() }
+                val result = mutableListOf<InvoiceHeader>()
+                result.addAll(firstBatch)
+                result.addAll(secondBatch)
+                return result
             }
 
             else -> {
                 val invoiceHeaders: MutableList<InvoiceHeader> = mutableListOf()
                 try {
                     val where =
-                        "hi_cmp_id='${SettingsModel.getCompanyID()}' AND ((hi_transno IS NOT NULL AND hi_transno <> '' AND hi_transno <> '0') OR ((hi_transno IS NULL OR hi_transno = '' OR hi_transno = '0') AND (hi_ta_name IS NULL OR hi_ta_name = '')))"
+                        "hi_cmp_id='${SettingsModel.getCompanyID()}'"
                     val dbResult = SQLServerWrapper.getListOf(
                         "in_hinvoice",
                         "TOP $limit",
@@ -266,7 +235,7 @@ class InvoiceHeaderRepositoryImpl(
                             "*"
                         ),
                         where,
-                        "ORDER BY hi_date DESC",
+                        "CASE WHEN hi_transno IS NULL THEN 0 ELSE 1 END, hi_orderno ASC",
                         if (SettingsModel.isSqlServerWebDb) "INNER JOIN acc_transactiontype tt on hi_tt_code = tt.tt_code" else ""
                     )
                     dbResult?.let {
@@ -288,95 +257,65 @@ class InvoiceHeaderRepositoryImpl(
         }
     }
 
-    override suspend fun getInvoiceHeadersWith(key:String): MutableList<InvoiceHeader>{
+    override suspend fun getInvoiceHeadersWith(key: String): MutableList<InvoiceHeader> {
         val limit = 100
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
+                val f1 = Filter.equalTo("hi_transno", key)
+                val f2 = Filter.equalTo("hi_orderno", key)
                 val querySnapshot = FirebaseWrapper.getQuerySnapshot(
                     collection = "in_hinvoice",
                     limit = limit.toLong(),
+
                     filters = mutableListOf(
                         Filter.equalTo(
                             "hi_cmp_id",
                             SettingsModel.getCompanyID()
                         ),
-                        Filter.greaterThanOrEqualTo(
-                            "hi_transno",
-                            key
-                        ),
-                        Filter.lessThan(
-                            "hi_transno",
-                            key+ '\uf8ff'
-                        )
+                        Filter.or(f1, f2)
                     ),
                     orderBy = mutableListOf(
-                        "hi_transno" to Query.Direction.DESCENDING
+                        "hi_timestamp" to Query.Direction.DESCENDING
                     )
                 )
                 val size = querySnapshot?.size() ?: 0
                 val invoices = mutableListOf<InvoiceHeader>()
-                val firstBatch = mutableListOf<InvoiceHeader>()
                 if (size > 0) {
                     for (document in querySnapshot!!) {
                         val obj = document.toObject(InvoiceHeader::class.java)
                         if (obj.invoiceHeadId.isNotEmpty()) {
                             obj.invoiceHeadDocumentId = document.id
-                            firstBatch.add(obj)
+                            invoices.add(obj)
                         }
                     }
                 }
-                invoices.addAll(firstBatch.sortedByDescending { it.invoiceHeadTransNo }
-                    .toMutableList())
-
-                val tablesQuerySnapshot = FirebaseWrapper.getQuerySnapshot(
-                    collection = "in_hinvoice",
-                    limit = limit.toLong(),
-                    filters = mutableListOf(
-                        Filter.equalTo(
-                            "hi_cmp_id",
-                            SettingsModel.getCompanyID()
-                        ),
-                        Filter.greaterThanOrEqualTo(
-                            "hi_orderno",
-                            key
-                        ),
-                        Filter.lessThan(
-                            "hi_orderno",
-                            key+ '\uf8ff'
-                        )
-                    )
-                )
-                val tableSize = tablesQuerySnapshot?.size() ?: 0
-                val secondBatch = mutableListOf<InvoiceHeader>()
-                if (tableSize > 0) {
-                    for (document in tablesQuerySnapshot!!) {
-                        val obj = document.toObject(InvoiceHeader::class.java)
-                        if (obj.invoiceHeadId.isNotEmpty()) {
-                            obj.invoiceHeadDocumentId = document.id
-                            secondBatch.add(obj)
-                        }
-                    }
-                }
-                invoices.addAll(
-                    0,
-                    secondBatch.sortedByDescending { it.invoiceHeadOrderNo }.toMutableList()
-                )
-                return invoices
+                val firstBatch = invoices.filter { it.invoiceHeadTransNo.isNullOrEmpty() }
+                val secondBatch = invoices.filter { !it.invoiceHeadTransNo.isNullOrEmpty() }
+                val result = mutableListOf<InvoiceHeader>()
+                result.addAll(firstBatch)
+                result.addAll(secondBatch)
+                return result
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
-                return invoiceHeaderDao.getInvoiceHeadersWith(
+                val invoices = invoiceHeaderDao.getInvoiceHeadersWith(
                     key,
                     limit,
                     SettingsModel.getCompanyID() ?: ""
                 )
+                val firstBatch = invoices.filter { it.invoiceHeadTransNo.isNullOrEmpty() }
+                val secondBatch = invoices.filter { !it.invoiceHeadTransNo.isNullOrEmpty() }
+                val result = mutableListOf<InvoiceHeader>()
+                result.addAll(firstBatch)
+                result.addAll(secondBatch)
+                return result
             }
 
             else -> {
                 val invoiceHeaders: MutableList<InvoiceHeader> = mutableListOf()
                 try {
                     val where =
-                        "hi_cmp_id='${SettingsModel.getCompanyID()}' AND (hi_transno LIKE '%$key%' OR hi_orderno LIKE '%$key%')"
+                        "hi_cmp_id='${SettingsModel.getCompanyID()}'"
                     val dbResult = SQLServerWrapper.getListOf(
                         "in_hinvoice",
                         "TOP $limit",
@@ -529,7 +468,7 @@ class InvoiceHeaderRepositoryImpl(
                         )
                     ),
                     orderBy = mutableListOf(
-                        "hi_transno" to Query.Direction.DESCENDING
+                        "hi_timestamp" to Query.Direction.DESCENDING
                     )
                 )
                 val document = querySnapshot?.firstOrNull()
@@ -584,7 +523,7 @@ class InvoiceHeaderRepositoryImpl(
                         )
                     ),
                     orderBy = mutableListOf(
-                        "hi_transno" to Query.Direction.DESCENDING
+                        "hi_timestamp" to Query.Direction.DESCENDING
                     )
                 )
                 val document = querySnapshot?.firstOrNull()
@@ -1080,10 +1019,17 @@ class InvoiceHeaderRepositoryImpl(
 
             val timeStamp = obj.getObjectValue("hi_timestamp")
             invoiceHeadTimeStamp =
-                if (timeStamp is Date) timeStamp else DateHelper.getDateFromString(
-                    timeStamp as String,
-                    "yyyy-MM-dd hh:mm:ss.SSS"
-                )
+                when (timeStamp) {
+                    is Date -> timeStamp
+                    is String -> {
+                        DateHelper.getDateFromString(
+                            timeStamp,
+                            "yyyy-MM-dd hh:mm:ss.SSS"
+                        )
+                    }
+
+                    else -> Date()
+                }
             invoiceHeadDateTime = invoiceHeadTimeStamp!!.time
             invoiceHeadUserStamp = obj.getStringValue("hi_userstamp")
         }

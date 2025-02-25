@@ -350,7 +350,7 @@ class PosReceiptRepositoryImpl(
                                         "yyyy-MM-dd hh:mm:ss.SSS"
                                     )
 
-                                    else -> null
+                                    else -> Date()
                                 }
                                 posReceipt.posReceiptDateTime = posReceipt.posReceiptTimeStamp!!.time
                                 posReceipt.posReceiptUserStamp = it.getStringValue("pr_userstamp")

@@ -367,15 +367,15 @@ class POSViewModel @Inject constructor(
                     invoiceHeader.invoiceHeadTransNo = POSUtils.getInvoiceTransactionNo(
                         lastTransactionIvn?.invoiceHeadTransNo ?: ""
                     )
+                    if (invoiceHeader.invoiceHeadTtCode.isNullOrEmpty()) {
+                        invoiceHeader.invoiceHeadTtCode =
+                            getTransactionType(invoiceHeader.invoiceHeadGrossAmount)
+                    }
                 } else {
                     val lastOrderInv = invoiceHeaderRepository.getLastOrderByType()
                     invoiceHeader.invoiceHeadOrderNo = POSUtils.getInvoiceNo(
                         lastOrderInv?.invoiceHeadOrderNo ?: ""
                     )
-                }
-                if (invoiceHeader.invoiceHeadTtCode.isNullOrEmpty()) {
-                    invoiceHeader.invoiceHeadTtCode =
-                        getTransactionType(invoiceHeader.invoiceHeadGrossAmount)
                 }
                 invoiceHeader.prepareForInsert()
                 val dataModel = invoiceHeaderRepository.insert(invoiceHeader, print, finish)
@@ -397,10 +397,6 @@ class POSViewModel @Inject constructor(
                     }
                 }
             } else {
-                if (invoiceHeader.invoiceHeadTtCode.isNullOrEmpty()) {
-                    invoiceHeader.invoiceHeadTtCode =
-                        getTransactionType(invoiceHeader.invoiceHeadGrossAmount)
-                }
                 if (finish) {
                     if (!invoiceHeader.isFinished()) {
                         val lastTransactionIvn = invoiceHeaderRepository.getLastTransactionByType(
@@ -409,6 +405,10 @@ class POSViewModel @Inject constructor(
                         invoiceHeader.invoiceHeadTransNo = POSUtils.getInvoiceTransactionNo(
                             lastTransactionIvn?.invoiceHeadTransNo ?: ""
                         )
+                    }
+                    if (invoiceHeader.invoiceHeadTtCode.isNullOrEmpty()) {
+                        invoiceHeader.invoiceHeadTtCode =
+                            getTransactionType(invoiceHeader.invoiceHeadGrossAmount)
                     }
                 } else if (invoiceHeader.invoiceHeadOrderNo.isNullOrEmpty()) {
                     val lastOrderInv = invoiceHeaderRepository.getLastOrderByType()

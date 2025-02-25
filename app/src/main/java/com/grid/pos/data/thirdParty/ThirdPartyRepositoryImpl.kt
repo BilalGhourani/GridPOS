@@ -143,9 +143,9 @@ class ThirdPartyRepositoryImpl(
                                         "yyyy-MM-dd hh:mm:ss.SSS"
                                     )
 
-                                    else -> null
+                                    else -> Date()
                                 }
-                                thirdPartyDateTime = (thirdPartyTimeStamp ?: Date()).time
+                                thirdPartyDateTime = thirdPartyTimeStamp!!.time
                                 thirdPartyUserStamp = it.getStringValue("tp_userstamp")
                                 thirdPartyDefault = !isDefaultOneFound && thirdPartyName.equals(
                                     "cash",
@@ -234,9 +234,9 @@ class ThirdPartyRepositoryImpl(
                                         "yyyy-MM-dd hh:mm:ss.SSS"
                                     )
 
-                                    else -> null
+                                    else -> Date()
                                 }
-                                thirdPartyDateTime = (thirdPartyTimeStamp ?: Date()).time
+                                thirdPartyDateTime = thirdPartyTimeStamp!!.time
                                 thirdPartyUserStamp = it.getStringValue("tp_userstamp")
                                 thirdPartyDefault = !isDefaultOneFound && thirdPartyName.equals(
                                     "cash",
@@ -315,9 +315,9 @@ class ThirdPartyRepositoryImpl(
                                         "yyyy-MM-dd hh:mm:ss.SSS"
                                     )
 
-                                    else -> null
+                                    else -> Date()
                                 }
-                                thirdPartyDateTime = (thirdPartyTimeStamp ?: Date()).time
+                                thirdPartyDateTime = thirdPartyTimeStamp!!.time
                                 thirdPartyUserStamp = it.getStringValue("tp_userstamp")
                                 thirdPartyDefault = true
                             }
@@ -469,9 +469,9 @@ class ThirdPartyRepositoryImpl(
                                         "yyyy-MM-dd hh:mm:ss.SSS"
                                     )
 
-                                    else -> null
+                                    else -> Date()
                                 }
-                                thirdPartyDateTime = (thirdPartyTimeStamp ?: Date()).time
+                                thirdPartyDateTime = thirdPartyTimeStamp!!.time
                                 thirdPartyUserStamp = it.getStringValue("tp_userstamp")
                                 thirdPartyDefault = true
                             }

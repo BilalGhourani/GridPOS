@@ -32,11 +32,11 @@ interface InvoiceHeaderDao {
     suspend fun update(invoiceHeader: InvoiceHeader)
 
     // Get all Invoice Headers as stream.
-    @Query("SELECT * FROM `in_hinvoice` WHERE hi_cmp_id=:companyId AND ((hi_transno IS NOT NULL AND hi_transno != '') OR ((hi_transno IS NULL OR hi_transno = '') AND hi_ta_name IS NULL)) ORDER BY hi_datetime DESC LIMIT :limit")
+    @Query("SELECT * FROM `in_hinvoice` WHERE hi_cmp_id=:companyId ORDER BY hi_datetime DESC LIMIT :limit")
     fun getAllInvoiceHeaders(limit:Int,companyId: String): MutableList<InvoiceHeader>
 
     // Get all Invoice Headers as stream.
-    @Query("SELECT * FROM `in_hinvoice` WHERE hi_cmp_id=:companyId AND (hi_transno LIKE '%'|| :key ||'%' OR hi_orderno LIKE '%'|| :key ||'%') and ((hi_transno IS NOT NULL AND hi_transno != '') OR ((hi_transno IS NULL OR hi_transno = '') AND hi_ta_name IS NULL)) ORDER BY hi_datetime DESC LIMIT :limit")
+    @Query("SELECT * FROM `in_hinvoice` WHERE hi_cmp_id=:companyId AND (hi_transno LIKE '%'|| :key ||'%' OR hi_orderno LIKE '%'|| :key ||'%') ORDER BY hi_datetime DESC LIMIT :limit")
     fun getInvoiceHeadersWith(key:String,limit:Int,companyId: String): MutableList<InvoiceHeader>
 
     // Get all Invoice Headers without limit as stream.
@@ -57,7 +57,7 @@ interface InvoiceHeaderDao {
     ): InvoiceHeader?
 
     // Get last Invoice Headers as stream.
-    @Query("SELECT * FROM `in_hinvoice` WHERE hi_cmp_id=:companyId ORDER BY hi_transno DESC LIMIT 1")
+    @Query("SELECT * FROM `in_hinvoice` WHERE hi_cmp_id=:companyId ORDER BY hi_datetime DESC LIMIT 1")
     fun getLastInvoice(
             companyId: String
     ): InvoiceHeader?
