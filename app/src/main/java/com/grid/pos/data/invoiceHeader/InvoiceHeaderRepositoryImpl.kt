@@ -202,12 +202,13 @@ class InvoiceHeaderRepositoryImpl(
                         }
                     }
                 }
-                val firstBatch = invoices.filter { it.invoiceHeadTransNo.isNullOrEmpty() }
+                return invoices
+                /*val firstBatch = invoices.filter { it.invoiceHeadTransNo.isNullOrEmpty() }
                 val secondBatch = invoices.filter { !it.invoiceHeadTransNo.isNullOrEmpty() }
                 val result = mutableListOf<InvoiceHeader>()
                 result.addAll(firstBatch)
                 result.addAll(secondBatch)
-                return result
+                return result*/
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
@@ -215,12 +216,13 @@ class InvoiceHeaderRepositoryImpl(
                     limit,
                     SettingsModel.getCompanyID() ?: ""
                 )
-                val firstBatch = invoices.filter { it.invoiceHeadTransNo.isNullOrEmpty() }
+                return invoices
+                /*val firstBatch = invoices.filter { it.invoiceHeadTransNo.isNullOrEmpty() }
                 val secondBatch = invoices.filter { !it.invoiceHeadTransNo.isNullOrEmpty() }
                 val result = mutableListOf<InvoiceHeader>()
                 result.addAll(firstBatch)
                 result.addAll(secondBatch)
-                return result
+                return result*/
             }
 
             else -> {
@@ -235,7 +237,7 @@ class InvoiceHeaderRepositoryImpl(
                             "*"
                         ),
                         where,
-                        "CASE WHEN hi_transno IS NULL THEN 0 ELSE 1 END, hi_orderno ASC",
+                        "ORDER BY hi_date DESC",
                         if (SettingsModel.isSqlServerWebDb) "INNER JOIN acc_transactiontype tt on hi_tt_code = tt.tt_code" else ""
                     )
                     dbResult?.let {
@@ -289,33 +291,22 @@ class InvoiceHeaderRepositoryImpl(
                         }
                     }
                 }
-                val firstBatch = invoices.filter { it.invoiceHeadTransNo.isNullOrEmpty() }
-                val secondBatch = invoices.filter { !it.invoiceHeadTransNo.isNullOrEmpty() }
-                val result = mutableListOf<InvoiceHeader>()
-                result.addAll(firstBatch)
-                result.addAll(secondBatch)
-                return result
+                return invoices
             }
 
             CONNECTION_TYPE.LOCAL.key -> {
-                val invoices = invoiceHeaderDao.getInvoiceHeadersWith(
+                return invoiceHeaderDao.getInvoiceHeadersWith(
                     key,
                     limit,
                     SettingsModel.getCompanyID() ?: ""
                 )
-                val firstBatch = invoices.filter { it.invoiceHeadTransNo.isNullOrEmpty() }
-                val secondBatch = invoices.filter { !it.invoiceHeadTransNo.isNullOrEmpty() }
-                val result = mutableListOf<InvoiceHeader>()
-                result.addAll(firstBatch)
-                result.addAll(secondBatch)
-                return result
             }
 
             else -> {
                 val invoiceHeaders: MutableList<InvoiceHeader> = mutableListOf()
                 try {
                     val where =
-                        "hi_cmp_id='${SettingsModel.getCompanyID()}'"
+                        "hi_cmp_id='${SettingsModel.getCompanyID()}' AND (hi_transno LIKE '%$key%' OR hi_orderno LIKE '%$key%')"
                     val dbResult = SQLServerWrapper.getListOf(
                         "in_hinvoice",
                         "TOP $limit",
