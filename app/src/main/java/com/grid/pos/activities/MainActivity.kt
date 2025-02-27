@@ -33,9 +33,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
-import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.grid.pos.ActivityUIEvent
+import com.grid.pos.BuildConfig
 import com.grid.pos.R
 import com.grid.pos.SharedViewModel
 import com.grid.pos.data.SQLServerWrapper
@@ -185,7 +185,7 @@ class MainActivity : ComponentActivity() {
                             .padding(0.dp),
                         navController = navController,
                         sharedViewModel = sharedViewModel,
-                        startDestination = "LoginView"
+                        startDestination = /*if(BuildConfig.DEBUG) "HomeView" else*/ "LoginView"
                     )
                     AnimatedVisibility(
                         visible = popupState.value,

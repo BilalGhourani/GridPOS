@@ -46,9 +46,6 @@ class POSPrinterViewModel @Inject constructor(
     }
 
     fun checkChanges(callback: () -> Unit) {
-        if (isLoading()) {
-            return
-        }
         if (state.value.printer.didChanged(currentPrinter)) {
             sharedViewModel.showPopup(true,
                 PopupModel().apply {
@@ -64,6 +61,7 @@ class POSPrinterViewModel @Inject constructor(
                     dialogText = "Do you want to save your changes"
                     positiveBtnText = "Save"
                     negativeBtnText = "Close"
+                    cancelable = false
                 })
         } else {
             callback.invoke()

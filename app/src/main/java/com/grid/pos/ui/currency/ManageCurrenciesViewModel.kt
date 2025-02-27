@@ -41,9 +41,6 @@ class ManageCurrenciesViewModel @Inject constructor(
     }
 
     fun checkChanges(callback: () -> Unit) {
-        if (sharedViewModel.isLoading) {
-            return
-        }
         if (isAnyChangeDone()) {
             sharedViewModel.showPopup(true,
                 PopupModel().apply {
@@ -59,6 +56,7 @@ class ManageCurrenciesViewModel @Inject constructor(
                     dialogText = "Do you want to save your changes"
                     positiveBtnText = "Save"
                     negativeBtnText = "Close"
+                    cancelable = false
                 })
         } else {
             callback.invoke()

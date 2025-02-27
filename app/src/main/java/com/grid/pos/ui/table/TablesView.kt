@@ -30,7 +30,9 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -73,6 +75,7 @@ fun TablesView(
     val keyboardController = LocalSoftwareKeyboardController.current
     val tableNameFocusRequester = remember { FocusRequester() }
     val clientsCountFocusRequester = remember { FocusRequester() }
+    var isBackPressed by remember { mutableStateOf(false) }
 
     LaunchedEffect(key1 = Unit) {
         viewModel.fetchAllTables()
@@ -103,16 +106,22 @@ fun TablesView(
                 viewModel.showPopup(
                     PopupModel().apply {
                         onConfirmation = {
-                            viewModel.logout()
-                            navController?.clearBackStack("LoginView")
-                            navController?.navigate("LoginView")
+                            if (!isBackPressed) {
+                                isBackPressed = true
+                                viewModel.logout()
+                                navController?.clearBackStack("LoginView")
+                                navController?.navigate("LoginView")
+                            }
                         }
                         dialogText = "Are you sure you want to logout?"
                         positiveBtnText = "Logout"
                         negativeBtnText = "Cancel"
                     })
             } else {
-                navController?.navigateUp()
+                if (!isBackPressed) {
+                    isBackPressed = true
+                    navController?.navigateUp()
+                }
             }
         }
     }
@@ -168,7 +177,7 @@ fun TablesView(
                     keyboardType = KeyboardType.Text,
                     placeHolder = "Enter Table Number",
                     onAction = {
-                        viewModel.fetchInvoiceByTable(state.tableName){ destination ->
+                        viewModel.fetchInvoiceByTable(state.tableName) { destination ->
                             navController?.navigate(destination)
                         }
                     },
@@ -226,7 +235,7 @@ fun TablesView(
                     isVertical = false
                 ) {
                     if (state.step <= 1) {
-                        viewModel.fetchInvoiceByTable(state.tableName){ destination ->
+                        viewModel.fetchInvoiceByTable(state.tableName) { destination ->
                             navController?.navigate(destination)
                         }
                     } else {
@@ -234,14 +243,15 @@ fun TablesView(
                             viewModel.showWarning("Please enter client counts")
                             return@UIImageButton
                         }
-                        viewModel.lockTableAndMoveToPos{ destination ->
+                        viewModel.lockTableAndMoveToPos { destination ->
                             navController?.navigate(destination)
                         }
                     }
                 }
 
                 Text(
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
                         .height(50.dp)
                         .padding(
                             horizontal = 10.dp,

@@ -26,7 +26,9 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -78,6 +80,7 @@ fun ManageCompaniesView(
     val tax1RegNoFocusRequester = remember { FocusRequester() }
     val tax2FocusRequester = remember { FocusRequester() }
     val tax2RegNoFocusRequester = remember { FocusRequester() }
+    var isBackPressed by remember { mutableStateOf(false) }
 
     fun askForRegistering() {
         viewModel.showPopup(
@@ -107,6 +110,13 @@ fun ManageCompaniesView(
     }
 
     fun handleBack() {
+        if (viewModel.isLoading()) {
+            return
+        }
+        if(isBackPressed){
+            return
+        }
+        isBackPressed = true
         viewModel.checkChanges(context) { saved, isRegistering ->
             if (saved && isRegistering) {
                 askForRegistering()

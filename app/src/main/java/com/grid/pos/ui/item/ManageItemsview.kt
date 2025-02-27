@@ -100,10 +100,18 @@ fun ManageItemsView(
     var barcodeSearchState by remember { mutableStateOf("") }
     var colorPickerType by remember { mutableStateOf(ColorPickerType.BUTTON_COLOR) }
     var isColorPickerShown by remember { mutableStateOf(false) }
+    var isBackPressed by remember { mutableStateOf(false) }
 
     val scope = rememberCoroutineScope()
 
     fun handleBack() {
+        if (viewModel.isLoading()) {
+            return
+        }
+        if(isBackPressed){
+            return
+        }
+        isBackPressed = true
         viewModel.checkChanges(context) {
             navController?.navigateUp()
         }

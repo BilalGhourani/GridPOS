@@ -73,11 +73,16 @@ fun ItemOpeningView(
     val costSecondFocusRequester = remember { FocusRequester() }
 
     var collapseItemListState by remember { mutableStateOf(false) }
+    var isBackPressed by remember { mutableStateOf(false) }
 
     fun handleBack() {
         if (viewModel.isLoading()) {
             return
         }
+        if (isBackPressed) {
+            return
+        }
+        isBackPressed = true
         navController?.navigateUp()
     }
     BackHandler {

@@ -79,9 +79,6 @@ class ManageItemsViewModel @Inject constructor(
     }
 
     fun checkChanges(context: Context, callback: () -> Unit) {
-        if (isLoading()) {
-            return
-        }
         if (state.value.item.didChanged(currentITem)) {
             showPopup(PopupModel().apply {
                 onDismissRequest = {
@@ -96,6 +93,7 @@ class ManageItemsViewModel @Inject constructor(
                 dialogText = "Do you want to save your changes"
                 positiveBtnText = "Save"
                 negativeBtnText = "Close"
+                cancelable = false
             })
         } else {
             callback.invoke()

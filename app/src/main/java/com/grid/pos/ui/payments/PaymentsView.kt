@@ -24,8 +24,10 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -73,6 +75,7 @@ fun PaymentsView(
     val amountFocusRequester = remember { FocusRequester() }
     val descFocusRequester = remember { FocusRequester() }
     val noteFocusRequester = remember { FocusRequester() }
+    var isBackPressed by remember { mutableStateOf(false) }
 
     val scope = rememberCoroutineScope()
 
@@ -80,6 +83,10 @@ fun PaymentsView(
         if (viewModel.isLoading()) {
             return
         }
+        if (isBackPressed) {
+            return
+        }
+        isBackPressed = true
         if (viewModel.isAnyChangeDone()) {
             viewModel.showPopup(
                 PopupModel().apply {
@@ -95,6 +102,7 @@ fun PaymentsView(
                     dialogText = "Do you want to save your changes"
                     positiveBtnText = "Save"
                     negativeBtnText = "Close"
+                    cancelable = false
                 })
             return
         }

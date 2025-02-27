@@ -1,5 +1,6 @@
 package com.grid.pos.ui.common
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -37,6 +38,7 @@ fun UIAlertDialog(
         popupModel: PopupModel
 ) {
     Dialog(properties = DialogProperties(
+        dismissOnBackPress = popupModel.cancelable,
         dismissOnClickOutside = popupModel.cancelable
     ),
         onDismissRequest = { onDismissRequest() }) {

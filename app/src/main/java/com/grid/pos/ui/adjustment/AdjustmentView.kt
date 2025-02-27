@@ -66,19 +66,24 @@ fun AdjustmentView(
 
     val keyboardController = LocalSoftwareKeyboardController.current
     var collapseItemListState by remember { mutableStateOf(false) }
+    var isBackPressed by remember { mutableStateOf(false) }
 
     val isImeVisible = WindowInsets.ime.getBottom(LocalDensity.current) > 0
     fun handleBack() {
-        viewModel.checkAndBack(isImeVisible) {
-            if (isImeVisible) {
-                keyboardController?.hide()
-            } else {
+        if (isImeVisible) {
+            keyboardController?.hide()
+            return
+        }
+        viewModel.checkAndBack {
+            if (!isBackPressed) {
+                isBackPressed = true
                 navController?.navigateUp()
             }
         }
     }
 
     BackHandler {
+
         handleBack()
     }
 

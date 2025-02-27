@@ -51,9 +51,6 @@ class ManageUsersViewModel @Inject constructor(
     }
 
     fun checkChanges(callback: () -> Unit) {
-        if (isLoading()) {
-            return
-        }
         if (state.value.user.didChanged(currentUser)) {
             sharedViewModel.showPopup(true,
                 PopupModel().apply {
@@ -69,6 +66,7 @@ class ManageUsersViewModel @Inject constructor(
                     dialogText = "Do you want to save your changes"
                     positiveBtnText = "Save"
                     negativeBtnText = "Close"
+                    cancelable = false
                 })
         } else {
             callback.invoke()

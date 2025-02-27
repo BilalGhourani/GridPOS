@@ -150,8 +150,13 @@ fun BackupView(
                 negativeBtnText = if (isRestoreWarningPopup) "Cancel" else null
             })
     }
+
+    var isBackPressed by remember { mutableStateOf(false) }
     BackHandler {
-        navController?.navigateUp()
+        if (!isBackPressed) {
+            isBackPressed = true
+            navController?.navigateUp()
+        }
     }
     GridPOSTheme {
         Scaffold(containerColor = SettingsModel.backgroundColor,

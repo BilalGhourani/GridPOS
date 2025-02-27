@@ -53,9 +53,6 @@ class ManageFamiliesViewModel @Inject constructor(
     }
 
     fun checkChanges(context: Context, callback: () -> Unit) {
-        if (isLoading()) {
-            return
-        }
         if (state.value.family.didChanged(currentFamily)) {
             sharedViewModel.showPopup(true,
                 PopupModel().apply {
@@ -71,6 +68,7 @@ class ManageFamiliesViewModel @Inject constructor(
                     dialogText = "Do you want to save your changes"
                     positiveBtnText = "Save"
                     negativeBtnText = "Close"
+                    cancelable = false
                 })
         } else {
             callback.invoke()

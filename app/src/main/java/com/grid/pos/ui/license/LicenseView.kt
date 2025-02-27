@@ -32,6 +32,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -70,11 +71,16 @@ fun LicenseView(
 
     val deviceIDState by remember { mutableStateOf(Utils.getDeviceID(context)) }
     val scope = rememberCoroutineScope()
+    var isBackPressed by remember { mutableStateOf(false) }
 
     fun handleBack() {
         if (state.isLoading) {
             return
         }
+        if (isBackPressed) {
+            return
+        }
+        isBackPressed = true
         navController?.navigateUp()
     }
 

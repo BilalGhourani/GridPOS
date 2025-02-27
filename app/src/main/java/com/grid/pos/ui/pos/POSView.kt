@@ -39,7 +39,11 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -84,7 +88,7 @@ fun POSView(
     val context = LocalContext.current
     val configuration = LocalConfiguration.current
     val keyboardController = LocalSoftwareKeyboardController.current
-    val scope = rememberCoroutineScope()
+    var isBackPressed by remember { mutableStateOf(false) }
 
     LaunchedEffect(
         viewModel.shouldLoadInvoice(),
@@ -129,10 +133,13 @@ fun POSView(
                         PopupModel().apply {
                             onConfirmation = {
                                 if (isBackPopup) {
-                                    viewModel.resetState()
-                                    viewModel.logout()
-                                    navController?.clearBackStack("LoginView")
-                                    navController?.navigate("LoginView")
+                                    if (!isBackPressed) {
+                                        isBackPressed = true
+                                        viewModel.resetState()
+                                        viewModel.logout()
+                                        navController?.clearBackStack("LoginView")
+                                        navController?.navigate("LoginView")
+                                    }
                                 } else {
                                     if (!viewModel.state.value.invoiceHeader.invoiceHeadTableId.isNullOrEmpty()) {
                                         viewModel.unLockTable()
@@ -156,7 +163,10 @@ fun POSView(
                             negativeBtnText = "Cancel"
                         })
                 } else {
-                    navController?.navigateUp()
+                    if (!isBackPressed) {
+                        isBackPressed = true
+                        navController?.navigateUp()
+                    }
                 }
             }
         }
@@ -366,7 +376,7 @@ fun POSView(
                                 )
                             },
                             onItemSelected = { item ->
-                              viewModel.onItemSelected(item)
+                                viewModel.onItemSelected(item)
                             },
                             onThirdPartySelected = { thirdParty ->
                                 viewModel.isInvoiceEdited =

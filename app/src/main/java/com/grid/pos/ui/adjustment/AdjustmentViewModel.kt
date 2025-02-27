@@ -55,20 +55,16 @@ class AdjustmentViewModel @Inject constructor(
         state.value = newState
     }
 
-    fun checkAndBack(isImeVisible: Boolean, callback: () -> Unit) {
+    fun checkAndBack(callback: () -> Unit) {
         if (isLoading()) {
             showPopup(PopupModel().apply {
                 onDismissRequest = {
 
                 }
                 onConfirmation = {
-                    if (isImeVisible) {
-                        callback.invoke()
-                    } else {
-                        showLoading(false)
-                        viewModelScope.cancel()
-                        callback.invoke()
-                    }
+                    showLoading(false)
+                    viewModelScope.cancel()
+                    callback.invoke()
                 }
                 dialogText = "Are you sure you want to close?"
                 positiveBtnText = "Cancel"

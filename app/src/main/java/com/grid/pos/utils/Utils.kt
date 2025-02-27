@@ -231,7 +231,7 @@ object Utils {
                     HomeItemModel(
                         R.drawable.sales_reports,
                         "Sales Reports",
-                        "ReportsView"
+                        "SalesReportsView"
                     )
                 )
             ),

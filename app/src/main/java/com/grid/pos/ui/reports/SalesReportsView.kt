@@ -85,10 +85,14 @@ fun SalesReportsView(
 
     var isBottomSheetVisible by remember { mutableStateOf(false) }
     val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    var isBackPressed by remember { mutableStateOf(false) }
 
     fun handleBack() {
         viewModel.checkAndBack {
-            navController?.navigateUp()
+            if (!isBackPressed) {
+                isBackPressed = true
+                navController?.navigateUp()
+            }
         }
     }
 

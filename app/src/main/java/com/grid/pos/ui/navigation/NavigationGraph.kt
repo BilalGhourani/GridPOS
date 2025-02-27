@@ -112,7 +112,7 @@ fun AuthNavGraph(
                 navController = navController
             )
         }
-        composable(route = "ReportsView") {
+        composable(route = "SalesReportsView") {
             SalesReportsView(
                 navController = navController
             )

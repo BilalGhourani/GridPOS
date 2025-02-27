@@ -69,9 +69,6 @@ class ManageCompaniesViewModel @Inject constructor(
     }
 
     fun checkChanges(context: Context, callback: (Boolean, Boolean) -> Unit) {
-        if (isLoading()) {
-            return
-        }
         if (isAnyChangeDone()) {
             sharedViewModel.showPopup(true,
                 PopupModel().apply {
@@ -88,6 +85,7 @@ class ManageCompaniesViewModel @Inject constructor(
                     dialogText = "Do you want to save your changes"
                     positiveBtnText = "Save"
                     negativeBtnText = "Close"
+                    cancelable = false
                     icon = null
                 })
         } else {

@@ -56,9 +56,6 @@ class ManageThirdPartiesViewModel @Inject constructor(
     }
 
     fun checkChanges(callback: () -> Unit) {
-        if (isLoading()) {
-            return
-        }
         if (state.value.thirdParty.didChanged(currentThirdParty)) {
             sharedViewModel.showPopup(true,
                 PopupModel().apply {
@@ -74,6 +71,7 @@ class ManageThirdPartiesViewModel @Inject constructor(
                     dialogText = "Do you want to save your changes"
                     positiveBtnText = "Save"
                     negativeBtnText = "Close"
+                    cancelable = false
                 })
         } else {
             callback.invoke()

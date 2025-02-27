@@ -82,6 +82,7 @@ fun ReportsListView(
     var isOptionPopupExpanded by remember { mutableStateOf(false) }
     var previewBottomSheetState by remember { mutableStateOf(false) }
     val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    var isBackPressed by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         viewModel.loadData()
@@ -92,6 +93,13 @@ fun ReportsListView(
             isOptionPopupExpanded = false
             return
         }
+        if (viewModel.isLoading()) {
+            return
+        }
+        if (isBackPressed) {
+            return
+        }
+        isBackPressed = true
         navController?.navigateUp()
     }
     BackHandler {

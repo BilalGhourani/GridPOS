@@ -24,7 +24,9 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -64,8 +66,16 @@ fun ManageThirdPartiesView(
     val phone1FocusRequester = remember { FocusRequester() }
     val phone2FocusRequester = remember { FocusRequester() }
     val addressFocusRequester = remember { FocusRequester() }
+    var isBackPressed by remember { mutableStateOf(false) }
 
     fun handleBack() {
+        if (viewModel.isLoading()) {
+            return
+        }
+        if (isBackPressed) {
+            return
+        }
+        isBackPressed = true
        viewModel.checkChanges{
            navController?.navigateUp()
        }
