@@ -73,7 +73,7 @@ import com.grid.pos.model.WarehouseModel
 import com.grid.pos.ui.common.SearchableDropdownMenuEx
 import com.grid.pos.ui.common.UIImageButton
 import com.grid.pos.ui.stockInOut.components.EditStockInOutItemView
-import com.grid.pos.ui.stockInOut.components.itemDataGrid
+import com.grid.pos.ui.stockInOut.components.StockInOutDataGrid
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.utils.Utils
 import kotlinx.coroutines.Dispatchers
@@ -206,7 +206,7 @@ fun StockInOutView(
                         .padding(top = 270.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    itemDataGrid(
+                    StockInOutDataGrid(
                         stockInOutItems = viewModel.items,
                         modifier = Modifier
                             .fillMaxWidth()

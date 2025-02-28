@@ -18,7 +18,7 @@ import com.grid.pos.ui.theme.GridPOSTheme
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun itemDataGrid(
+fun StockInOutDataGrid(
     stockInOutItems: MutableList<StockInOutItemModel> = mutableListOf(),
     modifier: Modifier = Modifier,
     isLandscape: Boolean = false,
@@ -38,7 +38,7 @@ fun itemDataGrid(
         contentPadding = PaddingValues(0.dp)
     ) {
         stickyHeader {
-            ItemGridCell(
+            StockInOutGridCell(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp)
@@ -52,7 +52,7 @@ fun itemDataGrid(
         stockInOutItems.toMutableList().forEachIndexed { index, stockInOutItem ->
             item {
                 val color = if (index % 2 == 0) Color.White else Color.LightGray
-                ItemGridCell(
+                StockInOutGridCell(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(50.dp)
@@ -72,7 +72,7 @@ fun itemDataGrid(
 @Composable
 fun InvoiceBodyDetailsCellPreview() {
     GridPOSTheme {
-        itemDataGrid(
+        StockInOutDataGrid(
             stockInOutItems = mutableListOf(
                 StockInOutItemModel(),
                 StockInOutItemModel(),
