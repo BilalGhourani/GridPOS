@@ -1,4 +1,4 @@
-package com.grid.pos.ui.stockInOut.components
+package com.grid.pos.ui.stockAdjustment.components
 
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -27,13 +27,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.grid.pos.model.SettingsModel
-import com.grid.pos.model.StockInOutItemModel
+import com.grid.pos.model.StockAdjItemModel
 import com.grid.pos.ui.theme.GridPOSTheme
 
 @Composable
-fun ItemGridCell(
+fun StockAdjGridCell(
     modifier: Modifier = Modifier,
-    stockInOutItem: StockInOutItemModel,
+    stockAdjItem: StockAdjItemModel,
     isHeader: Boolean = false,
     isLandscape: Boolean = false,
     index: Int,
@@ -53,7 +53,7 @@ fun ItemGridCell(
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Text(
-            text = if (isHeader) "Barcode" else stockInOutItem.stockItem.itemBarcode ?: "~",
+            text = if (isHeader) "Barcode" else stockAdjItem.stockAdjItem.itemBarcode ?: "~",
             modifier = if (isLandscape) {
                 Modifier
                     .weight(1.8f)
@@ -89,7 +89,7 @@ fun ItemGridCell(
             }
         )
         Text(
-            text = if (isHeader) "Name" else stockInOutItem.getName(),
+            text = if (isHeader) "Name" else stockAdjItem.getName(),
             modifier = if (isLandscape) {
                 Modifier
                     .weight(1.8f)
@@ -125,7 +125,7 @@ fun ItemGridCell(
             }
         )
         Text(
-            text = if (isHeader) "Qty" else stockInOutItem.stockInOut.stockInOutQty.toString(),
+            text = if (isHeader) "Qty" else stockAdjItem.stockAdjustment.stockAdjQty.toString(),
             modifier = if (isLandscape) {
                 Modifier
                     .weight(.8f)
@@ -187,7 +187,7 @@ fun ItemGridCell(
                         .padding(5.dp),
                     textAlign = TextAlign.Center,
                     style = TextStyle(
-                        fontWeight = if (isHeader) FontWeight.Bold else FontWeight.Normal,
+                        fontWeight = FontWeight.Bold,
                         fontSize = 16.sp
                     ),
                     color = SettingsModel.textColor
@@ -219,8 +219,8 @@ fun ItemGridCell(
 @Composable
 fun InvoiceItemCellPreview() {
     GridPOSTheme {
-        ItemGridCell(
-            stockInOutItem = StockInOutItemModel(),
+        StockAdjGridCell(
+            stockAdjItem = StockAdjItemModel(),
             index = 0,
             isLandscape = true
         )

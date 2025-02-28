@@ -161,6 +161,14 @@ data class StockAdjustment(
     @get:PropertyName("sa_order")
     var stockAdjOrder: Int? = null,
 
+    /**
+     * Stock Adjustment order
+     * */
+    @ColumnInfo(name = "sa_order")
+    @set:PropertyName("sa_order")
+    @get:PropertyName("sa_order")
+    var stockAdjLineNo: Int? = null,
+
     ) : EntityModel() {
     constructor() : this("")
 

@@ -46,7 +46,7 @@ data class StockHeaderAdjustment(
     @ColumnInfo(name = "hsa_date")
     @set:PropertyName("hsa_date")
     @get:PropertyName("hsa_date")
-    var stockHADate: String = DateHelper.getDateInFormat(),
+    var stockHADate: String = DateHelper.getDateInFormat(format = "YYYY-MM-DD HH:mm:ss.SSS"),
 
 
     /**
