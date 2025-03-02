@@ -134,6 +134,7 @@ class StockAdjustmentRepositoryImpl : StockAdjustmentRepository {
                 SettingsModel.currentCompany?.cmp_multibranchcode,//@branchcode
                 stockAdjustment.stockAdjDivName,//@sa_div_name
                 Timestamp(System.currentTimeMillis()),//@sa_date
+                stockAdjustment.stockAdjLineNo,//@sa_lineno
             )
         } else {
             listOf(
@@ -178,6 +179,7 @@ class StockAdjustmentRepositoryImpl : StockAdjustmentRepository {
                 SettingsModel.currentUser?.userUsername,//@sa_userstamp
                 stockAdjustment.stockAdjDivName,//@sa_div_name
                 Timestamp(System.currentTimeMillis()),//@sa_date
+                stockAdjustment.stockAdjLineNo,//@sa_lineno
             )
         } else {
             listOf(
