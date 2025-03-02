@@ -65,6 +65,7 @@ import com.grid.pos.model.InvoiceItemModel
 import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.model.UserType
+import com.grid.pos.ui.navigation.Screen
 import com.grid.pos.ui.pos.components.AddInvoiceItemView
 import com.grid.pos.ui.pos.components.EditInvoiceItemView
 import com.grid.pos.ui.pos.components.InvoiceBodyDetails
@@ -137,8 +138,8 @@ fun POSView(
                                         isBackPressed = true
                                         viewModel.resetState()
                                         viewModel.logout()
-                                        navController?.clearBackStack("LoginView")
-                                        navController?.navigate("LoginView")
+                                        navController?.clearBackStack(Screen.LoginView.route)
+                                        navController?.navigate(Screen.LoginView.route)
                                     }
                                 } else {
                                     if (!viewModel.state.value.invoiceHeader.invoiceHeadTableId.isNullOrEmpty()) {
@@ -211,7 +212,7 @@ fun POSView(
                         actions = {
                             if (!viewModel.isAnyPopupShown()) {
                                 IconButton(onClick = {
-                                    navController?.navigate("SettingsView")
+                                    navController?.navigate(Screen.SettingsView.route)
                                 }) {
                                     Icon(
                                         painterResource(R.drawable.ic_settings),
@@ -548,7 +549,7 @@ fun POSView(
                         ),
                     onPrint = {
                         viewModel.savePrintedNumber(context) {
-                            navController?.navigate("UIWebView")
+                            navController?.navigate(Screen.UIWebView.route)
                         }
                     },
                     onSave = { change, receipt ->
@@ -573,7 +574,7 @@ fun POSView(
                             finish = viewModel.state.value.invoiceHeader.isFinished(),
                             proceedToPrint = true
                         ) {
-                            navController?.navigate("UIWebView")
+                            navController?.navigate(Screen.UIWebView.route)
                         }
                     },
                     onFinishAndPrint = { change, receipt ->
@@ -586,7 +587,7 @@ fun POSView(
                             finish = true,
                             proceedToPrint = true
                         ) {
-                            navController?.navigate("UIWebView")
+                            navController?.navigate(Screen.UIWebView.route)
                         }
                     },
                 )

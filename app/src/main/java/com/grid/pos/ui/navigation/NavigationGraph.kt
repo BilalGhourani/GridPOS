@@ -24,8 +24,8 @@ import com.grid.pos.ui.receipts.ReceiptsView
 import com.grid.pos.ui.reports.SalesReportsView
 import com.grid.pos.ui.settings.BackupView
 import com.grid.pos.ui.settings.SettingsView
-import com.grid.pos.ui.settings.setupReports.SetupReportView
 import com.grid.pos.ui.settings.setupReports.ReportsListView
+import com.grid.pos.ui.settings.setupReports.SetupReportView
 import com.grid.pos.ui.stockInOut.StockInOutView
 import com.grid.pos.ui.table.TablesView
 import com.grid.pos.ui.theme.White
@@ -34,10 +34,10 @@ import com.grid.pos.ui.user.ManageUsersView
 
 @Composable
 fun AuthNavGraph(
-        navController: NavHostController,
-        sharedViewModel: SharedViewModel,
-        startDestination: String,
-        modifier: Modifier = Modifier
+    navController: NavHostController,
+    sharedViewModel: SharedViewModel,
+    startDestination: String,
+    modifier: Modifier = Modifier
 ) {
     NavHost(
         navController = navController,
@@ -45,129 +45,129 @@ fun AuthNavGraph(
         modifier = modifier.background(color = White)
     ) {
 
-        composable(route = "HomeView") {
+        composable(route = Screen.HomeView.route) {
             HomeView(
                 navController = navController,
                 sharedViewModel = sharedViewModel
             )
         }
-        composable(route = "LoginView") {
+        composable(route = Screen.LoginView.route) {
             LoginView(
                 navController = navController
             )
         }
-        composable(route = "SettingsView") {
+        composable(route = Screen.SettingsView.route) {
             SettingsView(
                 navController = navController
             )
         }
-        composable(route = "ManageCurrenciesView") {
+        composable(route = Screen.ManageCurrenciesView.route) {
             ManageCurrenciesView(
                 navController = navController
             )
         }
-        composable(route = "ManageCompaniesView") {
+        composable(route = Screen.ManageCompaniesView.route) {
             ManageCompaniesView(
                 navController = navController
             )
         }
-        composable(route = "ManageUsersView") {
+        composable(route = Screen.ManageUsersView.route) {
             ManageUsersView(
                 navController = navController
             )
         }
-        composable(route = "ManageFamiliesView") {
+        composable(route = Screen.ManageFamiliesView.route) {
             ManageFamiliesView(
                 navController = navController
             )
         }
-        composable(route = "ManageThirdPartiesView") {
+        composable(route = Screen.ManageThirdPartiesView.route) {
             ManageThirdPartiesView(
                 navController = navController
             )
         }
-        composable(route = "ManageItemsView") {
+        composable(route = Screen.ManageItemsView.route) {
             ManageItemsView(
                 navController = navController
             )
         }
-        composable(route = "POSView") {
+        composable(route = Screen.POSView.route) {
             POSView(
                 navController = navController
             )
         }
-        composable(route = "TablesView") {
+        composable(route = Screen.TablesView.route) {
             TablesView(
                 navController = navController
             )
         }
-        composable(route = "UIWebView") {
+        composable(route = Screen.UIWebView.route) {
             UIWebView(
                 navController = navController,
                 sharedViewModel = sharedViewModel
             )
         }
-        composable(route = "POSPrinterView") {
+        composable(route = Screen.POSPrinterView.route) {
             POSPrinterView(
                 navController = navController
             )
         }
-        composable(route = "SalesReportsView") {
+        composable(route = Screen.SalesReportsView.route) {
             SalesReportsView(
                 navController = navController
             )
         }
-        composable(route = "BackupView") {
+        composable(route = Screen.BackupView.route) {
             BackupView(
                 navController = navController,
                 sharedViewModel = sharedViewModel
             )
         }
 
-        composable(route = "ReportsListView") {
+        composable(route = Screen.ReportsListView.route) {
             ReportsListView(
                 navController = navController
             )
         }
 
-        composable(route = "SetupReportView") {
+        composable(route = Screen.SetupReportView.route) {
             SetupReportView(
                 navController = navController
             )
         }
 
-        composable(route = "AdjustmentView") {
+        composable(route = Screen.AdjustmentView.route) {
             AdjustmentView(
                 navController = navController
             )
         }
 
-        composable(route = "LicenseView") {
+        composable(route = Screen.LicenseView.route) {
             LicenseView(
                 navController = navController,
                 sharedViewModel = sharedViewModel
             )
         }
 
-        composable(route = "PaymentsView") {
+        composable(route = Screen.PaymentsView.route) {
             PaymentsView(
                 navController = navController
             )
         }
 
-        composable(route = "ReceiptsView") {
+        composable(route = Screen.ReceiptsView.route) {
             ReceiptsView(
                 navController = navController
             )
         }
 
-        composable(route = "ItemOpeningView") {
+        composable(route = Screen.ItemOpeningView.route) {
             ItemOpeningView(
                 navController = navController
             )
         }
 
-        composable(route = "StockInOutView") {
+        composable(route = Screen.StockInOutView.route) {
             StockInOutView(
                 navController = navController
             )

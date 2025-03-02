@@ -52,6 +52,7 @@ import com.grid.pos.ui.common.SearchableDropdownMenuEx
 import com.grid.pos.ui.common.UIImageButton
 import com.grid.pos.ui.common.UISwitch
 import com.grid.pos.ui.common.UITextField
+import com.grid.pos.ui.navigation.Screen
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.utils.FileUtils
 import com.grid.pos.utils.Utils
@@ -91,7 +92,7 @@ fun ManageCompaniesView(
                 },
                 onConfirmation = {
                     navController?.navigateUp()
-                    navController?.navigate("ManageUsersView")
+                    navController?.navigate(Screen.ManageUsersView.route)
                 },
                 dialogText = "Company saved successfully, do you want to continue?",
                 positiveBtnText = "Continue",
@@ -158,7 +159,7 @@ fun ManageCompaniesView(
                             )
                         },
                         actions = {
-                            IconButton(onClick = { navController?.navigate("SettingsView") }) {
+                            IconButton(onClick = { navController?.navigate(Screen.SettingsView.route) }) {
                                 Icon(
                                     painterResource(R.drawable.ic_settings),
                                     contentDescription = "Back",

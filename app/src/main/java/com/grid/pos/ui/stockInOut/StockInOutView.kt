@@ -72,6 +72,7 @@ import com.grid.pos.model.StockInOutItemModel
 import com.grid.pos.model.WarehouseModel
 import com.grid.pos.ui.common.SearchableDropdownMenuEx
 import com.grid.pos.ui.common.UIImageButton
+import com.grid.pos.ui.navigation.Screen
 import com.grid.pos.ui.stockInOut.components.EditStockInOutItemView
 import com.grid.pos.ui.stockInOut.components.StockInOutDataGrid
 import com.grid.pos.ui.theme.GridPOSTheme
@@ -181,7 +182,7 @@ fun StockInOutView(
                         },
                         actions = {
                             if (!isEditBottomSheetVisible) {
-                                IconButton(onClick = { navController?.navigate("SettingsView") }) {
+                                IconButton(onClick = { navController?.navigate(Screen.SettingsView.route) }) {
                                     Icon(
                                         painterResource(R.drawable.ic_settings),
                                         contentDescription = "Settings",

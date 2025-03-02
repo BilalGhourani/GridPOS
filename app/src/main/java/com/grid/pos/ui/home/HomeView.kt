@@ -33,6 +33,7 @@ import com.grid.pos.R
 import com.grid.pos.SharedViewModel
 import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
+import com.grid.pos.ui.navigation.Screen
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.utils.Utils
 
@@ -63,8 +64,8 @@ fun HomeView(
     fun logout() {
         isLogoutPopupShown = false
         sharedViewModel.logout()
-        navController?.clearBackStack("LoginView")
-        navController?.navigate("LoginView")
+        navController?.clearBackStack(Screen.LoginView.route)
+        navController?.navigate(Screen.LoginView.route)
     }
     LaunchedEffect(isLogoutPopupShown) {
         sharedViewModel.showPopup(isLogoutPopupShown,
@@ -109,7 +110,7 @@ fun HomeView(
                             )
                         },
                         actions = {
-                            IconButton(onClick = { navController?.navigate("SettingsView") }) {
+                            IconButton(onClick = { navController?.navigate(Screen.SettingsView.route) }) {
                                 Icon(
                                     painterResource(R.drawable.ic_settings),
                                     contentDescription = "Back",

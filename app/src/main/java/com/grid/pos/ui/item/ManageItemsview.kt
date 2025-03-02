@@ -64,6 +64,7 @@ import com.grid.pos.ui.common.SearchableDropdownMenuEx
 import com.grid.pos.ui.common.UIImageButton
 import com.grid.pos.ui.common.UISwitch
 import com.grid.pos.ui.common.UITextField
+import com.grid.pos.ui.navigation.Screen
 import com.grid.pos.ui.settings.ColorPickerType
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.utils.Extension.toHexCode
@@ -143,7 +144,7 @@ fun ManageItemsView(
                         textAlign = TextAlign.Center
                     )
                 }, actions = {
-                    IconButton(onClick = { navController?.navigate("SettingsView") }) {
+                    IconButton(onClick = { navController?.navigate(Screen.SettingsView.route) }) {
                         Icon(
                             painterResource(R.drawable.ic_settings),
                             contentDescription = "Back",
@@ -318,7 +319,7 @@ fun ManageItemsView(
                         leadingIcon = {
                             IconButton(onClick = {
                                 viewModel.checkAndGenerateBarcode(context) {
-                                    navController?.navigate("UIWebView")
+                                    navController?.navigate(Screen.UIWebView.route)
                                 }
 
                             }) {

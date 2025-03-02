@@ -57,6 +57,7 @@ import com.grid.pos.model.SettingsModel
 import com.grid.pos.model.UserType
 import com.grid.pos.ui.common.UIImageButton
 import com.grid.pos.ui.common.UITextField
+import com.grid.pos.ui.navigation.Screen
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.utils.Utils
 
@@ -109,8 +110,8 @@ fun TablesView(
                             if (!isBackPressed) {
                                 isBackPressed = true
                                 viewModel.logout()
-                                navController?.clearBackStack("LoginView")
-                                navController?.navigate("LoginView")
+                                navController?.clearBackStack(Screen.LoginView.route)
+                                navController?.navigate(Screen.LoginView.route)
                             }
                         }
                         dialogText = "Are you sure you want to logout?"
@@ -155,7 +156,7 @@ fun TablesView(
                             )
                         },
                         actions = {
-                            IconButton(onClick = { navController?.navigate("SettingsView") }) {
+                            IconButton(onClick = { navController?.navigate(Screen.SettingsView.route) }) {
                                 Icon(
                                     painterResource(R.drawable.ic_settings),
                                     contentDescription = "Back",

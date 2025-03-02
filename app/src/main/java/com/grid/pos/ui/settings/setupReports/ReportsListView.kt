@@ -61,6 +61,7 @@ import com.grid.pos.App
 import com.grid.pos.model.ReportTypeModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.SearchableDropdownMenuEx
+import com.grid.pos.ui.navigation.Screen
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.utils.FileUtils
 import java.io.File
@@ -133,7 +134,7 @@ fun ReportsListView(
                         },
                         actions = {
                             IconButton(onClick = {
-                                navController?.navigate("SetupReportView")
+                                navController?.navigate(Screen.SetupReportView.route)
                             }) {
                                 Icon(
                                     imageVector = Icons.Default.AddCircleOutline,

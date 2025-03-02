@@ -1,0 +1,27 @@
+package com.grid.pos.ui.navigation
+
+sealed class Screen(val route: String) {
+    object LoginView : Screen("LoginView")
+    object HomeView : Screen("HomeView")
+    object SettingsView : Screen("SettingsView")
+    object ManageCurrenciesView : Screen("ManageCurrenciesView")
+    object ManageCompaniesView : Screen("ManageCompaniesView")
+    object ManageUsersView : Screen("ManageUsersView")
+    object ManageFamiliesView : Screen("ManageFamiliesView")
+    object ManageThirdPartiesView : Screen("ManageThirdPartiesView")
+    object ManageItemsView : Screen("ManageItemsView")
+    object POSView : Screen("POSView")
+    object TablesView : Screen("TablesView")
+    object UIWebView : Screen("UIWebView")
+    object POSPrinterView : Screen("POSPrinterView")
+    object SalesReportsView : Screen("SalesReportsView")
+    object BackupView : Screen("BackupView")
+    object ReportsListView : Screen("ReportsListView")
+    object SetupReportView : Screen("SetupReportView")
+    object AdjustmentView : Screen("AdjustmentView")
+    object LicenseView : Screen("LicenseView")
+    object PaymentsView : Screen("PaymentsView")
+    object ReceiptsView : Screen("ReceiptsView")
+    object ItemOpeningView : Screen("ItemOpeningView")
+    object StockInOutView : Screen("StockInOutView")
+}

@@ -46,6 +46,7 @@ import com.grid.pos.R
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.UIImageButton
 import com.grid.pos.ui.common.UITextField
+import com.grid.pos.ui.navigation.Screen
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.utils.Utils
 
@@ -113,7 +114,7 @@ fun ManageCurrenciesView(
                             )
                         },
                         actions = {
-                            IconButton(onClick = { navController?.navigate("SettingsView") }) {
+                            IconButton(onClick = { navController?.navigate(Screen.SettingsView.route) }) {
                                 Icon(
                                     painterResource(R.drawable.ic_settings),
                                     contentDescription = "Back",
