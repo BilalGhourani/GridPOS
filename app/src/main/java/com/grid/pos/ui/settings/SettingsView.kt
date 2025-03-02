@@ -1018,7 +1018,7 @@ fun SettingsView(
                                 .height(60.dp)
                                 .padding(10.dp),
                             checked = hideSecondCurrency,
-                            text = "Hide Seocnd Currency",
+                            text = "Hide Second Currency",
                             textColor = textColorState
                         ) { hide ->
                             hideSecondCurrency = hide
