@@ -84,7 +84,7 @@ import kotlinx.coroutines.launch
     ExperimentalMaterial3Api::class
 )
 @Composable
-fun StockInOutView(
+fun StockAdjustmentView(
     modifier: Modifier = Modifier,
     navController: NavController? = null,
     viewModel: StockAdjustmentViewModel = hiltViewModel()

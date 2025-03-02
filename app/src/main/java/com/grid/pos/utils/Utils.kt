@@ -30,6 +30,7 @@ import com.grid.pos.model.ReportLanguage
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.model.ThirdPartyType
 import com.grid.pos.model.ThirdPartyTypeModel
+import com.grid.pos.ui.navigation.Screen
 import java.math.BigInteger
 import java.time.Year
 import java.util.Random
@@ -73,12 +74,12 @@ object Utils {
                         HomeItemModel(
                             R.drawable.third_parties,
                             "ThirdParty",
-                            "ManageThirdPartiesView"
+                            Screen.ManageThirdPartiesView.route
                         ),
                         HomeItemModel(
                             R.drawable.setup_reports,
                             "Setup Reports",
-                            "ReportsListView"
+                            Screen.ReportsListView.route
                         )
                     )
                 ),
@@ -88,22 +89,27 @@ object Utils {
                         HomeItemModel(
                             R.drawable.families,
                             "Family",
-                            "ManageFamiliesView"
+                            Screen.ManageFamiliesView.route
                         ),
                         HomeItemModel(
                             R.drawable.items,
                             "Item",
-                            "ManageItemsView"
+                            Screen.ManageItemsView.route
                         ),
                         HomeItemModel(
                             R.drawable.item_opening,
                             "Item Opening",
-                            "ItemOpeningView"
+                            Screen.ItemOpeningView.route
                         ),
                         HomeItemModel(
                             R.drawable.stock_correction,
                             "Stock In/Out",
-                            "StockInOutView"
+                            Screen.StockInOutView.route
+                        ),
+                        HomeItemModel(
+                            R.drawable.stock_correction,
+                            "Quantity On Hand",
+                            Screen.StockAdjustmentView.route
                         )
                     )
                 ),
@@ -113,12 +119,12 @@ object Utils {
                         HomeItemModel(
                             R.drawable.pos,
                             "POS",
-                            "POSView"
+                            Screen.POSView.route
                         ),
                         HomeItemModel(
                             R.drawable.tables,
                             "Table",
-                            "TablesView"
+                            Screen.TablesView.route
                         )
                     )
                 ),
@@ -128,12 +134,12 @@ object Utils {
                         HomeItemModel(
                             R.drawable.receipt,
                             "Paid IN",
-                            "ReceiptsView"
+                            Screen.ReceiptsView.route
                         ),
                         HomeItemModel(
                             R.drawable.payment,
                             "Paid OUT",
-                            "PaymentsView"
+                            Screen.PaymentsView.route
                         )
                     )
                 ),
@@ -143,7 +149,7 @@ object Utils {
                         HomeItemModel(
                             R.drawable.license,
                             "License",
-                            "LicenseView"
+                            Screen.LicenseView.route
                         )
                     )
                 ),
@@ -166,32 +172,32 @@ object Utils {
                     HomeItemModel(
                         R.drawable.companies,
                         "Company",
-                        "ManageCompaniesView"
+                        Screen.ManageCompaniesView.route
                     ),
                     HomeItemModel(
                         R.drawable.currencies,
                         "Currency",
-                        "ManageCurrenciesView"
+                        Screen.ManageCurrenciesView.route
                     ),
                     HomeItemModel(
                         R.drawable.users,
                         "User",
-                        "ManageUsersView"
+                        Screen.ManageUsersView.route
                     ),
                     HomeItemModel(
                         R.drawable.third_parties,
                         "ThirdParty",
-                        "ManageThirdPartiesView"
+                        Screen.ManageThirdPartiesView.route
                     ),
                     HomeItemModel(
                         R.drawable.printer,
                         "Printer",
-                        "POSPrinterView"
+                        Screen.POSPrinterView.route
                     ),
                     HomeItemModel(
                         R.drawable.setup_reports,
                         "Setup Reports",
-                        "ReportsListView"
+                        Screen.ReportsListView.route
                     )
                 )
             ),
@@ -201,17 +207,17 @@ object Utils {
                     HomeItemModel(
                         R.drawable.families,
                         "Family",
-                        "ManageFamiliesView"
+                        Screen.ManageFamiliesView.route
                     ),
                     HomeItemModel(
                         R.drawable.items,
                         "Item",
-                        "ManageItemsView"
+                        Screen.ManageItemsView.route
                     ),
                     HomeItemModel(
                         R.drawable.adjustment,
                         "Adjustment",
-                        "AdjustmentView"
+                        Screen.AdjustmentView.route
                     )
                 )
             ),
@@ -221,17 +227,17 @@ object Utils {
                     HomeItemModel(
                         R.drawable.pos,
                         "POS",
-                        "POSView"
+                        Screen.POSView.route
                     ),
                     HomeItemModel(
                         R.drawable.tables,
                         "Table",
-                        "TablesView"
+                        Screen.TablesView.route
                     ),
                     HomeItemModel(
                         R.drawable.sales_reports,
                         "Sales Reports",
-                        "SalesReportsView"
+                        Screen.SalesReportsView.route
                     )
                 )
             ),
@@ -241,12 +247,12 @@ object Utils {
                     HomeItemModel(
                         R.drawable.receipt,
                         "Paid IN",
-                        "ReceiptsView"
+                        Screen.ReceiptsView.route
                     ),
                     HomeItemModel(
                         R.drawable.payment,
                         "Paid OUT",
-                        "PaymentsView"
+                        Screen.PaymentsView.route
                     )
                 )
             ),
@@ -256,12 +262,12 @@ object Utils {
                     HomeItemModel(
                         R.drawable.license,
                         "License",
-                        "LicenseView"
+                        Screen.LicenseView.route
                     ),
                     HomeItemModel(
                         R.drawable.backup_restore,
                         "Backup & Restore",
-                        "BackupView"
+                        Screen.BackupView.route
                     )
                 )
             ),

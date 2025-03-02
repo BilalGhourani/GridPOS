@@ -24,4 +24,5 @@ sealed class Screen(val route: String) {
     object ReceiptsView : Screen("ReceiptsView")
     object ItemOpeningView : Screen("ItemOpeningView")
     object StockInOutView : Screen("StockInOutView")
+    object StockAdjustmentView : Screen("StockAdjustmentView")
 }
