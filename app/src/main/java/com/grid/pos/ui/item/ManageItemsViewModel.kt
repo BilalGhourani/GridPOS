@@ -70,7 +70,12 @@ class ManageItemsViewModel @Inject constructor(
             itemCurrencyCode = firstCurrency.second,
         )
         state.value = state.value.copy(
-            item = currentITem.copy()
+            item = currentITem.copy(),
+            itemOpenCostStr = "",
+            itemUnitPriceStr = "",
+            itemTaxStr = currentITem.itemTax.toString(),
+            itemTax1Str = currentITem.itemTax1.toString(),
+            itemTax2Str = currentITem.itemTax2.toString(),
         )
     }
 
