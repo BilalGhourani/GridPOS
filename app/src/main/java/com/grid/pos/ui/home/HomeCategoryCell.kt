@@ -75,7 +75,7 @@ fun HomeCategoryCell(
                 .fillMaxWidth()
                 .heightIn(
                     min = 130.dp,
-                    max = 300.dp
+                    max = 500.dp
                 ),
             columns = GridCells.Fixed(columnCount)
         ) {

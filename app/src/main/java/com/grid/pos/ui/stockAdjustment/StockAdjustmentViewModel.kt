@@ -43,7 +43,7 @@ class StockAdjustmentViewModel @Inject constructor(
     init {
         viewModelScope.launch(Dispatchers.IO) {
             openConnectionIfNeeded()
-            stockIOTransCode = settingsRepository.getTransactionTypeId("Stock InOut")
+            stockIOTransCode = settingsRepository.getTransactionTypeId("Stock Adjustment")
         }
     }
 
@@ -171,7 +171,7 @@ class StockAdjustmentViewModel @Inject constructor(
             }
         }
         withContext(Dispatchers.IO) {
-            val transactionTypeList = settingsRepository.getTransactionTypes("Stock InOut")
+            val transactionTypeList = settingsRepository.getTransactionTypes("Stock Adjustment")
             withContext(Dispatchers.Main) {
                 if (withLoading) {
                     showLoading(false)

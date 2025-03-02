@@ -26,6 +26,7 @@ import com.grid.pos.ui.settings.BackupView
 import com.grid.pos.ui.settings.SettingsView
 import com.grid.pos.ui.settings.setupReports.ReportsListView
 import com.grid.pos.ui.settings.setupReports.SetupReportView
+import com.grid.pos.ui.stockAdjustment.StockAdjustmentView
 import com.grid.pos.ui.stockInOut.StockInOutView
 import com.grid.pos.ui.table.TablesView
 import com.grid.pos.ui.theme.White
@@ -169,6 +170,12 @@ fun AuthNavGraph(
 
         composable(route = Screen.StockInOutView.route) {
             StockInOutView(
+                navController = navController
+            )
+        }
+
+        composable(route = Screen.StockAdjustmentView.route) {
+            StockAdjustmentView(
                 navController = navController
             )
         }

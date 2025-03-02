@@ -216,7 +216,7 @@ fun EditStockInOutItemView(
 
         EditableDateInputField(modifier = Modifier.padding(horizontal = 10.dp),
             date = stockHeadDateState,
-            label = "Transfer Date",
+            label = "Date",
             focusRequester = stockInOutDateFocusRequester,
             onAction = {
                 stockHeadNoteFocusRequester.requestFocus()
@@ -226,7 +226,7 @@ fun EditStockInOutItemView(
 
         EditableDateInputField(modifier = Modifier.padding(horizontal = 10.dp),
             date = stockHeadValueDateState,
-            label = "Transfer Value Date",
+            label = "Value Date",
             focusRequester = stockInOutDateFocusRequester,
             onAction = {
                 stockHeadNoteFocusRequester.requestFocus()

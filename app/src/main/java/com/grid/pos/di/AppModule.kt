@@ -174,6 +174,18 @@ object AppModule {
 
     @Provides
     @Singleton
+    fun provideStockHeaderAdjustmentRepository(): StockHeaderAdjustmentRepository {
+        return StockHeaderAdjustmentRepositoryImpl()
+    }
+
+    @Provides
+    @Singleton
+    fun provideStockAdjustmentRepository(): StockAdjustmentRepository {
+        return StockAdjustmentRepositoryImpl()
+    }
+
+    @Provides
+    @Singleton
     fun provideLicenseUseCase(
         companyRepository: CompanyRepository,
         invoiceHeaderRepository: InvoiceHeaderRepository

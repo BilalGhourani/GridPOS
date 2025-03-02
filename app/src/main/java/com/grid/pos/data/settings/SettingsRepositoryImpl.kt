@@ -85,7 +85,8 @@ class SettingsRepositoryImpl : SettingsRepository {
                         "acc_transactiontype",
                         "",
                         mutableListOf("*"),
-                        where
+                        where,
+                        "ORDER BY $codeKey ASC"
                     )
                     dbResult?.let {
                         while (it.next()) {

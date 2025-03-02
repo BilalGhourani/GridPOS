@@ -216,7 +216,7 @@ fun EditStockAdjItemView(
 
         EditableDateInputField(modifier = Modifier.padding(horizontal = 10.dp),
             date = stockHeadDateState,
-            label = "Transfer Date",
+            label = "Date",
             focusRequester = stockInOutDateFocusRequester,
             onAction = {
                 stockHeadNoteFocusRequester.requestFocus()
@@ -226,7 +226,7 @@ fun EditStockAdjItemView(
 
         EditableDateInputField(modifier = Modifier.padding(horizontal = 10.dp),
             date = stockHeadValueDateState,
-            label = "Transfer Value Date",
+            label = "Value Date",
             focusRequester = stockInOutDateFocusRequester,
             onAction = {
                 stockHeadNoteFocusRequester.requestFocus()
@@ -263,8 +263,9 @@ fun EditStockAdjItemView(
 
         UITextField(modifier = Modifier.padding(horizontal = 10.dp),
             defaultValue = stockHeadDescState,
-            label = "Transfer Note",
-            placeHolder = "Transfer Note",
+            label = "Description",
+            placeHolder = "Description",
+            maxLines = 4,
             focusRequester = stockHeadNoteFocusRequester,
             onAction = {
                 stockItemNoteFocusRequester.requestFocus()
@@ -286,8 +287,8 @@ fun EditStockAdjItemView(
 
         UITextField(modifier = Modifier.padding(horizontal = 10.dp),
             defaultValue = stockItemReasonState,
-            label = "Item Note",
-            placeHolder = "Item Note",
+            label = "Item Reason",
+            placeHolder = "Item Reason",
             focusRequester = stockItemNoteFocusRequester,
             onAction = {
                 keyboardController?.hide()

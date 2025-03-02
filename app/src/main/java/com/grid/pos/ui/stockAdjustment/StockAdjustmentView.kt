@@ -135,7 +135,7 @@ fun StockAdjustmentView(
                         viewModel.resetState()
                         handleBack()
                     }
-                    dialogText = "Are you sure you want to discard current transfer?"
+                    dialogText = "Are you sure you want to discard current transaction?"
                     positiveBtnText = "Discard"
                     negativeBtnText = "Cancel"
                 })
@@ -174,7 +174,7 @@ fun StockAdjustmentView(
                         },
                         title = {
                             Text(
-                                text = if (isEditBottomSheetVisible) "Edit Item" else "Stock In/Out",
+                                text = if (isEditBottomSheetVisible) "Edit Item" else "Quantity On Hand",
                                 color = SettingsModel.textColor,
                                 fontSize = 16.sp,
                                 textAlign = TextAlign.Center
@@ -290,7 +290,7 @@ fun StockAdjustmentView(
                                             viewModel.delete()
                                         }
                                         dialogText =
-                                            "Are you sure you want to Delete this transfer?"
+                                            "Are you sure you want to Delete this transaction?"
                                         positiveBtnText = "Delete"
                                         negativeBtnText = "Cancel"
                                     })
@@ -351,7 +351,7 @@ fun StockAdjustmentView(
                                 viewModel.fetchWarehouses()
                             }
                         },
-                        label = "From Warehouse",
+                        label = "Warehouse",
                         selectedId = stockHeaderAdjustment.stockHAWaName
                     ) { warehouse ->
                         warehouse as WarehouseModel
@@ -361,27 +361,6 @@ fun StockAdjustmentView(
                             )
                         )
                     }
-
-                    /*SearchableDropdownMenuEx(
-                        items = state.warehouses.toMutableList(),
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(horizontal = 3.dp),
-                        onLoadItems = {
-                            scope.launch(Dispatchers.IO) {
-                                viewModel.fetchWarehouses()
-                            }
-                        },
-                        label = "To Warehouse",
-                        selectedId = stockHeaderAdjustment.stockHeadInOutWaTpName,
-                    ) { warehouse ->
-                        warehouse as WarehouseModel
-                        viewModel.updateStockHeaderAdjustment(
-                            stockHeaderAdjustment.copy(
-                                stockHeadInOutWaTpName = warehouse.getId()
-                            )
-                        )
-                    }*/
                 }
 
                 SearchableDropdownMenuEx(items = state.stockHeaderAdjustmentList.toMutableList(),
@@ -390,7 +369,7 @@ fun StockAdjustmentView(
                         start = 10.dp,
                         end = 10.dp
                     ),
-                    label = "Select Transfer",
+                    label = "Select Tr. No",
                     onLoadItems = { viewModel.fetchTransfers() },
                     selectedId = stockHeaderAdjustment.stockHAId,
                     leadingIcon = { modifier ->
@@ -416,7 +395,7 @@ fun StockAdjustmentView(
                                     showDeleteButton = true
                                     viewModel.loadTransferDetails(stockHeaderAdjustment)
                                 }
-                                dialogText = "Are you sure you want to discard current transfer?"
+                                dialogText = "Are you sure you want to discard current transaction?"
                                 positiveBtnText = "Discard"
                                 negativeBtnText = "Cancel"
                             })
