@@ -26,6 +26,7 @@ import com.grid.pos.model.InvoiceItemModel
 import com.grid.pos.model.PopupModel
 import com.grid.pos.model.ReportResult
 import com.grid.pos.model.SettingsModel
+import com.grid.pos.model.ThirdPartyType
 import com.grid.pos.model.UserType
 import com.grid.pos.ui.common.BaseViewModel
 import com.grid.pos.utils.PrinterUtils
@@ -275,7 +276,12 @@ class POSViewModel @Inject constructor(
             showLoading(true)
         }
         viewModelScope.launch(Dispatchers.IO) {
-            val listOfThirdParties = thirdPartyRepository.getAllThirdParties()
+            val listOfThirdParties = thirdPartyRepository.getAllThirdParties(
+                listOf(
+                    ThirdPartyType.RECEIVALBE.type,
+                    ThirdPartyType.PAYABLE_RECEIVALBE.type
+                )
+            )
             val defaultTp = state.value.selectedThirdParty
             if (defaultTp.thirdPartyId.isNotEmpty()) {
                 val defTp =
