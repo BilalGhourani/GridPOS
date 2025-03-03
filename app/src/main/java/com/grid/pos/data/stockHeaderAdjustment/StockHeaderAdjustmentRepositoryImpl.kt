@@ -95,17 +95,17 @@ class StockHeaderAdjustmentRepositoryImpl : StockHeaderAdjustmentRepository {
         return StockHeaderAdjustment().apply {
             stockHAId = obj.getStringValue("hsa_id")
             stockHANo = obj.getStringValue("hsa_no")
-            stockHACompId = obj.getStringValue("hsa_cmp_id")
+            stockHACompId = obj.getStringValue("hsa_cmp_id").ifEmpty { null }
             stockHADate = obj.getStringValue("hsa_date")
-            stockHATtCode = obj.getStringValue("hsa_tt_code")
+            stockHATtCode = obj.getStringValue("hsa_tt_code").ifEmpty { null }
             stockHATtCodeName = obj.getStringValue("tt_newcode", obj.getStringValue("hsa_tt_code"))
             stockHATransNo = obj.getStringValue("hsa_transno")
             stockHADesc = obj.getStringValue("hsa_desc")
-            stockHAProjName = obj.getStringValue("hsa_prj_name")
-            stockHABraName = obj.getStringValue("hsa_bra_name")
-            stockHAWaName = obj.getStringValue("hsa_wa_name")
+            stockHAProjName = obj.getStringValue("hsa_prj_name").ifEmpty { null }
+            stockHABraName = obj.getStringValue("hsa_bra_name").ifEmpty { null }
+            stockHAWaName = obj.getStringValue("hsa_wa_name").ifEmpty { null }
             stockHASessionPointer = obj.getStringValue("hsa_sessionpointer")
-            stockHARowguid = obj.getStringValue("hsa_rowguid")
+            stockHARowguid = obj.getStringValue("hsa_rowguid").ifEmpty { null }
             stockHASource = obj.getStringValue("hsa_source")
             stockHAHjNo = obj.getStringValue("hsa_hj_no")
 
@@ -127,8 +127,9 @@ class StockHeaderAdjustmentRepositoryImpl : StockHeaderAdjustmentRepository {
     private fun insertByProcedure(stockHeaderAdjustment: StockHeaderAdjustment): DataModel {
         val parameters = if (SettingsModel.isSqlServerWebDb) {
             listOf(
+                "null_string_output",//@hsa_cmp_id
                 stockHeaderAdjustment.stockHACompId,//@hsa_cmp_id
-                Timestamp(System.currentTimeMillis()),//@hsa_date
+                getDateInTimestamp(stockHeaderAdjustment.stockHADate),//@hsa_date
                 stockHeaderAdjustment.stockHATtCode,//@hsa_tt_code
                 stockHeaderAdjustment.stockHATransNo,//@hsa_transno
                 stockHeaderAdjustment.stockHADesc,//@hsa_desc
@@ -138,13 +139,13 @@ class StockHeaderAdjustmentRepositoryImpl : StockHeaderAdjustmentRepository {
                 SettingsModel.currentUser?.userUsername,//@hsa_userstamp
                 null,//@hsa_sessionpointer
                 SettingsModel.currentCompany?.cmp_multibranchcode,//@branchcode
-                Timestamp(System.currentTimeMillis()),//@hsa_valuedate
+                getValueDateInTimestamp(stockHeaderAdjustment.stockHAValueDate),//@hsa_valuedate
                 stockHeaderAdjustment.stockHASource,//@hsa_source
             )
         } else {
             listOf(
                 stockHeaderAdjustment.stockHACompId,//@hsa_cmp_id
-                Timestamp(System.currentTimeMillis()),//@hsa_date
+                getDateInTimestamp(stockHeaderAdjustment.stockHADate),//@hsa_date
                 stockHeaderAdjustment.stockHATtCode,//@hsa_tt_code
                 stockHeaderAdjustment.stockHATransNo,//@hsa_transno
                 stockHeaderAdjustment.stockHADesc,//@hsa_desc
@@ -154,7 +155,7 @@ class StockHeaderAdjustmentRepositoryImpl : StockHeaderAdjustmentRepository {
                 SettingsModel.currentUser?.userUsername,//@hsa_userstamp
                 null,//@hsa_sessionpointer
                 SettingsModel.currentCompany?.cmp_multibranchcode,//@branchcode
-                Timestamp(System.currentTimeMillis()),//@hsa_valuedate
+                getValueDateInTimestamp(stockHeaderAdjustment.stockHAValueDate),//@hsa_valuedate
                 stockHeaderAdjustment.stockHASource,//@hsa_source
             )
         }
@@ -179,7 +180,7 @@ class StockHeaderAdjustmentRepositoryImpl : StockHeaderAdjustmentRepository {
                 stockHeaderAdjustment.stockHAId,//@hsa_id
                 stockHeaderAdjustment.stockHANo,//@hsa_no
                 stockHeaderAdjustment.stockHACompId,//@hsa_cmp_id
-                stockHeaderAdjustment.stockHADate,//@hsa_date
+                getDateInTimestamp(stockHeaderAdjustment.stockHADate),//@hsa_date
                 stockHeaderAdjustment.stockHATtCode,//@hsa_tt_code
                 stockHeaderAdjustment.stockHATransNo,//@hsa_transno
                 stockHeaderAdjustment.stockHADesc,//@hsa_desc
@@ -187,14 +188,14 @@ class StockHeaderAdjustmentRepositoryImpl : StockHeaderAdjustmentRepository {
                 stockHeaderAdjustment.stockHABraName,//@hsa_bra_name
                 stockHeaderAdjustment.stockHAWaName,//@hsa_wa_name
                 SettingsModel.currentUser?.userUsername,//@hsa_userstamp
-                Timestamp(System.currentTimeMillis()),//@hsa_valuedate
+                getValueDateInTimestamp(stockHeaderAdjustment.stockHAValueDate),//@hsa_valuedate
             )
         } else {
             listOf(
                 stockHeaderAdjustment.stockHAId,//@hsa_id
                 stockHeaderAdjustment.stockHANo,//@hsa_no
                 stockHeaderAdjustment.stockHACompId,//@hsa_cmp_id
-                stockHeaderAdjustment.stockHADate,//@hsa_date
+                getDateInTimestamp(stockHeaderAdjustment.stockHADate),//@hsa_date
                 stockHeaderAdjustment.stockHATtCode,//@hsa_tt_code
                 stockHeaderAdjustment.stockHATransNo,//@hsa_transno
                 stockHeaderAdjustment.stockHADesc,//@hsa_desc
@@ -202,7 +203,7 @@ class StockHeaderAdjustmentRepositoryImpl : StockHeaderAdjustmentRepository {
                 stockHeaderAdjustment.stockHABraName,//@hsa_bra_name
                 stockHeaderAdjustment.stockHAWaName,//@hsa_wa_name
                 SettingsModel.currentUser?.userUsername,//@hsa_userstamp
-                Timestamp(System.currentTimeMillis()),//@hsa_valuedate
+                getValueDateInTimestamp(stockHeaderAdjustment.stockHAValueDate),//@hsa_valuedate
             )
         }
         val queryResult = SQLServerWrapper.executeProcedure(
@@ -232,6 +233,21 @@ class StockHeaderAdjustmentRepositoryImpl : StockHeaderAdjustmentRepository {
                 false
             )
         }
+    }
+
+    private fun getDateInTimestamp(TransferDate: String?): Timestamp {
+        if (TransferDate != null) {
+            val date = DateHelper.getDateFromString(TransferDate, "yyyy-MM-dd HH:mm:ss.SSS")
+            return Timestamp(date.time)
+        }
+        return Timestamp(System.currentTimeMillis())
+    }
+
+    private fun getValueDateInTimestamp(valueDate: Date?): Timestamp {
+        if (valueDate != null) {
+            return Timestamp(valueDate.time)
+        }
+        return Timestamp(System.currentTimeMillis())
     }
 
 }
