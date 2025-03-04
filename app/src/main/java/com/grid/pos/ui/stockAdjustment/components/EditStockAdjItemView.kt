@@ -276,7 +276,7 @@ fun EditStockAdjItemView(
             defaultValue = stockHeadDescState,
             label = "Description",
             placeHolder = "Description",
-            maxLines = 4,
+            maxLines = 3,
             focusRequester = stockHeadNoteFocusRequester,
             imeAction = ImeAction.None,
             ) {
