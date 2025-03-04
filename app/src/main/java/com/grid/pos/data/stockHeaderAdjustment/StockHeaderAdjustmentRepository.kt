@@ -18,5 +18,5 @@ interface StockHeaderAdjustmentRepository {
         stockHeaderAdjustment: StockHeaderAdjustment
     ): DataModel
 
-    suspend fun getAllStockHeaderAdjustments(): MutableList<StockHeaderAdjustment>
+    suspend fun getAllStockHeaderAdjustments(source :String): MutableList<StockHeaderAdjustment>
 }

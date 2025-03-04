@@ -51,7 +51,7 @@ class StockHeaderAdjustmentRepositoryImpl : StockHeaderAdjustmentRepository {
         }
     }
 
-    override suspend fun getAllStockHeaderAdjustments(): MutableList<StockHeaderAdjustment> {
+    override suspend fun getAllStockHeaderAdjustments(source :String): MutableList<StockHeaderAdjustment> {
         val limit = 100
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key,
@@ -62,7 +62,7 @@ class StockHeaderAdjustmentRepositoryImpl : StockHeaderAdjustmentRepository {
             else -> {
                 val stockHeaderAdjustments: MutableList<StockHeaderAdjustment> = mutableListOf()
                 try {
-                    val where = "hsa_cmp_id='${SettingsModel.getCompanyID()}'"
+                    val where = "hsa_cmp_id='${SettingsModel.getCompanyID()}' AND hsa_source='$source'"
                     val dbResult = SQLServerWrapper.getListOf(
                         "st_hstockadjustment",
                         "TOP $limit",

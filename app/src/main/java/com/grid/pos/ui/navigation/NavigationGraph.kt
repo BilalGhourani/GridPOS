@@ -176,7 +176,15 @@ fun AuthNavGraph(
 
         composable(route = Screen.StockAdjustmentView.route) {
             StockAdjustmentView(
-                navController = navController
+                navController = navController,
+                source = "StkAdj"
+            )
+        }
+
+        composable(route = Screen.QuantityOnHandView.route) {
+            StockAdjustmentView(
+                navController = navController,
+                source = "QtyOnHand"
             )
         }
     }

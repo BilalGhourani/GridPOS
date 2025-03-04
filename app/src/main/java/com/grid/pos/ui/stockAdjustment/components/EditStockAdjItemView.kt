@@ -67,6 +67,7 @@ fun EditStockAdjItemView(
     triggerOnSave: Boolean,
     state: StockAdjustmentState,
     viewModel: StockAdjustmentViewModel = hiltViewModel(),
+    source: String,
     onSave: (StockHeaderAdjustment, StockAdjItemModel) -> Unit = { _, _ -> }
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -88,7 +89,12 @@ fun EditStockAdjItemView(
     var stockHeadUserState by remember { mutableStateOf("") }
 
     LaunchedEffect(Unit) {
-        qtyState = stockAdjItemModel.stockAdjustment.stockAdjQty.toInt()
+        qtyState = if (source.equals("stkadj", ignoreCase = true)) {
+            stockAdjItemModel.stockAdjustment.stockAdjQty.toInt()
+        } else {
+            stockAdjItemModel.stockAdjustment.stockAdjRemQtyWa.toInt()
+        }
+
         stockItemReasonState = stockAdjItemModel.stockAdjustment.stockAdjReason ?: ""
         stockItemDivState = stockAdjItemModel.stockAdjustment.stockAdjDivName ?: ""
 
@@ -115,7 +121,12 @@ fun EditStockAdjItemView(
     fun backAndSave() {
         val stockItemModel = stockAdjItemModel.copy()
         val stockHeaderInOutCopy = stockHeaderAdjustment.copy()
-        stockItemModel.stockAdjustment.stockAdjQty = qtyState.toDouble()
+        if (source.equals("stkadj", ignoreCase = true)) {
+            stockItemModel.stockAdjustment.stockAdjQty = qtyState.toDouble()
+        } else {
+            stockItemModel.stockAdjustment.stockAdjRemQtyWa = qtyState.toDouble()
+        }
+
         stockItemModel.stockAdjustment.stockAdjReason = stockItemReasonState.ifEmpty { null }
         stockItemModel.stockAdjustment.stockAdjDivName = stockItemDivState.ifEmpty { null }
 
@@ -267,9 +278,8 @@ fun EditStockAdjItemView(
             placeHolder = "Description",
             maxLines = 4,
             focusRequester = stockHeadNoteFocusRequester,
-            onAction = {
-                stockItemNoteFocusRequester.requestFocus()
-            }) {
+            imeAction = ImeAction.None,
+            ) {
             stockHeadDescState = it
         }
 

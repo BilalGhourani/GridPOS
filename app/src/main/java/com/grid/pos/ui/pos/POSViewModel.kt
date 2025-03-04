@@ -484,8 +484,15 @@ class POSViewModel @Inject constructor(
         proceedToPrint: Boolean,
         callback: () -> Unit
     ) {
-        val itemsToInsert = state.value.invoiceItems.filter { it.invoice.isNew() }
-        val itemsToUpdate = state.value.invoiceItems.filter { !it.invoice.isNew() }
+        val invoices = state.value.invoiceItems.mapIndexed { index, invoiceItemModel ->
+            invoiceItemModel.copy(
+                invoice = invoiceItemModel.invoice.copy(
+                    invoiceLineNo = index + 1
+                )
+            )
+        }
+        val itemsToInsert = invoices.filter { it.invoice.isNew() }
+        val itemsToUpdate = invoices.filter { !it.invoice.isNew() }
         val itemsToDelete = itemsToDelete.filter { !it.invoice.isNew() }
 
         itemsToInsert.forEach { invoiceItem ->
@@ -912,7 +919,6 @@ class POSViewModel @Inject constructor(
                                             )
                                         invoiceItemModel.setItem(item)
                                         invoiceItemModel.invoice.invoiceQuantity = count.toDouble()
-                                        invoiceItemModel.invoice.invoiceLineNo = invoiceItems.size
                                         invoiceItems.add(
                                             invoiceItemModel
                                         )
@@ -969,7 +975,6 @@ class POSViewModel @Inject constructor(
                     shouldPrint = true
                 )
                 invoiceItemModel.setItem(item)
-                invoiceItemModel.invoice.invoiceLineNo = invoiceItems.size
                 invoiceItems.add(invoiceItemModel)
                 updateState(
                     state.value.copy(

@@ -25,4 +25,5 @@ sealed class Screen(val route: String) {
     object ItemOpeningView : Screen("ItemOpeningView")
     object StockInOutView : Screen("StockInOutView")
     object StockAdjustmentView : Screen("StockAdjustmentView")
+    object QuantityOnHandView : Screen("QuantityOnHandView")
 }

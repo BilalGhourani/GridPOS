@@ -29,6 +29,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.grid.pos.BuildConfig
 import com.grid.pos.R
 import com.grid.pos.SharedViewModel
 import com.grid.pos.model.PopupModel
@@ -36,6 +37,9 @@ import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.navigation.Screen
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.utils.Utils
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 @OptIn(
     ExperimentalMaterial3Api::class
@@ -58,6 +62,11 @@ fun HomeView(
     }
 
     LaunchedEffect(Unit) {
+        if (BuildConfig.DEBUG) {
+            CoroutineScope(Dispatchers.IO).launch {
+                sharedViewModel.initiateValues()
+            }
+        }
         keyboardController?.hide()
     }
 

@@ -9,10 +9,14 @@ data class StockAdjItemModel(
     var isDeleted: Boolean = false
 ) {
 
-    fun setItem(item: Item) {
+    fun setItem(item: Item, source: String) {
         stockAdjItem = item
         stockAdjustment.stockAdjItemId = item.itemId
-        stockAdjustment.stockAdjQty = 1.0
+        if (source.equals("stkadj",ignoreCase = true)) {
+            stockAdjustment.stockAdjQty = 1.0
+        } else {
+            stockAdjustment.stockAdjRemQtyWa = 1.0
+        }
         stockAdjustment.stockAdjCost =
             if (item.itemRealOpenCost == 0.0) item.itemOpenCost else item.itemRealOpenCost
     }

@@ -87,7 +87,8 @@ import kotlinx.coroutines.launch
 fun StockAdjustmentView(
     modifier: Modifier = Modifier,
     navController: NavController? = null,
-    viewModel: StockAdjustmentViewModel = hiltViewModel()
+    viewModel: StockAdjustmentViewModel = hiltViewModel(),
+    source: String
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val stockHeaderAdjustment = viewModel.stockHeaderAdjState.collectAsState().value
@@ -174,7 +175,7 @@ fun StockAdjustmentView(
                         },
                         title = {
                             Text(
-                                text = if (isEditBottomSheetVisible) "Edit Item" else "Quantity On Hand",
+                                text = if (isEditBottomSheetVisible) "Edit Item" else if(source.equals("stkadj", ignoreCase = true)) "Stock Adjustment" else "Quantity On Hand",
                                 color = SettingsModel.textColor,
                                 fontSize = 16.sp,
                                 textAlign = TextAlign.Center
@@ -270,7 +271,7 @@ fun StockAdjustmentView(
                             iconSize = 60.dp,
                             isVertical = false
                         ) {
-                            viewModel.save()
+                            viewModel.save(source)
                         }
 
                         if (showDeleteButton) {
@@ -323,13 +324,12 @@ fun StockAdjustmentView(
                                 modifier = modifier
                             )
                         }, onLeadingIconClick = {
-                            viewModel.launchBarcodeScanner()
+                            viewModel.launchBarcodeScanner(source)
                         }) { item ->
                         item as Item
                         val stockAdjItem =
                             StockAdjItemModel()
-                        stockAdjItem.setItem(item)
-                        stockAdjItem.stockAdjustment.stockAdjLineNo = viewModel.items.size+1
+                        stockAdjItem.setItem(item,source)
                         viewModel.items.add(stockAdjItem)
                     }
                 }
@@ -370,7 +370,7 @@ fun StockAdjustmentView(
                         end = 10.dp
                     ),
                     label = "Select Tr. No",
-                    onLoadItems = { viewModel.fetchTransfers() },
+                    onLoadItems = { viewModel.fetchTransfers(source) },
                     selectedId = stockHeaderAdjustment.stockHAId,
                     leadingIcon = { modifier ->
                         if (stockHeaderAdjustment.stockHAId.isNotEmpty()) {
@@ -427,6 +427,7 @@ fun StockAdjustmentView(
                     triggerOnSave = triggerSaveCallback,
                     state = state,
                     viewModel = viewModel,
+                    source = source,
                     onSave = { stockHeaderAdj, stockAdjItemModel ->
                         viewModel.items[viewModel.selectedItemIndex] = stockAdjItemModel
                         viewModel.updateStockHeaderAdjustment(stockHeaderAdj)

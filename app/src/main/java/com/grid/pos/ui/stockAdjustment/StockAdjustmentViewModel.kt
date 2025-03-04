@@ -61,10 +61,11 @@ class StockAdjustmentViewModel @Inject constructor(
         sharedViewModel.updateRealItemPrice(item, withLoading)
     }
 
-    fun fetchTransfers() {
+    fun fetchTransfers(source: String) {
         showLoading(true)
         viewModelScope.launch(Dispatchers.IO) {
-            val listOfAdjustments = stockHeaderAdjustmentRepository.getAllStockHeaderAdjustments()
+            val listOfAdjustments =
+                stockHeaderAdjustmentRepository.getAllStockHeaderAdjustments(source)
             withContext(Dispatchers.Main) {
                 state.value = state.value.copy(
                     stockHeaderAdjustmentList = listOfAdjustments
@@ -183,7 +184,7 @@ class StockAdjustmentViewModel @Inject constructor(
         }
     }
 
-    fun save() {
+    fun save(source: String) {
         if (items.isEmpty()) {
             showWarning("Please select one item at least!")
             return
@@ -198,6 +199,7 @@ class StockAdjustmentViewModel @Inject constructor(
             val succeed: Boolean
             if (stockHeaderAdj.isNew()) {
                 stockHeaderAdj.prepareForInsert()
+                stockHeaderAdj.stockHASource = source
                 if (stockHeaderAdj.stockHATtCode.isNullOrEmpty()) {
                     val transType =
                         state.value.transactionTypes.firstOrNull { it.transactionTypeDefault == 1 }
@@ -247,13 +249,15 @@ class StockAdjustmentViewModel @Inject constructor(
 
     private suspend fun saveStockAdjustmentItems(stockHeaderAdjustment: StockHeaderAdjustment) {
         val stockAdjustmentItems = items.toMutableList()
-        stockAdjustmentItems.forEach {
-            it.stockAdjustment.prepareForInsert()
-            it.stockAdjustment.stockAdjHeaderId = stockHeaderAdjustment.stockHAId
-            if (it.stockAdjustment.isNew()) {
-                stockAdjustmentRepository.insert(it.stockAdjustment)
+        stockAdjustmentItems.forEachIndexed { index, model ->
+            model.stockAdjustment.stockAdjHeaderId = stockHeaderAdjustment.stockHAId
+            model.stockAdjustment.stockAdjWaName = stockHeaderAdjustment.stockHAWaName
+            model.stockAdjustment.stockAdjLineNo = index + 1
+            if (model.stockAdjustment.isNew()) {
+                model.stockAdjustment.prepareForInsert()
+                stockAdjustmentRepository.insert(model.stockAdjustment)
             } else {
-                stockAdjustmentRepository.update(it.stockAdjustment)
+                stockAdjustmentRepository.update(model.stockAdjustment)
             }
         }
         deletedItems.forEach {
@@ -292,7 +296,7 @@ class StockAdjustmentViewModel @Inject constructor(
         }
     }
 
-    fun launchBarcodeScanner() {
+    fun launchBarcodeScanner(source: String) {
         viewModelScope.launch(Dispatchers.Main) {
             if (state.value.items.isEmpty()) {
                 showLoading(true)
@@ -309,15 +313,14 @@ class StockAdjustmentViewModel @Inject constructor(
                                     barcodesList.groupingBy { item -> item as Item }
                                         .eachCount()
                                 val itemsToAdd = mutableListOf<StockAdjItemModel>()
-                                var index =  items.size
+                                var index = items.size
                                 map.forEach { (item, count) ->
                                     if (!item.itemBarcode.isNullOrEmpty()) {
                                         updateRealItemPrice(item, false)
                                         val stockAdjItem = StockAdjItemModel()
-                                        stockAdjItem.setItem(item)
+                                        stockAdjItem.setItem(item, source)
                                         stockAdjItem.stockAdjustment.stockAdjQty =
                                             count.toDouble()
-                                        stockAdjItem.stockAdjustment.stockAdjLineNo = ++index
                                         itemsToAdd.add(stockAdjItem)
                                     }
                                 }

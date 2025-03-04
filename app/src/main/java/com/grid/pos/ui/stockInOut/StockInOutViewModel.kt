@@ -257,14 +257,15 @@ class StockInOutViewModel @Inject constructor(
 
     private suspend fun saveStockInOutItems(stockHInOut: StockHeaderInOut) {
         val stockInOutItems = items.toMutableList()
-        stockInOutItems.forEach {
-            it.stockInOut.prepareForInsert()
-            it.stockInOut.stockInOutHeaderId = stockHInOut.stockHeadInOutId
-            it.stockInOut.stockInOutWaTpName = stockHInOut.stockHeadInOutWaTpName
-            if (it.stockInOut.isNew()) {
-                stockInOutRepository.insert(it.stockInOut)
+        stockInOutItems.forEachIndexed { index, model ->
+            model.stockInOut.prepareForInsert()
+            model.stockInOut.stockInOutHeaderId = stockHInOut.stockHeadInOutId
+            model.stockInOut.stockInOutWaTpName = stockHInOut.stockHeadInOutWaTpName
+            model.stockInOut.stockInOutLineNo = index + 1
+            if (model.stockInOut.isNew()) {
+                stockInOutRepository.insert(model.stockInOut)
             } else {
-                stockInOutRepository.update(it.stockInOut)
+                stockInOutRepository.update(model.stockInOut)
             }
         }
         deletedItems.forEach {
@@ -320,7 +321,7 @@ class StockInOutViewModel @Inject constructor(
                                     barcodesList.groupingBy { item -> item as Item }
                                         .eachCount()
                                 val itemsToAdd = mutableListOf<StockInOutItemModel>()
-                                var index =  items.size
+                                var index = items.size
                                 map.forEach { (item, count) ->
                                     if (!item.itemBarcode.isNullOrEmpty()) {
                                         updateRealItemPrice(item, false)
@@ -328,7 +329,6 @@ class StockInOutViewModel @Inject constructor(
                                         stockInOutItem.setItem(item)
                                         stockInOutItem.stockInOut.stockInOutQty =
                                             count.toDouble()
-                                        stockInOutItem.stockInOut.stockInOutLineNo = index++
                                         itemsToAdd.add(stockInOutItem)
                                     }
                                 }

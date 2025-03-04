@@ -108,8 +108,13 @@ object Utils {
                         ),
                         HomeItemModel(
                             R.drawable.stock_correction,
-                            "Quantity On Hand",
+                            "Stock Adjustment",
                             Screen.StockAdjustmentView.route
+                        ),
+                        HomeItemModel(
+                            R.drawable.stock_correction,
+                            "Quantity On Hand",
+                            Screen.QuantityOnHandView.route
                         )
                     )
                 ),

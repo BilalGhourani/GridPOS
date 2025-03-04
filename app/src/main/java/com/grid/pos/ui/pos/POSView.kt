@@ -428,7 +428,6 @@ fun POSView(
                                     shouldPrint = true
                                 )
                                 invoiceItemModel.setItem(item)
-                                invoiceItemModel.invoice.invoiceLineNo = invoices.size
                                 invoices.add(invoiceItemModel)
                             }
                             viewModel.updateState(
@@ -512,7 +511,6 @@ fun POSView(
                             shouldPrint = true
                         )
                         invoiceItemModel.setItem(item)
-                        invoiceItemModel.invoice.invoiceLineNo = invoices.size
                         invoices.add(invoiceItemModel)
                     }
                     viewModel.updateState(

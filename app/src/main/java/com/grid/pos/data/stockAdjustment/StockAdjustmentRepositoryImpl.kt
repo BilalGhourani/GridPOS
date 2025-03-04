@@ -6,6 +6,7 @@ import com.grid.pos.model.DataModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.DateHelper
 import com.grid.pos.utils.Extension.getDoubleValue
+import com.grid.pos.utils.Extension.getIntValue
 import com.grid.pos.utils.Extension.getObjectValue
 import com.grid.pos.utils.Extension.getStringValue
 import java.sql.ResultSet
@@ -92,16 +93,17 @@ class StockAdjustmentRepositoryImpl : StockAdjustmentRepository {
             stockAdjHeaderId = obj.getStringValue("sa_hsa_id")
             stockAdjItemId = obj.getStringValue("sa_it_id")
             stockAdjReason = obj.getStringValue("sa_reason")
-            stockAdjWaName = obj.getStringValue("sa_wa_name")
+            stockAdjWaName = obj.getStringValue("sa_wa_name").ifEmpty { null }
             stockAdjQty = obj.getDoubleValue("sa_qty")
-            stockAdjPuId = obj.getStringValue("sa_pu_id")
-            stockAdjItemIdInPack = obj.getStringValue("sa_it_idinpack")
+            stockAdjPuId = obj.getStringValue("sa_pu_id").ifEmpty { null }
+            stockAdjItemIdInPack = obj.getStringValue("sa_it_idinpack").ifEmpty { null }
             stockAdjQtyInPack = obj.getDoubleValue("sa_qtyinpack")
             stockAdjCost = obj.getDoubleValue("sa_cost")
             stockAdjCurrRateF = obj.getDoubleValue("sa_mcurratef")
             stockAdjCurrRateS = obj.getDoubleValue("sa_mcurrates")
             stockAdjRemQty = obj.getDoubleValue("sa_remqty")
             stockAdjRemQtyWa = obj.getDoubleValue("sa_remqtywa")
+            stockAdjLineNo = obj.getIntValue("sa_lineno")
 
             val timeStamp = obj.getObjectValue("sa_timestamp")
             stockAdjTimeStamp = if (timeStamp is Date) timeStamp else DateHelper.getDateFromString(
