@@ -1,15 +1,18 @@
 package com.grid.pos.data.stockHeaderAdjustment
 
 import com.grid.pos.data.SQLServerWrapper
+import com.grid.pos.data.stockHeadInOut.header.StockHeaderInOut
 import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.DataModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.DateHelper
 import com.grid.pos.utils.Extension.getObjectValue
 import com.grid.pos.utils.Extension.getStringValue
+import java.math.BigInteger
 import java.sql.ResultSet
 import java.sql.Timestamp
 import java.util.Date
+import java.util.Random
 
 class StockHeaderAdjustmentRepositoryImpl : StockHeaderAdjustmentRepository {
     override suspend fun insert(stockHeaderAdjustment: StockHeaderAdjustment): DataModel {
@@ -20,7 +23,12 @@ class StockHeaderAdjustmentRepositoryImpl : StockHeaderAdjustmentRepository {
             }
 
             else -> {
-                insertByProcedure(stockHeaderAdjustment)
+                val dataModel = insertByProcedure(stockHeaderAdjustment)
+                if (dataModel.succeed && stockHeaderAdjustment.stockHAId.isNotEmpty()) {
+                    dataModel.data =
+                        getStockHeaderAdjById(stockHeaderAdjustment.stockHAId) ?: dataModel.data
+                }
+                dataModel
             }
         }
     }
@@ -47,6 +55,41 @@ class StockHeaderAdjustmentRepositoryImpl : StockHeaderAdjustmentRepository {
 
             else -> {
                 updateByProcedure(stockHeaderAdjustment)
+            }
+        }
+    }
+
+    override suspend fun getStockHeaderAdjById(id: String): StockHeaderAdjustment? {
+        when (SettingsModel.connectionType) {
+            CONNECTION_TYPE.FIRESTORE.key,
+            CONNECTION_TYPE.LOCAL.key -> {
+                return StockHeaderAdjustment()
+            }
+
+            else -> {
+                var stockHeaderAdjustment: StockHeaderAdjustment? = null
+                try {
+                    val where = "hsa_id='$id'"
+                    val dbResult = SQLServerWrapper.getListOf(
+                        "st_hstockadjustment",
+                        "TOP 1",
+                        if (SettingsModel.isSqlServerWebDb) mutableListOf("*,tt.tt_newcode") else mutableListOf(
+                            "*"
+                        ),
+                        where,
+                        "",
+                        if (SettingsModel.isSqlServerWebDb) "INNER JOIN acc_transactiontype tt on hsa_tt_code = tt.tt_code" else ""
+                    )
+                    dbResult?.let {
+                        while (it.next()) {
+                            stockHeaderAdjustment = fillParams(it)
+                        }
+                        SQLServerWrapper.closeResultSet(it)
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+                return stockHeaderAdjustment
             }
         }
     }
@@ -125,6 +168,10 @@ class StockHeaderAdjustmentRepositoryImpl : StockHeaderAdjustmentRepository {
     }
 
     private fun insertByProcedure(stockHeaderAdjustment: StockHeaderAdjustment): DataModel {
+        val sessionPointer = (BigInteger(
+            24,
+            Random()
+        )).toString()
         val parameters = if (SettingsModel.isSqlServerWebDb) {
             listOf(
                 "null_string_output",//@hsa_cmp_id
@@ -153,7 +200,7 @@ class StockHeaderAdjustmentRepositoryImpl : StockHeaderAdjustmentRepository {
                 SettingsModel.defaultSqlServerBranch,//@hsa_bra_name
                 stockHeaderAdjustment.stockHAWaName,//@hsa_wa_name
                 SettingsModel.currentUser?.userUsername,//@hsa_userstamp
-                null,//@hsa_sessionpointer
+                sessionPointer,//@hsa_sessionpointer
                 SettingsModel.currentCompany?.cmp_multibranchcode,//@branchcode
                 getValueDateInTimestamp(stockHeaderAdjustment.stockHAValueDate),//@hsa_valuedate
                 stockHeaderAdjustment.stockHASource,//@hsa_source
@@ -164,7 +211,32 @@ class StockHeaderAdjustmentRepositoryImpl : StockHeaderAdjustmentRepository {
             parameters
         )
         return if (queryResult.succeed) {
-            stockHeaderAdjustment.stockHAId = queryResult.result ?: ""
+            val id = queryResult.result ?: ""
+            if (id.isNotEmpty()) {
+                stockHeaderAdjustment.stockHAId = id
+            } else {
+                try {
+                    val dbResult =
+                        SQLServerWrapper.getQueryResult("select max(hsa_id) as id from st_hstockadjustment where hsa_sessionpointer = '$sessionPointer'")
+                    dbResult?.let {
+                        if (it.next()) {
+                            stockHeaderAdjustment.stockHAId = it.getStringValue(
+                                "id",
+                                stockHeaderAdjustment.stockHAId
+                            )
+                        }
+                        SQLServerWrapper.closeResultSet(it)
+                        SQLServerWrapper.update(
+                            "st_hstockadjustment",
+                            listOf("hsa_sessionpointer"),
+                            listOf(null),
+                            "hsa_sessionpointer = '$sessionPointer'"
+                        )
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
             DataModel(stockHeaderAdjustment)
         } else {
             DataModel(

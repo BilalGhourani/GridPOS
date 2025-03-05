@@ -39,7 +39,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -61,7 +60,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.grid.pos.R
 import com.grid.pos.data.item.Item
@@ -90,8 +88,8 @@ fun StockAdjustmentView(
     viewModel: StockAdjustmentViewModel = hiltViewModel(),
     source: String
 ) {
-    val state by viewModel.state.collectAsStateWithLifecycle()
-    val stockHeaderAdjustment = viewModel.stockHeaderAdjState.collectAsState().value
+    val state = viewModel.state.value
+    val stockHeaderAdjustment = viewModel.stockHeaderAdjState.value
 
     var triggerSaveCallback by remember { mutableStateOf(false) }
     var isEditBottomSheetVisible by remember { mutableStateOf(false) }

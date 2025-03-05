@@ -65,7 +65,7 @@ data class StockAdjustment(
     @ColumnInfo(name = "sa_qty")
     @set:PropertyName("sa_qty")
     @get:PropertyName("sa_qty")
-    var stockAdjQty: Double = 0.0,
+    var stockAdjQty: Double? = null,
 
     @Ignore
     @get:Exclude
@@ -77,7 +77,7 @@ data class StockAdjustment(
 
     @Ignore
     @get:Exclude
-    var stockAdjQtyInPack: Double = 0.0,
+    var stockAdjQtyInPack: Double? = null,
 
     /**
      * Stock Adjustment cost
@@ -85,7 +85,7 @@ data class StockAdjustment(
     @ColumnInfo(name = "sa_cost")
     @set:PropertyName("sa_cost")
     @get:PropertyName("sa_cost")
-    var stockAdjCost: Double = 0.0,
+    var stockAdjCost: Double? = null,
 
     /**
      * Stock Adjustment currency rate first
@@ -93,7 +93,7 @@ data class StockAdjustment(
     @ColumnInfo(name = "sa_mcurratef")
     @set:PropertyName("sa_mcurratef")
     @get:PropertyName("sa_mcurratef")
-    var stockAdjCurrRateF: Double = 0.0,
+    var stockAdjCurrRateF: Double? = null,
 
     /**
      * Stock Adjustment currency rate second
@@ -101,7 +101,7 @@ data class StockAdjustment(
     @ColumnInfo(name = "sa_mcurrates")
     @set:PropertyName("sa_mcurrates")
     @get:PropertyName("sa_mcurrates")
-    var stockAdjCurrRateS: Double = 0.0,
+    var stockAdjCurrRateS: Double? = null,
 
     /**
      * Stock Adjustment  remaining Qty
@@ -109,7 +109,7 @@ data class StockAdjustment(
     @ColumnInfo(name = "sa_remqty")
     @set:PropertyName("sa_remqty")
     @get:PropertyName("sa_remqty")
-    var stockAdjRemQty: Double = 0.0,
+    var stockAdjRemQty: Double? = null,
 
     /**
      * Stock Adjustment remaining Qty in Warehouse
@@ -117,7 +117,7 @@ data class StockAdjustment(
     @ColumnInfo(name = "sa_remqtywa")
     @set:PropertyName("sa_remqtywa")
     @get:PropertyName("sa_remqtywa")
-    var stockAdjRemQtyWa: Double = 0.0,
+    var stockAdjRemQtyWa: Double? = null,
 
     /**
      * Stock Adjustment timestamp
@@ -218,6 +218,7 @@ data class StockAdjustment(
     @Exclude
     fun didChanged(stockAdjustment: StockAdjustment): Boolean {
         return !stockAdjustment.stockAdjReason.equals(stockAdjReason) ||
-                !stockAdjustment.stockAdjQty.equals(stockAdjQty)
+                stockAdjustment.stockAdjQty?.equals(stockAdjQty) == false ||
+                stockAdjustment.stockAdjRemQtyWa?.equals(stockAdjRemQtyWa) == false
     }
 }

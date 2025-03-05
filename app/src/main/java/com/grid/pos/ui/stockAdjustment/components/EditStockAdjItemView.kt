@@ -73,13 +73,15 @@ fun EditStockAdjItemView(
     val keyboardController = LocalSoftwareKeyboardController.current
     val scope = rememberCoroutineScope()
 
-    val stockItemNoteFocusRequester = remember { FocusRequester() }
+    val stockItemCostFocusRequester = remember { FocusRequester() }
+    val stockItemReasonFocusRequester = remember { FocusRequester() }
     val stockInOutDateFocusRequester = remember { FocusRequester() }
     val stockHeadNoteFocusRequester = remember { FocusRequester() }
     val stockHeadTransNoFocusRequester = remember { FocusRequester() }
 
     var qtyState by remember { mutableIntStateOf(1) }
     var stockItemReasonState by remember { mutableStateOf("") }
+    var stockItemCostState by remember { mutableStateOf("") }
     var stockItemDivState by remember { mutableStateOf("") }
     var stockHeadDateState by remember { mutableStateOf("") }
     var stockHeadValueDateState by remember { mutableStateOf("") }
@@ -89,10 +91,12 @@ fun EditStockAdjItemView(
     var stockHeadUserState by remember { mutableStateOf("") }
 
     LaunchedEffect(Unit) {
-        qtyState = if (source.equals("stkadj", ignoreCase = true)) {
-            stockAdjItemModel.stockAdjustment.stockAdjQty.toInt()
+        if (source.equals("stkadj", ignoreCase = true)) {
+            qtyState = stockAdjItemModel.stockAdjustment.stockAdjQty?.toInt() ?: 0
+            stockItemCostState = ""
         } else {
-            stockAdjItemModel.stockAdjustment.stockAdjRemQtyWa.toInt()
+            qtyState = stockAdjItemModel.stockAdjustment.stockAdjRemQtyWa?.toInt() ?: 0
+            stockItemCostState = stockAdjItemModel.stockAdjustment.stockAdjCost?.toString() ?: ""
         }
 
         stockItemReasonState = stockAdjItemModel.stockAdjustment.stockAdjReason ?: ""
@@ -123,8 +127,12 @@ fun EditStockAdjItemView(
         val stockHeaderInOutCopy = stockHeaderAdjustment.copy()
         if (source.equals("stkadj", ignoreCase = true)) {
             stockItemModel.stockAdjustment.stockAdjQty = qtyState.toDouble()
+            stockItemModel.stockAdjustment.stockAdjRemQtyWa = null
+            stockItemModel.stockAdjustment.stockAdjCost = null
         } else {
+            stockItemModel.stockAdjustment.stockAdjQty = null
             stockItemModel.stockAdjustment.stockAdjRemQtyWa = qtyState.toDouble()
+            stockItemModel.stockAdjustment.stockAdjCost = stockItemCostState.toDoubleOrNull()
         }
 
         stockItemModel.stockAdjustment.stockAdjReason = stockItemReasonState.ifEmpty { null }
@@ -272,14 +280,15 @@ fun EditStockAdjItemView(
             stockHeadTransNoState = it
         }
 
-        UITextField(modifier = Modifier.padding(horizontal = 10.dp),
+        UITextField(
+            modifier = Modifier.padding(horizontal = 10.dp),
             defaultValue = stockHeadDescState,
             label = "Description",
             placeHolder = "Description",
             maxLines = 3,
             focusRequester = stockHeadNoteFocusRequester,
             imeAction = ImeAction.None,
-            ) {
+        ) {
             stockHeadDescState = it
         }
 
@@ -290,16 +299,33 @@ fun EditStockAdjItemView(
             enabled = false,
             focusRequester = stockHeadNoteFocusRequester,
             onAction = {
-                stockItemNoteFocusRequester.requestFocus()
+                if (source.equals("stkadj", ignoreCase = true)) {
+                    stockItemReasonFocusRequester.requestFocus()
+                }else{
+                    stockItemCostFocusRequester.requestFocus()
+                }
             }) {
             stockHeadUserState = it
+        }
+
+        if (source.equals("QtyOnHand", ignoreCase = true)) {
+            UITextField(modifier = Modifier.padding(horizontal = 10.dp),
+                defaultValue = stockItemCostState,
+                label = "Item Cost",
+                placeHolder = "Item Cost",
+                focusRequester = stockItemCostFocusRequester,
+                onAction = {
+                    stockItemReasonFocusRequester.requestFocus()
+                }) {
+                stockItemCostState = it
+            }
         }
 
         UITextField(modifier = Modifier.padding(horizontal = 10.dp),
             defaultValue = stockItemReasonState,
             label = "Item Reason",
             placeHolder = "Item Reason",
-            focusRequester = stockItemNoteFocusRequester,
+            focusRequester = stockItemReasonFocusRequester,
             onAction = {
                 keyboardController?.hide()
             }) {

@@ -1,6 +1,7 @@
 package com.grid.pos.ui.stockAdjustment
 
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.viewModelScope
 import com.grid.pos.SharedViewModel
 import com.grid.pos.data.item.Item
@@ -14,8 +15,6 @@ import com.grid.pos.model.StockAdjItemModel
 import com.grid.pos.ui.common.BaseViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -29,14 +28,12 @@ class StockAdjustmentViewModel @Inject constructor(
     private val sharedViewModel: SharedViewModel
 ) : BaseViewModel(sharedViewModel) {
 
-    private val _state = MutableStateFlow(StockAdjustmentState())
-    val state: MutableStateFlow<StockAdjustmentState> = _state
+    val state = mutableStateOf(StockAdjustmentState())
 
     private var stockIOTransCode: String? = null
     var selectedItemIndex: Int = 0
 
-    private var _stockHeaderAdjState = MutableStateFlow(StockHeaderAdjustment())
-    var stockHeaderAdjState = _stockHeaderAdjState.asStateFlow()
+    var stockHeaderAdjState = mutableStateOf(StockHeaderAdjustment())
     val items = mutableStateListOf<StockAdjItemModel>()
     val deletedItems: MutableList<StockAdjItemModel> = mutableListOf()
 
@@ -48,7 +45,7 @@ class StockAdjustmentViewModel @Inject constructor(
     }
 
     fun updateStockHeaderAdjustment(stockHeaderAdjustment: StockHeaderAdjustment) {
-        _stockHeaderAdjState.value = stockHeaderAdjustment
+        stockHeaderAdjState.value = stockHeaderAdjustment
     }
 
     fun resetState() {
@@ -214,7 +211,7 @@ class StockAdjustmentViewModel @Inject constructor(
                     if (stockHAdjList.isNotEmpty()) {
                         stockHAdjList.add(0, addedModel)
                     }
-                    saveStockAdjustmentItems(addedModel)
+                    saveStockAdjustmentItems(addedModel, source)
                 }
             } else {
                 val dataModel = stockHeaderAdjustmentRepository.update(stockHeaderAdj)
@@ -230,7 +227,7 @@ class StockAdjustmentViewModel @Inject constructor(
                             addedModel
                         )
                     }
-                    saveStockAdjustmentItems(addedModel)
+                    saveStockAdjustmentItems(addedModel, source)
                 }
             }
             if (succeed) {
@@ -247,7 +244,7 @@ class StockAdjustmentViewModel @Inject constructor(
         }
     }
 
-    private suspend fun saveStockAdjustmentItems(stockHeaderAdjustment: StockHeaderAdjustment) {
+    private suspend fun saveStockAdjustmentItems(stockHeaderAdjustment: StockHeaderAdjustment,source: String) {
         val stockAdjustmentItems = items.toMutableList()
         stockAdjustmentItems.forEachIndexed { index, model ->
             model.stockAdjustment.stockAdjHeaderId = stockHeaderAdjustment.stockHAId
@@ -255,9 +252,9 @@ class StockAdjustmentViewModel @Inject constructor(
             model.stockAdjustment.stockAdjLineNo = index + 1
             if (model.stockAdjustment.isNew()) {
                 model.stockAdjustment.prepareForInsert()
-                stockAdjustmentRepository.insert(model.stockAdjustment)
+                stockAdjustmentRepository.insert(model.stockAdjustment,source)
             } else {
-                stockAdjustmentRepository.update(model.stockAdjustment)
+                stockAdjustmentRepository.update(model.stockAdjustment,source)
             }
         }
         deletedItems.forEach {
@@ -313,7 +310,6 @@ class StockAdjustmentViewModel @Inject constructor(
                                     barcodesList.groupingBy { item -> item as Item }
                                         .eachCount()
                                 val itemsToAdd = mutableListOf<StockAdjItemModel>()
-                                var index = items.size
                                 map.forEach { (item, count) ->
                                     if (!item.itemBarcode.isNullOrEmpty()) {
                                         updateRealItemPrice(item, false)

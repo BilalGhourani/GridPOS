@@ -14,7 +14,10 @@ import java.sql.Timestamp
 import java.util.Date
 
 class StockAdjustmentRepositoryImpl : StockAdjustmentRepository {
-    override suspend fun insert(stockAdjustment: StockAdjustment): DataModel {
+    override suspend fun insert(
+        stockAdjustment: StockAdjustment,
+        source: String
+    ): DataModel {
         return when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key,
             CONNECTION_TYPE.LOCAL.key -> {
@@ -22,7 +25,11 @@ class StockAdjustmentRepositoryImpl : StockAdjustmentRepository {
             }
 
             else -> {
-                insertByProcedure(stockAdjustment)
+                if (source.equals("stkadj", ignoreCase = true)) {
+                    insertStkAdjByProcedure(stockAdjustment)
+                } else {
+                    insertQtyOnHandByProcedure(stockAdjustment)
+                }
             }
         }
     }
@@ -40,7 +47,10 @@ class StockAdjustmentRepositoryImpl : StockAdjustmentRepository {
         }
     }
 
-    override suspend fun update(stockAdjustment: StockAdjustment): DataModel {
+    override suspend fun update(
+        stockAdjustment: StockAdjustment,
+        source: String
+    ): DataModel {
         return when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key,
             CONNECTION_TYPE.LOCAL.key -> {
@@ -48,7 +58,11 @@ class StockAdjustmentRepositoryImpl : StockAdjustmentRepository {
             }
 
             else -> {
-                updateByProcedure(stockAdjustment)
+                if (source.equals("stkadj", ignoreCase = true)) {
+                    updateStkAdjByProcedure(stockAdjustment)
+                } else {
+                    updateQtyOnHandByProcedure(stockAdjustment)
+                }
             }
         }
     }
@@ -67,7 +81,8 @@ class StockAdjustmentRepositoryImpl : StockAdjustmentRepository {
                         "st_stockadjustment",
                         "",
                         mutableListOf("*"),
-                        "sa_hsa_id='$stockHeaderAdjId'"
+                        "sa_hsa_id='$stockHeaderAdjId'",
+                        if (SettingsModel.isSqlServerWebDb) "ORDER BY sa_lineno ASC" else "ORDER BY sa_userstamp ASC"
                     )
                     dbResult?.let {
                         while (it.next()) {
@@ -94,15 +109,15 @@ class StockAdjustmentRepositoryImpl : StockAdjustmentRepository {
             stockAdjItemId = obj.getStringValue("sa_it_id")
             stockAdjReason = obj.getStringValue("sa_reason")
             stockAdjWaName = obj.getStringValue("sa_wa_name").ifEmpty { null }
-            stockAdjQty = obj.getDoubleValue("sa_qty")
+            stockAdjQty = obj.getStringValue("sa_qty").toDoubleOrNull()
             stockAdjPuId = obj.getStringValue("sa_pu_id").ifEmpty { null }
             stockAdjItemIdInPack = obj.getStringValue("sa_it_idinpack").ifEmpty { null }
-            stockAdjQtyInPack = obj.getDoubleValue("sa_qtyinpack")
-            stockAdjCost = obj.getDoubleValue("sa_cost")
-            stockAdjCurrRateF = obj.getDoubleValue("sa_mcurratef")
-            stockAdjCurrRateS = obj.getDoubleValue("sa_mcurrates")
-            stockAdjRemQty = obj.getDoubleValue("sa_remqty")
-            stockAdjRemQtyWa = obj.getDoubleValue("sa_remqtywa")
+            stockAdjQtyInPack = obj.getStringValue("sa_qtyinpack").toDoubleOrNull()
+            stockAdjCost = obj.getStringValue("sa_cost").toDoubleOrNull()
+            stockAdjCurrRateF = obj.getStringValue("sa_mcurratef").toDoubleOrNull()
+            stockAdjCurrRateS = obj.getStringValue("sa_mcurrates").toDoubleOrNull()
+            stockAdjRemQty = obj.getStringValue("sa_remqty").toDoubleOrNull()
+            stockAdjRemQtyWa = obj.getStringValue("sa_remqtywa").toDoubleOrNull()
             stockAdjLineNo = obj.getIntValue("sa_lineno")
 
             val timeStamp = obj.getObjectValue("sa_timestamp")
@@ -111,8 +126,8 @@ class StockAdjustmentRepositoryImpl : StockAdjustmentRepository {
                 "yyyy-MM-dd hh:mm:ss.SSS"
             )
             stockAdjUserStamp = obj.getStringValue("sa_userstamp")
-            stockAdjRowguid = obj.getStringValue("sa_rowguid")
-            stockAdjDivName = obj.getStringValue("sa_div_name")
+            stockAdjRowguid = obj.getStringValue("sa_rowguid").ifEmpty { null }
+            stockAdjDivName = obj.getStringValue("sa_div_name").ifEmpty { null }
 
             val saDate = obj.getObjectValue("sa_date")
             stockAdjDate = if (saDate is Date) saDate else DateHelper.getDateFromString(
@@ -122,10 +137,10 @@ class StockAdjustmentRepositoryImpl : StockAdjustmentRepository {
         }
     }
 
-    private fun insertByProcedure(stockAdjustment: StockAdjustment): DataModel {
+    private fun insertStkAdjByProcedure(stockAdjustment: StockAdjustment): DataModel {
         val parameters = if (SettingsModel.isSqlServerWebDb) {
             listOf(
-                stockAdjustment.stockAdjId,//@sa_id
+                null,//@sa_id
                 stockAdjustment.stockAdjHeaderId,//@sa_hsa_id
                 stockAdjustment.stockAdjItemId,//@sa_it_id
                 stockAdjustment.stockAdjReason,//@sa_reason
@@ -140,7 +155,7 @@ class StockAdjustmentRepositoryImpl : StockAdjustmentRepository {
             )
         } else {
             listOf(
-                stockAdjustment.stockAdjId,//@sa_id
+                null,//@sa_id
                 stockAdjustment.stockAdjHeaderId,//@sa_hsa_id
                 stockAdjustment.stockAdjItemId,//@sa_it_id
                 stockAdjustment.stockAdjReason,//@sa_reason
@@ -168,7 +183,59 @@ class StockAdjustmentRepositoryImpl : StockAdjustmentRepository {
         }
     }
 
-    private fun updateByProcedure(stockAdjustment: StockAdjustment): DataModel {
+    private fun insertQtyOnHandByProcedure(stockAdjustment: StockAdjustment): DataModel {
+        val parameters = if (SettingsModel.isSqlServerWebDb) {
+            listOf(
+                null,//@sa_id
+                stockAdjustment.stockAdjHeaderId,//@sa_hsa_id
+                stockAdjustment.stockAdjItemId,//@sa_it_id
+                stockAdjustment.stockAdjReason,//@sa_reason
+                stockAdjustment.stockAdjWaName,//@sa_wa_name
+                stockAdjustment.stockAdjQty,//@sa_qty
+                stockAdjustment.stockAdjPuId,//@sa_pu_id
+                stockAdjustment.stockAdjCost,//@sa_cost
+                stockAdjustment.stockAdjRemQty,//@sa_remqty
+                stockAdjustment.stockAdjRemQtyWa,//@sa_remqtywa
+                SettingsModel.currentUser?.userUsername,//@sa_userstamp
+                SettingsModel.currentCompany?.cmp_multibranchcode,//@branchcode
+                stockAdjustment.stockAdjDivName,//@sa_div_name
+                Timestamp(System.currentTimeMillis()),//@sa_date
+                stockAdjustment.stockAdjLineNo,//@sa_lineno
+            )
+        } else {
+            listOf(
+                null,//@sa_id
+                stockAdjustment.stockAdjHeaderId,//@sa_hsa_id
+                stockAdjustment.stockAdjItemId,//@sa_it_id
+                stockAdjustment.stockAdjReason,//@sa_reason
+                stockAdjustment.stockAdjWaName,//@sa_wa_name
+                stockAdjustment.stockAdjQty,//@sa_qty
+                stockAdjustment.stockAdjPuId,//@sa_pu_id
+                stockAdjustment.stockAdjCost,//@sa_cost
+                stockAdjustment.stockAdjRemQty,//@sa_remqty
+                stockAdjustment.stockAdjRemQtyWa,//@sa_remqtywa
+                SettingsModel.currentUser?.userUsername,//@sa_userstamp
+                SettingsModel.currentCompany?.cmp_multibranchcode,//@branchcode
+                stockAdjustment.stockAdjDivName,//@sa_div_name
+                Timestamp(System.currentTimeMillis()),//@sa_date
+            )
+        }
+        val queryResult = SQLServerWrapper.executeProcedure(
+            "addst_stockadjustmentqtyonhand",
+            parameters
+        )
+        return if (queryResult.succeed) {
+            stockAdjustment.stockAdjId = queryResult.result ?: ""
+            DataModel(stockAdjustment)
+        } else {
+            DataModel(
+                stockAdjustment,
+                false
+            )
+        }
+    }
+
+    private fun updateStkAdjByProcedure(stockAdjustment: StockAdjustment): DataModel {
         val parameters = if (SettingsModel.isSqlServerWebDb) {
             listOf(
                 stockAdjustment.stockAdjId,//@sa_id
@@ -199,6 +266,55 @@ class StockAdjustmentRepositoryImpl : StockAdjustmentRepository {
         }
         val queryResult = SQLServerWrapper.executeProcedure(
             "updst_stockadjustment",
+            parameters
+        )
+        return if (queryResult.succeed) {
+            DataModel(stockAdjustment)
+        } else {
+            DataModel(
+                stockAdjustment,
+                false
+            )
+        }
+    }
+
+    private fun updateQtyOnHandByProcedure(stockAdjustment: StockAdjustment): DataModel {
+        val parameters = if (SettingsModel.isSqlServerWebDb) {
+            listOf(
+                stockAdjustment.stockAdjId,//@sa_id
+                stockAdjustment.stockAdjHeaderId,//@sa_hsa_id
+                stockAdjustment.stockAdjItemId,//@sa_it_id
+                stockAdjustment.stockAdjReason,//@sa_reason
+                stockAdjustment.stockAdjWaName,//@sa_wa_name
+                stockAdjustment.stockAdjQty,//@sa_qty
+                stockAdjustment.stockAdjPuId,//@sa_pu_id
+                stockAdjustment.stockAdjCost,//@sa_cost
+                stockAdjustment.stockAdjRemQty,//@sa_remqty
+                stockAdjustment.stockAdjRemQtyWa,//@sa_remqtywa
+                SettingsModel.currentUser?.userUsername,//@sa_userstamp
+                stockAdjustment.stockAdjDivName,//@sa_div_name
+                Timestamp(System.currentTimeMillis()),//@sa_date
+                stockAdjustment.stockAdjLineNo,//@sa_lineno
+            )
+        } else {
+            listOf(
+                stockAdjustment.stockAdjId,//@sa_id
+                stockAdjustment.stockAdjHeaderId,//@sa_hsa_id
+                stockAdjustment.stockAdjItemId,//@sa_it_id
+                stockAdjustment.stockAdjReason,//@sa_reason
+                stockAdjustment.stockAdjWaName,//@sa_wa_name
+                stockAdjustment.stockAdjQty,//@sa_qty
+                stockAdjustment.stockAdjPuId,//@sa_pu_id
+                stockAdjustment.stockAdjCost,//@sa_cost
+                stockAdjustment.stockAdjRemQty,//@sa_remqty
+                stockAdjustment.stockAdjRemQtyWa,//@sa_remqtywa
+                SettingsModel.currentUser?.userUsername,//@sa_userstamp
+                stockAdjustment.stockAdjDivName,//@sa_div_name
+                Timestamp(System.currentTimeMillis()),//@sa_date
+            )
+        }
+        val queryResult = SQLServerWrapper.executeProcedure(
+            "updst_stockadjustmentqtyonhand",
             parameters
         )
         return if (queryResult.succeed) {
