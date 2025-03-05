@@ -62,11 +62,6 @@ fun HomeView(
     }
 
     LaunchedEffect(Unit) {
-        if (BuildConfig.DEBUG) {
-            CoroutineScope(Dispatchers.IO).launch {
-                sharedViewModel.initiateValues()
-            }
-        }
         keyboardController?.hide()
     }
 

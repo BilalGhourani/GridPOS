@@ -185,7 +185,7 @@ class MainActivity : ComponentActivity() {
                             .padding(0.dp),
                         navController = navController,
                         sharedViewModel = sharedViewModel,
-                        startDestination = if (BuildConfig.DEBUG) "HomeView" else "LoginView"
+                        startDestination = /*if (BuildConfig.DEBUG) "HomeView" else */"LoginView"
                     )
                     AnimatedVisibility(
                         visible = popupState.value,
