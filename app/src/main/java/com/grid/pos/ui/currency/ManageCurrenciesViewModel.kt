@@ -1,5 +1,6 @@
 package com.grid.pos.ui.currency
 
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.viewModelScope
 import com.grid.pos.SharedViewModel
 import com.grid.pos.data.currency.Currency
@@ -11,7 +12,6 @@ import com.grid.pos.ui.common.BaseViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -23,8 +23,7 @@ class ManageCurrenciesViewModel @Inject constructor(
     private val sharedViewModel: SharedViewModel
 ) : BaseViewModel(sharedViewModel) {
 
-    private val _state = MutableStateFlow(ManageCurrenciesState())
-    val state: MutableStateFlow<ManageCurrenciesState> = _state
+     val state = mutableStateOf(ManageCurrenciesState())
 
     var currentCurrency: Currency = Currency()
 
@@ -36,7 +35,7 @@ class ManageCurrenciesViewModel @Inject constructor(
         state.value = newState
     }
 
-    fun isAnyChangeDone(): Boolean {
+    private fun isAnyChangeDone(): Boolean {
         return state.value.currency.didChanged(currentCurrency)
     }
 

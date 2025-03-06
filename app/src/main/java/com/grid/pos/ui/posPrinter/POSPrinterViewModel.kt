@@ -1,5 +1,6 @@
 package com.grid.pos.ui.posPrinter
 
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.viewModelScope
 import com.grid.pos.SharedViewModel
 import com.grid.pos.data.item.ItemRepository
@@ -10,7 +11,6 @@ import com.grid.pos.ui.common.BaseViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -22,8 +22,7 @@ class POSPrinterViewModel @Inject constructor(
     private val sharedViewModel: SharedViewModel
 ) : BaseViewModel(sharedViewModel) {
 
-    private val _state = MutableStateFlow(POSPrinterState())
-    val state: MutableStateFlow<POSPrinterState> = _state
+    val state = mutableStateOf(POSPrinterState())
 
     var currentPrinter: PosPrinter = PosPrinter()
 

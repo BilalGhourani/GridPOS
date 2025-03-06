@@ -2,6 +2,7 @@ package com.grid.pos.ui.settings.setupReports
 
 import android.content.Context
 import android.net.Uri
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.viewModelScope
 import com.grid.pos.SharedViewModel
 import com.grid.pos.interfaces.OnGalleryResult
@@ -9,7 +10,6 @@ import com.grid.pos.ui.common.BaseViewModel
 import com.grid.pos.utils.FileUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -18,10 +18,7 @@ import javax.inject.Inject
 class SetupReportViewModel @Inject constructor(
     private val sharedViewModel: SharedViewModel
 ) : BaseViewModel(sharedViewModel) {
-
-    private val _state = MutableStateFlow(SetupReportState())
-    val state: MutableStateFlow<SetupReportState> = _state
-
+    val state = mutableStateOf(SetupReportState())
 
     fun updateState(newState: SetupReportState) {
         state.value = newState

@@ -2,30 +2,26 @@ package com.grid.pos.ui.license
 
 import android.content.Context
 import android.net.Uri
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.grid.pos.data.invoiceHeader.InvoiceHeaderRepository
 import com.grid.pos.model.Event
 import com.grid.pos.utils.FileUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
-class LicenseViewModel @Inject constructor(
-        private val invoiceHeaderRepository: InvoiceHeaderRepository
-) : ViewModel() {
+class LicenseViewModel @Inject constructor() : ViewModel() {
 
-    private val _state = MutableStateFlow(LicenseState())
-    val state: MutableStateFlow<LicenseState> = _state
+    val state = mutableStateOf(LicenseState())
 
     fun showWarning(
-            message: String,
-            action: String? = null
+        message: String,
+        action: String? = null
     ) {
         state.value = state.value.copy(
             warning = Event(message),
@@ -35,8 +31,8 @@ class LicenseViewModel @Inject constructor(
     }
 
     fun copyLicenseFile(
-            context: Context,
-            uri: Uri
+        context: Context,
+        uri: Uri
     ) {
         if (uri.toString().isEmpty()) {
             showWarning("no file selected!")

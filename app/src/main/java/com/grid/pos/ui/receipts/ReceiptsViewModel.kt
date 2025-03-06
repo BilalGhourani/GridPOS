@@ -1,6 +1,7 @@
 package com.grid.pos.ui.receipts
 
 import android.content.Context
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.viewModelScope
 import com.grid.pos.SharedViewModel
 import com.grid.pos.data.EntityModel
@@ -21,7 +22,6 @@ import com.grid.pos.utils.PrinterUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -36,8 +36,7 @@ class ReceiptsViewModel @Inject constructor(
     private val sharedViewModel: SharedViewModel
 ) : BaseViewModel(sharedViewModel) {
 
-    private val _state = MutableStateFlow(ReceiptsState())
-    val state: MutableStateFlow<ReceiptsState> = _state
+    val state = mutableStateOf(ReceiptsState())
 
     var currentReceipt: Receipt = Receipt()
     var reportResult = ReportResult()
@@ -71,14 +70,14 @@ class ReceiptsViewModel @Inject constructor(
 
     fun resetState() {
         currentReceipt = Receipt()
-        _state.value = state.value.copy(
+        state.value = state.value.copy(
             receipt = currentReceipt.copy(),
             currencyIndex = 0,
         )
     }
 
     fun updateState(newState: ReceiptsState) {
-        _state.value = newState
+        state.value = newState
     }
 
     fun isAnyChangeDone(): Boolean {

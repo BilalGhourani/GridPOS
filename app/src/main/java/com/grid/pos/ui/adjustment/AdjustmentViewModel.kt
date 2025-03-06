@@ -1,5 +1,6 @@
 package com.grid.pos.ui.adjustment
 
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.viewModelScope
 import com.grid.pos.SharedViewModel
 import com.grid.pos.data.invoice.InvoiceRepository
@@ -14,7 +15,6 @@ import com.grid.pos.utils.DateHelper
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.Date
@@ -28,8 +28,7 @@ class AdjustmentViewModel @Inject constructor(
     private val itemRepository: ItemRepository,
     private val sharedViewModel: SharedViewModel
 ) : BaseViewModel(sharedViewModel) {
-    private val _state = MutableStateFlow(AdjustmentState())
-    val state: MutableStateFlow<AdjustmentState> = _state
+     val state = mutableStateOf(AdjustmentState())
     val dateFormat = "yyyy-MM-dd HH:mm"
 
     init {

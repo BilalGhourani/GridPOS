@@ -61,7 +61,7 @@ fun ManageFamiliesView(
     navController: NavController? = null,
     viewModel: ManageFamiliesViewModel = hiltViewModel()
 ) {
-    val state by viewModel.state.collectAsStateWithLifecycle()
+    val state = viewModel.state.value
 
     val context = LocalContext.current
     val keyboardController = LocalSoftwareKeyboardController.current

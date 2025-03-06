@@ -3,6 +3,7 @@ package com.grid.pos.ui.company
 import android.content.Context
 import android.net.Uri
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.viewModelScope
 import com.grid.pos.SharedViewModel
 import com.grid.pos.data.company.Company
@@ -21,7 +22,6 @@ import com.grid.pos.utils.FileUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -37,8 +37,7 @@ class ManageCompaniesViewModel @Inject constructor(
     private val sharedViewModel: SharedViewModel
 ) : BaseViewModel(sharedViewModel) {
 
-    private val _state = MutableStateFlow(ManageCompaniesState())
-    val state: MutableStateFlow<ManageCompaniesState> = _state
+    val state = mutableStateOf(ManageCompaniesState())
 
     var oldImage: String? = null
     var currentCompany: Company = Company()
@@ -61,10 +60,10 @@ class ManageCompaniesViewModel @Inject constructor(
     }
 
     fun updateState(newState: ManageCompaniesState) {
-        _state.value = newState
+        state.value = newState
     }
 
-    fun isAnyChangeDone(): Boolean {
+    private fun isAnyChangeDone(): Boolean {
         return state.value.company.didChanged(currentCompany)
     }
 

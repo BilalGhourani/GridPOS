@@ -41,7 +41,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.grid.pos.R
 import com.grid.pos.data.item.Item
@@ -64,7 +63,7 @@ fun ItemOpeningView(
     navController: NavController? = null,
     viewModel: ItemOpeningViewModel = hiltViewModel()
 ) {
-    val state by viewModel.state.collectAsStateWithLifecycle()
+    val state = viewModel.state.value
 
     val keyboardController = LocalSoftwareKeyboardController.current
 

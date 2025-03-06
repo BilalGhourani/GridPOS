@@ -2,6 +2,7 @@ package com.grid.pos.ui.settings.setupReports
 
 import android.content.Context
 import android.net.Uri
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.viewModelScope
 import com.grid.pos.App
 import com.grid.pos.SharedViewModel
@@ -13,7 +14,6 @@ import com.grid.pos.utils.FileUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -24,8 +24,8 @@ class ReportsListViewModel @Inject constructor(
     private val sharedViewModel: SharedViewModel
 ) : BaseViewModel(sharedViewModel) {
 
-    private val _state = MutableStateFlow(ReportsListState())
-    val state: MutableStateFlow<ReportsListState> = _state
+    val state = mutableStateOf(ReportsListState())
+
     var filteredReports: MutableList<FileModel> = mutableListOf()
     val tabs = listOf(
         ReportTypeModel(ReportTypeEnum.PAY_SLIP.key),

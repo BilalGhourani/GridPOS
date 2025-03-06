@@ -1,6 +1,7 @@
 package com.grid.pos.ui.payments
 
 import android.content.Context
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.viewModelScope
 import com.grid.pos.SharedViewModel
 import com.grid.pos.data.EntityModel
@@ -21,7 +22,6 @@ import com.grid.pos.utils.PrinterUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -35,8 +35,7 @@ class PaymentsViewModel @Inject constructor(
     private val settingsRepository: SettingsRepository,
     private val sharedViewModel: SharedViewModel
 ) : BaseViewModel(sharedViewModel) {
-    private val _state = MutableStateFlow(PaymentsState())
-    val state: MutableStateFlow<PaymentsState> = _state
+    val state = mutableStateOf(PaymentsState())
 
     var currentPayment: Payment = Payment()
     private var reportResult = ReportResult()
@@ -133,7 +132,9 @@ class PaymentsViewModel @Inject constructor(
             )
         )
         withContext(Dispatchers.Main) {
-            if (loading) { showLoading(false)}
+            if (loading) {
+                showLoading(false)
+            }
             state.value = state.value.copy(
                 thirdParties = listOfThirdParties
             )
@@ -210,7 +211,7 @@ class PaymentsViewModel @Inject constructor(
                 val dataModel = paymentRepository.update(payment)
                 if (dataModel.succeed) {
                     val payments = state.value.payments.toMutableList()
-                    val index =payments.indexOfFirst { it.paymentId == payment.paymentId }
+                    val index = payments.indexOfFirst { it.paymentId == payment.paymentId }
                     if (index >= 0) {
                         payments.removeAt(index)
                         payments.add(index, payment)
@@ -246,7 +247,7 @@ class PaymentsViewModel @Inject constructor(
             showWarning("Please select a Payment to delete")
             return
         }
-      showLoading(true)
+        showLoading(true)
         CoroutineScope(Dispatchers.IO).launch {
             val dataModel = paymentRepository.delete(payment)
             if (dataModel.succeed) {

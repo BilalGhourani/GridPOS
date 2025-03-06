@@ -1,5 +1,6 @@
 package com.grid.pos.ui.user
 
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.viewModelScope
 import com.grid.pos.SharedViewModel
 import com.grid.pos.data.invoiceHeader.InvoiceHeaderRepository
@@ -13,7 +14,6 @@ import com.grid.pos.utils.Extension.encryptCBC
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -25,9 +25,7 @@ class ManageUsersViewModel @Inject constructor(
     private val invoiceHeaderRepository: InvoiceHeaderRepository,
     private val sharedViewModel: SharedViewModel
 ) : BaseViewModel(sharedViewModel) {
-
-    private val _state = MutableStateFlow(ManageUsersState())
-    val state: MutableStateFlow<ManageUsersState> = _state
+    val state = mutableStateOf(ManageUsersState())
 
     var currentUser: User = User()
 

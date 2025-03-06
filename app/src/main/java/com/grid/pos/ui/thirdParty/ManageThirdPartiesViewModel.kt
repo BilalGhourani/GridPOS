@@ -1,5 +1,6 @@
 package com.grid.pos.ui.thirdParty
 
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.viewModelScope
 import com.grid.pos.SharedViewModel
 import com.grid.pos.data.invoiceHeader.InvoiceHeaderRepository
@@ -12,7 +13,6 @@ import com.grid.pos.utils.Utils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -24,8 +24,7 @@ class ManageThirdPartiesViewModel @Inject constructor(
     private val sharedViewModel: SharedViewModel
 ) : BaseViewModel(sharedViewModel) {
 
-    private val _state = MutableStateFlow(ManageThirdPartiesState())
-    val state: MutableStateFlow<ManageThirdPartiesState> = _state
+    val state = mutableStateOf(ManageThirdPartiesState())
 
     var currentThirdParty: ThirdParty = ThirdParty()
 

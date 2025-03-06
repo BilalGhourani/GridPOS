@@ -42,7 +42,6 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -71,13 +70,11 @@ import java.io.File
 )
 @Composable
 fun ReportsListView(
-        modifier: Modifier = Modifier,
-        navController: NavController? = null,
-        viewModel: ReportsListViewModel = hiltViewModel()
+    modifier: Modifier = Modifier,
+    navController: NavController? = null,
+    viewModel: ReportsListViewModel = hiltViewModel()
 ) {
-    val state: ReportsListState by viewModel.state.collectAsState(
-        ReportsListState()
-    )
+    val state = viewModel.state.value
 
     val context = LocalContext.current
     var isOptionPopupExpanded by remember { mutableStateOf(false) }
@@ -200,7 +197,8 @@ fun ReportsListView(
                     }
                 }
 
-                SearchableDropdownMenuEx(items = viewModel.tabs.toMutableList(),
+                SearchableDropdownMenuEx(
+                    items = viewModel.tabs.toMutableList(),
                     modifier = Modifier.padding(
                         top = 15.dp,
                         start = 10.dp,
@@ -208,9 +206,10 @@ fun ReportsListView(
                     ),
                     enableSearch = false,
                     label = state.selectedType.ifEmpty { "Select Type" },
-                    selectedId = state.selectedType) { reportType ->
+                    selectedId = state.selectedType
+                ) { reportType ->
                     reportType as ReportTypeModel
-                   viewModel.setReportType(reportType.getName())
+                    viewModel.setReportType(reportType.getName())
                 }
             }
         }

@@ -1,6 +1,7 @@
 package com.grid.pos.ui.stockInOut
 
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.viewModelScope
 import com.grid.pos.SharedViewModel
 import com.grid.pos.data.item.Item
@@ -14,8 +15,6 @@ import com.grid.pos.model.StockInOutItemModel
 import com.grid.pos.ui.common.BaseViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -29,14 +28,12 @@ class StockInOutViewModel @Inject constructor(
     private val sharedViewModel: SharedViewModel
 ) : BaseViewModel(sharedViewModel) {
 
-    private val _state = MutableStateFlow(StockInOutState())
-    val state: MutableStateFlow<StockInOutState> = _state
+    val state = mutableStateOf(StockInOutState())
 
     private var stockIOTransCode: String? = null
     var selectedItemIndex: Int = 0
 
-    private var _stockHeaderInOutState = MutableStateFlow(StockHeaderInOut())
-    var stockHeaderInOutState = _stockHeaderInOutState.asStateFlow()
+    var stockHeaderInOutState = mutableStateOf(StockHeaderInOut())
     val items = mutableStateListOf<StockInOutItemModel>()
     val deletedItems: MutableList<StockInOutItemModel> = mutableListOf()
 
@@ -48,7 +45,7 @@ class StockInOutViewModel @Inject constructor(
     }
 
     fun updateStockHeaderInOut(stockHeaderInOut: StockHeaderInOut) {
-        _stockHeaderInOutState.value = stockHeaderInOut
+        stockHeaderInOutState.value = stockHeaderInOut
     }
 
     fun resetState() {
@@ -321,7 +318,6 @@ class StockInOutViewModel @Inject constructor(
                                     barcodesList.groupingBy { item -> item as Item }
                                         .eachCount()
                                 val itemsToAdd = mutableListOf<StockInOutItemModel>()
-                                var index = items.size
                                 map.forEach { (item, count) ->
                                     if (!item.itemBarcode.isNullOrEmpty()) {
                                         updateRealItemPrice(item, false)

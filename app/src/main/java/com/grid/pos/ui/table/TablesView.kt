@@ -2,7 +2,6 @@ package com.grid.pos.ui.table
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -12,7 +11,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -49,7 +47,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.grid.pos.R
 import com.grid.pos.model.PopupModel
@@ -62,8 +59,7 @@ import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.utils.Utils
 
 @OptIn(
-    ExperimentalMaterial3Api::class,
-    ExperimentalFoundationApi::class
+    ExperimentalMaterial3Api::class
 )
 @Composable
 fun TablesView(
@@ -71,7 +67,7 @@ fun TablesView(
     navController: NavController? = null,
     viewModel: TablesViewModel = hiltViewModel()
 ) {
-    val state by viewModel.tablesState.collectAsStateWithLifecycle()
+    val state = viewModel.tablesState.value
 
     val keyboardController = LocalSoftwareKeyboardController.current
     val tableNameFocusRequester = remember { FocusRequester() }

@@ -1,17 +1,16 @@
 package com.grid.pos.ui.table
 
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.viewModelScope
 import com.grid.pos.SharedViewModel
 import com.grid.pos.data.invoiceHeader.InvoiceHeader
 import com.grid.pos.data.invoiceHeader.InvoiceHeaderRepository
 import com.grid.pos.data.user.UserRepository
-import com.grid.pos.model.Event
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.model.TableModel
 import com.grid.pos.ui.common.BaseViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -23,8 +22,7 @@ class TablesViewModel @Inject constructor(
     private val sharedViewModel: SharedViewModel
 ) : BaseViewModel(sharedViewModel) {
 
-    private val _tablesState = MutableStateFlow(TablesState())
-    val tablesState: MutableStateFlow<TablesState> = _tablesState
+    val tablesState = mutableStateOf(TablesState())
     private var openedTables: MutableList<TableModel> = mutableListOf()
 
     init {
@@ -34,7 +32,7 @@ class TablesViewModel @Inject constructor(
     }
 
     fun updateState(newState: TablesState) {
-        _tablesState.value = newState
+        tablesState.value = newState
     }
 
     fun resetState() {
@@ -79,7 +77,7 @@ class TablesViewModel @Inject constructor(
         }
     }
 
-    fun resetTablesFilter() {
+    private fun resetTablesFilter() {
         val tables = openedTables.toMutableList()
         tablesState.value = tablesState.value.copy(
             tables = tables
@@ -132,7 +130,7 @@ class TablesViewModel @Inject constructor(
         }
     }
 
-    suspend fun lockTable(
+    private suspend fun lockTable(
         tableName: String
     ) {
         val tableModel = tablesState.value.tables.firstOrNull {

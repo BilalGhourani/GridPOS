@@ -3,6 +3,7 @@ package com.grid.pos.ui.family
 import android.content.Context
 import android.net.Uri
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.viewModelScope
 import com.grid.pos.SharedViewModel
 import com.grid.pos.data.family.Family
@@ -15,7 +16,6 @@ import com.grid.pos.utils.FileUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -27,8 +27,7 @@ class ManageFamiliesViewModel @Inject constructor(
     private val sharedViewModel: SharedViewModel
 ) : BaseViewModel(sharedViewModel) {
 
-    private val _state = MutableStateFlow(ManageFamiliesState())
-    val state: MutableStateFlow<ManageFamiliesState> = _state
+    val state = mutableStateOf(ManageFamiliesState())
 
     var currentFamily: Family = Family()
     var oldImage: String? = null
@@ -47,7 +46,7 @@ class ManageFamiliesViewModel @Inject constructor(
     }
 
     fun updateFamily(family: Family) {
-        _state.value = state.value.copy(
+        state.value = state.value.copy(
             family = family
         )
     }

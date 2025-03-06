@@ -1,5 +1,6 @@
 package com.grid.pos.ui.item.opening
 
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.viewModelScope
 import com.grid.pos.SharedViewModel
 import com.grid.pos.data.item.Item
@@ -11,7 +12,6 @@ import com.grid.pos.ui.common.BaseViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -23,8 +23,7 @@ class ItemOpeningViewModel @Inject constructor(
     private val sharedViewModel: SharedViewModel
 ) : BaseViewModel(sharedViewModel) {
 
-    private val _state = MutableStateFlow(ItemOpeningState())
-    val state: MutableStateFlow<ItemOpeningState> = _state
+    val state = mutableStateOf(ItemOpeningState())
 
     init {
         viewModelScope.launch(Dispatchers.IO) {

@@ -50,7 +50,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.grid.pos.R
 import com.grid.pos.data.family.Family
@@ -82,7 +81,7 @@ fun ManageItemsView(
     navController: NavController? = null,
     viewModel: ManageItemsViewModel = hiltViewModel()
 ) {
-    val state by viewModel.state.collectAsStateWithLifecycle()
+    val state = viewModel.state.value
 
     val context = LocalContext.current
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -109,7 +108,7 @@ fun ManageItemsView(
         if (viewModel.isLoading()) {
             return
         }
-        if(isBackPressed){
+        if (isBackPressed) {
             return
         }
         isBackPressed = true

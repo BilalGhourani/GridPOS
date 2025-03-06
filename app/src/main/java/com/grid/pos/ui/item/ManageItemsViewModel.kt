@@ -3,6 +3,7 @@ package com.grid.pos.ui.item
 import android.content.Context
 import android.net.Uri
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.viewModelScope
 import com.grid.pos.SharedViewModel
 import com.grid.pos.data.currency.CurrencyRepository
@@ -25,7 +26,6 @@ import com.grid.pos.utils.Utils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -41,8 +41,7 @@ class ManageItemsViewModel @Inject constructor(
     private val sharedViewModel: SharedViewModel
 ) : BaseViewModel(sharedViewModel) {
 
-    private val _state = MutableStateFlow(ManageItemsState())
-    val state: MutableStateFlow<ManageItemsState> = _state
+     val state = mutableStateOf(ManageItemsState())
 
     private var currentITem: Item = Item()
     private var oldImage: String? = null
