@@ -35,7 +35,6 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.navigation.compose.rememberNavController
 import com.grid.pos.ActivityUIEvent
-import com.grid.pos.BuildConfig
 import com.grid.pos.R
 import com.grid.pos.SharedViewModel
 import com.grid.pos.data.SQLServerWrapper
