@@ -13,7 +13,7 @@ import java.sql.Timestamp
 import java.util.Date
 
 class ThirdPartyRepositoryImpl(
-        private val thirdPartyDao: ThirdPartyDao
+    private val thirdPartyDao: ThirdPartyDao
 ) : ThirdPartyRepository {
     override suspend fun insert(thirdParty: ThirdParty): DataModel {
         return when (SettingsModel.connectionType) {
@@ -56,8 +56,8 @@ class ThirdPartyRepositoryImpl(
     }
 
     override suspend fun update(
-            thirdpartyId: String,
-            thirdParty: ThirdParty
+        thirdpartyId: String,
+        thirdParty: ThirdParty
     ): DataModel {
         when (SettingsModel.connectionType) {
             CONNECTION_TYPE.FIRESTORE.key -> {
@@ -114,7 +114,8 @@ class ThirdPartyRepositoryImpl(
             else -> {
                 val thirdParties: MutableList<ThirdParty> = mutableListOf()
                 try {
-                    val where = if (SettingsModel.isSqlServerWebDb) "tp_cse = 'Receivable' AND tp_cmp_id='${SettingsModel.getCompanyID()}'" else "tp_cse = 'Receivable'"
+                    val where =
+                        if (SettingsModel.isSqlServerWebDb) "tp_cse = 'Receivable' AND tp_cmp_id='${SettingsModel.getCompanyID()}'" else "tp_cse = 'Receivable'"
                     val dbResult = SQLServerWrapper.getListOf(
                         "thirdparty",
                         "",
@@ -126,11 +127,13 @@ class ThirdPartyRepositoryImpl(
                         while (it.next()) {
                             thirdParties.add(ThirdParty().apply {
                                 thirdPartyId = it.getStringValue("tp_name")
-                                thirdPartyName = if (SettingsModel.isSqlServerWebDb) it.getStringValue("tp_newname") else it.getStringValue(
-                                    "tp_name"
-                                )
+                                thirdPartyName =
+                                    if (SettingsModel.isSqlServerWebDb) it.getStringValue("tp_newname") else it.getStringValue(
+                                        "tp_name"
+                                    )
                                 thirdPartyFn = it.getStringValue("tp_fn")
-                                thirdPartyCompId = if (SettingsModel.isSqlServerWebDb) it.getStringValue("tp_cmp_id") else SettingsModel.getCompanyID()
+                                thirdPartyCompId =
+                                    if (SettingsModel.isSqlServerWebDb) it.getStringValue("tp_cmp_id") else SettingsModel.getCompanyID()
                                 thirdPartyType = it.getStringValue("tp_cse")
                                 thirdPartyPhone1 = it.getStringValue("tp_phone1")
                                 thirdPartyPhone2 = it.getStringValue("tp_phone2")
@@ -205,7 +208,8 @@ class ThirdPartyRepositoryImpl(
                 val thirdParties: MutableList<ThirdParty> = mutableListOf()
                 try {
                     val typeStr = types.joinToString(",") { "'$it'" }
-                    val where = if (SettingsModel.isSqlServerWebDb) "tp_cse IN ($typeStr) AND tp_cmp_id='${SettingsModel.getCompanyID()}'" else "tp_cse IN ($typeStr)"
+                    val where =
+                        if (SettingsModel.isSqlServerWebDb) "tp_cse IN ($typeStr) AND tp_cmp_id='${SettingsModel.getCompanyID()}'" else "tp_cse IN ($typeStr)"
                     val dbResult = SQLServerWrapper.getListOf(
                         "thirdparty",
                         "",
@@ -217,11 +221,13 @@ class ThirdPartyRepositoryImpl(
                         while (it.next()) {
                             thirdParties.add(ThirdParty().apply {
                                 thirdPartyId = it.getStringValue("tp_name")
-                                thirdPartyName = if (SettingsModel.isSqlServerWebDb) it.getStringValue("tp_newname") else it.getStringValue(
-                                    "tp_name"
-                                )
+                                thirdPartyName =
+                                    if (SettingsModel.isSqlServerWebDb) it.getStringValue("tp_newname") else it.getStringValue(
+                                        "tp_name"
+                                    )
                                 thirdPartyFn = it.getStringValue("tp_fn")
-                                thirdPartyCompId = if (SettingsModel.isSqlServerWebDb) it.getStringValue("tp_cmp_id") else SettingsModel.getCompanyID()
+                                thirdPartyCompId =
+                                    if (SettingsModel.isSqlServerWebDb) it.getStringValue("tp_cmp_id") else SettingsModel.getCompanyID()
                                 thirdPartyType = it.getStringValue("tp_cse")
                                 thirdPartyPhone1 = it.getStringValue("tp_phone1")
                                 thirdPartyPhone2 = it.getStringValue("tp_phone2")
@@ -298,11 +304,13 @@ class ThirdPartyRepositoryImpl(
                         while (it.next()) {
                             thirdParty = ThirdParty().apply {
                                 thirdPartyId = it.getStringValue("tp_name")
-                                thirdPartyName = if (SettingsModel.isSqlServerWebDb) it.getStringValue("tp_newname") else it.getStringValue(
-                                    "tp_name"
-                                )
+                                thirdPartyName =
+                                    if (SettingsModel.isSqlServerWebDb) it.getStringValue("tp_newname") else it.getStringValue(
+                                        "tp_name"
+                                    )
                                 thirdPartyFn = it.getStringValue("tp_fn")
-                                thirdPartyCompId = if (SettingsModel.isSqlServerWebDb) it.getStringValue("tp_cmp_id") else SettingsModel.getCompanyID()
+                                thirdPartyCompId =
+                                    if (SettingsModel.isSqlServerWebDb) it.getStringValue("tp_cmp_id") else SettingsModel.getCompanyID()
                                 thirdPartyType = it.getStringValue("tp_cse")
                                 thirdPartyPhone1 = it.getStringValue("tp_phone1")
                                 thirdPartyPhone2 = it.getStringValue("tp_phone2")
@@ -441,22 +449,23 @@ class ThirdPartyRepositoryImpl(
             else -> {
                 var thirdParty: ThirdParty? = null
                 try {
-                    val where = if (SettingsModel.isSqlServerWebDb) "tp_cse in ('Receivable','Payable and Receivable') AND tp_cmp_id='${SettingsModel.getCompanyID()}'" else "tp_cse in ('Receivable','Payable and Receivable')"
-                    val dbResult = SQLServerWrapper.getListOf(
-                        "thirdparty",
-                        "TOP 1",
-                        mutableListOf("*"),
-                        where
-                    )
+                    val query = if (SettingsModel.isSqlServerWebDb) {
+                        "select top 1 * from thirdparty where tp_cmp_id='${SettingsModel.getCompanyID()}' tp_cse in ('Receivable','Payable and Receivable')"
+                    } else {
+                        "select top 1 * from thirdparty where tp_name='Cash'"
+                    }
+                    val dbResult = SQLServerWrapper.getQueryResult(query)
                     dbResult?.let {
                         while (it.next()) {
                             thirdParty = ThirdParty().apply {
                                 thirdPartyId = it.getStringValue("tp_name")
-                                thirdPartyName = if (SettingsModel.isSqlServerWebDb) it.getStringValue("tp_newname") else it.getStringValue(
-                                    "tp_name"
-                                )
+                                thirdPartyName =
+                                    if (SettingsModel.isSqlServerWebDb) it.getStringValue("tp_newname") else it.getStringValue(
+                                        "tp_name"
+                                    )
                                 thirdPartyFn = it.getStringValue("tp_fn")
-                                thirdPartyCompId = if (SettingsModel.isSqlServerWebDb) it.getStringValue("tp_cmp_id") else SettingsModel.getCompanyID()
+                                thirdPartyCompId =
+                                    if (SettingsModel.isSqlServerWebDb) it.getStringValue("tp_cmp_id") else SettingsModel.getCompanyID()
                                 thirdPartyType = it.getStringValue("tp_cse")
                                 thirdPartyPhone1 = it.getStringValue("tp_phone1")
                                 thirdPartyPhone2 = it.getStringValue("tp_phone2")
@@ -599,8 +608,8 @@ class ThirdPartyRepositoryImpl(
     }
 
     private fun updateByProcedure(
-            thirdpartyId: String,
-            thirdParty: ThirdParty
+        thirdpartyId: String,
+        thirdParty: ThirdParty
     ): DataModel {
         val parameters = if (SettingsModel.isSqlServerWebDb) {
             listOf(

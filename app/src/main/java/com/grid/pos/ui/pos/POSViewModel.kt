@@ -160,6 +160,13 @@ class POSViewModel @Inject constructor(
 
     private suspend fun fetchGlobalSettings() {
         defaultThirdParty = thirdPartyRepository.getDefaultThirdParty()
+        withContext(Dispatchers.Main) {
+            updateState(
+                state.value.copy(
+                    selectedThirdParty = defaultThirdParty ?: ThirdParty(),
+                )
+            )
+        }
         if (SettingsModel.isConnectedToSqlServer()) {
             if (SettingsModel.siTransactionType.isNullOrEmpty()) {
                 SettingsModel.siTransactionType =
