@@ -490,6 +490,13 @@ class ThirdPartyRepositoryImpl(
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
+                if (thirdParty == null && !SettingsModel.isSqlServerWebDb) {
+                    thirdParty = ThirdParty().apply {
+                        thirdPartyId = "Cash"
+                        thirdPartyName = "Cash"
+                        thirdPartyDefault = true
+                    }
+                }
                 return thirdParty
             }
         }
