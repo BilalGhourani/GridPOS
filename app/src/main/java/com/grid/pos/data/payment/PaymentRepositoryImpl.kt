@@ -305,7 +305,6 @@ class PaymentRepositoryImpl(
                 payment.paymentThirdParty,//@hpa_tp_name
                 null,//@hpa_cashname
                 SettingsModel.currentUser?.userUsername,//@hpa_userstamp
-                null,//@hpa_sessionpointer
                 SettingsModel.currentCompany?.cmp_multibranchcode,//@BranchCode
                 Timestamp(System.currentTimeMillis()),//@hpa_valuedate
                 null,//@hpa_employee
@@ -451,7 +450,6 @@ class PaymentRepositoryImpl(
         val decimal = SettingsModel.currentCurrency?.currencyName1Dec ?: 3
         val parameters = if (SettingsModel.isSqlServerWebDb) {
             listOf(
-                null,//@up_id
                 payment.paymentId,//@up_hpa_id
                 payment.paymentDesc,//@up_desc
                 payment.paymentCurrency,//@up_cur_code
