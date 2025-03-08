@@ -1100,7 +1100,7 @@ class InvoiceHeaderRepositoryImpl(
                 invoiceHeader.invoiceHeadRate,//rate seconds
                 getRateTax(invoiceHeader),//rate tax
                 0,//tips
-                invoiceHeader.invoiceHeadTableId ?: invoiceHeader.invoiceHeadTaName,
+                invoiceHeader.invoiceHeadTableId.takeIf { !it.isNullOrEmpty() } ?: invoiceHeader.invoiceHeadTaName,
                 invoiceHeader.invoiceHeadClientsCount,
                 0,//mincharge
                 null,//hi_employee
@@ -1161,7 +1161,7 @@ class InvoiceHeaderRepositoryImpl(
                 invoiceHeader.invoiceHeadRate,//rate seconds
                 getRateTax(invoiceHeader),//rate tax
                 0,//tips
-                invoiceHeader.invoiceHeadTableId ?: invoiceHeader.invoiceHeadTaName,
+                invoiceHeader.invoiceHeadTableId.takeIf { !it.isNullOrEmpty() } ?: invoiceHeader.invoiceHeadTaName,
                 invoiceHeader.invoiceHeadClientsCount,
                 0,//mincharge
                 null,//hi_employee
@@ -1242,7 +1242,7 @@ class InvoiceHeaderRepositoryImpl(
                 invoiceHeader.invoiceHeadRate,//rate seconds
                 getRateTax(invoiceHeader),//rate tax
                 0,//tips
-                invoiceHeader.invoiceHeadTableId ?: invoiceHeader.invoiceHeadTaName,
+                invoiceHeader.invoiceHeadTableId.takeIf { !it.isNullOrEmpty() } ?: invoiceHeader.invoiceHeadTaName,
                 invoiceHeader.invoiceHeadClientsCount,
                 0,//mincharge
                 null,//hi_employee
@@ -1303,7 +1303,7 @@ class InvoiceHeaderRepositoryImpl(
                 invoiceHeader.invoiceHeadRate,//rate seconds
                 getRateTax(invoiceHeader),//rate tax
                 0,//tips
-                invoiceHeader.invoiceHeadTableId ?: invoiceHeader.invoiceHeadTaName,
+                invoiceHeader.invoiceHeadTableId.takeIf { !it.isNullOrEmpty() } ?: invoiceHeader.invoiceHeadTaName,
                 invoiceHeader.invoiceHeadClientsCount,
                 0,//mincharge
                 null,//hi_employee
@@ -1379,7 +1379,6 @@ class InvoiceHeaderRepositoryImpl(
                 SettingsModel.getCompanyID(),//ta_cmp_id
                 SettingsModel.currentUser?.userGrpDesc,//ta_grp_desc
                 locked,//ta_locked
-                Timestamp(System.currentTimeMillis()),//ta_timestamp
                 SettingsModel.currentUser?.userUsername,//ta_userstamp
                 null,//ta_rotationangle
             )
