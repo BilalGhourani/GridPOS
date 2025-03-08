@@ -238,7 +238,7 @@ class InvoiceHeaderRepositoryImpl(
                         ),
                         where,
                         "ORDER BY hi_date DESC",
-                        if (SettingsModel.isSqlServerWebDb) "INNER JOIN acc_transactiontype tt on hi_tt_code = tt.tt_code" else ""
+                        if (SettingsModel.isSqlServerWebDb) "LEFT JOIN acc_transactiontype tt on hi_tt_code = tt.tt_code" else ""
                     )
                     dbResult?.let {
                         while (it.next()) {
@@ -315,7 +315,7 @@ class InvoiceHeaderRepositoryImpl(
                         ),
                         where,
                         "ORDER BY hi_date DESC",
-                        if (SettingsModel.isSqlServerWebDb) "INNER JOIN acc_transactiontype tt on hi_tt_code = tt.tt_code" else ""
+                        if (SettingsModel.isSqlServerWebDb) "LEFT JOIN acc_transactiontype tt on hi_tt_code = tt.tt_code" else ""
                     )
                     dbResult?.let {
                         while (it.next()) {
