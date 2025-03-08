@@ -565,7 +565,6 @@ fun POSView(
                     onSaveAndPrintOrder = { change, receipt ->
                         viewModel.state.value.posReceipt = receipt
                         viewModel.state.value.invoiceHeader.invoiceHeadChange = change
-                        viewModel.state.value.invoiceHeader.invoiceHeadPrinted += 1
                         viewModel.saveInvoiceHeader(
                             context = context,
                             print = true,
@@ -578,7 +577,6 @@ fun POSView(
                     onFinishAndPrint = { change, receipt ->
                         viewModel.state.value.posReceipt = receipt
                         viewModel.state.value.invoiceHeader.invoiceHeadChange = change
-                        viewModel.state.value.invoiceHeader.invoiceHeadPrinted += 1
                         viewModel.saveInvoiceHeader(
                             context = context,
                             print = true,

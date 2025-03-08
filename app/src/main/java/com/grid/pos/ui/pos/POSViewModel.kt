@@ -371,6 +371,9 @@ class POSViewModel @Inject constructor(
         val isInserting = invoiceHeader.isNew()
 
         viewModelScope.launch(Dispatchers.IO) {
+            if (print) {
+                invoiceHeader.invoiceHeadPrinted += 1
+            }
             if (isInserting) {
                 invoiceHeader.invoiceHeadTaxRate = taxRate
                 if (finish) {
