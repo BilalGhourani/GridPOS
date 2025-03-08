@@ -46,12 +46,11 @@ import com.grid.pos.data.thirdParty.ThirdPartyRepository
 import com.grid.pos.data.thirdParty.ThirdPartyRepositoryImpl
 import com.grid.pos.data.user.UserRepository
 import com.grid.pos.data.user.UserRepositoryImpl
-import com.grid.pos.ui.license.CheckLicenseUseCase
+import com.grid.pos.useCases.CheckLicenseUseCase
 import com.grid.pos.utils.Constants
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
-import dagger.hilt.android.scopes.ViewModelScoped
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 

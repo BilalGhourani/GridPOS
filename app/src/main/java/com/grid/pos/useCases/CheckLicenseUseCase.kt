@@ -1,4 +1,4 @@
-package com.grid.pos.ui.license
+package com.grid.pos.useCases
 
 import android.content.Context
 import androidx.core.net.toUri

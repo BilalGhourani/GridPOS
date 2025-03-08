@@ -7,11 +7,13 @@ import com.grid.pos.App
 import com.grid.pos.SharedViewModel
 import com.grid.pos.data.company.Company
 import com.grid.pos.data.company.CompanyRepository
+import com.grid.pos.data.user.User
 import com.grid.pos.data.user.UserRepository
 import com.grid.pos.model.LoginResponse
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.ui.common.BaseViewModel
-import com.grid.pos.ui.license.CheckLicenseUseCase
+import com.grid.pos.useCases.CheckLicenseUseCase
+import com.grid.pos.ui.navigation.Screen
 import com.grid.pos.utils.Constants
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -153,21 +155,31 @@ class LoginViewModel @Inject constructor(
             usernameState.value = ""
             passwordState.value = ""
             showLoading(false)
-            SettingsModel.currentUser?.let {
-                if (sharedViewModel.checkPermission("Run In POS Mode", false)) {
-                    SettingsModel.currentUser?.userPosMode = false
-                    SettingsModel.currentUser?.userTableMode = true
-                    callback.invoke("TablesView")
-                } else if (it.userPosMode && it.userTableMode) {
-                    callback.invoke("HomeView")
+            val user = checkUserSettings(SettingsModel.currentUser)
+            user?.let {
+                if (it.userPosMode && it.userTableMode) {
+                    callback.invoke(Screen.HomeView.route)
                 } else if (it.userPosMode) {
-                    callback.invoke("POSView")
+                    callback.invoke(Screen.POSView.route)
                 } else if (it.userTableMode) {
-                    callback.invoke("TablesView")
+                    callback.invoke(Screen.TablesView.route)
                 } else {
-                    callback.invoke("HomeView")
+                    callback.invoke(Screen.HomeView.route)
                 }
             }
         }
+    }
+
+    private fun checkUserSettings(user: User?): User? {
+        if (user != null) {
+            if (sharedViewModel.checkPermission("Run In POS Mode", false)) {
+                user.userPosMode = true
+                user.userTableMode = false
+            } else if (sharedViewModel.checkPermission("Table Management: Open Table Number", false)) {
+                user.userPosMode = false
+                user.userTableMode = true
+            }
+        }
+        return user
     }
 }
