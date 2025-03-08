@@ -258,6 +258,7 @@ fun ReceiptsView(
                         label = "Amount",
                         placeHolder = "Enter Amount",
                         focusRequester = amountFocusRequester,
+                        keyboardType = KeyboardType.Decimal,
                         onAction = {
                             descFocusRequester.requestFocus()
                         }) { amount ->
