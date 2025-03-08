@@ -1100,7 +1100,7 @@ class InvoiceHeaderRepositoryImpl(
                 invoiceHeader.invoiceHeadRate,//rate seconds
                 getRateTax(invoiceHeader),//rate tax
                 0,//tips
-                invoiceHeader.invoiceHeadTableId.takeIf { !it.isNullOrEmpty() } ?: invoiceHeader.invoiceHeadTaName,
+                invoiceHeader.invoiceHeadTableId.takeIf { !it.isNullOrEmpty() } ?: invoiceHeader.invoiceHeadTaName?.ifEmpty { null },
                 invoiceHeader.invoiceHeadClientsCount,
                 0,//mincharge
                 null,//hi_employee
@@ -1161,7 +1161,7 @@ class InvoiceHeaderRepositoryImpl(
                 invoiceHeader.invoiceHeadRate,//rate seconds
                 getRateTax(invoiceHeader),//rate tax
                 0,//tips
-                invoiceHeader.invoiceHeadTableId.takeIf { !it.isNullOrEmpty() } ?: invoiceHeader.invoiceHeadTaName,
+                invoiceHeader.invoiceHeadTableId.takeIf { !it.isNullOrEmpty() } ?: invoiceHeader.invoiceHeadTaName?.ifEmpty { null },
                 invoiceHeader.invoiceHeadClientsCount,
                 0,//mincharge
                 null,//hi_employee
@@ -1242,7 +1242,7 @@ class InvoiceHeaderRepositoryImpl(
                 invoiceHeader.invoiceHeadRate,//rate seconds
                 getRateTax(invoiceHeader),//rate tax
                 0,//tips
-                invoiceHeader.invoiceHeadTableId.takeIf { !it.isNullOrEmpty() } ?: invoiceHeader.invoiceHeadTaName,
+                invoiceHeader.invoiceHeadTableId.takeIf { !it.isNullOrEmpty() } ?: invoiceHeader.invoiceHeadTaName?.ifEmpty { null },
                 invoiceHeader.invoiceHeadClientsCount,
                 0,//mincharge
                 null,//hi_employee
@@ -1303,7 +1303,7 @@ class InvoiceHeaderRepositoryImpl(
                 invoiceHeader.invoiceHeadRate,//rate seconds
                 getRateTax(invoiceHeader),//rate tax
                 0,//tips
-                invoiceHeader.invoiceHeadTableId.takeIf { !it.isNullOrEmpty() } ?: invoiceHeader.invoiceHeadTaName,
+                invoiceHeader.invoiceHeadTableId.takeIf { !it.isNullOrEmpty() } ?: invoiceHeader.invoiceHeadTaName?.ifEmpty { null },
                 invoiceHeader.invoiceHeadClientsCount,
                 0,//mincharge
                 null,//hi_employee
