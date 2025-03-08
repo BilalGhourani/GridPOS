@@ -1250,8 +1250,9 @@ class InvoiceHeaderRepositoryImpl(
                 SettingsModel.currentUser?.userUsername,//hi_userstamp
                 invoiceHeader.invoiceHeadChange,
                 Timestamp(System.currentTimeMillis()),//hi_valuedate
+                invoiceHeader.invoiceHeadPrinted,//@hi_printed
                 0,//hi_smssent
-                null,//hi_pathtodoc
+                null,//hi_AutoDoc
                 null,//hi_cashback
                 invoiceHeader.invoiceHeadTotal,//@hi_total
                 1,//hi_ratetaxf

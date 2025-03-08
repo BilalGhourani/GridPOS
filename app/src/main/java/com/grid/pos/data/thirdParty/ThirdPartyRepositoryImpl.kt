@@ -450,7 +450,7 @@ class ThirdPartyRepositoryImpl(
                 var thirdParty: ThirdParty? = null
                 try {
                     val query = if (SettingsModel.isSqlServerWebDb) {
-                        "select top 1 * from thirdparty where tp_cmp_id='${SettingsModel.getCompanyID()}' tp_cse in ('Receivable','Payable and Receivable')"
+                        "select top 1 * from thirdparty where tp_cmp_id='${SettingsModel.getCompanyID()}' AND tp_cse in ('Receivable','Payable and Receivable')"
                     } else {
                         "select top 1 * from thirdparty where tp_name='Cash'"
                     }
