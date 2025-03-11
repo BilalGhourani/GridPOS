@@ -105,7 +105,7 @@ class FamilyRepositoryImpl(
                 val families: MutableList<Family> = mutableListOf()
                 try {
                     val where =
-                        if (SettingsModel.isSqlServerWebDb) "fa_cmp_id='${SettingsModel.getCompanyID()}'" else ""
+                        if (SettingsModel.isSqlServerWebDb) "fa_cmp_id='${SettingsModel.getCompanyID()}' AND fa_group is NULL" else "fa_group is NULL"
                     val dbResult = SQLServerWrapper.getListOf(
                         "st_family",
                         "",
