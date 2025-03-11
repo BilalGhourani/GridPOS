@@ -20,7 +20,7 @@ interface ItemRepository {
     // Get all Items logs as stream.
     suspend fun getAllItems(): MutableList<Item>
 
-    suspend fun getItemsForPOS(): MutableList<Item>
+    suspend fun getItemsForPOS(deviceID: String): MutableList<Item>
 
     suspend fun getOneItemByPrinter(printerID: String): Item?
     suspend fun generateBarcode(): String
