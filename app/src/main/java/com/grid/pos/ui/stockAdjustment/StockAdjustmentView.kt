@@ -173,7 +173,11 @@ fun StockAdjustmentView(
                         },
                         title = {
                             Text(
-                                text = if (isEditBottomSheetVisible) "Edit Item" else if(source.equals("stkadj", ignoreCase = true)) "Stock Adjustment" else "Quantity On Hand",
+                                text = if (isEditBottomSheetVisible) "Edit Item" else if (source.equals(
+                                        "stkadj",
+                                        ignoreCase = true
+                                    )
+                                ) "Stock Adjustment" else "Quantity On Hand",
                                 color = SettingsModel.textColor,
                                 fontSize = 16.sp,
                                 textAlign = TextAlign.Center
@@ -213,7 +217,7 @@ fun StockAdjustmentView(
                             .height(
                                 Utils.getListHeight(
                                     viewModel.items.size,
-                                    50
+                                    60
                                 )
                             )
                             .padding(horizontal = 10.dp)
@@ -224,6 +228,16 @@ fun StockAdjustmentView(
                                 )
                             ),
                         isLandscape = isTablet || isDeviceLargerThan7Inches || isLandscape,
+                        onEditQty = { index, qty ->
+                            if (index >= 0 && index < viewModel.items.size) {
+                                val itemAtIndex = viewModel.items[index]
+                                viewModel.items[index] = itemAtIndex.copy(
+                                    stockAdjustment = itemAtIndex.stockAdjustment.copy(
+                                        stockAdjQty = qty
+                                    )
+                                )
+                            }
+                        },
                         onEdit = { index ->
                             viewModel.selectedItemIndex = index
                             isEditBottomSheetVisible = true
@@ -327,7 +341,7 @@ fun StockAdjustmentView(
                         item as Item
                         val stockAdjItem =
                             StockAdjItemModel()
-                        stockAdjItem.setItem(item,source)
+                        stockAdjItem.setItem(item, source)
                         viewModel.items.add(stockAdjItem)
                     }
                 }

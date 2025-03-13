@@ -22,6 +22,7 @@ fun StockAdjDataGrid(
     stockAdjItems: MutableList<StockAdjItemModel> = mutableListOf(),
     modifier: Modifier = Modifier,
     isLandscape: Boolean = false,
+    onEditQty: (Int, Double) -> Unit = { _, _ -> },
     onEdit: (Int) -> Unit = {},
     onRemove: (Int) -> Unit = {}
 ) {
@@ -55,11 +56,12 @@ fun StockAdjDataGrid(
                 StockAdjGridCell(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(50.dp)
+                        .height(60.dp)
                         .background(color = color),
                     stockAdjItem = stockAdjItem,
                     isLandscape = isLandscape,
                     index = index,
+                    onEditQty = { index, qty -> onEditQty.invoke(index, qty) },
                     onEdit = { onEdit.invoke(it) },
                     onRemove = { onRemove.invoke(it) }
                 )
