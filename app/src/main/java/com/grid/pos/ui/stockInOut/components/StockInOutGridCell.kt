@@ -137,16 +137,10 @@ fun StockInOutGridCell(
                     Modifier
                         .weight(1.6f)
                         .fillMaxHeight()
-                        .wrapContentHeight(
-                            align = Alignment.CenterVertically
-                        )
                 } else {
                     Modifier
                         .fillMaxHeight()
                         .width(160.dp)
-                        .wrapContentHeight(
-                            align = Alignment.CenterVertically
-                        )
                 },
                 textAlign = TextAlign.Center,
                 style = TextStyle(

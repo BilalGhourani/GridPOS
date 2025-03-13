@@ -212,7 +212,7 @@ fun StockInOutView(
                             .height(
                                 Utils.getListHeight(
                                     viewModel.items.size,
-                                    0
+                                    60
                                 )
                             )
                             .padding(horizontal = 10.dp)
