@@ -9,11 +9,16 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.RemoveCircle
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -37,6 +42,7 @@ fun StockInOutGridCell(
     isHeader: Boolean = false,
     isLandscape: Boolean = false,
     index: Int,
+    onEditQty: (Int, Double) -> Unit = { _, _ -> },
     onEdit: (Int) -> Unit = {},
     onRemove: (Int) -> Unit = {}
 ) {
@@ -124,30 +130,90 @@ fun StockInOutGridCell(
                     .width(1.dp)
             }
         )
-        Text(
-            text = if (isHeader) "Qty" else stockInOutItem.stockInOut.stockInOutQty.toString(),
-            modifier = if (isLandscape) {
-                Modifier
-                    .weight(.8f)
-                    .fillMaxHeight()
-                    .wrapContentHeight(
-                        align = Alignment.CenterVertically
-                    )
-            } else {
-                Modifier
-                    .fillMaxHeight()
-                    .width(80.dp)
-                    .wrapContentHeight(
-                        align = Alignment.CenterVertically
-                    )
-            },
-            textAlign = TextAlign.Center,
-            style = TextStyle(
-                fontWeight = if (isHeader) FontWeight.Bold else FontWeight.Normal,
-                fontSize = 16.sp
-            ),
-            color = SettingsModel.textColor
-        )
+        if (isHeader) {
+            Text(
+                text = "Qty",
+                modifier = if (isLandscape) {
+                    Modifier
+                        .weight(1.6f)
+                        .fillMaxHeight()
+                        .wrapContentHeight(
+                            align = Alignment.CenterVertically
+                        )
+                } else {
+                    Modifier
+                        .fillMaxHeight()
+                        .width(160.dp)
+                        .wrapContentHeight(
+                            align = Alignment.CenterVertically
+                        )
+                },
+                textAlign = TextAlign.Center,
+                style = TextStyle(
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp
+                ),
+                color = SettingsModel.textColor
+            )
+        } else {
+            TextField(
+                value = stockInOutItem.stockInOut.stockInOutQty.toInt().toString(),
+                onValueChange = {},
+                modifier = if (isLandscape) {
+                    Modifier
+                        .fillMaxHeight()
+                        .weight(1.6f)
+                } else {
+                    Modifier
+                        .fillMaxHeight()
+                        .width(160.dp)
+                },
+                readOnly = true,
+                enabled = false,
+                textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Center),
+                leadingIcon = {
+                    IconButton(onClick = {
+                        val qty = stockInOutItem.stockInOut.stockInOutQty
+                        onEditQty.invoke(
+                            index,
+                            qty.plus(1.0)
+                        )
+                    }) {
+                        Icon(
+                            Icons.Default.Add,
+                            contentDescription = "Increase quantity",
+                            tint = SettingsModel.buttonColor
+                        )
+                    }
+                },
+                trailingIcon = {
+                    IconButton(onClick = {
+                        val qty = stockInOutItem.stockInOut.stockInOutQty
+                        if (qty > 1) {
+                            onEditQty.invoke(
+                                index,
+                                qty.minus(1.0)
+                            )
+                        }
+                    }) {
+                        Icon(
+                            Icons.Default.Remove,
+                            contentDescription = "Decrease quantity",
+                            tint = SettingsModel.buttonColor
+                        )
+                    }
+                },
+                colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedBorderColor = Color.Transparent,
+                    focusedBorderColor = Color.Transparent,
+                    focusedTextColor = SettingsModel.textColor,
+                    unfocusedTextColor = SettingsModel.textColor,
+                    disabledTextColor = SettingsModel.textColor,
+                    cursorColor = Color.Transparent,
+                    disabledBorderColor = Color.Transparent,
+                )
+            )
+        }
         VerticalDivider(
             color = Color.Black,
             modifier = if (isLandscape) {

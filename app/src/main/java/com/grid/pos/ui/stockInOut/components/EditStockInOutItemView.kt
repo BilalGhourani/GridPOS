@@ -92,7 +92,9 @@ fun EditStockInOutItemView(
         stockItemNoteState = stockInOutItemModel.stockInOut.stockInOutNote ?: ""
         stockItemDivState = stockInOutItemModel.stockInOut.stockInOutDivName ?: ""
 
-        stockHeadDateState = stockHeaderInOut.stockHeadInOutDate ?: DateHelper.getDateInFormat(format = "YYYY-MM-DD HH:mm:ss.SSS")
+        stockHeadDateState = stockHeaderInOut.stockHeadInOutDate ?: DateHelper.getDateInFormat(
+            format = "YYYY-MM-DD HH:mm:ss.SSS"
+        )
         stockHeadValueDateState = DateHelper.getDateInFormat(
             stockHeaderInOut.stockHeadInOutValueDate ?: Date(),
             "YYYY-MM-DD HH:mm:ss.SSS"
@@ -152,14 +154,14 @@ fun EditStockInOutItemView(
         OutlinedTextField(
             value = qtyState.toString(),
             onValueChange = {
-                qtyState = it.toInt()
+                qtyState = it.toIntOrNull() ?: qtyState
             },
             shape = RoundedCornerShape(15.dp),
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(start = 10.dp, end = 10.dp, top = 10.dp),
-            readOnly = true,
-            enabled = false,
+            /*readOnly = true,
+            enabled = false,*/
             label = {
                 Box(
                     modifier = Modifier
@@ -180,7 +182,7 @@ fun EditStockInOutItemView(
                 keyboardType = KeyboardType.Number,
                 imeAction = ImeAction.Next
             ),
-            keyboardActions = KeyboardActions(onNext = { stockInOutDateFocusRequester.requestFocus() }),
+            keyboardActions = KeyboardActions(onNext = { stockHeadTransNoFocusRequester.requestFocus() }),
             leadingIcon = {
                 IconButton(onClick = {
                     qtyState++

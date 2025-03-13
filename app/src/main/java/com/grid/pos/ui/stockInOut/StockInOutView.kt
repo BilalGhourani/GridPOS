@@ -212,7 +212,7 @@ fun StockInOutView(
                             .height(
                                 Utils.getListHeight(
                                     viewModel.items.size,
-                                    50
+                                    0
                                 )
                             )
                             .padding(horizontal = 10.dp)
@@ -223,6 +223,16 @@ fun StockInOutView(
                                 )
                             ),
                         isLandscape = isTablet || isDeviceLargerThan7Inches || isLandscape,
+                        onEditQty = { index, qty ->
+                            if (index >= 0 && index < viewModel.items.size) {
+                                val itemAtIndex = viewModel.items[index]
+                                viewModel.items[index] = itemAtIndex.copy(
+                                    stockInOut = itemAtIndex.stockInOut.copy(
+                                        stockInOutQty = qty
+                                    )
+                                )
+                            }
+                        },
                         onEdit = { index ->
                             viewModel.selectedItemIndex = index
                             isEditBottomSheetVisible = true
