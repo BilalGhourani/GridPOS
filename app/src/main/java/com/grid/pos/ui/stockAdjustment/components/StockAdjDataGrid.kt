@@ -22,6 +22,7 @@ fun StockAdjDataGrid(
     stockAdjItems: MutableList<StockAdjItemModel> = mutableListOf(),
     modifier: Modifier = Modifier,
     isLandscape: Boolean = false,
+    isStkAdj:Boolean,
     onEditQty: (Int, Double) -> Unit = { _, _ -> },
     onEdit: (Int) -> Unit = {},
     onRemove: (Int) -> Unit = {}
@@ -45,6 +46,7 @@ fun StockAdjDataGrid(
                     .height(50.dp)
                     .background(color = Color.LightGray),
                 stockAdjItem = StockAdjItemModel(),
+                isStkAdj = isStkAdj,
                 isHeader = true,
                 isLandscape = isLandscape,
                 index = 0
@@ -59,6 +61,7 @@ fun StockAdjDataGrid(
                         .height(60.dp)
                         .background(color = color),
                     stockAdjItem = stockAdjItem,
+                    isStkAdj = isStkAdj,
                     isLandscape = isLandscape,
                     index = index,
                     onEditQty = { index, qty -> onEditQty.invoke(index, qty) },
@@ -79,7 +82,7 @@ fun InvoiceBodyDetailsCellPreview() {
                 StockAdjItemModel(),
                 StockAdjItemModel(),
                 StockAdjItemModel()
-            ), isLandscape = true
+            ), isStkAdj = true,isLandscape = true
         )
     }
 }

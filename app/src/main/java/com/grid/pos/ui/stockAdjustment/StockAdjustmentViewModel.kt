@@ -30,6 +30,7 @@ class StockAdjustmentViewModel @Inject constructor(
 
     val state = mutableStateOf(StockAdjustmentState())
 
+    var isStockAdjustment:Boolean = true
     private var stockIOTransCode: String? = null
     var selectedItemIndex: Int = 0
 

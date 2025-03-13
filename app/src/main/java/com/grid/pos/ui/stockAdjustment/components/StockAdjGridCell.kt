@@ -57,6 +57,7 @@ import com.grid.pos.ui.theme.GridPOSTheme
 fun StockAdjGridCell(
     modifier: Modifier = Modifier,
     stockAdjItem: StockAdjItemModel,
+    isStkAdj: Boolean,
     isHeader: Boolean = false,
     isLandscape: Boolean = false,
     index: Int,
@@ -175,7 +176,11 @@ fun StockAdjGridCell(
             )
         } else {
             TextField(
-                value = stockAdjItem.stockAdjustment.stockAdjQty.toString(),
+                value = if (isStkAdj) {
+                    stockAdjItem.stockAdjustment.stockAdjQty.toString()
+                } else {
+                    stockAdjItem.stockAdjustment.stockAdjRemQtyWa.toString()
+                },
                 onValueChange = {},
                 modifier = if (isLandscape) {
                     Modifier
@@ -191,7 +196,11 @@ fun StockAdjGridCell(
                 textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Center),
                 leadingIcon = {
                     IconButton(onClick = {
-                        val qty = stockAdjItem.stockAdjustment.stockAdjQty ?: 1.0
+                        val qty = if (isStkAdj) {
+                            stockAdjItem.stockAdjustment.stockAdjQty ?: 1.0
+                        } else {
+                            stockAdjItem.stockAdjustment.stockAdjRemQtyWa ?: 1.0
+                        }
                         onEditQty.invoke(
                             index,
                             qty.plus(1.0)
@@ -206,7 +215,11 @@ fun StockAdjGridCell(
                 },
                 trailingIcon = {
                     IconButton(onClick = {
-                        val qty = stockAdjItem.stockAdjustment.stockAdjQty ?: 1.0
+                        val qty = if (isStkAdj) {
+                            stockAdjItem.stockAdjustment.stockAdjQty ?: 1.0
+                        } else {
+                            stockAdjItem.stockAdjustment.stockAdjRemQtyWa ?: 1.0
+                        }
                         if (qty > 1) {
                             onEditQty.invoke(
                                 index,
@@ -305,6 +318,7 @@ fun InvoiceItemCellPreview() {
     GridPOSTheme {
         StockAdjGridCell(
             stockAdjItem = StockAdjItemModel(),
+            isStkAdj = true,
             index = 0,
             isLandscape = true
         )

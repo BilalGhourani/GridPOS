@@ -105,6 +105,10 @@ fun StockAdjustmentView(
     var isLandscape by remember { mutableStateOf(orientation == Configuration.ORIENTATION_LANDSCAPE) }
     val keyboardController = LocalSoftwareKeyboardController.current
 
+    LaunchedEffect(Unit) {
+        viewModel.isStockAdjustment = source.equals("stkadj", ignoreCase = true)
+    }
+
     LaunchedEffect(configuration) {
         snapshotFlow { configuration.orientation }.collect {
             isLandscape = it == Configuration.ORIENTATION_LANDSCAPE
@@ -173,11 +177,9 @@ fun StockAdjustmentView(
                         },
                         title = {
                             Text(
-                                text = if (isEditBottomSheetVisible) "Edit Item" else if (source.equals(
-                                        "stkadj",
-                                        ignoreCase = true
-                                    )
-                                ) "Stock Adjustment" else "Quantity On Hand",
+                                text = if (isEditBottomSheetVisible){
+                                    "Edit Item"
+                                } else if (viewModel.isStockAdjustment) "Stock Adjustment" else "Quantity On Hand",
                                 color = SettingsModel.textColor,
                                 fontSize = 16.sp,
                                 textAlign = TextAlign.Center
@@ -227,6 +229,7 @@ fun StockAdjustmentView(
                                     Color.Black
                                 )
                             ),
+                        isStkAdj = viewModel.isStockAdjustment,
                         isLandscape = isTablet || isDeviceLargerThan7Inches || isLandscape,
                         onEditQty = { index, qty ->
                             if (index >= 0 && index < viewModel.items.size) {

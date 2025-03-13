@@ -91,7 +91,7 @@ fun EditStockAdjItemView(
     var stockHeadUserState by remember { mutableStateOf("") }
 
     LaunchedEffect(Unit) {
-        if (source.equals("stkadj", ignoreCase = true)) {
+        if (viewModel.isStockAdjustment) {
             qtyState = stockAdjItemModel.stockAdjustment.stockAdjQty?.toInt() ?: 0
             stockItemCostState = ""
         } else {
@@ -125,7 +125,7 @@ fun EditStockAdjItemView(
     fun backAndSave() {
         val stockItemModel = stockAdjItemModel.copy()
         val stockHeaderInOutCopy = stockHeaderAdjustment.copy()
-        if (source.equals("stkadj", ignoreCase = true)) {
+        if (viewModel.isStockAdjustment) {
             stockItemModel.stockAdjustment.stockAdjQty = qtyState.toDouble()
             stockItemModel.stockAdjustment.stockAdjRemQtyWa = null
             stockItemModel.stockAdjustment.stockAdjCost = null
@@ -299,7 +299,7 @@ fun EditStockAdjItemView(
             enabled = false,
             focusRequester = stockHeadNoteFocusRequester,
             onAction = {
-                if (source.equals("stkadj", ignoreCase = true)) {
+                if (viewModel.isStockAdjustment) {
                     stockItemReasonFocusRequester.requestFocus()
                 }else{
                     stockItemCostFocusRequester.requestFocus()
