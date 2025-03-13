@@ -11,9 +11,6 @@ import com.grid.pos.data.user.User
 import com.grid.pos.model.InvoiceItemModel
 
 data class POSState(
-    var invoiceHeader: InvoiceHeader = InvoiceHeader(),
-    val invoiceItems: MutableList<InvoiceItemModel> = mutableListOf(),
-    var posReceipt: PosReceipt = PosReceipt(),
     var families: MutableList<Family> = mutableListOf(),
     var items: MutableList<Item> = mutableListOf(),
     var thirdParties: MutableList<ThirdParty> = mutableListOf(),

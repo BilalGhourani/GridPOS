@@ -59,12 +59,12 @@ import com.grid.pos.utils.Utils
 
 @Composable
 fun EditInvoiceItemView(
-        modifier: Modifier = Modifier,
-        invoices: MutableList<InvoiceItemModel>,
-        invHeader: InvoiceHeader,
-        invoiceIndex: Int = 0,
-        triggerOnSave:Boolean = false,
-        onSave: (InvoiceHeader, InvoiceItemModel) -> Unit = { _, _ -> }
+    modifier: Modifier = Modifier,
+    invoices: MutableList<InvoiceItemModel>,
+    invHeader: InvoiceHeader,
+    invoiceIndex: Int = 0,
+    triggerOnSave: Boolean = false,
+    onSave: (InvoiceHeader, InvoiceItemModel) -> Unit = { _, _ -> }
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
     val rDiscount1FocusRequester = remember { FocusRequester() }
@@ -149,7 +149,8 @@ fun EditInvoiceItemView(
             invoiceItemModel.invoice.invoiceDiscount = itemDiscount
             invoiceItemModel.invoice.invoiceDiscamt = disc
         } else {
-            val disc = if (itemPrice == 0.0) 0.0 else (itemDiscountAmount.div(itemPrice)).times(100.0)
+            val disc =
+                if (itemPrice == 0.0) 0.0 else (itemDiscountAmount.div(itemPrice)).times(100.0)
             rDiscount1 = String.format(
                 "%,.${curr1Decimal}f",
                 disc
@@ -180,9 +181,10 @@ fun EditInvoiceItemView(
             if (invoiceHeader.invoiceHeadGrossAmount == 0.0) {
                 invoiceHeader.invoiceHeadDiscount = 0.0
             } else {
-                invoiceHeader.invoiceHeadDiscount = (invoiceHeader.invoiceHeadDiscountAmount.div(invoiceHeader.invoiceHeadGrossAmount)).times(
-                    100.0
-                )
+                invoiceHeader.invoiceHeadDiscount =
+                    (invoiceHeader.invoiceHeadDiscountAmount.div(invoiceHeader.invoiceHeadGrossAmount)).times(
+                        100.0
+                    )
             }
             discount1 = String.format(
                 "%,.${curr1Decimal}f",
@@ -197,7 +199,8 @@ fun EditInvoiceItemView(
         invoiceHeader.invoiceHeadDiscount = discount1.toDoubleOrNull() ?: 0.0
         invoiceHeader.invoiceHeadDiscountAmount = discount2.toDoubleOrNull() ?: 0.0
 
-        invoiceItemModel.invoice.invoicePrice = price.toDoubleOrNull() ?: invoiceItemModel.invoiceItem.itemUnitPrice
+        invoiceItemModel.invoice.invoicePrice =
+            price.toDoubleOrNull() ?: invoiceItemModel.invoiceItem.itemUnitPrice
         invoiceItemModel.invoice.invoiceTax = taxState.toDoubleOrNull() ?: 0.0
         invoiceItemModel.invoice.invoiceTax1 = tax1State.toDoubleOrNull() ?: 0.0
         invoiceItemModel.invoice.invoiceTax2 = tax2State.toDoubleOrNull() ?: 0.0
@@ -276,11 +279,11 @@ fun EditInvoiceItemView(
             )
             OutlinedTextField(value = qty.toString(),
                 onValueChange = {
-                    qty = it.toInt()
+                    qty = it.toIntOrNull() ?: qty
                 },
                 shape = RoundedCornerShape(15.dp),
                 modifier = Modifier.weight(1f),
-                readOnly = true,
+                /*readOnly = true,*/
                 label = {
                     Box(
                         modifier = Modifier
@@ -300,7 +303,7 @@ fun EditInvoiceItemView(
                     keyboardType = KeyboardType.Number,
                     imeAction = ImeAction.Next
                 ),
-                keyboardActions = KeyboardActions(onNext = { /* Move focus to next field */ }),
+                keyboardActions = KeyboardActions(onNext = { rDiscount1FocusRequester.requestFocus() }),
                 leadingIcon = {
                     IconButton(onClick = {
                         qty++

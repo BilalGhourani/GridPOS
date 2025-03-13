@@ -9,11 +9,16 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.RemoveCircle
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -37,6 +42,7 @@ fun InvoiceItemCell(
     isHeader: Boolean = false,
     isLandscape: Boolean = false,
     index: Int,
+    onEditQty: (Int, Double) -> Unit = { _, _ -> },
     onEdit: (Int) -> Unit = {},
     onRemove: (Int) -> Unit = {}
 ) {
@@ -79,7 +85,7 @@ fun InvoiceItemCell(
         }
         val qtyModifier = if (isLandscape) {
             Modifier
-                .weight(.8f)
+                .weight(1.5f)
                 .fillMaxHeight()
                 .wrapContentHeight(
                     align = Alignment.CenterVertically
@@ -87,7 +93,7 @@ fun InvoiceItemCell(
         } else {
             Modifier
                 .fillMaxHeight()
-                .width(80.dp)
+                .width(150.dp)
                 .wrapContentHeight(
                     align = Alignment.CenterVertically
                 )
@@ -121,13 +127,65 @@ fun InvoiceItemCell(
             color = Color.Black,
             modifier = dividerModifier
         )
-        Text(
-            text = if (isHeader) "Qty" else invoiceItemModel.invoice.invoiceQuantity.toString(),
-            modifier = qtyModifier,
-            textAlign = TextAlign.Center,
-            style = textStyle,
-            color = SettingsModel.textColor
-        )
+        if (isHeader) {
+            Text(
+                text = "Qty",
+                modifier = qtyModifier,
+                textAlign = TextAlign.Center,
+                style = textStyle,
+                color = SettingsModel.textColor
+            )
+        }else{
+            TextField(
+                value = invoiceItemModel.invoice.invoiceQuantity.toString(),
+                onValueChange = {},
+                modifier = qtyModifier,
+                readOnly = true,
+                enabled = false,
+                textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Center),
+                leadingIcon = {
+                    IconButton(onClick = {
+                        val qty = invoiceItemModel.invoice.invoiceQuantity
+                        onEditQty.invoke(
+                            index,
+                            qty.plus(1.0)
+                        )
+                    }) {
+                        Icon(
+                            Icons.Default.Add,
+                            contentDescription = "Increase quantity",
+                            tint = SettingsModel.buttonColor
+                        )
+                    }
+                },
+                trailingIcon = {
+                    IconButton(onClick = {
+                        val qty = invoiceItemModel.invoice.invoiceQuantity
+                        if (qty > 1) {
+                            onEditQty.invoke(
+                                index,
+                                qty.minus(1.0)
+                            )
+                        }
+                    }) {
+                        Icon(
+                            Icons.Default.Remove,
+                            contentDescription = "Decrease quantity",
+                            tint = SettingsModel.buttonColor
+                        )
+                    }
+                },
+                colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedBorderColor = Color.Transparent,
+                    focusedBorderColor = Color.Transparent,
+                    focusedTextColor = SettingsModel.textColor,
+                    unfocusedTextColor = SettingsModel.textColor,
+                    disabledTextColor = SettingsModel.textColor,
+                    cursorColor = Color.Transparent,
+                    disabledBorderColor = Color.Transparent,
+                )
+            )
+        }
         VerticalDivider(
             color = Color.Black,
             modifier = dividerModifier

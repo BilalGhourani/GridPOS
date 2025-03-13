@@ -45,7 +45,7 @@ fun InvoiceFooterView(
 ) {
     val currency = SettingsModel.currentCurrency ?: Currency()
 
-    var clientState by remember { mutableStateOf(state.invoiceHeader.invoiceHeadCashName ?: "") }
+    var clientState by remember { mutableStateOf(viewModel.invoiceHeaderState.value.invoiceHeadCashName ?: "") }
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -92,7 +92,7 @@ fun InvoiceFooterView(
                 maxLines = 1,
                 text = String.format(
                     "%,.${currency.currencyName1Dec}f %s",
-                    state.invoiceHeader.invoiceHeadTotal,
+                    viewModel.invoiceHeaderState.value.invoiceHeadTotal,
                     currency.currencyCode1 ?: ""
                 ),
                 color = SettingsModel.textColor
@@ -106,7 +106,7 @@ fun InvoiceFooterView(
                     maxLines = 1,
                     text = String.format(
                         "%,.${currency.currencyName2Dec}f %s",
-                        state.invoiceHeader.invoiceHeadTotal1,
+                        viewModel.invoiceHeaderState.value.invoiceHeadTotal1,
                         currency.currencyCode2 ?: ""
                     ),
                     color = SettingsModel.textColor
@@ -134,7 +134,7 @@ fun InvoiceFooterView(
                         .wrapContentHeight()
                         .padding(horizontal = 5.dp),
                     maxLines = 1,
-                    text = state.invoiceHeader.invoiceHeadTaName ?: "",
+                    text = viewModel.invoiceHeaderState.value.invoiceHeadTaName ?: "",
                     color = SettingsModel.textColor
                 )
             }
@@ -172,24 +172,24 @@ fun InvoiceFooterView(
                 }
 
                 val selectedThirdParty =
-                    if (state.invoiceHeader.invoiceHeadThirdPartyName.isNullOrEmpty()) {
+                    if (viewModel.invoiceHeaderState.value.invoiceHeadThirdPartyName.isNullOrEmpty()) {
                         viewModel.defaultThirdParty
                             ?: state.thirdParties.firstOrNull { it.thirdPartyDefault }
                     } else {
                         state.thirdParties.firstOrNull {
                             it.thirdPartyId.equals(
-                                state.invoiceHeader.invoiceHeadThirdPartyName,
+                                viewModel.invoiceHeaderState.value.invoiceHeadThirdPartyName,
                                 ignoreCase = true
                             )
                         } ?: viewModel.defaultThirdParty
                     }
                 selectedThirdParty?.let {
                     clientState = it.thirdPartyName ?: ""
-                    state.invoiceHeader.invoiceHeadThirdPartyNewName = it.thirdPartyName
+                    viewModel.invoiceHeaderState.value.invoiceHeadThirdPartyNewName = it.thirdPartyName
                     onThirdPartySelected.invoke(it)
                 } ?: run {
                     clientState = ""
-                    state.invoiceHeader.invoiceHeadThirdPartyNewName = null
+                    viewModel.invoiceHeaderState.value.invoiceHeadThirdPartyNewName = null
                 }
                 SearchableDropdownMenuEx(items = state.thirdParties.toMutableList(),
                     selectedId = selectedThirdParty?.thirdPartyId,

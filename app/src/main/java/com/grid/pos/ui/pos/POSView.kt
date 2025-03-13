@@ -42,7 +42,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
@@ -75,7 +74,6 @@ import com.grid.pos.ui.pos.components.InvoiceHeaderDetails
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.utils.Utils
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 @SuppressLint("MutableCollectionMutableState")
@@ -142,7 +140,7 @@ fun POSView(
                                         navController?.navigate(Screen.LoginView.route)
                                     }
                                 } else {
-                                    if (!viewModel.state.value.invoiceHeader.invoiceHeadTableId.isNullOrEmpty()) {
+                                    if (!viewModel.invoiceHeaderState.value.invoiceHeadTableId.isNullOrEmpty()) {
                                         viewModel.unLockTable()
                                     }
                                     viewModel.resetState()
@@ -250,7 +248,7 @@ fun POSView(
                         InvoiceHeaderDetails(modifier = Modifier
                             .fillMaxWidth()
                             .height(70.dp),
-                            isPayEnabled = viewModel.state.value.invoiceItems.isNotEmpty(),
+                            isPayEnabled = viewModel.invoiceItems.isNotEmpty(),
                             isDeleteEnabled = viewModel.isAllowingToDelete(),
                             onAddItem = {
                                 if (viewModel.state.value.items.isEmpty()) {
@@ -281,37 +279,41 @@ fun POSView(
                             Color.Black
                         )
 
-                        InvoiceBodyDetails(invoices = viewModel.state.value.invoiceItems,
+                        InvoiceBodyDetails(invoices = viewModel.invoiceItems,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(
                                     Utils.getListHeight(
-                                        viewModel.state.value.invoiceItems.size,
-                                        50
+                                        viewModel.invoiceItems.size,
+                                        60
                                     )
                                 )
                                 .border(borderStroke),
                             isLandscape = viewModel.isTablet || viewModel.isDeviceLargerThan7Inches || viewModel.isLandscape,
+                            onEditQty = { index, qty ->
+                                if (index >= 0 && index < viewModel.invoiceItems.size) {
+                                    val itemAtIndex = viewModel.invoiceItems[index]
+                                    viewModel.invoiceItems[index] = itemAtIndex.copy(
+                                        invoice = itemAtIndex.invoice.copy(
+                                            invoiceQuantity = qty
+                                        )
+                                    )
+                                }
+                            },
                             onEdit = { index ->
                                 viewModel.selectedItemIndex = index
                                 viewModel.isEditBottomSheetVisible.value = true
                             },
                             onRemove = { index ->
-                                val invItems = viewModel.state.value.invoiceItems.toMutableList()
-                                val invoiceItem = invItems[index]
+                                val invoiceItem = viewModel.invoiceItems[index]
                                 if (!invoiceItem.invoice.isNew() && !viewModel.isAllowingToVoidItem()) {
                                     viewModel.showWarning("You are not allowed to void saved items.")
                                     return@InvoiceBodyDetails
                                 }
-                                val deletedRow = invItems.removeAt(index)
-                                viewModel.updateState(
-                                    viewModel.state.value.copy(
-                                        invoiceItems = invItems,
-                                        invoiceHeader = POSUtils.refreshValues(
-                                            invItems,
-                                            viewModel.state.value.invoiceHeader
-                                        )
-                                    )
+                                val deletedRow = viewModel.invoiceItems.removeAt(index)
+                                viewModel.invoiceHeaderState.value = POSUtils.refreshValues(
+                                    viewModel.invoiceItems,
+                                    viewModel.invoiceHeaderState.value
                                 )
                                 if (!deletedRow.invoice.isNew()) {
                                     deletedRow.isDeleted = true
@@ -336,7 +338,7 @@ fun POSView(
                             }
 
                             Text(
-                                text = "Discount: ${viewModel.state.value.invoiceHeader.invoiceHeadDiscount}%",
+                                text = "Discount: ${viewModel.invoiceHeaderState.value.invoiceHeadDiscount}%",
                                 modifier = Modifier.wrapContentWidth(),
                                 textAlign = TextAlign.End,
                                 style = TextStyle(
@@ -347,7 +349,7 @@ fun POSView(
                             )
 
                             Text(
-                                text = Utils.getItemsNumberStr(viewModel.state.value.invoiceItems.size),
+                                text = Utils.getItemsNumberStr(viewModel.invoiceItems.size),
                                 modifier = Modifier.wrapContentWidth(),
                                 textAlign = TextAlign.End,
                                 style = TextStyle(
@@ -381,18 +383,18 @@ fun POSView(
                             },
                             onThirdPartySelected = { thirdParty ->
                                 viewModel.isInvoiceEdited =
-                                    viewModel.isInvoiceEdited || viewModel.state.value.invoiceHeader.invoiceHeadThirdPartyName != thirdParty.thirdPartyId
+                                    viewModel.isInvoiceEdited || viewModel.invoiceHeaderState.value.invoiceHeadThirdPartyName != thirdParty.thirdPartyId
+                                viewModel.invoiceHeaderState.value = viewModel.invoiceHeaderState.value.copy(
+                                    invoiceHeadThirdPartyName = thirdParty.thirdPartyId
+                                )
                                 viewModel.updateState(
                                     viewModel.state.value.copy(
-                                        selectedThirdParty = thirdParty,
-                                        invoiceHeader = viewModel.state.value.invoiceHeader.copy(
-                                            invoiceHeadThirdPartyName = thirdParty.thirdPartyId
-                                        )
+                                        selectedThirdParty = thirdParty
                                     )
                                 )
                             },
                             onInvoiceSelected = { invoiceHeader ->
-                                if (viewModel.state.value.invoiceItems.isNotEmpty()) {
+                                if (viewModel.invoiceItems.isNotEmpty()) {
                                     viewModel.showPopup(
                                         PopupModel().apply {
                                             onConfirmation = {
@@ -422,7 +424,7 @@ fun POSView(
                                 .fillMaxHeight()
                         ) { itemList ->
                             viewModel.isInvoiceEdited = true
-                            val invoices = viewModel.state.value.invoiceItems.toMutableList()
+                            val invoices = mutableListOf<InvoiceItemModel>()
                             itemList.forEach { item ->
                                 val invoiceItemModel = InvoiceItemModel(
                                     shouldPrint = true
@@ -430,14 +432,10 @@ fun POSView(
                                 invoiceItemModel.setItem(item)
                                 invoices.add(invoiceItemModel)
                             }
-                            viewModel.updateState(
-                                viewModel.state.value.copy(
-                                    invoiceItems = invoices,
-                                    invoiceHeader = POSUtils.refreshValues(
-                                        invoices,
-                                        viewModel.state.value.invoiceHeader
-                                    )
-                                )
+                            viewModel.invoiceItems.addAll(invoices)
+                            viewModel.invoiceHeaderState.value = POSUtils.refreshValues(
+                                invoices,
+                                viewModel.invoiceHeaderState.value
                             )
                             viewModel.isAddItemBottomSheetVisible.value = false
                         }
@@ -453,8 +451,8 @@ fun POSView(
                     animationSpec = tween(durationMillis = 250)
                 )
             ) {
-                EditInvoiceItemView(invoices = viewModel.state.value.invoiceItems.toMutableList(),
-                    invHeader = viewModel.state.value.invoiceHeader,
+                EditInvoiceItemView(invoices = viewModel.invoiceItems.toMutableList(),
+                    invHeader = viewModel.invoiceHeaderState.value,
                     invoiceIndex = viewModel.selectedItemIndex,
                     modifier = Modifier
                         .fillMaxSize()
@@ -469,14 +467,8 @@ fun POSView(
                                 itemModel.invoice
                             ) || viewModel.currentInvoice?.didChanged(invHeader) == true
                         viewModel.isInvoiceEdited = viewModel.isInvoiceEdited || isChanged
-                        val invoiceItems = viewModel.state.value.invoiceItems.toMutableList()
-                        invoiceItems[viewModel.selectedItemIndex] = itemModel
-                        viewModel.updateState(
-                            viewModel.state.value.copy(
-                                invoiceItems = invoiceItems,
-                                invoiceHeader = invHeader
-                            )
-                        )
+                        viewModel.invoiceItems[viewModel.selectedItemIndex] = itemModel
+                        viewModel.invoiceHeaderState.value = invHeader
                         viewModel.isEditBottomSheetVisible.value = false
                         viewModel.triggerSaveCallback.value = false
                     })
@@ -505,7 +497,7 @@ fun POSView(
                             detectTapGestures(onTap = {})
                         }) { itemList ->
                     viewModel.isInvoiceEdited = true
-                    val invoices = viewModel.state.value.invoiceItems.toMutableList()
+                    val invoices = mutableListOf<InvoiceItemModel>()
                     itemList.forEach { item ->
                         val invoiceItemModel = InvoiceItemModel(
                             shouldPrint = true
@@ -513,14 +505,10 @@ fun POSView(
                         invoiceItemModel.setItem(item)
                         invoices.add(invoiceItemModel)
                     }
-                    viewModel.updateState(
-                        viewModel.state.value.copy(
-                            invoiceItems = invoices,
-                            invoiceHeader = POSUtils.refreshValues(
-                                invoices,
-                                viewModel.state.value.invoiceHeader
-                            )
-                        )
+                    viewModel.invoiceItems.addAll(invoices)
+                    viewModel.invoiceHeaderState.value = POSUtils.refreshValues(
+                        invoices,
+                        viewModel.invoiceHeaderState.value
                     )
                     viewModel.isAddItemBottomSheetVisible.value = false
                     viewModel.triggerSaveCallback.value = false
@@ -537,8 +525,8 @@ fun POSView(
                 )
             ) {
                 InvoiceCashView(
-                    invoiceHeader = viewModel.state.value.invoiceHeader,
-                    posReceipt = viewModel.state.value.posReceipt,
+                    invoiceHeader = viewModel.invoiceHeaderState.value,
+                    posReceipt = viewModel.posReceipt,
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(it)
@@ -551,8 +539,8 @@ fun POSView(
                         }
                     },
                     onSave = { change, receipt ->
-                        viewModel.state.value.posReceipt = receipt
-                        viewModel.state.value.invoiceHeader.invoiceHeadChange = change
+                        viewModel.posReceipt = receipt
+                        viewModel.invoiceHeaderState.value.invoiceHeadChange = change
                         viewModel.saveInvoiceHeader(
                             context = context,
                             print = false,
@@ -563,20 +551,20 @@ fun POSView(
                         }
                     },
                     onSaveAndPrintOrder = { change, receipt ->
-                        viewModel.state.value.posReceipt = receipt
-                        viewModel.state.value.invoiceHeader.invoiceHeadChange = change
+                        viewModel.posReceipt = receipt
+                        viewModel.invoiceHeaderState.value.invoiceHeadChange = change
                         viewModel.saveInvoiceHeader(
                             context = context,
                             print = true,
-                            finish = viewModel.state.value.invoiceHeader.isFinished(),
+                            finish = viewModel.invoiceHeaderState.value.isFinished(),
                             proceedToPrint = true
                         ) {
                             navController?.navigate(Screen.UIWebView.route)
                         }
                     },
                     onFinishAndPrint = { change, receipt ->
-                        viewModel.state.value.posReceipt = receipt
-                        viewModel.state.value.invoiceHeader.invoiceHeadChange = change
+                        viewModel.posReceipt = receipt
+                        viewModel.invoiceHeaderState.value.invoiceHeadChange = change
                         viewModel.saveInvoiceHeader(
                             context = context,
                             print = true,

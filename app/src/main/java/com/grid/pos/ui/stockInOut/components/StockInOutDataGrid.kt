@@ -42,7 +42,7 @@ fun StockInOutDataGrid(
             StockInOutGridCell(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(50.dp)
+                    .height(60.dp)
                     .background(color = Color.LightGray),
                 stockInOutItem = StockInOutItemModel(),
                 isHeader = true,

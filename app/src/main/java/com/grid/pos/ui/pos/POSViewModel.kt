@@ -2,6 +2,7 @@ package com.grid.pos.ui.pos
 
 import android.content.Context
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.viewModelScope
 import com.grid.pos.App
@@ -34,7 +35,6 @@ import com.grid.pos.utils.Utils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -64,6 +64,10 @@ class POSViewModel @Inject constructor(
     var isEditBottomSheetVisible = mutableStateOf(false)
     var isAddItemBottomSheetVisible = mutableStateOf(false)
     var isPayBottomSheetVisible = mutableStateOf(false)
+
+    var invoiceHeaderState = mutableStateOf(InvoiceHeader())
+    val invoiceItems = mutableStateListOf<InvoiceItemModel>()
+    var posReceipt: PosReceipt = PosReceipt()
 
     var invoiceItemModels: MutableList<InvoiceItemModel> = mutableListOf()
     val itemsToDelete: MutableList<InvoiceItemModel> = mutableListOf()
@@ -108,7 +112,7 @@ class POSViewModel @Inject constructor(
     }
 
     fun isAllowingToDelete(): Boolean {
-        return allowDeleteInvoice && !state.value.invoiceHeader.isNew()
+        return allowDeleteInvoice && !invoiceHeaderState.value.isNew()
     }
 
     fun isAllowingToVoidItem(): Boolean {
@@ -126,10 +130,10 @@ class POSViewModel @Inject constructor(
             isEditBottomSheetVisible.value = false
         } else if (isPayBottomSheetVisible.value) {
             isPayBottomSheetVisible.value = false
-        } else if (state.value.invoiceItems.isNotEmpty()) {
+        } else if (invoiceItems.isNotEmpty()) {
             callback.invoke("discard", true)
         } else {
-            if (!state.value.invoiceHeader.invoiceHeadTableId.isNullOrEmpty()) {
+            if (!invoiceHeaderState.value.invoiceHeadTableId.isNullOrEmpty()) {
                 unLockTable()
             }
             if (SettingsModel.getUserType() == UserType.POS) {
@@ -144,11 +148,11 @@ class POSViewModel @Inject constructor(
     fun resetState() {
         itemsToDelete.clear()
         invoiceItemModels.clear()
+        invoiceItems.clear()
+        invoiceHeaderState.value = InvoiceHeader()
+        posReceipt = PosReceipt()
         updateState(
             state.value.copy(
-                invoiceItems = mutableListOf(),
-                invoiceHeader = InvoiceHeader(),
-                posReceipt = PosReceipt(),
                 selectedThirdParty = defaultThirdParty ?: ThirdParty(),
             )
         )
@@ -362,8 +366,8 @@ class POSViewModel @Inject constructor(
         proceedToPrint: Boolean = false,
         callback: () -> Unit
     ) {
-        val invoiceHeader = state.value.invoiceHeader
-        if (state.value.invoiceItems.isEmpty()) {
+        val invoiceHeader = invoiceHeaderState.value
+        if (invoiceItems.isEmpty()) {
             showWarning("invoice doesn't contains any item!")
             return
         }
@@ -471,7 +475,6 @@ class POSViewModel @Inject constructor(
         proceedToPrint: Boolean,
         callback: () -> Unit
     ) {
-        val posReceipt = state.value.posReceipt
         val isInserting = posReceipt.isNew()
         if (isInserting) {
             posReceipt.posReceiptInvoiceId = invoiceHeader.invoiceHeadId
@@ -482,6 +485,7 @@ class POSViewModel @Inject constructor(
         }
         saveInvoiceItems(
             context,
+            invoiceHeader,
             print,
             proceedToPrint,
             callback
@@ -490,11 +494,12 @@ class POSViewModel @Inject constructor(
 
     private suspend fun saveInvoiceItems(
         context: Context,
+        invoiceHeader: InvoiceHeader,
         print: Boolean,
         proceedToPrint: Boolean,
         callback: () -> Unit
     ) {
-        val invoices = state.value.invoiceItems.mapIndexed { index, invoiceItemModel ->
+        val invoices = invoiceItems.mapIndexed { index, invoiceItemModel ->
             invoiceItemModel.copy(
                 invoice = invoiceItemModel.invoice.copy(
                     invoiceLineNo = index + 1
@@ -506,7 +511,7 @@ class POSViewModel @Inject constructor(
         val itemsToDelete = itemsToDelete.filter { !it.invoice.isNew() }
 
         itemsToInsert.forEach { invoiceItem ->
-            invoiceItem.invoice.invoiceHeaderId = state.value.invoiceHeader.invoiceHeadId
+            invoiceItem.invoice.invoiceHeaderId = invoiceHeader.invoiceHeadId
             saveInvoiceItem(
                 invoiceItem,
                 true
@@ -514,7 +519,7 @@ class POSViewModel @Inject constructor(
         }
 
         itemsToUpdate.forEach { invoiceItem ->
-            invoiceItem.invoice.invoiceHeaderId = state.value.invoiceHeader.invoiceHeadId
+            invoiceItem.invoice.invoiceHeaderId = invoiceHeader.invoiceHeadId
             saveInvoiceItem(
                 invoiceItem,
                 false
@@ -592,29 +597,25 @@ class POSViewModel @Inject constructor(
         if (isInvoiceEdited) {
             showWarning("Save your changes at first!")
             return
-        } else if (state.value.invoiceHeader.isNew()) {
+        } else if (invoiceHeaderState.value.isNew()) {
             showWarning("Save invoice at first!")
             return
         }
         showLoading(true)
         viewModelScope.launch(Dispatchers.IO) {
-            state.value.invoiceItems.forEach { invoiceItemModel ->
+            invoiceItems.forEach { invoiceItemModel ->
                 invoiceItemModel.shouldPrint = true
             }
-            state.value.invoiceHeader.invoiceHeadPrinted += 1
+            invoiceHeaderState.value.invoiceHeadPrinted += 1
             invoiceHeaderRepository.updateInvoiceHeader(
-                state.value.invoiceHeader
+                invoiceHeaderState.value
             )
             prepareInvoiceReports(context)
             withContext(Dispatchers.Main) {
                 isPayBottomSheetVisible.value = false
-                updateState(
-                    state.value.copy(
-                        invoiceItems = mutableListOf(),
-                        invoiceHeader = InvoiceHeader(),
-                        posReceipt = PosReceipt()
-                    )
-                )
+                invoiceItems.clear()
+                invoiceHeaderState.value = InvoiceHeader()
+                posReceipt = PosReceipt()
                 addReportResult(reportResults)
                 resetState()
                 showLoading(false)
@@ -636,13 +637,9 @@ class POSViewModel @Inject constructor(
         invoiceHeader: InvoiceHeader
     ) {
         if (invoiceHeader.invoiceHeadId.isEmpty()) {
-            updateState(
-                state.value.copy(
-                    invoiceItems = mutableListOf(),
-                    invoiceHeader = invoiceHeader,
-                    posReceipt = PosReceipt()
-                )
-            )
+            invoiceItems.clear()
+            invoiceHeaderState.value = invoiceHeader
+            posReceipt = PosReceipt()
             return
         }
         showLoading(true)
@@ -669,28 +666,25 @@ class POSViewModel @Inject constructor(
                     } ?: Item()))
             }
 
-            val posReceipt =
+            val dbPosReceipt =
                 posReceiptRepository.getPosReceiptByInvoice(invoiceHeader.invoiceHeadId)
             invoiceItemModels = invoices.toMutableList()
             currentInvoice = invoiceHeader.copy()
             withContext(Dispatchers.Main) {
-                updateState(
-                    state.value.copy(
-                        invoiceItems = invoices,
-                        invoiceHeader = POSUtils.refreshValues(
-                            invoices,
-                            invoiceHeader.copy()
-                        ),
-                        posReceipt = posReceipt ?: PosReceipt()
-                    )
+                invoiceItems.clear()
+                invoiceItems.addAll(invoices)
+                invoiceHeaderState.value = POSUtils.refreshValues(
+                    invoices,
+                    invoiceHeader.copy()
                 )
+                posReceipt = dbPosReceipt ?: PosReceipt()
                 showLoading(false)
             }
         }
     }
 
     fun deleteInvoiceHeader(callback: () -> Unit) {
-        val invoiceHeader = state.value.invoiceHeader
+        val invoiceHeader = invoiceHeaderState.value
         if (invoiceHeader.isNew()) {
             resetState()
             if (sharedViewModel.isFromTable) {
@@ -703,8 +697,8 @@ class POSViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             val dataModel = invoiceHeaderRepository.delete(invoiceHeader)
             if (dataModel.succeed) {
-                posReceiptRepository.delete(state.value.posReceipt)
-                state.value.invoiceItems.forEach { invoiceItem ->
+                posReceiptRepository.delete(posReceipt)
+                invoiceItems.forEach { invoiceItem ->
                     invoiceRepository.delete(invoiceItem.invoice)
                     invoiceItem.invoiceItem.itemRemQty += invoiceItem.invoice.invoiceQuantity
                     itemRepository.update(invoiceItem.invoiceItem)
@@ -739,11 +733,11 @@ class POSViewModel @Inject constructor(
 
     fun unLockTable() {
         viewModelScope.launch(Dispatchers.IO) {
-            state.value.invoiceHeader.invoiceHeadTableId?.let {tableId->
+            invoiceHeaderState.value.invoiceHeadTableId?.let { tableId ->
                 invoiceHeaderRepository.unLockTable(
-                    state.value.invoiceHeader.invoiceHeadId,
+                    invoiceHeaderState.value.invoiceHeadId,
                     tableId,
-                    state.value.invoiceHeader.invoiceHeadTableType
+                    invoiceHeaderState.value.invoiceHeadTableType
                 )
             }
         }
@@ -752,7 +746,7 @@ class POSViewModel @Inject constructor(
     private suspend fun prepareInvoiceReports(
         context: Context
     ) {
-        val invoiceHeader = state.value.invoiceHeader
+        val invoiceHeader = invoiceHeaderState.value
         val defaultThirdParty =
             if (invoiceHeader.invoiceHeadThirdPartyName.isNullOrEmpty() || invoiceHeader.invoiceHeadThirdPartyName == state.value.selectedThirdParty.thirdPartyId) {
                 state.value.selectedThirdParty
@@ -783,8 +777,8 @@ class POSViewModel @Inject constructor(
         val invoiceReport = PrinterUtils.getInvoiceReceiptHtmlContent(
             context,
             invoiceHeader,
-            state.value.invoiceItems,
-            state.value.posReceipt,
+            invoiceItems.toMutableList(),
+            posReceipt,
             defaultThirdParty,
             user,
             SettingsModel.currentCompany
@@ -808,7 +802,7 @@ class POSViewModel @Inject constructor(
     private fun prepareAutoPrint(context: Context, callback: () -> Unit) {
         viewModelScope.launch(Dispatchers.IO) {
             val invoices =
-                state.value.invoiceItems.filter { it.invoice.isNew() || it.shouldPrint }
+                invoiceItems.toMutableList().filter { it.invoice.isNew() || it.shouldPrint }
                     .toMutableList()
             invoices.addAll(itemsToDelete)
             if (invoices.isNotEmpty()) {
@@ -836,7 +830,7 @@ class POSViewModel @Inject constructor(
                 state.value.printers = posPrinterRepository.getAllPosPrinters()
             }
             val itemsPrintersMap =
-                state.value.invoiceItems.filter { it.shouldPrint || it.isDeleted }
+                invoiceItems.toMutableList().filter { it.shouldPrint || it.isDeleted }
                     .groupBy { it.invoiceItem.itemPrinter ?: "" }
             itemsPrintersMap.entries.forEach { entry ->
                 if (entry.key.isNotEmpty()) {
@@ -845,7 +839,7 @@ class POSViewModel @Inject constructor(
                     if (itemsPrinter != null) {
                         val reportResult = PrinterUtils.getItemReceiptHtmlContent(
                             context = context,
-                            invoiceHeader = state.value.invoiceHeader,
+                            invoiceHeader = invoiceHeaderState.value,
                             invItemModels = entry.value
                         )
                         reportResult.printerName = itemsPrinter.posPrinterName ?: ""
@@ -920,8 +914,7 @@ class POSViewModel @Inject constructor(
                                 val map: Map<Item, Int> =
                                     barcodesList.groupingBy { item -> item as Item }
                                         .eachCount()
-                                val invoiceItems =
-                                    state.value.invoiceItems.toMutableList()
+                                val invoiceItems = mutableListOf<InvoiceItemModel>()
                                 map.forEach { (item, count) ->
                                     if (!item.itemBarcode.isNullOrEmpty()) {
                                         updateRealItemPrice(item, false)
@@ -937,13 +930,14 @@ class POSViewModel @Inject constructor(
                                     }
                                 }
                                 withContext(Dispatchers.Main) {
+                                    invoiceItems.addAll(invoiceItems)
+                                    invoiceHeaderState.value = POSUtils.refreshValues(
+                                        invoiceItems,
+                                        invoiceHeaderState.value
+                                    )
                                     updateState(
                                         state.value.copy(
-                                            invoiceItems = invoiceItems,
-                                            invoiceHeader = POSUtils.refreshValues(
-                                                invoiceItems,
-                                                state.value.invoiceHeader
-                                            )
+
                                         )
                                     )
                                     showLoading(false)
@@ -982,20 +976,14 @@ class POSViewModel @Inject constructor(
                 withContext(Dispatchers.IO) {
                     updateRealItemPrice(item)
                 }
-                val invoiceItems = state.value.invoiceItems.toMutableList()
                 val invoiceItemModel = InvoiceItemModel(
                     shouldPrint = true
                 )
                 invoiceItemModel.setItem(item)
                 invoiceItems.add(invoiceItemModel)
-                updateState(
-                    state.value.copy(
-                        invoiceItems = invoiceItems,
-                        invoiceHeader = POSUtils.refreshValues(
-                            invoiceItems,
-                            state.value.invoiceHeader
-                        )
-                    )
+                invoiceHeaderState.value = POSUtils.refreshValues(
+                    invoiceItems,
+                    invoiceHeaderState.value
                 )
                 isAddItemBottomSheetVisible.value = false
             }
