@@ -1,7 +1,6 @@
 package com.grid.pos.data.stockHeaderAdjustment
 
 import com.grid.pos.data.SQLServerWrapper
-import com.grid.pos.data.stockHeadInOut.header.StockHeaderInOut
 import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.DataModel
 import com.grid.pos.model.SettingsModel

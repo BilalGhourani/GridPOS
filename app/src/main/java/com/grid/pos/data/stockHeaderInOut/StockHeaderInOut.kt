@@ -1,9 +1,8 @@
-package com.grid.pos.data.stockHeadInOut.header
+package com.grid.pos.data.stockHeaderInOut
 
 import com.google.firebase.firestore.Exclude
 import com.grid.pos.data.EntityModel
 import com.grid.pos.model.SettingsModel
-import com.grid.pos.utils.DateHelper
 import java.util.Date
 
 data class StockHeaderInOut(

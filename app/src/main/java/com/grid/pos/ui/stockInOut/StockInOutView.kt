@@ -63,7 +63,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.grid.pos.R
 import com.grid.pos.data.item.Item
-import com.grid.pos.data.stockHeadInOut.header.StockHeaderInOut
+import com.grid.pos.data.stockHeaderInOut.StockHeaderInOut
 import com.grid.pos.model.PopupModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.model.StockInOutItemModel

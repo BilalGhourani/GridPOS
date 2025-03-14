@@ -1,7 +1,6 @@
 package com.grid.pos.ui.stockAdjustment
 
 import com.grid.pos.data.item.Item
-import com.grid.pos.data.stockHeadInOut.header.StockHeaderInOut
 import com.grid.pos.data.stockHeaderAdjustment.StockHeaderAdjustment
 import com.grid.pos.model.DivisionModel
 import com.grid.pos.model.TransactionTypeModel

@@ -40,8 +40,8 @@ import com.grid.pos.data.stockHeaderAdjustment.StockHeaderAdjustmentRepository
 import com.grid.pos.data.stockHeaderAdjustment.StockHeaderAdjustmentRepositoryImpl
 import com.grid.pos.data.stockInOut.StockInOutRepository
 import com.grid.pos.data.stockInOut.StockInOutRepositoryImpl
-import com.grid.pos.data.stockInOut.header.StockHeaderInOutRepository
-import com.grid.pos.data.stockInOut.header.StockHeaderInOutRepositoryImpl
+import com.grid.pos.data.stockHeaderInOut.StockHeaderInOutRepository
+import com.grid.pos.data.stockHeaderInOut.StockHeaderInOutRepositoryImpl
 import com.grid.pos.data.thirdParty.ThirdPartyRepository
 import com.grid.pos.data.thirdParty.ThirdPartyRepositoryImpl
 import com.grid.pos.data.user.UserRepository

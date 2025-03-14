@@ -7,9 +7,9 @@ import com.grid.pos.SharedViewModel
 import com.grid.pos.data.item.Item
 import com.grid.pos.data.item.ItemRepository
 import com.grid.pos.data.settings.SettingsRepository
-import com.grid.pos.data.stockHeadInOut.header.StockHeaderInOut
+import com.grid.pos.data.stockHeaderInOut.StockHeaderInOut
 import com.grid.pos.data.stockInOut.StockInOutRepository
-import com.grid.pos.data.stockInOut.header.StockHeaderInOutRepository
+import com.grid.pos.data.stockHeaderInOut.StockHeaderInOutRepository
 import com.grid.pos.interfaces.OnBarcodeResult
 import com.grid.pos.model.StockInOutItemModel
 import com.grid.pos.ui.common.BaseViewModel

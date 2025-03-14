@@ -1,6 +1,5 @@
-package com.grid.pos.data.stockInOut.header
+package com.grid.pos.data.stockHeaderInOut
 
-import com.grid.pos.data.stockHeadInOut.header.StockHeaderInOut
 import com.grid.pos.model.DataModel
 
 interface StockHeaderInOutRepository {

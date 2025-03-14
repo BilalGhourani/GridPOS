@@ -44,7 +44,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.grid.pos.data.stockHeadInOut.header.StockHeaderInOut
+import com.grid.pos.data.stockHeaderInOut.StockHeaderInOut
 import com.grid.pos.model.DivisionModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.model.StockInOutItemModel
