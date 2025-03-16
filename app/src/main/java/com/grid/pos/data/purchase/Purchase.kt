@@ -6,150 +6,150 @@ data class Purchase(
     /**
      * pu_id
      */
-    val purchaseId: String? = null,
+    var purchaseId: String? = null,
 
     /**
      * pu_hp_id
      */
-    val purchaseHpId: String? = null,
+    var purchaseHpId: String? = null,
 
     /**
      * pu_it_id
      */
-    val purchaseItId: String? = null,
+    var purchaseItId: String? = null,
 
     /**
      * pu_qty
      */
-    val purchaseQty: Double? = null,
+    var purchaseQty: Double? = null,
 
     /**
      * pu_price
      */
-    val purchasePrice: Double? = null,
+    var purchasePrice: Double? = null,
 
     /**
      * pu_disc
      */
-    val purchaseDisc: Double? = null,
+    var purchaseDisc: Double? = null,
 
     /**
      * pu_discamt
      */
-    val purchaseDiscAmt: Double? = null,
+    var purchaseDiscAmt: Double? = null,
 
     /**
      * pu_wa_name
      */
-    val purchaseWaName: String? = null,
+    var purchaseWaName: String? = null,
 
     /**
      * pu_note
      */
-    val purchaseNote: String? = null,
+    var purchaseNote: String? = null,
 
     /**
      * pu_it_idinpack
      */
-    val purchaseItIdInPack: String? = null,
+    var purchaseItIdInPack: String? = null,
 
     /**
      * pu_qtyinpack
      */
-    val purchaseQtyInPack: Double? = null,
+    var purchaseQtyInPack: Double? = null,
 
     /**
      * pu_cost
      */
-    val purchaseCost: Double? = null,
+    var purchaseCost: Double? = null,
 
     /**
      * pu_mcurrate
      */
-    val purchaseMcurRate: Double? = null,
+    var purchaseMcurRate: Double? = null,
 
     /**
      * pu_mcurratef
      */
-    val purchaseMcurRateF: Double? = null,
+    var purchaseMcurRateF: Double? = null,
 
     /**
      * pu_mcurrates
      */
-    val purchaseMcurRateS: Double? = null,
+    var purchaseMcurRateS: Double? = null,
 
     /**
      * pu_remqty
      */
-    val purchaseRemQty: Double? = null,
+    var purchaseRemQty: Double? = null,
 
     /**
      * pu_remqtywa
      */
-    val purchaseRemQtyWa: Double? = null,
+    var purchaseRemQtyWa: Double? = null,
 
     /**
      * frompu_id
      */
-    val purchaseFromPuId: String? = null,
+    var purchaseFromPuId: String? = null,
 
     /**
      * pu_timestamp
      */
-    val purchaseTimestamp: Date? = null,
+    var purchaseTimestamp: Date? = null,
 
     /**
      * pu_userstamp
      */
-    val purchaseUserStamp: String? = null,
+    var purchaseUserStamp: String? = null,
 
     /**
      * pu_div_name
      */
-    val purchaseDivName: String? = null,
+    var purchaseDivName: String? = null,
 
     /**
      * pu_qtyratio
      */
-    val purchaseQtyRatio: Double? = null,
+    var purchaseQtyRatio: Double? = null,
 
     /**
      * pu_packs
      */
-    val purchasePacks: Double? = null,
+    var purchasePacks: Double? = null,
 
     /**
      * pu_hsid
      */
-    val purchaseHsId: String? = null,
+    var purchaseHsId: String? = null,
 
     /**
      * pu_vat
      */
-    val purchaseVat: Double? = null,
+    var purchaseVat: Double? = null,
 
     /**
      * pu_order
      */
-    val purchaseOrder: Int? = null,
+    var purchaseOrder: Int? = null,
 
     /**
      * pu_tax1
      */
-    val purchaseTax1: Double? = null,
+    var purchaseTax1: Double? = null,
 
     /**
      * pu_tax2
      */
-    val purchaseTax2: Double? = null,
+    var purchaseTax2: Double? = null,
 
     /**
      * pu_un_id
      */
-    val purchaseUnId: String? = null,
+    var purchaseUnId: String? = null,
 
     /**
      * pu_lineno
      */
-    val purchaseLineNo: Int? = null
+    var purchaseLineNo: Int? = null
 )

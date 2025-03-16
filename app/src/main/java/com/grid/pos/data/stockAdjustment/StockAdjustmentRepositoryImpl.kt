@@ -82,7 +82,7 @@ class StockAdjustmentRepositoryImpl : StockAdjustmentRepository {
                         "",
                         mutableListOf("*"),
                         "sa_hsa_id='$stockHeaderAdjId'",
-                        if (SettingsModel.isSqlServerWebDb) "ORDER BY sa_lineno ASC" else "ORDER BY sa_userstamp ASC"
+                        if (SettingsModel.isSqlServerWebDb) "ORDER BY sa_lineno ASC" else "ORDER BY sa_timestamp ASC"
                     )
                     dbResult?.let {
                         while (it.next()) {

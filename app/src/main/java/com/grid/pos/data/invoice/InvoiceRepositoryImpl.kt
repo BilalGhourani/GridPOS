@@ -146,7 +146,7 @@ class InvoiceRepositoryImpl(
                         "",
                         mutableListOf("*"),
                         where,
-                        if (SettingsModel.isSqlServerWebDb) "order by in_lineno ASC" else ""
+                        if (SettingsModel.isSqlServerWebDb) "order by in_lineno ASC" else "ORDER BY in_timestamp ASC"
                     )
                     dbResult?.let {
                         while (it.next()) {
