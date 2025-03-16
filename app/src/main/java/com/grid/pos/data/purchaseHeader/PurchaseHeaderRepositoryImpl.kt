@@ -71,16 +71,16 @@ class PurchaseHeaderRepositoryImpl : PurchaseHeaderRepository {
             else -> {
                 val purchaseHeaders: MutableList<PurchaseHeader> = mutableListOf()
                 try {
-                    val where = "hio_cmp_id='${SettingsModel.getCompanyID()}'"
+                    val where = "hp_cmp_id='${SettingsModel.getCompanyID()}'"
                     val dbResult = SQLServerWrapper.getListOf(
-                        "st_hstockinout",
+                        "in_hpurchase",
                         "TOP $limit",
                         if (SettingsModel.isSqlServerWebDb) mutableListOf("*,tt.tt_newcode") else mutableListOf(
                             "*"
                         ),
                         where,
-                        "ORDER BY hio_date DESC",
-                        if (SettingsModel.isSqlServerWebDb) "INNER JOIN acc_transactiontype tt on hio_tt_code = tt.tt_code" else ""
+                        "ORDER BY hp_date DESC",
+                        if (SettingsModel.isSqlServerWebDb) "INNER JOIN acc_transactiontype tt on hp_tt_code = tt.tt_code" else ""
                     )
                     dbResult?.let {
                         while (it.next()) {
@@ -108,16 +108,16 @@ class PurchaseHeaderRepositoryImpl : PurchaseHeaderRepository {
             else -> {
                 var purchaseHeader: PurchaseHeader? = null
                 try {
-                    val where = "hio_id='$id'"
+                    val where = "hp_id='$id'"
                     val dbResult = SQLServerWrapper.getListOf(
-                        "st_hstockinout",
+                        "in_hpurchase",
                         "TOP 1",
                         if (SettingsModel.isSqlServerWebDb) mutableListOf("*,tt.tt_newcode") else mutableListOf(
                             "*"
                         ),
                         where,
                         "",
-                        if (SettingsModel.isSqlServerWebDb) "INNER JOIN acc_transactiontype tt on hio_tt_code = tt.tt_code" else ""
+                        if (SettingsModel.isSqlServerWebDb) "INNER JOIN acc_transactiontype tt on hp_tt_code = tt.tt_code" else ""
                     )
                     dbResult?.let {
                         while (it.next()) {
@@ -182,7 +182,7 @@ class PurchaseHeaderRepositoryImpl : PurchaseHeaderRepository {
                 when (valueDate) {
                     is Date -> valueDate
                     is String -> {
-                        DateHelper.getDateFromString(valueDate as String, "yyyy-MM-dd hh:mm:ss.SSS")
+                        DateHelper.getDateFromString(valueDate, "yyyy-MM-dd hh:mm:ss.SSS")
                     }
 
                     else -> null
@@ -195,7 +195,7 @@ class PurchaseHeaderRepositoryImpl : PurchaseHeaderRepository {
                 when (dueDate) {
                     is Date -> dueDate
                     is String -> {
-                        DateHelper.getDateFromString(dueDate as String, "yyyy-MM-dd hh:mm:ss.SSS")
+                        DateHelper.getDateFromString(dueDate, "yyyy-MM-dd hh:mm:ss.SSS")
                     }
 
                     else -> null
@@ -454,9 +454,9 @@ class PurchaseHeaderRepositoryImpl : PurchaseHeaderRepository {
         }
     }
 
-    private fun getDateInTimestamp(TransferDate: String?): Timestamp {
-        if (TransferDate != null) {
-            val date = DateHelper.getDateFromString(TransferDate, "yyyy-MM-dd HH:mm:ss.SSS")
+    private fun getDateInTimestamp(dateStr: String?): Timestamp {
+        if (dateStr != null) {
+            val date = DateHelper.getDateFromString(dateStr, "yyyy-MM-dd HH:mm:ss.SSS")
             return Timestamp(date.time)
         }
         return Timestamp(System.currentTimeMillis())

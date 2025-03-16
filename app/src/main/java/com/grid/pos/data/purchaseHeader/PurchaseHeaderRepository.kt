@@ -10,10 +10,10 @@ interface PurchaseHeaderRepository {
        purchaseHeader: PurchaseHeader
     ): DataModel
 
-    // Delete an Stock In Out
+    // Delete an PurchaseHeader
     suspend fun delete( purchaseHeader: PurchaseHeader): DataModel
 
-    // Update an Stock In Out
+    // Update an PurchaseHeader
     suspend fun update(
         purchaseHeader: PurchaseHeader
     ): DataModel
