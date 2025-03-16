@@ -1,12 +1,14 @@
 package com.grid.pos.data.purchase
 
+import com.google.firebase.firestore.Exclude
+import com.grid.pos.data.EntityModel
 import java.util.Date
 
 data class Purchase(
     /**
      * pu_id
      */
-    var purchaseId: String? = null,
+    var purchaseId: String = "",
 
     /**
      * pu_hp_id
@@ -152,4 +154,54 @@ data class Purchase(
      * pu_lineno
      */
     var purchaseLineNo: Int? = null
-)
+) : EntityModel() {
+    constructor() : this("")
+
+    @Exclude
+    override fun getId(): String {
+        return purchaseId
+    }
+
+    @Exclude
+    override fun getName(): String {
+        return ""
+    }
+
+    @Exclude
+    override fun isNew(): Boolean {
+        return purchaseId.isEmpty()
+    }
+
+    @Exclude
+    override fun prepareForInsert() {
+
+    }
+
+    @Exclude
+    override fun setDocumentId(documentId: String) {
+
+    }
+
+    @Exclude
+    override fun getDocumentId(): String? {
+        return null
+    }
+
+    @Exclude
+    override fun getMap(): Map<String, Any?> {
+        return mapOf()
+    }
+
+
+    @Exclude
+    fun didChanged(purchase: Purchase): Boolean {
+        return !purchase.purchaseNote.equals(purchaseNote) ||
+                purchase.purchaseQty != purchaseQty ||
+                purchase.purchaseQtyInPack != purchaseQtyInPack ||
+                purchase.purchaseRemQtyWa != purchaseRemQtyWa ||
+                purchase.purchaseDisc != purchaseDisc ||
+                purchase.purchaseDiscAmt != purchaseDiscAmt ||
+                purchase.purchasePrice != purchasePrice ||
+                purchase.purchaseCost != purchaseCost
+    }
+}

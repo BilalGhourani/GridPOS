@@ -1,5 +1,8 @@
 package com.grid.pos.data.purchaseHeader
 
+import com.google.firebase.firestore.Exclude
+import com.grid.pos.data.EntityModel
+import com.grid.pos.model.SettingsModel
 import java.util.Date
 
 data class PurchaseHeader(
@@ -217,4 +220,51 @@ data class PurchaseHeader(
      * hp_tax2amt
      */
     var purchaseHeaderTax2Amt: Double? = null
-)
+): EntityModel() {
+    constructor() : this("")
+
+    @Exclude
+    override fun getId(): String {
+        return purchaseHeaderId
+    }
+
+    @Exclude
+    override fun getName(): String {
+        return "${purchaseHeaderTtCodeName ?: ""}${purchaseHeaderTransNo ?: ""}"
+    }
+
+    @Exclude
+    override fun isNew(): Boolean {
+        return purchaseHeaderId.isEmpty()
+    }
+
+    @Exclude
+    override fun prepareForInsert() {
+        purchaseHeaderCmpId = SettingsModel.getCompanyID()
+    }
+
+    @Exclude
+    override fun setDocumentId(documentId: String) {
+
+    }
+
+    @Exclude
+    override fun getDocumentId(): String? {
+        return null
+    }
+
+    @Exclude
+    override fun getMap(): Map<String, Any?> {
+        return mapOf()
+    }
+
+
+    @Exclude
+    fun didChanged(purchaseHeader: PurchaseHeader): Boolean {
+        return !purchaseHeader.purchaseHeaderNote.equals(purchaseHeaderNote) ||
+                !purchaseHeader.purchaseHeaderTpName.equals(purchaseHeaderTpName) ||
+                purchaseHeader.purchaseHeaderWaName != purchaseHeaderWaName ||
+                purchaseHeader.purchaseHeaderTransNo != purchaseHeaderTransNo ||
+                purchaseHeader.purchaseHeaderTtCode != purchaseHeaderTtCode
+    }
+}
