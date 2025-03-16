@@ -20,6 +20,7 @@ import com.grid.pos.ui.login.LoginView
 import com.grid.pos.ui.payments.PaymentsView
 import com.grid.pos.ui.pos.POSView
 import com.grid.pos.ui.posPrinter.POSPrinterView
+import com.grid.pos.ui.purchase.PurchaseView
 import com.grid.pos.ui.receipts.ReceiptsView
 import com.grid.pos.ui.reports.SalesReportsView
 import com.grid.pos.ui.settings.BackupView
@@ -185,6 +186,12 @@ fun AuthNavGraph(
             StockAdjustmentView(
                 navController = navController,
                 source = "QtyOnHand"
+            )
+        }
+
+        composable(route = Screen.PurchaseView.route) {
+            PurchaseView(
+                navController = navController
             )
         }
     }

@@ -154,7 +154,7 @@ class PurchaseRepositoryImpl : PurchaseRepository {
             )
         } else {
             listOf(
-                null,//@u_id
+                null,//@pu_id
                 purchase.purchaseHpId,//@pu_hp_id
                 purchase.purchaseItId,//@pu_it_id
                 purchase.purchaseQty,//@pu_qty

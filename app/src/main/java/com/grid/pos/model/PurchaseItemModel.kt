@@ -2,16 +2,15 @@ package com.grid.pos.model
 
 import com.grid.pos.data.item.Item
 import com.grid.pos.data.purchase.Purchase
-import com.grid.pos.data.stockInOut.StockInOut
 
 data class PurchaseItemModel(
     val purchase: Purchase = Purchase(),
-    var stockItem: Item = Item(),
+    var purchaseItem: Item = Item(),
     var isDeleted: Boolean = false
 ) {
 
     fun setItem(item: Item) {
-        stockItem = item
+        purchaseItem = item
         purchase.purchaseItId = item.itemId
         purchase.purchaseQty = 1.0
         purchase.purchaseCost =
@@ -19,6 +18,6 @@ data class PurchaseItemModel(
     }
 
     fun getName(): String {
-        return stockItem.itemName ?: "Item"
+        return purchaseItem.itemName ?: "Item"
     }
 }

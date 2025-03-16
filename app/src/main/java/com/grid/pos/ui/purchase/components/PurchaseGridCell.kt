@@ -59,7 +59,7 @@ fun PurchaseGridCell(
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Text(
-            text = if (isHeader) "Barcode" else purchaseItemModel.stockItem.itemBarcode ?: "~",
+            text = if (isHeader) "Barcode" else purchaseItemModel.purchaseItem.itemBarcode ?: "~",
             modifier = if (isLandscape) {
                 Modifier
                     .weight(1.8f)

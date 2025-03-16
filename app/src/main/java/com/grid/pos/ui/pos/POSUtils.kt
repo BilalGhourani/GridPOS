@@ -2,7 +2,9 @@ package com.grid.pos.ui.pos
 
 import com.grid.pos.data.currency.Currency
 import com.grid.pos.data.invoiceHeader.InvoiceHeader
+import com.grid.pos.data.purchaseHeader.PurchaseHeader
 import com.grid.pos.model.InvoiceItemModel
+import com.grid.pos.model.PurchaseItemModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.utils.Utils
 import java.math.BigDecimal
@@ -103,6 +105,60 @@ object POSUtils {
         invHeader.invoiceHeadTotal1 = finalTotal.times(currency.currencyRate)
         invHeader.invoiceHeadRate = currency.currencyRate
         return invHeader
+    }
+
+    fun refreshValues(
+        purchaseList: MutableList<PurchaseItemModel>,
+        purchaseHeader: PurchaseHeader
+    ): PurchaseHeader {
+        val isUpWithTax = SettingsModel.currentCompany?.companyUpWithTax ?: false
+        val currency = SettingsModel.currentCurrency ?: Currency()
+        var totalTax = 0.0
+        var totalTax1 = 0.0
+        var totalTax2 = 0.0
+        var grossAmount = 0.0
+        var netTotal = 0.0
+        purchaseList.forEach {
+            if (isUpWithTax) {
+                val amount = it.purchase.getAmount() - it.purchase.getDiscountAmount()
+                totalTax += it.purchase.getIncludedTaxPerc(amount)
+                totalTax1 += it.purchase.getIncludedTax1Perc(amount)
+                totalTax2 += it.purchase.getIncludedTax2Perc(amount)
+                grossAmount += amount
+                netTotal += amount
+            } else {
+                val amount = it.purchase.getAmount() - it.purchase.getDiscountAmount()
+                val tax = it.purchase.getTaxValue(amount)
+                val tax1 = it.purchase.getTax1Value(amount)
+                val tax2 = it.purchase.getTax2Value(amount)
+                totalTax += tax
+                totalTax1 += tax1
+                totalTax2 += tax2
+                grossAmount += amount
+                netTotal += amount
+            }
+        }
+
+        val taxDivider = 1 - ((purchaseHeader.purchaseHeaderDisc?:0.0) * 0.01)
+        totalTax = totalTax.times(taxDivider)
+        totalTax1 = totalTax1.times(taxDivider)
+        totalTax2 = totalTax2.times(taxDivider)
+        purchaseHeader.purchaseHeaderTaxAmt = totalTax
+        purchaseHeader.purchaseHeaderTax1Amt = totalTax1
+        purchaseHeader.purchaseHeaderTax2Amt = totalTax2
+//        purchaseHeader.invoiceHeadTotalTax = totalTax + totalTax1 + totalTax2
+//        purchaseHeader.invoiceHeadGrossAmount = grossAmount
+        if (!isUpWithTax) {
+            netTotal += totalTax + totalTax1 + totalTax2
+        }
+        val discountAmount = grossAmount.times((purchaseHeader.purchaseHeaderDisc?:0.0) * 0.01)
+        purchaseHeader.purchaseHeaderDiscAmt = discountAmount
+        val finalTotal = netTotal - discountAmount
+        purchaseHeader.purchaseHeaderNetAmt = finalTotal
+        purchaseHeader.purchaseHeaderTotal = finalTotal
+        purchaseHeader.purchaseHeaderTotal1 = finalTotal.times(currency.currencyRate)
+        purchaseHeader.purchaseHeaderRateS = currency.currencyRate
+        return purchaseHeader
     }
 
 

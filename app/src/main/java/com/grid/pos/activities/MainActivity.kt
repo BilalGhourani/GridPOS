@@ -50,6 +50,7 @@ import com.grid.pos.ui.common.CustomSnackBar
 import com.grid.pos.ui.common.LoadingIndicator
 import com.grid.pos.ui.common.UIAlertDialog
 import com.grid.pos.ui.navigation.AuthNavGraph
+import com.grid.pos.ui.navigation.Screen
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.ui.theme.White
 import com.grid.pos.utils.FileUtils
@@ -184,7 +185,7 @@ class MainActivity : ComponentActivity() {
                             .padding(0.dp),
                         navController = navController,
                         sharedViewModel = sharedViewModel,
-                        startDestination = /*if (BuildConfig.DEBUG) "HomeView" else */"LoginView"
+                        startDestination = Screen.LoginView.route
                     )
                     AnimatedVisibility(
                         visible = popupState.value,

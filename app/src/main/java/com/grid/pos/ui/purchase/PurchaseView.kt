@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
@@ -64,6 +65,7 @@ import androidx.navigation.NavController
 import com.grid.pos.R
 import com.grid.pos.data.item.Item
 import com.grid.pos.data.purchaseHeader.PurchaseHeader
+import com.grid.pos.data.thirdParty.ThirdParty
 import com.grid.pos.model.PopupModel
 import com.grid.pos.model.PurchaseItemModel
 import com.grid.pos.model.SettingsModel
@@ -81,7 +83,7 @@ import kotlinx.coroutines.launch
     ExperimentalMaterial3Api::class
 )
 @Composable
-fun StockInOutView(
+fun PurchaseView(
     modifier: Modifier = Modifier,
     navController: NavController? = null,
     viewModel: PurchaseViewModel = hiltViewModel()
@@ -132,7 +134,7 @@ fun StockInOutView(
                         viewModel.resetState()
                         handleBack()
                     }
-                    dialogText = "Are you sure you want to discard current transfer?"
+                    dialogText = "Are you sure you want to discard current purchase?"
                     positiveBtnText = "Discard"
                     negativeBtnText = "Cancel"
                 })
@@ -171,7 +173,7 @@ fun StockInOutView(
                         },
                         title = {
                             Text(
-                                text = if (isEditBottomSheetVisible) "Edit Item" else "Stock In/Out",
+                                text = if (isEditBottomSheetVisible) "Edit Item" else "Purchases",
                                 color = SettingsModel.textColor,
                                 fontSize = 16.sp,
                                 textAlign = TextAlign.Center
@@ -243,19 +245,67 @@ fun StockInOutView(
                                 viewModel.deletedItems.add(deletedRow)
                             }
                         })
-                    Text(
-                        text = Utils.getItemsNumberStr(viewModel.items.size),
+                    Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .wrapContentHeight()
+                            .height(25.dp)
                             .padding(horizontal = 10.dp),
-                        textAlign = TextAlign.End,
-                        style = TextStyle(
-                            fontWeight = FontWeight.Normal,
-                            fontSize = 12.sp
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = "Discount: ${viewModel.purchaseHeaderState.value.purchaseHeaderDisc}%",
+                            modifier = Modifier.wrapContentWidth(),
+                            textAlign = TextAlign.End,
+                            style = TextStyle(
+                                fontWeight = FontWeight.Normal,
+                                fontSize = 12.sp
+                            ),
+                            color = SettingsModel.textColor
+                        )
+
+                        Text(
+                            text = Utils.getItemsNumberStr(viewModel.items.size),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .wrapContentHeight(),
+                            textAlign = TextAlign.End,
+                            style = TextStyle(
+                                fontWeight = FontWeight.Normal,
+                                fontSize = 12.sp
+                            ),
+                            color = SettingsModel.textColor
+                        )
+                    }
+
+                    Text(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(30.dp)
+                            .padding(horizontal = 10.dp),
+                        maxLines = 1,
+                        text = String.format(
+                            "%,.${SettingsModel.currentCurrency?.currencyName1Dec ?: 2}f %s",
+                            viewModel.purchaseHeaderState.value.purchaseHeaderTotal ?: 0.0,
+                            SettingsModel.currentCurrency?.currencyCode1 ?: ""
                         ),
                         color = SettingsModel.textColor
                     )
+                    if (!SettingsModel.hideSecondCurrency) {
+                        Text(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(30.dp)
+                                .padding(horizontal = 10.dp),
+                            maxLines = 1,
+                            text = String.format(
+                                "%,.${SettingsModel.currentCurrency?.currencyName2Dec ?: 2}f %s",
+                                viewModel.purchaseHeaderState.value.purchaseHeaderTotal1 ?: 0.0,
+                                SettingsModel.currentCurrency?.currencyCode2 ?: ""
+                            ),
+                            color = SettingsModel.textColor
+                        )
+                    }
+
 
                     Spacer(modifier = Modifier.weight(1f))
 
@@ -297,7 +347,7 @@ fun StockInOutView(
                                             viewModel.delete()
                                         }
                                         dialogText =
-                                            "Are you sure you want to Delete this transfer?"
+                                            "Are you sure you want to Delete this purchase?"
                                         positiveBtnText = "Delete"
                                         negativeBtnText = "Cancel"
                                     })
@@ -368,78 +418,100 @@ fun StockInOutView(
                         )
                     }
 
-                    SearchableDropdownMenuEx(items = state.purchaseHeaders.toMutableList(),
-                        modifier = Modifier.padding(
-                            top = 15.dp,
-                            start = 10.dp,
-                            end = 10.dp
-                        ),
-                        label = "Select Transfer",
-                        onLoadItems = { viewModel.fetchPurchases() },
-                        selectedId = purchaseHeader.purchaseHeaderId,
-                        leadingIcon = { modifier ->
-                            if (purchaseHeader.purchaseHeaderId.isNotEmpty()) {
-                                Icon(
-                                    Icons.Default.RemoveCircleOutline,
-                                    contentDescription = "reset transfer",
-                                    tint = Color.Black,
-                                    modifier = modifier
-                                )
+                    SearchableDropdownMenuEx(
+                        items = state.suppliers.toMutableList(),
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(horizontal = 3.dp),
+                        onLoadItems = {
+                            scope.launch(Dispatchers.IO) {
+                                viewModel.fetchSuppliers()
                             }
                         },
-                        onLeadingIconClick = {
-                            clear()
-                        }
-                    ) { purchaseHeader ->
-                        purchaseHeader as PurchaseHeader
-                        if (viewModel.items.isNotEmpty()) {
-                            viewModel.showPopup(
-                                PopupModel().apply {
-                                    onConfirmation = {
-                                        viewModel.resetState()
-                                        showDeleteButton = true
-                                        viewModel.loadPurchaseDetails(purchaseHeader)
-                                    }
-                                    dialogText =
-                                        "Are you sure you want to discard current transfer?"
-                                    positiveBtnText = "Discard"
-                                    negativeBtnText = "Cancel"
-                                })
-                        } else {
-                            showDeleteButton = true
-                            viewModel.loadPurchaseDetails(purchaseHeader)
-                        }
+                        label = "Select Supplier",
+                        selectedId = purchaseHeader.purchaseHeaderTpName
+                    ) { supplier ->
+                        supplier as ThirdParty
+                        viewModel.updatePurchaseHeader(
+                            purchaseHeader.copy(
+                                purchaseHeaderTpName = supplier.getId()
+                            )
+                        )
                     }
+
                 }
 
-                AnimatedVisibility(
-                    visible = isEditBottomSheetVisible,
-                    enter = fadeIn(
-                        initialAlpha = 0.4f
+                SearchableDropdownMenuEx(items = state.purchaseHeaders.toMutableList(),
+                    modifier = Modifier.padding(
+                        top = 15.dp,
+                        start = 10.dp,
+                        end = 10.dp
                     ),
-                    exit = fadeOut(
-                        animationSpec = tween(durationMillis = 250)
-                    )
-                ) {
-                    /*EditStockInOutItemView(
-                        stockInOutItemModel = viewModel.items[viewModel.selectedItemIndex],
-                        stockHeaderInOut = purchaseHeader,
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(it)
-                            .background(
-                                color = SettingsModel.backgroundColor
-                            ),
-                        triggerOnSave = triggerSaveCallback,
-                        state = state,
-                        viewModel = viewModel,
-                        onSave = { stockHeaderInOut, stockItemModel ->
-                            viewModel.items[viewModel.selectedItemIndex] = stockItemModel
-                            viewModel.updateStockHeaderInOut(stockHeaderInOut)
-                            isEditBottomSheetVisible = false
-                            triggerSaveCallback = false
-                        })*/
+                    label = "Select purchase",
+                    onLoadItems = { viewModel.fetchPurchases() },
+                    selectedId = purchaseHeader.purchaseHeaderId,
+                    leadingIcon = { modifier ->
+                        if (purchaseHeader.purchaseHeaderId.isNotEmpty()) {
+                            Icon(
+                                Icons.Default.RemoveCircleOutline,
+                                contentDescription = "reset purchase",
+                                tint = Color.Black,
+                                modifier = modifier
+                            )
+                        }
+                    },
+                    onLeadingIconClick = {
+                        clear()
+                    }
+                ) { purchaseHeader ->
+                    purchaseHeader as PurchaseHeader
+                    if (viewModel.items.isNotEmpty()) {
+                        viewModel.showPopup(
+                            PopupModel().apply {
+                                onConfirmation = {
+                                    viewModel.resetState()
+                                    showDeleteButton = true
+                                    viewModel.loadPurchaseDetails(purchaseHeader)
+                                }
+                                dialogText =
+                                    "Are you sure you want to discard current purchase?"
+                                positiveBtnText = "Discard"
+                                negativeBtnText = "Cancel"
+                            })
+                    } else {
+                        showDeleteButton = true
+                        viewModel.loadPurchaseDetails(purchaseHeader)
+                    }
                 }
+            }
+            AnimatedVisibility(
+                visible = isEditBottomSheetVisible,
+                enter = fadeIn(
+                    initialAlpha = 0.4f
+                ),
+                exit = fadeOut(
+                    animationSpec = tween(durationMillis = 250)
+                )
+            ) {
+                EditPurchaseItemView(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(it)
+                        .background(
+                            color = SettingsModel.backgroundColor
+                        ),
+                    purchaseItems = viewModel.items,
+                    purHeader = purchaseHeader,
+                    itemIndex = viewModel.selectedItemIndex,
+                    triggerOnSave = triggerSaveCallback,
+                    state = state,
+                    viewModel = viewModel,
+                    onSave = { stockHeaderInOut, stockItemModel ->
+                        viewModel.items[viewModel.selectedItemIndex] = stockItemModel
+                        viewModel.updatePurchaseHeader(stockHeaderInOut)
+                        isEditBottomSheetVisible = false
+                        triggerSaveCallback = false
+                    })
             }
         }
     }

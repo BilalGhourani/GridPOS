@@ -145,6 +145,11 @@ object Utils {
                             R.drawable.payment,
                             "Paid OUT",
                             Screen.PaymentsView.route
+                        ),
+                        HomeItemModel(
+                            R.drawable.receipt,
+                            "Purchases",
+                            Screen.PurchaseView.route
                         )
                     )
                 ),

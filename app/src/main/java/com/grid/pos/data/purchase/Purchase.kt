@@ -192,6 +192,118 @@ data class Purchase(
         return mapOf()
     }
 
+    @Exclude
+    fun getPrice(): Double {
+        if (purchasePrice?.isNaN()==true) {
+            return 0.0
+        }
+        return purchasePrice?:0.0
+    }
+
+    @Exclude
+    fun getDiscount(): Double {
+        if (purchaseDisc?.isNaN()==true) {
+            return 0.0
+        }
+        return purchaseDisc?:0.0
+    }
+
+    @Exclude
+    fun getDiscountAmount(): Double {
+        if (purchaseDiscAmt?.isNaN()==true) {
+            return 0.0
+        }
+        return purchaseDiscAmt?:0.0
+    }
+
+    @Exclude
+    fun getAmount(): Double {
+        return purchaseQty?.times(purchasePrice ?: 0.0) ?: 0.0
+    }
+
+    @Exclude
+    fun getTax(): Double {
+        if (purchaseVat?.isNaN() == true) {
+            return 0.0
+        }
+        return purchaseVat ?: 0.0
+    }
+
+    @Exclude
+    fun getTaxValue(amount: Double = getAmount()): Double {
+        return amount.times(getTax().times(0.01))
+    }
+
+    @Exclude
+    fun getIncludedTaxPerc(amount: Double = getAmount()): Double {
+        val netAmount = amount.div(1 + (getTax().times(0.01)))
+        return amount - netAmount
+    }
+
+    @Exclude
+    fun getTax1(): Double {
+        if (purchaseTax1?.isNaN() == true) {
+            return 0.0
+        }
+        return purchaseTax1 ?: 0.0
+    }
+
+    @Exclude
+    fun getTax1Value(amount: Double = getAmount()): Double {
+        return amount.times(getTax1().times(0.01))
+    }
+
+    @Exclude
+    fun getIncludedTax1Perc(amount: Double = getAmount()): Double {
+        val netAmount = amount.div(1 + (getTax1().times(0.01)))
+        return amount - netAmount
+    }
+
+    @Exclude
+    fun getTax2(): Double {
+        if (purchaseTax2?.isNaN() == true) {
+            return 0.0
+        }
+        return purchaseTax2 ?: 0.0
+    }
+
+    @Exclude
+    fun getTax2Value(amount: Double = getAmount()): Double {
+        return amount.times(getTax2().times(0.01))
+    }
+
+    @Exclude
+    fun getIncludedTax2Perc(amount: Double = getAmount()): Double {
+        val netAmount = amount.div(1 + (getTax2().times(0.01)))
+        return amount - netAmount
+    }
+
+    @Exclude
+    fun getInvoiceCostOrZero(): Double {
+        if (purchaseCost?.isNaN() == true) {
+            return 0.0
+        }
+        return purchaseCost ?: 0.0
+    }
+
+    @Exclude
+    fun getRemainingQtyOrZero(): Double {
+        if (purchaseRemQty?.isNaN() == true) {
+            return 0.0
+        }
+        return purchaseRemQty ?: 0.0
+    }
+
+    @Exclude
+    fun getNetAmount(): Double {
+        val amount = getAmount() - getDiscountAmount()
+        return amount + getTaxValue(amount) + getTax1Value(amount) + getTax2Value(amount)
+    }
+
+    @Exclude
+    fun getVat(): Double {
+        return getTax() + getTax1() + getTax2()
+    }
 
     @Exclude
     fun didChanged(purchase: Purchase): Boolean {

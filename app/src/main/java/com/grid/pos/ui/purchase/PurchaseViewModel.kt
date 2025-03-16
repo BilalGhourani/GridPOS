@@ -10,8 +10,10 @@ import com.grid.pos.data.purchase.PurchaseRepository
 import com.grid.pos.data.purchaseHeader.PurchaseHeader
 import com.grid.pos.data.purchaseHeader.PurchaseHeaderRepository
 import com.grid.pos.data.settings.SettingsRepository
+import com.grid.pos.data.thirdParty.ThirdPartyRepository
 import com.grid.pos.interfaces.OnBarcodeResult
 import com.grid.pos.model.PurchaseItemModel
+import com.grid.pos.model.ThirdPartyType
 import com.grid.pos.ui.common.BaseViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -24,6 +26,7 @@ class PurchaseViewModel @Inject constructor(
     private val itemRepository: ItemRepository,
     private val purchaseHeaderRepository: PurchaseHeaderRepository,
     private val purchaseRepository: PurchaseRepository,
+    private val thirdPartyRepository: ThirdPartyRepository,
     private val settingsRepository: SettingsRepository,
     private val sharedViewModel: SharedViewModel
 ) : BaseViewModel(sharedViewModel) {
@@ -89,7 +92,7 @@ class PurchaseViewModel @Inject constructor(
             result.forEach { purchase ->
                 purchaseItemModels.add(PurchaseItemModel(
                     purchase = purchase,
-                    stockItem = state.value.items.firstOrNull {
+                    purchaseItem = state.value.items.firstOrNull {
                         it.itemId.equals(
                             purchase.purchaseItId,
                             ignoreCase = true
@@ -137,6 +140,30 @@ class PurchaseViewModel @Inject constructor(
                 }
                 state.value = state.value.copy(
                     warehouses = listOfWarehouses,
+                )
+            }
+        }
+    }
+
+    suspend fun fetchSuppliers(withLoading: Boolean = true) {
+        if (withLoading) {
+            withContext(Dispatchers.Main) {
+                showLoading(true)
+            }
+        }
+        withContext(Dispatchers.IO) {
+            val listOfSuppliers = thirdPartyRepository.getAllThirdParties(
+                listOf(
+                    ThirdPartyType.PAYABLE.type,
+                    ThirdPartyType.PAYABLE_RECEIVALBE.type
+                )
+            )
+            withContext(Dispatchers.Main) {
+                if (withLoading) {
+                    showLoading(false)
+                }
+                state.value = state.value.copy(
+                    suppliers = listOfSuppliers,
                 )
             }
         }
