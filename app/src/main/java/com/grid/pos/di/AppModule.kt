@@ -30,6 +30,8 @@ import com.grid.pos.data.posPrinter.PosPrinterRepository
 import com.grid.pos.data.posPrinter.PosPrinterRepositoryImpl
 import com.grid.pos.data.posReceipt.PosReceiptRepository
 import com.grid.pos.data.posReceipt.PosReceiptRepositoryImpl
+import com.grid.pos.data.purchaseHeader.PurchaseHeaderRepository
+import com.grid.pos.data.purchaseHeader.PurchaseHeaderRepositoryImpl
 import com.grid.pos.data.receipt.ReceiptRepository
 import com.grid.pos.data.receipt.ReceiptRepositoryImpl
 import com.grid.pos.data.settings.SettingsRepository
@@ -181,6 +183,12 @@ object AppModule {
     @Singleton
     fun provideStockAdjustmentRepository(): StockAdjustmentRepository {
         return StockAdjustmentRepositoryImpl()
+    }
+
+    @Provides
+    @Singleton
+    fun providePurchaseHeaderRepository(): PurchaseHeaderRepository {
+        return PurchaseHeaderRepositoryImpl()
     }
 
     @Provides
