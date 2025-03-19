@@ -55,7 +55,13 @@ class PurchaseHeaderRepositoryImpl : PurchaseHeaderRepository {
             }
 
             else -> {
-                updateByProcedure(purchaseHeader)
+                val dataModel = updateByProcedure(purchaseHeader)
+                if (dataModel.succeed && purchaseHeader.purchaseHeaderTransNo.isNullOrEmpty()) {
+                    dataModel.data =
+                        getPurchaseHeaderById(purchaseHeader.purchaseHeaderId) ?: dataModel.data
+                }
+                dataModel
+
             }
         }
     }
@@ -80,7 +86,7 @@ class PurchaseHeaderRepositoryImpl : PurchaseHeaderRepository {
                         ),
                         where,
                         "ORDER BY hp_date DESC",
-                        if (SettingsModel.isSqlServerWebDb) "INNER JOIN acc_transactiontype tt on hp_tt_code = tt.tt_code" else ""
+                        if (SettingsModel.isSqlServerWebDb) "LEFT JOIN acc_transactiontype tt on hp_tt_code = tt.tt_code" else ""
                     )
                     dbResult?.let {
                         while (it.next()) {
@@ -117,7 +123,7 @@ class PurchaseHeaderRepositoryImpl : PurchaseHeaderRepository {
                         ),
                         where,
                         "",
-                        if (SettingsModel.isSqlServerWebDb) "INNER JOIN acc_transactiontype tt on hp_tt_code = tt.tt_code" else ""
+                        if (SettingsModel.isSqlServerWebDb) "LEFT JOIN acc_transactiontype tt on hp_tt_code = tt.tt_code" else ""
                     )
                     dbResult?.let {
                         while (it.next()) {
