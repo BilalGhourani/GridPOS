@@ -15,6 +15,7 @@ import com.grid.pos.interfaces.OnBarcodeResult
 import com.grid.pos.model.PurchaseItemModel
 import com.grid.pos.model.ThirdPartyType
 import com.grid.pos.ui.common.BaseViewModel
+import com.grid.pos.ui.pos.POSUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -357,6 +358,11 @@ class PurchaseViewModel @Inject constructor(
                                 }
                                 withContext(Dispatchers.Main) {
                                     items.addAll(itemsToAdd)
+                                    updatePurchaseHeader(
+                                        POSUtils.refreshValues(
+                                            items, purchaseHeaderState.value
+                                        )
+                                    )
                                     showLoading(false)
                                 }
                             }
@@ -371,6 +377,20 @@ class PurchaseViewModel @Inject constructor(
 
                     }
                 })
+        }
+    }
+
+    fun addPurchaseItem(item: Item) {
+        viewModelScope.launch(Dispatchers.IO) {
+            updateRealItemPrice(item, false)
+            val purchaseItemModel = PurchaseItemModel()
+            purchaseItemModel.setItem(item)
+            items.add(purchaseItemModel)
+            updatePurchaseHeader(
+                POSUtils.refreshValues(
+                    items, purchaseHeaderState.value
+                )
+            )
         }
     }
 

@@ -146,7 +146,7 @@ class PurchaseHeaderRepositoryImpl : PurchaseHeaderRepository {
             purchaseHeaderOrderNo = obj.getStringValue("hp_orderno")
             purchaseHeaderTtCode = obj.getStringValue("hp_tt_code")
             purchaseHeaderTtCodeName =
-                obj.getStringValue("tt_newcode", obj.getStringValue("hio_tt_code"))
+                obj.getStringValue("tt_newcode", obj.getStringValue("hp_tt_code"))
             purchaseHeaderTransNo = obj.getStringValue("hp_transno").ifEmpty { null }
             purchaseHeaderStatus = obj.getStringValue("hp_status").ifEmpty { null }
             purchaseHeaderPlnName = obj.getStringValue("hp_pln_name").ifEmpty { null }

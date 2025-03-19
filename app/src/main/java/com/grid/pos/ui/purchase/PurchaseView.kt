@@ -71,8 +71,10 @@ import com.grid.pos.model.PurchaseItemModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.model.WarehouseModel
 import com.grid.pos.ui.common.SearchableDropdownMenuEx
+import com.grid.pos.ui.common.UIButton
 import com.grid.pos.ui.common.UIImageButton
 import com.grid.pos.ui.navigation.Screen
+import com.grid.pos.ui.pos.POSUtils
 import com.grid.pos.ui.purchase.components.PurchaseDataGrid
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.utils.Utils
@@ -232,6 +234,11 @@ fun PurchaseView(
                                         purchaseQty = quantity
                                     )
                                 )
+                                viewModel.updatePurchaseHeader(
+                                    POSUtils.refreshValues(
+                                        viewModel.items, purchaseHeader
+                                    )
+                                )
                             }
                         },
                         onEdit = { index ->
@@ -253,7 +260,7 @@ fun PurchaseView(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text(
-                            text = "Discount: ${viewModel.purchaseHeaderState.value.purchaseHeaderDisc}%",
+                            text = "Discount: ${viewModel.purchaseHeaderState.value.purchaseHeaderDisc ?: 0.0}%",
                             modifier = Modifier.wrapContentWidth(),
                             textAlign = TextAlign.End,
                             style = TextStyle(
@@ -315,43 +322,31 @@ fun PurchaseView(
                             .height(100.dp)
                             .padding(10.dp),
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceAround
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        UIImageButton(
+                        UIButton(
                             modifier = Modifier
-                                .wrapContentWidth()
-                                .height(100.dp)
-                                .padding(10.dp),
-                            icon = R.drawable.save,
-                            text = "save Order",
-                            iconSize = 60.dp,
-                            isVertical = false
+                                .weight(1f)
+                                .height(100.dp),
+                            text = "Save Order",
                         ) {
                             viewModel.save(true)
                         }
-                        UIImageButton(
+                        UIButton(
                             modifier = Modifier
-                                .wrapContentWidth()
-                                .height(100.dp)
-                                .padding(10.dp),
-                            icon = R.drawable.save,
-                            text = "save Purchase",
-                            iconSize = 60.dp,
-                            isVertical = false
+                                .weight(1f)
+                                .height(100.dp),
+                            text = "Save Purchase"
                         ) {
                             viewModel.save(false)
                         }
 
                         if (showDeleteButton) {
-                            UIImageButton(
+                            UIButton(
                                 modifier = Modifier
-                                    .wrapContentWidth()
-                                    .height(100.dp)
-                                    .padding(10.dp),
-                                icon = R.drawable.delete,
-                                text = "delete",
-                                iconSize = 60.dp,
-                                isVertical = false
+                                    .weight(1f)
+                                    .height(100.dp),
+                                text = "Delete",
                             ) {
                                 viewModel.showPopup(
                                     PopupModel().apply {
@@ -395,10 +390,7 @@ fun PurchaseView(
                             viewModel.launchBarcodeScanner()
                         }) { item ->
                         item as Item
-                        val purchaseItemModel =
-                            PurchaseItemModel()
-                        purchaseItemModel.setItem(item)
-                        viewModel.items.add(purchaseItemModel)
+                        viewModel.addPurchaseItem(item)
                     }
                 }
 
