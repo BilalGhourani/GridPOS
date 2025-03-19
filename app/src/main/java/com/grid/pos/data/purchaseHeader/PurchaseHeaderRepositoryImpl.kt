@@ -143,6 +143,7 @@ class PurchaseHeaderRepositoryImpl : PurchaseHeaderRepository {
             purchaseHeaderCategory = obj.getStringValue("hp_category").ifEmpty { null }
             purchaseHeaderDate = obj.getStringValue("hp_date")
             purchaseHeaderNo = obj.getStringValue("hp_no")
+            purchaseHeaderOrderNo = obj.getStringValue("hp_orderno")
             purchaseHeaderTtCode = obj.getStringValue("hp_tt_code")
             purchaseHeaderTtCodeName =
                 obj.getStringValue("tt_newcode", obj.getStringValue("hio_tt_code"))
@@ -288,7 +289,7 @@ class PurchaseHeaderRepositoryImpl : PurchaseHeaderRepository {
                 purchaseHeader.purchaseHeaderEmployee,//@hp_employee
                 purchaseHeader.purchaseHeaderDelivered,//@hp_delivered
                 SettingsModel.currentUser?.userUsername,//@hp_userstamp
-                null,//@hp_sessionpointer
+                sessionPointer,//@hp_sessionpointer
                 SettingsModel.currentCompany?.cmp_multibranchcode,//@branchcode
                 getValueDateInTimestamp(purchaseHeader.purchaseHeaderValueDate),//@hp_valuedate
                 purchaseHeader.purchaseHeaderPathToDoc,//@hp_pathtodoc

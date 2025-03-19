@@ -9,7 +9,7 @@ data class PurchaseHeader(
     /**
      * hp_id
      */
-    var purchaseHeaderId: String ="",
+    var purchaseHeaderId: String = "",
 
     /**
      * hp_no
@@ -220,7 +220,7 @@ data class PurchaseHeader(
      * hp_tax2amt
      */
     var purchaseHeaderTax2Amt: Double? = null
-): EntityModel() {
+) : EntityModel() {
     constructor() : this("")
 
     @Exclude
@@ -230,6 +230,9 @@ data class PurchaseHeader(
 
     @Exclude
     override fun getName(): String {
+        if (purchaseHeaderTransNo.isNullOrEmpty()) {
+            return purchaseHeaderOrderNo ?: ""
+        }
         return "${purchaseHeaderTtCodeName ?: ""}${purchaseHeaderTransNo ?: ""}"
     }
 

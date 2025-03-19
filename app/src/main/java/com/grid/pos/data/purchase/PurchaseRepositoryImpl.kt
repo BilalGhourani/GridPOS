@@ -96,9 +96,9 @@ class PurchaseRepositoryImpl : PurchaseRepository {
             purchasePrice = obj.getDoubleValue("pu_price")
             purchaseDisc = obj.getDoubleValue("pu_disc")
             purchaseDiscAmt = obj.getDoubleValue("pu_discamt")
-            purchaseWaName= obj.getStringValue("pu_wa_name")
-            purchaseNote= obj.getStringValue("pu_note")
-            purchaseItIdInPack = obj.getStringValue("pu_it_idinpack")
+            purchaseWaName= obj.getStringValue("pu_wa_name").ifEmpty { null }
+            purchaseNote= obj.getStringValue("pu_note").ifEmpty { null }
+            purchaseItIdInPack = obj.getStringValue("pu_it_idinpack").ifEmpty { null }
             purchaseQtyInPack = obj.getDoubleValue("pu_qtyinpack")
             purchaseCost = obj.getDoubleValue("pu_cost")
             purchaseMcurRate = obj.getDoubleValue("pu_mcurrate")
@@ -106,7 +106,7 @@ class PurchaseRepositoryImpl : PurchaseRepository {
             purchaseMcurRateS = obj.getDoubleValue("pu_mcurrates")
             purchaseRemQty = obj.getDoubleValue("pu_remqty")
             purchaseRemQtyWa = obj.getDoubleValue("pu_remqtywa")
-            purchaseFromPuId = obj.getStringValue("frompu_id")
+            purchaseFromPuId = obj.getStringValue("frompu_id").ifEmpty { null }
 
             val timeStamp = obj.getObjectValue("pu_timestamp")
             purchaseTimestamp =
@@ -115,15 +115,15 @@ class PurchaseRepositoryImpl : PurchaseRepository {
                     "yyyy-MM-dd hh:mm:ss.SSS"
                 )
             purchaseUserStamp = obj.getStringValue("pu_userstamp")
-            purchaseDivName = obj.getStringValue("pu_div_name")
+            purchaseDivName = obj.getStringValue("pu_div_name").ifEmpty { null }
             purchaseQtyRatio = obj.getDoubleValue("pu_qtyratio")
             purchasePacks = obj.getDoubleValue("pu_packs")
-            purchaseHsId = obj.getStringValue("pu_hsid")
+            purchaseHsId = obj.getStringValue("pu_hsid").ifEmpty { null }
             purchaseVat = obj.getDoubleValue("pu_vat")
             purchaseOrder = obj.getIntValue("pu_order")
             purchaseTax1 = obj.getDoubleValue("pu_tax1")
             purchaseTax2 = obj.getDoubleValue("pu_tax2")
-            purchaseUnId = obj.getStringValue("pu_un_id")
+            purchaseUnId = obj.getStringValue("pu_un_id").ifEmpty { null }
             purchaseLineNo = obj.getIntValue("pu_lineno")
         }
     }

@@ -323,11 +323,23 @@ fun PurchaseView(
                                 .height(100.dp)
                                 .padding(10.dp),
                             icon = R.drawable.save,
-                            text = "save",
+                            text = "save Order",
                             iconSize = 60.dp,
                             isVertical = false
                         ) {
-                            viewModel.save()
+                            viewModel.save(true)
+                        }
+                        UIImageButton(
+                            modifier = Modifier
+                                .wrapContentWidth()
+                                .height(100.dp)
+                                .padding(10.dp),
+                            icon = R.drawable.save,
+                            text = "save Purchase",
+                            iconSize = 60.dp,
+                            isVertical = false
+                        ) {
+                            viewModel.save(false)
                         }
 
                         if (showDeleteButton) {

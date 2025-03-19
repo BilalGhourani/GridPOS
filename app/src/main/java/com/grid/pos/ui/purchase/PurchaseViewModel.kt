@@ -207,7 +207,9 @@ class PurchaseViewModel @Inject constructor(
         }
     }
 
-    fun save() {
+    fun save(
+        isProformaPurchase: Boolean
+    ) {
         if (items.isEmpty()) {
             showWarning("Please select one item at least!")
             return
@@ -223,16 +225,18 @@ class PurchaseViewModel @Inject constructor(
         showLoading(true)
         viewModelScope.launch(Dispatchers.IO) {
             val purchaseHeader = purchaseHeaderState.value.copy()
+            purchaseHeader.purchaseHeaderCategory =
+                if (isProformaPurchase) "Proforma Purchase" else "Purchase Invoice"
+            if (!isProformaPurchase && purchaseHeader.purchaseHeaderTtCode.isNullOrEmpty()) {
+                val transType =
+                    state.value.transactionTypes.firstOrNull { it.transactionTypeDefault == 1 }
+                purchaseHeader.purchaseHeaderTtCode =
+                    transType?.transactionTypeId ?: purchaseTransCode
+                purchaseHeader.purchaseHeaderTtCodeName = transType?.transactionTypeCode
+            }
             val succeed: Boolean
             if (purchaseHeader.isNew()) {
                 purchaseHeader.prepareForInsert()
-                if (purchaseHeader.purchaseHeaderTtCode.isNullOrEmpty()) {
-                    val transType =
-                        state.value.transactionTypes.firstOrNull { it.transactionTypeDefault == 1 }
-                    purchaseHeader.purchaseHeaderTtCode =
-                        transType?.transactionTypeId ?: purchaseTransCode
-                    purchaseHeader.purchaseHeaderTtCodeName = transType?.transactionTypeCode
-                }
                 val dataModel = purchaseHeaderRepository.insert(purchaseHeader)
                 succeed = dataModel.succeed
                 if (succeed) {
