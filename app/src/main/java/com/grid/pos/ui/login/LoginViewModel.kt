@@ -178,6 +178,9 @@ class LoginViewModel @Inject constructor(
             } else if (sharedViewModel.checkPermission("Table Management: Open Table Number", false)) {
                 user.userPosMode = false
                 user.userTableMode = true
+            }else if (sharedViewModel.checkPermission("Run POS In Table Number Mode", false)) {
+                user.userPosMode = false
+                user.userTableMode = true
             }
         }
         return user
