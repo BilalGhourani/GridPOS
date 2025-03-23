@@ -5,7 +5,9 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -39,6 +41,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -50,6 +53,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Popup
+import androidx.compose.ui.window.PopupProperties
 import com.grid.pos.R
 import com.grid.pos.data.EntityModel
 import com.grid.pos.model.SettingsModel
@@ -58,6 +63,7 @@ import com.grid.pos.model.SettingsModel
 fun SearchableDropdownMenuEx(
     modifier: Modifier = Modifier,
     items: MutableList<EntityModel> = mutableListOf(),
+    paddingValues: PaddingValues = PaddingValues(0.dp),
     placeholder: String? = null,
     label: String = "",
     searchEnteredText: String? = null,
@@ -114,192 +120,211 @@ fun SearchableDropdownMenuEx(
         }
     }
 
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .background(color = color)
-    ) {
-        if (!placeholder.isNullOrEmpty()) {
-            // If text is present, show placeholder at the top
-            Text(
-                text = placeholder,
-                color = SettingsModel.textColor,
-                fontSize = 12.sp,
-                modifier = Modifier.padding(
-                    start = 8.dp,
-                    bottom = 4.dp
+    Box(modifier = modifier
+        .fillMaxWidth()
+        .padding(paddingValues)
+        .pointerInput(isExpanded) {
+            detectTapGestures(onTap = {
+                isExpanded = false
+            })
+        }) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(color = color)
+        ) {
+            if (!placeholder.isNullOrEmpty()) {
+                // If text is present, show placeholder at the top
+                Text(
+                    text = placeholder,
+                    color = SettingsModel.textColor,
+                    fontSize = 12.sp,
+                    modifier = Modifier.padding(
+                        start = 8.dp,
+                        bottom = 4.dp
+                    )
                 )
-            )
-        }
-        Row(modifier = Modifier
-            .fillMaxWidth()
-            .height(height)
-            .border(
-                1.dp,
-                Color.Black,
-                RoundedCornerShape(cornerRadius)
-            )
-            .clickable {
-                if (!isExpanded && !isLoaded) {
-                    isLoaded = true
-                    onLoadItems.invoke()
-                }
-                isExpanded = !isExpanded
-            }) {
-            leadingIcon?.invoke(
-                Modifier
-                    .padding(
-                        start = 10.dp,
-                        top = 10.dp,
-                        bottom = 10.dp
-                    )
-                    .align(Alignment.CenterVertically)
-                    .clickable {
-                        onLeadingIconClick.invoke()
-                        isExpanded = false
-                    })
-            Text(
-                modifier = Modifier
-                    .padding(
-                        start = 10.dp,
-                        top = 10.dp,
-                        bottom = 10.dp
-                    )
-                    .align(Alignment.CenterVertically),
-                text = selectedItemState,
-                style = TextStyle(
-                    textDecoration = TextDecoration.None,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp
-                ),
-                color = SettingsModel.textColor
-            )
-
-            Spacer(modifier = Modifier.weight(1f))
-
-            Icon(
-                Icons.Filled.ArrowDropDown,
-                null,
-                Modifier
-                    .padding(
-                        top = 10.dp,
-                        bottom = 10.dp,
-                        end = 10.dp
-                    )
-                    .align(Alignment.CenterVertically)
-                    .rotate(if (isExpanded) 180f else 0f),
-                tint = SettingsModel.buttonColor
-            )
-        }
-
-        if (isExpanded) {
-            val filteredItems = if (searchText.isEmpty()) items else items.filter {
-                it.search(searchText)
             }
-            Surface(
-                modifier = Modifier.padding(top = 2.dp),
-                tonalElevation = 5.dp,
-                shadowElevation = 5.dp,
-                color = color,
-                contentColor = color,
-                shape = RoundedCornerShape(cornerRadius),
-                border = BorderStroke(
+            Row(modifier = Modifier
+                .fillMaxWidth()
+                .height(height)
+                .border(
                     1.dp,
-                    Color.Black
+                    Color.Black,
+                    RoundedCornerShape(cornerRadius)
                 )
-            ) {
-                Column {
-                    if (enableSearch) {
-                        OutlinedTextField(modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(
-                                horizontal = 8.dp,
-                                vertical = 5.dp
-                            ),
-                            value = searchText,
-                            onValueChange = {
-                                searchText = it
-                            },
-                            shape = RoundedCornerShape(cornerRadius),
-                            label = {
-                                Text(
-                                    "Search",
-                                    color = SettingsModel.textColor
-                                )
-                            },
-                            keyboardOptions = KeyboardOptions(
-                                capitalization = KeyboardCapitalization.None,
-                                autoCorrectEnabled = true,
-                                keyboardType = KeyboardType.Text,
-                                imeAction = ImeAction.Search
-                            ),
-                            keyboardActions = KeyboardActions(
-                                onSearch = {
-                                    if (searchText.isNotEmpty() && filteredItems.isEmpty()) {
-                                        onNoSearchResultsFound?.invoke(searchText)
-                                    }
-
-                                }
-                            ),
-                            leadingIcon =  searchLeadingIcon,
-                            trailingIcon = {
-                                IconButton(onClick = {
-                                    searchText = ""
-                                }) {
-                                    Icon(
-                                        imageVector = Icons.Default.Clear,
-                                        contentDescription = "clear",
-                                        tint = SettingsModel.buttonColor
-                                    )
-                                }
-                            })
+                .clickable {
+                    if (!isExpanded && !isLoaded) {
+                        isLoaded = true
+                        onLoadItems.invoke()
                     }
+                    isExpanded = !isExpanded
+                }) {
+                leadingIcon?.invoke(
+                    Modifier
+                        .padding(
+                            start = 10.dp,
+                            top = 10.dp,
+                            bottom = 10.dp
+                        )
+                        .align(Alignment.CenterVertically)
+                        .clickable {
+                            onLeadingIconClick.invoke()
+                            isExpanded = false
+                        })
+                Text(
+                    modifier = Modifier
+                        .padding(
+                            start = 10.dp,
+                            top = 10.dp,
+                            bottom = 10.dp
+                        )
+                        .align(Alignment.CenterVertically),
+                    text = selectedItemState,
+                    style = TextStyle(
+                        textDecoration = TextDecoration.None,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp
+                    ),
+                    color = SettingsModel.textColor
+                )
 
-                    if (filteredItems.isNotEmpty()) {
-                        LazyColumn(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .wrapContentHeight()
-                                .padding(top = 10.dp)
-                                .heightIn(
-                                    min = minHeight,
-                                    max = maxHeight
-                                ),
-                            contentPadding = PaddingValues(horizontal = 10.dp)
-                        ) {
-                            filteredItems.forEach { dataObj ->
-                                item {
-                                    Text(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .height(40.dp)
-                                            .clickable {
-                                                onSelectionChange(dataObj)
-                                                if (showSelected) selectedItemState =
-                                                    dataObj.getName()
-                                                isExpanded = false
-                                            },
-                                        text = dataObj.getName(),
-                                        maxLines = 2,
-                                        color = SettingsModel.textColor,
-                                        overflow = TextOverflow.Ellipsis
+                Spacer(modifier = Modifier.weight(1f))
+
+                Icon(
+                    Icons.Filled.ArrowDropDown,
+                    null,
+                    Modifier
+                        .padding(
+                            top = 10.dp,
+                            bottom = 10.dp,
+                            end = 10.dp
+                        )
+                        .align(Alignment.CenterVertically)
+                        .rotate(if (isExpanded) 180f else 0f),
+                    tint = SettingsModel.buttonColor
+                )
+            }
+
+            if (isExpanded) {
+                val filteredItems = if (searchText.isEmpty()) items else items.filter {
+                    it.search(searchText)
+                }
+                Popup(
+                    onDismissRequest = { isExpanded = false },
+                    properties = PopupProperties(
+                        focusable = true, // Close on outside tap
+                        dismissOnBackPress = true, // Close on back press
+                        dismissOnClickOutside = true // Close on outside click
+                    )
+                ) {
+                    Surface(
+                        modifier = Modifier.padding(top = height + 2.dp, start = 5.dp, end = 5.dp)
+                            .clickable { isExpanded = false },
+                        tonalElevation = 5.dp,
+                        shadowElevation = 5.dp,
+                        color = color,
+                        contentColor = color,
+                        shape = RoundedCornerShape(cornerRadius),
+                        border = BorderStroke(
+                            1.dp,
+                            Color.Black
+                        )
+                    ) {
+                        Column {
+                            if (enableSearch) {
+                                OutlinedTextField(modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(
+                                        horizontal = 8.dp,
+                                        vertical = 5.dp
+                                    ),
+                                    value = searchText,
+                                    onValueChange = {
+                                        searchText = it
+                                    },
+                                    shape = RoundedCornerShape(cornerRadius),
+                                    label = {
+                                        Text(
+                                            "Search",
+                                            color = SettingsModel.textColor
+                                        )
+                                    },
+                                    keyboardOptions = KeyboardOptions(
+                                        capitalization = KeyboardCapitalization.None,
+                                        autoCorrectEnabled = true,
+                                        keyboardType = KeyboardType.Text,
+                                        imeAction = ImeAction.Search
+                                    ),
+                                    keyboardActions = KeyboardActions(
+                                        onSearch = {
+                                            if (searchText.isNotEmpty() && filteredItems.isEmpty()) {
+                                                onNoSearchResultsFound?.invoke(searchText)
+                                            }
+
+                                        }
+                                    ),
+                                    leadingIcon = searchLeadingIcon,
+                                    trailingIcon = {
+                                        IconButton(onClick = {
+                                            searchText = ""
+                                        }) {
+                                            Icon(
+                                                imageVector = Icons.Default.Clear,
+                                                contentDescription = "clear",
+                                                tint = SettingsModel.buttonColor
+                                            )
+                                        }
+                                    })
+                            }
+
+                            if (filteredItems.isNotEmpty()) {
+                                LazyColumn(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .wrapContentHeight()
+                                        .padding(top = 10.dp)
+                                        .heightIn(
+                                            min = minHeight,
+                                            max = maxHeight
+                                        ),
+                                    contentPadding = PaddingValues(horizontal = 10.dp)
+                                ) {
+                                    filteredItems.forEach { dataObj ->
+                                        item {
+                                            Text(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .height(40.dp)
+                                                    .clickable {
+                                                        onSelectionChange(dataObj)
+                                                        if (showSelected) selectedItemState =
+                                                            dataObj.getName()
+                                                        isExpanded = false
+                                                    },
+                                                text = dataObj.getName(),
+                                                maxLines = 2,
+                                                color = SettingsModel.textColor,
+                                                overflow = TextOverflow.Ellipsis
+                                            )
+                                        }
+                                    }
+                                }
+                            } else {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(100.dp)
+                                        .background(color = color),
+                                    horizontalArrangement = Arrangement.Center
+                                ) {
+                                    Image(
+                                        modifier = Modifier.size(100.dp),
+                                        painter = painterResource(R.drawable.empty_result),
+                                        contentDescription = "clear"
                                     )
                                 }
                             }
-                        }
-                    } else {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(100.dp)
-                                .background(color = color),
-                            horizontalArrangement = Arrangement.Center
-                        ) {
-                            Image(
-                                modifier = Modifier.size(100.dp),
-                                painter = painterResource(R.drawable.empty_result),
-                                contentDescription = "clear"
-                            )
                         }
                     }
                 }

@@ -966,13 +966,13 @@ class InvoiceHeaderRepositoryImpl(
             invoiceHeadCompId = obj.getStringValue("hi_cmp_id")
             invoiceHeadDate = obj.getStringValue("hi_date")
             invoiceHeadOrderNo = obj.getStringValue("hi_orderno")
-            invoiceHeadTtCode = obj.getStringValue("hi_tt_code")
+            invoiceHeadTtCode = obj.getStringValue("hi_tt_code").ifEmpty { null }
             invoiceHeadTtCodeName = obj.getStringValue(ttCodeKey)
             invoiceHeadTransNo = obj.getStringValue("hi_transno")
             invoiceHeadStatus = obj.getStringValue("hi_status")
-            invoiceHeadNote = obj.getStringValue("hi_note")
-            invoiceHeadThirdPartyName = obj.getStringValue("hi_tp_name")
-            invoiceHeadCashName = obj.getStringValue("hi_cashname")
+            invoiceHeadNote = obj.getStringValue("hi_note").ifEmpty { null }
+            invoiceHeadThirdPartyName = obj.getStringValue("hi_tp_name").ifEmpty { null }
+            invoiceHeadCashName = obj.getStringValue("hi_cashname").ifEmpty { null }
             invoiceHeadTotalNetAmount = obj.getDoubleValue("hi_netamt")
             invoiceHeadGrossAmount = obj.getDoubleValue("hi_netamt")
             invoiceHeadDiscount = obj.getDoubleValue("hi_disc")
@@ -988,10 +988,10 @@ class InvoiceHeaderRepositoryImpl(
                 invoiceHeadTotal1.div(invoiceHeadRate)
             )
             if (SettingsModel.isSqlServerWebDb) {
-                invoiceHeadTableId = obj.getStringValue("hi_ta_name")
+                invoiceHeadTableId = obj.getStringValue("hi_ta_name").ifEmpty { null }
             } else {
-                invoiceHeadTableId = obj.getStringValue("hi_ta_name")
-                invoiceHeadTaName = obj.getStringValue("hi_ta_name")
+                invoiceHeadTableId = obj.getStringValue("hi_ta_name").ifEmpty { null }
+                invoiceHeadTaName = obj.getStringValue("hi_ta_name").ifEmpty { null }
             }
             invoiceHeadClientsCount = obj.getIntValue("hi_clientscount")
             invoiceHeadChange = obj.getDoubleValue("hi_change")
@@ -1100,7 +1100,8 @@ class InvoiceHeaderRepositoryImpl(
                 invoiceHeader.invoiceHeadRate,//rate seconds
                 getRateTax(invoiceHeader),//rate tax
                 0,//tips
-                invoiceHeader.invoiceHeadTableId.takeIf { !it.isNullOrEmpty() } ?: invoiceHeader.invoiceHeadTaName?.ifEmpty { null },
+                invoiceHeader.invoiceHeadTableId.takeIf { !it.isNullOrEmpty() }
+                    ?: invoiceHeader.invoiceHeadTaName?.ifEmpty { null },
                 invoiceHeader.invoiceHeadClientsCount,
                 0,//mincharge
                 null,//hi_employee
@@ -1161,7 +1162,8 @@ class InvoiceHeaderRepositoryImpl(
                 invoiceHeader.invoiceHeadRate,//rate seconds
                 getRateTax(invoiceHeader),//rate tax
                 0,//tips
-                invoiceHeader.invoiceHeadTableId.takeIf { !it.isNullOrEmpty() } ?: invoiceHeader.invoiceHeadTaName?.ifEmpty { null },
+                invoiceHeader.invoiceHeadTableId.takeIf { !it.isNullOrEmpty() }
+                    ?: invoiceHeader.invoiceHeadTaName?.ifEmpty { null },
                 invoiceHeader.invoiceHeadClientsCount,
                 0,//mincharge
                 null,//hi_employee
@@ -1219,7 +1221,7 @@ class InvoiceHeaderRepositoryImpl(
                 getDateInTimestamp(invoiceHeader.invoiceHeadDueDate),
                 if (!invoiceHeader.invoiceHeadTaName.isNullOrEmpty()) "In" else "Carry",
                 invoiceHeader.invoiceHeadOrderNo,
-                invoiceHeader.invoiceHeadTtCode,
+                invoiceHeader.invoiceHeadTtCode.takeIf { !it.isNullOrEmpty() },
                 invoiceHeader.invoiceHeadTransNo,
                 null,
                 null,
@@ -1242,7 +1244,8 @@ class InvoiceHeaderRepositoryImpl(
                 invoiceHeader.invoiceHeadRate,//rate seconds
                 getRateTax(invoiceHeader),//rate tax
                 0,//tips
-                invoiceHeader.invoiceHeadTableId.takeIf { !it.isNullOrEmpty() } ?: invoiceHeader.invoiceHeadTaName?.ifEmpty { null },
+                invoiceHeader.invoiceHeadTableId.takeIf { !it.isNullOrEmpty() }
+                    ?: invoiceHeader.invoiceHeadTaName?.ifEmpty { null },
                 invoiceHeader.invoiceHeadClientsCount,
                 0,//mincharge
                 null,//hi_employee
@@ -1280,7 +1283,7 @@ class InvoiceHeaderRepositoryImpl(
                 getDateInTimestamp(invoiceHeader.invoiceHeadDueDate),
                 if (!invoiceHeader.invoiceHeadTaName.isNullOrEmpty()) "In" else "Carry",
                 invoiceHeader.invoiceHeadOrderNo,
-                invoiceHeader.invoiceHeadTtCode,
+                invoiceHeader.invoiceHeadTtCode.takeIf { !it.isNullOrEmpty() } ,
                 invoiceHeader.invoiceHeadTransNo,
                 null,
                 null,
@@ -1303,7 +1306,8 @@ class InvoiceHeaderRepositoryImpl(
                 invoiceHeader.invoiceHeadRate,//rate seconds
                 getRateTax(invoiceHeader),//rate tax
                 0,//tips
-                invoiceHeader.invoiceHeadTableId.takeIf { !it.isNullOrEmpty() } ?: invoiceHeader.invoiceHeadTaName?.ifEmpty { null },
+                invoiceHeader.invoiceHeadTableId.takeIf { !it.isNullOrEmpty() }
+                    ?: invoiceHeader.invoiceHeadTaName?.ifEmpty { null },
                 invoiceHeader.invoiceHeadClientsCount,
                 0,//mincharge
                 null,//hi_employee
