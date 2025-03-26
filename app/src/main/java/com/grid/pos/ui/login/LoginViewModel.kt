@@ -7,10 +7,12 @@ import com.grid.pos.App
 import com.grid.pos.SharedViewModel
 import com.grid.pos.data.company.Company
 import com.grid.pos.data.company.CompanyRepository
+import com.grid.pos.data.connection.ConnectionRepository
 import com.grid.pos.data.user.User
 import com.grid.pos.data.user.UserRepository
 import com.grid.pos.model.LoginResponse
 import com.grid.pos.model.SettingsModel
+import com.grid.pos.model.ToastModel
 import com.grid.pos.ui.common.BaseViewModel
 import com.grid.pos.useCases.CheckLicenseUseCase
 import com.grid.pos.ui.navigation.Screen
@@ -26,6 +28,7 @@ class LoginViewModel @Inject constructor(
     private val checkLicenseUseCase: CheckLicenseUseCase,
     private val repository: UserRepository,
     private val companyRepository: CompanyRepository,
+    private val connectionRepository: ConnectionRepository,
     private val sharedViewModel: SharedViewModel
 ) : BaseViewModel(sharedViewModel) {
 
@@ -55,21 +58,29 @@ class LoginViewModel @Inject constructor(
         showLoading(true)
 
         viewModelScope.launch(Dispatchers.IO) {
-            //CryptoUtils.test(App.getInstance().getConfigValue("key_for_license"))
-            checkLicenseUseCase.invoke(context, onResult = { result, message ->
-                viewModelScope.launch(Dispatchers.Main) {
-                    when (result) {
-                        Constants.SUCCEEDED -> {
-                            loginNow(username, password, callback)
-                        }
-
-                        else -> {
-                            showWarning(message)
-                            callback.invoke("LicenseView")
-                        }
+            if (Constants.PLAY_STORE_VERSION) {
+               val model =  connectionRepository.login(username, password)
+                if(model.success==1){
+                    withContext(Dispatchers.Main){
+                        sharedViewModel.showToastMessage(ToastModel("succeeded"))
                     }
                 }
-            })
+            } else {
+                checkLicenseUseCase.invoke(context, onResult = { result, message ->
+                    viewModelScope.launch(Dispatchers.Main) {
+                        when (result) {
+                            Constants.SUCCEEDED -> {
+                                loginNow(username, password, callback)
+                            }
+
+                            else -> {
+                                showWarning(message)
+                                callback.invoke("LicenseView")
+                            }
+                        }
+                    }
+                })
+            }
         }
     }
 
@@ -175,10 +186,14 @@ class LoginViewModel @Inject constructor(
             if (sharedViewModel.checkPermission("Run In POS Mode", false)) {
                 user.userPosMode = true
                 user.userTableMode = false
-            } else if (sharedViewModel.checkPermission("Table Management: Open Table Number", false)) {
+            } else if (sharedViewModel.checkPermission(
+                    "Table Management: Open Table Number",
+                    false
+                )
+            ) {
                 user.userPosMode = false
                 user.userTableMode = true
-            }else if (sharedViewModel.checkPermission("Run POS In Table Number Mode", false)) {
+            } else if (sharedViewModel.checkPermission("Run POS In Table Number Mode", false)) {
                 user.userPosMode = false
                 user.userTableMode = true
             }

@@ -7,6 +7,7 @@ object Constants {
     const val LICENSE_FILE_CONTENT = "2r6xqq4nMdry0uvLQRpRxQ=="
     const val LICENSE_WARNING_TITLE ="CheckLicense"
     const val LICENSE_WARNING_DESCRIPTION = "Local server is not responding, contact your system administrator"
+    const val PLAY_STORE_VERSION = true
 
     /*
     * license result value

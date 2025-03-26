@@ -24,6 +24,7 @@ import com.grid.pos.data.MIGRATION_3_4
 import com.grid.pos.data.MIGRATION_4_5
 import com.grid.pos.data.MIGRATION_5_6
 import com.grid.pos.data.MIGRATION_6_7
+import com.grid.pos.data.connection.ConnectionRepository
 import com.grid.pos.data.payment.PaymentRepository
 import com.grid.pos.data.payment.PaymentRepositoryImpl
 import com.grid.pos.data.posPrinter.PosPrinterRepository
@@ -83,6 +84,12 @@ object AppModule {
             .addMigrations(MIGRATION_5_6)
             .addMigrations(MIGRATION_6_7)
             .addCallback(callback).build()
+    }
+
+    @Provides
+    @Singleton
+    fun provideConnectionRepository(): ConnectionRepository {
+        return ConnectionRepository()
     }
 
     @Provides

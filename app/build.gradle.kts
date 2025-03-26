@@ -142,6 +142,13 @@ dependencies {
     implementation("androidx.datastore:datastore-preferences-rxjava3:1.1.1")
     implementation("net.sourceforge.jtds:jtds:1.3.1")
 
+    // Retrofit and Gson Converter
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+
+    // OkHttp for logging (optional)
+    implementation("com.squareup.okhttp3:logging-interceptor:4.9.3")
+
     // For working with .xlsx files
     implementation("org.apache.poi:poi:5.2.3") // Update to the latest version if necessary
     implementation("org.apache.poi:poi-ooxml:5.2.3") {
@@ -168,6 +175,9 @@ dependencies {
 
     // parse html contents
     implementation ("org.jsoup:jsoup:1.15.3")
+
+    //Microsoft JDBC Driver Dependency
+    implementation ("com.microsoft.sqlserver:mssql-jdbc:12.2.0.jre11")
 
 
 }
