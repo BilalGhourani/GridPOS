@@ -3,6 +3,7 @@ package com.grid.pos.ui.login
 import android.content.Context
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.viewModelScope
+import com.google.gson.Gson
 import com.grid.pos.App
 import com.grid.pos.SharedViewModel
 import com.grid.pos.data.company.Company
@@ -11,16 +12,19 @@ import com.grid.pos.data.connection.ConnectionRepository
 import com.grid.pos.data.user.User
 import com.grid.pos.data.user.UserRepository
 import com.grid.pos.model.LoginResponse
+import com.grid.pos.model.LoginResponseModel
 import com.grid.pos.model.SettingsModel
 import com.grid.pos.model.ToastModel
 import com.grid.pos.ui.common.BaseViewModel
 import com.grid.pos.useCases.CheckLicenseUseCase
 import com.grid.pos.ui.navigation.Screen
 import com.grid.pos.utils.Constants
+import com.grid.pos.utils.CryptoUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.json.JSONObject
 import javax.inject.Inject
 
 @HiltViewModel
@@ -59,10 +63,18 @@ class LoginViewModel @Inject constructor(
 
         viewModelScope.launch(Dispatchers.IO) {
             if (Constants.PLAY_STORE_VERSION) {
-               val model =  connectionRepository.login(username, password)
-                if(model.success==1){
-                    withContext(Dispatchers.Main){
-                        sharedViewModel.showToastMessage(ToastModel("succeeded"))
+                val model = connectionRepository.login(username, password)
+                if (model.success == 1 && model.encrypted != null) {
+                    model.encrypted = CryptoUtils.decryptDES(
+                        model.encrypted!!,
+                        App.getInstance().getConfigValue("api_key")
+                    )
+                    fillConnectionParams(model)
+                    proceedWithLogin(callback)
+                } else {
+                    withContext(Dispatchers.Main) {
+                        showWarning("Username or Password are incorrect!")
+                        sharedViewModel.showLoading(false)
                     }
                 }
             } else {
@@ -199,5 +211,42 @@ class LoginViewModel @Inject constructor(
             }
         }
         return user
+    }
+
+    private fun fillConnectionParams(model: LoginResponseModel) {
+        try {
+            val conData = JSONObject(model.encrypted)
+            SettingsModel.isSqlServerWebDb = true
+            if (conData.has("user")) {
+                SettingsModel.currentUser = Gson().fromJson(model.user.toString(), User::class.java)
+                SettingsModel.sqlServerCompanyId = SettingsModel.currentUser?.userCompanyId
+            }
+            if (conData.has("server")) {
+                SettingsModel.sqlServerPath = conData.optString("server")
+                if (conData.has("port")) {
+                    SettingsModel.sqlServerPath += ":${conData.optInt("port")}"
+                }
+            }
+            if (conData.has("host")) {
+                SettingsModel.sqlServerName = conData.optString("host")
+            }
+            if (conData.has("database")) {
+                SettingsModel.sqlServerDbName = conData.optString("database")
+            }
+            if (conData.has("user")) {
+                SettingsModel.sqlServerDbUser = conData.optString("user")
+            }
+            if (conData.has("password")) {
+                SettingsModel.sqlServerDbPassword = conData.optString("password")
+            }
+            if (conData.has("options")) {
+                val optionObj = JSONObject(conData.optString("options"))
+                SettingsModel.encrypt = optionObj.optBoolean("encrypt", true)
+                SettingsModel.trustServerCertificate =
+                    conData.optBoolean("trustServerCertificate", true)
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 }

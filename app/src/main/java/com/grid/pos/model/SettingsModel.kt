@@ -26,6 +26,8 @@ object SettingsModel {
     var sqlServerDbPassword: String? = null
     var sqlServerCompanyId: String? = null
     var isSqlServerWebDb: Boolean = true
+    var encrypt: Boolean = true
+    var trustServerCertificate: Boolean = true
 
     var cashPrinter: String? = null
     var defaultSaleInvoice: String = "SI"
