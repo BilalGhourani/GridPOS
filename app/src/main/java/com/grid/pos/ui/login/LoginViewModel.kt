@@ -11,6 +11,7 @@ import com.grid.pos.data.company.CompanyRepository
 import com.grid.pos.data.connection.ConnectionRepository
 import com.grid.pos.data.user.User
 import com.grid.pos.data.user.UserRepository
+import com.grid.pos.model.CONNECTION_TYPE
 import com.grid.pos.model.LoginResponse
 import com.grid.pos.model.LoginResponseModel
 import com.grid.pos.model.SettingsModel
@@ -216,6 +217,7 @@ class LoginViewModel @Inject constructor(
     private fun fillConnectionParams(model: LoginResponseModel) {
         try {
             val conData = JSONObject(model.encrypted)
+            SettingsModel.connectionType = CONNECTION_TYPE.SQL_SERVER.key
             SettingsModel.isSqlServerWebDb = true
             if (conData.has("user")) {
                 SettingsModel.currentUser = Gson().fromJson(model.user.toString(), User::class.java)
