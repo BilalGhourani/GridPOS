@@ -80,6 +80,7 @@ import com.grid.pos.ui.common.UISwitch
 import com.grid.pos.ui.common.UITextField
 import com.grid.pos.ui.theme.GridPOSTheme
 import com.grid.pos.ui.theme.LightGrey
+import com.grid.pos.utils.Constants
 import com.grid.pos.utils.DataStoreManager
 import com.grid.pos.utils.Extension.toHexCode
 import com.grid.pos.utils.Utils
@@ -230,7 +231,7 @@ fun SettingsView(
                     .padding(it)
                     .verticalScroll(rememberScrollState()),
             ) {
-                if (!viewModel.isLoggedId) {
+                if (!viewModel.isLoggedId && !Constants.PLAY_STORE_VERSION) {
                     Card(
                         modifier = Modifier
                             .padding(10.dp)
